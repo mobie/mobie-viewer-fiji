@@ -124,7 +124,7 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 	}
 
 	@Override
-	public Pair< Double, Double > computeMinMax( String columnName )
+	public Pair< Double, Double > getMinMax( String columnName )
 	{
 		return null;
 	}

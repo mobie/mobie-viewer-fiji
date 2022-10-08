@@ -40,6 +40,7 @@ public class OpenRemotePlatynereis
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
+		MoBIE.setCommandService( imageJ.command() );
 
 		new MoBIE("https://github.com/platybrowser/platybrowser" ).getViewManager().show( "cells" ); // "Figure 2C: Muscle segmentation"
 	}

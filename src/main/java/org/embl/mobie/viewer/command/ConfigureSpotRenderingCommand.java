@@ -26,22 +26,44 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.serialize;
+package org.embl.mobie.viewer.command;
 
-import org.embl.mobie.viewer.source.StorageLocation;
-import org.embl.mobie.viewer.table.TableDataFormat;
+import bdv.viewer.SourceAndConverter;
+import org.embl.mobie.viewer.image.SpotLabelImage;
+import org.scijava.plugin.Parameter;
+import org.scijava.plugin.Plugin;
+import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
+import sc.fiji.bdvpg.services.ISourceAndConverterService;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-import java.util.Map;
-
-public class SpotDataSource extends AbstractDataSource
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Spot Rendering")
+public class ConfigureSpotRenderingCommand extends ConfigureLabelRenderingCommand
 {
-	// Serialization
-	public Map< TableDataFormat, StorageLocation > tableData;
+	@Parameter( label = "Spot radius" )
+	public double spotRadius = 1.0;
 
-	public double[] boundingBoxMin;
+	@Override
+	public void run()
+	{
+		configureBoundaryRendering();
 
-	public double[] boundingBoxMax;
+		configureSelectionColoring();
 
-	public String unit; // spatial
+		configureRandomColorSeed();
+
+		configureSpotRadius();
+
+		bdvh.getViewerPanel().requestRepaint();
+	}
+
+	private void configureSpotRadius()
+	{
+		final ISourceAndConverterService service = SourceAndConverterServices.getSourceAndConverterService();
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		{
+			final SpotLabelImage spotLabelImage = ( SpotLabelImage ) service.getMetadata( sourceAndConverter, SpotLabelImage.class.getName() );
+			spotLabelImage.setRadius( spotRadius );
+		}
+	}
+
 }
-

@@ -91,7 +91,7 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	}
 
 	@Override
-	public Pair< Double, Double > computeMinMax( String columnName )
+	public Pair< Double, Double > getMinMax( String columnName )
 	{
 		// FIXME
 		return null;

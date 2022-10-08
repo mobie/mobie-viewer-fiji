@@ -209,7 +209,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	}
 
 	@Override
-	public Pair< Double, Double > computeMinMax( String columnName )
+	public Pair< Double, Double > getMinMax( String columnName )
 	{
 		// one could consider caching the results...
 		final NumericColumn< ? > numericColumn = table.nCol( columnName );

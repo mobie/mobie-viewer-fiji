@@ -104,6 +104,10 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 
 	public void setRandomSeed( int randomSeed )
 	{
+		if ( randomSeed == this.randomSeed )
+			return;
+
+		inputToRandomColor.clear();
 		this.randomSeed = randomSeed;
 	}
 

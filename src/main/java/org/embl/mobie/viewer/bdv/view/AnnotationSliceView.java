@@ -39,10 +39,13 @@ import org.embl.mobie.viewer.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.viewer.color.AnnotationARGBConverter;
 import org.embl.mobie.viewer.color.ColoringListener;
 import org.embl.mobie.viewer.color.VolatileAnnotationARGBConverter;
+import org.embl.mobie.viewer.image.AnnotatedLabelImage;
+import org.embl.mobie.viewer.image.SpotLabelImage;
 import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
 import org.embl.mobie.viewer.serialize.display.AnnotationDisplay;
 import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
 import org.embl.mobie.viewer.select.SelectionListener;
+import org.embl.mobie.viewer.serialize.display.SpotDisplay;
 import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.image.Image;
@@ -77,9 +80,21 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 
 			if ( display instanceof SegmentationDisplay )
 			{
-				// configure volume rendering bdv context menu
-				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, SegmentsVolumeViewer.class.getName(), ((SegmentationDisplay) display ).segmentsVolumeViewer );
+				final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) display;
+				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, SegmentsVolumeViewer.class.getName(), segmentationDisplay.segmentsVolumeViewer );
 			}
+
+			if ( display instanceof SpotDisplay )
+			{
+				final SpotDisplay spotDisplay = ( SpotDisplay ) display;
+
+				final Image labelImage = ( ( AnnotatedLabelImage ) image ).getLabelImage();
+				final SpotLabelImage spotLabelImage = ( SpotLabelImage ) labelImage;
+				spotLabelImage.setRadius( spotDisplay.spotRadius );
+				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, SpotLabelImage.class.getName(), spotLabelImage );
+			}
+
+
 		}
 	}
 
@@ -88,6 +103,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		// create non-volatile sac
 		//
 		//System.out.println( "AnnotationSliceView: Creating SAC for " + image.getName() );
+
 		final Source< AnnotationType< A > > source = image.getSourcePair().getSource();
 		final BoundarySource boundarySource = new BoundarySource( source, false, 0.0F, image.getMask() );
 		final Converter< AnnotationType< A >, ARGBType > annotationARGBConverter = new AnnotationARGBConverter<>( display.coloringModel );

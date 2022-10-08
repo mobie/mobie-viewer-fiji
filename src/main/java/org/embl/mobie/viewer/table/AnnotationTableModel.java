@@ -22,7 +22,7 @@ public interface AnnotationTableModel< A extends Annotation >
 	void setAvailableColumnPaths( Set< String> availableColumnPaths );
 	Collection< String > availableColumnPaths(); // where to load more chucks of columns
 	LinkedHashSet< String > loadedColumnPaths(); // which column chunks have been loaded, in the order in which they have been loaded
-	Pair< Double, Double > computeMinMax( String columnName ); // for contrast limits during rendering
+	Pair< Double, Double > getMinMax( String columnName ); // for contrast limits during rendering
 	Set< A > annotations();
 	void addStringColumn( String columnName );
 	boolean isDataLoaded();

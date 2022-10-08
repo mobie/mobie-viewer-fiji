@@ -95,9 +95,7 @@ public class View
 				//   https://github.com/mobie/mobie.github.io/issues/88
 				final SpotDisplay< ? > spotDisplay = ( SpotDisplay< ? > ) display;
 				for ( String source : spotDisplay.sources )
-				{
 					sources.put( source, display );
-				}
 			}
 		}
 

@@ -46,6 +46,7 @@ import org.embl.mobie.viewer.annotation.AnnotatedSpot;
 import org.embl.mobie.viewer.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.viewer.source.SourcePair;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -60,13 +61,16 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 	private KDTree< AS > kdTree;
 	private RealMaskRealInterval mask;
 	private double radius;
+	private double[] boundingBoxMin;
+	private double[] boundingBoxMax;
 
-	public SpotLabelImage( String name, Set< AS > annotatedSpots, double radius )
+	public SpotLabelImage( String name, Set< AS > annotatedSpots, double radius, @Nullable double[] boundingBoxMin, @Nullable double[] boundingBoxMax )
 	{
 		this.name = name;
 		this.annotatedSpots = annotatedSpots;
 		this.radius = radius;
-		// FIXME bounding box from JSON
+		this.boundingBoxMin = boundingBoxMin;
+		this.boundingBoxMax = boundingBoxMax;
 		createLabelImage();
 	}
 
@@ -83,7 +87,14 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 	private void createLabelImage()
 	{
 		kdTree = new KDTree( new ArrayList<>( annotatedSpots ), new ArrayList<>( annotatedSpots ) );
-		mask = GeomMasks.closedBox( kdTree.minAsDoubleArray(), kdTree.maxAsDoubleArray() );
+
+		if ( boundingBoxMin == null )
+			boundingBoxMin = kdTree.minAsDoubleArray();
+
+		if ( boundingBoxMax == null )
+			boundingBoxMax = kdTree.maxAsDoubleArray();
+
+		mask = GeomMasks.closedBox( boundingBoxMin, boundingBoxMax );
 
 		// TODO: use those for something?
 		final NearestNeighborSearchOnKDTree< AS > nearestNeighborSearchOnKDTree = new NearestNeighborSearchOnKDTree<>( kdTree );

@@ -43,7 +43,6 @@ import net.imglib2.type.numeric.ARGBType;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.util.ColorRGB;
-import org.scijava.widget.Button;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Label Rendering")
@@ -56,7 +55,7 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	public BdvHandle bdvh;
 
 	@Parameter
-	public SourceAndConverter[] sourceAndConverters;
+	public SourceAndConverter< ? >[] sourceAndConverters;
 
 	@Parameter( label = "Show labels as boundaries" )
 	public boolean showAsBoundary;
@@ -73,11 +72,24 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	@Parameter( label = "Opacity of non-selected labels" )
 	public double opacity = 0.15;
 
-	@Parameter( label = "Increment random color seed [ Ctrl L ]", callback = "incrementRandomColorSeed" )
-	Button button;
+	@Parameter( label = "Random label color seed [ Ctrl L ]" )
+	public int randomColorSeed = 42;
+
 	private ARGBType selectionARGB;
 
-	public static void incrementRandomColorSeed( SourceAndConverter[] sourceAndConverters )
+	@Override
+	public void run()
+	{
+		configureBoundaryRendering();
+
+		configureSelectionColoring();
+
+		configureRandomColorSeed();
+
+		bdvh.getViewerPanel().requestRepaint();
+	}
+
+	protected void configureRandomColorSeed()
 	{
 		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
@@ -90,24 +102,13 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 				if ( coloringModel instanceof CategoricalAnnotationColoringModel )
 				{
 					final CategoricalAnnotationColoringModel< ? > categoricalAnnotationColoringModel = ( CategoricalAnnotationColoringModel< ? > ) coloringModel;
-					int randomSeed = categoricalAnnotationColoringModel.getRandomSeed();
-					categoricalAnnotationColoringModel.setRandomSeed( ++randomSeed );
+					categoricalAnnotationColoringModel.setRandomSeed( randomColorSeed );
 				}
 			}
 		}
 	}
 
-	@Override
-	public void run()
-	{
-		configureBoundaryRendering();
-
-		configureSelectionColoring();
-
-		bdvh.getViewerPanel().requestRepaint();
-	}
-
-	private void configureSelectionColoring()
+	protected void configureSelectionColoring()
 	{
 		selectionARGB = new ARGBType( ARGBType.rgba( selectionColor.getRed(), selectionColor.getGreen(), selectionColor.getBlue(), selectionColor.getAlpha() ) );
 
@@ -132,7 +133,7 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 		}
 	}
 
-	private void configureBoundaryRendering()
+	protected void configureBoundaryRendering()
 	{
 		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
@@ -150,5 +151,27 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	{
 		final String unit = sourceAndConverters[ 0 ].getSpimSource().getVoxelDimensions().unit();
 		IJ.log("Thickness: " + boundaryThickness + " " + unit );
+	}
+
+	public static void incrementRandomColorSeed( SourceAndConverter[] sourceAndConverters, BdvHandle bdvh )
+	{
+		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
+		{
+			final Converter converter = sourceAndConverter.getConverter();
+
+			if ( converter instanceof MobieColoringModelWrapper )
+			{
+				final ColoringModel coloringModel = ( ( MobieColoringModelWrapper ) converter ).getMoBIEColoringModel().getWrappedColoringModel();
+
+				if ( coloringModel instanceof CategoricalAnnotationColoringModel )
+				{
+					final CategoricalAnnotationColoringModel< ? > categoricalAnnotationColoringModel = ( CategoricalAnnotationColoringModel< ? > ) coloringModel;
+					int randomSeed = categoricalAnnotationColoringModel.getRandomSeed();
+					categoricalAnnotationColoringModel.setRandomSeed( ++randomSeed );
+				}
+			}
+		}
+
+		bdvh.getViewerPanel().requestRepaint();
 	}
 }

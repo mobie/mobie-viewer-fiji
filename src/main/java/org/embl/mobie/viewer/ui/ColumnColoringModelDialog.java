@@ -50,7 +50,7 @@ public class ColumnColoringModelDialog< A extends Annotation>
 
 		if ( LUTs.isNumeric( lut ) )
 		{
-			final Pair< Double, Double > minMax = table.computeMinMax( columnName );
+			final Pair< Double, Double > minMax = table.getMinMax( columnName );
 			return ColoringModels.createNumericModel( columnName, lut, minMax, true );
 		}
 		else if ( LUTs.isCategorical( lut ) )

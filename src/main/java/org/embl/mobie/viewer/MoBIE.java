@@ -71,6 +71,7 @@ import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.serialize.View;
 import org.embl.mobie.viewer.view.ViewManager;
+import org.scijava.command.CommandService;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -93,7 +94,6 @@ public class MoBIE
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	private static MoBIE moBIE;
-
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 	private final String projectName;
 	private MoBIESettings settings;
@@ -109,6 +109,7 @@ public class MoBIE
 	private ArrayList< String > projectCommands = new ArrayList<>();;
 	public static int minLogTimeMillis = 100;
 	public static boolean initiallyShowSourceNames = false;
+	public static CommandService commandService;
 
 	public MoBIE( String projectRoot ) throws IOException
 	{
@@ -139,6 +140,16 @@ public class MoBIE
 		project = new ProjectJsonParser().parseProject( IOHelper.combinePath( projectRoot,  "project.json" ) );
 		setImageDataFormats( projectLocation );
 		openDataset();
+	}
+
+	public static CommandService getCommandService()
+	{
+		return commandService;
+	}
+
+	public static void setCommandService( CommandService commandService )
+	{
+		MoBIE.commandService = commandService;
 	}
 
 	// TODO: Probably such Plugins should rather
@@ -598,7 +609,8 @@ public class MoBIE
 			final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator();
 			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV, table );
 			final Set< AnnotatedSpot > annotatedSpots = tableModel.annotations();
-			final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDataSource.getName(), annotatedSpots, 1.0 );
+			final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDataSource.getName(), annotatedSpots, 1.0, spotDataSource.boundingBoxMin, spotDataSource.boundingBoxMax );
+
 			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
 			final DefaultAnnotatedLabelImage spotsImage = new DefaultAnnotatedLabelImage( labelImage, spotAnnData );
 

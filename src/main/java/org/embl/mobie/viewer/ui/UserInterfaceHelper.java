@@ -39,6 +39,8 @@ import de.embl.cba.tables.color.ColorUtils;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.MoBIEInfo;
+import org.embl.mobie.viewer.command.ConfigureLabelRenderingCommand;
+import org.embl.mobie.viewer.command.ConfigureSpotRenderingCommand;
 import org.embl.mobie.viewer.serialize.display.SpotDisplay;
 import org.embl.mobie.viewer.serialize.display.VisibilityListener;
 import org.embl.mobie.viewer.color.OpacityHelper;
@@ -248,6 +250,7 @@ public class UserInterfaceHelper
 		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createButtonPlaceholder() ); // color
 		panel.add( createButtonPlaceholder() ); // brightness
+		panel.add( createLabelRenderingSettingsButton( sourceAndConverters ) ); // special settings
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( space() );
@@ -269,6 +272,7 @@ public class UserInterfaceHelper
 		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createButtonPlaceholder() ); // color
 		panel.add( createButtonPlaceholder() ); // brightness
+		panel.add( createSpotSettingsButton( sourceAndConverters ) ); // special settings
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( space() );
@@ -353,6 +357,7 @@ public class UserInterfaceHelper
 		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createColorButton( panel, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
 		panel.add( createImageDisplayBrightnessButton( display ) );
+		panel.add( createButtonPlaceholder() );
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( space() );
@@ -399,6 +404,7 @@ public class UserInterfaceHelper
 		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createButtonPlaceholder() );
 		panel.add( createButtonPlaceholder() );
+		panel.add( createLabelRenderingSettingsButton( sourceAndConverters ) ); // special settings
 		panel.add( createRemoveButton( display ) );
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
@@ -419,6 +425,30 @@ public class UserInterfaceHelper
 		}
 
 		return panel;
+	}
+
+	private JButton createLabelRenderingSettingsButton( List< SourceAndConverter< ? > > sourceAndConverters )
+	{
+		JButton button = new JButton( "S" );
+		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
+		button.addActionListener( e ->
+		{
+			final SourceAndConverter[] sacArray = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
+			MoBIE.getCommandService().run( ConfigureLabelRenderingCommand.class, true, "sourceAndConverters", sacArray );
+		} );
+		return button;
+	}
+
+	private JButton createSpotSettingsButton( List< SourceAndConverter< ? > > sourceAndConverters )
+	{
+		JButton button = new JButton( "S" );
+		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
+		button.addActionListener( e ->
+		{
+			final SourceAndConverter[] sacArray = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
+			MoBIE.getCommandService().run( ConfigureSpotRenderingCommand.class, true, "sourceAndConverters", sacArray );
+		} );
+		return button;
 	}
 
 	public JPanel createViewsSelectionPanel( )

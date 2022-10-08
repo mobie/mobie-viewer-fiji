@@ -144,7 +144,6 @@ public class SliceViewer
 		actions.add( sacService.getCommandName( BigWarpRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( ManualRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ) );
-		actions.add( sacService.getCommandName( ConfigureLabelRenderingCommand.class ) );
 		actions.add( sacService.getCommandName( ConfigureLabelVolumeRenderingCommand.class ) );
 		actions.add( sacService.getCommandName( ConfigureImageVolumeRenderingCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );
@@ -182,7 +181,7 @@ public class SliceViewer
 						new Thread( () ->
 						{
 							final SourceAndConverter[] sourceAndConverters = sacService.getSourceAndConverters().toArray( new SourceAndConverter[ 0 ] );
-							ConfigureLabelRenderingCommand.incrementRandomColorSeed( sourceAndConverters );
+							ConfigureLabelRenderingCommand.incrementRandomColorSeed( sourceAndConverters, bdvHandle );
 						}).start(),
 				"Change random color seed", "ctrl L" ) ;
 	}
