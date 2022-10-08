@@ -5,12 +5,14 @@ import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.viewer.DataStore;
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
+import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.transform.TransformHelper;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class TableSawAnnotatedRegion implements AnnotatedRegion
@@ -64,15 +66,19 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	@Override
 	public synchronized double[] positionAsDoubleArray()
 	{
-		if ( position == null )
-		{
-			final double[] min = Intervals.minAsDoubleArray( getMask() );
-			final double[] max = Intervals.maxAsDoubleArray( getMask() );
-			position = new double[ min.length ];
-			for ( int d = 0; d < min.length; d++ )
-				position[ d ] = ( max[ d ] + min[ d ] ) / 2.0;
-			affineTransform3D.apply( position, position );
-		}
+		//if ( position == null )
+		//{
+		// Update the position every time, because the underlying
+		// images that are annotated by this region may have changed
+		// their position
+		final RealMaskRealInterval mask = getMask();
+		final double[] min = Intervals.minAsDoubleArray( mask );
+		final double[] max = Intervals.maxAsDoubleArray( mask );
+		position = new double[ min.length ];
+		for ( int d = 0; d < min.length; d++ )
+			position[ d ] = ( max[ d ] + min[ d ] ) / 2.0;
+		//	affineTransform3D.apply( position, position );
+		//}
 
 		return position;
 	}
@@ -116,26 +122,28 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		this.affineTransform3D.preConcatenate( affineTransform3D );
-		this.affineTransform3D.apply( position, position );
-		realMaskRealInterval = realMaskRealInterval.transform( this.affineTransform3D );
+		// We don't do anything here, because the annotated regions
+		// provide all the spatial coordinates
+
+		//this.affineTransform3D.preConcatenate( affineTransform3D );
+		///this.affineTransform3D.apply( position, position );
+		//realMaskRealInterval = realMaskRealInterval.transform( this.affineTransform3D );
 	}
 
 	@Override
 	public RealMaskRealInterval getMask()
 	{
-		if ( realMaskRealInterval == null )
-		{
-			realMaskRealInterval = TransformHelper.getUnionMask( DataStore.getViewImageSet( imageNames ), timePoint() );
-		}
-
-		return realMaskRealInterval;
+		// Update every time, because the position of the images
+		// maybe have changed.
+		final Set< Image< ? > > regionImages = DataStore.getViewImageSet( imageNames );
+		final RealMaskRealInterval unionMask = TransformHelper.getUnionMask( regionImages, timePoint() );
+		return unionMask;
 	}
 
 	@Override
 	public void setMask( RealMaskRealInterval mask )
 	{
-
+		throw new RuntimeException();
 	}
 
 	@Override

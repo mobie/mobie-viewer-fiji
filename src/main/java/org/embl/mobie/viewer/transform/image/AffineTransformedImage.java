@@ -97,6 +97,7 @@ public class AffineTransformedImage< T > implements Image< T >
 		{
 			// Note: this assumes that the mask of the
 			//  wrapped image does not change.
+			// FIXME: check that this is correct!
 			final RealMaskRealInterval mask = image.getMask();
 			transformedMask = mask.transform( affineTransform3D.inverse() );
 		}

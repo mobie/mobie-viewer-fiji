@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 public abstract class AnnDataHelper
 {
-	public static < A extends Annotation > AnnData< A > getConcatenatedAnnData( List< ? extends AnnotatedLabelImage< A > > annotatedImages )
+	public static < A extends Annotation > AnnData< A > concatenate( List< ? extends AnnotatedLabelImage< A > > annotatedImages )
 	{
 		final Set< AnnData< A > > annDataSet = annotatedImages.stream().map( image -> image.getAnnData() ).collect( Collectors.toSet() );
 

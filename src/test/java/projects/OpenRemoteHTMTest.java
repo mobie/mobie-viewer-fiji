@@ -41,6 +41,6 @@ public class OpenRemoteHTMTest
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		final MoBIE moBIE = new MoBIE( "https://s3.embl.de/i2k-2020/mobie_htm_project/" );
+		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/htm-test", MoBIESettings.settings().view( "simple-grid" ) );
 	}
 }

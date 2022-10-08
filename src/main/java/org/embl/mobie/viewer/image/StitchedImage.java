@@ -43,6 +43,7 @@ import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
+import net.imglib2.roi.geom.real.WritableBox;
 import net.imglib2.type.Type;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
@@ -93,6 +94,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private HashMap< Integer, long[] > levelToSourceDimensions;
 	private HashMap< Integer, double[] > levelToTileMarginVoxelTranslation;
 	private TransformedSource< T > transformedSource;
+	private RealMaskRealInterval tileImageMask;
 
 	public StitchedImage( List< ? extends Image< T > > images, Image< T > metadataImage, @Nullable List< int[] > positions, String name, double relativeCellMargin )
 	{
@@ -110,6 +112,10 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		this.voxelDimensions = metadataSource.getVoxelDimensions();
 		this.levelToSourceTransform = new HashMap<>();
 		this.levelToSourceDimensions = new HashMap<>();
+		tileImageMask = GeomMasks.closedBox( metadataImage.getMask().minAsDoubleArray(), metadataImage.getMask().maxAsDoubleArray() );
+		final AffineTransform3D translateToZero = new AffineTransform3D();
+		translateToZero.translate( metadataImage.getMask().minAsDoubleArray() );
+		tileImageMask = tileImageMask.transform( translateToZero );
 
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
@@ -117,14 +123,15 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			metadataSource.getSourceTransform( 0, level, affineTransform3D );
 			final AffineTransform3D copy = affineTransform3D.copy();
 			final long[] dimensions = metadataSource.getSource( 0, level ).dimensionsAsLongArray();
+			copy.setTranslation( 0, 0, 0 );
 			// TODO remove translation from source transforms?
 			if ( level == 0 )
 			{
 				System.out.println( "StitchedImage: " + name );
-				System.out.println( "MetadataImage: " + metadataSource.getName() );
-				System.out.println( "MetadataImage transform: " + copy );
-				System.out.println( "MetadataImage dimensions: " + Arrays.toString( dimensions ) );
-				System.out.println( "MetadataImage mask: " + TransformHelper.maskToString(  metadataImage.getMask() ) );
+				System.out.println( "StitchedImage: MetadataImage: " + metadataSource.getName() );
+				System.out.println( "StitchedImage: MetadataImage transform: " + copy );
+				System.out.println( "StitchedImage: MetadataImage dimensions: " + Arrays.toString( dimensions ) );
+				System.out.println( "StitchedImage: MetadataImage mask: " + TransformHelper.maskToString( tileImageMask ) );
 			}
 			levelToSourceTransform.put( level, copy );
 			levelToSourceDimensions.put( level, dimensions );
@@ -133,15 +140,13 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		this.positions = positions == null ? TransformHelper.createGridPositions( images.size() ) : positions;
 		this.relativeCellMargin = relativeCellMargin;
 		this.name = name;
-		// TODO: make my own VolatileTypeMatcher including AnnotationType
 
 		setMinMaxPos();
 		configureMipmapAndTileDimensions();
 		setTileRealDimensions( tileDimensions[ 0 ] );
-		//setRealMask( tileRealDimensions );
-		System.out.println( "Name: " + name );
-		System.out.println( "Min pos: " + Arrays.toString( minPos ) );
-		System.out.println( "Tile dimensions: " + Arrays.toString( tileRealDimensions ) );
+		System.out.println( "StitchedImage: " + name );
+		System.out.println( "StitchedImage: Min pos: " + Arrays.toString( minPos ) );
+		System.out.println( "StitchedImage: Tile dimensions: " + Arrays.toString( tileRealDimensions ) );
 
 		// Transform the individual images that make up the tiles.
 		// And use those images as the basis for the stitched image.
@@ -150,20 +155,18 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		// This also is needed because for annotated images
 		// the annotations (both the table and the AnnotationType pixels)
 		// need to be transformed.
-		this.images = ( List< ? extends Image< T > > ) transform( images, metadataImage );
+		this.images = ( List< ? extends Image< T > > ) transform( images, tileImageMask );
 		DataStore.putViewImages( images );
 
 		// create the stitched image
 		createSourcePair();
 	}
 
-	private double[] computeTileMarginOffset( Image< ? > image, double[] tileRealDimensions )
+	private double[] computeTileMarginOffset( double[] tileRealDimensions, RealInterval imageRealInterval )
 	{
-		final RealInterval realInterval = image.getMask();
-
 		final double[] imageRealDimensions = new double[ 3 ];
 		for ( int d = 0; d < 3; d++ )
-			imageRealDimensions[ d ] = ( realInterval.realMax( d ) - realInterval.realMin( d ) );
+			imageRealDimensions[ d ] = ( imageRealInterval.realMax( d ) - imageRealInterval.realMin( d ) );
 
 		final double[] translationOffset = new double[ 2 ];
 		for ( int d = 0; d < 2; d++ )
@@ -172,9 +175,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		return translationOffset;
 	}
 
-	protected List< ? extends Image< ? > > transform( List< ? extends Image< ? > > images, Image< ? > metadataImage )
+	protected List< ? extends Image< ? > > transform( List< ? extends Image< ? > > images, RealMaskRealInterval tileImageMask )
 	{
-		final double[] offset = computeTileMarginOffset( metadataImage, tileRealDimensions );
+		final double[] offset = computeTileMarginOffset( tileRealDimensions, tileImageMask );
 
 		final List< List< ? extends Image< ? > > > nestedImages = new ArrayList<>();
 		List< List< String > > nestedTransformedNames = new ArrayList<>();
@@ -192,7 +195,11 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			// are required to have the same metadata.
 			// Right now the only metadata
 			// that is needed is the mask.
-			image.setMask( metadataImage.getMask() );
+
+			// create a copy of the mask, because
+			// it may be transformed within the image
+			final WritableBox mask = GeomMasks.closedBox( tileImageMask.minAsDoubleArray(), tileImageMask.maxAsDoubleArray() );
+			image.setMask( mask );
 
 			imagesAtGridPosition.add( image );
 			imagesNamesAtGridPosition.add( image.getName() + "_" + name );
@@ -204,7 +211,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				// Here, we don't need to use metadataImage,
 				// because the images of those tiles
 				// are already initialised.
-				final List< String > tileNames = ( ( StitchedImage< ?, ? > ) image ).getTranslatedImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
+				final List< String > tileNames = ( ( StitchedImage< ?, ? > ) image ).getImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
 				final Set< Image< ? > > stitchedImages = DataStore.getViewImageSet( tileNames );
 				for ( Image< ? > containedImage : stitchedImages )
 				{
@@ -226,7 +233,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		return translatedImages;
 	}
 
-	public List< ? extends Image< ? > > getTranslatedImages()
+	public List< ? extends Image< ? > > getImages()
 	{
 		return images;
 	}

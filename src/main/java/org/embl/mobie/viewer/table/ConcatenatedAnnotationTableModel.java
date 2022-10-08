@@ -158,6 +158,7 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		throw new RuntimeException();
+		for ( AnnotationTableModel< A > tableModel : tableModels )
+			tableModel.transform( affineTransform3D );
 	}
 }

@@ -5,6 +5,7 @@ import org.embl.mobie.viewer.serialize.DataSource;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,7 +63,16 @@ public abstract class DataStore
 	public static Image< ? > getViewImage( String name )
 	{
 		if ( ! viewImages.containsKey( name ) )
-			throw new RuntimeException( "Image " + name + " is not part of the current data.");
+		{
+			// FIXME remove this once https://github.com/mobie/htm-test/issues/1
+			//   is fixed
+			final String finalName = name;
+			final Set< String > collect = viewImages.keySet().stream().filter( key -> finalName.startsWith( key ) ).collect( Collectors.toSet() );
+			if ( collect.size()	== 1 )
+				name = collect.iterator().next();
+			else
+				throw new RuntimeException( "Image " + name + " is not part of the current data.");
+		}
 
 		return viewImages.get( name );
 	}
@@ -70,13 +80,10 @@ public abstract class DataStore
 	// Unsorted Set.
 	public static Set< Image< ? > > getViewImageSet( Collection< String > names )
 	{
-		try
-		{
-			return viewImages.entrySet().stream().filter( entry -> names.contains( entry.getKey() ) ).map( entry -> entry.getValue() ).collect( Collectors.toSet() );
-		} catch ( Exception e )
-		{
-			throw( e );
-		}
+		final Set< Image< ? > > images = new HashSet<>();
+		for ( String name : names )
+			images.add( getViewImage( name ) );
+		return images;
 	}
 
 	// Sorted List, corresponding to the given names.

@@ -112,7 +112,6 @@ public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< Un
 				for ( AR regionAnnotation : annotatedRegions )
 				{
 					final RealMaskRealInterval mask = regionAnnotation.getMask();
-					// TODO: here, it would be nice to burn in the mask
 					maskToLabel.put( mask, regionAnnotation.label() );
 				}
 				this.recentMask = maskToLabel.keySet().iterator().next();

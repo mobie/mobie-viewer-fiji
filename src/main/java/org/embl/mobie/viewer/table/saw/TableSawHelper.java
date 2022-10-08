@@ -12,7 +12,7 @@ public class TableSawHelper
 	{
 		try
 		{
-			System.out.println("Reading table " + columnPath );
+			System.out.println("TableSawHelper: Reading table:\n" + columnPath );
 			final String tableContent = IOHelper.read( columnPath );
 			// https://jtablesaw.github.io/tablesaw/userguide/importing_data.html
 			CsvReadOptions.Builder builder = CsvReadOptions.builderFromString( tableContent ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" );

@@ -224,7 +224,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	{
 		final List< AnnotatedLabelImage< A > > annotatedLabelImages = getImages().stream().map( image -> ( AnnotatedLabelImage< A > ) image ).collect( Collectors.toList() );
 
-		annData = AnnDataHelper.getConcatenatedAnnData( annotatedLabelImages );
+		annData = AnnDataHelper.concatenate( annotatedLabelImages );
 
 		annotationAdapter = new AnnotationAdapter<>( annData );
 	}

@@ -74,7 +74,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 			// Calling IJ.log inside here hangs for some reason,
 			// maybe to do with the {@code synchronized} of this function.
 			// IJ.log( "Opening table for " + dataSourceName + "..." );
-			System.out.println( "TableModel: " + dataSourceName + ": Opening table:\n" + columnPath );
+			System.out.println( "TableModel: " + dataSourceName + ": Reading table:\n" + columnPath );
 			final Table rows = TableSawHelper.readTable( columnPath );
 
 			if ( table == null ) // init table
@@ -95,6 +95,9 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 			{
 				if ( annotation instanceof AnnotatedRegion )
 				{
+					// FIXME: in this case we may not transform at all!
+					//   because an annotated region obtains
+					//   the spatial coordinates from the regions.
 					int a = 1;
 				}
 				annotation.transform( affineTransform3D );

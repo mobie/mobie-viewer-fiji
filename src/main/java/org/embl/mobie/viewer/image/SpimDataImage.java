@@ -63,23 +63,16 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 			transformedSource.setFixedTransform( this.affineTransform3D );
 
 		if ( mask != null )
-			updateMask();
+			mask = mask.transform( this.affineTransform3D.inverse() );
 	}
 
 	@Override
 	public RealMaskRealInterval getMask( )
 	{
 		if ( mask == null )
-			updateMask();
+			return SourceHelper.estimateMask( getSourcePair().getSource(), 0 );
 
 		return mask;
-	}
-
-	private void updateMask()
-	{
-		// Note: don't apply the transformation here, because this is
-		//  contained in the sources
-		mask = SourceHelper.estimateMask( getSourcePair().getSource(), 0 );
 	}
 
 	@Override

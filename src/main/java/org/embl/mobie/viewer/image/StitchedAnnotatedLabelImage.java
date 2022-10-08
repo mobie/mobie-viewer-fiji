@@ -45,18 +45,13 @@ public class StitchedAnnotatedLabelImage< A extends Annotation > extends Stitche
 
 	public StitchedAnnotatedLabelImage( List< ? extends AnnotatedLabelImage< A > > annotatedImages, Image< AnnotationType< A > > metadataImage, @Nullable List< int[] > positions, String imageName, double relativeCellMargin )
 	{
-		// FIXME
-		//   One could just stitch the label mask images
-		//   and then transform
 		super( annotatedImages, metadataImage, positions, imageName, relativeCellMargin );
+		annData = AnnDataHelper.concatenate( ( List ) getImages() );
 	}
 
 	@Override
 	public AnnData< A > getAnnData()
 	{
-		if ( annData == null )
-			annData = AnnDataHelper.getConcatenatedAnnData( ( List ) getTranslatedImages() );
-
 		return annData;
 	}
 
