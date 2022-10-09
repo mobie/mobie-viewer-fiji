@@ -46,6 +46,7 @@ import org.embl.mobie.viewer.select.SelectionListener;
 import org.embl.mobie.viewer.select.SelectionModel;
 import org.embl.mobie.viewer.ui.ColumnColoringModelDialog;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.ui.UserInterfaceHelper;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -59,7 +60,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.embl.mobie.viewer.MoBIEHelper.FileLocation;
-import static org.embl.mobie.viewer.MoBIEHelper.loadFromProjectOrFileSystemDialog;
+import static org.embl.mobie.viewer.ui.UserInterfaceHelper.loadFromProjectOrFileSystemDialog;
 
 public class TableView< A extends Annotation > implements SelectionListener< A >, ColoringListener
 {
@@ -231,18 +232,20 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		menuItem.addActionListener( e ->
 			new Thread( () -> {
 				FileLocation fileLocation = loadFromProjectOrFileSystemDialog();
-				// TODO
-				throw new UnsupportedOperationException("Column loading not yet implemented");
-//				if ( fileLocation.equals( FileLocation.Project ) )
-//				{
-//					tableModel.columnPaths();
-//					tableModel.loadColumns(  );
-//					moBIE.mergeColumnsFromProject( display );
-//				}
-//				else if ( fileLocation.equals( FileLocation.FileSystem ))
-//				{
-//					moBIE.mergeColumnsFromFileSystem( display );
-//				}
+				if ( fileLocation.equals( FileLocation.Project ) )
+				{
+					final String[] paths = tableModel.availableColumnPaths().toArray( new String[ 0 ] );
+					final GenericDialog gd = new GenericDialog("Choose columns");
+					gd.addChoice("Columns", paths, paths[0]);
+					gd.showDialog();
+					if ( gd.wasCanceled() ) return;
+					final String path = gd.getNextChoice();
+					tableModel.requestColumns( path );
+				}
+				else if ( fileLocation.equals( FileLocation.FileSystem ) )
+				{
+					UserInterfaceHelper.selectFilePath( ".tsv", "Table", true );
+				}
 			}).start()
 		);
 		return menuItem;

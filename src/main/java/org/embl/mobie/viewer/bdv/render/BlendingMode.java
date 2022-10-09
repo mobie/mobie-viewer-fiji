@@ -55,7 +55,9 @@ public enum BlendingMode
 {
 	@SerializedName("sum")
 	Sum,
-	@SerializedName("sumOccluding")
+	@SerializedName("alpha")
+	Alpha,
+	@SerializedName("sumOccluding") @Deprecated
 	SumOccluding,
 	@SerializedName("average") @Deprecated
 	Average,
@@ -64,7 +66,9 @@ public enum BlendingMode
 
 	// To use in Commands until they can do enums as choices
 	public static final String SUM = "Sum";
+	@Deprecated // Use Alpha instead
 	public static final String SUM_OCCLUDING = "SumOccluding";
+	public static final String ALPHA = "Alpha";
 
 	// To use as a key for the xml
 	// underscore necessary for valid xml element to store in @see DisplaySettings

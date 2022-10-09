@@ -36,8 +36,12 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
+import ij.IJ;
+import ij.gui.GenericDialog;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
+import org.embl.mobie.viewer.MoBIEHelper.FileLocation;
 import org.embl.mobie.viewer.MoBIEInfo;
 import org.embl.mobie.viewer.command.ConfigureLabelRenderingCommand;
 import org.embl.mobie.viewer.command.ConfigureSpotRenderingCommand;
@@ -64,13 +68,16 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -78,9 +85,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static org.embl.mobie.viewer.ui.SwingHelper.TEXT_FIELD_HEIGHT;
+import static org.embl.mobie.viewer.ui.SwingHelper.selectionDialog;
 
 public class UserInterfaceHelper
 {
@@ -92,6 +101,7 @@ public class UserInterfaceHelper
 	private static final String LEVEL = "level";
 	private static final String ADD = "view";
 	public static final int SPACING = 20;
+	public static File lastSelectedDir;
 
 	private final MoBIE moBIE;
 	private int viewsSelectionPanelHeight;
@@ -102,6 +112,159 @@ public class UserInterfaceHelper
 	public UserInterfaceHelper( MoBIE moBIE )
 	{
 		this.moBIE = moBIE;
+	}
+
+	public static FileLocation loadFromProjectOrFileSystemDialog() {
+		final GenericDialog gd = new GenericDialog("Choose source");
+		gd.addChoice("Load from", new String[]{ FileLocation.Project.toString(), FileLocation.FileSystem.toString()}, FileLocation.Project.toString());
+		gd.showDialog();
+		if (gd.wasCanceled()) return null;
+		return FileLocation.valueOf(gd.getNextChoice());
+	}
+
+	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
+	public static String selectDirectoryPath( String objectName, boolean open ) {
+		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
+		jFileChooser.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );
+		jFileChooser.setDialogTitle( "Select " + objectName );
+		return selectPath( jFileChooser, open );
+	}
+
+	public static String selectPath( JFileChooser jFileChooser, boolean openOrSave ) {
+		final AtomicBoolean isDone = new AtomicBoolean( false );
+		final String[] path = new String[ 1 ];
+		Runnable r = () -> {
+			if ( openOrSave ) {
+				path[0] = selectOpenPathFromFileSystem( jFileChooser);
+			} else {
+				path[0] = selectSavePathFromFileSystem( jFileChooser );
+			}
+			isDone.set( true );
+		};
+
+		SwingUtilities.invokeLater(r);
+
+		while ( ! isDone.get() ){
+			try {
+				Thread.sleep( 100 );
+			} catch ( InterruptedException e )
+			{ e.printStackTrace(); }
+		};
+
+		return path[ 0 ];
+	}
+
+	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
+	public static String selectFilePath( String fileExtension, String objectName, boolean openOrSave ) {
+		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
+		if ( fileExtension != null ) {
+			jFileChooser.setFileFilter( new FileNameExtensionFilter( fileExtension, fileExtension ) );
+		}
+		jFileChooser.setDialogTitle( "Select " + objectName );
+		return selectPath( jFileChooser, openOrSave );
+	}
+
+	public static String selectOpenPathFromFileSystem( JFileChooser jFileChooser ) {
+		String filePath = null;
+		if (jFileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+			filePath = jFileChooser.getSelectedFile().getAbsolutePath();
+			setLastSelectedDir( filePath );
+		}
+		return filePath;
+	}
+
+	public static void setLastSelectedDir( String filePath ) {
+		File selectedFile = new File( filePath );
+		if ( selectedFile.isDirectory() ) {
+			lastSelectedDir = selectedFile;
+		} else {
+			lastSelectedDir = selectedFile.getParentFile();
+		}
+	}
+
+	public static String selectSavePathFromFileSystem( JFileChooser jFileChooser )
+	{
+		String filePath = null;
+		if (jFileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+			filePath = jFileChooser.getSelectedFile().getAbsolutePath();
+			setLastSelectedDir( filePath );
+		}
+		return filePath;
+	}
+
+	public static String selectPathFromProject( String directory, String objectName ) {
+		if ( directory == null ) {
+			return null;
+		}
+
+		String[] fileNames = IOHelper.getFileNames( directory );
+		String fileName = selectionDialog( fileNames, objectName );
+		if ( fileName != null ) {
+			return IOHelper.combinePath( directory, fileName );
+		} else {
+			return null;
+		}
+	}
+
+	public static String selectTableFileNameFromProjectDialog( Collection< String > directories, String objectName )
+	{
+		if ( directories == null )
+			return null;
+
+		if ( directories.size() > 1)
+		{
+			// when there are multiple directories,
+			// we only allow selection of table file names
+			// that are present in all directories
+			return MoBIEHelper.chooseValidTableFileName( directories, objectName );
+		}
+		else
+		{
+			final String directory = directories.iterator().next();
+			String[] fileNames = IOHelper.getFileNames( directory );
+			if ( fileNames == null )
+				throw new RuntimeException("Could not find any files at " + directory );
+			return selectionDialog( fileNames, objectName );
+		}
+	}
+
+	private static String chooseValidTableFileName( Collection< String > directories, String objectName ) {
+		ArrayList< String > commonFileNames = MoBIEHelper.getCommonFileNames( directories );
+		if ( commonFileNames.size() > 0 ) {
+			String[] choices = new String[commonFileNames.size()];
+			for (int i = 0; i < choices.length; i++) {
+				choices[i] = commonFileNames.get(i);
+			}
+			return selectionDialog(choices, objectName);
+		} else {
+			return null;
+		}
+	}
+
+	// find file names that occur in all directories
+	private static ArrayList< String > getCommonFileNames( Collection< String > directories )
+	{
+		Map<String, Integer> fileNameCounts = new HashMap<>();
+		ArrayList<String> commonFileNames = new ArrayList<>();
+
+		for ( String directory: directories ) {
+			String[] directoryFileNames = IOHelper.getFileNames( directory );
+			for ( String directoryFileName: directoryFileNames ) {
+				if ( fileNameCounts.containsKey( directoryFileName ) ) {
+					int count = fileNameCounts.get(directoryFileName);
+					fileNameCounts.put( directoryFileName, count + 1 );
+				} else {
+					fileNameCounts.put( directoryFileName, 1 );
+				}
+			}
+		}
+
+		for ( String fileName: fileNameCounts.keySet() ) {
+			if ( fileNameCounts.get( fileName ) == directories.size() ) {
+				commonFileNames.add( fileName );
+			}
+		}
+		return commonFileNames;
 	}
 
 	public JPanel createDisplaySettingsContainer() {
@@ -953,12 +1116,12 @@ public class UserInterfaceHelper
 		String tidyString = string.replaceAll("\\s+","_");
 
 		if ( !string.equals(tidyString) ) {
-			MoBIEHelper.log( "Spaces were removed from name, and replaced by _");
+			IJ.log( "Spaces were removed from name, and replaced by _");
 		}
 
 		// check only contains alphanumerics, or _ -
 		if ( !tidyString.matches("^[a-zA-Z0-9_-]+$") ) {
-			MoBIEHelper.log( "Names must only contain letters, numbers, _ or -. Please try again " +
+			IJ.log( "Names must only contain letters, numbers, _ or -. Please try again " +
 					"with a different name.");
 			tidyString = null;
 		}

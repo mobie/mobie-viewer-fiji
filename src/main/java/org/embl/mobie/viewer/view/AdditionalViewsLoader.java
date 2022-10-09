@@ -33,6 +33,7 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.viewer.serialize.View;
+import org.embl.mobie.viewer.ui.UserInterfaceHelper;
 
 import java.io.IOException;
 import java.util.Map;
@@ -51,13 +52,13 @@ public class AdditionalViewsLoader {
         new Thread( () -> {
             try {
                 String selectedFilePath = null;
-                MoBIEHelper.FileLocation fileLocation = MoBIEHelper.loadFromProjectOrFileSystemDialog();
+                MoBIEHelper.FileLocation fileLocation = UserInterfaceHelper.loadFromProjectOrFileSystemDialog();
                 if ( fileLocation == null )
                     return;
                 if ( fileLocation == MoBIEHelper.FileLocation.Project ) {
-                    selectedFilePath = MoBIEHelper.selectPathFromProject( moBIE.getDatasetPath("misc", "views" ), "View" );
+                    selectedFilePath = UserInterfaceHelper.selectPathFromProject( moBIE.getDatasetPath("misc", "views" ), "View" );
                 } else {
-                    selectedFilePath = MoBIEHelper.selectFilePath( "json", "View", true );
+                    selectedFilePath = UserInterfaceHelper.selectFilePath( "json", "View", true );
                 }
 
                 if (selectedFilePath != null) {

@@ -33,7 +33,6 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.serialize.Project;
 import org.embl.mobie.viewer.command.OpenMoBIEProjectCommand;
 import org.embl.mobie.viewer.create.ImagesCreator;
@@ -57,7 +56,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -638,10 +636,10 @@ public class ProjectsCreatorPanel extends JFrame {
         switch ( imageDataFormat )
         {
             case BdvN5:
-                return MoBIEHelper.selectFilePath( "xml", "bdv .xml file", true );
+                return UserInterfaceHelper.selectFilePath( "xml", "bdv .xml file", true );
 
             case OmeZarr:
-                String filePath = MoBIEHelper.selectDirectoryPath( ".ome.zarr file", true );
+                String filePath = UserInterfaceHelper.selectDirectoryPath( ".ome.zarr file", true );
 
                 // quick check that basic criteria for ome-zarr are met i.e. contains right files in top of dir
                 if ( ! isValidOMEZarr( filePath ) )

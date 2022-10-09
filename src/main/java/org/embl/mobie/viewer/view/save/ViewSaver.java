@@ -172,7 +172,7 @@ public class ViewSaver
     }
 
     private String chooseFileSystemJson() {
-        String jsonPath = MoBIEHelper.selectFilePath( "json", "json file", false );
+        String jsonPath = UserInterfaceHelper.selectFilePath( "json", "json file", false );
 
         if ( jsonPath != null && !jsonPath.endsWith(".json") ) {
                 jsonPath += ".json";
