@@ -90,6 +90,10 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 
 	// Methods
 
+	public AnnotationDisplay()
+	{
+		blendingMode = BlendingMode.Alpha;
+	}
 
 	public abstract Set< String > selectedAnnotationIds();
 

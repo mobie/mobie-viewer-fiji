@@ -76,7 +76,7 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Annotati
 	// Used by Gson
 	public SegmentationDisplay()
 	{
-		blendingMode = BlendingMode.Alpha;
+		super();
 	}
 
 	public SegmentationDisplay( String name, double opacity, List< String > sources, String lut, String colorByColumn, Double[] valueLimits, Set< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, Double[] resolution3dView )

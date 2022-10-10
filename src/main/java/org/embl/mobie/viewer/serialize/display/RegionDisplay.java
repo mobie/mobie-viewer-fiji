@@ -53,32 +53,11 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AnnotationDispl
 
 	// Runtime
 
-	@Override
-	public Set< String > selectedAnnotationIds()
-	{
-		return selectedRegionIds;
-	}
-
-	@Override
-	public void setSelectedAnnotationIds( Set< String > selectedAnnotationIds )
-	{
-		this.selectedRegionIds = selectedAnnotationIds;
-	}
-
-	@Override
-	public List< String > getImageSources()
-	{
-		// there is only one image source that can be displayed,
-		// namely the AnnotatedLabelImage that was
-		final ArrayList< String > sources = new ArrayList<>();
-		sources.add( getName() );
-		return sources;
-	}
 
 	// Needed for Gson
 	public RegionDisplay()
 	{
-		blendingMode = BlendingMode.Alpha;
+		super();
 	}
 
 	// Needed for Gson
@@ -110,5 +89,27 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AnnotationDispl
 		this.sources = new HashMap<>();
 		this.sources.putAll( regionDisplay.sources );
 		this.tableSource = regionDisplay.tableSource;
+	}
+
+	@Override
+	public Set< String > selectedAnnotationIds()
+	{
+		return selectedRegionIds;
+	}
+
+	@Override
+	public void setSelectedAnnotationIds( Set< String > selectedAnnotationIds )
+	{
+		this.selectedRegionIds = selectedAnnotationIds;
+	}
+
+	@Override
+	public List< String > getImageSources()
+	{
+		// there is only one image source that can be displayed,
+		// namely the AnnotatedLabelImage that was
+		final ArrayList< String > sources = new ArrayList<>();
+		sources.add( getName() );
+		return sources;
 	}
 }

@@ -66,13 +66,13 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay
 		return sources;
 	}
 
-	// Needed for Gson
+	// Gson
 	public SpotDisplay()
 	{
-		blendingMode = BlendingMode.Alpha;
+		super();
 	}
 
-	// Needed for Gson
+	// Gson
 	public SpotDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, Set< String > selectedSpotIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries, float boundaryThickness  )
 	{
 		this.name = name;
