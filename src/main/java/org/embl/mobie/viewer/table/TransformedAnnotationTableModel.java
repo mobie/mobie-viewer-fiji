@@ -93,8 +93,7 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public Pair< Double, Double > getMinMax( String columnName )
 	{
-		// FIXME
-		return null;
+		return getColumnMinMax( columnName, annotations() );
 	}
 
 	@Override
@@ -124,8 +123,7 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public void addStringColumn( String columnName )
 	{
-		// FIXME
-		throw new RuntimeException();
+		tableModel.addStringColumn( columnName );
 	}
 
 	@Override
@@ -143,6 +141,6 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		throw new RuntimeException();
+		throw new RuntimeException("Transforming a TransformedAnnotationTableModel is not yet implemented.");
 	}
 }

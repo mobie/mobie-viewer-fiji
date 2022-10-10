@@ -94,6 +94,12 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 	}
 
 	@Override
+	public Double getNumber( String feature )
+	{
+		return tableSupplier.get().row( rowIndex ).getNumber( feature );
+	}
+
+	@Override
 	public void setString( String columnName, String value )
 	{
 		tableSupplier.get().row( rowIndex ).setText( columnName, value );

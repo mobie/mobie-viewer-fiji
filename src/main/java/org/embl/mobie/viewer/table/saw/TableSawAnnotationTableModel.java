@@ -2,15 +2,10 @@ package org.embl.mobie.viewer.table.saw;
 
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
-import net.imglib2.util.ValuePair;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
 import org.embl.mobie.viewer.table.DefaultValues;
-import tech.tablesaw.aggregate.AggregateFunctions;
-import tech.tablesaw.aggregate.Summarizer;
-import tech.tablesaw.api.NumericColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 
@@ -71,7 +66,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 
 			loadedColumnPaths.add( columnPath );
 
-			// Calling IJ.log inside here hangs for some reason,
+			// Note: Calling IJ.log inside here hangs for some reason,
 			// maybe to do with the {@code synchronized} of this function.
 			// IJ.log( "Opening table for " + dataSourceName + "..." );
 			System.out.println( "TableModel: " + dataSourceName + ": Reading table:\n" + columnPath );
@@ -92,16 +87,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 		{
 			updateTransforms = false;
 			for ( A annotation : annotationToRowIndex.keySet() )
-			{
-				if ( annotation instanceof AnnotatedRegion )
-				{
-					// FIXME: in this case we may not transform at all!
-					//   because an annotated region obtains
-					//   the spatial coordinates from the regions.
-					int a = 1;
-				}
 				annotation.transform( affineTransform3D );
-			}
 		}
 	}
 
@@ -172,10 +158,10 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	public synchronized A annotation( int rowIndex )
 	{
 		final A annotation = rowIndexToAnnotation().get( rowIndex );
-		if ( annotation == null )
-		{
-			int a = 1; // FIXME: Serr
-		}
+
+		if ( annotation == null ) // DEBUG
+			throw new RuntimeException("TableSawAnnotationTableModel: RowIndex " + rowIndex + " does not exist.");
+
 		return annotation;
 	}
 
@@ -211,12 +197,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	@Override
 	public Pair< Double, Double > getMinMax( String columnName )
 	{
-		// one could consider caching the results...
-		final NumericColumn< ? > numericColumn = table.nCol( columnName );
-		final Summarizer summarize = table.summarize( numericColumn, AggregateFunctions.min, AggregateFunctions.max );
-		final Table summary = summarize.apply();
-		final ValuePair< Double, Double > minMax = new ValuePair( summary.get( 0, 0 ), summary.get( 0, 1  ) );
-		return minMax;
+		return getColumnMinMax( columnName, annotations() );
 	}
 
 	@Override

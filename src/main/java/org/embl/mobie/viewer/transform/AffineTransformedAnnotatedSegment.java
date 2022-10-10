@@ -104,6 +104,12 @@ public class AffineTransformedAnnotatedSegment< AS extends AnnotatedSegment > im
 	}
 
 	@Override
+	public Double getNumber( String feature )
+	{
+		return annotatedSegment.getNumber( feature );
+	}
+
+	@Override
 	public void setString( String columnName, String value )
 	{
 		annotatedSegment.setString( columnName, value );

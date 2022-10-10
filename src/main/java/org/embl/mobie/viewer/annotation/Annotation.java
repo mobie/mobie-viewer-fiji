@@ -17,6 +17,10 @@ public interface Annotation extends Location
 	// (typically: feature = column in an annotation table)
 	Object getValue( String feature );
 
+	// For retrieving numerical features (measurements)
+	// (typically: feature = column in an annotation table)
+	Double getNumber( String feature );
+
 	// For adding manual annotations
 	void setString( String columnName, String value );
 

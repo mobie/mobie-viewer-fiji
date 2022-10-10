@@ -151,6 +151,12 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	}
 
 	@Override
+	public Double getNumber( String feature )
+	{
+		return tableSupplier.get().row( rowIndex ).getNumber( feature );
+	}
+
+	@Override
 	public void setString( String columnName, String value )
 	{
 		tableSupplier.get().row( rowIndex ).setText( columnName, value );
