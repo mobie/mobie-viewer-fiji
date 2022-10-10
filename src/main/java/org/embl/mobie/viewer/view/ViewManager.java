@@ -409,13 +409,6 @@ public class ViewManager
 					}
 					else
 					{
-						// FIXME maybe one first transforms all the individual
-						//   images and then creates a StitchedImage from those.
-						//   This would partly solve the issue of the annotated
-						//   label images not changing their annotations properly.
-						//   Issue is how to change the Annotations of the pixel
-						//   values of a StitchedImage
-						//   (which happens during the nesting)?
 						final StitchedImage stitchedImage = new StitchedImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN );
 						DataStore.putViewImage( stitchedImage );
 					}

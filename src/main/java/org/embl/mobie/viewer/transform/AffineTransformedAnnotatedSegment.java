@@ -69,17 +69,14 @@ public class AffineTransformedAnnotatedSegment< AS extends AnnotatedSegment > im
 	@Override
 	public float[] mesh()
 	{
-		// FIXME transform
+		// FIXME transform the mesh
 		return annotatedSegment.mesh();
 	}
 
 	@Override
 	public void setMesh( float[] mesh )
 	{
-		// FIXME
-		//   store the mesh locally, don't
-		//
-		//
+		// FIXME store the mesh locally, don't
 		//   modify the annotatedSegment!
 
 		annotatedSegment.setMesh( mesh );
