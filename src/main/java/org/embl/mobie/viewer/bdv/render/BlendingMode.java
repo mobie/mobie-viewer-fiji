@@ -73,9 +73,4 @@ public enum BlendingMode
 	// To use as a key for the xml
 	// underscore necessary for valid xml element to store in @see DisplaySettings
 	public static final String BLENDING_MODE = "Blending Mode";
-
-	public static boolean isOccluding( BlendingMode blendingMode )
-	{
-		return ( blendingMode.equals( BlendingMode.AverageOccluding ) || blendingMode.equals( BlendingMode.SumOccluding ) );
-	}
 }

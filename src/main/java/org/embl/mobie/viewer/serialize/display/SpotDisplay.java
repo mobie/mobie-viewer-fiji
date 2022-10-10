@@ -30,6 +30,7 @@ package org.embl.mobie.viewer.serialize.display;
 
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.annotation.Annotation;
+import org.embl.mobie.viewer.bdv.render.BlendingMode;
 
 import java.util.List;
 import java.util.Map;
@@ -66,7 +67,10 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay
 	}
 
 	// Needed for Gson
-	public SpotDisplay() {}
+	public SpotDisplay()
+	{
+		blendingMode = BlendingMode.Alpha;
+	}
 
 	// Needed for Gson
 	public SpotDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, Set< String > selectedSpotIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries, float boundaryThickness  )

@@ -79,9 +79,6 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	protected float boundaryThickness = 1.0F;
 	protected int randomColorSeed = 42;
 
-	// Final
-	protected transient final BlendingMode blendingMode = BlendingMode.SumOccluding;
-
 	// Runtime
 	public transient SelectionModel< A > selectionModel;
 	public transient MobieColoringModel< A > coloringModel;
@@ -92,6 +89,8 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	protected transient AnnData< A > annData;
 
 	// Methods
+
+
 	public abstract Set< String > selectedAnnotationIds();
 
 	public abstract void setSelectedAnnotationIds( Set< String > selectedAnnotationIds );
@@ -140,11 +139,6 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	public float getBoundaryThickness()
 	{
 		return boundaryThickness;
-	}
-
-	public BlendingMode getBlendingMode()
-	{
-		return blendingMode;
 	}
 
 	public int getRandomColorSeed()

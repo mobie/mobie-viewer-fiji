@@ -44,7 +44,7 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	protected String name;
 	protected double opacity = 1.0;
 	protected boolean visible = true;
-	protected BlendingMode blendingMode;
+	protected BlendingMode blendingMode = BlendingMode.Sum;
 
 	// Runtime
 	public transient Map< String, SourceAndConverter< T > > nameToSourceAndConverter = new HashMap<>();
@@ -69,7 +69,7 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	@Override
 	public BlendingMode getBlendingMode()
 	{
-		return BlendingMode.Sum;
+		return blendingMode;
 	}
 
 	@Override

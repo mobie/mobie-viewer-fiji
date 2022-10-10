@@ -30,6 +30,7 @@ package org.embl.mobie.viewer.serialize.display;
 
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.annotation.Annotation;
+import org.embl.mobie.viewer.bdv.render.BlendingMode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,7 +76,10 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AnnotationDispl
 	}
 
 	// Needed for Gson
-	public RegionDisplay() {}
+	public RegionDisplay()
+	{
+		blendingMode = BlendingMode.Alpha;
+	}
 
 	// Needed for Gson
 	public RegionDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, Set< String > selectedRegionIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries, float boundaryThickness  )

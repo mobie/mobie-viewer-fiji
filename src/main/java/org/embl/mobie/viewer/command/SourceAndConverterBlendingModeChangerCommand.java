@@ -38,7 +38,7 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Set Blending Mode")
 public class SourceAndConverterBlendingModeChangerCommand implements BdvPlaygroundActionCommand {
 
-    @Parameter(label = "Blending Mode", choices = { BlendingMode.SUM, BlendingMode.SUM_OCCLUDING })
+    @Parameter(label = "Blending Mode", choices = { BlendingMode.SUM, BlendingMode.ALPHA })
     String blendingMode = BlendingMode.SUM;
 
     @Parameter(label = "Select Source(s)")

@@ -29,6 +29,7 @@
 package org.embl.mobie.viewer.serialize.display;
 
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
+import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 
 import java.util.ArrayList;
@@ -72,8 +73,11 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Annotati
 		return showSelectedSegmentsIn3d;
 	}
 
-	// Needed for Gson
-	public SegmentationDisplay(){}
+	// Used by Gson
+	public SegmentationDisplay()
+	{
+		blendingMode = BlendingMode.Alpha;
+	}
 
 	public SegmentationDisplay( String name, double opacity, List< String > sources, String lut, String colorByColumn, Double[] valueLimits, Set< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, Double[] resolution3dView )
 	{

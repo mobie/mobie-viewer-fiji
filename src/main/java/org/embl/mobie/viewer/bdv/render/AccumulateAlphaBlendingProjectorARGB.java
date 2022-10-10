@@ -57,7 +57,7 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 	{
 		super( sourceProjectors, sourceScreenImages, target );
 		isAlphaBlending = getIsAlphaBlending( sources );
-		System.out.println( Arrays.toString( sources.toArray( new String[ 0 ] )));
+		//System.out.println( Arrays.toString( sources.stream().map( source -> source.getSpimSource().getName() ).toArray() ) );
 	}
 
 	@Override
@@ -134,7 +134,8 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 		for ( SourceAndConverter< ? > source : sources )
 		{
 			final BlendingMode blendingMode = ( BlendingMode ) sacService.getMetadata( source, BlendingMode.BLENDING_MODE );
-			if ( blendingMode != null && blendingMode.equals( BlendingMode.Alpha ) )
+			if ( blendingMode != null
+				&& ( blendingMode.equals( BlendingMode.Alpha ) || blendingMode.equals( BlendingMode.SumOccluding ) ) )
 				alphaBlending.add( true );
 			else
 				alphaBlending.add( false );
