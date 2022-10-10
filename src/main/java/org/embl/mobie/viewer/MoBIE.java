@@ -109,7 +109,6 @@ public class MoBIE
 	private ArrayList< String > projectCommands = new ArrayList<>();;
 	public static int minLogTimeMillis = 100;
 	public static boolean initiallyShowSourceNames = false;
-	public static CommandService commandService;
 
 	public MoBIE( String projectRoot ) throws IOException
 	{
@@ -140,16 +139,6 @@ public class MoBIE
 		project = new ProjectJsonParser().parseProject( IOHelper.combinePath( projectRoot,  "project.json" ) );
 		setImageDataFormats( projectLocation );
 		openDataset();
-	}
-
-	public static CommandService getCommandService()
-	{
-		return commandService;
-	}
-
-	public static void setCommandService( CommandService commandService )
-	{
-		MoBIE.commandService = commandService;
 	}
 
 	// TODO: Probably such Plugins should rather
@@ -375,12 +364,13 @@ public class MoBIE
 
 	private ImageDataFormat getAppropriateImageDataFormat( ImageDataSource imageSource )
 	{
-		// FIXME: Simply pick the first one that works with local or S3 ?!
-		for ( ImageDataFormat sourceDataFormat : imageSource.imageData.keySet() )
+		for ( ImageDataFormat dataFormat : imageSource.imageData.keySet() )
 		{
-			if ( settings.values.getImageDataFormats().contains( sourceDataFormat ) )
+			if ( settings.values.getImageDataFormats().contains( dataFormat ) )
 			{
-				return sourceDataFormat;
+				// TODO (discuss with Constantin)
+				//   it is weird that it just returns the first one...
+				return dataFormat;
 			}
 		}
 
@@ -388,7 +378,7 @@ public class MoBIE
 		for ( ImageDataFormat dataFormat : imageSource.imageData.keySet() )
 			System.err.println("Source supports: " + dataFormat);
 		for ( ImageDataFormat dataFormat : settings.values.getImageDataFormats() )
-			System.err.println("Project settings support: " + dataFormat);
+			System.err.println("Settings support: " + dataFormat);
 		throw new RuntimeException();
 	}
 

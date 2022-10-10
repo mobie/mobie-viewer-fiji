@@ -63,16 +63,7 @@ public abstract class DataStore
 	public static Image< ? > getViewImage( String name )
 	{
 		if ( ! viewImages.containsKey( name ) )
-		{
-			// FIXME remove this once https://github.com/mobie/htm-test/issues/1
-			//   is fixed
-			final String finalName = name;
-			final Set< String > collect = viewImages.keySet().stream().filter( key -> finalName.startsWith( key ) ).collect( Collectors.toSet() );
-			if ( collect.size()	== 1 )
-				name = collect.iterator().next();
-			else
-				throw new RuntimeException( "Image " + name + " is not part of the current data.");
-		}
+			throw new RuntimeException( "Image " + name + " is not part of the current data.");
 
 		return viewImages.get( name );
 	}

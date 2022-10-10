@@ -404,12 +404,13 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 					value.set( type.createVariable() );
 				}
 
-				// this is not very efficient, but right now this mainly
-				// is needed to fetch single pixel values when
-				// a user clicks on an image
-				// FIXME For rendering screenshots it will be more
-				//  efficient to implement this in the same way as for the
-				//  volatile version (see below).
+				// TODO
+				//   This is not very efficient, but right now this mainly
+				//   is needed to fetch single pixel values when
+				//   a user clicks on an image
+				//   For rendering screenshots it will be more
+				//   efficient to implement this in the same way as for the
+				//   volatile version (see below).
 				randomAccessibleSupplier.open( level, xTileIndex, yTileIndex );
 				final T t = randomAccessibleSupplier.getRandomAccessible( level, xTileIndex, yTileIndex ).randomAccess().setPositionAndGet( x, y, location.getIntPosition( 2 ) );
 				value.set( t );

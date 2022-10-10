@@ -31,7 +31,7 @@ package org.embl.mobie.viewer.bdv;
 import bdv.util.AxisOrder;
 import bdv.util.BdvOptions;
 import bdv.viewer.render.AccumulateProjectorFactory;
-import org.embl.mobie.viewer.bdv.render.AccumulateOccludingProjectorARGBFactory;
+import org.embl.mobie.viewer.bdv.render.AccumulateAlphaBlendingProjectorARGBFactory;
 import net.imglib2.type.numeric.ARGBType;
 
 public class MobieSerializableBdvOptions {
@@ -56,7 +56,7 @@ public class MobieSerializableBdvOptions {
 
     public boolean interpolate = true;
 
-    public AccumulateProjectorFactory<ARGBType> accumulateProjectorFactory = new AccumulateOccludingProjectorARGBFactory();
+    public AccumulateProjectorFactory<ARGBType> accumulateProjectorFactory = new AccumulateAlphaBlendingProjectorARGBFactory();
 
     public BdvOptions getBdvOptions() {
         BdvOptions o =

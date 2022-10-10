@@ -84,7 +84,7 @@ public abstract class MoBIEHelper
 		FileSystem
 	}
 
-	// FIXME: Proper implementation in IOHelper in mobie-io
+	// TODO: Proper implementation in IOHelper in mobie-io
 	public static String getFileName( String path )
 	{
 		if ( path.startsWith( "http" ) )

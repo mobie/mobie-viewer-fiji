@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
 public class ImageTransformer
 {
 	// Note that the Image Type may change, e.g. if this is an annotated label image
-	// FIXME
-	//  is there a cleaner solution? Because for normal images the type would not change.
+	// TODO
+	//  Is there a cleaner solution? For normal images the type would not change.
 	//  also for annotated images the type would only change
 	//  if transformedImage != image.getName(), because otherwise we would transform in place
 	//  Maybe two methods, one for really creating a new image and one for in place transformation?

@@ -37,7 +37,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.Duplicator;
 import ij.process.LUT;
-import org.embl.mobie.viewer.bdv.render.AccumulateOccludingProjectorARGB;
+import org.embl.mobie.viewer.bdv.render.AccumulateAlphaBlendingProjectorARGB;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
@@ -341,7 +341,7 @@ public class ScreenShotMaker
         final Cursor< ARGBType > argbCursor = Views.iterable( argbTarget ).localizingCursor();
         final int numVisibleSources = argbSources.size();
         Cursor< ARGBType >[] cursors = getCursors( argbSources, numVisibleSources );
-        final ArrayList< Boolean > occlusions = AccumulateOccludingProjectorARGB.getOcclusions( sacs );
+        final ArrayList< Boolean > occlusions = AccumulateAlphaBlendingProjectorARGB.getIsAlphaBlending( sacs );
 
         while ( argbCursor.hasNext() )
         {
@@ -350,7 +350,7 @@ public class ScreenShotMaker
                 argbCursor.fwd();
                 for ( int i = 0; i < numVisibleSources; i++ )
                     cursors[ i ].fwd();
-                final int argbIndex = AccumulateOccludingProjectorARGB.getArgbIndex( cursors, occlusions );
+                final int argbIndex = AccumulateAlphaBlendingProjectorARGB.getArgbIndex( cursors, occlusions );
                 argbCursor.get().set( argbIndex );
             }
             catch ( Exception e )

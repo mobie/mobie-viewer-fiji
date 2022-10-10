@@ -39,14 +39,15 @@ import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBType, ARGBType >
+public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< ARGBType, ARGBType >
 {
-	private ArrayList< Boolean > isOccluding;
+	private final ArrayList< Boolean > isAlphaBlending;
 
-	public AccumulateOccludingProjectorARGB(
+	public AccumulateAlphaBlendingProjectorARGB(
 			final List< VolatileProjector > sourceProjectors,
 			final List< SourceAndConverter< ? > > sources,
 			final List< ? extends RandomAccessible< ? extends ARGBType > > sourceScreenImages,
@@ -55,19 +56,8 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 			final ExecutorService executorService )
 	{
 		super( sourceProjectors, sourceScreenImages, target );
-		isOccluding = getOcclusions( sources );
-	}
-
-	private static ArrayList< Boolean > getOccluding( BlendingMode[] blendingModes )
-	{
-		final ArrayList< Boolean > isOccluding = new ArrayList<>();
-
-		for ( int sourceIndex = 0; sourceIndex < blendingModes.length; sourceIndex++ )
-		{
-			isOccluding.add( BlendingMode.isOccluding( blendingModes[ sourceIndex ] ) );
-		}
-
-		return isOccluding;
+		isAlphaBlending = getIsAlphaBlending( sources );
+		System.out.println( Arrays.toString( sources.toArray( new String[ 0 ] )));
 	}
 
 	@Override
@@ -75,11 +65,11 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 			final Cursor< ? extends ARGBType >[] accesses,
 			final ARGBType target )
 	{
-		final int argbIndex = getArgbIndex( accesses, isOccluding );
+		final int argbIndex = getArgbIndex( accesses, isAlphaBlending );
 		target.set( argbIndex );
 	}
 
-	public static int getArgbIndex( Cursor< ? extends ARGBType >[] accesses, ArrayList< Boolean > isOccluding )
+	public static int getArgbIndex( Cursor< ? extends ARGBType >[] accesses, ArrayList< Boolean > alphaBlending )
 	{
 		int aAccu = 0, rAccu = 0, gAccu = 0, bAccu = 0;
 
@@ -97,7 +87,7 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 
 			try
 			{
-				if ( isOccluding.get( sourceIndex ) )
+				if ( alphaBlending.get( sourceIndex ) )
 				{
 					rAccu *= ( 1 - alpha );
 					gAccu *= ( 1 - alpha );
@@ -136,27 +126,19 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 		return argbs;
 	}
 
-	public static ArrayList< Boolean > getOcclusions( List< SourceAndConverter< ? > > sacs )
-	{
-		final BlendingMode[] blendingModes = getBlendingModes( sacs );
-		final ArrayList< Boolean > occluding = getOccluding( blendingModes );
-		return occluding;
-	}
-
-	public static BlendingMode[] getBlendingModes( List< SourceAndConverter< ? > > sources )
+	public static ArrayList< Boolean > getIsAlphaBlending( List< SourceAndConverter< ? > > sources )
 	{
 		final ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();
 
-		final BlendingMode[] blendingModes = new BlendingMode[ sources.size() ];
-		for ( int sourceIndex = 0; sourceIndex < sources.size(); sourceIndex++ )
+		final ArrayList< Boolean > alphaBlending = new ArrayList<>();
+		for ( SourceAndConverter< ? > source : sources )
 		{
-			final SourceAndConverter< ? > sourceAndConverter = sources.get( sourceIndex );
-			final BlendingMode blendingMode = ( BlendingMode ) sacService.getMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE );
-			if ( blendingMode != null )
-				blendingModes[ sourceIndex ] = blendingMode;
+			final BlendingMode blendingMode = ( BlendingMode ) sacService.getMetadata( source, BlendingMode.BLENDING_MODE );
+			if ( blendingMode != null && blendingMode.equals( BlendingMode.Alpha ) )
+				alphaBlending.add( true );
 			else
-				blendingModes[ sourceIndex ] = BlendingMode.Sum;
+				alphaBlending.add( false );
 		}
-		return blendingModes;
+		return alphaBlending;
 	}
 }

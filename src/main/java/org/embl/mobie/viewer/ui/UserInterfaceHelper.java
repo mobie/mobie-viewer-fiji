@@ -43,6 +43,7 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.MoBIEHelper.FileLocation;
 import org.embl.mobie.viewer.MoBIEInfo;
+import org.embl.mobie.viewer.Services;
 import org.embl.mobie.viewer.command.ConfigureLabelRenderingCommand;
 import org.embl.mobie.viewer.command.ConfigureSpotRenderingCommand;
 import org.embl.mobie.viewer.serialize.display.SpotDisplay;
@@ -216,7 +217,7 @@ public class UserInterfaceHelper
 			// when there are multiple directories,
 			// we only allow selection of table file names
 			// that are present in all directories
-			return MoBIEHelper.chooseValidTableFileName( directories, objectName );
+			return chooseValidTableFileName( directories, objectName );
 		}
 		else
 		{
@@ -229,7 +230,7 @@ public class UserInterfaceHelper
 	}
 
 	private static String chooseValidTableFileName( Collection< String > directories, String objectName ) {
-		ArrayList< String > commonFileNames = MoBIEHelper.getCommonFileNames( directories );
+		ArrayList< String > commonFileNames = getCommonFileNames( directories );
 		if ( commonFileNames.size() > 0 ) {
 			String[] choices = new String[commonFileNames.size()];
 			for (int i = 0; i < choices.length; i++) {
@@ -598,7 +599,7 @@ public class UserInterfaceHelper
 		{
 			final SourceAndConverter[] sacArray = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
 
-			MoBIE.getCommandService().run( ConfigureLabelRenderingCommand.class, true, "sourceAndConverters", sacArray );
+			Services.commandService.run( ConfigureLabelRenderingCommand.class, true, "sourceAndConverters", sacArray );
 		} );
 		return button;
 	}
@@ -610,7 +611,7 @@ public class UserInterfaceHelper
 		button.addActionListener( e ->
 		{
 			final SourceAndConverter[] sacArray = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
-			MoBIE.getCommandService().run( ConfigureSpotRenderingCommand.class, true, "sourceAndConverters", sacArray );
+			Services.commandService.run( ConfigureSpotRenderingCommand.class, true, "sourceAndConverters", sacArray );
 		} );
 		return button;
 	}

@@ -351,9 +351,8 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		final String columnName = gd.getNextChoice();
 		final String value = gd.getNextString();
 
-
 		// Have to parse to doubles for double column (as e.g. integers like 9 are displayed as 9.0)
-		// TODO! we know now the classes of the columns!
+		// TODO we now know the classes of the columns!
 		double doubleValue = 0;
 		boolean isDoubleColumn = jTable.getValueAt(0, jTable.getColumn( columnName ).getModelIndex() ) instanceof Double;
 		if ( isDoubleColumn ) {
@@ -392,7 +391,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		}
 	}
 
-	// this could be delegated to TableSaw ?
+	// TODO: could this be delegated to TableSaw ?
 	private void selectGreaterOrLessThan( boolean greaterThan ) {
 		// only works for numeric columns
 		final GenericDialog gd = new GenericDialog( "" );
