@@ -26,11 +26,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.projectcreator;
+package org.embl.mobie.viewer.create;
 
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.viewer.create.DatasetsCreator;
-import org.embl.mobie.viewer.create.ProjectCreator;
 import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.Project;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
