@@ -26,14 +26,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.projectcreator;
+package org.embl.mobie.viewer.create;
 
 import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.viewer.create.ProjectCreator;
-import org.embl.mobie.viewer.create.ProjectCreatorHelper;
-import org.embl.mobie.viewer.create.RemoteMetadataCreator;
 import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import net.imglib2.realtransform.AffineTransform3D;

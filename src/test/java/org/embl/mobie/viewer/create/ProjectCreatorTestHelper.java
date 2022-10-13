@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.projectcreator;
+package org.embl.mobie.viewer.create;
 
 import ij.IJ;
 import ij.ImagePlus;

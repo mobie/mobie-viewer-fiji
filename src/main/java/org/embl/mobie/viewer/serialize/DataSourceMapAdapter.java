@@ -28,18 +28,10 @@
  */
 package org.embl.mobie.viewer.serialize;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
+import com.google.gson.*;
 
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class DataSourceMapAdapter implements JsonSerializer< Map< String, DataSource > >, JsonDeserializer< Map< String, DataSource > >
 {
@@ -73,8 +65,16 @@ public class DataSourceMapAdapter implements JsonSerializer< Map< String, DataSo
 
 	@Override
 	public JsonElement serialize( Map< String, DataSource > sources, Type type, JsonSerializationContext context ) {
-		// TODO
-		throw new UnsupportedOperationException("Serialization of Map< String, Data > is not yet implemented.");
-		// return null;
+
+		JsonObject jo = new JsonObject();
+		for ( Map.Entry<String, DataSource> entry : sources.entrySet() ) {
+
+			Map<String, DataSource> typeOfSourceToSource = new HashMap<>();
+			typeOfSourceToSource.put( classToName.get( entry.getValue().getClass().getName() ), entry.getValue() );
+
+			jo.add( entry.getKey(), context.serialize( typeOfSourceToSource ) );
+		}
+
+		return jo;
 	}
 }

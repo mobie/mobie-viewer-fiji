@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.projectcreator;
+package org.embl.mobie.viewer.create;
 
 import ij.ImagePlus;
 import mpicbg.spim.data.SpimData;
@@ -38,9 +38,6 @@ import org.embl.mobie.io.n5.util.DownsampleBlock;
 import org.embl.mobie.io.n5.writers.WriteImagePlusToN5;
 import org.embl.mobie.io.ome.zarr.writers.imageplus.WriteImagePlusToN5OmeZarr;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.viewer.create.ImagesCreator;
-import org.embl.mobie.viewer.create.ProjectCreator;
-import org.embl.mobie.viewer.create.ProjectCreatorHelper;
 import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ImageDataSource;
@@ -56,8 +53,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import static org.embl.mobie.viewer.projectcreator.ProjectCreatorTestHelper.makeImage;
-import static org.embl.mobie.viewer.projectcreator.ProjectCreatorTestHelper.makeSegmentation;
+import static org.embl.mobie.viewer.create.ProjectCreatorTestHelper.makeImage;
+import static org.embl.mobie.viewer.create.ProjectCreatorTestHelper.makeSegmentation;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
