@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.viewer.bdv.render;
 
+import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.render.AccumulateProjector;
 import bdv.viewer.render.VolatileProjector;
@@ -35,17 +36,19 @@ import net.imglib2.Cursor;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.numeric.ARGBType;
+import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< ARGBType, ARGBType >
 {
-	private final ArrayList< Boolean > isAlphaBlending;
+	private final boolean[] alphaBlending;
+	private final int[] order;
 
 	public AccumulateAlphaBlendingProjectorARGB(
 			final List< VolatileProjector > sourceProjectors,
@@ -56,8 +59,40 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 			final ExecutorService executorService )
 	{
 		super( sourceProjectors, sourceScreenImages, target );
-		isAlphaBlending = getIsAlphaBlending( sources );
-		//System.out.println( Arrays.toString( sources.stream().map( source -> source.getSpimSource().getName() ).toArray() ) );
+		alphaBlending = getAlphaBlending( sources );
+		//order = new int[ sources.size() ];
+		//for ( int i = 0; i < order.length; i++)
+		//	order[i] = i;
+		// FIXME: below hangs (concurrency, I guess)
+		order = getOrder( sources );
+	}
+
+	public static synchronized int[] getOrder( List< SourceAndConverter< ? > > sources )
+	{
+		final SourceAndConverterBdvDisplayService bdvDisplayService = SourceAndConverterServices.getBdvDisplayService();
+		final BdvHandle bdvHandle = bdvDisplayService.getDisplaysOf( sources.get( 0 ) ).iterator().next();
+		final ArrayList< SourceAndConverter< ? > > sorted = new ArrayList<>( sources );
+		Collections.sort( sorted, bdvHandle.getViewerPanel().state().sourceOrder() );
+		int[] order = new int[ sorted.size() ];
+		for ( int i = 0; i < order.length; i++)
+			order[i] = sources.indexOf( sorted.get(i) );
+		return order;
+	}
+
+	public static synchronized boolean[] getAlphaBlending( List< SourceAndConverter< ? > > sources )
+	{
+		final ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();
+
+		final int numSources = sources.size();
+		final boolean[] alphaBlending = new boolean[ numSources ];
+		final String blendingModeKey = BlendingMode.class.getName();
+		for ( int sourceIndex = 0; sourceIndex < numSources; sourceIndex++ )
+		{
+			final BlendingMode blendingMode = ( BlendingMode ) sacService.getMetadata( sources.get( sourceIndex ), blendingModeKey );
+			if ( blendingMode.equals( BlendingMode.Alpha ) )
+				alphaBlending[ sourceIndex ] = true;
+		}
+		return alphaBlending;
 	}
 
 	@Override
@@ -65,81 +100,52 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 			final Cursor< ? extends ARGBType >[] accesses,
 			final ARGBType target )
 	{
-		final int argbIndex = getArgbIndex( accesses, isAlphaBlending );
+		final int argbIndex = getArgbIndex( accesses, alphaBlending, order );
 		target.set( argbIndex );
 	}
 
-	public static int getArgbIndex( Cursor< ? extends ARGBType >[] accesses, ArrayList< Boolean > alphaBlending )
+	public static int getArgbIndex( Cursor< ? extends ARGBType >[] accesses, boolean[] alphaBlending, int[] order )
 	{
-		int aAccu = 0, rAccu = 0, gAccu = 0, bAccu = 0;
-
-		int[] argbs = getARGBs( accesses );
-
-		for ( int sourceIndex = 0; sourceIndex < accesses.length; sourceIndex++ )
+		try
 		{
-			final int argb = argbs[ sourceIndex ];
-			final double alpha = ARGBType.alpha( argb ) / 255.0;
-			if ( alpha == 0 ) continue;
+			int aAccu = 0, rAccu = 0, gAccu = 0, bAccu = 0;
 
-			final int r = ARGBType.red( argb );
-			final int g = ARGBType.green( argb );
-			final int b = ARGBType.blue( argb );
-
-			try
+			for ( int sourceIndex : order )
 			{
-				if ( alphaBlending.get( sourceIndex ) )
+				final int argb = accesses[ sourceIndex ].get().get();
+				final double alpha = ARGBType.alpha( argb ) / 255.0;
+				if ( alpha == 0 ) continue;
+
+				final int r = ARGBType.red( argb );
+				final int g = ARGBType.green( argb );
+				final int b = ARGBType.blue( argb );
+
+				if ( alphaBlending[ sourceIndex ] )
 				{
 					rAccu *= ( 1 - alpha );
 					gAccu *= ( 1 - alpha );
 					bAccu *= ( 1 - alpha );
 				}
+
+				rAccu += r * alpha;
+				gAccu += g * alpha;
+				bAccu += b * alpha;
 			}
-			catch ( Exception e )
-			{
-				throw new RuntimeException();
-			}
 
-			rAccu += r * alpha;
-			gAccu += g * alpha;
-			bAccu += b * alpha;
+			if ( aAccu > 255 )
+				aAccu = 255;
+			if ( rAccu > 255 )
+				rAccu = 255;
+			if ( gAccu > 255 )
+				gAccu = 255;
+			if ( bAccu > 255 )
+				bAccu = 255;
+
+			return ARGBType.rgba( rAccu, gAccu, bAccu, aAccu );
 		}
-
-		if ( aAccu > 255 )
-			aAccu = 255;
-		if ( rAccu > 255 )
-			rAccu = 255;
-		if ( gAccu > 255 )
-			gAccu = 255;
-		if ( bAccu > 255 )
-			bAccu = 255;
-
-		return ARGBType.rgba( rAccu, gAccu, bAccu, aAccu );
-	}
-
-	private static int[] getARGBs( Cursor< ? extends ARGBType >[] accesses )
-	{
-		int[] argbs = new int[ accesses.length ];
-		for ( int sourceIndex = 0; sourceIndex < accesses.length; sourceIndex++ )
+		catch ( Exception e )
 		{
-			argbs[ sourceIndex ] = accesses[ sourceIndex ].get().get();
+			throw new RuntimeException();
 		}
-		return argbs;
-	}
-
-	public static ArrayList< Boolean > getIsAlphaBlending( List< SourceAndConverter< ? > > sources )
-	{
-		final ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();
-
-		final ArrayList< Boolean > alphaBlending = new ArrayList<>();
-		for ( SourceAndConverter< ? > source : sources )
-		{
-			final BlendingMode blendingMode = ( BlendingMode ) sacService.getMetadata( source, BlendingMode.BLENDING_MODE );
-			if ( blendingMode != null
-				&& ( blendingMode.equals( BlendingMode.Alpha ) || blendingMode.equals( BlendingMode.SumOccluding ) ) )
-				alphaBlending.add( true );
-			else
-				alphaBlending.add( false );
-		}
-		return alphaBlending;
 	}
 }

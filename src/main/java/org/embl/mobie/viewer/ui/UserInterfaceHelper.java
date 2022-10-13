@@ -44,6 +44,8 @@ import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.MoBIEHelper.FileLocation;
 import org.embl.mobie.viewer.MoBIEInfo;
 import org.embl.mobie.viewer.Services;
+import org.embl.mobie.viewer.command.ConfigureImageRenderingCommand;
+import org.embl.mobie.viewer.command.ConfigureImageVolumeRenderingCommand;
 import org.embl.mobie.viewer.command.ConfigureLabelRenderingCommand;
 import org.embl.mobie.viewer.command.ConfigureSpotRenderingCommand;
 import org.embl.mobie.viewer.serialize.display.SpotDisplay;
@@ -521,7 +523,7 @@ public class UserInterfaceHelper
 		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createColorButton( panel, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
 		panel.add( createImageDisplayBrightnessButton( display ) );
-		panel.add( createButtonPlaceholder() );
+		panel.add( createImageRenderingSettingsButton( sourceAndConverters ) );
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( space() );
@@ -589,6 +591,19 @@ public class UserInterfaceHelper
 		}
 
 		return panel;
+	}
+
+	private JButton createImageRenderingSettingsButton( List< SourceAndConverter< ? > > sourceAndConverters )
+	{
+		JButton button = new JButton( "S" );
+		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
+		button.addActionListener( e ->
+		{
+			final SourceAndConverter[] sacArray = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
+
+			Services.commandService.run( ConfigureImageRenderingCommand.class, true, "sourceAndConverters", sacArray );
+		} );
+		return button;
 	}
 
 	private JButton createLabelRenderingSettingsButton( List< SourceAndConverter< ? > > sourceAndConverters )

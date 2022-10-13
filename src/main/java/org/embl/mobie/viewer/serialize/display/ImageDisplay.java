@@ -154,6 +154,6 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		contrastLimits[0] = converterSetup.getDisplayRangeMin();
 		contrastLimits[1] = converterSetup.getDisplayRangeMax();
 
-		blendingMode = ( BlendingMode ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE );
+		blendingMode = ( BlendingMode ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.class.getName() );
 	}
 }

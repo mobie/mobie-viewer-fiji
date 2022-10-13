@@ -62,6 +62,9 @@ public abstract class SourceHelper
 
 	public static < T > T unwrapSource( Source source, Class< T > clazz )
 	{
+		if ( source == null )
+			return null;
+
 		if ( clazz.isInstance( source ) )
 		{
 			return ( T ) source;

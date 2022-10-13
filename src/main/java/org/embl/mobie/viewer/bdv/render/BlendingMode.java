@@ -66,11 +66,10 @@ public enum BlendingMode
 
 	// To use in Commands until they can do enums as choices
 	public static final String SUM = "Sum";
-	@Deprecated // Use Alpha instead
-	public static final String SUM_OCCLUDING = "SumOccluding";
 	public static final String ALPHA = "Alpha";
 
 	// To use as a key for the xml
-	// underscore necessary for valid xml element to store in @see DisplaySettings
+	// Underscore necessary for valid xml element to store in @see DisplaySettings
+	// TODO Remove? https://github.com/mobie/mobie-viewer-fiji/issues/850
 	public static final String BLENDING_MODE = "Blending Mode";
 }

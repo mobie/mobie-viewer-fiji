@@ -45,7 +45,6 @@ import org.embl.mobie.viewer.command.ConfigureLabelVolumeRenderingCommand;
 import org.embl.mobie.viewer.command.ManualRegistrationCommand;
 import org.embl.mobie.viewer.command.ScreenShotMakerCommand;
 import org.embl.mobie.viewer.command.ShowRasterImagesCommand;
-import org.embl.mobie.viewer.command.SourceAndConverterBlendingModeChangerCommand;
 import org.embl.mobie.viewer.serialize.display.AbstractDisplay;
 import org.embl.mobie.viewer.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.viewer.source.SourceHelper;
@@ -143,7 +142,6 @@ public class SliceViewer
 		actions.add( sacService.getCommandName( ViewerTransformLogger.class ) );
 		actions.add( sacService.getCommandName( BigWarpRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( ManualRegistrationCommand.class ) );
-		actions.add( sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ) );
 		actions.add( sacService.getCommandName( ConfigureLabelVolumeRenderingCommand.class ) );
 		actions.add( sacService.getCommandName( ConfigureImageVolumeRenderingCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );
@@ -211,7 +209,7 @@ public class SliceViewer
 		display.nameToSourceAndConverter.put( sourceAndConverter.getSpimSource().getName(), sourceAndConverter );
 
 		// blending mode
-		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
+		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.class.getName(), display.getBlendingMode() );
 
 		// opacity
 		OpacityHelper.setOpacity( sourceAndConverter, display.getOpacity() );

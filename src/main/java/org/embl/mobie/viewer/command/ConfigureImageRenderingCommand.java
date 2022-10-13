@@ -28,65 +28,73 @@
  */
 package org.embl.mobie.viewer.command;
 
+import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import ij.IJ;
 import net.imglib2.converter.Converter;
+import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.color.CategoricalAnnotationColoringModel;
 import org.embl.mobie.viewer.color.ColoringModel;
+import org.embl.mobie.viewer.color.MobieColoringModel;
 import org.embl.mobie.viewer.color.MobieColoringModelWrapper;
-import org.embl.mobie.viewer.image.SpotLabelImage;
+import org.embl.mobie.viewer.source.BoundarySource;
+import org.embl.mobie.viewer.source.SourceHelper;
+import org.embl.mobie.viewer.source.VolatileBoundarySource;
+import org.scijava.Initializable;
+import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.util.ColorRGB;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Spot Rendering")
-public class ConfigureSpotRenderingCommand extends ConfigureLabelRenderingCommand
+import java.util.Arrays;
+
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Image Rendering")
+public class ConfigureImageRenderingCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
 {
-	@Parameter( label = "Spot radius", style = "format:#.00", persist = false )
-	public Double spotRadius = 1.0;
+	protected static ISourceAndConverterService sourceAndConverterService = SourceAndConverterServices.getSourceAndConverterService();
+
+	@Parameter
+	protected BdvHandle bdvh;
+
+	@Parameter
+	protected SourceAndConverter< ? >[] sourceAndConverters;
+
+	@Parameter(label = "Blending Mode", choices = { BlendingMode.SUM, BlendingMode.ALPHA })
+	String blendingMode = BlendingMode.SUM;
 
 	@Override
 	public void initialize()
 	{
-		super.initialize();
-		initSpotRadiusItem();
+		initBlendingModeItem();
+	}
+
+	private void initBlendingModeItem()
+	{
+		final MutableModuleItem< String > blendingModeItem = getInfo().getMutableInput("blendingMode", String.class );
+
+		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
+		{
+			final BlendingMode blendingMode = ( BlendingMode ) sourceAndConverterService.getMetadata( sourceAndConverter, BlendingMode.class.getName() );
+			final String toString = blendingMode.toString();
+			blendingModeItem.setValue( this, toString );
+			return;
+		}
 	}
 
 	@Override
 	public void run()
 	{
-		configureBoundaryRendering();
-
-		configureSelectionColoring();
-
-		configureRandomColorSeed();
-
-		configureSpotRadius();
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		{
+			final BlendingMode blendingMode = BlendingMode.valueOf( this.blendingMode );
+			SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.class.getName(), blendingMode );
+		}
 
 		bdvh.getViewerPanel().requestRepaint();
 	}
-
-	private void initSpotRadiusItem()
-	{
-		final MutableModuleItem< Double > spotRadiusItem = getInfo().getMutableInput("spotRadius", Double.class );
-
-		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
-		{
-			final SpotLabelImage spotLabelImage = ( SpotLabelImage ) sourceAndConverterService.getMetadata( sourceAndConverter, SpotLabelImage.class.getName() );
-			spotRadiusItem.setValue( this, spotLabelImage.getRadius() );
-			return;
-		}
-	}
-
-	private void configureSpotRadius()
-	{
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
-		{
-			final SpotLabelImage spotLabelImage = ( SpotLabelImage ) sourceAndConverterService.getMetadata( sourceAndConverter, SpotLabelImage.class.getName() );
-			spotLabelImage.setRadius( spotRadius );
-		}
-	}
-
 }

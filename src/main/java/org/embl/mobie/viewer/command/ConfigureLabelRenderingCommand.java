@@ -47,18 +47,22 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.util.ColorRGB;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
+import sc.fiji.bdvpg.services.ISourceAndConverterService;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Label Rendering")
 public class ConfigureLabelRenderingCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
 {
-	public static final String SEGMENT_COLOR = "Keep current color";
-	public static final String SELECTION_COLOR = "Use below selection color";
+	protected static ISourceAndConverterService sourceAndConverterService = SourceAndConverterServices.getSourceAndConverterService();
+
+	protected static final String SEGMENT_COLOR = "Keep current color";
+	protected static final String SELECTION_COLOR = "Use below selection color";
 
 	@Parameter
-	public BdvHandle bdvh;
+	protected BdvHandle bdvh;
 
 	@Parameter
-	public SourceAndConverter< ? >[] sourceAndConverters;
+	protected SourceAndConverter< ? >[] sourceAndConverters;
 
 	@Parameter( label = "Show labels as boundaries" )
 	public boolean showAsBoundary;
@@ -174,9 +178,12 @@ public class ConfigureLabelRenderingCommand extends DynamicCommand implements Bd
 			if ( boundarySource != null )
 				boundarySource.showAsBoundary( showAsBoundary, boundaryThickness );
 
-			final VolatileBoundarySource volatileBoundarySource = SourceHelper.unwrapSource( sourceAndConverter.asVolatile().getSpimSource(), VolatileBoundarySource.class );
-			if ( volatileBoundarySource != null )
-				volatileBoundarySource.showAsBoundary( showAsBoundary, boundaryThickness );
+			if ( sourceAndConverter.asVolatile() != null )
+			{
+				final VolatileBoundarySource volatileBoundarySource = SourceHelper.unwrapSource( sourceAndConverter.asVolatile().getSpimSource(), VolatileBoundarySource.class );
+				if ( volatileBoundarySource != null )
+					volatileBoundarySource.showAsBoundary( showAsBoundary, boundaryThickness );
+			}
 		}
 	}
 

@@ -30,6 +30,8 @@ package org.embl.mobie.viewer.command;
 
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.volume.ImageVolumeViewer;
+import org.scijava.Initializable;
+import org.scijava.command.DynamicCommand;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;

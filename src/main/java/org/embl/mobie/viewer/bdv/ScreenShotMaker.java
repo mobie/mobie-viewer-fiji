@@ -341,7 +341,8 @@ public class ScreenShotMaker
         final Cursor< ARGBType > argbCursor = Views.iterable( argbTarget ).localizingCursor();
         final int numVisibleSources = argbSources.size();
         Cursor< ARGBType >[] cursors = getCursors( argbSources, numVisibleSources );
-        final ArrayList< Boolean > occlusions = AccumulateAlphaBlendingProjectorARGB.getIsAlphaBlending( sacs );
+        final boolean[] occlusions = AccumulateAlphaBlendingProjectorARGB.getAlphaBlending( sacs );
+        final int[] order = AccumulateAlphaBlendingProjectorARGB.getOrder( sacs );
 
         while ( argbCursor.hasNext() )
         {
@@ -350,7 +351,7 @@ public class ScreenShotMaker
                 argbCursor.fwd();
                 for ( int i = 0; i < numVisibleSources; i++ )
                     cursors[ i ].fwd();
-                final int argbIndex = AccumulateAlphaBlendingProjectorARGB.getArgbIndex( cursors, occlusions );
+                final int argbIndex = AccumulateAlphaBlendingProjectorARGB.getArgbIndex( cursors, occlusions, order );
                 argbCursor.get().set( argbIndex );
             }
             catch ( Exception e )
