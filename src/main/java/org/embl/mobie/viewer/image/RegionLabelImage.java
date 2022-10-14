@@ -76,7 +76,7 @@ public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< Un
 			final List< String > regionImageNames = tableSawAnnotatedRegion.getRegionImageNames();
 			for ( String regionImageName : regionImageNames )
 			{
-				final Image< ? > viewImage = DataStore.getViewImage( regionImageName );
+				final Image< ? > viewImage = DataStore.getImage( regionImageName );
 				System.out.println( viewImage.getName() + ": " + Arrays.toString( viewImage.getMask().minAsDoubleArray() ) + " - " + Arrays.toString( viewImage.getMask().maxAsDoubleArray() ) );
 			}
 		}

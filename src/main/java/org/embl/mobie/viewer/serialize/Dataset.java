@@ -38,7 +38,6 @@ public class Dataset
 	// Serialisation
 	public boolean is2D = false;
 	public ViewerTransform defaultLocation = new PositionViewerTransform( new double[]{0,0,0}, 0 );
-	public int timepoints = 1;
 	public Map< String, DataSource > sources;
 	public Map< String, View > views;
 }

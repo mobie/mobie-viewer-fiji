@@ -102,13 +102,13 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	 *
 	 * @param imageDisplay
 	 */
-	public ImageDisplay( ImageDisplay imageDisplay )
+	public ImageDisplay( ImageDisplay< ? > imageDisplay )
 	{
 		this.name = imageDisplay.name;
 		this.sources = new ArrayList<>();
 		this.sources.addAll( imageDisplay.nameToSourceAndConverter.keySet() );
 
-		setDisplaySettings( nameToSourceAndConverter.values().iterator().next() );
+		setDisplaySettings( imageDisplay.nameToSourceAndConverter.values().iterator().next() );
 
 		if ( imageDisplay.imageVolumeViewer != null )
 		{

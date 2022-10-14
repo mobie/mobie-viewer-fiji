@@ -71,10 +71,10 @@ public class DatasetJsonCreator {
     }
 
     public void addImage(String imageName, String datasetName,
-                         String uiSelectionGroup, int nTimepoints,
+                         String uiSelectionGroup,
                          ImageDataFormat imageDataFormat, double[] contrastLimits, String colour,
                          boolean exclusive, AffineTransform3D sourceTransform ) {
-        Dataset dataset = fetchDataset( datasetName, nTimepoints );
+        Dataset dataset = fetchDataset( datasetName );
 
         addNewImageSource( dataset, imageName, imageDataFormat );
         if ( uiSelectionGroup != null ) {
@@ -90,10 +90,8 @@ public class DatasetJsonCreator {
         writeDatasetJson( datasetName, dataset );
     }
 
-    public void addSegmentation(String imageName, String datasetName, String uiSelectionGroup,
-                                int nTimepoints, ImageDataFormat imageDataFormat,
-                                boolean exclusive, AffineTransform3D sourceTransform ) {
-        Dataset dataset = fetchDataset( datasetName, nTimepoints );
+    public void addSegmentation(String imageName, String datasetName, String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive, AffineTransform3D sourceTransform ) {
+        Dataset dataset = fetchDataset( datasetName );
 
         addNewSegmentationSource( dataset, imageName, imageDataFormat );
         if ( uiSelectionGroup != null ) {
@@ -115,13 +113,9 @@ public class DatasetJsonCreator {
         writeDatasetJson( datasetName, dataset );
     }
 
-    private Dataset fetchDataset( String datasetName, int nTimepoints ) {
+    private Dataset fetchDataset( String datasetName )
+    {
         Dataset dataset = projectCreator.getDataset( datasetName );
-
-        if ( nTimepoints > dataset.timepoints ) {
-            dataset.timepoints = nTimepoints;
-        }
-
         return dataset;
     }
 
@@ -195,8 +189,7 @@ public class DatasetJsonCreator {
         imageTransformationList.add( imageTransformation );
         return imageTransformationList;
     }
-    private View createImageView( String imageName, String uiSelectionGroup, boolean isExclusive,
-								  double[] contrastLimits, String colour, AffineTransform3D sourceTransform ) {
+    private View createImageView( String imageName, String uiSelectionGroup, boolean isExclusive, double[] contrastLimits, String colour, AffineTransform3D sourceTransform ) {
         ArrayList< Display > displays = new ArrayList<>();
         ArrayList<String> sources = new ArrayList<>();
         sources.add( imageName );

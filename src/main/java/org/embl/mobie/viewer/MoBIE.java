@@ -71,7 +71,6 @@ import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.serialize.View;
 import org.embl.mobie.viewer.view.ViewManager;
-import org.scijava.command.CommandService;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -266,7 +265,7 @@ public class MoBIE
 		IJ.log( "Opening view: " + view.getName() );
 		final long startTime = System.currentTimeMillis();
 		viewManager.show( view );
-		IJ.log("Opened view: " + view.getName() + ", in " + (System.currentTimeMillis() - startTime) + " ms." );
+		IJ.log("Opened view: " + view.getName() + " in " + (System.currentTimeMillis() - startTime) + " ms." );
 	}
 
 	private View getSelectedView() throws IOException
@@ -509,17 +508,22 @@ public class MoBIE
 
 		for ( DataSource dataSource : dataSources )
 		{
-			if ( DataStore.contains( dataSource.getName() ) )
+			// FIXME
+			//   Think about where we could also cache SpimData here
+			//   but maybe not?
+			//   https://github.com/mobie/mobie-viewer-fiji/issues/857
+			if ( DataStore.containsRawData( dataSource.getName() ) )
+			{
 				continue;
+			}
 
 			futures.add(
-					ThreadHelper.ioExecutorService.submit( () ->
-							{
-								String log = getLog( sourceIndex, numImages, sourceLoggingModulo, lastLogMillis );
-
-								initDataSource( dataSource, log );
-							}
-					) );
+				ThreadHelper.ioExecutorService.submit( () ->
+					{
+						String log = getLog( sourceIndex, numImages, sourceLoggingModulo, lastLogMillis );
+						initDataSource( dataSource, log );
+						}
+				) );
 		}
 
 		ThreadHelper.waitUntilFinished( futures );
@@ -576,19 +580,19 @@ public class MoBIE
 					final DefaultAnnotatedLabelImage annotatedLabelImage = new DefaultAnnotatedLabelImage( image, segmentsAnnData );
 
 					// label image representing annotated segments
-					DataStore.putRawImage( annotatedLabelImage );
+					DataStore.putImage( annotatedLabelImage );
 				}
 				else
 				{
 					// label image representing segments
 					// without annotation
-					DataStore.putRawImage( image );
+					DataStore.putImage( image );
 				}
 			}
 			else
 			{
 				// intensity image
-				DataStore.putRawImage( image );
+				DataStore.putImage( image );
 			}
 		}
 
@@ -605,7 +609,7 @@ public class MoBIE
 			final DefaultAnnotatedLabelImage spotsImage = new DefaultAnnotatedLabelImage( labelImage, spotAnnData );
 
 			// Spots image, built from spots table
-			DataStore.putRawImage( spotsImage );
+			DataStore.putImage( spotsImage );
 		}
 
 		if ( dataSource instanceof RegionDataSource )

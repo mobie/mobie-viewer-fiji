@@ -96,8 +96,10 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 		table = rows;
 		table.setName( dataSourceName );
 		final int rowCount = table.rowCount();
-		// table.reorderColumns(  ) TODO MAYBE move the source in front
-		table.addColumns( StringColumn.create( "source", rowCount ) );
+
+		if ( ! table.containsColumn( "source" ) )
+			table.addColumns( StringColumn.create( "source", rowCount ) );
+
 		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
 		{
 			final A annotation = annotationCreator.create( () -> table, rowIndex );

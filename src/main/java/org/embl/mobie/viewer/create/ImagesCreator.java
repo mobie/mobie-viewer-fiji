@@ -262,10 +262,9 @@ public class ImagesCreator {
                 String colour = "r=" + lut.getRed(255) + ",g=" + lut.getGreen(255) + ",b=" +
                         lut.getBlue(255) + ",a=" + lut.getAlpha(255);
                 updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup,
-                        imp.getNFrames(), imageDataFormat, contrastLimits, colour, exclusive, sourceTransform );
+                        imageDataFormat, contrastLimits, colour, exclusive, sourceTransform );
             } else {
-                updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup,
-                        imp.getNFrames(), imageDataFormat, exclusive, sourceTransform );
+                updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup, imageDataFormat, exclusive, sourceTransform );
             }
         }
 
@@ -479,11 +478,10 @@ public class ImagesCreator {
         }
 
         if (imageType == ProjectCreator.ImageType.image) {
-            updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup, getNumTimePointsFromSpimData(spimData), imageDataFormat, new double[]{0.0, 255.0},
+            updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup, imageDataFormat, new double[]{0.0, 255.0},
                     "white", exclusive, new AffineTransform3D() );
         } else {
-            updateTableAndJsonsForNewSegmentation( imageName, datasetName, uiSelectionGroup,
-                    getNumTimePointsFromSpimData(spimData), imageDataFormat, exclusive, new AffineTransform3D() );
+            updateTableAndJsonsForNewSegmentation( imageName, datasetName, uiSelectionGroup, imageDataFormat, exclusive, new AffineTransform3D() );
         }
 
         IJ.log( "Bdv format image " + imageName + " added to project" );
@@ -604,22 +602,16 @@ public class ImagesCreator {
         }
     }
 
-    private void updateTableAndJsonsForNewImage ( String imageName, String datasetName, String uiSelectionGroup,
-                                                  int nTimepoints, ImageDataFormat imageDataFormat,
-                                                  double[] contrastLimits, String colour,
-                                                  boolean exclusive, AffineTransform3D sourceTransform ) {
+    private void updateTableAndJsonsForNewImage ( String imageName, String datasetName, String uiSelectionGroup, ImageDataFormat imageDataFormat, double[] contrastLimits, String colour, boolean exclusive, AffineTransform3D sourceTransform ) {
         DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
-        datasetJsonCreator.addImage( imageName, datasetName, uiSelectionGroup, nTimepoints,
+        datasetJsonCreator.addImage( imageName, datasetName, uiSelectionGroup,
                 imageDataFormat, contrastLimits, colour, exclusive, sourceTransform );
     }
 
-    private void updateTableAndJsonsForNewSegmentation( String imageName, String datasetName, String uiSelectionGroup,
-                                                        int nTimepoints, ImageDataFormat imageDataFormat,
-                                                        boolean exclusive, AffineTransform3D sourceTransform ) {
+    private void updateTableAndJsonsForNewSegmentation( String imageName, String datasetName, String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive, AffineTransform3D sourceTransform ) {
         addDefaultTableForImage( imageName, datasetName, imageDataFormat );
         DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
-        datasetJsonCreator.addSegmentation( imageName, datasetName, uiSelectionGroup, nTimepoints,
-                imageDataFormat, exclusive, sourceTransform );
+        datasetJsonCreator.addSegmentation( imageName, datasetName, uiSelectionGroup, imageDataFormat, exclusive, sourceTransform );
     }
 
     private void copyImage ( ImageDataFormat imageFormat, SpimData spimData,

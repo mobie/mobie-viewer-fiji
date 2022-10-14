@@ -141,7 +141,7 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	{
 		// Update every time, because the position of the images
 		// maybe have changed.
-		final Set< Image< ? > > regionImages = DataStore.getViewImageSet( imageNames );
+		final Set< Image< ? > > regionImages = DataStore.getImageSet( imageNames );
 		final RealMaskRealInterval unionMask = TransformHelper.getUnionMask( regionImages, timePoint() );
 		return unionMask;
 	}

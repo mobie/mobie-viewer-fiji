@@ -42,28 +42,20 @@ public class AffineTransformedImage< T > implements Image< T >
 	protected final AffineTransform3D affineTransform3D;
 	protected final Image< T > image;
 	protected final String transformedImageName;
-	protected DefaultSourcePair sourcePair;
 	private RealMaskRealInterval mask;
+
+	public AffineTransformedImage( Image< T > image )
+	{
+		this.image = image;
+		this.transformedImageName = image.getName();
+		this.affineTransform3D = new AffineTransform3D();
+	}
 
 	public AffineTransformedImage( Image< T > image, String transformedImageName, AffineTransform3D affineTransform3D )
 	{
 		this.image = image;
 		this.transformedImageName = transformedImageName;
 		this.affineTransform3D = affineTransform3D;
-	}
-
-	private void createSourcePair()
-	{
-		if ( sourcePair != null) return;
-
-		final SourcePair< T > sourcePair = image.getSourcePair();
-		final Source< T > source = sourcePair.getSource();
-		final Source< ? extends Volatile< T > > volatileSource = sourcePair.getVolatileSource();
-
-		final TransformedSource transformedSource = new TransformedSource( source, transformedImageName );
-		transformedSource.setFixedTransform( affineTransform3D );
-		final TransformedSource volatileTransformedSource = new TransformedSource( volatileSource, transformedSource );
-		this.sourcePair = new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
 	}
 
 	public AffineTransform3D getAffineTransform3D()
@@ -74,8 +66,15 @@ public class AffineTransformedImage< T > implements Image< T >
 	@Override
 	public synchronized SourcePair< T > getSourcePair()
 	{
-		createSourcePair();
-		return sourcePair;
+		final SourcePair< T > sourcePair = image.getSourcePair();
+		final Source< T > source = sourcePair.getSource();
+		final Source< ? extends Volatile< T > > volatileSource = sourcePair.getVolatileSource();
+
+		final TransformedSource transformedSource = new TransformedSource( source, transformedImageName );
+		transformedSource.setFixedTransform( affineTransform3D );
+		final TransformedSource volatileTransformedSource = new TransformedSource( volatileSource, transformedSource );
+
+		return new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
 	}
 
 	@Override
@@ -87,7 +86,7 @@ public class AffineTransformedImage< T > implements Image< T >
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		throw new RuntimeException();
+		this.affineTransform3D.preConcatenate( affineTransform3D );
 	}
 
 	@Override

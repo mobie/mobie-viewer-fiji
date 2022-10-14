@@ -212,7 +212,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				// because the images of those tiles
 				// are already initialised.
 				final List< String > tileNames = ( ( StitchedImage< ?, ? > ) image ).getImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
-				final Set< Image< ? > > stitchedImages = DataStore.getViewImageSet( tileNames );
+				final Set< Image< ? > > stitchedImages = DataStore.getImageSet( tileNames );
 				for ( Image< ? > containedImage : stitchedImages )
 				{
 					if ( containedImage instanceof StitchedImage )

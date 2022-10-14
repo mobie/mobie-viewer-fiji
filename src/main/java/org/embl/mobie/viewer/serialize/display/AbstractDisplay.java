@@ -48,8 +48,8 @@ public abstract class AbstractDisplay< T > implements Display< T >
 
 	// Runtime
 	public transient Map< String, SourceAndConverter< T > > nameToSourceAndConverter = new HashMap<>();
-	private transient Set< Image< T > > images = new HashSet<>();
 	public transient SliceViewer sliceViewer;
+	private transient Set< Image< T > > images = new HashSet<>();
 
 	@Override
 	public String getName()
