@@ -338,7 +338,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		selectionModel.setSelected( notSelectedRows, false );
 	}
 
-	// TODO: use the TableModel for this (i.e. TableSaw)
 	private void selectEqualTo()
 	{
 		// works for categorical and numeric columns
@@ -349,33 +348,26 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		gd.showDialog();
 		if( gd.wasCanceled() ) return;
 		final String columnName = gd.getNextChoice();
-		final String value = gd.getNextString();
-
-		// Have to parse to doubles for double column (as e.g. integers like 9 are displayed as 9.0)
-		// TODO we now know the classes of the columns!
-		double doubleValue = 0;
-		boolean isDoubleColumn = jTable.getValueAt(0, jTable.getColumn( columnName ).getModelIndex() ) instanceof Double;
-		if ( isDoubleColumn ) {
-			try {
-				doubleValue = Utils.parseDouble(value);
-			} catch (NumberFormatException e) {
-				Logger.error( value + " does not exist in column " + columnName + ", please choose another value." );
-				return;
-			}
-		}
+		final String selectedValue = gd.getNextString();
 
 		ArrayList< A > selectedRows = new ArrayList<>();
 		ArrayList< A > notSelectedRows = new ArrayList<>();
 		final Set< A > rows = tableModel.annotations();
-		for( A row: rows ) {
+
+		final boolean numeric = tableModel.numericColumnNames().contains( columnName ) ? true : false;
+
+		double selectedNumber = 0.0;
+		if ( numeric )
+			selectedNumber = Double.parseDouble( selectedValue );
+
+		for( A row: rows )
+		{
 			boolean valuesMatch;
 
-			if ( tableModel.columnClass( columnName ) == Double.class ) {
-				double tableDouble = ( Double ) row.getValue( columnName );
-				valuesMatch = doubleValue == tableDouble;
-			} else {
-				valuesMatch = row.getValue( columnName ).equals( value );
-			}
+			if ( numeric)
+				valuesMatch = row.getNumber( columnName ).equals( selectedNumber );
+			else
+				valuesMatch = row.getValue( columnName ).equals( selectedValue );
 
 			if ( valuesMatch ) {
 				selectedRows.add( row );
@@ -384,14 +376,12 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 			}
 		}
 
-		if ( selectedRows.size() > 0 ) {
+		if ( selectedRows.size() > 0 )
 			selectRows( selectedRows, notSelectedRows );
-		} else {
-			Logger.error( value + " does not exist in column " + columnName + ", please choose another value." );
-		}
+		else
+			Logger.error( selectedValue + " does not exist in column " + columnName + ", please choose another value." );
 	}
 
-	// TODO: could this be delegated to TableSaw ?
 	private void selectGreaterOrLessThan( boolean greaterThan ) {
 		// only works for numeric columns
 		final GenericDialog gd = new GenericDialog( "" );
