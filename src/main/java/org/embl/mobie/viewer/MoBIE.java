@@ -187,11 +187,11 @@ public class MoBIE
 	{
 		if ( settings.values.getDataset() != null )
 		{
-			openDataset( settings.values.getDataset() );
+			openDataset( settings.values.getDataset(), settings.values.getView() );
 		}
 		else
 		{
-			openDataset( project.getDefaultDataset() );
+			openDataset( project.getDefaultDataset(), settings.values.getView() );
 		}
 	}
 
@@ -247,7 +247,7 @@ public class MoBIE
 		}
 	}
 
-	private void openDataset( String datasetName ) throws IOException
+	private void openDataset( String datasetName, String viewName ) throws IOException
 	{
 		IJ.log("Opening dataset: " + datasetName );
 		sourceNameToImgLoader = new HashMap<>();
@@ -260,20 +260,20 @@ public class MoBIE
 		for ( String s : getViews().keySet() )
 			System.out.println( s );
 
-		final View view = getSelectedView();
-		view.setName( settings.values.getView() );
+		final View view = getSelectedView( viewName );
+		view.setName( viewName );
 		IJ.log( "Opening view: " + view.getName() );
 		final long startTime = System.currentTimeMillis();
 		viewManager.show( view );
 		IJ.log("Opened view: " + view.getName() + " in " + (System.currentTimeMillis() - startTime) + " ms." );
 	}
 
-	private View getSelectedView() throws IOException
+	private View getSelectedView( String viewName ) throws IOException
 	{
-		final View view = dataset.views.get( settings.values.getView() );
+		final View view = dataset.views.get( viewName );
 		if ( view == null )
 		{
-			System.err.println("The view \"" + settings.values.getView() + "\" could not be found in this dataset." );
+			System.err.println("The view \"" + viewName + "\" could not be found in this dataset." );
 			throw new IOException();
 		}
 		return view;
@@ -381,34 +381,13 @@ public class MoBIE
 		throw new RuntimeException();
 	}
 
-	private SpimData tryOpenSpimData( String imagePath, ImageDataFormat imageDataFormat )
-	{
-		try
-		{
-			if ( imageDataFormat.equals( ImageDataFormat.BdvOmeZarrS3) ||
-					imageDataFormat.equals( ImageDataFormat.BdvOmeZarr) )
-			{
-				// TODO enable shared queues
-				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat );
-			}
-			else
-			{
-				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat, ThreadHelper.sharedQueue );
-			}
-		}
-		catch ( SpimDataException e )
-		{
-			throw new RuntimeException( e );
-		}
-	}
-
 	public void setDataset( String dataset )
     {
         setDatasetName( dataset );
         viewManager.close();
 
         try {
-            openDataset( datasetName );
+            openDataset( dataset, View.DEFAULT );
         } catch ( IOException e ) {
             e.printStackTrace();
         }

@@ -83,7 +83,7 @@ public class DatasetJsonCreator {
         }
 
         // if there is no default view, make one with this image and sensible defaults
-        if ( !dataset.views.containsKey("default")) {
+        if ( !dataset.views.containsKey(View.DEFAULT)) {
             addNewDefaultImageView( dataset, imageName, contrastLimits, colour, sourceTransform );
         }
 
@@ -100,7 +100,7 @@ public class DatasetJsonCreator {
         }
 
         // if there is no default view, make one with this image and sensible defaults
-        if ( !dataset.views.containsKey("default")) {
+        if ( !dataset.views.containsKey(View.DEFAULT)) {
             addNewDefaultSegmentationView( dataset, imageName, sourceTransform );
         }
 
@@ -175,12 +175,12 @@ public class DatasetJsonCreator {
 										 AffineTransform3D sourceTransform ) {
         View view = createImageView( imageName, "bookmark", true, contrastLimits, colour,
                 sourceTransform );
-        dataset.views.put( "default", view );
+        dataset.views.put( View.DEFAULT, view );
     }
 
     private void addNewDefaultSegmentationView( Dataset dataset, String imageName, AffineTransform3D sourceTransform ) {
         View view = createSegmentationView( imageName, "bookmark", true, sourceTransform );
-        dataset.views.put( "default", view );
+        dataset.views.put( View.DEFAULT, view );
     }
 
     private List< Transformation > createSourceTransformerList( AffineTransform3D sourceTransform, List<String> sources ) {

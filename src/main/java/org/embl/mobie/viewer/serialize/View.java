@@ -41,6 +41,9 @@ import java.util.Map;
 
 public class View
 {
+	// Static
+	public static transient String DEFAULT = "default";
+
 	// Serialisation (do not change names of fields!)
 	//
 	private String uiSelectionGroup;
@@ -49,7 +52,8 @@ public class View
 	private ViewerTransform viewerTransform;
 	private boolean isExclusive = false;
 	private String name;
-
+	
+	
 	public View( String uiSelectionGroup, List< Display > sourceDisplays,
 				 List< Transformation > sourceTransforms, ViewerTransform viewerTransform, boolean isExclusive ) {
 		this.uiSelectionGroup = uiSelectionGroup;

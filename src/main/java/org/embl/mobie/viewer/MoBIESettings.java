@@ -29,6 +29,7 @@
 package org.embl.mobie.viewer;
 
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.viewer.serialize.View;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -104,7 +105,7 @@ public class MoBIESettings
 
 	public static class Values
 	{
-		public String[] s3AccessAndSecretKey;
+		private String[] s3AccessAndSecretKey;
 		private String publicationURL;
 		private String dataset;
 		private String projectBranch = "main"; // project and images
@@ -113,7 +114,7 @@ public class MoBIESettings
 		private String projectLocation;
 		private String imageDataLocation;
 		private String tableDataLocation;
-		private String view = "default";
+		private String view = View.DEFAULT;
 
 		public String getDataset()
 		{
