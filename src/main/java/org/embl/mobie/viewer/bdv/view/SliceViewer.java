@@ -36,6 +36,7 @@ import org.embl.mobie.viewer.bdv.MobieSerializableBdvOptions;
 import org.embl.mobie.viewer.bdv.SourceNameRenderer;
 import org.embl.mobie.viewer.bdv.SourcesAtMousePositionSupplier;
 import org.embl.mobie.viewer.bdv.ViewerTransformLogger;
+import org.embl.mobie.viewer.bdv.render.AccumulateAlphaBlendingProjectorARGB;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.color.OpacityHelper;
 import org.embl.mobie.viewer.command.BigWarpRegistrationCommand;
@@ -110,6 +111,7 @@ public class SliceViewer
 		{
 			bdvHandle = createBdv( is2D, FRAME_TITLE );
 			sacDisplayService.registerBdvHandle( bdvHandle );
+			AccumulateAlphaBlendingProjectorARGB.bdvHandle = bdvHandle;
 		}
 
 		return bdvHandle;
@@ -210,6 +212,10 @@ public class SliceViewer
 
 		// blending mode
 		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.class.getName(), display.getBlendingMode() );
+
+		// time added (for alpha blending)
+		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.TIME_ADDED, System.currentTimeMillis() );
+
 
 		// opacity
 		OpacityHelper.setOpacity( sourceAndConverter, display.getOpacity() );

@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.viewer.bdv.render;
 
+import bdv.util.Bdv;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.render.AccumulateProjector;
@@ -42,11 +43,15 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< ARGBType, ARGBType >
 {
+	public static BdvHandle bdvHandle;
+	public static ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();;
+
 	private final boolean[] alphaBlending;
 	private final int[] order;
 
@@ -60,19 +65,15 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 	{
 		super( sourceProjectors, sourceScreenImages, target );
 		alphaBlending = getAlphaBlending( sources );
-		//order = new int[ sources.size() ];
-		//for ( int i = 0; i < order.length; i++)
-		//	order[i] = i;
-		// FIXME: below hangs (concurrency, I guess)
 		order = getOrder( sources );
 	}
 
 	public static synchronized int[] getOrder( List< SourceAndConverter< ? > > sources )
 	{
-		final SourceAndConverterBdvDisplayService bdvDisplayService = SourceAndConverterServices.getBdvDisplayService();
-		final BdvHandle bdvHandle = bdvDisplayService.getDisplaysOf( sources.get( 0 ) ).iterator().next();
 		final ArrayList< SourceAndConverter< ? > > sorted = new ArrayList<>( sources );
-		Collections.sort( sorted, bdvHandle.getViewerPanel().state().sourceOrder() );
+		Collections.sort( sorted, ( sac1, sac2 ) ->
+				Long.compare( (long) sacService.getMetadata( sac1, BlendingMode.TIME_ADDED ),
+				(long) sacService.getMetadata( sac2, BlendingMode.TIME_ADDED ) ) );
 		int[] order = new int[ sorted.size() ];
 		for ( int i = 0; i < order.length; i++)
 			order[i] = sources.indexOf( sorted.get(i) );
@@ -81,8 +82,6 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 
 	public static synchronized boolean[] getAlphaBlending( List< SourceAndConverter< ? > > sources )
 	{
-		final ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();
-
 		final int numSources = sources.size();
 		final boolean[] alphaBlending = new boolean[ numSources ];
 		final String blendingModeKey = BlendingMode.class.getName();

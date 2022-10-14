@@ -64,7 +64,7 @@ public class ConfigureImageRenderingCommand extends DynamicCommand implements Bd
 	@Parameter
 	protected SourceAndConverter< ? >[] sourceAndConverters;
 
-	@Parameter(label = "Blending Mode", choices = { BlendingMode.SUM, BlendingMode.ALPHA })
+	@Parameter( label = "Blending Mode", choices = { BlendingMode.SUM, BlendingMode.ALPHA }, persist = false )
 	String blendingMode = BlendingMode.SUM;
 
 	@Override

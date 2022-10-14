@@ -68,6 +68,9 @@ public enum BlendingMode
 	public static final String SUM = "Sum";
 	public static final String ALPHA = "Alpha";
 
+	// For alpha blending
+	public static final String TIME_ADDED = "TA";
+
 	// To use as a key for the xml
 	// Underscore necessary for valid xml element to store in @see DisplaySettings
 	// TODO Remove? https://github.com/mobie/mobie-viewer-fiji/issues/850
