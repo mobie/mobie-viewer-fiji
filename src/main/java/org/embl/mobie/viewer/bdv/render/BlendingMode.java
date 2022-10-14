@@ -71,8 +71,8 @@ public enum BlendingMode
 	// For alpha blending
 	public static final String TIME_ADDED = "TA";
 
-	// To use as a key for the xml
-	// Underscore necessary for valid xml element to store in @see DisplaySettings
-	// TODO Remove? https://github.com/mobie/mobie-viewer-fiji/issues/850
+	// It is unclear whether this is used
+	// https://github.com/mobie/mobie-viewer-fiji/issues/850
+	// As it does not hurt we left it in.
 	public static final String BLENDING_MODE = "Blending Mode";
 }

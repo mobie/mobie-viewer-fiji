@@ -109,6 +109,7 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 
 		inputToRandomColor.clear();
 		this.randomSeed = randomSeed;
+		notifyColoringListeners();
 	}
 
 	public int getRandomSeed()
