@@ -816,7 +816,7 @@ public class ProjectsCreatorPanel extends JFrame {
         String currentDataset = (String) datasetComboBox.getSelectedItem();
         String currentGroup = (String) groupsComboBox.getSelectedItem();
 
-        if ( currentDataset != null && !currentDataset.equals("") && currentGroup != null && !currentGroup.equals("") ) {
+        if ( currentDataset != null && !currentDataset.equals("") ) {
             viewsComboBox.removeAllItems();
             String[] views = projectsCreator.getViews( currentDataset, currentGroup );
             if ( views != null && views.length > 0 ) {
