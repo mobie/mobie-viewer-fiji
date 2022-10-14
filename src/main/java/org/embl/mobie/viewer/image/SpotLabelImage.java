@@ -28,6 +28,9 @@
  */
 package org.embl.mobie.viewer.image;
 
+import bdv.SpimSource;
+import bdv.VolatileSpimSource;
+import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
 import net.imglib2.Interval;
 import net.imglib2.KDTree;
@@ -56,13 +59,15 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 {
 	private final String name;
 	private final Set< AS > annotatedSpots;
-	private Source< UnsignedIntType > source;
 	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
 	private KDTree< AS > kdTree;
 	private RealMaskRealInterval mask;
 	private double radius;
 	private double[] boundingBoxMin;
 	private double[] boundingBoxMax;
+	private AffineTransform3D affineTransform3D;
+	private Source< UnsignedIntType > source;
+	private TransformedSource< UnsignedIntType > transformedSource;
 
 	public SpotLabelImage( String name, Set< AS > annotatedSpots, double radius, @Nullable double[] boundingBoxMin, @Nullable double[] boundingBoxMax )
 	{
@@ -71,6 +76,7 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 		this.radius = radius;
 		this.boundingBoxMin = boundingBoxMin;
 		this.boundingBoxMax = boundingBoxMax;
+		affineTransform3D = new AffineTransform3D();
 		createLabelImage();
 	}
 
@@ -97,8 +103,8 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 		mask = GeomMasks.closedBox( boundingBoxMin, boundingBoxMax );
 
 		// TODO: use those for something?
-		final NearestNeighborSearchOnKDTree< AS > nearestNeighborSearchOnKDTree = new NearestNeighborSearchOnKDTree<>( kdTree );
-		final RadiusNeighborSearchOnKDTree< AS > radiusNeighborSearchOnKDTree = new RadiusNeighborSearchOnKDTree<>( kdTree );
+//		final NearestNeighborSearchOnKDTree< AS > nearestNeighborSearchOnKDTree = new NearestNeighborSearchOnKDTree<>( kdTree );
+//		final RadiusNeighborSearchOnKDTree< AS > radiusNeighborSearchOnKDTree = new RadiusNeighborSearchOnKDTree<>( kdTree );
 
 		// TODO: code duplication with RegionLabelImage
 		final ArrayList< Integer > timePoints = configureTimePoints();
@@ -159,7 +165,10 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 	@Override
 	public SourcePair< UnsignedIntType > getSourcePair()
 	{
-		return new DefaultSourcePair<>( source, volatileSource );
+		transformedSource = new TransformedSource( source );
+		transformedSource.setFixedTransform( affineTransform3D );
+		//final TransformedSource volatileTransformedSource = new TransformedSource( volatileSource, transformedSource );
+		return new DefaultSourcePair<>( transformedSource, null );
 	}
 
 	public String getName()
@@ -170,7 +179,16 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		throw new RuntimeException();
+		if ( mask != null )
+		{
+			// The mask contains potential previous transforms already,
+			// thus we add the new transform on top.
+			mask = mask.transform( affineTransform3D.inverse() );
+		}
+
+		this.affineTransform3D.preConcatenate( affineTransform3D );
+		if ( transformedSource != null )
+			transformedSource.setFixedTransform( this.affineTransform3D );
 	}
 
 	@Override

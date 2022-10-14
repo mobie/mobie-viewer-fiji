@@ -64,14 +64,10 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 			mask = mask.transform( affineTransform3D.inverse() );
 		}
 
-		// Store the complete transform such that it
-		// can be used to transform the source during creation...
 		this.affineTransform3D.preConcatenate( affineTransform3D );
 
-		// ...or set the transform of the already existing source.
 		if ( transformedSource != null )
 			transformedSource.setFixedTransform( this.affineTransform3D );
-
 	}
 
 	@Override
