@@ -31,6 +31,7 @@ package org.embl.mobie.viewer.table;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.TableUIs;
 import de.embl.cba.tables.Utils;
+import ij.IJ;
 import ij.gui.GenericDialog;
 import org.embl.mobie.viewer.annotation.AnnotatorDialog;
 import org.embl.mobie.viewer.annotation.Annotation;
@@ -358,22 +359,21 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		double selectedNumber = 0.0;
 		if ( numeric )
-			selectedNumber = Double.parseDouble( selectedValue );
-
-		for( A row: rows )
 		{
-			boolean valuesMatch;
-
-			if ( numeric)
-				valuesMatch = row.getNumber( columnName ).equals( selectedNumber );
-			else
-				valuesMatch = row.getValue( columnName ).equals( selectedValue );
-
-			if ( valuesMatch ) {
-				selectedRows.add( row );
-			} else {
-				notSelectedRows.add( row );
-			}
+			selectedNumber = Double.parseDouble( selectedValue );
+			for( A row: rows )
+				if ( row.getNumber( columnName ).equals( selectedNumber ) )
+					selectedRows.add( row );
+				else
+					notSelectedRows.add( row );
+		}
+		else
+		{
+			for( A row: rows )
+				if ( row.getValue( columnName ).equals( selectedValue ) )
+					selectedRows.add( row );
+				else
+					notSelectedRows.add( row );
 		}
 
 		if ( selectedRows.size() > 0 )
@@ -382,7 +382,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 			Logger.error( selectedValue + " does not exist in column " + columnName + ", please choose another value." );
 	}
 
-	private void selectGreaterOrLessThan( boolean greaterThan ) {
+	private void selectGreaterOrLessThan( final boolean greaterThan ) {
 		// only works for numeric columns
 		final GenericDialog gd = new GenericDialog( "" );
 		String[] columnNames = tableModel.numericColumnNames().toArray(new String[0]);
@@ -396,31 +396,22 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		ArrayList< A > selectedRows = new ArrayList<>();
 		ArrayList< A > notSelectedRows = new ArrayList<>();
 		final Set< A > rows = tableModel.annotations();
-		for( A row: rows ) {
 
-			boolean criteriaMet;
-			if ( greaterThan ) {
-				criteriaMet = (Double) row.getValue(columnName) > value;
-			} else {
-				criteriaMet = (Double) row.getValue(columnName) < value;
-			}
+		for( A row: rows )
+			if ( greaterThan ?
+					row.getNumber( columnName ) > value :
+					row.getNumber( columnName ) < value )
+				selectedRows.add( row );
+			else
+				notSelectedRows.add( row );
 
-			if ( criteriaMet ) {
-				selectedRows.add(row);
-			} else {
-				notSelectedRows.add(row);
-			}
-		}
-
-		if ( selectedRows.size() > 0 ) {
+		if ( selectedRows.size() > 0 )
 			selectRows( selectedRows, notSelectedRows );
-		} else {
-			if ( greaterThan ) {
-				Logger.error("No values greater than " + value + " in column " + columnName + ", please choose another value.");
-			} else {
-				Logger.error("No values less than " + value + " in column " + columnName + ", please choose another value.");
-			}
-		}
+		else
+			if ( greaterThan )
+				IJ.showMessage( "No values greater than " + value + " in column " + columnName + ", please choose another value." );
+			else
+				IJ.showMessage("No values less than " + value + " in column " + columnName + ", please choose another value.");
 	}
 
 	public void showNewAnnotationDialog()
