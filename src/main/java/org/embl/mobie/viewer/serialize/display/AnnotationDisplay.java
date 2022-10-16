@@ -163,7 +163,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		// (this is the definition of them being displayed together).
 		// One can therefore fetch the display settings from any of the
 		// SourceAndConverter.
-		final SourceAndConverter< ? > sourceAndConverter = annotationDisplay.nameToSourceAndConverter.values().iterator().next();
+		final SourceAndConverter< ? > sourceAndConverter = annotationDisplay.getSourceAndConverters().get( 0 );
 
 		// TODO: get opacity from coloring model instead of sac!
 		//   But from which one? Maybe just from MoBIEColoringModel?!

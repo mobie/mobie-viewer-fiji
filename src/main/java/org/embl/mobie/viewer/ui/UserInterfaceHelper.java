@@ -40,12 +40,10 @@ import ij.IJ;
 import ij.gui.GenericDialog;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.MoBIEHelper.FileLocation;
 import org.embl.mobie.viewer.MoBIEInfo;
 import org.embl.mobie.viewer.Services;
 import org.embl.mobie.viewer.command.ConfigureImageRenderingCommand;
-import org.embl.mobie.viewer.command.ConfigureImageVolumeRenderingCommand;
 import org.embl.mobie.viewer.command.ConfigureLabelRenderingCommand;
 import org.embl.mobie.viewer.command.ConfigureSpotRenderingCommand;
 import org.embl.mobie.viewer.serialize.display.SpotDisplay;
@@ -362,7 +360,7 @@ public class UserInterfaceHelper
 
 	public static void showOpacityDialog(
 			String name,
-			List< SourceAndConverter< ? > > sourceAndConverters,
+			List< ? extends SourceAndConverter< ? > > sourceAndConverters,
 			BdvHandle bdvHandle )
 	{
 		JFrame frame = new JFrame( name );
@@ -408,7 +406,7 @@ public class UserInterfaceHelper
 	public JPanel createRegionDisplaySettingsPanel( RegionDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
-		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.nameToSourceAndConverter.values() );
+		List< SourceAndConverter< ? > > sourceAndConverters = display.getSourceAndConverters();
 
 		// Buttons
 		panel.add( space() );
@@ -430,7 +428,7 @@ public class UserInterfaceHelper
 	public JPanel createSpotDisplaySettingsPanel( SpotDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
-		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.nameToSourceAndConverter.values() );
+		List< SourceAndConverter< ? > > sourceAndConverters = display.getSourceAndConverters();
 
 		// Buttons
 		panel.add( space() );
@@ -451,14 +449,14 @@ public class UserInterfaceHelper
 
 	public static class OpacityUpdateListener implements BoundedValueDouble.UpdateListener
 	{
-		final private List< SourceAndConverter< ? > > sourceAndConverters;
+		final private List< ? extends SourceAndConverter< ? > > sourceAndConverters;
 		private final BdvHandle bdvHandle;
 		final private BoundedValueDouble value;
 		private final SliderPanelDouble slider;
 
 		public OpacityUpdateListener( BoundedValueDouble value,
 									  SliderPanelDouble slider,
-									  List< SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
+									  List< ? extends SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
 		{
 			this.value = value;
 			this.slider = slider;
@@ -509,13 +507,13 @@ public class UserInterfaceHelper
 		JPanel panel = createDisplayPanel( display.getName() );
 
 		// Set panel background color
-		final Converter< ?, ARGBType > converter = display.nameToSourceAndConverter.values(). iterator().next().getConverter();
+		final Converter< ?, ARGBType > converter = display.getSourceAndConverters().get( 0 ).getConverter();
 		if ( converter instanceof ColorConverter )
 		{
 			setPanelColor( panel, ( ( ColorConverter ) converter ).getColor() );
 		}
 
-		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.nameToSourceAndConverter.values() );
+		List< ? extends SourceAndConverter< ? > > sourceAndConverters = display.getSourceAndConverters();
 
 		// Buttons
 		panel.add( space() );
@@ -534,7 +532,7 @@ public class UserInterfaceHelper
 
 
 		// make the panel color listen to color changes of the sources
-		for ( SourceAndConverter< ? > sourceAndConverter : display.nameToSourceAndConverter.values() )
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter ).setupChangeListeners().add( setup -> {
 				// color changed listener
@@ -562,8 +560,7 @@ public class UserInterfaceHelper
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 
-		List< SourceAndConverter< ? > > sourceAndConverters =
-				new ArrayList<>( display.nameToSourceAndConverter.values() );
+		List< SourceAndConverter< ? > > sourceAndConverters = display.getSourceAndConverters();
 
 		panel.add( space() );
 		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
@@ -593,7 +590,7 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	private JButton createImageRenderingSettingsButton( List< SourceAndConverter< ? > > sourceAndConverters )
+	private JButton createImageRenderingSettingsButton( List< ? extends SourceAndConverter< ? > > sourceAndConverters )
 	{
 		JButton button = new JButton( "S" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
@@ -910,7 +907,7 @@ public class UserInterfaceHelper
 
 	private static JCheckBox createSliceViewerVisibilityCheckbox(
 			boolean isVisible,
-			final List< SourceAndConverter< ? > > sourceAndConverters )
+			final List< ? extends SourceAndConverter< ? > > sourceAndConverters )
 	{
 		JCheckBox checkBox = new JCheckBox( "S" );
 		checkBox.setSelected( isVisible );
@@ -1022,8 +1019,6 @@ public class UserInterfaceHelper
 
 		button.addActionListener( e ->
 		{
-//			final AffineTransform3D transform = new ViewerTransformAdjuster(  sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).getTransform();
-
 			final AffineTransform3D transform = new MoBIEViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sources ).getMultiSourceTransform();
 			new ViewerTransformChanger( bdvHandle, transform, false, SliceViewLocationChanger.animationDurationMillis ).run();
 		} );
@@ -1039,10 +1034,10 @@ public class UserInterfaceHelper
 		button.addActionListener( e ->
 		{
 			final ArrayList< ConverterSetup > converterSetups = new ArrayList<>();
-			for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.nameToSourceAndConverter.values() )
-			{
+			final Collection< ? extends SourceAndConverter< ? > > sourceAndConverters = imageDisplay.getSourceAndConverters();
+			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 				converterSetups.add( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter ) );
-			}
+
 
 			UserInterfaceHelper.showContrastLimitsDialog(
 					imageDisplay.getName(),
@@ -1052,7 +1047,7 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-	public static JButton createOpacityButton( List< SourceAndConverter< ? > > sourceAndConverters, String name, BdvHandle bdvHandle )
+	public static JButton createOpacityButton( List< ? extends SourceAndConverter< ? > > sourceAndConverters, String name, BdvHandle bdvHandle )
 	{
 		JButton button = new JButton( "O" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
@@ -1068,7 +1063,7 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-	private static JButton createColorButton( JPanel parentPanel, List< SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
+	private static JButton createColorButton( JPanel parentPanel, List< ? extends SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
 	{
 		JButton colorButton = new JButton( "C" );
 

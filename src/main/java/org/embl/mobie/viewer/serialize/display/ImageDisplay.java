@@ -79,7 +79,7 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	}
 
 	@Override
-	public List< String > getImageSources()
+	public List< String > getSources()
 	{
 		return sources;
 	}
@@ -106,9 +106,8 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	{
 		this.name = imageDisplay.name;
 		this.sources = new ArrayList<>();
-		this.sources.addAll( imageDisplay.nameToSourceAndConverter.keySet() );
-
-		setDisplaySettings( imageDisplay.nameToSourceAndConverter.values().iterator().next() );
+		this.sources.addAll( imageDisplay.getSourceAndConverters().keySet() );
+		setDisplaySettings( imageDisplay.getSourceAndConverters().values().iterator().next() );
 
 		if ( imageDisplay.imageVolumeViewer != null )
 		{

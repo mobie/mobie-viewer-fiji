@@ -67,7 +67,7 @@ public class ImageSliceView< T extends NumericType< T > & RealType< T > > extend
 	{
 		Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter = new HashMap<>();
 		for ( Image< T > image : display.getImages() )
-			sourceNameToSourceAndConverter.put( image.getName(), createSac( image ) );
+			sourceNameToSourceAndConverter.put( image.getName(), createSourceAndConverter( image ) );
 
 		for ( String name : sourceNameToSourceAndConverter.keySet() )
 		{
@@ -83,7 +83,7 @@ public class ImageSliceView< T extends NumericType< T > & RealType< T > > extend
 		}
 	}
 
-	private SourceAndConverter createSac( Image< T > image )
+	private SourceAndConverter createSourceAndConverter( Image< T > image )
 	{
 		final Converter< T, ARGBType > converter = createConverterToARGB( image.getSourcePair().getSource().getType() );
 		final SourceAndConverter volatileSac = new SourceAndConverter( image.getSourcePair().getVolatileSource(), converter );

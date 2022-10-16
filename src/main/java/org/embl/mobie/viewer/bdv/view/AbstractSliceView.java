@@ -34,6 +34,7 @@ import org.embl.mobie.viewer.serialize.display.AbstractDisplay;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public abstract class AbstractSliceView implements SliceView
 {
@@ -55,7 +56,8 @@ public abstract class AbstractSliceView implements SliceView
 	@Override
 	public void close( boolean closeImgLoader )
 	{
-		for ( SourceAndConverter< ? > sourceAndConverter : display.nameToSourceAndConverter.values() )
+		final Map< String, ? extends SourceAndConverter< ? > > sourceAndConverters = display.getSourceAndConverters();
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters.values() )
 		{
 			moBIE.closeSourceAndConverter( sourceAndConverter, closeImgLoader );
 		}
@@ -73,6 +75,6 @@ public abstract class AbstractSliceView implements SliceView
 	@Override
 	public boolean isVisible() {
 		// check if first source is visible
-		return SourceAndConverterServices.getBdvDisplayService().isVisible( display.nameToSourceAndConverter.values().iterator().next(), display.sliceViewer.getBdvHandle() );
+		return SourceAndConverterServices.getBdvDisplayService().isVisible( display.getSourceAndConverters().values().iterator().next(), display.sliceViewer.getBdvHandle() );
 	}
 }

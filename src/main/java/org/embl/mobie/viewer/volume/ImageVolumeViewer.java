@@ -74,7 +74,7 @@ public class ImageVolumeViewer
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	private final Map< String, ? extends SourceAndConverter< ? > > sourceAndConverters;
+	private final List< ? extends SourceAndConverter< ? > > sourceAndConverters;
 	private final UniverseManager universeManager;
 
 	private ConcurrentHashMap< SourceAndConverter, Content > sacToContent;
@@ -92,7 +92,7 @@ public class ImageVolumeViewer
 	private Image3DUniverse universe;
 
 	public ImageVolumeViewer(
-			final Map< String, ? extends SourceAndConverter< ? > > sourceAndConverters,
+			final List< ? extends SourceAndConverter< ? > > sourceAndConverters,
 			UniverseManager universeManager )
 	{
 		this.sourceAndConverters = sourceAndConverters;
@@ -113,7 +113,7 @@ public class ImageVolumeViewer
 	{
 		if ( universe == null ) return;
 
-		for ( SourceAndConverter< ? > sac : sourceAndConverters.values() )
+		for ( SourceAndConverter< ? > sac : sourceAndConverters )
 		{
 			if ( sacToContent.containsKey( sac ) )
 			{
@@ -135,7 +135,7 @@ public class ImageVolumeViewer
 			initUniverse();
 		}
 
-		for ( SourceAndConverter< ? > sac : sourceAndConverters.values() )
+		for ( SourceAndConverter< ? > sac : sourceAndConverters )
 		{
 			if ( sacToContent.containsKey( sac ) )
 			{

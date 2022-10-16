@@ -208,7 +208,7 @@ public class SliceViewer
 	{
 		// register
 		SourceAndConverterServices.getSourceAndConverterService().register( sourceAndConverter );
-		display.nameToSourceAndConverter.put( sourceAndConverter.getSpimSource().getName(), sourceAndConverter );
+		display.getSourceAndConverters().put( sourceAndConverter.getSpimSource().getName(), sourceAndConverter );
 
 		// blending mode
 		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.class.getName(), display.getBlendingMode() );

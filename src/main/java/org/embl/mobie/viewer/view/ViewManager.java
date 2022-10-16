@@ -71,14 +71,15 @@ import org.embl.mobie.viewer.serialize.display.Display;
 import org.embl.mobie.viewer.serialize.display.ImageDisplay;
 import org.embl.mobie.viewer.serialize.display.RegionDisplay;
 import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
+import org.embl.mobie.viewer.serialize.display.SpotDisplay;
 import org.embl.mobie.viewer.serialize.transformation.AbstractGridTransformation;
 import org.embl.mobie.viewer.serialize.transformation.AffineTransformation;
 import org.embl.mobie.viewer.serialize.transformation.CropTransformation;
 import org.embl.mobie.viewer.serialize.transformation.GridTransformation;
 import org.embl.mobie.viewer.serialize.transformation.MergedGridTransformation;
 import org.embl.mobie.viewer.serialize.transformation.Transformation;
-import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.CroppedImage;
+import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.table.DefaultAnnData;
@@ -88,6 +89,7 @@ import org.embl.mobie.viewer.table.saw.TableSawAnnotatedRegion;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedRegionCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
+import org.embl.mobie.viewer.transform.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.TransformHelper;
@@ -104,7 +106,6 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import tech.tablesaw.api.Table;
 
 import javax.swing.*;
-import javax.xml.crypto.Data;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -123,7 +124,7 @@ public class ViewManager
 	private final SliceViewer sliceViewer;
 	private final SourceAndConverterService sacService;
 	private List< Display > currentDisplays;
-	private List< Transformation > currentTransformers;
+	private List< Transformation > currentTransformations;
 	private final UniverseManager universeManager;
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewSaver viewSaver;
@@ -134,7 +135,7 @@ public class ViewManager
 		this.moBIE = moBIE;
 		this.userInterface = userInterface;
 		currentDisplays = new ArrayList<>();
-		currentTransformers = new ArrayList<>();
+		currentTransformations = new ArrayList<>();
 		sliceViewer = new SliceViewer( moBIE, is2D );
 		universeManager = new UniverseManager();
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
@@ -179,61 +180,51 @@ public class ViewManager
 
 	public ViewSaver getViewsSaver() { return viewSaver; }
 
-	private void addManualTransforms( List< Transformation > viewSourceTransforms, Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
+	private void addManualTransforms( List< Transformation > viewSourceTransforms, List< ? extends SourceAndConverter< ? >> sourceAndConverters )
 	{
-        for ( String sourceName: sourceNameToSourceAndConverter.keySet() )
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-            Source source = sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
+			Source< ? > source = sourceAndConverter.getSpimSource();
 
-            if ( source instanceof BoundarySource )
-                source = (( BoundarySource ) source).getWrappedSource();
+			final TransformedSource< ? > transformedSource = SourceHelper.unwrapSource( source, TransformedSource.class );
 
-            TransformedSource transformedSource = (TransformedSource) source;
-
-            AffineTransform3D fixedTransform = new AffineTransform3D();
-            transformedSource.getFixedTransform( fixedTransform );
-            if ( !fixedTransform.isIdentity() ) {
-                List<String> sources = new ArrayList<>();
-                sources.add( sourceName );
-                viewSourceTransforms.add( new AffineTransformation( "manualTransform", fixedTransform.getRowPackedCopy(), sources ) );
-            }
+			if ( transformedSource != null )
+			{
+				AffineTransform3D fixedTransform = new AffineTransform3D();
+				transformedSource.getFixedTransform( fixedTransform );
+				if ( ! fixedTransform.isIdentity() )
+				{
+					List< String > sources = new ArrayList<>();
+					sources.add( source.getName() );
+					viewSourceTransforms.add( new AffineTransformation( "manualTransform", fixedTransform.getRowPackedCopy(), sources ) );
+				}
+			}
         }
     }
 
 	public View createViewFromCurrentState( String uiSelectionGroup, boolean isExclusive, boolean includeViewerTransform )
 	{
-		List< Display > viewDisplays = new ArrayList<>();
-		List< Transformation > viewSourceTransforms = new ArrayList<>();
+		List< Transformation > viewTransformations = new ArrayList<>( currentTransformations );
 
-		for ( Transformation imageTransformation : currentTransformers )
-			if ( ! viewSourceTransforms.contains( imageTransformation ) )
-				viewSourceTransforms.add( imageTransformation );
-
-		for ( Display display : currentDisplays )
+		// Create copies of the current displays where the
+		// serializable fields are properly set
+		List< Display< ? > > viewDisplays = new ArrayList<>();
+		for ( Display< ? > display : currentDisplays )
 		{
-			Display currentDisplay = null;
-
 			if ( display instanceof ImageDisplay )
-			{
-				ImageDisplay imageDisplay = ( ImageDisplay ) display;
-				currentDisplay = new ImageDisplay( imageDisplay );
-				addManualTransforms( viewSourceTransforms, imageDisplay.nameToSourceAndConverter );
-			}
+				viewDisplays.add( new ImageDisplay( ( ImageDisplay ) display ) );
 			else if ( display instanceof SegmentationDisplay )
-			{
-				SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) display;
-				currentDisplay = new SegmentationDisplay( segmentationDisplay );
-				addManualTransforms( viewSourceTransforms, ( Map ) segmentationDisplay.nameToSourceAndConverter );
-			}
+				viewDisplays.add( new SegmentationDisplay( ( SegmentationDisplay ) display ) );
 			else if ( display instanceof RegionDisplay )
-			{
-				currentDisplay = new RegionDisplay( ( RegionDisplay ) display );
-			}
+				viewDisplays.add( new RegionDisplay( ( RegionDisplay ) display ) );
+			else if ( display instanceof SpotDisplay )
+				viewDisplays.add( new SpotDisplay( ( SpotDisplay) display ) );
+			else
+				throw new UnsupportedOperationException( "Serialisation of a " + display.getClass().getName() + " is not yet supported." );
 
-			if ( currentDisplay != null )
-			{
-				viewDisplays.add( currentDisplay );
-			}
+			// Add transforms that were done by the user in BDV,
+			// using, e.g., the manual transform or BigWarp
+			addManualTransforms( viewTransformations, display.getSourceAndConverters() );
 		}
 
 		if ( includeViewerTransform )
@@ -241,11 +232,11 @@ public class ViewManager
 			final BdvHandle bdvHandle = sliceViewer.getBdvHandle();
 			AffineTransform3D normalisedViewTransform = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
 			final NormalizedAffineViewerTransform transform = new NormalizedAffineViewerTransform( normalisedViewTransform.getRowPackedCopy(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() );
-			return new View(uiSelectionGroup, viewDisplays, viewSourceTransforms, transform, isExclusive);
+			return new View(uiSelectionGroup, viewDisplays, viewTransformations, transform, isExclusive);
 		}
 		else
 		{
-			return new View(uiSelectionGroup, viewDisplays, viewSourceTransforms, isExclusive);
+			return new View( uiSelectionGroup, viewDisplays, viewTransformations, isExclusive );
 		}
 	}
 
@@ -271,15 +262,20 @@ public class ViewManager
 		initData( view );
 
 		// display the data
-		final List< Display > displays = view.getDisplays();
-		for ( Display display : displays )
+		final List< Display< ? > > displays = view.getDisplays();
+		for ( Display< ? > display : displays )
 			show( display );
 
-		// adjust viewer transform
+		// Adjust viewer transform to accommodate the displayed sources.
+		// Note that if {@code view.getViewerTransform() != null}
+		// the viewer transform has already been adjusted above.
 		if ( view.getViewerTransform() == null && currentDisplays.size() > 0 && ( view.isExclusive() || currentDisplays.size() == 1 ) )
 		{
-			final Display display = currentDisplays.get( currentDisplays.size() - 1);
-			new ViewerTransformAdjuster( sliceViewer.getBdvHandle(), (( AbstractDisplay< ? > ) display ).nameToSourceAndConverter.values().iterator().next() ).run();
+			final Display< ? > display = currentDisplays.get( currentDisplays.size() - 1);
+			final List< ? extends SourceAndConverter< ? > > sourceAndConverters = display.getSourceAndConverters();
+			final AffineTransform3D multiSourceTransform = new MoBIEViewerTransformAdjuster( sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ).getMultiSourceTransform();
+			sliceViewer.getBdvHandle().getViewerPanel().state().setViewerTransform( multiSourceTransform );
+			//new ViewerTransformAdjuster( sliceViewer.getBdvHandle(), (( AbstractDisplay< ? > ) display ).getSourceAndConverters().values().iterator().next() ).run();
 		}
 
 		// trigger rendering of source name overlay
@@ -348,7 +344,7 @@ public class ViewManager
 		{
 			for ( Transformation transformation : transformations )
 			{
-				currentTransformers.add( transformation );
+				currentTransformations.add( transformation );
 
 				if ( transformation instanceof AffineTransformation )
 				{
@@ -385,31 +381,21 @@ public class ViewManager
 				{
 					final MergedGridTransformation mergedGridTransformation = ( MergedGridTransformation ) transformation;
 					final List< String > targetImageNames = transformation.targetImageNames();
-					final List< ? extends Image< ? > > targetImages = DataStore.getImageList( targetImageNames );
+					final List< ? extends Image< ? > > gridImages = DataStore.getImageList( targetImageNames );
 
-					// Get the image that contains the metadata for
-					// the image grid
-					Image< ? > metadataImage;
-					final String metadataSource = mergedGridTransformation.metadataSource;
-					if ( metadataSource == null )
-					{
-						metadataImage = targetImages.get( 0 );
-					}
-					else
-					{
-						metadataImage = DataStore.getImage( metadataSource );
-					}
+					// Fetch grid metadata image
+					Image< ? > metadataImage = ( mergedGridTransformation.metadataSource == null ) ? gridImages.get( 0 ) : DataStore.getImage( mergedGridTransformation.metadataSource );
 
 					// Create the stitched grid image
 					//
-					if ( targetImages.get( 0 ) instanceof AnnotatedLabelImage )
+					if ( gridImages.get( 0 ) instanceof AnnotatedLabelImage )
 					{
-						final StitchedAnnotatedLabelImage annotatedStitchedImage = new StitchedAnnotatedLabelImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN );
+						final StitchedAnnotatedLabelImage< ? extends Annotation> annotatedStitchedImage = new StitchedAnnotatedLabelImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN );
 						DataStore.putImage( annotatedStitchedImage );
 					}
 					else
 					{
-						final StitchedImage stitchedImage = new StitchedImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN );
+						final StitchedImage stitchedImage = new StitchedImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN );
 						DataStore.putImage( stitchedImage );
 					}
 				}
@@ -516,14 +502,13 @@ public class ViewManager
 
 		if ( display instanceof ImageDisplay )
 		{
-			for ( String name : display.getImageSources() )
+			for ( String name : display.getSources() )
 				display.addImage( ( Image ) DataStore.getImage( name ) );
 			showImageDisplay( ( ImageDisplay ) display );
 		}
 		else if ( display instanceof AnnotationDisplay )
 		{
-			// TODO:
-			//   What about label mask images that are NOT annotated,
+			// FIXME What about label mask images that are NOT annotated,
 			//   i.e. don't have a table?
 			//   Maybe implement an AnnData that lazily builds up
 			//   upon browsing around?
@@ -536,10 +521,18 @@ public class ViewManager
 			// Register all images that are shown by this display.
 			// This is needed for the annotationDisplay to create the annData,
 			// combining the annData from all the annotated images.
-			for ( String name : display.getImageSources() )
+			for ( String name : display.getSources() )
 			{
 				final Image< ? > image = DataStore.getImage( name );
-				annotationDisplay.addImage( ( AnnotatedLabelImage ) image );
+				try
+				{
+					annotationDisplay.addImage( ( AnnotatedLabelImage ) image );
+				}
+				catch ( Exception e )
+				{
+					e.printStackTrace();
+					throw new UnsupportedOperationException( "The image " + name + " does not implement AnnotatedLabelImage, but is an " + image.getClass().getName() + " and thus cannot be shown by " + annotationDisplay.getClass().getName() );
+				}
 			}
 
 			// Now that all images are added to the display,
@@ -661,17 +654,17 @@ public class ViewManager
 	// compare with initSegmentationVolumeViewer
 	private void initImageVolumeViewer( ImageDisplay< ? > imageDisplay )
 	{
-		imageDisplay.imageVolumeViewer = new ImageVolumeViewer( imageDisplay.nameToSourceAndConverter, universeManager );
+		imageDisplay.imageVolumeViewer = new ImageVolumeViewer( imageDisplay.getSourceAndConverters(), universeManager );
 		Double[] resolution3dView = imageDisplay.getResolution3dView();
 		if ( resolution3dView != null ) {
 			imageDisplay.imageVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(imageDisplay.getResolution3dView() ));
 		}
 		imageDisplay.imageVolumeViewer.showImages( imageDisplay.showImagesIn3d() );
 
-		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.nameToSourceAndConverter.values() )
-		{
+		final Collection< ? extends SourceAndConverter< ? > > sourceAndConverters = imageDisplay.getSourceAndConverters();
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 			sacService.setMetadata( sourceAndConverter, ImageVolumeViewer.class.getName(), imageDisplay.imageVolumeViewer );
-		}
+
 	}
 
 	private void initTableView( AnnotationDisplay< ? extends Annotation > display )
@@ -737,16 +730,16 @@ public class ViewManager
 		// remove any sourceTransformers, where none of its relevant sources are displayed
 
 		// create a copy of the currently shown source transformers, so we don't iterate over a list that we modify
-		final ArrayList< Transformation > imageTransformersCopy = new ArrayList<>( this.currentTransformers ) ;
+		final ArrayList< Transformation > imageTransformersCopy = new ArrayList<>( this.currentTransformations ) ;
 
 		Set<String> currentlyDisplayedSources = new HashSet<>();
 		for ( Display display: currentDisplays )
-			currentlyDisplayedSources.addAll( display.getImageSources() );
+			currentlyDisplayedSources.addAll( display.getSources() );
 
 		for ( Transformation imageTransformation : imageTransformersCopy )
 		{
 			if ( ! currentlyDisplayedSources.stream().anyMatch( s -> imageTransformation.targetImageNames().contains( s ) ) )
-				currentTransformers.remove( imageTransformation );
+				currentTransformations.remove( imageTransformation );
 		}
 	}
 

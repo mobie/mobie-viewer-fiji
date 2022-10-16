@@ -58,8 +58,7 @@ public class StitchedAnnotatedLabelImage< A extends Annotation > extends Stitche
 	@Override
 	public Image< ? extends IntegerType< ? > > getLabelImage()
 	{
-		// FIXME:
-		//   Either StitchedAnnotatedLabelImage does not implement AnnotatedLabelImage
+		// FIXME: Either StitchedAnnotatedLabelImage does not implement AnnotatedLabelImage
 		//   Or we don't require that the LabelImage is of type Integer
 		//   We add back the AnnotatedImage interface (<= probably)
 		throw new RuntimeException("StitchedAnnotatedLabelImage does not contain a label image");

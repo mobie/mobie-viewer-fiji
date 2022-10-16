@@ -44,7 +44,6 @@ import java.util.function.BiConsumer;
 
 public class BoundarySource< T extends Type< T > > extends AbstractBoundarySource< T >
 {
-
     public BoundarySource( Source< T > source, boolean showAsBoundaries, @Nullable float boundaryWidth, @Nullable RealInterval bounds )
     {
         super( source, showAsBoundaries, boundaryWidth, bounds );

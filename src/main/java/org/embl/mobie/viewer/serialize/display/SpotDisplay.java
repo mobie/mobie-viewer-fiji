@@ -61,7 +61,7 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay
 	}
 
 	@Override
-	public List< String > getImageSources()
+	public List< String > getSources()
 	{
 		return sources;
 	}
@@ -92,7 +92,6 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay
 	public SpotDisplay( SpotDisplay< ? extends Annotation > spotDisplay )
 	{
 		// set properties common to all AnnotationDisplays
-
 		setAnnotationDisplayProperties( spotDisplay );
 
 		// set properties specific to SpotDisplay

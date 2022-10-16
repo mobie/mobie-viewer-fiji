@@ -49,7 +49,7 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Annotati
 	// TODO: below is almost not needed
 	public transient SegmentsVolumeViewer< AS > segmentsVolumeViewer;
 
-	public List< String > getImageSources()
+	public List< String > getSources()
 	{
 		return Collections.unmodifiableList( sources );
 	}

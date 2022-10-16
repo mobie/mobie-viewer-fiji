@@ -97,30 +97,26 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 	public void requestColumns( String columnsPath )
 	{
 		for ( AnnotationTableModel< A > tableModel : tableModels )
-		{
 			tableModel.requestColumns( columnsPath );
-		}
 	}
 
 	@Override
 	public void setAvailableColumnPaths( Set< String > availableColumnPaths )
 	{
 		for ( AnnotationTableModel< A > tableModel : tableModels )
-		{
 			tableModel.setAvailableColumnPaths( availableColumnPaths );
-		}
 	}
 
 	@Override
 	public Collection< String > availableColumnPaths()
 	{
-		return null;
+		return referenceTable.availableColumnPaths();
 	}
 
 	@Override
 	public LinkedHashSet< String > loadedColumnPaths()
 	{
-		return null;
+		return referenceTable.loadedColumnPaths();
 	}
 
 	@Override
@@ -139,6 +135,7 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 	public void addStringColumn( String columnName )
 	{
 		// here we probably need to load all tables
+		throw new UnsupportedOperationException("Annotation of concatenated tables is not yet implemented.");
 	}
 
 	@Override

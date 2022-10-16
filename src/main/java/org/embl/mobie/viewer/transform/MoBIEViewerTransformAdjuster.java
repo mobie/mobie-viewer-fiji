@@ -31,6 +31,7 @@ package org.embl.mobie.viewer.transform;
 import bdv.util.Affine3DHelpers;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
 import bdv.viewer.SynchronizedViewerState;
 import net.imglib2.Interval;
 import net.imglib2.RealInterval;
@@ -38,12 +39,13 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.LinAlgHelpers;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MoBIEViewerTransformAdjuster {
 	private final BdvHandle bdvHandle;
-	private final List< Source< ? > > sources;
+	private final List< ? extends Source< ? > > sources;
 
-	public MoBIEViewerTransformAdjuster( BdvHandle bdvHandle, List< Source< ? > > sources) {
+	public MoBIEViewerTransformAdjuster( BdvHandle bdvHandle, List< ? extends Source< ? > > sources) {
 		this.bdvHandle = bdvHandle;
 		this.sources = sources;
 	}

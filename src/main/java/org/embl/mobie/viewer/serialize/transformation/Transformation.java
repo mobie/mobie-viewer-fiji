@@ -34,7 +34,7 @@ public interface Transformation
 {
 	/**
 	 * @return a list of the names of all images
-	 * that should be transformed using this transformer.
+	 * that should be transformed using this transformation.
 	 */
 	List< String > targetImageNames(); // TODO it feels a bit weird that this is here...
 }

@@ -47,14 +47,14 @@ public class View
 	// Serialisation (do not change names of fields!)
 	//
 	private String uiSelectionGroup;
-	private List< Display > sourceDisplays;
+	private List< Display< ? > > sourceDisplays;
 	private List< Transformation > sourceTransforms;
 	private ViewerTransform viewerTransform;
 	private boolean isExclusive = false;
 	private String name;
 	
 	
-	public View( String uiSelectionGroup, List< Display > sourceDisplays,
+	public View( String uiSelectionGroup, List< Display< ? > > sourceDisplays,
 				 List< Transformation > sourceTransforms, ViewerTransform viewerTransform, boolean isExclusive ) {
 		this.uiSelectionGroup = uiSelectionGroup;
 		this.sourceDisplays = sourceDisplays;
@@ -63,7 +63,7 @@ public class View
 		this.isExclusive = isExclusive;
 	}
 
-	public View( String uiSelectionGroup, List< Display > sourceDisplays,
+	public View( String uiSelectionGroup, List< Display< ? > > sourceDisplays,
 				 List< Transformation > sourceTransforms, boolean isExclusive ) {
 		this.uiSelectionGroup = uiSelectionGroup;
 		this.sourceDisplays = sourceDisplays;
@@ -80,7 +80,7 @@ public class View
 
 		for ( Display< ? > display : getDisplays() )
 		{
-			for ( String source : display.getImageSources() )
+			for ( String source : display.getSources() )
 			{
 				sources.put( source, display );
 			}
@@ -128,7 +128,7 @@ public class View
 			return sourceTransforms;
 	}
 
-	public List< Display > getDisplays()
+	public List< Display< ? > > getDisplays()
 	{
 		if ( sourceDisplays == null )
 			return new ArrayList<>();

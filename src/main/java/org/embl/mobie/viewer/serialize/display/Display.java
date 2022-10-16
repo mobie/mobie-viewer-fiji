@@ -28,10 +28,13 @@
  */
 package org.embl.mobie.viewer.serialize.display;
 
+import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.image.Image;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -54,10 +57,11 @@ import java.util.Set;
 public interface Display< T >
 {
 	String getName();
-	List< String > getImageSources();
+	List< String > getSources();
 	BlendingMode getBlendingMode();
 	double getOpacity();
 	boolean isVisible();
-	Set< Image< T > > getImages();
+	List< Image< T > > getImages();
+	List< SourceAndConverter< T > > getSourceAndConverters();
 	void addImage( Image< T > image );
 }

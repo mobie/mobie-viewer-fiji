@@ -23,7 +23,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	private final ImageDataFormat imageDataFormat;
 	private final String path;
 	private final int setupId;
-	private SourcePair< T > sp;
+	private SourcePair< T > sourcePair;
 	private String name;
 	@Nullable
 	private final SharedQueue sharedQueue;
@@ -44,8 +44,8 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	@Override
 	public SourcePair< T > getSourcePair()
 	{
-		if( sp == null ) open();
-		return sp;
+		if( sourcePair == null ) open();
+		return sourcePair;
 	}
 
 	@Override
@@ -96,7 +96,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		final VolatileSpimSource< ? extends Volatile< T > > vs = new VolatileSpimSource<>( spimData, setupId, name );
 		final TransformedSource volatileTransformedSource = new TransformedSource( vs, transformedSource );
 
-		sp = new DefaultSourcePair( transformedSource, volatileTransformedSource );
+		sourcePair = new DefaultSourcePair( transformedSource, volatileTransformedSource );
 	}
 
 	public static AbstractSpimData tryOpenSpimData( String path, ImageDataFormat imageDataFormat, SharedQueue sharedQueue )
