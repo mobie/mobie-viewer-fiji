@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.table;
 
+import net.imglib2.ops.parse.token.Int;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import org.embl.mobie.io.util.IOHelper;
@@ -13,8 +14,10 @@ import org.embl.mobie.viewer.table.saw.TableSawHelper;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -22,162 +25,82 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-public class LazyAnnotatedSegmentTableModel< A extends AnnotatedSegment > implements AnnotationTableModel< A >
+public class LazyAnnotatedSegmentTableModel implements AnnotationTableModel< AnnotatedSegment >
 {
 	private final String dataSourceName;
-	protected Set< String > availableColumnPaths;
-	protected LinkedHashSet< String > requestedColumnPaths = new LinkedHashSet<>();
-	protected LinkedHashSet< String > loadedColumnPaths = new LinkedHashSet<>();
-
-	private Map< A, Integer > annotationToRowIndex = new ConcurrentHashMap<>();;
-	private Map< Integer, A > rowIndexToAnnotation = new ConcurrentHashMap<>();;
-	private Table table;
-	private AffineTransform3D affineTransform3D;
-	private boolean updateTransforms = false;
+	private final ArrayList< String > columnNames;
+	private final HashSet< String > loadedColumnPaths;
+	private Map< AnnotatedSegment, Integer > annotationToRowIndex = new ConcurrentHashMap<>();
+	private Map< Integer, AnnotatedSegment > rowIndexToAnnotation = new ConcurrentHashMap<>();
+	private int numAnnotations = 0;
 
 	public LazyAnnotatedSegmentTableModel( String dataSourceName )
 	{
 		this.dataSourceName = dataSourceName;
-		this.affineTransform3D = new AffineTransform3D();
-	}
-
-	private synchronized void update()
-	{
-		for ( String columnPath : requestedColumnPaths )
-		{
-			if ( loadedColumnPaths.contains( columnPath ) )
-				continue;
-
-			loadedColumnPaths.add( columnPath );
-
-			// Note: Calling IJ.log inside here hangs for some reason,
-			// maybe to do with the {@code synchronized} of this function.
-			// IJ.log( "Opening table for " + dataSourceName + "..." );
-			System.out.println( "TableModel: " + dataSourceName + ": Reading table:\n" + columnPath );
-			final Table rows = TableSawHelper.readTable( columnPath );
-
-			if ( table == null ) // init table
-			{
-				initTable( rows );
-			}
-			else // join additional table
-			{
-				final String[] mergeByColumnNames = annotation( 0 ).idColumns();
-				table = table.joinOn( mergeByColumnNames ).inner( rows );
-			}
-		}
-
-		if ( updateTransforms )
-		{
-			updateTransforms = false;
-			for ( A annotation : annotationToRowIndex.keySet() )
-				annotation.transform( affineTransform3D );
-		}
-	}
-
-	private void initTable( Table rows )
-	{
-		table = rows;
-		table.setName( dataSourceName );
-		final int rowCount = table.rowCount();
-
-		if ( ! table.containsColumn( "source" ) )
-			table.addColumns( StringColumn.create( "source", rowCount ) );
-
-		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
-		{
-			final A annotation = annotationCreator.create( () -> table, rowIndex );
-			annotationToRowIndex.put( annotation, rowIndex );
-			rowIndexToAnnotation.put( rowIndex, annotation );
-			table.row( rowIndex ).setText( "source", dataSourceName );
-		}
-	}
-
-	private Map< A, Integer > annotationToRowIndex()
-	{
-		update();
-		return annotationToRowIndex;
-	}
-
-	private Map< Integer, A > rowIndexToAnnotation()
-	{
-		update();
-		return rowIndexToAnnotation;
+		this.columnNames = new ArrayList< String >();
+		columnNames.add( ColumnNames.LABEL_ID );
+		loadedColumnPaths = new HashSet< String >();
+		loadedColumnPaths.add( "LazySegmentTable" );
 	}
 
 	@Override
 	public List< String > columnNames()
 	{
-		update();
-		return table.columnNames();
+		return columnNames;
 	}
 
 	@Override
 	public List< String > numericColumnNames()
 	{
-		update();
-		return table.numericColumns().stream().map( c -> c.name() ).collect( Collectors.toList() );
+		return columnNames;
 	}
 
 	@Override
 	public Class< ? > columnClass( String columnName )
 	{
-		update();
-		return TableSawColumnTypes.typeToClass.get( table.column( columnName ).type() );
+		return Integer.class; // label_id
 	}
 
 	@Override
 	public int numAnnotations()
 	{
-		update();
-		final int rowCount = table.rowCount();
-		return rowCount;
+		return numAnnotations;
 	}
 
 	@Override
-	public synchronized int rowIndexOf( A annotation )
+	public synchronized int rowIndexOf( AnnotatedSegment annotation )
 	{
-		return annotationToRowIndex().get( annotation );
+		return annotationToRowIndex.get( annotation );
 	}
 
 	@Override
-	public synchronized A annotation( int rowIndex )
+	public synchronized AnnotatedSegment annotation( int rowIndex )
 	{
-		final A annotation = rowIndexToAnnotation().get( rowIndex );
-
-		if ( annotation == null ) // DEBUG
-			throw new RuntimeException("TableSawAnnotationTableModel: RowIndex " + rowIndex + " does not exist.");
-
-		return annotation;
+		return rowIndexToAnnotation.get( rowIndex );
 	}
 
 	@Override
 	public void requestColumns( String columnsPath )
 	{
-		requestedColumnPaths.add( columnsPath );
+		// not implemented
 	}
 
 	@Override
 	public void setAvailableColumnPaths( Set< String > columnPaths )
 	{
-		this.availableColumnPaths = columnPaths;
+		// not implemented
 	}
 
 	@Override
 	public Collection< String > availableColumnPaths()
 	{
-		if ( availableColumnPaths == null )
-		{
-			final String parentLocation = IOHelper.getParentLocation( requestedColumnPaths.iterator().next() );
-			availableColumnPaths = Arrays.stream( IOHelper.getFileNames( parentLocation ) ).collect( Collectors.toSet() );
-		}
-		return availableColumnPaths;
+		throw new UnsupportedOperationException( this.getClass().getName() + " does not support loading of additional tables." );
 	}
 
 	@Override
 	public LinkedHashSet< String > loadedColumnPaths()
 	{
-		return requestedColumnPaths;
+		throw new UnsupportedOperationException( this.getClass().getName() + " does not support loading of additional tables." );
 	}
 
 	@Override
@@ -187,45 +110,39 @@ public class LazyAnnotatedSegmentTableModel< A extends AnnotatedSegment > implem
 	}
 
 	@Override
-	public synchronized Set< A > annotations()
+	public synchronized Set< AnnotatedSegment > annotations()
 	{
-		return annotationToRowIndex().keySet();
+		return annotationToRowIndex.keySet();
 	}
 
 	@Override
 	public void addStringColumn( String columnName )
 	{
-		update();
-
-		if ( ! table.containsColumn( columnName ) )
-		{
-			final String[] strings = new String[ table.rowCount() ];
-			Arrays.fill( strings, DefaultValues.NONE );
-			final StringColumn stringColumn = StringColumn.create( columnName, strings );
-			table.addColumns( stringColumn );
-		}
-		else
-		{
-			throw new UnsupportedOperationException("Column " + columnName + " exists already.");
-		}
+		throw new UnsupportedOperationException( this.getClass().getName() + " cannot be annotated.");
 	}
 
 	@Override
 	public boolean isDataLoaded()
 	{
-		return table != null;
+		return true;
 	}
 
 	@Override
 	public String dataStore()
 	{
-		return dataStore;
+		return null;
 	}
 
 	@Override
 	public synchronized void transform( AffineTransform3D affineTransform3D )
 	{
-		this.updateTransforms = true;
-		this.affineTransform3D = affineTransform3D;
+	}
+
+	public AnnotatedSegment createAnnotation( String source, int timePoint, int label )
+	{
+		final DefaultAnnotatedSegment annotatedSegment = new DefaultAnnotatedSegment( source, timePoint, label );
+		rowIndexToAnnotation.put( numAnnotations, annotatedSegment );
+		numAnnotations++;
+		return annotatedSegment;
 	}
 }

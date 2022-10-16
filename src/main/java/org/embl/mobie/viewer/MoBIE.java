@@ -567,7 +567,7 @@ public class MoBIE
 					// without annotation
 					final LazyAnnotatedSegmentTableModel< AnnotatedSegment > tableModel = new LazyAnnotatedSegmentTableModel<>( image.getName() );
 					final DefaultAnnData< AnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
-					new LazyAnnotatedSegmentAdapter()
+					new LazyAnnotatedSegmentAdapter( image.getName(), tableModel );
 					new DefaultAnnotatedLabelImage( image, annData, annotationAdapter );
 					DataStore.putImage( image );
 				}

@@ -193,10 +193,10 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		this.tables = annotationDisplay.tables;
 
 		final LinkedHashSet< String > loadedColumnPaths = annotationDisplay.annData.getTable().loadedColumnPaths();
-		if ( loadedColumnPaths.size() > 0 ){
-			if ( this.tables == null ) {
+		if ( loadedColumnPaths.size() > 0 )
+		{
+			if ( this.tables == null )
 				this.tables = new ArrayList<>();
-			}
 			this.tables.addAll( loadedColumnPaths );
 		}
 
@@ -208,9 +208,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 
 		final Set< ? extends Annotation > selectedAnnotations = annotationDisplay.selectionModel.getSelected();
 		if (selectedAnnotations != null)
-		{
 			setSelectedAnnotationIds( selectedAnnotations.stream().map( a -> a.uuid() ).collect( Collectors.toSet() ) );
-		}
 	}
 
 	public AnnData< A > getAnnData()

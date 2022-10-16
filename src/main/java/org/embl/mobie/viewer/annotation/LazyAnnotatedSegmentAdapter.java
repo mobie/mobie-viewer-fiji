@@ -29,6 +29,7 @@
 package org.embl.mobie.viewer.annotation;
 
 import org.embl.mobie.viewer.table.DefaultAnnotatedSegment;
+import org.embl.mobie.viewer.table.LazyAnnotatedSegmentTableModel;
 
 import java.util.Map;
 import java.util.Set;
@@ -37,11 +38,15 @@ import java.util.stream.Collectors;
 
 public class LazyAnnotatedSegmentAdapter implements AnnotationAdapter< AnnotatedSegment >
 {
+	private final String name;
+	private final LazyAnnotatedSegmentTableModel< AnnotatedSegment > tableModel;
 	private Map< String, AnnotatedSegment > uuidToAnnotation;
 	private Map< String, AnnotatedSegment > stlToAnnotation; // source, timepoint, label
 
-	public LazyAnnotatedSegmentAdapter( )
+	public LazyAnnotatedSegmentAdapter( String name, LazyAnnotatedSegmentTableModel< AnnotatedSegment > tableModel )
 	{
+		this.name = name;
+		this.tableModel = tableModel;
 		uuidToAnnotation = new ConcurrentHashMap<>();
 		stlToAnnotation = new ConcurrentHashMap<>();
 	}
@@ -49,7 +54,7 @@ public class LazyAnnotatedSegmentAdapter implements AnnotationAdapter< Annotated
 	@Override
 	public AnnotatedSegment createVariable()
 	{
-		return new DefaultAnnotatedSegment( 0 );
+		return new DefaultAnnotatedSegment( name, 0, 1, new double[]{0,0,0} );
 	}
 
 	// UUID for de-serialisation of selected segments
@@ -80,17 +85,10 @@ public class LazyAnnotatedSegmentAdapter implements AnnotationAdapter< Annotated
 		final String itl = stlKey( source, timePoint, label );
 		if ( ! stlToAnnotation.containsKey( itl ) )
 		{
-			// FIXME lazy create the annotation
-			//   in the table model, or just here?
-			//   https://github.com/mobie/mobie-viewer-fiji/issues/862
-			//   maybe initially more work, but long term easier
-			//   to create it in the table, because then all the downstream
-			//   code can rely on the table being present and
-			//   I don't have to implement special code for the case without
-			//   tables.
+			final AnnotatedSegment annotatedSegment = tableModel.createAnnotation( source, timePoint, label );
+			stlToAnnotation.put( itl, annotatedSegment );
 		}
-		final AnnotatedSegment annotation = stlToAnnotation.get( itl );
-		return annotation;
+		return stlToAnnotation.get( itl );
 	}
 
 	private String stlKey( String source, int timePoint, int label )

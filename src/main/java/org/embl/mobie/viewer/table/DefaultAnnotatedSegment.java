@@ -1,77 +1,33 @@
 package org.embl.mobie.viewer.table;
 
-import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
-import org.embl.mobie.viewer.table.ColumnNames;
-import tech.tablesaw.api.Row;
-import tech.tablesaw.api.Table;
-
-import java.util.List;
-import java.util.function.Supplier;
 
 public class DefaultAnnotatedSegment implements AnnotatedSegment
 {
 	private static final String[] idColumns = new String[]{ ColumnNames.LABEL_ID, ColumnNames.TIMEPOINT };
 
+	private final String source;
 	private final int timePoint;
-	private final int labelId;
-	private final double[] position;
-	private final Supplier< Table > tableSupplier;
+	private final int label;
+	private final AnnotationTableModel< ? extends AnnotatedSegment > tableModel;
 	private final int rowIndex;
+	private final double[] position;
 	private RealInterval boundingBox;
 	private float[] mesh;
-	private String source;
 	private String uuid;
 
-	public DefaultAnnotatedSegment( int rowIndex )
+	public < A extends AnnotatedSegment > DefaultAnnotatedSegment( String source, int timePoint, int label )
 	{
-		this.tableSupplier = tableSupplier;
+		this.source = source;
+		this.timePoint = timePoint;
+		this.label = label;
+		this.tableModel = tableModel;
 		this.rowIndex = rowIndex;
-		final Table rows = tableSupplier.get();
-		Row row = rows.row( rowIndex );
+		this.position = new double[]{0,0,0};
 
-		final List< String > columnNames = row.columnNames();
-
-		final boolean is3D = columnNames.contains( ColumnNames.ANCHOR_Z );
-
-		this.source = columnNames.contains( ColumnNames.LABEL_IMAGE_ID ) ? row.getString( ColumnNames.LABEL_IMAGE_ID ) : rows.name();
-
-		this.timePoint = columnNames.contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
-
-		this.labelId = row.getInt( ColumnNames.LABEL_ID );
-
-		initBoundingBox( row, is3D );
-
-		this.position = new double[]{
-				row.getNumber( ColumnNames.ANCHOR_X ),
-				row.getNumber( ColumnNames.ANCHOR_Y ),
-				is3D ? row.getNumber( ColumnNames.ANCHOR_Z ) : 0
-		};
-
-		this.uuid = source + ";" + timePoint + ";" + labelId;
-	}
-
-	private void initBoundingBox( Row row, boolean is3D )
-	{
-		final boolean rowContainsBoundingBox = row.columnNames().contains( ColumnNames.BB_MIN_X );
-
-		if ( ! rowContainsBoundingBox ) return;
-
-		final double[] min = {
-				row.getNumber( ColumnNames.BB_MIN_X ),
-				row.getNumber( ColumnNames.BB_MIN_Y ),
-				is3D ? row.getNumber( ColumnNames.BB_MIN_Z ) : 0
-			};
-
-		final double[] max = {
-				row.getNumber( ColumnNames.BB_MAX_X ),
-				row.getNumber( ColumnNames.BB_MAX_Y ),
-				is3D ? row.getNumber( ColumnNames.BB_MAX_Z ) : 0
-		};
-
-		boundingBox = new FinalRealInterval( min, max );
+		this.uuid = this.source + ";" + this.timePoint + ";" + this.label;
 	}
 
 	@Override
@@ -83,7 +39,7 @@ public class DefaultAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public int label()
 	{
-		return labelId;
+		return label;
 	}
 
 	@Override
@@ -143,7 +99,7 @@ public class DefaultAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public Object getValue( String feature )
 	{
-		return tableSupplier.get().row( rowIndex ).getObject( feature );
+		return tableModel..row( rowIndex ).getObject( feature );
 	}
 
 	@Override
