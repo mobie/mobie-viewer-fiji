@@ -190,17 +190,16 @@ public class DatasetJsonCreator {
         return imageTransformationList;
     }
     private View createImageView( String imageName, String uiSelectionGroup, boolean isExclusive, double[] contrastLimits, String colour, AffineTransform3D sourceTransform ) {
-        ArrayList< Display > displays = new ArrayList<>();
-        ArrayList<String> sources = new ArrayList<>();
+        ArrayList< Display< ? > > displays = new ArrayList<>();
+        ArrayList< String > sources = new ArrayList<>();
         sources.add( imageName );
 
-        ImageDisplay imageDisplay = new ImageDisplay( imageName, 1.0, sources,
-                colour, contrastLimits, null, false );
+        ImageDisplay imageDisplay = new ImageDisplay( imageName, 1.0, sources, colour, contrastLimits, null, false );
         displays.add( imageDisplay );
 
         View view;
         if ( sourceTransform.isIdentity() ) {
-            view = new View(uiSelectionGroup, displays, null, null, isExclusive);
+            view = new View( uiSelectionGroup, displays, null, null, isExclusive);
         } else {
             List< Transformation > imageTransformationList = createSourceTransformerList( sourceTransform, sources );
             view = new View( uiSelectionGroup, displays, imageTransformationList, null, isExclusive );
@@ -210,7 +209,7 @@ public class DatasetJsonCreator {
     }
 
     private View createSegmentationView( String imageName, String uiSelectionGroup, boolean isExclusive, AffineTransform3D sourceTransform ) {
-        ArrayList< Display > displays = new ArrayList<>();
+        ArrayList< Display< ? > > displays = new ArrayList<>();
         ArrayList<String> sources = new ArrayList<>();
         sources.add( imageName );
 

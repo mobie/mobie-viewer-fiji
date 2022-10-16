@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.serialize;
+package org.embl.mobie.viewer.serialize.display;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
@@ -36,6 +36,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
+import org.embl.mobie.viewer.serialize.JsonHelper;
 import org.embl.mobie.viewer.serialize.display.ImageDisplay;
 import org.embl.mobie.viewer.serialize.display.RegionDisplay;
 import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
@@ -50,7 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class SourceDisplayListAdapter implements JsonSerializer< List< Display > >, JsonDeserializer< List< Display > >
+public class DisplayListAdapter implements JsonSerializer< List< Display< ? > > >, JsonDeserializer< List< Display< ? > > >
 {
 	private static Map<String, Class> nameToClass = new TreeMap<>();
 	private static Map<String, String> classToName = new TreeMap<>();
@@ -67,24 +68,23 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< Display >
 	}
 
 	@Override
-	public List< Display > deserialize( JsonElement json, Type typeOfT, JsonDeserializationContext context ) throws JsonParseException
+	public List< Display< ? > > deserialize( JsonElement json, Type typeOfT, JsonDeserializationContext context ) throws JsonParseException
 	{
 		List list = new ArrayList< Transformation >();
 		JsonArray ja = json.getAsJsonArray();
 
 		for (JsonElement je : ja)
-		{
 			list.add( JsonHelper.createObjectFromJsonValue( context, je, nameToClass ) );
-		}
 
 		return list;
 	}
 
 	@Override
-	public JsonElement serialize( List< Display > displays, Type type, JsonSerializationContext context ) {
+	public JsonElement serialize( List< Display< ? > > displays, Type type, JsonSerializationContext context ) {
 		JsonArray ja = new JsonArray();
-		for ( Display display : displays ) {
-			Map< String, Display > nameToSourceDisplay = new HashMap<>();
+		for ( Display< ? > display : displays )
+		{
+			Map< String, Display< ? > > nameToSourceDisplay = new HashMap<>();
 			nameToSourceDisplay.put( classToName.get( display.getClass().getName() ), display );
 
 			if ( display instanceof ImageDisplay ) {
@@ -93,9 +93,13 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< Display >
 				ja.add( context.serialize( nameToSourceDisplay , new TypeToken< Map< String, SegmentationDisplay > >() {}.getType() ) );
 			} else if ( display instanceof RegionDisplay ) {
 				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, RegionDisplay > >() {}.getType() ) );
-			} else
+			}
+			else if ( display instanceof SpotDisplay ) {
+				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, SpotDisplay > >() {}.getType() ) );
+			}
+			else
 			{
-				throw new UnsupportedOperationException( "Could not serialise SourceDisplay of type: " + display.getClass().toString() );
+				throw new UnsupportedOperationException( "Could not serialise SourceDisplay of type: " + display.getClass() );
 			}
 		}
 

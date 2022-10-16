@@ -73,7 +73,7 @@ public class SliceViewAnnotationSelector< A extends Annotation > implements Runn
 
 		for ( AnnotationDisplay< A > annotationDisplay : annotationDisplays )
 		{
-			final Collection< SourceAndConverter< AnnotationType< A > > > sourceAndConverters = annotationDisplay.getSourceAndConverters().values();
+			final Collection< SourceAndConverter< AnnotationType< A > > > sourceAndConverters = annotationDisplay.getSourceAndConverters();
 
 			for ( SourceAndConverter< AnnotationType< A > > sourceAndConverter : sourceAndConverters )
 			{

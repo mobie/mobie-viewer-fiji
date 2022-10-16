@@ -154,9 +154,8 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	{
 		this.name = annotationDisplay.name;
 
-		if ( annotationDisplay.sliceView != null ) {
+		if ( annotationDisplay.sliceView != null )
 			this.visible = annotationDisplay.sliceView.isVisible();
-		}
 
 		// Note that even if there are multiple images shown,
 		// they must have all the same display settings

@@ -41,6 +41,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay< T >
 {
@@ -106,8 +107,8 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	{
 		this.name = imageDisplay.name;
 		this.sources = new ArrayList<>();
-		this.sources.addAll( imageDisplay.getSourceAndConverters().keySet() );
-		setDisplaySettings( imageDisplay.getSourceAndConverters().values().iterator().next() );
+		this.sources.addAll( imageDisplay.getSourceAndConverters().stream().map( sac -> sac.getSpimSource().getName() ).collect( Collectors.toList() ) );
+		setDisplaySettings( imageDisplay.getSourceAndConverters().get( 0 ) );
 
 		if ( imageDisplay.imageVolumeViewer != null )
 		{

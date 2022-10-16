@@ -223,7 +223,9 @@ public class ViewManager
 				throw new UnsupportedOperationException( "Serialisation of a " + display.getClass().getName() + " is not yet supported." );
 
 			// Add transforms that were done by the user in BDV,
-			// using, e.g., the manual transform or BigWarp
+			// using, e.g., the manual transform or BigWarp.
+			// Note that other transforms are already captured
+			// in the {@code viewTransformations} list.
 			addManualTransforms( viewTransformations, display.getSourceAndConverters() );
 		}
 

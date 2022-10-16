@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.serialize;
+package org.embl.mobie.viewer.serialize.transformation;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
@@ -36,6 +36,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
+import org.embl.mobie.viewer.serialize.JsonHelper;
 import org.embl.mobie.viewer.serialize.transformation.AffineTransformation;
 import org.embl.mobie.viewer.serialize.transformation.CropTransformation;
 import org.embl.mobie.viewer.serialize.transformation.MergedGridTransformation;
@@ -50,7 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class SourceTransformerListAdapter implements JsonSerializer< List< Transformation > >, JsonDeserializer< List< Transformation > >
+public class TransformationListAdapter implements JsonSerializer< List< Transformation > >, JsonDeserializer< List< Transformation > >
 {
 	private static Map<String, Class> nameToClass = new TreeMap<>();
 	private static Map<String, String> classToName = new TreeMap<>();

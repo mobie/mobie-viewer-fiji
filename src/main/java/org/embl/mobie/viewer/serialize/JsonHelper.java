@@ -35,6 +35,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import org.embl.mobie.viewer.serialize.display.Display;
+import org.embl.mobie.viewer.serialize.display.DisplayListAdapter;
+import org.embl.mobie.viewer.serialize.transformation.TransformationListAdapter;
 import org.embl.mobie.viewer.serialize.transformation.Transformation;
 import org.embl.mobie.viewer.transform.ViewerTransform;
 
@@ -51,6 +53,7 @@ public class JsonHelper
 		Class c = nameToClass.get( jsonElementEntry.getKey() );
 		if (c == null)
 			throw new RuntimeException("Unknown class: " + jsonElementEntry.getKey());
+
 		try
 		{
 			final Object deserialize = context.deserialize( jsonElementEntry.getValue(), c );
@@ -73,21 +76,18 @@ public class JsonHelper
 		return deserialize;
 	}
 
-	// TODO:
-	//   Unable to invoke no-args constructor for interface org.embl.mobie.viewer.serialize.Data. Registering an InstanceCreator with Gson for this type may fix this problem.
-	//   https://www.tutorialspoint.com/custom-instance-creator-using-gson-in-java
 	public static Gson buildGson( boolean prettyPrinting )
 	{
 		GsonBuilder gb = new GsonBuilder();
-		gb.registerTypeAdapter( new TypeToken<List< Transformation >>(){}.getType(), new SourceTransformerListAdapter());
-		gb.registerTypeAdapter( new TypeToken<List<Display>>(){}.getType(), new SourceDisplayListAdapter());
+		gb.registerTypeAdapter( new TypeToken< List< Transformation > >(){}.getType(), new TransformationListAdapter());
+		gb.registerTypeAdapter( new TypeToken< List< Display< ? > > >(){}.getType(), new DisplayListAdapter());
 		gb.registerTypeAdapter( new TypeToken< ViewerTransform >(){}.getType(), new ViewerTransformAdapter());
-		gb.registerTypeAdapter( new TypeToken<Map<String, DataSource >>(){}.getType(), new DataSourceMapAdapter());
+		gb.registerTypeAdapter( new TypeToken< Map< String, DataSource > >(){}.getType(), new DataSourceMapAdapter());
 		gb.disableHtmlEscaping();
 
-		if ( prettyPrinting ) {
+		if ( prettyPrinting )
 			gb.setPrettyPrinting();
-		}
+
 		Gson gson = gb.create();
 		return gson;
 	}
