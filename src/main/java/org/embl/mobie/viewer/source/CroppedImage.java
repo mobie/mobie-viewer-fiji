@@ -156,7 +156,7 @@ public class CroppedImage< T > implements Image< T >
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		// FIXME
+		// FIXME transform cropped image
 		throw new RuntimeException();
 	}
 

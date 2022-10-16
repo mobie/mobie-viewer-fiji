@@ -54,28 +54,28 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AnnotationDispl
 	// Runtime
 
 
-	// Needed for Gson
+	// Gson deserialization
 	public RegionDisplay()
 	{
 		super();
 	}
 
-	// Needed for Gson
-	public RegionDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, Set< String > selectedRegionIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries, float boundaryThickness  )
-	{
-		this.name = name;
-		this.opacity = opacity;
-		this.sources = sources;
-		this.lut = lut;
-		this.colorByColumn = colorByColumn;
-		this.valueLimits = valueLimits;
-		this.selectedRegionIds = selectedRegionIds;
-		this.showScatterPlot = showScatterPlot;
-		this.scatterPlotAxes = scatterPlotAxes;
-		this.tables = tables;
-		this.showAsBoundaries = showAsBoundaries;
-		this.boundaryThickness = boundaryThickness;
-	}
+	// Project creator serialization (currently not used)
+//	public RegionDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, Set< String > selectedRegionIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries, float boundaryThickness  )
+//	{
+//		this.name = name;
+//		this.opacity = opacity;
+//		this.sources = sources;
+//		this.lut = lut;
+//		this.colorByColumn = colorByColumn;
+//		this.valueLimits = valueLimits;
+//		this.selectedRegionIds = selectedRegionIds;
+//		this.showScatterPlot = showScatterPlot;
+//		this.scatterPlotAxes = scatterPlotAxes;
+//		this.tables = tables;
+//		this.showAsBoundaries = showAsBoundaries;
+//		this.boundaryThickness = boundaryThickness;
+//	}
 
 	// Create a serializable copy
 	public RegionDisplay( RegionDisplay< ? extends Annotation > regionDisplay )

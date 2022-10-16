@@ -1,8 +1,9 @@
 package org.embl.mobie.viewer.image;
 
-import bdv.tools.transformation.TransformedSource;
+import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.annotation.AnnotationAdapter;
 import org.embl.mobie.viewer.source.AnnotatedLabelSource;
@@ -10,8 +11,6 @@ import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.SourcePair;
 import org.embl.mobie.viewer.source.VolatileAnnotatedLabelSource;
 import org.embl.mobie.viewer.table.AnnData;
-import net.imglib2.Volatile;
-import net.imglib2.type.numeric.IntegerType;
 
 public class DefaultAnnotatedLabelImage< A extends Annotation > implements AnnotatedLabelImage< A >
 {
@@ -19,11 +18,13 @@ public class DefaultAnnotatedLabelImage< A extends Annotation > implements Annot
 	protected AnnData< A > annData;
 	protected SourcePair< AnnotationType< A > > sourcePair;
 	private RealMaskRealInterval mask;
+	private AnnotationAdapter<A> annotationAdapter;
 
-	public DefaultAnnotatedLabelImage( Image< ? extends IntegerType< ? > > labelImage, AnnData< A > annData )
+	public DefaultAnnotatedLabelImage( Image< ? extends IntegerType< ? > > labelImage, AnnData< A > annData, AnnotationAdapter< A > annotationAdapter )
 	{
 		this.labelImage = labelImage;
 		this.annData = annData;
+		this.annotationAdapter = annotationAdapter;
 	}
 
 	@Override
@@ -32,8 +33,6 @@ public class DefaultAnnotatedLabelImage< A extends Annotation > implements Annot
 		if ( sourcePair == null )
 		{
 			final SourcePair< ? extends IntegerType< ? > > sourcePair = labelImage.getSourcePair();
-
-			AnnotationAdapter< A > annotationAdapter = new AnnotationAdapter( annData );
 
 			// non-volatile source
 			final AnnotatedLabelSource< ?, A > source = new AnnotatedLabelSource( sourcePair.getSource(), annotationAdapter );

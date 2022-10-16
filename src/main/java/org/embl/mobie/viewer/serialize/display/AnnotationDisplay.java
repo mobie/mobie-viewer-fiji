@@ -30,6 +30,7 @@ package org.embl.mobie.viewer.serialize.display;
 
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.annotation.AnnotationAdapter;
+import org.embl.mobie.viewer.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.color.AbstractAnnotationColoringModel;
@@ -82,7 +83,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	// Runtime
 	public transient SelectionModel< A > selectionModel;
 	public transient MobieColoringModel< A > coloringModel;
-	private transient AnnotationAdapter< A > annotationAdapter;
+	private transient AnnotationAdapter<A> annotationAdapter;
 	public transient TableView< A > tableView;
 	public transient ScatterPlotView< A > scatterPlotView;
 	public transient AnnotationSliceView< A > sliceView;
@@ -162,7 +163,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		// (this is the definition of them being displayed together).
 		// One can therefore fetch the display settings from any of the
 		// SourceAndConverter.
-		final SourceAndConverter< ? > sourceAndConverter = annotationDisplay.getSourceAndConverters().get( 0 );
+		final SourceAndConverter< ? > sourceAndConverter = annotationDisplay.sourceAndConverters().get( 0 );
 
 		// TODO: get opacity from coloring model instead of sac!
 		//   But from which one? Maybe just from MoBIEColoringModel?!
@@ -181,6 +182,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 			this.valueLimits[0] = ( ( NumericAnnotationColoringModel ) coloringModel ).getMin();
 			this.valueLimits[1] = ( ( NumericAnnotationColoringModel ) coloringModel ).getMax();
 		}
+
 		if ( coloringModel instanceof CategoricalAnnotationColoringModel )
 		{
 			this.randomColorSeed = ( ( CategoricalAnnotationColoringModel ) coloringModel ).getRandomSeed();
@@ -205,7 +207,8 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		this.boundaryThickness = boundarySource.getCalibratedBoundaryWidth();
 
 		final Set< ? extends Annotation > selectedAnnotations = annotationDisplay.selectionModel.getSelected();
-		if (selectedAnnotations != null) {
+		if (selectedAnnotations != null)
+		{
 			setSelectedAnnotationIds( selectedAnnotations.stream().map( a -> a.uuid() ).collect( Collectors.toSet() ) );
 		}
 	}
@@ -215,18 +218,19 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		return annData;
 	}
 
-	// create annData from the annotated images
-	// one may overwrite this method
+	// fetch annData from the annotated images
+	// the main use is to concatenate the tables
+	// in case this display shows several images
 	public void createAnnData()
 	{
 		final List< AnnotatedLabelImage< A > > annotatedLabelImages = getImages().stream().map( image -> ( AnnotatedLabelImage< A > ) image ).collect( Collectors.toList() );
 
 		annData = AnnDataHelper.concatenate( annotatedLabelImages );
 
-		annotationAdapter = new AnnotationAdapter<>( annData );
+		annotationAdapter = new DefaultAnnotationAdapter<>( annData );
 	}
 
-	public AnnotationAdapter< A > annotationAdapter()
+	public AnnotationAdapter<A> annotationAdapter()
 	{
 		return annotationAdapter;
 	}

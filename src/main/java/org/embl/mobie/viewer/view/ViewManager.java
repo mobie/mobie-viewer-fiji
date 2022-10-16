@@ -65,7 +65,6 @@ import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.serialize.DataSource;
 import org.embl.mobie.viewer.serialize.RegionDataSource;
 import org.embl.mobie.viewer.serialize.View;
-import org.embl.mobie.viewer.serialize.display.AbstractDisplay;
 import org.embl.mobie.viewer.serialize.display.AnnotationDisplay;
 import org.embl.mobie.viewer.serialize.display.Display;
 import org.embl.mobie.viewer.serialize.display.ImageDisplay;
@@ -100,7 +99,6 @@ import org.embl.mobie.viewer.view.save.ViewSaver;
 import org.embl.mobie.viewer.volume.ImageVolumeViewer;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 import org.embl.mobie.viewer.volume.UniverseManager;
-import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import tech.tablesaw.api.Table;
@@ -226,7 +224,7 @@ public class ViewManager
 			// using, e.g., the manual transform or BigWarp.
 			// Note that other transforms are already captured
 			// in the {@code viewTransformations} list.
-			addManualTransforms( viewTransformations, display.getSourceAndConverters() );
+			addManualTransforms( viewTransformations, display.sourceAndConverters() );
 		}
 
 		if ( includeViewerTransform )
@@ -274,7 +272,7 @@ public class ViewManager
 		if ( view.getViewerTransform() == null && currentDisplays.size() > 0 && ( view.isExclusive() || currentDisplays.size() == 1 ) )
 		{
 			final Display< ? > display = currentDisplays.get( currentDisplays.size() - 1);
-			final List< ? extends SourceAndConverter< ? > > sourceAndConverters = display.getSourceAndConverters();
+			final List< ? extends SourceAndConverter< ? > > sourceAndConverters = display.sourceAndConverters();
 			final AffineTransform3D multiSourceTransform = new MoBIEViewerTransformAdjuster( sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ).getMultiSourceTransform();
 			sliceViewer.getBdvHandle().getViewerPanel().state().setViewerTransform( multiSourceTransform );
 			//new ViewerTransformAdjuster( sliceViewer.getBdvHandle(), (( AbstractDisplay< ? > ) display ).getSourceAndConverters().values().iterator().next() ).run();
@@ -491,7 +489,7 @@ public class ViewManager
 				final Set< AnnotatedRegion > annotatedRegions = tableModel.annotations();
 				final Image< UnsignedIntType > labelImage = new RegionLabelImage( regionDisplay.getName(), annotatedRegions );
 				final DefaultAnnData< AnnotatedRegion > regionAnnData = new DefaultAnnData<>( tableModel );
-				final DefaultAnnotatedLabelImage regionImage = new DefaultAnnotatedLabelImage( labelImage, regionAnnData );
+				final DefaultAnnotatedLabelImage regionImage = new DefaultAnnotatedLabelImage( labelImage, regionAnnData, annotationAdapter );
 
 				DataStore.putImage( regionImage );
 			}
@@ -572,8 +570,7 @@ public class ViewManager
 
 			if ( LUTs.isCategorical( lut ) )
 			{
-				CategoricalAnnotationColoringModel< Annotation > coloringModel =
-						ColoringModels.createCategoricalModel(
+				CategoricalAnnotationColoringModel< Annotation > coloringModel = ColoringModels.createCategoricalModel(
 								annotationDisplay.getColoringColumnName(),
 								lut,
 								LUTs.TRANSPARENT );
@@ -656,14 +653,14 @@ public class ViewManager
 	// compare with initSegmentationVolumeViewer
 	private void initImageVolumeViewer( ImageDisplay< ? > imageDisplay )
 	{
-		imageDisplay.imageVolumeViewer = new ImageVolumeViewer( imageDisplay.getSourceAndConverters(), universeManager );
+		imageDisplay.imageVolumeViewer = new ImageVolumeViewer( imageDisplay.sourceAndConverters(), universeManager );
 		Double[] resolution3dView = imageDisplay.getResolution3dView();
 		if ( resolution3dView != null ) {
 			imageDisplay.imageVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(imageDisplay.getResolution3dView() ));
 		}
 		imageDisplay.imageVolumeViewer.showImages( imageDisplay.showImagesIn3d() );
 
-		final Collection< ? extends SourceAndConverter< ? > > sourceAndConverters = imageDisplay.getSourceAndConverters();
+		final Collection< ? extends SourceAndConverter< ? > > sourceAndConverters = imageDisplay.sourceAndConverters();
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 			sacService.setMetadata( sourceAndConverter, ImageVolumeViewer.class.getName(), imageDisplay.imageVolumeViewer );
 

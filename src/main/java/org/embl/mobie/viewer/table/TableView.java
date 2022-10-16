@@ -740,11 +740,11 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private Color getColor( int rowIndexInView )
 	{
-		final int row = jTable.convertRowIndexToModel( rowIndexInView );
+		final int rowIndex = jTable.convertRowIndexToModel( rowIndexInView );
 
 		final ARGBType argbType = new ARGBType();
-		final A tableRow = tableModel.annotation( row );
-		coloringModel.convert( tableRow, argbType );
+		final A annotation = tableModel.annotation( rowIndex );
+		coloringModel.convert( annotation, argbType );
 
 		if ( ARGBType.alpha( argbType.get() ) == 0 )
 			return Color.WHITE;

@@ -35,7 +35,6 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public abstract class AbstractSliceView implements SliceView
 {
@@ -51,19 +50,18 @@ public abstract class AbstractSliceView implements SliceView
 		this.moBIE = moBIE;
 		this.display = display;
 		sliceViewer = display.sliceViewer;
-		display.nameToSourceAndConverter = new HashMap<>();
 	}
 
 	@Override
 	public void close( boolean closeImgLoader )
 	{
-		final List< ? extends SourceAndConverter< ? > > sourceAndConverters = display.getSourceAndConverters();
+		final List< ? extends SourceAndConverter< ? > > sourceAndConverters = display.sourceAndConverters();
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			// FIXME https://github.com/bigdataviewer/bigdataviewer-playground/issues/259#issuecomment-1279705489
 			moBIE.closeSourceAndConverter( sourceAndConverter, closeImgLoader );
 		}
-		display.nameToSourceAndConverter.clear();
+		display.sourceAndConverters().clear();
 
 		sliceViewer.updateTimepointSlider();
 	}
@@ -77,6 +75,6 @@ public abstract class AbstractSliceView implements SliceView
 	@Override
 	public boolean isVisible()
 	{
-		return SourceAndConverterServices.getBdvDisplayService().isVisible( display.getSourceAndConverters().get( 0 ), display.sliceViewer.getBdvHandle() );
+		return SourceAndConverterServices.getBdvDisplayService().isVisible( display.sourceAndConverters().get( 0 ), display.sliceViewer.getBdvHandle() );
 	}
 }

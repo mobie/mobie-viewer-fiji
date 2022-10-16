@@ -189,7 +189,9 @@ public class DatasetJsonCreator {
         imageTransformationList.add( imageTransformation );
         return imageTransformationList;
     }
-    private View createImageView( String imageName, String uiSelectionGroup, boolean isExclusive, double[] contrastLimits, String colour, AffineTransform3D sourceTransform ) {
+
+    private View createImageView( String imageName, String uiSelectionGroup, boolean isExclusive, double[] contrastLimits, String colour, AffineTransform3D sourceTransform )
+    {
         ArrayList< Display< ? > > displays = new ArrayList<>();
         ArrayList< String > sources = new ArrayList<>();
         sources.add( imageName );

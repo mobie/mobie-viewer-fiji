@@ -406,7 +406,7 @@ public class UserInterfaceHelper
 	public JPanel createRegionDisplaySettingsPanel( RegionDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
-		List< SourceAndConverter< ? > > sourceAndConverters = display.getSourceAndConverters();
+		List< SourceAndConverter< ? > > sourceAndConverters = display.sourceAndConverters();
 
 		// Buttons
 		panel.add( space() );
@@ -428,7 +428,7 @@ public class UserInterfaceHelper
 	public JPanel createSpotDisplaySettingsPanel( SpotDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
-		List< SourceAndConverter< ? > > sourceAndConverters = display.getSourceAndConverters();
+		List< SourceAndConverter< ? > > sourceAndConverters = display.sourceAndConverters();
 
 		// Buttons
 		panel.add( space() );
@@ -507,13 +507,13 @@ public class UserInterfaceHelper
 		JPanel panel = createDisplayPanel( display.getName() );
 
 		// Set panel background color
-		final Converter< ?, ARGBType > converter = display.getSourceAndConverters().get( 0 ).getConverter();
+		final Converter< ?, ARGBType > converter = display.sourceAndConverters().get( 0 ).getConverter();
 		if ( converter instanceof ColorConverter )
 		{
 			setPanelColor( panel, ( ( ColorConverter ) converter ).getColor() );
 		}
 
-		List< ? extends SourceAndConverter< ? > > sourceAndConverters = display.getSourceAndConverters();
+		List< ? extends SourceAndConverter< ? > > sourceAndConverters = display.sourceAndConverters();
 
 		// Buttons
 		panel.add( space() );
@@ -560,7 +560,7 @@ public class UserInterfaceHelper
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 
-		List< SourceAndConverter< ? > > sourceAndConverters = display.getSourceAndConverters();
+		List< SourceAndConverter< ? > > sourceAndConverters = display.sourceAndConverters();
 
 		panel.add( space() );
 		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
@@ -1034,7 +1034,7 @@ public class UserInterfaceHelper
 		button.addActionListener( e ->
 		{
 			final ArrayList< ConverterSetup > converterSetups = new ArrayList<>();
-			final Collection< ? extends SourceAndConverter< ? > > sourceAndConverters = imageDisplay.getSourceAndConverters();
+			final Collection< ? extends SourceAndConverter< ? > > sourceAndConverters = imageDisplay.sourceAndConverters();
 			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 				converterSetups.add( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter ) );
 

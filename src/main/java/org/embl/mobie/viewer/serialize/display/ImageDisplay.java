@@ -85,9 +85,10 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		return sources;
 	}
 
+	// Gson deserialization
 	public ImageDisplay() {}
 
-	// Constructor for serialization
+	// Project creator serialization
 	public ImageDisplay( String name, double opacity, List< String > sources, String color, double[] contrastLimits, BlendingMode blendingMode, boolean showImagesIn3d ) {
 		this.name = name;
 		this.opacity = opacity;
@@ -107,8 +108,8 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	{
 		this.name = imageDisplay.name;
 		this.sources = new ArrayList<>();
-		this.sources.addAll( imageDisplay.getSourceAndConverters().stream().map( sac -> sac.getSpimSource().getName() ).collect( Collectors.toList() ) );
-		setDisplaySettings( imageDisplay.getSourceAndConverters().get( 0 ) );
+		this.sources.addAll( imageDisplay.sourceAndConverters().stream().map( sac -> sac.getSpimSource().getName() ).collect( Collectors.toList() ) );
+		setDisplaySettings( imageDisplay.sourceAndConverters().get( 0 ) );
 
 		if ( imageDisplay.imageVolumeViewer != null )
 		{

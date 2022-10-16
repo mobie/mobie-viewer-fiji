@@ -39,9 +39,9 @@ import net.imglib2.type.numeric.IntegerType;
 
 public class AnnotatedLabelSource< T extends IntegerType< T >, A extends Annotation > extends AbstractSourceWrapper< T, AnnotationType< A > >
 {
-    private final AnnotationAdapter< A > annotationAdapter;
+    private final AnnotationAdapter<A> annotationAdapter;
 
-    public AnnotatedLabelSource( final Source< T > labelSource, AnnotationAdapter< A > annotationAdapter )
+    public AnnotatedLabelSource( final Source< T > labelSource, AnnotationAdapter<A> annotationAdapter )
     {
         super( labelSource );
         this.annotationAdapter = annotationAdapter;

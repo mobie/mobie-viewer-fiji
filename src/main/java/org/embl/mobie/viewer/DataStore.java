@@ -75,8 +75,7 @@ public abstract class DataStore
 
 	public static void clearImages()
 	{
-		// FIXME
-		//   https://github.com/mobie/mobie-viewer-fiji/issues/813
+		// FIXME Caching: https://github.com/mobie/mobie-viewer-fiji/issues/813
 		images.clear();
 	}
 }

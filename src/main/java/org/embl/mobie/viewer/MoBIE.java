@@ -32,18 +32,21 @@ import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import mpicbg.spim.data.SpimData;
-import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.sequence.ImgLoader;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
+import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.AnnotatedSpot;
+import org.embl.mobie.viewer.annotation.Annotation;
+import org.embl.mobie.viewer.annotation.DefaultAnnotationAdapter;
+import org.embl.mobie.viewer.annotation.LazyAnnotatedSegmentAdapter;
+import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.image.Image;
+import org.embl.mobie.viewer.image.LazyAnnotatedLabelImage;
 import org.embl.mobie.viewer.image.SpotLabelImage;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.viewer.serialize.DataSource;
@@ -59,6 +62,7 @@ import org.embl.mobie.viewer.image.SpimDataImage;
 import org.embl.mobie.viewer.serialize.SpotDataSource;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.DefaultAnnData;
+import org.embl.mobie.viewer.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSpot;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSpotCreator;
@@ -487,9 +491,7 @@ public class MoBIE
 
 		for ( DataSource dataSource : dataSources )
 		{
-			// FIXME
-			//   Think about where we could also cache SpimData here
-			//   but maybe not?
+			// FIXME Cache SpimData?
 			//   https://github.com/mobie/mobie-viewer-fiji/issues/857
 			if ( DataStore.containsRawData( dataSource.getName() ) )
 			{
@@ -518,10 +520,7 @@ public class MoBIE
 			final Integer channel = imageSource.imageData.get( imageDataFormat ).channel;
 			final String imagePath = getImagePath( imageSource, imageDataFormat );
 
-			// TODO
-			//   Maybe somehow re-use the same SpimData object that is used for
-			//   different channels? See code in current develop branch.
-			//   https://github.com/mobie/mobie-viewer-fiji/blob/3999de27187b06f07e2bc35c6efb4f455859c25a/src/main/java/org/embl/mobie/viewer/MoBIE.java#L517
+			// TODO  Caching? https://github.com/mobie/mobie-viewer-fiji/issues/857
 			final SpimDataImage< ? > image = new SpimDataImage( imageDataFormat, imagePath, channel, dataSource.getName(), ThreadHelper.sharedQueue );
 
 			if ( dataSource.preInit() )
@@ -541,7 +540,7 @@ public class MoBIE
 				{
 					final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator();
 
-					TableSawAnnotationTableModel tableModel;
+					TableSawAnnotationTableModel< TableSawAnnotatedSegment > tableModel;
 					if ( dataSource.preInit() )
 					{
 						// load table already now
@@ -555,8 +554,9 @@ public class MoBIE
 						tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV  );
 					}
 
-					final DefaultAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultAnnData<>( tableModel );
-					final DefaultAnnotatedLabelImage annotatedLabelImage = new DefaultAnnotatedLabelImage( image, segmentsAnnData );
+					final DefaultAnnData< TableSawAnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
+					final DefaultAnnotationAdapter< TableSawAnnotatedSegment > annotationAdapter = new DefaultAnnotationAdapter( annData );
+					final AnnotatedLabelImage< TableSawAnnotatedSegment > annotatedLabelImage = new DefaultAnnotatedLabelImage( image, annData, annotationAdapter );
 
 					// label image representing annotated segments
 					DataStore.putImage( annotatedLabelImage );
@@ -565,6 +565,10 @@ public class MoBIE
 				{
 					// label image representing segments
 					// without annotation
+					final LazyAnnotatedSegmentTableModel< AnnotatedSegment > tableModel = new LazyAnnotatedSegmentTableModel<>( image.getName() );
+					final DefaultAnnData< AnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
+					new LazyAnnotatedSegmentAdapter()
+					new DefaultAnnotatedLabelImage( image, annData, annotationAdapter );
 					DataStore.putImage( image );
 				}
 			}
@@ -585,7 +589,8 @@ public class MoBIE
 			final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDataSource.getName(), annotatedSpots, 1.0, spotDataSource.boundingBoxMin, spotDataSource.boundingBoxMax );
 
 			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
-			final DefaultAnnotatedLabelImage spotsImage = new DefaultAnnotatedLabelImage( labelImage, spotAnnData );
+			final DefaultAnnotationAdapter< AnnotatedSpot > annotationAdapter = new DefaultAnnotationAdapter<>( spotAnnData );
+			final DefaultAnnotatedLabelImage spotsImage = new DefaultAnnotatedLabelImage( labelImage, spotAnnData, annotationAdapter );
 
 			// Spots image, built from spots table
 			DataStore.putImage( spotsImage );

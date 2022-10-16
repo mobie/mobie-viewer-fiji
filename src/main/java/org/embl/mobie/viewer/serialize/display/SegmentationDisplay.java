@@ -73,12 +73,13 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Annotati
 		return showSelectedSegmentsIn3d;
 	}
 
-	// Used by Gson
+	// Gson deserialization
 	public SegmentationDisplay()
 	{
 		super();
 	}
 
+	// Project creator serialization
 	public SegmentationDisplay( String name, double opacity, List< String > sources, String lut, String colorByColumn, Double[] valueLimits, Set< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, Double[] resolution3dView )
 	{
 		this.name = name;

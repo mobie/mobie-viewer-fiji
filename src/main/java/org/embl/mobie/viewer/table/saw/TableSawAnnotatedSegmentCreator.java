@@ -7,9 +7,8 @@ import java.util.function.Supplier;
 
 public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreator< TableSawAnnotatedSegment >
 {
-	public TableSawAnnotatedSegmentCreator(  )
+	public TableSawAnnotatedSegmentCreator( )
 	{
-
 	}
 
 	@Override

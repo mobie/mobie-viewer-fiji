@@ -29,17 +29,13 @@
 package org.embl.mobie.viewer.serialize.display;
 
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.viewer.Services;
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.annotation.Annotation;
-import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.image.SpotLabelImage;
 import org.embl.mobie.viewer.source.AnnotationType;
-import org.embl.mobie.viewer.transform.MoBIEViewerTransformAdjuster;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay< AR >
@@ -79,20 +75,20 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay
 	}
 
 	// Gson
-	public SpotDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, Set< String > selectedSpotIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries, float boundaryThickness  )
-	{
-		this.name = name;
-		this.opacity = opacity;
-		this.lut = lut;
-		this.colorByColumn = colorByColumn;
-		this.valueLimits = valueLimits;
-		this.selectedSpotIds = selectedSpotIds;
-		this.showScatterPlot = showScatterPlot;
-		this.scatterPlotAxes = scatterPlotAxes;
-		this.tables = tables;
-		this.showAsBoundaries = showAsBoundaries;
-		this.boundaryThickness = boundaryThickness;
-	}
+//	public SpotDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, Set< String > selectedSpotIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries, float boundaryThickness  )
+//	{
+//		this.name = name;
+//		this.opacity = opacity;
+//		this.lut = lut;
+//		this.colorByColumn = colorByColumn;
+//		this.valueLimits = valueLimits;
+//		this.selectedSpotIds = selectedSpotIds;
+//		this.showScatterPlot = showScatterPlot;
+//		this.scatterPlotAxes = scatterPlotAxes;
+//		this.tables = tables;
+//		this.showAsBoundaries = showAsBoundaries;
+//		this.boundaryThickness = boundaryThickness;
+//	}
 
 	// Create a serializable copy
 	public SpotDisplay( SpotDisplay< ? extends Annotation > spotDisplay )
@@ -101,7 +97,7 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay
 		setAnnotationDisplayProperties( spotDisplay );
 
 		// set properties specific to SpotDisplay
-		final SourceAndConverter< ? extends AnnotationType< ? extends Annotation > > sourceAndConverter = spotDisplay.getSourceAndConverters().get( 0 );
+		final SourceAndConverter< ? extends AnnotationType< ? extends Annotation > > sourceAndConverter = spotDisplay.sourceAndConverters().get( 0 );
 
 		// spot radius
 		final SpotLabelImage spotLabelImage = ( SpotLabelImage ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, SpotLabelImage.class.getName() );

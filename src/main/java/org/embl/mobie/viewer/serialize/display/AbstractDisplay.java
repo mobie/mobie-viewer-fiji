@@ -35,10 +35,7 @@ import org.embl.mobie.viewer.image.Image;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public abstract class AbstractDisplay< T > implements Display< T >
 {
@@ -49,7 +46,7 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	protected BlendingMode blendingMode = BlendingMode.Sum;
 
 	// Runtime
-	public transient Map< String, SourceAndConverter< T > > nameToSourceAndConverter = new HashMap<>();
+	private transient List< SourceAndConverter< T > > sourceAndConverters = new ArrayList<>();
 	public transient SliceViewer sliceViewer;
 	private transient List< Image< T > > images = new ArrayList<>();
 
@@ -87,9 +84,9 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	}
 
 	@Override
-	public List< SourceAndConverter< T > > getSourceAndConverters()
+	public List< SourceAndConverter< T > > sourceAndConverters()
 	{
-		return new ArrayList<>( nameToSourceAndConverter.values() );
+		return sourceAndConverters;
 	}
 
 }

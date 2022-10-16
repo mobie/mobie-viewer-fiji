@@ -1,9 +1,9 @@
-package org.embl.mobie.viewer.table.saw;
+package org.embl.mobie.viewer.table;
 
-import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
+import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.table.ColumnNames;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
@@ -11,7 +11,7 @@ import tech.tablesaw.api.Table;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class TableSawAnnotatedSegment implements AnnotatedSegment
+public class DefaultAnnotatedSegment implements AnnotatedSegment
 {
 	private static final String[] idColumns = new String[]{ ColumnNames.LABEL_ID, ColumnNames.TIMEPOINT };
 
@@ -25,9 +25,7 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	private String source;
 	private String uuid;
 
-	public TableSawAnnotatedSegment(
-			Supplier< Table > tableSupplier,
-			int rowIndex )
+	public DefaultAnnotatedSegment( int rowIndex )
 	{
 		this.tableSupplier = tableSupplier;
 		this.rowIndex = rowIndex;

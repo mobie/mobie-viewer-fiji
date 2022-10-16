@@ -38,14 +38,12 @@ import net.imglib2.Volatile;
 import net.imglib2.converter.Converters;
 import net.imglib2.type.numeric.IntegerType;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 // MAYBE: This does not need to know that this is a Segment?!
 public class VolatileAnnotatedLabelSource< T extends IntegerType< T >, V extends Volatile< T >, A extends Annotation > extends AbstractSourceWrapper< V, VolatileAnnotationType< A > >
 {
-    private final AnnotationAdapter< A > annotationAdapter;
+    private final AnnotationAdapter<A> annotationAdapter;
 
-    public VolatileAnnotatedLabelSource( final Source< V > source, AnnotationAdapter< A > annotationAdapter )
+    public VolatileAnnotatedLabelSource( final Source< V > source, AnnotationAdapter<A> annotationAdapter )
     {
         super( source );
         this.annotationAdapter = annotationAdapter;

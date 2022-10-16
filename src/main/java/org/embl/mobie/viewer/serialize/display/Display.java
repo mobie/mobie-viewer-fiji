@@ -62,6 +62,6 @@ public interface Display< T >
 	double getOpacity();
 	boolean isVisible();
 	List< Image< T > > getImages();
-	List< SourceAndConverter< T > > getSourceAndConverters();
+	List< SourceAndConverter< T > > sourceAndConverters();
 	void addImage( Image< T > image );
 }

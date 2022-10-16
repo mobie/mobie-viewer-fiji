@@ -22,12 +22,6 @@ public class TableSawAnnotatedRegionCreator implements TableSawAnnotationCreator
 	{
 		final Row row = tableSupplier.get().row( rowIndex );
 		final String regionId = row.getObject( ColumnNames.REGION_ID ).toString();
-//		if ( ! regionIdToImageNames.containsKey( regionId ) )
-//		{
-//			// FIXME: This is not clean
-//			//   see related issue in TableSawAnnotationTableModel
-//			return null; // The regionDisplay may only use some table rows.
-//		}
 		return new TableSawAnnotatedRegion( tableSupplier, rowIndex, regionIdToImageNames.get( regionId )  );
 	}
 }
