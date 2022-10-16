@@ -39,11 +39,11 @@ import java.util.stream.Collectors;
 public class LazyAnnotatedSegmentAdapter implements AnnotationAdapter< AnnotatedSegment >
 {
 	private final String name;
-	private final LazyAnnotatedSegmentTableModel< AnnotatedSegment > tableModel;
+	private final LazyAnnotatedSegmentTableModel tableModel;
 	private Map< String, AnnotatedSegment > uuidToAnnotation;
 	private Map< String, AnnotatedSegment > stlToAnnotation; // source, timepoint, label
 
-	public LazyAnnotatedSegmentAdapter( String name, LazyAnnotatedSegmentTableModel< AnnotatedSegment > tableModel )
+	public LazyAnnotatedSegmentAdapter( String name, LazyAnnotatedSegmentTableModel tableModel )
 	{
 		this.name = name;
 		this.tableModel = tableModel;
@@ -54,11 +54,9 @@ public class LazyAnnotatedSegmentAdapter implements AnnotationAdapter< Annotated
 	@Override
 	public AnnotatedSegment createVariable()
 	{
-		return new DefaultAnnotatedSegment( name, 0, 1, new double[]{0,0,0} );
+		return new DefaultAnnotatedSegment( name, 0, 1 );
 	}
 
-	// UUID for de-serialisation of selected segments
-	// https://github.com/mobie/mobie-viewer-fiji/issues/827
 	@Override
 	public AnnotatedSegment getAnnotation( String uuid )
 	{

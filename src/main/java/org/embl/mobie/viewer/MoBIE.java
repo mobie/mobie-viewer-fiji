@@ -41,12 +41,12 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.AnnotatedSpot;
-import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.viewer.annotation.LazyAnnotatedSegmentAdapter;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
+import org.embl.mobie.viewer.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.viewer.image.Image;
-import org.embl.mobie.viewer.image.LazyAnnotatedLabelImage;
+import org.embl.mobie.viewer.image.SpimDataImage;
 import org.embl.mobie.viewer.image.SpotLabelImage;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.viewer.serialize.DataSource;
@@ -57,23 +57,21 @@ import org.embl.mobie.viewer.serialize.Project;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.viewer.serialize.RegionDataSource;
 import org.embl.mobie.viewer.serialize.SegmentationDataSource;
-import org.embl.mobie.viewer.image.DefaultAnnotatedLabelImage;
-import org.embl.mobie.viewer.image.SpimDataImage;
 import org.embl.mobie.viewer.serialize.SpotDataSource;
+import org.embl.mobie.viewer.serialize.View;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.viewer.table.TableDataFormat;
+import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegment;
+import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegmentCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSpot;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSpotCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
-import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegment;
-import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegmentCreator;
 import org.embl.mobie.viewer.table.saw.TableSawHelper;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
-import org.embl.mobie.viewer.serialize.View;
 import org.embl.mobie.viewer.view.ViewManager;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
@@ -564,12 +562,12 @@ public class MoBIE
 				else
 				{
 					// label image representing segments
-					// without annotation
-					final LazyAnnotatedSegmentTableModel< AnnotatedSegment > tableModel = new LazyAnnotatedSegmentTableModel<>( image.getName() );
+					// without annotation table
+					final LazyAnnotatedSegmentTableModel tableModel = new LazyAnnotatedSegmentTableModel( image.getName() );
 					final DefaultAnnData< AnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
-					new LazyAnnotatedSegmentAdapter( image.getName(), tableModel );
-					new DefaultAnnotatedLabelImage( image, annData, annotationAdapter );
-					DataStore.putImage( image );
+					final LazyAnnotatedSegmentAdapter segmentAdapter = new LazyAnnotatedSegmentAdapter( image.getName(), tableModel );
+					final DefaultAnnotatedLabelImage annotatedLabelImage = new DefaultAnnotatedLabelImage( image, annData, segmentAdapter );
+					DataStore.putImage( annotatedLabelImage );
 				}
 			}
 			else

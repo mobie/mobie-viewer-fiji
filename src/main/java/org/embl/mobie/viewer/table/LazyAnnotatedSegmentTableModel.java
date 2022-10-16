@@ -28,18 +28,21 @@ import java.util.stream.Collectors;
 public class LazyAnnotatedSegmentTableModel implements AnnotationTableModel< AnnotatedSegment >
 {
 	private final String dataSourceName;
-	private final ArrayList< String > columnNames;
-	private final HashSet< String > loadedColumnPaths;
+	private final List< String > columnNames;
+	private final LinkedHashSet< String > loadedColumnPaths;
 	private Map< AnnotatedSegment, Integer > annotationToRowIndex = new ConcurrentHashMap<>();
 	private Map< Integer, AnnotatedSegment > rowIndexToAnnotation = new ConcurrentHashMap<>();
 	private int numAnnotations = 0;
+	private List< String > numericColumnNames;
 
 	public LazyAnnotatedSegmentTableModel( String dataSourceName )
 	{
 		this.dataSourceName = dataSourceName;
-		this.columnNames = new ArrayList< String >();
-		columnNames.add( ColumnNames.LABEL_ID );
-		loadedColumnPaths = new HashSet< String >();
+
+		this.columnNames = DefaultAnnotatedSegment.columnToClass.keySet().stream().collect( Collectors.toList() );
+		numericColumnNames = DefaultAnnotatedSegment.columnToClass.entrySet().stream().filter( entry -> entry.getValue().equals( Integer.class ) ).map( entry -> entry.getKey() ).collect( Collectors.toList() );
+
+		loadedColumnPaths = new LinkedHashSet<>();
 		loadedColumnPaths.add( "LazySegmentTable" );
 	}
 
@@ -52,13 +55,13 @@ public class LazyAnnotatedSegmentTableModel implements AnnotationTableModel< Ann
 	@Override
 	public List< String > numericColumnNames()
 	{
-		return columnNames;
+		return numericColumnNames;
 	}
 
 	@Override
 	public Class< ? > columnClass( String columnName )
 	{
-		return Integer.class; // label_id
+		return DefaultAnnotatedSegment.columnToClass.get( columnName );
 	}
 
 	@Override
@@ -100,7 +103,7 @@ public class LazyAnnotatedSegmentTableModel implements AnnotationTableModel< Ann
 	@Override
 	public LinkedHashSet< String > loadedColumnPaths()
 	{
-		throw new UnsupportedOperationException( this.getClass().getName() + " does not support loading of additional tables." );
+		return loadedColumnPaths;
 	}
 
 	@Override
@@ -118,7 +121,7 @@ public class LazyAnnotatedSegmentTableModel implements AnnotationTableModel< Ann
 	@Override
 	public void addStringColumn( String columnName )
 	{
-		throw new UnsupportedOperationException( this.getClass().getName() + " cannot be annotated.");
+
 	}
 
 	@Override
@@ -138,10 +141,11 @@ public class LazyAnnotatedSegmentTableModel implements AnnotationTableModel< Ann
 	{
 	}
 
-	public AnnotatedSegment createAnnotation( String source, int timePoint, int label )
+	public synchronized AnnotatedSegment createAnnotation( String source, int timePoint, int label )
 	{
 		final DefaultAnnotatedSegment annotatedSegment = new DefaultAnnotatedSegment( source, timePoint, label );
 		rowIndexToAnnotation.put( numAnnotations, annotatedSegment );
+		annotationToRowIndex.put( annotatedSegment, numAnnotations );
 		numAnnotations++;
 		return annotatedSegment;
 	}

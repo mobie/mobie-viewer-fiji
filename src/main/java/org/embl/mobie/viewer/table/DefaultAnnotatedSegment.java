@@ -4,30 +4,40 @@ import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 
+import java.util.HashMap;
+
 public class DefaultAnnotatedSegment implements AnnotatedSegment
 {
 	private static final String[] idColumns = new String[]{ ColumnNames.LABEL_ID, ColumnNames.TIMEPOINT };
+	public static final HashMap< String, Class > columnToClass = new HashMap<>();
+	static {
+		columnToClass.put( ColumnNames.LABEL_IMAGE_ID, String.class );
+		columnToClass.put( ColumnNames.LABEL_ID, Integer.class );
+		columnToClass.put( ColumnNames.TIMEPOINT, Integer.class );
+	}
 
 	private final String source;
 	private final int timePoint;
-	private final int label;
-	private final AnnotationTableModel< ? extends AnnotatedSegment > tableModel;
-	private final int rowIndex;
+	private final int labelId;
 	private final double[] position;
 	private RealInterval boundingBox;
 	private float[] mesh;
 	private String uuid;
+	private HashMap< String, Object > columnToValue;
 
-	public < A extends AnnotatedSegment > DefaultAnnotatedSegment( String source, int timePoint, int label )
+	public < A extends AnnotatedSegment > DefaultAnnotatedSegment( String source, int timePoint, int labelId )
 	{
 		this.source = source;
 		this.timePoint = timePoint;
-		this.label = label;
-		this.tableModel = tableModel;
-		this.rowIndex = rowIndex;
-		this.position = new double[]{0,0,0};
+		this.labelId = labelId;
+		this.position = new double[]{ 0,0,0 };
 
-		this.uuid = this.source + ";" + this.timePoint + ";" + this.label;
+		columnToValue = new HashMap<>();
+		columnToValue.put( ColumnNames.LABEL_IMAGE_ID, source );
+		columnToValue.put( ColumnNames.TIMEPOINT, timePoint );
+		columnToValue.put( ColumnNames.LABEL_ID, labelId );
+
+		this.uuid = this.source + ";" + this.timePoint + ";" + this.labelId;
 	}
 
 	@Override
@@ -39,7 +49,7 @@ public class DefaultAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public int label()
 	{
-		return label;
+		return labelId;
 	}
 
 	@Override
@@ -99,19 +109,24 @@ public class DefaultAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public Object getValue( String feature )
 	{
-		return tableModel..row( rowIndex ).getObject( feature );
+		return columnToValue.get( feature );
 	}
 
 	@Override
 	public Double getNumber( String feature )
 	{
-		return tableSupplier.get().row( rowIndex ).getNumber( feature );
+		return new Double( String.valueOf( columnToValue.get( feature ) ) );
 	}
 
 	@Override
 	public void setString( String columnName, String value )
 	{
-		tableSupplier.get().row( rowIndex ).setText( columnName, value );
+		// TODO current implementation would require making
+		//  the static field mutable, which would not
+		//  work for multiple tables using the DefaultAnnotatedSegment
+//		columnToValue.put( columnName, value );
+//		columnToClass.put( columnName, String.class );
+		throw new UnsupportedOperationException( "Adding values to " + this.getClass() + " is not implemented." );
 	}
 
 	@Override
@@ -125,8 +140,8 @@ public class DefaultAnnotatedSegment implements AnnotatedSegment
 	{
 		// update fields
 		affineTransform3D.apply( position, position );
-		boundingBox = affineTransform3D.estimateBounds( boundingBox );
-		// FIXME transform mesh
+		//boundingBox = affineTransform3D.estimateBounds( boundingBox );
+		//transform mesh
 	}
 
 	@Override

@@ -4,6 +4,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.viewer.ThreadHelper;
 import org.embl.mobie.viewer.annotation.Annotation;
+import org.embl.mobie.viewer.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.viewer.image.Image;
@@ -58,7 +59,9 @@ public class ImageTransformer
 
 		final Image< ? extends IntegerType< ? > > transformedLabelImage = ( Image< ? extends IntegerType< ? > > ) transform( labelImage, affineTransform3D, transformedImageName );
 
-		final DefaultAnnotatedLabelImage< TA > transformedAnnotatedImage = new DefaultAnnotatedLabelImage< TA >( transformedLabelImage, transformedAnnData, annotationAdapter );
+		// FIXME I guess I have to get the AnnotationAdapter
+		//   from the AnnotatedLabelImage?!
+		final DefaultAnnotatedLabelImage< TA > transformedAnnotatedImage = new DefaultAnnotatedLabelImage< TA >( transformedLabelImage, transformedAnnData, new DefaultAnnotationAdapter( annData ) );
 
 		return transformedAnnotatedImage;
 	}

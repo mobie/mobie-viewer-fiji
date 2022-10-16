@@ -44,6 +44,7 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.Annotation;
+import org.embl.mobie.viewer.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
 import org.embl.mobie.viewer.bdv.view.SliceViewer;
@@ -488,9 +489,9 @@ public class ViewManager
 
 				final Set< AnnotatedRegion > annotatedRegions = tableModel.annotations();
 				final Image< UnsignedIntType > labelImage = new RegionLabelImage( regionDisplay.getName(), annotatedRegions );
-				final DefaultAnnData< AnnotatedRegion > regionAnnData = new DefaultAnnData<>( tableModel );
-				final DefaultAnnotatedLabelImage regionImage = new DefaultAnnotatedLabelImage( labelImage, regionAnnData, annotationAdapter );
-
+				final DefaultAnnData< AnnotatedRegion > annData = new DefaultAnnData<>( tableModel );
+				final DefaultAnnotationAdapter< AnnotatedRegion > annotationAdapter = new DefaultAnnotationAdapter<>( annData );
+				final DefaultAnnotatedLabelImage regionImage = new DefaultAnnotatedLabelImage( labelImage, annData, annotationAdapter );
 				DataStore.putImage( regionImage );
 			}
 		}
