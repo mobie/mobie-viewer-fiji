@@ -29,12 +29,15 @@
 package org.embl.mobie.viewer.annotation;
 
 import bdv.util.BdvHandle;
+import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.bdv.GlobalMousePositionProvider;
 import org.embl.mobie.viewer.serialize.display.AnnotationDisplay;
 import org.embl.mobie.viewer.source.AnnotationType;
 import net.imglib2.RealPoint;
+import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.util.Collection;
@@ -83,16 +86,22 @@ public class SliceViewAnnotationSelector< A extends Annotation > implements Runn
 				if ( SourceAndConverterHelper.isPositionWithinSourceInterval( sourceAndConverter, realPosition, timePoint, is2D ) )
 				{
 					final Source< AnnotationType< A > > source = sourceAndConverter.getSpimSource();
-					final long[] voxelPosition = SourceAndConverterHelper.getVoxelPositionInSource( source, realPosition, timePoint, 0 );
-					final AnnotationType< A > annotationType = source.getSource( timePoint, 0 ).randomAccess().setPositionAndGet( voxelPosition );
+
+					// Find Annotation in voxel grid space
+//					final long[] voxelPosition = SourceAndConverterHelper.getVoxelPositionInSource( source, realPosition, timePoint, 0 );
+//					final AnnotationType< A > annotationType = source.getSource( timePoint, 0 ).randomAccess().setPositionAndGet( voxelPosition );
+
+					// Find Annotation in voxel grid real space
+					// This is needed for sources like the SpotImage, which is
+					// created in real space and does not live on a voxel grid.
+					// See also: https://github.com/mobie/spatial-transcriptomics-example-project/issues/22
+					AffineTransform3D sourceTransform = new AffineTransform3D();
+					source.getSourceTransform( timePoint, 0, sourceTransform);
+					final RealPoint positionInSource = new RealPoint( 3 );
+					sourceTransform.inverse().apply( realPosition, positionInSource );
+					final AnnotationType< A > annotationType = source.getInterpolatedSource( timePoint, 0, Interpolation.NEARESTNEIGHBOR ).getAt( positionInSource );
+
 					final A annotation = annotationType.getAnnotation();
-
-//
-//					final double pixelValue = getPixelValue( timePoint, realPosition, source );
-//					final String sourceName = getSourceName( source, pixelValue );
-//					double labelIndex = getLabelIndex( source, pixelValue );
-
-					//TableRow tableRow = getTableRow( timePoint, annotationDisplay, sourceName, labelIndex );
 
 					if ( annotation != null )
 					{

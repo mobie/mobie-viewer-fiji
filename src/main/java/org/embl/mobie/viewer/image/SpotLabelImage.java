@@ -106,13 +106,13 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 		// TODO: code duplication with RegionLabelImage
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( getMask() );
-		final FunctionRealRandomAccessible< UnsignedIntType > realRandomAccessible = new FunctionRealRandomAccessible( 3, new LocationToLabelSupplier(), UnsignedIntType::new );
+		final FunctionRealRandomAccessible< UnsignedIntType > realRandomAccessible = new FunctionRealRandomAccessible( 3, new SpotLocationToLabelSupplier(), UnsignedIntType::new );
 		source = new RealRandomAccessibleIntervalTimelapseSource<>( realRandomAccessible, interval, new UnsignedIntType(), new AffineTransform3D(), name, true, timePoints );
 	}
 
-	class LocationToLabelSupplier implements Supplier< BiConsumer< RealLocalizable, UnsignedIntType > >
+	class SpotLocationToLabelSupplier implements Supplier< BiConsumer< RealLocalizable, UnsignedIntType > >
 	{
-		public LocationToLabelSupplier()
+		public SpotLocationToLabelSupplier()
 		{
 		}
 
