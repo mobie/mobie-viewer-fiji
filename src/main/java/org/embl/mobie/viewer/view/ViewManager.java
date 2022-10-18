@@ -83,6 +83,7 @@ import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.table.DefaultAnnData;
+import org.embl.mobie.viewer.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableView;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedRegion;
@@ -670,8 +671,12 @@ public class ViewManager
 	private void initTableView( AnnotationDisplay< ? extends Annotation > display )
 	{
 		display.tableView = new TableView( display );
-		display.tableView.show();
-		setTablePosition( display.sliceViewer.getWindow(), display.tableView.getWindow() );
+		if ( display.showTable() )
+		{
+			display.tableView.show();
+			setTablePosition( display.sliceViewer.getWindow(), display.tableView.getWindow() );
+		}
+
 		display.selectionModel.listeners().add( display.tableView );
 		display.coloringModel.listeners().add( display.tableView );
 		numViewedTables++;

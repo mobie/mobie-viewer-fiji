@@ -76,7 +76,7 @@ public class ConfigureLabelRenderingCommand extends DynamicCommand implements Bd
 	@Parameter( label = "Selection color" )
 	public ColorRGB selectionColor = new ColorRGB( 255, 255, 0 );
 
-	@Parameter( label = "Opacity of non-selected labels" )
+	@Parameter( label = "Opacity of non-selected labels", style = "format:#.00" )
 	public double opacity = 0.15;
 
 	// persist = false is needed for the {@code initialise} method to work

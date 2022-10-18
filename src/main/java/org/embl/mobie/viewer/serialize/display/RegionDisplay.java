@@ -53,8 +53,7 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AnnotationDispl
 
 	// Runtime
 
-
-	// Gson deserialization
+	// Used by Gson deserialization
 	public RegionDisplay()
 	{
 		super();
@@ -80,11 +79,9 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AnnotationDispl
 	// Create a serializable copy
 	public RegionDisplay( RegionDisplay< ? extends Annotation > regionDisplay )
 	{
-		// set properties common to all AnnotationDisplays
-		//
-		setAnnotationDisplayProperties( regionDisplay );
+		super( regionDisplay );
 
-		// set properties specific to RegionDisplay
+		// set fields specific to RegionDisplay
 		//
 		this.sources = new HashMap<>();
 		this.sources.putAll( regionDisplay.sources );

@@ -93,10 +93,9 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay
 	// Create a serializable copy
 	public SpotDisplay( SpotDisplay< ? extends Annotation > spotDisplay )
 	{
-		// set properties common to all AnnotationDisplays
-		setAnnotationDisplayProperties( spotDisplay );
+		super( spotDisplay );
 
-		// set properties specific to SpotDisplay
+		// set fields specific to SpotDisplay
 		final SourceAndConverter< ? extends AnnotationType< ? extends Annotation > > sourceAndConverter = spotDisplay.sourceAndConverters().get( 0 );
 
 		// spot radius

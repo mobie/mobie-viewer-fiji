@@ -100,7 +100,7 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Annotati
 	public SegmentationDisplay( SegmentationDisplay< ? extends AnnotatedSegment > segmentationDisplay )
 	{
 		// set properties common to all AnnotationDisplays
-		setAnnotationDisplayProperties( segmentationDisplay );
+		super( segmentationDisplay );
 
 		// set properties specific to SegmentationDisplay
 		//

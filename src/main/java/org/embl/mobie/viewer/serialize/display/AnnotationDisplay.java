@@ -91,9 +91,16 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 
 	// Methods
 
+	// Used by Gson deserialization
 	public AnnotationDisplay()
 	{
 		blendingMode = BlendingMode.Alpha;
+	}
+
+	// Use this for serialization
+	public AnnotationDisplay( AnnotationDisplay< ? extends Annotation > annotationDisplay )
+	{
+		setSerializableFields( annotationDisplay );
 	}
 
 	public abstract Set< String > selectedAnnotationIds();
@@ -151,7 +158,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		return randomColorSeed;
 	}
 
-	protected void setAnnotationDisplayProperties( AnnotationDisplay< ? extends Annotation > annotationDisplay )
+	private void setSerializableFields( AnnotationDisplay< ? extends Annotation > annotationDisplay )
 	{
 		this.name = annotationDisplay.name;
 

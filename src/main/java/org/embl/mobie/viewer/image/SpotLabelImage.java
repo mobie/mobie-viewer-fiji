@@ -28,8 +28,6 @@
  */
 package org.embl.mobie.viewer.image;
 
-import bdv.SpimSource;
-import bdv.VolatileSpimSource;
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
 import net.imglib2.Interval;
@@ -37,7 +35,6 @@ import net.imglib2.KDTree;
 import net.imglib2.RealLocalizable;
 import net.imglib2.Sampler;
 import net.imglib2.Volatile;
-import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
 import net.imglib2.neighborsearch.RadiusNeighborSearchOnKDTree;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
