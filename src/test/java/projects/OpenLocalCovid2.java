@@ -35,7 +35,7 @@ import org.embl.mobie.viewer.MoBIESettings;
 
 import java.io.IOException;
 
-public class OpenRemoteSpatialOmics
+public class OpenLocalCovid2
 {
 	public static void main( String[] args )
 	{
@@ -43,9 +43,7 @@ public class OpenRemoteSpatialOmics
 		imageJ.ui().showUI();
 
 		try {
-			final MoBIE moBIE = new MoBIE( "https://github.com/mobie/spatial-transcriptomics-example-project", MoBIESettings.settings().dataset( "pos42" ).view( "default" ) );
-//			final MoBIE moBIE = new MoBIE( "https://github.com/mobie/spatial-transcriptomics-example-project", MoBIESettings.settings().dataset( "pos42" ).gitProjectBranch( "parquet" ).view( "just-spots" ) );
-
+			new MoBIE("/g/kreshuk/pape/Work/data/mobie/covid-if-2", MoBIESettings.settings().view( "segmentations" ) );//.getViewManager().show( "cell-segmentation" );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

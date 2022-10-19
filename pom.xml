@@ -99,8 +99,13 @@
         -->
         <j3dcore.version>1.6.0-scijava-2</j3dcore.version>
 
+        <!-- TableSaw -->
+        <tablesaw-core.version>0.43.1</tablesaw-core.version>
+        <tablesaw-parquet.version>0.10.0</tablesaw-parquet.version>
+
         <!-- NB: Deploy releases to the SciJava Maven repository. -->
         <releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
+
     </properties>
 
     <repositories>
@@ -203,7 +208,12 @@
         <dependency>
             <groupId>tech.tablesaw</groupId>
             <artifactId>tablesaw-core</artifactId>
-            <version>0.43.1</version>
+            <version>${tablesaw-core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.tlabs-data</groupId>
+            <artifactId>tablesaw_${tablesaw-core.version}-parquet</artifactId>
+            <version>${tablesaw-parquet.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

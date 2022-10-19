@@ -70,7 +70,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 			// maybe to do with the {@code synchronized} of this function.
 			// IJ.log( "Opening table for " + dataSourceName + "..." );
 			System.out.println( "TableModel: " + dataSourceName + ": Reading table:\n" + columnPath );
-			final Table rows = TableSawHelper.readTable( columnPath );
+			final Table rows = TableSawHelper.readTable( columnPath, -1 );
 
 			if ( table == null ) // init table
 			{

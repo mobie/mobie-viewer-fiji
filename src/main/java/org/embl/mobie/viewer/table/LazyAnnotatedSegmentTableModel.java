@@ -1,23 +1,10 @@
 package org.embl.mobie.viewer.table;
 
-import net.imglib2.ops.parse.token.Int;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
-import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
-import org.embl.mobie.viewer.annotation.Annotation;
-import org.embl.mobie.viewer.table.AnnotationTableModel;
-import org.embl.mobie.viewer.table.DefaultValues;
-import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
-import org.embl.mobie.viewer.table.saw.TableSawColumnTypes;
-import org.embl.mobie.viewer.table.saw.TableSawHelper;
-import tech.tablesaw.api.StringColumn;
-import tech.tablesaw.api.Table;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;

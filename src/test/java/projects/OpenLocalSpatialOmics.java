@@ -35,17 +35,14 @@ import org.embl.mobie.viewer.MoBIESettings;
 
 import java.io.IOException;
 
-public class OpenRemoteSpatialOmics
+public class OpenLocalSpatialOmics
 {
 	public static void main( String[] args )
 	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
-
+		new ImageJ().ui().showUI();
 		try {
-			final MoBIE moBIE = new MoBIE( "https://github.com/mobie/spatial-transcriptomics-example-project", MoBIESettings.settings().dataset( "pos42" ).view( "default" ) );
-//			final MoBIE moBIE = new MoBIE( "https://github.com/mobie/spatial-transcriptomics-example-project", MoBIESettings.settings().dataset( "pos42" ).gitProjectBranch( "parquet" ).view( "just-spots" ) );
-
+			new MoBIE("/g/kreshuk/data/marioni/shila/mouse-atlas-2020/ngff",
+					MoBIESettings.settings().view( "stitched-full" ).dataset( "embryo3" ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

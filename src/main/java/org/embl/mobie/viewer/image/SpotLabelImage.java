@@ -47,6 +47,7 @@ import org.embl.mobie.viewer.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.viewer.source.SourcePair;
 
 import javax.annotation.Nullable;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -89,7 +90,12 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 
 	private void createLabelImage()
 	{
-		kdTree = new KDTree( new ArrayList<>( annotatedSpots ), new ArrayList<>( annotatedSpots ) );
+		// TODO: if this is slow could we start with
+		//   a smaller tree and subsequently update it with a bigger one?
+		final long start = System.currentTimeMillis();
+		final ArrayList< AS > list = new ArrayList<>( annotatedSpots );
+		kdTree = new KDTree( list, list );
+		System.out.println( "Built tree with " + annotatedSpots.size() + " elements in " + ( System.currentTimeMillis() - start ) + " ms." );
 
 		if ( boundingBoxMin == null )
 			boundingBoxMin = kdTree.minAsDoubleArray();

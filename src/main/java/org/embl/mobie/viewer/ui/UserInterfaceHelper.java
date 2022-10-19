@@ -56,6 +56,8 @@ import org.embl.mobie.viewer.serialize.display.RegionDisplay;
 import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
 import org.embl.mobie.viewer.serialize.display.Display;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
+import org.embl.mobie.viewer.table.AnnData;
+import org.embl.mobie.viewer.table.AnnotationTableModel;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.ViewerTransform;
@@ -571,7 +573,10 @@ public class UserInterfaceHelper
 		panel.add( createRemoveButton( display ) );
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
-		if ( display.getAnnData() != null )
+		final AnnData annData = display.getAnnData();
+		final AnnotationTableModel table = annData.getTable();
+		display.getImages();
+		if ( annData != null )
 		{
 			// segments 3D view
 			panel.add( createSegmentsVolumeViewerVisibilityCheckbox( display ) );

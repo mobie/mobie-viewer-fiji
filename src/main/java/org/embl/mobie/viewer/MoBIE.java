@@ -77,6 +77,7 @@ import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import tech.tablesaw.api.Table;
+import tech.tablesaw.io.csv.CsvReadOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -92,7 +93,12 @@ import java.util.stream.Collectors;
 
 public class MoBIE
 {
-	static { net.imagej.patcher.LegacyInjector.preinit(); }
+	static {
+		net.imagej.patcher.LegacyInjector.preinit();
+
+		// Force TableSaw class loading and compilation to save time during the actual loading
+		Table.read().usingOptions( CsvReadOptions.builderFromString( "aaa\tbbb" ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" ) );
+	}
 
 	private static MoBIE moBIE;
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
@@ -542,7 +548,7 @@ public class MoBIE
 					if ( dataSource.preInit() )
 					{
 						// load table already now
-						Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV ) );
+						Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV ), -1 );
 						tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV, table  );
 					}
 					else
@@ -579,19 +585,21 @@ public class MoBIE
 
 		if ( dataSource instanceof SpotDataSource )
 		{
+			final long start = System.currentTimeMillis();
 			final SpotDataSource spotDataSource = ( SpotDataSource ) dataSource;
-			Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV ) );
+			Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV ), 1000 );
 			final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator();
 			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV, table );
 			final Set< AnnotatedSpot > annotatedSpots = tableModel.annotations();
 			final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDataSource.getName(), annotatedSpots, 1.0, spotDataSource.boundingBoxMin, spotDataSource.boundingBoxMax );
-
 			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
 			final DefaultAnnotationAdapter< AnnotatedSpot > annotationAdapter = new DefaultAnnotationAdapter<>( spotAnnData );
 			final DefaultAnnotatedLabelImage spotsImage = new DefaultAnnotatedLabelImage( labelImage, spotAnnData, annotationAdapter );
 
 			// Spots image, built from spots table
 			DataStore.putImage( spotsImage );
+
+			System.out.println("Created spots image " + spotsImage.getName() + " with " + spotAnnData.getTable().numAnnotations() + " spots in [ms] " + ( System.currentTimeMillis() - start ));
 		}
 
 		if ( dataSource instanceof RegionDataSource )
@@ -603,7 +611,7 @@ public class MoBIE
 			// However, we can already load the region table here.
 
 			final RegionDataSource regionDataSource = ( RegionDataSource ) dataSource;
-			Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( regionDataSource.tableData ), TableDataFormat.DEFAULT_TSV ) );
+			Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( regionDataSource.tableData ), TableDataFormat.DEFAULT_TSV ), -1 );
 			regionDataSource.table = table;
 			DataStore.putRawData( regionDataSource );
 		}

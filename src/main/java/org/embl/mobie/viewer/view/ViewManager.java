@@ -671,12 +671,14 @@ public class ViewManager
 	private void initTableView( AnnotationDisplay< ? extends Annotation > display )
 	{
 		display.tableView = new TableView( display );
-		if ( display.showTable() )
-		{
-			display.tableView.show();
-			setTablePosition( display.sliceViewer.getWindow(), display.tableView.getWindow() );
-		}
-
+		// Note that currently we must show the table here
+		// in order to instantiate the window.
+		// This window is needed in {@code UserInterfaceHelper}
+		// in the function {@code createWindowVisibilityCheckbox},
+		// in which the table window will be
+		// hidden, if {@code display.showTable == false}.
+		display.tableView.show();
+		setTablePosition( display.sliceViewer.getWindow(), display.tableView.getWindow() );
 		display.selectionModel.listeners().add( display.tableView );
 		display.coloringModel.listeners().add( display.tableView );
 		numViewedTables++;
