@@ -34,12 +34,17 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 
 	private synchronized void update()
 	{
+		// FIXME Could that be replaced by a listener model?
+		//   Maybe annotationsLoaded( List< A > annotation );
 		for ( AnnotationTableModel< A > tableModel : tableModels )
 		{
 			if ( loadedTables.contains( tableModel ) ) continue;
 
 			if ( tableModel.isDataLoaded() )
 			{
+				// FIXME: this will not work for lazy tables
+				//   because the number of rows will change
+				//   consider making isDataLoaded more rich.
 				final Set< A > rows = tableModel.annotations();
 				for ( A row : rows )
 				{
