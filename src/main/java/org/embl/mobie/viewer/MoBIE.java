@@ -585,9 +585,9 @@ public class MoBIE
 
 		if ( dataSource instanceof SpotDataSource )
 		{
-			final long start = System.currentTimeMillis();
+			//final long start = System.currentTimeMillis();
 			final SpotDataSource spotDataSource = ( SpotDataSource ) dataSource;
-			Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV ), 1000 );
+			Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV ), -1 ); // 1000
 			final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator();
 			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV, table );
 			final Set< AnnotatedSpot > annotatedSpots = tableModel.annotations();
@@ -599,7 +599,7 @@ public class MoBIE
 			// Spots image, built from spots table
 			DataStore.putImage( spotsImage );
 
-			System.out.println("Created spots image " + spotsImage.getName() + " with " + spotAnnData.getTable().numAnnotations() + " spots in [ms] " + ( System.currentTimeMillis() - start ));
+			// System.out.println("Created spots image " + spotsImage.getName() + " with " + spotAnnData.getTable().numAnnotations() + " spots in [ms] " + ( System.currentTimeMillis() - start ));
 		}
 
 		if ( dataSource instanceof RegionDataSource )

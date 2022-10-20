@@ -95,7 +95,7 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 		final long start = System.currentTimeMillis();
 		final ArrayList< AS > list = new ArrayList<>( annotatedSpots );
 		kdTree = new KDTree( list, list );
-		System.out.println( "Built tree with " + annotatedSpots.size() + " elements in " + ( System.currentTimeMillis() - start ) + " ms." );
+		System.out.println( "Built tree of " + name + " with " + annotatedSpots.size() + " elements in " + ( System.currentTimeMillis() - start ) + " ms." );
 
 		if ( boundingBoxMin == null )
 			boundingBoxMin = kdTree.minAsDoubleArray();

@@ -37,7 +37,11 @@ public class SwingTableModel implements TableModel
 	@Override
 	public Class< ? > getColumnClass( int columnIndex )
 	{
-		return tableModel.columnClass( getColumnName( columnIndex ) );
+		final String columnName = getColumnName( columnIndex );
+		final Class< ? > columnClass = tableModel.columnClass( columnName );
+		if ( columnClass == null )
+			throw new RuntimeException("Could determine the class of column " + columnName );
+		return columnClass;
 	}
 
 	@Override

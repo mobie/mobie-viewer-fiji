@@ -100,6 +100,8 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 		if ( ! table.containsColumn( "source" ) )
 			table.addColumns( StringColumn.create( "source", rowCount ) );
 
+		// TODO: Can we speed this up in any way?
+		final long start = System.currentTimeMillis();
 		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
 		{
 			final A annotation = annotationCreator.create( () -> table, rowIndex );
@@ -107,6 +109,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 			rowIndexToAnnotation.put( rowIndex, annotation );
 			table.row( rowIndex ).setText( "source", dataSourceName );
 		}
+		System.out.println("Initialised " + rowCount + "table rows in " + (System.currentTimeMillis() - start ) + " ms.");
 	}
 
 	private Map< A, Integer > annotationToRowIndex()
@@ -139,7 +142,10 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	public Class< ? > columnClass( String columnName )
 	{
 		update();
-		return TableSawColumnTypes.typeToClass.get( table.column( columnName ).type() );
+		final Class< ? > columnClass = TableSawColumnTypes.typeToClass.get( table.column( columnName ).type() );
+		if ( columnClass == null )
+			throw new RuntimeException("Could determine the class of column " + columnName );
+		return columnClass;
 	}
 
 	@Override

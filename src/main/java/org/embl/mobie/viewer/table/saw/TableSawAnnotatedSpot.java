@@ -6,6 +6,7 @@ import org.embl.mobie.viewer.table.ColumnNames;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 public class TableSawAnnotatedSpot implements AnnotatedSpot
@@ -20,32 +21,38 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 	private double[] position;
 	private String source;
 
-	public TableSawAnnotatedSpot( Supplier< Table > tableSupplier, int rowIndex )
+	// We use {@code Supplier< Table > tableSupplier}
+	// because the table may change, e.g.
+	// due to merging of additional columns.
+	public TableSawAnnotatedSpot( final Supplier< Table > tableSupplier, final int rowIndex )
 	{
 		this.tableSupplier = tableSupplier;
 		this.rowIndex = rowIndex;
 
-		final Table rows = tableSupplier.get();
-		final Row row = rows.row( rowIndex );
+		final Table table = tableSupplier.get();
+		final Row row = table.row( rowIndex );
+		final List< String > columnNames = row.columnNames();
 
 		this.label = row.getInt( ColumnNames.SPOT_ID );
 
-		if ( row.columnNames().contains( ColumnNames.SPOT_Z ) )
+		if ( columnNames.contains( ColumnNames.SPOT_Z ) )
 		{
 			this.position = new double[]{
 					row.getNumber( ColumnNames.SPOT_X ),
 					row.getNumber( ColumnNames.SPOT_Y ),
-					row.getNumber( ColumnNames.SPOT_Z )};
+					row.getNumber( ColumnNames.SPOT_Z )
+			};
 		}
 		else // 2D
 		{
 			this.position = new double[]{
 					row.getNumber( ColumnNames.SPOT_X ),
-					row.getNumber( ColumnNames.SPOT_Y ) };
+					row.getNumber( ColumnNames.SPOT_Y )
+			};
 		}
 
-		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
-		this.source = tableSupplier.get().name();
+		this.timePoint = columnNames.contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
+		this.source = table.name();
 		this.uuid = source + ";" + timePoint + ";" + label;
 	}
 
@@ -70,7 +77,7 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 	@Override
 	public double getDoublePosition( int d )
 	{
-		return positionAsDoubleArray()[ d ];
+		return position[ d ];
 	}
 
 	@Override

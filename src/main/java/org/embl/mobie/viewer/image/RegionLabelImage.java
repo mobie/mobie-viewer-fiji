@@ -72,12 +72,12 @@ public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< Un
 		for ( AR annotatedRegion : annotatedRegions )
 		{
 			final TableSawAnnotatedRegion tableSawAnnotatedRegion = ( TableSawAnnotatedRegion ) annotatedRegion;
-			System.out.println( "RegionLabelImage " + name + ": " + annotatedRegion.regionId() + " images = " + Arrays.toString( tableSawAnnotatedRegion.getRegionImageNames().toArray( new String[ 0 ] ) ) + "\n" + TransformHelper.maskToString( annotatedRegion.getMask() ) );
+			//System.out.println( "RegionLabelImage " + name + ": " + annotatedRegion.regionId() + " images = " + Arrays.toString( tableSawAnnotatedRegion.getRegionImageNames().toArray( new String[ 0 ] ) ) + "\n" + TransformHelper.maskToString( annotatedRegion.getMask() ) );
 			final List< String > regionImageNames = tableSawAnnotatedRegion.getRegionImageNames();
 			for ( String regionImageName : regionImageNames )
 			{
 				final Image< ? > viewImage = DataStore.getImage( regionImageName );
-				System.out.println( viewImage.getName() + ": " + Arrays.toString( viewImage.getMask().minAsDoubleArray() ) + " - " + Arrays.toString( viewImage.getMask().maxAsDoubleArray() ) );
+				//System.out.println( "Region :" + viewImage.getName() + ": " + Arrays.toString( viewImage.getMask().minAsDoubleArray() ) + " - " + Arrays.toString( viewImage.getMask().maxAsDoubleArray() ) );
 			}
 		}
 		final ArrayList< Integer > timePoints = configureTimePoints();

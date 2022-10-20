@@ -15,6 +15,7 @@ public abstract class TableSawColumnTypes
 		typeToClass.put( ColumnType.INTEGER, Integer.class );
 		typeToClass.put( ColumnType.SHORT, Short.class );
 		typeToClass.put( ColumnType.LONG, Long.class );
+		typeToClass.put( ColumnType.BOOLEAN, Boolean.class );
 		//...
 	}
 }
