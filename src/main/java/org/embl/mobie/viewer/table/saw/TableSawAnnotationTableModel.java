@@ -103,7 +103,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 			table.addColumns( StringColumn.create( "source", rowCount ) );
 
 		// TODO: Can we speed this up in any way?
-		final long start = System.currentTimeMillis();
+		long start = System.currentTimeMillis();
 		final ArrayList< A > annotations = new ArrayList<>();
 		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
 		{
@@ -111,9 +111,11 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 			table.row( rowIndex ).setText( "source", dataSourceName );
 			annotations.add( annotationCreator.create( () -> table, rowIndex ) );
 		}
-		addAnnotations( annotations );
+		System.out.println("Build " + rowCount + " annotations in " + (System.currentTimeMillis() - start ) + " ms.");
 
-		System.out.println("Initialised " + rowCount + "table rows in " + (System.currentTimeMillis() - start ) + " ms.");
+		start = System.currentTimeMillis();
+		addAnnotations( annotations );
+		System.out.println("Added " + rowCount + " annotations in " + (System.currentTimeMillis() - start ) + " ms.");
 	}
 
 	private Map< A, Integer > annotationToRowIndex()

@@ -28,7 +28,7 @@
  */
 package org.embl.mobie.viewer;
 
-import bdv.util.volatiles.SharedQueue;
+import bdv.cache.SharedQueue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +39,7 @@ import java.util.concurrent.Future;
 
 public class ThreadHelper
 {
-	private static int N_IO_THREADS = 16;
+	private static int N_IO_THREADS = 16; //16;
 	private static final int N_THREADS = Runtime.getRuntime().availableProcessors() - 1;
 	public static ExecutorService ioExecutorService = Executors.newFixedThreadPool( N_IO_THREADS );
 	public static final SharedQueue sharedQueue = new SharedQueue( N_IO_THREADS );
