@@ -156,5 +156,8 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 		final int rowIndex = numAnnotations.incrementAndGet() - 1;
 		annotationToRowIndex.put( annotation, rowIndex );
 		rowIndexToAnnotation.put( rowIndex, annotation );
+
+		for ( AnnotationListener< A > annotationListener : listeners.list )
+			annotationListener.addAnnotation( annotation );
 	}
 }

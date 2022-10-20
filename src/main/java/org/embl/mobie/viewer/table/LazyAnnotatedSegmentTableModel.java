@@ -110,7 +110,7 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	@Override
 	public void addStringColumn( String columnName )
 	{
-
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -122,12 +122,15 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	@Override
 	public synchronized void transform( AffineTransform3D affineTransform3D )
 	{
+		//throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void addAnnotationListener( AnnotationListener< AnnotatedSegment > listener )
 	{
-
+		listeners.add( listener );
+		if ( numAnnotations.get() > 0 )
+			listener.addAnnotations( annotations() );
 	}
 
 	public AnnotatedSegment createAnnotation( String source, int timePoint, int label )
