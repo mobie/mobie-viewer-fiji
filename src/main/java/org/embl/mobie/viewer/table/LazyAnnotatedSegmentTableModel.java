@@ -3,6 +3,7 @@ package org.embl.mobie.viewer.table;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
+import org.embl.mobie.viewer.select.Listeners;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -10,16 +11,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class LazyAnnotatedSegmentTableModel implements AnnotationTableModel< AnnotatedSegment >
+public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel< AnnotatedSegment >
 {
 	private final String dataSourceName;
 	private final List< String > columnNames;
 	private final LinkedHashSet< String > loadedColumnPaths;
 	private Map< AnnotatedSegment, Integer > annotationToRowIndex = new ConcurrentHashMap<>();
 	private Map< Integer, AnnotatedSegment > rowIndexToAnnotation = new ConcurrentHashMap<>();
-	private int numAnnotations = 0;
+	private AtomicInteger numAnnotations = new AtomicInteger( 0 );
 	private List< String > numericColumnNames;
 
 	public LazyAnnotatedSegmentTableModel( String dataSourceName )
@@ -54,7 +56,7 @@ public class LazyAnnotatedSegmentTableModel implements AnnotationTableModel< Ann
 	@Override
 	public int numAnnotations()
 	{
-		return numAnnotations;
+		return numAnnotations.get();
 	}
 
 	@Override
@@ -112,12 +114,6 @@ public class LazyAnnotatedSegmentTableModel implements AnnotationTableModel< Ann
 	}
 
 	@Override
-	public boolean isDataLoaded()
-	{
-		return true;
-	}
-
-	@Override
 	public String dataStore()
 	{
 		return null;
@@ -128,12 +124,35 @@ public class LazyAnnotatedSegmentTableModel implements AnnotationTableModel< Ann
 	{
 	}
 
-	public synchronized AnnotatedSegment createAnnotation( String source, int timePoint, int label )
+	@Override
+	public void addAnnotationListener( AnnotationListener< AnnotatedSegment > listener )
+	{
+
+	}
+
+	public AnnotatedSegment createAnnotation( String source, int timePoint, int label )
 	{
 		final DefaultAnnotatedSegment annotatedSegment = new DefaultAnnotatedSegment( source, timePoint, label );
-		rowIndexToAnnotation.put( numAnnotations, annotatedSegment );
-		annotationToRowIndex.put( annotatedSegment, numAnnotations );
-		numAnnotations++;
+
+		addAnnotation( annotatedSegment );
+
+		for ( AnnotationListener< AnnotatedSegment > listener : listeners.list )
+			listener.addAnnotation( annotatedSegment );
+
 		return annotatedSegment;
+	}
+
+	@Override
+	public void addAnnotations( Collection< AnnotatedSegment > annotations )
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void addAnnotation( AnnotatedSegment annotation )
+	{
+		final int rowIndex = numAnnotations.incrementAndGet() - 1;
+		rowIndexToAnnotation.put( rowIndex, annotation );
+		annotationToRowIndex.put( annotation, rowIndex );
 	}
 }

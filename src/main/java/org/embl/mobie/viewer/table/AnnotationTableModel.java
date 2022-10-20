@@ -4,13 +4,15 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.ValuePair;
 import org.embl.mobie.viewer.annotation.Annotation;
 import net.imglib2.util.Pair;
+import org.embl.mobie.viewer.select.Listeners;
+import org.embl.mobie.viewer.select.SelectionListener;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public interface AnnotationTableModel< A extends Annotation >
+public interface AnnotationTableModel< A extends Annotation > extends AnnotationListener< A >
 {
 	default ValuePair< Double, Double > getColumnMinMax( String columnName, Set< A > annotations )
 	{
@@ -43,7 +45,7 @@ public interface AnnotationTableModel< A extends Annotation >
 	Pair< Double, Double > getMinMax( String columnName ); // for contrast limits during rendering
 	Set< A > annotations();
 	void addStringColumn( String columnName );
-	boolean isDataLoaded();
 	String dataStore();
 	void transform( AffineTransform3D affineTransform3D );
+	void addAnnotationListener(  AnnotationListener< A > listener );
 }

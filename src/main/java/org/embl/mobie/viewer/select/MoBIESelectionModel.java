@@ -34,14 +34,12 @@ import java.util.Set;
 
 public class MoBIESelectionModel< T > implements SelectionModel< T >
 {
-	private final Listeners.SynchronizedList< SelectionListener > listeners;
-	private final Set< T > selected;
+	private final Listeners.SynchronizedList< SelectionListener > listeners = new Listeners.SynchronizedList<>( );
+	private final Set< T > selected = new HashSet();
 	private T focusObject;
 
 	public MoBIESelectionModel()
 	{
-		listeners = new Listeners.SynchronizedList<>(  );
-		selected = new HashSet();
 	}
 
 	@Override

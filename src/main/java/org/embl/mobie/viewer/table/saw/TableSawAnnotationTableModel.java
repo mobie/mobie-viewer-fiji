@@ -4,31 +4,35 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.annotation.Annotation;
-import org.embl.mobie.viewer.table.AnnotationTableModel;
+import org.embl.mobie.viewer.table.AbstractAnnotationTableModel;
+import org.embl.mobie.viewer.table.AnnotationListener;
 import org.embl.mobie.viewer.table.DefaultValues;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class TableSawAnnotationTableModel< A extends Annotation > implements AnnotationTableModel< A >
+public class TableSawAnnotationTableModel< A extends Annotation > extends AbstractAnnotationTableModel< A >
 {
 	private final String dataSourceName;
 	private final TableSawAnnotationCreator< A > annotationCreator;
 	private final String dataStore;
-	protected Set< String > availableColumnPaths;
-	protected LinkedHashSet< String > requestedColumnPaths = new LinkedHashSet<>();
-	protected LinkedHashSet< String > loadedColumnPaths = new LinkedHashSet<>();
+	private Set< String > availableColumnPaths;
+	private LinkedHashSet< String > requestedColumnPaths = new LinkedHashSet<>();
+	private LinkedHashSet< String > loadedTablePaths = new LinkedHashSet<>();
+	private Map< A, Integer > annotationToRowIndex = new HashMap<>();
+	private Map< Integer, A > rowIndexToAnnotation = new HashMap<>();
+	private AtomicInteger numAnnotations = new AtomicInteger( 0 );
 
-	private Map< A, Integer > annotationToRowIndex = new ConcurrentHashMap<>();;
-	private Map< Integer, A > rowIndexToAnnotation = new ConcurrentHashMap<>();;
 	private Table table;
 	private AffineTransform3D affineTransform3D;
 	private boolean updateTransforms = false;
@@ -37,13 +41,12 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 			String dataSourceName,
 			TableSawAnnotationCreator< A > annotationCreator,
 			String dataStore,
-			String defaultColumns
-	)
+			String defaultTablePath )
 	{
 		this.dataSourceName = dataSourceName;
 		this.annotationCreator = annotationCreator;
 		this.dataStore = dataStore;
-		this.requestedColumnPaths.add( IOHelper.combinePath( dataStore, defaultColumns ) );
+		this.requestedColumnPaths.add( IOHelper.combinePath( dataStore, defaultTablePath ) );
 		this.affineTransform3D = new AffineTransform3D();
 	}
 
@@ -52,25 +55,25 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	{
 		this( name, annotationCreator, tableStore, defaultColumns );
 		initTable( defaultTable );
-		loadedColumnPaths.add( requestedColumnPaths.iterator().next() );
+		loadedTablePaths.add( requestedColumnPaths.iterator().next() );
 	}
 
 	// https://jtablesaw.github.io/tablesaw/userguide/tables.html
 
 	private synchronized void update()
 	{
-		for ( String columnPath : requestedColumnPaths )
+		for ( String tablePath : requestedColumnPaths )
 		{
-			if ( loadedColumnPaths.contains( columnPath ) )
+			if ( loadedTablePaths.contains( tablePath ) )
 				continue;
 
-			loadedColumnPaths.add( columnPath );
+			loadedTablePaths.add( tablePath );
 
 			// Note: Calling IJ.log inside here hangs for some reason,
 			// maybe to do with the {@code synchronized} of this function.
 			// IJ.log( "Opening table for " + dataSourceName + "..." );
-			System.out.println( "TableModel: " + dataSourceName + ": Reading table:\n" + columnPath );
-			final Table rows = TableSawHelper.readTable( columnPath, -1 );
+			System.out.println( "TableModel: " + dataSourceName + ": Reading table:\n" + tablePath );
+			final Table rows = TableSawHelper.readTable( tablePath, -1 );
 
 			if ( table == null ) // init table
 			{
@@ -96,19 +99,20 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 		table = rows;
 		table.setName( dataSourceName );
 		final int rowCount = table.rowCount();
-
 		if ( ! table.containsColumn( "source" ) )
 			table.addColumns( StringColumn.create( "source", rowCount ) );
 
 		// TODO: Can we speed this up in any way?
 		final long start = System.currentTimeMillis();
+		final ArrayList< A > annotations = new ArrayList<>();
 		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
 		{
-			final A annotation = annotationCreator.create( () -> table, rowIndex );
-			annotationToRowIndex.put( annotation, rowIndex );
-			rowIndexToAnnotation.put( rowIndex, annotation );
+			// https://github.com/jtablesaw/tablesaw/issues/1165
 			table.row( rowIndex ).setText( "source", dataSourceName );
+			annotations.add( annotationCreator.create( () -> table, rowIndex ) );
 		}
+		addAnnotations( annotations );
+
 		System.out.println("Initialised " + rowCount + "table rows in " + (System.currentTimeMillis() - start ) + " ms.");
 	}
 
@@ -152,14 +156,14 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	public int numAnnotations()
 	{
 		update();
-		final int rowCount = table.rowCount();
-		return rowCount;
+		return numAnnotations.get();
 	}
 
 	@Override
 	public synchronized int rowIndexOf( A annotation )
 	{
-		return annotationToRowIndex().get( annotation );
+		update();
+		return annotationToRowIndex.get( annotation );
 	}
 
 	@Override
@@ -233,12 +237,6 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	}
 
 	@Override
-	public boolean isDataLoaded()
-	{
-		return table != null;
-	}
-
-	@Override
 	public String dataStore()
 	{
 		return dataStore;
@@ -249,5 +247,28 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	{
 		this.updateTransforms = true;
 		this.affineTransform3D = affineTransform3D;
+	}
+
+	@Override
+	public void addAnnotationListener( AnnotationListener< A > listener )
+	{
+		listeners.add( listener );
+		if ( table != null )
+			listener.addAnnotations( annotations() );
+	}
+
+	@Override
+	public void addAnnotations( Collection< A > annotations )
+	{
+		for( A annotation : annotations )
+			addAnnotation( annotation );
+	}
+
+	@Override
+	public void addAnnotation( A annotation )
+	{
+		final int rowIndex = numAnnotations.incrementAndGet() - 1;
+		annotationToRowIndex.put( annotation, rowIndex );
+		rowIndexToAnnotation.put( rowIndex, annotation );
 	}
 }

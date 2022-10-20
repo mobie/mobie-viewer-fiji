@@ -1,20 +1,18 @@
 package org.embl.mobie.viewer.table;
 
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.util.Pair;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.transform.AnnotationTransformer;
-import net.imglib2.util.Pair;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-
-public class TransformedAnnotationTableModel< A extends Annotation, TA extends A > implements AnnotationTableModel< TA >
+public class TransformedAnnotationTableModel< A extends Annotation, TA extends A > extends AbstractAnnotationTableModel< TA >
 {
 	private final AnnotationTableModel< A > tableModel;
 	private final AnnotationTransformer< A, TA > transformer;
@@ -55,14 +53,14 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public int rowIndexOf( TA annotation )
 	{
-		update();
+		init();
 		return annotationToIndex.get( annotation );
 	}
 
 	@Override
 	public TA annotation( int rowIndex )
 	{
-		update();
+		init();
 		return indexToAnnotation.get( rowIndex );
 	}
 
@@ -99,11 +97,11 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public Set< TA > annotations()
 	{
-		update();
+		init();
 		return annotationToIndex.keySet();
 	}
 
-	private synchronized void update()
+	private synchronized void init()
 	{
 		if ( annotationToIndex == null )
 		{
@@ -127,12 +125,6 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	}
 
 	@Override
-	public boolean isDataLoaded()
-	{
-		return tableModel.isDataLoaded();
-	}
-
-	@Override
 	public String dataStore()
 	{
 		return tableModel.dataStore();
@@ -142,5 +134,23 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	public void transform( AffineTransform3D affineTransform3D )
 	{
 		throw new RuntimeException("Transforming a TransformedAnnotationTableModel is not yet implemented.");
+	}
+
+	@Override
+	public void addAnnotationListener( AnnotationListener< TA > listener )
+	{
+		listeners.add( listener );
+	}
+
+	@Override
+	public void addAnnotations( Collection< TA > annotations )
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void addAnnotation( TA annotation )
+	{
+		throw new UnsupportedOperationException();
 	}
 }

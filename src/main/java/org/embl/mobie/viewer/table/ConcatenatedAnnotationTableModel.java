@@ -1,60 +1,40 @@
 package org.embl.mobie.viewer.table;
 
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.viewer.annotation.Annotation;
 import net.imglib2.util.Pair;
+import org.embl.mobie.viewer.annotation.Annotation;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class ConcatenatedAnnotationTableModel< A extends Annotation > implements AnnotationTableModel< A >
+public class ConcatenatedAnnotationTableModel< A extends Annotation > extends AbstractAnnotationTableModel< A >
 {
 	private final Set< AnnotationTableModel< A > > tableModels;
 	private AnnotationTableModel< A > referenceTable;
-	private HashMap< A, Integer > annotationToRowIndex = new HashMap<>();
-	private HashMap< Integer, A > rowIndexToAnnotation = new HashMap<>();
-	private Set< AnnotationTableModel > loadedTables = new HashSet<>();
-	private int numRows = 0;
+	private Map< A, Integer > annotationToRowIndex = new ConcurrentHashMap<>();
+	private Map< Integer, A > rowIndexToAnnotation = new ConcurrentHashMap<>();
+	private AtomicInteger numAnnotations = new AtomicInteger( 0 );
 
 	public ConcatenatedAnnotationTableModel( Set< AnnotationTableModel< A > > tableModels )
 	{
 		this.tableModels = tableModels;
+
+		// Note that all loading of data from the {@code tableModels}
+		// it handled by the listening
+		for ( AnnotationTableModel< A > tableModel : tableModels )
+			tableModel.addAnnotationListener( this );
+
 		this.referenceTable = tableModels.iterator().next();
 	}
 
-	private HashMap< A, Integer > getAnnotationToRowIndex()
+	private Map< A, Integer > getAnnotationToRowIndex()
 	{
-		update();
 		return annotationToRowIndex;
-	}
-
-	private synchronized void update()
-	{
-		// FIXME Could that be replaced by a listener model?
-		//   Maybe annotationsLoaded( List< A > annotation );
-		for ( AnnotationTableModel< A > tableModel : tableModels )
-		{
-			if ( loadedTables.contains( tableModel ) ) continue;
-
-			if ( tableModel.isDataLoaded() )
-			{
-				// FIXME: this will not work for lazy tables
-				//   because the number of rows will change
-				//   consider making isDataLoaded more rich.
-				final Set< A > rows = tableModel.annotations();
-				for ( A row : rows )
-				{
-					annotationToRowIndex.put( row, numRows );
-					rowIndexToAnnotation.put( numRows, row );
-					numRows++;
-				}
-				loadedTables.add( tableModel );
-			}
-		}
 	}
 
 	@Override
@@ -78,8 +58,7 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 	@Override
 	public int numAnnotations()
 	{
-		update();
-		return numRows;
+		return numAnnotations.get();
 	}
 
 	@Override
@@ -144,14 +123,6 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 	}
 
 	@Override
-	public boolean isDataLoaded()
-	{
-		// note that here this does not mean that
-		// all data is loaded...
-		return referenceTable.isDataLoaded();
-	}
-
-	@Override
 	public String dataStore()
 	{
 		return referenceTable.dataStore();
@@ -162,5 +133,28 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 	{
 		for ( AnnotationTableModel< A > tableModel : tableModels )
 			tableModel.transform( affineTransform3D );
+	}
+
+	@Override
+	public void addAnnotationListener( AnnotationListener< A > listener )
+	{
+		listeners.add( listener );
+		if( numAnnotations.get() > 0 )
+			listener.addAnnotations( annotations() );
+	}
+
+	@Override
+	public void addAnnotations( Collection< A > annotations )
+	{
+		for( A annotation : annotations )
+			addAnnotation( annotation );
+	}
+
+	@Override
+	public void addAnnotation( A annotation )
+	{
+		final int rowIndex = numAnnotations.incrementAndGet() - 1;
+		annotationToRowIndex.put( annotation, rowIndex );
+		rowIndexToAnnotation.put( rowIndex, annotation );
 	}
 }
