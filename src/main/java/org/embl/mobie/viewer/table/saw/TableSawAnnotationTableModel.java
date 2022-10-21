@@ -100,22 +100,21 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		table.setName( dataSourceName );
 		final int rowCount = table.rowCount();
 		if ( ! table.containsColumn( "source" ) )
-			table.addColumns( StringColumn.create( "source", rowCount ) );
+		{
+			final String[] strings = new String[ table.rowCount() ];
+			Arrays.fill( strings, dataSourceName );
+			final StringColumn source = StringColumn.create( "source", strings );
+			table.addColumns( source );
+		}
 
 		// TODO: Can we speed this up in any way?
 		long start = System.currentTimeMillis();
 		final ArrayList< A > annotations = new ArrayList<>();
 		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
-		{
-			// https://github.com/jtablesaw/tablesaw/issues/1165
-			table.row( rowIndex ).setText( "source", dataSourceName );
 			annotations.add( annotationCreator.create( () -> table, rowIndex ) );
-		}
 		System.out.println("Build " + rowCount + " annotations in " + (System.currentTimeMillis() - start ) + " ms.");
 
-		start = System.currentTimeMillis();
 		addAnnotations( annotations );
-		System.out.println("Added " + rowCount + " annotations in " + (System.currentTimeMillis() - start ) + " ms.");
 	}
 
 	private Map< A, Integer > annotationToRowIndex()
