@@ -22,6 +22,8 @@ public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< 
 		spotIDColumnIndex = columnNames.indexOf( ColumnNames.SPOT_ID );
 		xColumnIndex = columnNames.indexOf( ColumnNames.SPOT_X );
 		yColumnIndex = columnNames.indexOf( ColumnNames.SPOT_Y );
+		// FIXME figure out the column types here and
+		//  declare final varibles for how to parse
 		zColumnIndex = columnNames.indexOf( ColumnNames.SPOT_Z );
 		timePointColumnIndex = columnNames.indexOf( ColumnNames.TIMEPOINT );
 	}
@@ -35,7 +37,10 @@ public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< 
 		position[ 0 ] = (double) table.get( rowIndex, xColumnIndex );
 		position[ 1 ] = (double) table.get( rowIndex, yColumnIndex );
 		if ( zColumnIndex > -1 )
-			position[ 2 ] = (double) table.get( rowIndex, yColumnIndex );
+		{
+			// FIXME parse without string
+			position[ 2 ] = Double.parseDouble( table.getString( rowIndex, zColumnIndex ) ) + 1e-4 * Math.random(); // kdTree issue: https://imagesc.zulipchat.com/#narrow/stream/327240-ImgLib2/topic/kdTree.20issue
+		}
 
 		int label = ( int ) table.get( rowIndex, spotIDColumnIndex );
 

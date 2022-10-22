@@ -148,12 +148,17 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	public synchronized int rowIndexOf( A annotation )
 	{
 		update();
-		// Note that a Map may be more efficient, but
-		// since this method is not called very frequently
-		// the current implementation may do and avoid building the map,
-		// which can be substantial for millions of elements such as
-		// in the case of spatial-omics data.
-		// But I am not 100% sure here...
+		// TODO Note that a Map may be more efficient, but
+		//   since this method is not called very frequently
+		//   the current implementation may do and avoid building the map,
+		//   which can be substantial for millions of elements such as
+		//   in the case of spatial-omics data.
+		//   But I am not 100% sure here...
+		//   One may also consider out-sourcing the indexOf to the
+		//   classes that actually need this. Maybe they could maintain a
+		//   map, if needed. This would also avoid having this method here
+		//   at all.
+
 		return annotations.indexOf( annotation );
 	}
 
