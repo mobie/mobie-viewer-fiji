@@ -353,7 +353,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		ArrayList< A > selectedRows = new ArrayList<>();
 		ArrayList< A > notSelectedRows = new ArrayList<>();
-		final Set< A > rows = tableModel.annotations();
+		final ArrayList< A > rows = tableModel.annotations();
 
 		final boolean numeric = tableModel.numericColumnNames().contains( columnName ) ? true : false;
 
@@ -395,7 +395,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		ArrayList< A > selectedRows = new ArrayList<>();
 		ArrayList< A > notSelectedRows = new ArrayList<>();
-		final Set< A > rows = tableModel.annotations();
+		final ArrayList< A > rows = tableModel.annotations();
 
 		for( A row: rows )
 			if ( greaterThan ?

@@ -44,6 +44,7 @@ import net.imglib2.type.numeric.ARGBType;
 import javax.swing.*;
 import javax.swing.table.TableModel;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -73,7 +74,7 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 	private A currentlySelectedRow;
 	private Set< String > annotationNames;
 	private String objectName = "entity";
-	private Set< A > annotations;
+	private ArrayList< A > annotations;
 
 	public AnnotatorDialog( String columnName, AnnotationTableModel< A > tableModel, SelectionModel< A > selectionModel, RowSorter< ? extends TableModel > rowSorter )
 	{

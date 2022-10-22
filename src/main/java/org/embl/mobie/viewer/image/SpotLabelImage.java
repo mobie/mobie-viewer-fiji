@@ -56,7 +56,7 @@ import java.util.function.Supplier;
 public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< UnsignedIntType >
 {
 	private final String name;
-	private final Set< AS > annotatedSpots;
+	private final ArrayList< AS > annotatedSpots;
 	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
 	private KDTree< AS > kdTree;
 	private RealMaskRealInterval mask;
@@ -67,7 +67,7 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 	private Source< UnsignedIntType > source;
 	private TransformedSource< UnsignedIntType > transformedSource;
 
-	public SpotLabelImage( String name, Set< AS > annotatedSpots, double radius, @Nullable double[] boundingBoxMin, @Nullable double[] boundingBoxMax )
+	public SpotLabelImage( String name, ArrayList< AS > annotatedSpots, double radius, @Nullable double[] boundingBoxMin, @Nullable double[] boundingBoxMax )
 	{
 		this.name = name;
 		this.annotatedSpots = annotatedSpots;

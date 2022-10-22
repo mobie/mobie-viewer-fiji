@@ -56,11 +56,11 @@ import java.util.function.Supplier;
 public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< UnsignedIntType >
 {
 	private final String name;
-	private final Set< AR > annotatedRegions;
+	private final ArrayList< AR > annotatedRegions;
 	private Source< UnsignedIntType > source;
 	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
 
-	public RegionLabelImage( String name, Set< AR > annotatedRegions )
+	public RegionLabelImage( String name, ArrayList< AR > annotatedRegions )
 	{
 		this.name = name;
 		this.annotatedRegions = annotatedRegions;
