@@ -108,12 +108,19 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 	private void initMaps()
 	{
 		uuidToAnnotation = new ConcurrentHashMap<>();
-		stlToAnnotation = new ConcurrentHashMap<>();
+		stlToAnnotation = new ConcurrentHashMap<>(); // FIXME: for spots a simple Map may be more memory efficient?
 		final Iterator< A > iterator = annData.getTable().annotations().iterator();
 		while( iterator.hasNext() )
 		{
 			A annotation = iterator.next();
-			uuidToAnnotation.put( annotation.uuid(), annotation );
+			if ( annotation.uuid() != null )
+			{
+				// FIXME: Do this only on demand, because storing the uuid
+				//   for many spots consumes too much memory
+				uuidToAnnotation.put( annotation.uuid(), annotation );
+			}
+			// FIXME: keeping this map for Spots could be a serious memory imprint.
+			//   maybe implement another annotationAdapter for Spots?
 			stlToAnnotation.put( stlKey( annotation.source(), annotation.timePoint(), annotation.label() ), annotation );
 		}
 	}

@@ -1,6 +1,7 @@
 package org.embl.mobie.viewer.table.saw;
 
 import net.imglib2.realtransform.AffineTransform3D;
+import org.apache.kerby.cms.type.OtherRecipientInfo;
 import org.embl.mobie.viewer.annotation.AnnotatedSpot;
 import org.embl.mobie.viewer.table.ColumnNames;
 import tech.tablesaw.api.Table;
@@ -12,12 +13,12 @@ public class TableSawAnnotatedSpot extends AbstractTableSawAnnotation implements
 	private final int label;
 	private final int timePoint;
 	private final String source;
-	private double[] position; // may change due to transformations
+	private float[] position; // may change due to transformations
 
 	// We use {@code Supplier< Table > tableSupplier}
 	// because the table object may change, e.g.
 	// due to merging of additional columns.
-	public TableSawAnnotatedSpot( final Table table, int rowIndex, int label, double[] position, final int timePoint, String source, String uuid )
+	public TableSawAnnotatedSpot( final Table table, int rowIndex, int label, float[] position, final int timePoint, String source, String uuid )
 	{
 		super( table, rowIndex );
 		this.label = label;
@@ -43,7 +44,7 @@ public class TableSawAnnotatedSpot extends AbstractTableSawAnnotation implements
 	@Override
 	public double[] positionAsDoubleArray()
 	{
-		return position;
+		throw new RuntimeException("Spots have their positions only stored as floats.");
 	}
 
 	@Override

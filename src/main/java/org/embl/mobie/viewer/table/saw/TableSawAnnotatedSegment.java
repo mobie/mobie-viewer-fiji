@@ -18,8 +18,6 @@ public class TableSawAnnotatedSegment extends AbstractTableSawAnnotation impleme
 	private final int timePoint;
 	private final int labelId;
 	private final double[] position;
-	private final Supplier< Table > tableSupplier;
-	private final int rowIndex;
 	private RealInterval boundingBox;
 	private float[] mesh;
 	private String source;
@@ -27,9 +25,21 @@ public class TableSawAnnotatedSegment extends AbstractTableSawAnnotation impleme
 
 	public TableSawAnnotatedSegment(
 			Table table,
-			int rowIndex )
+			int rowIndex,
+			String source,
+			String uuid,
+			Integer labelId,
+			int timePoint,
+			double[] position,
+			FinalRealInterval boundingBox )
 	{
 		super( table, rowIndex );
+		this.source = source;
+		this.uuid = uuid;
+		this.labelId = labelId;
+		this.timePoint = timePoint;
+		this.position = position;
+		this.boundingBox = boundingBox;
 	}
 
 	@Override

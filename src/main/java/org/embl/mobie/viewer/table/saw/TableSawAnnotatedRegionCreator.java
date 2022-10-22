@@ -16,9 +16,10 @@ public class TableSawAnnotatedRegionCreator implements TableSawAnnotationCreator
 
 	public TableSawAnnotatedRegionCreator( Table table, Map< String, List< String > > regionIdToImageNames )
 	{
+		final List< String > columnNames = table.columnNames();
 		this.regionIdToImageNames = regionIdToImageNames;
-		regionIdColumnIndex = table.columnIndex( ColumnNames.REGION_ID );
-		timePointColumnIndex = table.columnIndex( ColumnNames.TIMEPOINT );
+		regionIdColumnIndex = columnNames.indexOf( ColumnNames.REGION_ID );
+		timePointColumnIndex = columnNames.indexOf( ColumnNames.TIMEPOINT );
 	}
 
 	@Override

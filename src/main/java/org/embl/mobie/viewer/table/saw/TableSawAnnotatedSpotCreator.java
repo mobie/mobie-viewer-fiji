@@ -31,11 +31,11 @@ public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< 
 	@Override
 	public TableSawAnnotatedSpot create( Table table, int rowIndex )
 	{
-		final double[] position = new double[ 3 ];
-		position[ 0 ] = (double) table.get( rowIndex, xColumnIndex );
-		position[ 1 ] = (double) table.get( rowIndex, yColumnIndex );
+		final float[] position = new float[ 3 ];
+		position[ 0 ] = (float) table.get( rowIndex, xColumnIndex );
+		position[ 1 ] = (float) table.get( rowIndex, yColumnIndex );
 		if ( zColumnIndex > -1 )
-			position[ 2 ] = table.numberColumn( zColumnIndex ).getDouble( rowIndex )  + 1e-4 * Math.random(); // kdTree issue: https://imagesc.zulipchat.com/#narrow/stream/327240-ImgLib2/topic/kdTree.20issue
+			position[ 2 ] =  (float) table.get( rowIndex, zColumnIndex ) + (float) ( 1e-3 * Math.random() ); // kdTree issue: https://imagesc.zulipchat.com/#narrow/stream/327240-ImgLib2/topic/kdTree.20issue
 
 		int label = ( int ) table.get( rowIndex, spotIDColumnIndex );
 
@@ -44,9 +44,11 @@ public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< 
 			timePoint = ( int ) table.get( rowIndex, timePointColumnIndex );
 
 		String source = table.name();
-		String uuid = source + ";" + timePoint + ";" + label;
 
-		return new TableSawAnnotatedSpot( table, rowIndex, label, position, timePoint, source, uuid );
+		// FIXME: the uuid occupies too much RAM for many spots
+		// String uuid = source + ";" + timePoint + ";" + label;
+
+		return new TableSawAnnotatedSpot( table, rowIndex, label, position, timePoint, source, null );
 	}
 
 	@Override

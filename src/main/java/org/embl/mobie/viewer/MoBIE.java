@@ -506,7 +506,7 @@ public class MoBIE
 			}
 
 			futures.add(
-				ThreadHelper.ioExecutorService.submit( () ->
+				ThreadHelper.executorService.submit( () ->
 					{
 						String log = getLog( sourceIndex, numImages, sourceLoggingModulo, lastLogMillis );
 						initDataSource( dataSource, log );

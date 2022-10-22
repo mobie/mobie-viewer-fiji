@@ -102,16 +102,16 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 			table.addColumns( source );
 		}
 
-		// TODO: Can we speed this up in any way?
 		long start = System.currentTimeMillis();
 		final ArrayList< A > annotations = new ArrayList<>( rowCount );
 		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
-			annotations.add( annotationCreator.create( () -> getTable(), rowIndex ) );
+			annotations.add( annotationCreator.create( table, rowIndex ) );
 		System.out.println("Build " + rowCount + " annotations in " + (System.currentTimeMillis() - start ) + " ms.");
 
-		// FIXME: Remove columns from the table that are now
-		//   Stored in the annotations themselves.
-		//   In order to free some memory
+		// FIXME:
+		//  - refer to the removed columns via the annotations
+		//  - ensure that {@code .removeColumns()} is properly implemented
+		//    for all {@code AnnotationCreator}
 		table.removeColumns( annotationCreator.removeColumns() );
 
 		addAnnotations( annotations );

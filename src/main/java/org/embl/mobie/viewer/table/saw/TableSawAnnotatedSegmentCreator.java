@@ -2,12 +2,9 @@ package org.embl.mobie.viewer.table.saw;
 
 import net.imglib2.FinalRealInterval;
 import org.embl.mobie.viewer.table.ColumnNames;
-import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 
-import javax.annotation.Nullable;
 import java.util.List;
-import java.util.function.Supplier;
 
 public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreator< TableSawAnnotatedSegment >
 {
@@ -31,6 +28,7 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 		yColumnIndex = columnNames.indexOf( ColumnNames.ANCHOR_Y );
 		zColumnIndex = columnNames.indexOf( ColumnNames.ANCHOR_Z );
 		labelImageColumnIndex = columnNames.indexOf( ColumnNames.LABEL_IMAGE_ID );
+		columnNames.indexOf( ColumnNames.BB_MIN_X );
 	}
 
 	@Override
@@ -42,19 +40,19 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 
 		int timePoint = timePointColumnIndex > -1 ? table.intColumn( timePointColumnIndex ).get( rowIndex ) : 0;
 
-		this.labelId = row.getInt( ColumnNames.LABEL_ID );
+		Integer labelId = table.intColumn( labelIdColumnIndex ).get( rowIndex );
 
-		initBoundingBox( row, is3D );
+		final FinalRealInterval boundingBox = boundingBox( table, rowIndex, is3D );
 
-		this.position = new double[]{
-				row.getNumber( ColumnNames.ANCHOR_X ),
-				row.getNumber( ColumnNames.ANCHOR_Y ),
-				is3D ? row.getNumber( ColumnNames.ANCHOR_Z ) : 0
+		double [] position = new double[]{
+				table.numberColumn( xColumnIndex ).getDouble( rowIndex ),
+				table.numberColumn( yColumnIndex ).getDouble( rowIndex ),
+				is3D ? table.numberColumn( yColumnIndex ).getDouble( rowIndex ) : 0
 		};
 
-		this.uuid = source + ";" + timePoint + ";" + labelId;
+		String uuid = source + ";" + timePoint + ";" + labelId;
 
-		return new TableSawAnnotatedSegment( table, rowIndex );
+		return new TableSawAnnotatedSegment( table, rowIndex, source, uuid, labelId, timePoint, position, boundingBox );
 	}
 
 	@Override
@@ -63,24 +61,26 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 		return new int[ 0 ];
 	}
 
-	private void initBoundingBox( Row row, boolean is3D )
+	private FinalRealInterval boundingBox( Table table, int rowIndex, boolean is3D )
 	{
-		final boolean rowContainsBoundingBox = row.columnNames().contains( ColumnNames.BB_MIN_X );
+		// TODO add the column names as indices to the constructor
+		final boolean rowContainsBoundingBox = table.columnNames().contains( ColumnNames.BB_MIN_X );
 
-		if ( ! rowContainsBoundingBox ) return;
+		if ( ! rowContainsBoundingBox ) return null;
 
 		final double[] min = {
-				row.getNumber( ColumnNames.BB_MIN_X ),
-				row.getNumber( ColumnNames.BB_MIN_Y ),
-				is3D ? row.getNumber( ColumnNames.BB_MIN_Z ) : 0
+				table.numberColumn( ColumnNames.BB_MIN_X ).getDouble( rowIndex ),
+				table.numberColumn( ColumnNames.BB_MIN_Y ).getDouble( rowIndex ),
+				is3D ? table.numberColumn( ColumnNames.BB_MIN_Z ).getDouble( rowIndex ) : 0
 		};
 
 		final double[] max = {
-				row.getNumber( ColumnNames.BB_MAX_X ),
-				row.getNumber( ColumnNames.BB_MAX_Y ),
-				is3D ? row.getNumber( ColumnNames.BB_MAX_Z ) : 0
+				table.numberColumn( ColumnNames.BB_MAX_X ).getDouble( rowIndex ),
+				table.numberColumn( ColumnNames.BB_MAX_Y ).getDouble( rowIndex ),
+				is3D ? table.numberColumn( ColumnNames.BB_MAX_Z ).getDouble( rowIndex ) : 0
 		};
 
-		boundingBox = new FinalRealInterval( min, max );
+		FinalRealInterval boundingBox = new FinalRealInterval( min, max );
+		return boundingBox;
 	}
 }

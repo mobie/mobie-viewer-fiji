@@ -32,13 +32,16 @@ public class ColumnNames
 {
 	public static final String LABEL_IMAGE_ID = "label_image_id";
 	public static final String LABEL_ID = "label_id";
+	public static final String TIMEPOINT = "timepoint";
+	// TODO make this an array
 	public static final String ANCHOR_X = "anchor_x";
 	public static final String ANCHOR_Y = "anchor_y";
 	public static final String ANCHOR_Z = "anchor_z";
-	public static final String TIMEPOINT = "timepoint";
+	// TODO make this an array
 	public static final String BB_MIN_X = "bb_min_x";
 	public static final String BB_MIN_Y = "bb_min_y";
 	public static final String BB_MIN_Z = "bb_min_z";
+	// TODO make this an array
 	public static final String BB_MAX_X = "bb_max_x";
 	public static final String BB_MAX_Y = "bb_max_y";
 	public static final String BB_MAX_Z = "bb_max_z";

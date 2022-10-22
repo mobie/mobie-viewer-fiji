@@ -91,6 +91,8 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 	private void createLabelImage()
 	{
 		long start = System.currentTimeMillis();
+		// FIXME We could implement a kdTree that just uses float precision
+		//   to save memory.
 		kdTree = new KDTree( annotatedSpots, annotatedSpots );
 		System.out.println( "Built " + name + " tree with " + annotatedSpots.size() + " elements in " + ( System.currentTimeMillis() - start ) + " ms." );
 
@@ -142,6 +144,11 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 				{
 					final Sampler< AS > sampler = search.getSampler( 0 );
 					final AS annotatedRegion = sampler.get();
+					// FIXME It is stupid to just return the label here, because
+					//   this is already the spot.
+					//   We could probably safe speed and memory because we
+					//   do not need the annotationAdapter for the spots!
+
 					value.setInteger( annotatedRegion.label() );
 				}
 				else
