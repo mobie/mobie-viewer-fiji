@@ -33,8 +33,11 @@ import bdv.viewer.Source;
 import net.imglib2.Interval;
 import net.imglib2.KDTree;
 import net.imglib2.RealLocalizable;
+import net.imglib2.RealRandomAccessible;
 import net.imglib2.Sampler;
 import net.imglib2.Volatile;
+import net.imglib2.interpolation.neighborsearch.NearestNeighborSearchInterpolatorFactory;
+import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
 import net.imglib2.neighborsearch.RadiusNeighborSearchOnKDTree;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -42,6 +45,7 @@ import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.util.Intervals;
+import net.imglib2.view.Views;
 import org.embl.mobie.viewer.annotation.AnnotatedSpot;
 import org.embl.mobie.viewer.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.viewer.source.SourcePair;
@@ -90,11 +94,11 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 
 	private void createLabelImage()
 	{
-		long start = System.currentTimeMillis();
+		//long start = System.currentTimeMillis();
 		// FIXME We could implement a kdTree that just uses float precision
 		//   to save memory.
 		kdTree = new KDTree( annotatedSpots, annotatedSpots );
-		System.out.println( "Built " + name + " tree with " + annotatedSpots.size() + " elements in " + ( System.currentTimeMillis() - start ) + " ms." );
+		//System.out.println( "Built tree with " + annotatedSpots.size() + " elements in " + ( System.currentTimeMillis() - start ) + " ms." );
 
 		if ( boundingBoxMin == null )
 			boundingBoxMin = kdTree.minAsDoubleArray();
@@ -111,7 +115,11 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 		// TODO: code duplication with RegionLabelImage
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( getMask() );
+		// FIXME don't go via the label
+		//  also check what Preibisch is doing there.
+
 		final FunctionRealRandomAccessible< UnsignedIntType > realRandomAccessible = new FunctionRealRandomAccessible( 3, new SpotLocationToLabelSupplier(), UnsignedIntType::new );
+		//final RealRandomAccessible interpolate = Views.interpolate( new NearestNeighborSearchOnKDTree( kdTree ), new NearestNeighborSearchInterpolatorFactory() );
 		source = new RealRandomAccessibleIntervalTimelapseSource<>( realRandomAccessible, interval, new UnsignedIntType(), new AffineTransform3D(), name, true, timePoints );
 	}
 

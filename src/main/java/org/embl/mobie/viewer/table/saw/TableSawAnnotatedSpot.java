@@ -54,6 +54,12 @@ public class TableSawAnnotatedSpot extends AbstractTableSawAnnotation implements
 	}
 
 	@Override
+	public float getFloatPosition( int d )
+	{
+		return position[ d ];
+	}
+
+	@Override
 	public String uuid()
 	{
 		return uuid;

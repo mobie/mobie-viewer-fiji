@@ -102,11 +102,9 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 			table.addColumns( source );
 		}
 
-		long start = System.currentTimeMillis();
 		final ArrayList< A > annotations = new ArrayList<>( rowCount );
 		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
 			annotations.add( annotationCreator.create( table, rowIndex ) );
-		System.out.println("Build " + rowCount + " annotations in " + (System.currentTimeMillis() - start ) + " ms.");
 
 		// FIXME:
 		//  - refer to the removed columns via the annotations

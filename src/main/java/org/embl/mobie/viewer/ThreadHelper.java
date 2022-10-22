@@ -39,7 +39,7 @@ import java.util.concurrent.Future;
 
 public class ThreadHelper
 {
-	private static int N_IO_THREADS = 16; //Runtime.getRuntime().availableProcessors(); //16;
+	private static int N_IO_THREADS = Runtime.getRuntime().availableProcessors() - 1;
 	private static final int N_THREADS = Runtime.getRuntime().availableProcessors() - 1;
 	public static ExecutorService ioExecutorService = Executors.newFixedThreadPool( N_IO_THREADS );
 	public static final SharedQueue sharedQueue = new SharedQueue( N_IO_THREADS );
@@ -60,6 +60,11 @@ public class ThreadHelper
 	public static int getNumIoThreads()
 	{
 		return N_IO_THREADS;
+	}
+
+	public static int getNumThreads()
+	{
+		return N_THREADS;
 	}
 
 	public static void waitUntilFinished( List< Future< ? > > futures )

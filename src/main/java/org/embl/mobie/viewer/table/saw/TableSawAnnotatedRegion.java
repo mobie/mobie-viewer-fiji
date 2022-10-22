@@ -21,14 +21,11 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 
 	private final List< String > imageNames;
 	private final String uuid;
-	private RealMaskRealInterval realMaskRealInterval;
 	private String regionId;
 	private final int labelId;
-	private int label;
 	private final int timePoint;
 	private double[] position;
 	private String source;
-	private AffineTransform3D affineTransform3D;
 
 	public TableSawAnnotatedRegion(
 			Table table, // FIXME replace with tableModel
@@ -40,18 +37,18 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 			String uuid )
 	{
 		super( table, rowIndex );
+		this.source = table.name();
 		this.imageNames = imageNames;
 		this.regionId = regionId;
 		this.timePoint = timePoint;
 		this.labelId = labelId;
 		this.uuid = uuid;
-		this.affineTransform3D = new AffineTransform3D();
 	}
 
 	@Override
 	public int label()
 	{
-		return label;
+		return labelId;
 	}
 
 	@Override

@@ -131,6 +131,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 	{
 		configureAnnotationRendering( sourceAndConverter );
 		display.sliceViewer.show( sourceAndConverter, display );
+		//display.sliceViewer.getBdvHandle().getViewerPanel().showDebugTileOverlay();
 	}
 
 	private void configureAnnotationRendering( SourceAndConverter< ? > sourceAndConverter )

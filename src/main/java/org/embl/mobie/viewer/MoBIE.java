@@ -515,7 +515,7 @@ public class MoBIE
 		}
 
 		ThreadHelper.waitUntilFinished( futures );
-		IJ.log( "Initialised " + dataSources.size() + " data source(s) in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + ThreadHelper.getNumIoThreads() + " thread(s).");
+		IJ.log( "Initialised " + dataSources.size() + " data source(s) in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + ThreadHelper.getNumThreads() + " thread(s).");
 	}
 
 	private void initDataSource( DataSource dataSource, String log )
