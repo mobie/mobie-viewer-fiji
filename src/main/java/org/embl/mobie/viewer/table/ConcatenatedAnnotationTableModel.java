@@ -2,8 +2,10 @@ package org.embl.mobie.viewer.table;
 
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
+import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.Annotation;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -16,9 +18,7 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 {
 	private final Set< AnnotationTableModel< A > > tableModels;
 	private AnnotationTableModel< A > referenceTable;
-	private Map< A, Integer > annotationToRowIndex = new ConcurrentHashMap<>();
-	private Map< Integer, A > rowIndexToAnnotation = new ConcurrentHashMap<>();
-	private AtomicInteger numAnnotations = new AtomicInteger( 0 );
+	private ArrayList< A > annotations = new ArrayList<>();
 
 	public ConcatenatedAnnotationTableModel( Set< AnnotationTableModel< A > > tableModels )
 	{
@@ -30,11 +30,6 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 			tableModel.addAnnotationListener( this );
 
 		this.referenceTable = tableModels.iterator().next();
-	}
-
-	private Map< A, Integer > getAnnotationToRowIndex()
-	{
-		return annotationToRowIndex;
 	}
 
 	@Override
@@ -58,13 +53,13 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	@Override
 	public int numAnnotations()
 	{
-		return numAnnotations.get();
+		return annotations.size();
 	}
 
 	@Override
 	public int rowIndexOf( A annotation )
 	{
-		return getAnnotationToRowIndex().get( annotation );
+		return annotations.indexOf( annotation );
 	}
 
 	@Override
@@ -74,7 +69,7 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 		// because one should only ask for
 		// rows with an index lower than the
 		// current numRows.
-		return rowIndexToAnnotation.get( rowIndex );
+		return annotations.get( rowIndex );
 	}
 
 	@Override
@@ -110,9 +105,9 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	}
 
 	@Override
-	public Set< A > annotations()
+	public ArrayList< A > annotations()
 	{
-		return getAnnotationToRowIndex().keySet();
+		return annotations;
 	}
 
 	@Override
@@ -139,8 +134,8 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	public void addAnnotationListener( AnnotationListener< A > listener )
 	{
 		listeners.add( listener );
-		if( numAnnotations.get() > 0 )
-			listener.addAnnotations( annotations() );
+		if( annotations.size() > 0 )
+			listener.addAnnotations( annotations );
 	}
 
 	@Override
@@ -151,11 +146,9 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	}
 
 	@Override
-	public void addAnnotation( A annotation )
+	public synchronized void addAnnotation( A annotation )
 	{
-		final int rowIndex = numAnnotations.incrementAndGet() - 1;
-		annotationToRowIndex.put( annotation, rowIndex );
-		rowIndexToAnnotation.put( rowIndex, annotation );
+		annotations.add( annotation );
 
 		for ( AnnotationListener< A > annotationListener : listeners.list )
 			annotationListener.addAnnotation( annotation );

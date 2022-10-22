@@ -92,12 +92,13 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 	{
 		// TODO: if this is slow could we start with
 		//   a smaller tree and subsequently update it with a bigger one?
+		System.out.println( "Building tree " + name + " with " + annotatedSpots.size() + " elements..." );
 		long start = System.currentTimeMillis();
 		final ArrayList< AS > list = new ArrayList<>( annotatedSpots );
-		System.out.println( "Create list with " + annotatedSpots.size() + " in " + ( System.currentTimeMillis() - start ) + " ms.");
+		System.out.println( "Created list with " + list.size() + " elements in " + ( System.currentTimeMillis() - start ) + " ms.");
 		start = System.currentTimeMillis();
 		kdTree = new KDTree( list, list );
-		System.out.println( "Built tree of " + name + " with " + annotatedSpots.size() + " elements in " + ( System.currentTimeMillis() - start ) + " ms." );
+		System.out.println( "Built tree " + name + " with " + list.size() + " elements in " + ( System.currentTimeMillis() - start ) + " ms." );
 
 		if ( boundingBoxMin == null )
 			boundingBoxMin = kdTree.minAsDoubleArray();

@@ -5,20 +5,17 @@ import net.imglib2.util.Pair;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.transform.AnnotationTransformer;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class TransformedAnnotationTableModel< A extends Annotation, TA extends A > extends AbstractAnnotationTableModel< TA >
 {
 	private final AnnotationTableModel< A > tableModel;
 	private final AnnotationTransformer< A, TA > transformer;
-
-	private Map< TA, Integer > annotationToIndex;
-	private Map< Integer, TA > indexToAnnotation;
+	private ArrayList< TA > annotations;
 
 	public TransformedAnnotationTableModel( AnnotationTableModel< A > tableModel, AnnotationTransformer< A, TA > transformer )
 	{
@@ -53,15 +50,15 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public int rowIndexOf( TA annotation )
 	{
-		init();
-		return annotationToIndex.get( annotation );
+		update();
+		return annotations.indexOf( annotation );
 	}
 
 	@Override
 	public TA annotation( int rowIndex )
 	{
-		init();
-		return indexToAnnotation.get( rowIndex );
+		update();
+		return annotations.get( rowIndex );
 	}
 
 	@Override
@@ -95,25 +92,23 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	}
 
 	@Override
-	public Set< TA > annotations()
+	public ArrayList< TA > annotations()
 	{
-		init();
-		return annotationToIndex.keySet();
+		update();
+		return annotations;
 	}
 
-	private synchronized void init()
+	private synchronized void update()
 	{
-		if ( annotationToIndex == null )
+		if ( annotations == null )
 		{
-			annotationToIndex = new ConcurrentHashMap<>();
-			indexToAnnotation = new ConcurrentHashMap<>();
+			annotations = new ArrayList<>();
 
 			final int numAnnotations = tableModel.numAnnotations();
 			for ( int rowIndex = 0; rowIndex < numAnnotations; rowIndex++ )
 			{
 				final TA transformedAnnotation = transformer.transform( tableModel.annotation( rowIndex ) );
-				annotationToIndex.put( transformedAnnotation, rowIndex );
-				indexToAnnotation.put( rowIndex, transformedAnnotation );
+				annotations.add( transformedAnnotation );
 			}
 		}
 	}

@@ -3,26 +3,21 @@ package org.embl.mobie.viewer.table;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
-import org.embl.mobie.viewer.select.Listeners;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel< AnnotatedSegment >
 {
 	private final String dataSourceName;
 	private final List< String > columnNames;
+	private final List< String > numericColumnNames;
 	private final LinkedHashSet< String > loadedColumnPaths;
-	private Map< AnnotatedSegment, Integer > annotationToRowIndex = new ConcurrentHashMap<>();
-	private Map< Integer, AnnotatedSegment > rowIndexToAnnotation = new ConcurrentHashMap<>();
-	private AtomicInteger numAnnotations = new AtomicInteger( 0 );
-	private List< String > numericColumnNames;
+	private final ArrayList< AnnotatedSegment > annotations = new ArrayList<>();
 
 	public LazyAnnotatedSegmentTableModel( String dataSourceName )
 	{
@@ -56,19 +51,19 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	@Override
 	public int numAnnotations()
 	{
-		return numAnnotations.get();
+		return annotations.size();
 	}
 
 	@Override
 	public synchronized int rowIndexOf( AnnotatedSegment annotation )
 	{
-		return annotationToRowIndex.get( annotation );
+		return annotations.indexOf( annotation );
 	}
 
 	@Override
 	public synchronized AnnotatedSegment annotation( int rowIndex )
 	{
-		return rowIndexToAnnotation.get( rowIndex );
+		return annotations.get( rowIndex );
 	}
 
 	@Override
@@ -102,9 +97,9 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	}
 
 	@Override
-	public synchronized Set< AnnotatedSegment > annotations()
+	public synchronized ArrayList< AnnotatedSegment > annotations()
 	{
-		return annotationToRowIndex.keySet();
+		return annotations;
 	}
 
 	@Override
@@ -129,8 +124,8 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	public void addAnnotationListener( AnnotationListener< AnnotatedSegment > listener )
 	{
 		listeners.add( listener );
-		if ( numAnnotations.get() > 0 )
-			listener.addAnnotations( annotations() );
+		if ( annotations.size() > 0 )
+			listener.addAnnotations( annotations );
 	}
 
 	public AnnotatedSegment createAnnotation( String source, int timePoint, int label )
@@ -152,10 +147,8 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	}
 
 	@Override
-	public void addAnnotation( AnnotatedSegment annotation )
+	public synchronized void addAnnotation( AnnotatedSegment annotation )
 	{
-		final int rowIndex = numAnnotations.incrementAndGet() - 1;
-		rowIndexToAnnotation.put( rowIndex, annotation );
-		annotationToRowIndex.put( annotation, rowIndex );
+		annotations.add( annotation );
 	}
 }

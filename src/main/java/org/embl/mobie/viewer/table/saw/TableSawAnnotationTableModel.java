@@ -13,15 +13,12 @@ import tech.tablesaw.api.Table;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class TableSawAnnotationTableModel< A extends Annotation > extends AbstractAnnotationTableModel< A >
+public class TableSawAnnotationTableModel< A extends Annotation > extends AbstractAnnotationTableModel<A>
 {
 	private final String dataSourceName;
 	private final TableSawAnnotationCreator< A > annotationCreator;
@@ -29,9 +26,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	private Set< String > availableColumnPaths;
 	private LinkedHashSet< String > requestedColumnPaths = new LinkedHashSet<>();
 	private LinkedHashSet< String > loadedTablePaths = new LinkedHashSet<>();
-	private Map< A, Integer > annotationToRowIndex = new HashMap<>();
-	private Map< Integer, A > rowIndexToAnnotation = new HashMap<>();
-	private AtomicInteger numAnnotations = new AtomicInteger( 0 );
+	private ArrayList< A > annotations = new ArrayList<>();
 
 	private Table table;
 	private AffineTransform3D affineTransform3D;
@@ -89,7 +84,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		if ( updateTransforms )
 		{
 			updateTransforms = false;
-			for ( A annotation : annotationToRowIndex.keySet() )
+			for ( A annotation : annotations )
 				annotation.transform( affineTransform3D );
 		}
 	}
@@ -109,7 +104,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 
 		// TODO: Can we speed this up in any way?
 		long start = System.currentTimeMillis();
-		final ArrayList< A > annotations = new ArrayList<>();
+		final ArrayList< A > annotations = new ArrayList<>( rowCount );
 		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
 			annotations.add( annotationCreator.create( () -> table, rowIndex ) );
 		System.out.println("Build " + rowCount + " annotations in " + (System.currentTimeMillis() - start ) + " ms.");
@@ -117,17 +112,6 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		addAnnotations( annotations );
 	}
 
-	private Map< A, Integer > annotationToRowIndex()
-	{
-		update();
-		return annotationToRowIndex;
-	}
-
-	private Map< Integer, A > rowIndexToAnnotation()
-	{
-		update();
-		return rowIndexToAnnotation;
-	}
 
 	@Override
 	public List< String > columnNames()
@@ -157,20 +141,26 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	public int numAnnotations()
 	{
 		update();
-		return numAnnotations.get();
+		return annotations.size();
 	}
 
 	@Override
 	public synchronized int rowIndexOf( A annotation )
 	{
 		update();
-		return annotationToRowIndex.get( annotation );
+		// Note that a Map may be more efficient, but
+		// since this method is not called very frequently
+		// the current implementation may do and avoid building the map,
+		// which can be substantial for millions of elements such as
+		// in the case of spatial-omics data.
+		// But I am not 100% sure here...
+		return annotations.indexOf( annotation );
 	}
 
 	@Override
 	public synchronized A annotation( int rowIndex )
 	{
-		final A annotation = rowIndexToAnnotation().get( rowIndex );
+		final A annotation = annotations.get( rowIndex );
 
 		if ( annotation == null ) // DEBUG
 			throw new RuntimeException("TableSawAnnotationTableModel: RowIndex " + rowIndex + " does not exist.");
@@ -214,9 +204,9 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	}
 
 	@Override
-	public synchronized Set< A > annotations()
+	public synchronized ArrayList< A > annotations()
 	{
-		return annotationToRowIndex().keySet();
+		return annotations;
 	}
 
 	@Override
@@ -266,10 +256,8 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	}
 
 	@Override
-	public void addAnnotation( A annotation )
+	public synchronized void addAnnotation( A annotation )
 	{
-		final int rowIndex = numAnnotations.incrementAndGet() - 1;
-		annotationToRowIndex.put( annotation, rowIndex );
-		rowIndexToAnnotation.put( rowIndex, annotation );
+		annotations.add( annotation );
 	}
 }
