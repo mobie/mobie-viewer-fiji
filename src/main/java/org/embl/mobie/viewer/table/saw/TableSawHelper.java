@@ -13,12 +13,17 @@ public class TableSawHelper
 	{
 		try
 		{
+			// Note that while it appears to be faster to
+			// first load the whole table into one big string,
+			// it has the drawback that we temporarily need to
+			// allocate twice the memory and the GC has some
+			// work to do, which can become a bottleneck.
 			System.out.println("Reading table " + path + "...");
 			final long start = System.currentTimeMillis();
-			//final InputStream inputStream = IOHelper.getInputStream( path );
-			final String string = IOHelper.read( path );
+			final InputStream inputStream = IOHelper.getInputStream( path );
+			//final String string = IOHelper.read( path );
 			// https://jtablesaw.github.io/tablesaw/userguide/importing_data.html
-			CsvReadOptions.Builder builder = CsvReadOptions.builderFromString( string ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" ).sample( numSamples > 0 ).sampleSize( numSamples );
+			CsvReadOptions.Builder builder = CsvReadOptions.builder( inputStream ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" ).sample( numSamples > 0 ).sampleSize( numSamples );
 			final Table rows = Table.read().usingOptions( builder );
 			System.out.println("Read table " + path + " with " + rows.rowCount() + " rows in " + ( System.currentTimeMillis() - start ) + " ms." );
 			return rows;

@@ -41,7 +41,7 @@ public class OpenLocalSpatialOmics
 	{
 		new ImageJ().ui().showUI();
 		try {
-			new MoBIE("/g/kreshuk/data/marioni/shila/mouse-atlas-2020/ngff", MoBIESettings.settings().view( "stitched-full" ).dataset( "embryo3" ) );
+			new MoBIE("/g/kreshuk/data/marioni/shila/mouse-atlas-2020/ngff", MoBIESettings.settings().view( "stitched-small" ).dataset( "embryo3" ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

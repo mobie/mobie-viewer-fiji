@@ -11,17 +11,35 @@ import java.util.function.Supplier;
 public class TableSawAnnotatedRegionCreator implements TableSawAnnotationCreator< TableSawAnnotatedRegion >
 {
 	private final Map< String, List< String > > regionIdToImageNames;
+	private final int timePointColumnIndex;
+	private int regionIdColumnIndex;
 
-	public TableSawAnnotatedRegionCreator( Map< String, List< String > > regionIdToImageNames )
+	public TableSawAnnotatedRegionCreator( Table table, Map< String, List< String > > regionIdToImageNames )
 	{
 		this.regionIdToImageNames = regionIdToImageNames;
+		regionIdColumnIndex = table.columnIndex( ColumnNames.REGION_ID );
+		timePointColumnIndex = table.columnIndex( ColumnNames.TIMEPOINT );
 	}
 
 	@Override
-	public TableSawAnnotatedRegion create( Supplier< Table > tableSupplier, int rowIndex )
+	public TableSawAnnotatedRegion create( Table table, int rowIndex )
 	{
-		final Row row = tableSupplier.get().row( rowIndex );
-		final String regionId = row.getObject( ColumnNames.REGION_ID ).toString();
-		return new TableSawAnnotatedRegion( tableSupplier, rowIndex, regionIdToImageNames.get( regionId )  );
+		final String regionId = table.getString( rowIndex, regionIdColumnIndex );
+
+		final int labelId = 1 + rowIndex; // 0 is the background label, thus we add 1
+
+		int timePoint = 0;
+		if ( timePointColumnIndex > -1 )
+			timePoint = (int) table.get( rowIndex, timePointColumnIndex );
+
+		final String uuid = timePoint + ";" + regionId;
+
+		return new TableSawAnnotatedRegion( table, rowIndex, regionIdToImageNames.get( regionId ), timePoint, regionId, labelId, uuid );
+	}
+
+	@Override
+	public int[] removeColumns()
+	{
+		return new int[ 0 ];
 	}
 }

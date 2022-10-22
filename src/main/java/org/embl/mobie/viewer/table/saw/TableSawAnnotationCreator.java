@@ -4,9 +4,12 @@ import org.embl.mobie.viewer.annotation.Annotation;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 
+import java.util.Set;
 import java.util.function.Supplier;
 
 public interface TableSawAnnotationCreator< A extends Annotation >
 {
-	A create( Supplier< Table > tableSupplier , int rowIndex );
+	A create( Table table, int rowIndex );
+
+	int[] removeColumns();
 }

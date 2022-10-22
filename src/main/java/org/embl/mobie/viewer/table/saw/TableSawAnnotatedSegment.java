@@ -11,7 +11,7 @@ import tech.tablesaw.api.Table;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class TableSawAnnotatedSegment implements AnnotatedSegment
+public class TableSawAnnotatedSegment extends AbstractTableSawAnnotation implements AnnotatedSegment
 {
 	private static final String[] idColumns = new String[]{ ColumnNames.LABEL_ID, ColumnNames.TIMEPOINT };
 
@@ -26,54 +26,10 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	private String uuid;
 
 	public TableSawAnnotatedSegment(
-			Supplier< Table > tableSupplier,
+			Table table,
 			int rowIndex )
 	{
-		this.tableSupplier = tableSupplier;
-		this.rowIndex = rowIndex;
-		final Table rows = tableSupplier.get();
-		Row row = rows.row( rowIndex );
-
-		final List< String > columnNames = row.columnNames();
-
-		final boolean is3D = columnNames.contains( ColumnNames.ANCHOR_Z );
-
-		this.source = columnNames.contains( ColumnNames.LABEL_IMAGE_ID ) ? row.getString( ColumnNames.LABEL_IMAGE_ID ) : rows.name();
-
-		this.timePoint = columnNames.contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
-
-		this.labelId = row.getInt( ColumnNames.LABEL_ID );
-
-		initBoundingBox( row, is3D );
-
-		this.position = new double[]{
-				row.getNumber( ColumnNames.ANCHOR_X ),
-				row.getNumber( ColumnNames.ANCHOR_Y ),
-				is3D ? row.getNumber( ColumnNames.ANCHOR_Z ) : 0
-		};
-
-		this.uuid = source + ";" + timePoint + ";" + labelId;
-	}
-
-	private void initBoundingBox( Row row, boolean is3D )
-	{
-		final boolean rowContainsBoundingBox = row.columnNames().contains( ColumnNames.BB_MIN_X );
-
-		if ( ! rowContainsBoundingBox ) return;
-
-		final double[] min = {
-				row.getNumber( ColumnNames.BB_MIN_X ),
-				row.getNumber( ColumnNames.BB_MIN_Y ),
-				is3D ? row.getNumber( ColumnNames.BB_MIN_Z ) : 0
-			};
-
-		final double[] max = {
-				row.getNumber( ColumnNames.BB_MAX_X ),
-				row.getNumber( ColumnNames.BB_MAX_Y ),
-				is3D ? row.getNumber( ColumnNames.BB_MAX_Z ) : 0
-		};
-
-		boundingBox = new FinalRealInterval( min, max );
+		super( table, rowIndex );
 	}
 
 	@Override
@@ -140,24 +96,6 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	public String source()
 	{
 		return source;
-	}
-
-	@Override
-	public Object getValue( String feature )
-	{
-		return tableSupplier.get().row( rowIndex ).getObject( feature );
-	}
-
-	@Override
-	public Double getNumber( String feature )
-	{
-		return tableSupplier.get().row( rowIndex ).getNumber( feature );
-	}
-
-	@Override
-	public void setString( String columnName, String value )
-	{
-		tableSupplier.get().row( rowIndex ).setText( columnName, value );
 	}
 
 	@Override

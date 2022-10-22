@@ -29,18 +29,13 @@ public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< 
 	}
 
 	@Override
-	public TableSawAnnotatedSpot create( Supplier< Table > tableSupplier, int rowIndex )
+	public TableSawAnnotatedSpot create( Table table, int rowIndex )
 	{
-		final Table table = tableSupplier.get();
-
 		final double[] position = new double[ 3 ];
 		position[ 0 ] = (double) table.get( rowIndex, xColumnIndex );
 		position[ 1 ] = (double) table.get( rowIndex, yColumnIndex );
 		if ( zColumnIndex > -1 )
-		{
-			// FIXME parse without string
-			position[ 2 ] = Double.parseDouble( table.getString( rowIndex, zColumnIndex ) ) + 1e-4 * Math.random(); // kdTree issue: https://imagesc.zulipchat.com/#narrow/stream/327240-ImgLib2/topic/kdTree.20issue
-		}
+			position[ 2 ] = table.numberColumn( zColumnIndex ).getDouble( rowIndex )  + 1e-4 * Math.random(); // kdTree issue: https://imagesc.zulipchat.com/#narrow/stream/327240-ImgLib2/topic/kdTree.20issue
 
 		int label = ( int ) table.get( rowIndex, spotIDColumnIndex );
 
@@ -51,6 +46,12 @@ public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< 
 		String source = table.name();
 		String uuid = source + ";" + timePoint + ";" + label;
 
-		return new TableSawAnnotatedSpot( tableSupplier, rowIndex, label, position, timePoint, source, uuid );
+		return new TableSawAnnotatedSpot( table, rowIndex, label, position, timePoint, source, uuid );
+	}
+
+	@Override
+	public int[] removeColumns()
+	{
+		return new int[]{ xColumnIndex, yColumnIndex, zColumnIndex };
 	}
 }

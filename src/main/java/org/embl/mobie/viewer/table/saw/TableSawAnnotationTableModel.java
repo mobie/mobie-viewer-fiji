@@ -106,12 +106,21 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		long start = System.currentTimeMillis();
 		final ArrayList< A > annotations = new ArrayList<>( rowCount );
 		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
-			annotations.add( annotationCreator.create( () -> table, rowIndex ) );
+			annotations.add( annotationCreator.create( () -> getTable(), rowIndex ) );
 		System.out.println("Build " + rowCount + " annotations in " + (System.currentTimeMillis() - start ) + " ms.");
+
+		// FIXME: Remove columns from the table that are now
+		//   Stored in the annotations themselves.
+		//   In order to free some memory
+		table.removeColumns( annotationCreator.removeColumns() );
 
 		addAnnotations( annotations );
 	}
 
+	public Table getTable()
+	{
+		return table;
+	}
 
 	@Override
 	public List< String > columnNames()

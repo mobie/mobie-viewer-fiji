@@ -233,21 +233,24 @@ public class MoBIE
 		}
 	}
 
-	private String getLog( AtomicInteger index, int numTotal, AtomicInteger modulo, AtomicLong lastLogMillis )
+	private String getLog( AtomicInteger dataSetIndex, int numTotal, AtomicInteger dataSetLoggingInterval, AtomicLong lastLogMillis )
 	{
-		if ( ( index.incrementAndGet() - 1 ) % modulo.get() == 0  )
+		final int currentDatasetIndex = dataSetIndex.incrementAndGet();
+
+		if ( currentDatasetIndex % dataSetLoggingInterval.get() == 0  )
 		{
+			// Update logging frequency
+			// such that a message appears
+			// approximately every 5000 ms
 			final long currentTimeMillis = System.currentTimeMillis();
 			if ( currentTimeMillis - lastLogMillis.get() < 4000 )
-			{
-				modulo.set( modulo.get() * 2 );
-			}
+				dataSetLoggingInterval.set( Math.max( 1, dataSetLoggingInterval.get() * 2 ) );
 			else if ( currentTimeMillis - lastLogMillis.get() > 6000 )
-			{
-				modulo.set( modulo.get() / 2 );
-			}
+				dataSetLoggingInterval.set( Math.max( 1, dataSetLoggingInterval.get() / 2  ) );
 			lastLogMillis.set( currentTimeMillis );
-			return "Initialising (" + index.get() + "/" + numTotal + "): ";
+
+			// Return log message
+			return "Initialising (" + currentDatasetIndex + "/" + numTotal + "): ";
 		}
 		else
 		{
@@ -542,19 +545,19 @@ public class MoBIE
 
 				if ( segmentationDataSource.tableData != null )
 				{
-					final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator();
-
 					TableSawAnnotationTableModel< TableSawAnnotatedSegment > tableModel;
 					if ( dataSource.preInit() )
 					{
 						// load table already now
 						Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV ), -1 );
+						final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( table );
 						tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV, table  );
 					}
 					else
 					{
 						// don't load the table yet
 						// (for lazy-loading in a stitched or grid image)
+						final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator();
 						tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV  );
 					}
 

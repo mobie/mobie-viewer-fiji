@@ -15,16 +15,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class TableSawAnnotatedRegion implements AnnotatedRegion
+public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implements AnnotatedRegion
 {
 	private static final String[] idColumns = new String[]{ ColumnNames.REGION_ID };
-	private final Supplier< Table > tableSupplier;
-	private final int rowIndex;
 
 	private final List< String > imageNames;
 	private final String uuid;
 	private RealMaskRealInterval realMaskRealInterval;
 	private String regionId;
+	private final int labelId;
 	private int label;
 	private final int timePoint;
 	private double[] position;
@@ -32,23 +31,21 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	private AffineTransform3D affineTransform3D;
 
 	public TableSawAnnotatedRegion(
-			Supplier< Table > tableSupplier,
+			Table table, // FIXME replace with tableModel
 			int rowIndex,
-			List< String > imageNames )
+			List< String > imageNames,
+			int timePoint,
+			String regionId,
+			int labelId,
+			String uuid )
 	{
-		this.tableSupplier = tableSupplier;
-		this.rowIndex = rowIndex;
+		super( table, rowIndex );
 		this.imageNames = imageNames;
+		this.regionId = regionId;
+		this.timePoint = timePoint;
+		this.labelId = labelId;
+		this.uuid = uuid;
 		this.affineTransform3D = new AffineTransform3D();
-
-		final Row row = tableSupplier.get().row( rowIndex );
-
-		this.regionId = row.getObject( ColumnNames.REGION_ID ).toString();
-		// 0 is the background label, thus we add 1
-		this.label = 1 + rowIndex; //regionId.hashCode();
-		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
-		this.source = tableSupplier.get().name();
-		this.uuid = timePoint + ";" + regionId;
 	}
 
 	@Override
@@ -99,24 +96,6 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	public String source()
 	{
 		return source;
-	}
-
-	@Override
-	public Object getValue( String feature )
-	{
-		return tableSupplier.get().row( rowIndex ).getObject( feature );
-	}
-
-	@Override
-	public Double getNumber( String feature )
-	{
-		return tableSupplier.get().row( rowIndex ).getNumber( feature );
-	}
-
-	@Override
-	public void setString( String columnName, String value )
-	{
-		tableSupplier.get().row( rowIndex ).setText( columnName, value );
 	}
 
 	@Override
