@@ -64,7 +64,15 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 	public A getAnnotation( String uuid )
 	{
 		if ( uuidToAnnotation == null )
-			initMaps();
+		{
+			uuidToAnnotation = new ConcurrentHashMap<>();
+			final Iterator< A > iterator = annData.getTable().annotations().iterator();
+			while( iterator.hasNext() )
+			{
+				A annotation = iterator.next();
+				uuidToAnnotation.put( annotation.uuid(), annotation );
+			}
+		}
 
 		return uuidToAnnotation.get( uuid );
 	}
@@ -87,7 +95,8 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 		//   Once itlToAnnotation is initialised this does
 		//   not need to be synchronised anymore.
 		if ( stlToAnnotation == null )
-			initMaps();
+			initMapping();
+
 		final String itl = stlKey( source, timePoint, label );
 		final A annotation = stlToAnnotation.get( itl );
 
@@ -105,22 +114,15 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 		return annotation;
 	}
 
-	private void initMaps()
+	private void initMapping()
 	{
-		uuidToAnnotation = new ConcurrentHashMap<>();
-		stlToAnnotation = new ConcurrentHashMap<>(); // FIXME: for spots a simple Map may be more memory efficient?
+		// FIXME: for spots we don't want to do this at all,
+		//  but skip the label image entirely
+		stlToAnnotation = new ConcurrentHashMap<>();
 		final Iterator< A > iterator = annData.getTable().annotations().iterator();
 		while( iterator.hasNext() )
 		{
 			A annotation = iterator.next();
-			if ( annotation.uuid() != null )
-			{
-				// FIXME: Do this only on demand, because storing the uuid
-				//   for many spots consumes too much memory
-				uuidToAnnotation.put( annotation.uuid(), annotation );
-			}
-			// FIXME: keeping this map for Spots could be a serious memory imprint.
-			//   maybe implement another annotationAdapter for Spots?
 			stlToAnnotation.put( stlKey( annotation.source(), annotation.timePoint(), annotation.label() ), annotation );
 		}
 	}

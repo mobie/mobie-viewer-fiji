@@ -22,8 +22,6 @@ public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< 
 		spotIDColumnIndex = columnNames.indexOf( ColumnNames.SPOT_ID );
 		xColumnIndex = columnNames.indexOf( ColumnNames.SPOT_X );
 		yColumnIndex = columnNames.indexOf( ColumnNames.SPOT_Y );
-		// FIXME figure out the column types here and
-		//  declare final varibles for how to parse
 		zColumnIndex = columnNames.indexOf( ColumnNames.SPOT_Z );
 		timePointColumnIndex = columnNames.indexOf( ColumnNames.TIMEPOINT );
 	}
