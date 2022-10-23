@@ -72,7 +72,9 @@ public class SliceViewer
 	public static final String UNDO_SEGMENT_SELECTIONS = "Undo Segment Selections [ Ctrl Shift N ]";
 	public static final String LOAD_ADDITIONAL_VIEWS = "Load Additional Views";
 	public static final String SAVE_CURRENT_SETTINGS_AS_VIEW = "Save Current View";
-	protected static final String FRAME_TITLE = "MoBIE - BigDataViewer";
+	public static final String FRAME_TITLE = "MoBIE - BigDataViewer";
+	public static boolean tileRenderOverlay = false;
+
 	private final SourceAndConverterBdvDisplayService sacDisplayService;
 	private BdvHandle bdvHandle;
 	private final MoBIE moBIE;
@@ -94,10 +96,10 @@ public class SliceViewer
 
 		bdvHandle = getBdvHandle();
 
-		if ( OpenMoBIEProjectBranchCommand.tileRenderOverlay )
+		if ( tileRenderOverlay )
 		{
 			bdvHandle.getViewerPanel().showDebugTileOverlay();
-			OpenMoBIEProjectBranchCommand.tileRenderOverlay = false; // don't show twice
+			tileRenderOverlay = false; // don't show twice
 		}
 
 		setBdvWindowPositionAndSize( bdvHandle );

@@ -31,6 +31,7 @@ package org.embl.mobie.viewer.command;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
 import org.embl.mobie.viewer.ThreadHelper;
+import org.embl.mobie.viewer.bdv.view.SliceViewer;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -48,17 +49,18 @@ public class OpenMoBIEProjectBranchCommand implements Command
 
 	@Parameter ( label = "Number of threads" )
 	public int numThreads = 4;
-
 	@Parameter ( label = "Tile render debug overlay" )
-	public static boolean tileRenderOverlay = true;
+	public boolean tileRenderOverlay = false;
 
 	@Override
 	public void run()
 	{
 		try
 		{
-			final MoBIE moBIE = new MoBIE( projectLocation, MoBIESettings.settings().gitProjectBranch( projectBranch ) );
+			SliceViewer.tileRenderOverlay = tileRenderOverlay;
 			ThreadHelper.setNumIoThreads( numThreads );
+			final MoBIE moBIE = new MoBIE( projectLocation, MoBIESettings.settings().gitProjectBranch( projectBranch ) );
+
 		}
 		catch ( IOException e )
 		{
@@ -66,3 +68,4 @@ public class OpenMoBIEProjectBranchCommand implements Command
 		}
 	}
 }
+
