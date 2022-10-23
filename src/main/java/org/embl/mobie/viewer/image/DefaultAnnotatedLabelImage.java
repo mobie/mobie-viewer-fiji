@@ -20,6 +20,7 @@ public class DefaultAnnotatedLabelImage< A extends Annotation > implements Annot
 	private RealMaskRealInterval mask;
 	private AnnotationAdapter<A> annotationAdapter;
 
+	// FIXME This should probably also expose the annotationAdapter in a getter
 	public DefaultAnnotatedLabelImage( Image< ? extends IntegerType< ? > > labelImage, AnnData< A > annData, AnnotationAdapter< A > annotationAdapter )
 	{
 		this.labelImage = labelImage;

@@ -41,7 +41,7 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 {
 	private final AtomicBoolean throwError = new AtomicBoolean( true );
 	private final AnnData< A > annData;
-	private Map< String, A > uuidToAnnotation;
+	private Map< String, A > uuidToAnnotation; // FIXME this should go somewhere else!
 	private Map< String, A > stlToAnnotation; // source, timepoint, label
 
 	public DefaultAnnotationAdapter( AnnData< A > annData )

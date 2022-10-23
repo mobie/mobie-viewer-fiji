@@ -593,6 +593,7 @@ public class MoBIE
 			Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV ), -1 ); // 1000
 			final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator( table );
 			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV, table );
+			// FIXME: Same story as for the RegionLabelImage
 			final ArrayList< AnnotatedSpot > annotatedSpots = tableModel.annotations();
 			final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDataSource.getName(), annotatedSpots, 1.0, spotDataSource.boundingBoxMin, spotDataSource.boundingBoxMax );
 			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );

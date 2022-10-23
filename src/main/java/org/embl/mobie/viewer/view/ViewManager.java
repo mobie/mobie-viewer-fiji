@@ -488,11 +488,21 @@ public class ViewManager
 
 				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, moBIE.getTableStore( regionDataSource.tableData ), TableDataFormat.DEFAULT_TSV, table );
 
+				// REMOVE
 				final ArrayList< AnnotatedRegion > annotatedRegions = tableModel.annotations();
-				final Image< UnsignedIntType > labelImage = new RegionLabelImage( regionDisplay.getName(), annotatedRegions );
+				// FIXME This should already have the AnnotationType
+				//   Probably make RegionLabelImage implement AnnotatedImage
+				//   and give the AnnData in the constructor
 				final DefaultAnnData< AnnotatedRegion > annData = new DefaultAnnData<>( tableModel );
+				final Image< UnsignedIntType > labelImage = new RegionLabelImage( regionDisplay.getName(), annotatedRegions );
+
+				// REMOVE
 				final DefaultAnnotationAdapter< AnnotatedRegion > annotationAdapter = new DefaultAnnotationAdapter<>( annData );
+				// FIXME Just DefaultAnnotatedImage will do
+
+				// REMOVE
 				final DefaultAnnotatedLabelImage regionImage = new DefaultAnnotatedLabelImage( labelImage, annData, annotationAdapter );
+
 				DataStore.putImage( regionImage );
 			}
 		}
