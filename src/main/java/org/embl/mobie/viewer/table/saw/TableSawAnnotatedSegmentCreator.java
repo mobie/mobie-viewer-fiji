@@ -49,7 +49,7 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 		double [] position = new double[]{
 				table.numberColumn( xColumnIndex ).getDouble( rowIndex ),
 				table.numberColumn( yColumnIndex ).getDouble( rowIndex ),
-				is3D ? table.numberColumn( yColumnIndex ).getDouble( rowIndex ) : 0
+				is3D ? table.numberColumn( zColumnIndex ).getDouble( rowIndex ) : 0
 		};
 
 		String uuid = source + ";" + timePoint + ";" + labelId;
