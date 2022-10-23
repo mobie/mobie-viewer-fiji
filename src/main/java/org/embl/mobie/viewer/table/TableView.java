@@ -30,7 +30,6 @@ package org.embl.mobie.viewer.table;
 
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.TableUIs;
-import de.embl.cba.tables.Utils;
 import ij.IJ;
 import ij.gui.GenericDialog;
 import org.embl.mobie.viewer.annotation.AnnotatorDialog;
@@ -58,7 +57,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static org.embl.mobie.viewer.MoBIEHelper.FileLocation;
 import static org.embl.mobie.viewer.ui.UserInterfaceHelper.loadFromProjectOrFileSystemDialog;
@@ -241,7 +239,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 					gd.showDialog();
 					if ( gd.wasCanceled() ) return;
 					final String path = gd.getNextChoice();
-					tableModel.requestColumns( path );
+					tableModel.requestTables( path );
 				}
 				else if ( fileLocation.equals( FileLocation.FileSystem ) )
 				{

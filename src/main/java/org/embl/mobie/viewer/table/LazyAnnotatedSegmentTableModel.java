@@ -67,7 +67,7 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	}
 
 	@Override
-	public void requestColumns( String columnsPath )
+	public void requestTables( String columnsPath )
 	{
 		// not implemented
 	}

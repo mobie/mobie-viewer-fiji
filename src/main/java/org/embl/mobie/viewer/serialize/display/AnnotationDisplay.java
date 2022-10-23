@@ -74,7 +74,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	protected Double[] valueLimits;
 	protected boolean showScatterPlot = false;
 	protected String[] scatterPlotAxes = new String[]{ ColumnNames.ANCHOR_X, ColumnNames.ANCHOR_Y };
-	protected List< String > tables; // column chunks to display
+	protected List< String > additionalTables;
 	protected boolean showTable = true;
 	protected boolean showAsBoundaries = false;
 	protected float boundaryThickness = 1.0F;
@@ -133,9 +133,9 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	}
 
 	// table = chunk of columns
-	public List< String > getTables()
+	public List< String > getAdditionalTables()
 	{
-		return tables;
+		return additionalTables;
 	}
 
 	public boolean showTable()
@@ -197,14 +197,14 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 
 		this.showScatterPlot = annotationDisplay.scatterPlotView.isVisible();
 		this.scatterPlotAxes = annotationDisplay.scatterPlotView.getSelectedColumns();
-		this.tables = annotationDisplay.tables;
+		this.additionalTables = annotationDisplay.additionalTables;
 
 		final LinkedHashSet< String > loadedColumnPaths = annotationDisplay.annData.getTable().loadedColumnPaths();
 		if ( loadedColumnPaths.size() > 0 )
 		{
-			if ( this.tables == null )
-				this.tables = new ArrayList<>();
-			this.tables.addAll( loadedColumnPaths );
+			if ( this.additionalTables == null )
+				this.additionalTables = new ArrayList<>();
+			this.additionalTables.addAll( loadedColumnPaths );
 		}
 
 		this.showTable = annotationDisplay.tableView.getWindow().isVisible();

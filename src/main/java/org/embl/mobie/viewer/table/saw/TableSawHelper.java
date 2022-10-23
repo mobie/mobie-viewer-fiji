@@ -25,7 +25,6 @@ public class TableSawHelper
 
 	public static Table readTable( String path, int numSamples )
 	{
-
 		try
 		{
 			// Note that while it appears to be faster to

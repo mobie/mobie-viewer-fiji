@@ -62,9 +62,9 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	}
 
 	@Override
-	public void requestColumns( String columnsPath )
+	public void requestTables( String columnsPath )
 	{
-		tableModel.requestColumns( columnsPath );
+		tableModel.requestTables( columnsPath );
 	}
 
 	@Override

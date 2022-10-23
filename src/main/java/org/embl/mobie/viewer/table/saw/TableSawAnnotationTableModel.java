@@ -24,7 +24,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	private final TableSawAnnotationCreator< A > annotationCreator;
 	private final String dataStore;
 	private Set< String > availableColumnPaths;
-	private LinkedHashSet< String > requestedColumnPaths = new LinkedHashSet<>();
+	private LinkedHashSet< String > requestedTablePaths = new LinkedHashSet<>();
 	private LinkedHashSet< String > loadedTablePaths = new LinkedHashSet<>();
 	private ArrayList< A > annotations = new ArrayList<>();
 
@@ -41,7 +41,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		this.dataSourceName = dataSourceName;
 		this.annotationCreator = annotationCreator;
 		this.dataStore = dataStore;
-		this.requestedColumnPaths.add( IOHelper.combinePath( dataStore, defaultTablePath ) );
+		this.requestedTablePaths.add( IOHelper.combinePath( dataStore, defaultTablePath ) );
 		this.affineTransform3D = new AffineTransform3D();
 	}
 
@@ -50,7 +50,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	{
 		this( name, annotationCreator, tableStore, defaultColumns );
 		initTable( defaultTable );
-		loadedTablePaths.add( requestedColumnPaths.iterator().next() );
+		loadedTablePaths.add( requestedTablePaths.iterator().next() );
 	}
 
 	public String getDataSourceName()
@@ -62,7 +62,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 
 	private synchronized void update()
 	{
-		for ( String tablePath : requestedColumnPaths )
+		for ( String tablePath : requestedTablePaths )
 		{
 			if ( loadedTablePaths.contains( tablePath ) )
 				continue;
@@ -72,7 +72,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 			// Note: Calling IJ.log inside here hangs for some reason,
 			// maybe to do with the {@code synchronized} of this function.
 			// IJ.log( "Opening table for " + dataSourceName + "..." );
-			System.out.println( "TableModel: " + dataSourceName + ": Reading table:\n" + tablePath );
+			System.out.println( "TableModel: " + dataSourceName + "; reading table:\n" + tablePath );
 			final Table rows = TableSawHelper.readTable( tablePath, -1 );
 
 			if ( table == null ) // init table
@@ -81,7 +81,11 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 			}
 			else // join additional table
 			{
-				final String[] mergeByColumnNames = annotation( 0 ).idColumns();
+				// some columns, e.g. timepoint, are optional and thus
+				// are only used for merging if they are actually present
+				final List< String > columnNames = table.columnNames();
+				final String[] mergeByColumnNames = Arrays.stream( annotation( 0 ).idColumns() ).filter( column -> columnNames.contains( column ) ).collect( Collectors.toList() ).toArray( new String[ 0 ] );
+
 				// note that this changes the table object, thus
 				// other classes that need that table object need to
 				// retrieve the new one
@@ -189,9 +193,9 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	}
 
 	@Override
-	public void requestColumns( String columnsPath )
+	public void requestTables( String tablePath )
 	{
-		requestedColumnPaths.add( columnsPath );
+		requestedTablePaths.add( tablePath );
 	}
 
 	@Override
@@ -205,7 +209,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	{
 		if ( availableColumnPaths == null )
 		{
-			final String parentLocation = IOHelper.getParentLocation( requestedColumnPaths.iterator().next() );
+			final String parentLocation = IOHelper.getParentLocation( requestedTablePaths.iterator().next() );
 			availableColumnPaths = Arrays.stream( IOHelper.getFileNames( parentLocation ) ).collect( Collectors.toSet() );
 		}
 		return availableColumnPaths;
@@ -214,7 +218,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	@Override
 	public LinkedHashSet< String > loadedColumnPaths()
 	{
-		return requestedColumnPaths;
+		return requestedTablePaths;
 	}
 
 	@Override

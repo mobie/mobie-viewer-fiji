@@ -2,17 +2,13 @@ package org.embl.mobie.viewer.table;
 
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
-import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.Annotation;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ConcatenatedAnnotationTableModel< A extends Annotation > extends AbstractAnnotationTableModel< A >
 {
@@ -73,10 +69,10 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	}
 
 	@Override
-	public void requestColumns( String columnsPath )
+	public void requestTables( String columnsPath )
 	{
 		for ( AnnotationTableModel< A > tableModel : tableModels )
-			tableModel.requestColumns( columnsPath );
+			tableModel.requestTables( columnsPath );
 	}
 
 	@Override

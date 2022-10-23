@@ -83,7 +83,6 @@ import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.table.DefaultAnnData;
-import org.embl.mobie.viewer.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableView;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedRegion;
@@ -249,6 +248,9 @@ public class ViewManager
 
 	public synchronized void show( View view )
 	{
+		final long startTime = System.currentTimeMillis();
+		IJ.log( "Opening view: " + view.getName() );
+
 		if ( view.isExclusive() )
 		{
 			removeAllSourceDisplays( true );
@@ -291,6 +293,8 @@ public class ViewManager
 			// exist in BDV
 			SliceViewLocationChanger.adaptTimepoint( sliceViewer.getBdvHandle(), view.getViewerTransform() );
 		}
+
+		IJ.log("Opened view: " + view.getName() + " in " + (System.currentTimeMillis() - startTime) + " ms." );
 	}
 
 	// initialize and transform
@@ -554,13 +558,13 @@ public class ViewManager
 			annotationDisplay.createAnnData();
 
 			// Load additional tables (to be merged)
-			final List< String > tables = annotationDisplay.getTables();
-			if ( tables != null )
-				for ( String table : tables )
+			final List< String > additionalTables = annotationDisplay.getAdditionalTables();
+			if ( additionalTables != null )
+				for ( String table : additionalTables )
 				{
 					final AnnotationTableModel< A > tableModel = annotationDisplay.getAnnData().getTable();
 					final String dataStore = tableModel.dataStore();
-					tableModel.requestColumns( IOHelper.combinePath( dataStore, table ) );
+					tableModel.requestTables( IOHelper.combinePath( dataStore, table ) );
 				}
 
 			// configure selection model

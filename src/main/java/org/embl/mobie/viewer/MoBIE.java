@@ -273,10 +273,7 @@ public class MoBIE
 
 		final View view = getSelectedView( viewName );
 		view.setName( viewName );
-		IJ.log( "Opening view: " + view.getName() );
-		final long startTime = System.currentTimeMillis();
 		viewManager.show( view );
-		IJ.log("Opened view: " + view.getName() + " in " + (System.currentTimeMillis() - startTime) + " ms." );
 	}
 
 	private View getSelectedView( String viewName ) throws IOException
@@ -488,6 +485,9 @@ public class MoBIE
 
 	public void initDataSources( List< DataSource > dataSources )
 	{
+		if ( dataSources.size() > 20 )
+			IJ.log("Initialising " + dataSources.size() + " data sources (this could take a couple of minutes..." );
+
 		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
 		AtomicInteger sourceIndex = new AtomicInteger(0);
 		final int numImages = dataSources.size();

@@ -29,7 +29,6 @@
 package org.embl.mobie.viewer.serialize.display;
 
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
-import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 
 import java.util.ArrayList;
@@ -92,7 +91,7 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Annotati
 		this.showSelectedSegmentsIn3d = showSelectedSegmentsIn3d;
 		this.showScatterPlot = showScatterPlot;
 		this.scatterPlotAxes = scatterPlotAxes;
-		this.tables = tables;
+		this.additionalTables = tables;
 		this.resolution3dView = resolution3dView;
 	}
 
