@@ -53,6 +53,11 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		loadedTablePaths.add( requestedColumnPaths.iterator().next() );
 	}
 
+	public String getDataSourceName()
+	{
+		return dataSourceName;
+	}
+
 	// https://jtablesaw.github.io/tablesaw/userguide/tables.html
 
 	private synchronized void update()
@@ -77,6 +82,9 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 			else // join additional table
 			{
 				final String[] mergeByColumnNames = annotation( 0 ).idColumns();
+				// note that this changes the table object, thus
+				// other classes that need that table object need to
+				// retrieve the new one
 				table = table.joinOn( mergeByColumnNames ).inner( rows );
 			}
 		}
@@ -104,7 +112,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 
 		final ArrayList< A > annotations = new ArrayList<>( rowCount );
 		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
-			annotations.add( annotationCreator.create( table, rowIndex ) );
+			annotations.add( annotationCreator.create( this, rowIndex ) );
 
 		// FIXME:
 		//  - refer to the removed columns via the annotations

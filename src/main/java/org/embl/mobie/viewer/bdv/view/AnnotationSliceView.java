@@ -39,6 +39,7 @@ import org.embl.mobie.viewer.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.viewer.color.AnnotationARGBConverter;
 import org.embl.mobie.viewer.color.ColoringListener;
 import org.embl.mobie.viewer.color.VolatileAnnotationARGBConverter;
+import org.embl.mobie.viewer.command.OpenMoBIEProjectBranchCommand;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.image.SpotLabelImage;
 import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
@@ -131,7 +132,6 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 	{
 		configureAnnotationRendering( sourceAndConverter );
 		display.sliceViewer.show( sourceAndConverter, display );
-		//display.sliceViewer.getBdvHandle().getViewerPanel().showDebugTileOverlay();
 	}
 
 	private void configureAnnotationRendering( SourceAndConverter< ? > sourceAndConverter )

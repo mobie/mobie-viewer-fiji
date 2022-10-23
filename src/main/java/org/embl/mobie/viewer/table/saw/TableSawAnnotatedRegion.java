@@ -28,7 +28,7 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	private String source;
 
 	public TableSawAnnotatedRegion(
-			Table table, // FIXME replace with tableModel
+			TableSawAnnotationTableModel< TableSawAnnotatedRegion > model,
 			int rowIndex,
 			List< String > imageNames,
 			int timePoint,
@@ -36,8 +36,8 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 			int labelId,
 			String uuid )
 	{
-		super( table, rowIndex );
-		this.source = table.name();
+		super( model, rowIndex );
+		this.source = model.getDataSourceName();
 		this.imageNames = imageNames;
 		this.regionId = regionId;
 		this.timePoint = timePoint;

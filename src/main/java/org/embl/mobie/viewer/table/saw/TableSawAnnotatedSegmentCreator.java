@@ -32,8 +32,10 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 	}
 
 	@Override
-	public TableSawAnnotatedSegment create( Table table, int rowIndex )
+	public TableSawAnnotatedSegment create( TableSawAnnotationTableModel< TableSawAnnotatedSegment > model, int rowIndex )
 	{
+		final Table table = model.getTable();
+
 		final boolean is3D = zColumnIndex > -1;
 
 		String source = labelImageColumnIndex > -1 ? table.stringColumn( labelIdColumnIndex ).get( rowIndex ) : table.name();
@@ -52,7 +54,7 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 
 		String uuid = source + ";" + timePoint + ";" + labelId;
 
-		return new TableSawAnnotatedSegment( table, rowIndex, source, uuid, labelId, timePoint, position, boundingBox );
+		return new TableSawAnnotatedSegment( model, rowIndex, source, uuid, labelId, timePoint, position, boundingBox );
 	}
 
 	@Override

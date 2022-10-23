@@ -23,8 +23,10 @@ public class TableSawAnnotatedRegionCreator implements TableSawAnnotationCreator
 	}
 
 	@Override
-	public TableSawAnnotatedRegion create( Table table, int rowIndex )
+	public TableSawAnnotatedRegion create( TableSawAnnotationTableModel< TableSawAnnotatedRegion > model, int rowIndex )
 	{
+		final Table table = model.getTable();
+
 		final String regionId = table.getString( rowIndex, regionIdColumnIndex );
 
 		final int labelId = 1 + rowIndex; // 0 is the background label, thus we add 1
@@ -35,7 +37,7 @@ public class TableSawAnnotatedRegionCreator implements TableSawAnnotationCreator
 
 		final String uuid = timePoint + ";" + regionId;
 
-		return new TableSawAnnotatedRegion( table, rowIndex, regionIdToImageNames.get( regionId ), timePoint, regionId, labelId, uuid );
+		return new TableSawAnnotatedRegion( model, rowIndex, regionIdToImageNames.get( regionId ), timePoint, regionId, labelId, uuid );
 	}
 
 	@Override

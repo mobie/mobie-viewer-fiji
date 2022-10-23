@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 
 public interface TableSawAnnotationCreator< A extends Annotation >
 {
-	A create( Table table, int rowIndex );
+	A create( TableSawAnnotationTableModel< A > tableModel, int rowIndex );
 
 	int[] removeColumns();
 }

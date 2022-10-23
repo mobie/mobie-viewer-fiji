@@ -44,6 +44,7 @@ import org.embl.mobie.viewer.command.ConfigureImageVolumeRenderingCommand;
 import org.embl.mobie.viewer.command.ConfigureLabelRenderingCommand;
 import org.embl.mobie.viewer.command.ConfigureLabelVolumeRenderingCommand;
 import org.embl.mobie.viewer.command.ManualRegistrationCommand;
+import org.embl.mobie.viewer.command.OpenMoBIEProjectBranchCommand;
 import org.embl.mobie.viewer.command.ScreenShotMakerCommand;
 import org.embl.mobie.viewer.command.ShowRasterImagesCommand;
 import org.embl.mobie.viewer.serialize.display.AbstractDisplay;
@@ -92,6 +93,13 @@ public class SliceViewer
 		sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
 
 		bdvHandle = getBdvHandle();
+
+		if ( OpenMoBIEProjectBranchCommand.tileRenderOverlay )
+		{
+			bdvHandle.getViewerPanel().showDebugTileOverlay();
+			OpenMoBIEProjectBranchCommand.tileRenderOverlay = false; // don't show twice
+		}
+
 		setBdvWindowPositionAndSize( bdvHandle );
 		sacDisplayService.registerBdvHandle( bdvHandle );
 

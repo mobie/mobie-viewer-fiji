@@ -29,8 +29,9 @@ public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< 
 	}
 
 	@Override
-	public TableSawAnnotatedSpot create( Table table, int rowIndex )
+	public TableSawAnnotatedSpot create( TableSawAnnotationTableModel< TableSawAnnotatedSpot > model, int rowIndex )
 	{
+		final Table table = model.getTable();
 		final float[] position = new float[ 3 ];
 		position[ 0 ] = (float) table.get( rowIndex, xColumnIndex );
 		position[ 1 ] = (float) table.get( rowIndex, yColumnIndex );
@@ -45,10 +46,7 @@ public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< 
 
 		String source = table.name();
 
-		// FIXME: the uuid occupies too much RAM for many spots
-		// String uuid = source + ";" + timePoint + ";" + label;
-
-		return new TableSawAnnotatedSpot( table, rowIndex, label, position, timePoint, source, null );
+		return new TableSawAnnotatedSpot( model, rowIndex, label, position, timePoint, source );
 	}
 
 	@Override

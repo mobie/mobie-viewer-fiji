@@ -9,7 +9,6 @@ import tech.tablesaw.api.Table;
 public class TableSawAnnotatedSpot extends AbstractTableSawAnnotation implements AnnotatedSpot
 {
 	private static final String[] idColumns = new String[]{ ColumnNames.SPOT_ID };
-	private final String uuid;
 	private final int label;
 	private final int timePoint;
 	private final String source;
@@ -18,15 +17,20 @@ public class TableSawAnnotatedSpot extends AbstractTableSawAnnotation implements
 	// We use {@code Supplier< Table > tableSupplier}
 	// because the table object may change, e.g.
 	// due to merging of additional columns.
-	public TableSawAnnotatedSpot( final Table table, int rowIndex, int label, float[] position, final int timePoint, String source, String uuid )
+	public TableSawAnnotatedSpot(
+			final TableSawAnnotationTableModel< TableSawAnnotatedSpot > model,
+			int rowIndex,
+			int label,
+			float[] position,
+			final int timePoint,
+			String source )
 	{
-		super( table, rowIndex );
+		super( model, rowIndex );
 		this.label = label;
 		this.position = position;
 		this.timePoint = timePoint;
 
 		this.source = source;
-		this.uuid = uuid;
 	}
 
 	@Override
@@ -62,7 +66,7 @@ public class TableSawAnnotatedSpot extends AbstractTableSawAnnotation implements
 	@Override
 	public String uuid()
 	{
-		return uuid;
+		return source + ";" + timePoint + ";" + label;
 	}
 
 	@Override

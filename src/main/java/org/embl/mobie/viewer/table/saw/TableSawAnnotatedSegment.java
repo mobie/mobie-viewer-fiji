@@ -24,7 +24,7 @@ public class TableSawAnnotatedSegment extends AbstractTableSawAnnotation impleme
 	private String uuid;
 
 	public TableSawAnnotatedSegment(
-			Table table,
+			TableSawAnnotationTableModel< TableSawAnnotatedSegment > model,
 			int rowIndex,
 			String source,
 			String uuid,
@@ -33,7 +33,7 @@ public class TableSawAnnotatedSegment extends AbstractTableSawAnnotation impleme
 			double[] position,
 			FinalRealInterval boundingBox )
 	{
-		super( table, rowIndex );
+		super( model, rowIndex );
 		this.source = source;
 		this.uuid = uuid;
 		this.labelId = labelId;
