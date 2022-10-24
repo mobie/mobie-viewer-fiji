@@ -243,7 +243,8 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				}
 				else if ( fileLocation.equals( FileLocation.FileSystem ) )
 				{
-					UserInterfaceHelper.selectFilePath( ".tsv", "Table", true );
+					final String path = UserInterfaceHelper.selectFilePath( "tsv", "Table", true );
+					tableModel.requestTables( path );
 				}
 			}).start()
 		);

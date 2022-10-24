@@ -1,6 +1,7 @@
 package org.embl.mobie.viewer.table.saw;
 
 import net.imglib2.FinalRealInterval;
+import net.imglib2.KDTree;
 import org.embl.mobie.viewer.table.ColumnNames;
 import tech.tablesaw.api.Table;
 
