@@ -62,9 +62,9 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	}
 
 	@Override
-	public void requestTables( String columnsPath )
+	public void requestTable( String columnsPath )
 	{
-		tableModel.requestTables( columnsPath );
+		tableModel.requestTable( columnsPath );
 	}
 
 	@Override
@@ -74,15 +74,15 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	}
 
 	@Override
-	public Collection< String > availableColumnPaths()
+	public Collection< String > availableTablePaths()
 	{
-		return tableModel.availableColumnPaths();
+		return tableModel.availableTablePaths();
 	}
 
 	@Override
-	public LinkedHashSet< String > loadedColumnPaths()
+	public LinkedHashSet< String > additionalTablePaths()
 	{
-		return tableModel.loadedColumnPaths();
+		return tableModel.additionalTablePaths();
 	}
 
 	@Override

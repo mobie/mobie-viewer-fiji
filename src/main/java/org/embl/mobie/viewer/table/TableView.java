@@ -233,18 +233,18 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				FileLocation fileLocation = loadFromProjectOrFileSystemDialog();
 				if ( fileLocation.equals( FileLocation.Project ) )
 				{
-					final String[] paths = tableModel.availableColumnPaths().toArray( new String[ 0 ] );
+					final String[] paths = tableModel.availableTablePaths().toArray( new String[ 0 ] );
 					final GenericDialog gd = new GenericDialog("Choose columns");
 					gd.addChoice("Columns", paths, paths[0]);
 					gd.showDialog();
 					if ( gd.wasCanceled() ) return;
 					final String path = gd.getNextChoice();
-					tableModel.requestTables( path );
+					tableModel.requestTable( path );
 				}
 				else if ( fileLocation.equals( FileLocation.FileSystem ) )
 				{
 					final String path = UserInterfaceHelper.selectFilePath( "tsv", "Table", true );
-					tableModel.requestTables( path );
+					tableModel.requestTable( path );
 				}
 			}).start()
 		);

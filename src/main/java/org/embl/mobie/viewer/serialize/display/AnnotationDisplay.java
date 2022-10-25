@@ -191,15 +191,13 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		}
 
 		if ( coloringModel instanceof CategoricalAnnotationColoringModel )
-		{
 			this.randomColorSeed = ( ( CategoricalAnnotationColoringModel ) coloringModel ).getRandomSeed();
-		}
 
 		this.showScatterPlot = annotationDisplay.scatterPlotView.isVisible();
 		this.scatterPlotAxes = annotationDisplay.scatterPlotView.getSelectedColumns();
 		this.additionalTables = annotationDisplay.additionalTables;
 
-		final LinkedHashSet< String > loadedColumnPaths = annotationDisplay.annData.getTable().loadedColumnPaths();
+		final LinkedHashSet< String > loadedColumnPaths = annotationDisplay.annData.getTable().additionalTablePaths();
 		if ( loadedColumnPaths.size() > 0 )
 		{
 			if ( this.additionalTables == null )

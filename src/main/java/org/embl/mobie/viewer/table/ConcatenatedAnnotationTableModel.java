@@ -69,10 +69,10 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	}
 
 	@Override
-	public void requestTables( String columnsPath )
+	public void requestTable( String columnsPath )
 	{
 		for ( AnnotationTableModel< A > tableModel : tableModels )
-			tableModel.requestTables( columnsPath );
+			tableModel.requestTable( columnsPath );
 	}
 
 	@Override
@@ -83,15 +83,15 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	}
 
 	@Override
-	public Collection< String > availableColumnPaths()
+	public Collection< String > availableTablePaths()
 	{
-		return referenceTable.availableColumnPaths();
+		return referenceTable.availableTablePaths();
 	}
 
 	@Override
-	public LinkedHashSet< String > loadedColumnPaths()
+	public LinkedHashSet< String > additionalTablePaths()
 	{
-		return referenceTable.loadedColumnPaths();
+		return referenceTable.additionalTablePaths();
 	}
 
 	@Override
