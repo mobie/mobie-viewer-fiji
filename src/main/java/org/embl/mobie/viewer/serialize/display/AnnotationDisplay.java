@@ -178,7 +178,8 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		// TODO: get opacity from coloring model instead of sac...
 		this.opacity = OpacityHelper.getOpacity( sourceAndConverter.getConverter() );
 
-		this.blendingMode = ( BlendingMode ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.class.getName() );
+		this.blendingMode = null; // default is Alpha so we don't serialise it
+		// this.blendingMode = ( BlendingMode ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.class.getName() );
 
 		final ColoringModel< ? extends Annotation > coloringModel = annotationDisplay.coloringModel.getWrappedColoringModel();
 
