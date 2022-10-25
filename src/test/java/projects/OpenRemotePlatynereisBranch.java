@@ -40,6 +40,6 @@ public class OpenRemotePlatynereisBranch
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE( "https://github.com/mobie/platybrowser-datasets", MoBIESettings.settings().gitProjectBranch( "mobie3" ).view( "Figure 3B: Morphology clustering full body" ) );
+		new MoBIE( "https://github.com/mobie/platybrowser-datasets", MoBIESettings.settings().gitProjectBranch( "mobie3" ).view( "cells" ) ); //"Figure 3B: Morphology clustering full body"
 	}
 }

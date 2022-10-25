@@ -32,6 +32,7 @@ import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.TableUIs;
 import ij.IJ;
 import ij.gui.GenericDialog;
+import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.annotation.AnnotatorDialog;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.color.CategoricalAnnotationColoringModel;
@@ -49,6 +50,7 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.ui.UserInterfaceHelper;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -231,6 +233,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		menuItem.addActionListener( e ->
 			new Thread( () -> {
 				FileLocation fileLocation = loadFromProjectOrFileSystemDialog();
+				String path = null;
 				if ( fileLocation.equals( FileLocation.Project ) )
 				{
 					final String[] paths = tableModel.availableTablePaths().toArray( new String[ 0 ] );
@@ -238,14 +241,18 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 					gd.addChoice("Columns", paths, paths[0]);
 					gd.showDialog();
 					if ( gd.wasCanceled() ) return;
-					final String path = gd.getNextChoice();
-					tableModel.requestTable( path );
+					path = gd.getNextChoice();
 				}
 				else if ( fileLocation.equals( FileLocation.FileSystem ) )
 				{
-					final String path = UserInterfaceHelper.selectFilePath( "tsv", "Table", true );
-					tableModel.requestTable( path );
+					path = UserInterfaceHelper.selectFilePath( "tsv", "Table", true );
+					if ( path == null )  return;
 				}
+
+				IJ.log( "Loading and joining table: " + MoBIEHelper.getFileName( path ) + "..." );
+				tableModel.requestTable( path );
+				jTable.tableChanged( null );
+
 			}).start()
 		);
 		return menuItem;

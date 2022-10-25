@@ -7,6 +7,7 @@ import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.table.AbstractAnnotationTableModel;
 import org.embl.mobie.viewer.table.AnnotationListener;
 import org.embl.mobie.viewer.table.DefaultValues;
+import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 
@@ -68,7 +69,6 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 
 	private synchronized void update()
 	{
-
 		if ( table == null )
 			initTable( readTable( defaultTablePath ) );
 
@@ -105,6 +105,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		// other classes that need that table object need to
 		// retrieve the new one
 		table = table.joinOn( mergeByColumnNames ).leftOuter( additionalTable );
+		// we probably need to notify listeners here.
 	}
 
 	private void initTable( Table rows )
@@ -155,10 +156,11 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	}
 
 	@Override
-	public Class< ? > columnClass( String columnName )
+	public synchronized Class< ? > columnClass( String columnName )
 	{
 		update();
-		final Class< ? > columnClass = TableSawColumnTypes.typeToClass.get( table.column( columnName ).type() );
+		final ColumnType type = table.column( columnName ).type();
+		final Class< ? > columnClass = TableSawColumnTypes.typeToClass.get( type );
 		if ( columnClass == null )
 			throw new RuntimeException("Could determine the class of column " + columnName );
 		return columnClass;
