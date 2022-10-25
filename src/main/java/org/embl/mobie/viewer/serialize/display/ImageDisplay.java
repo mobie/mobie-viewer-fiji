@@ -32,6 +32,7 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
+import org.embl.mobie.viewer.color.OpacityHelper;
 import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
 import org.embl.mobie.viewer.volume.ImageVolumeViewer;
 import net.imglib2.display.ColorConverter;
@@ -109,6 +110,7 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		this.name = imageDisplay.name;
 		this.sources = new ArrayList<>();
 		this.sources.addAll( imageDisplay.sourceAndConverters().stream().map( sac -> sac.getSpimSource().getName() ).collect( Collectors.toList() ) );
+
 		setDisplaySettings( imageDisplay.sourceAndConverters().get( 0 ) );
 
 		if ( imageDisplay.imageVolumeViewer != null )
@@ -129,20 +131,11 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		}
 	}
 
-	public ImageDisplay( SourceAndConverter< ? > sourceAndConverter )
-	{
-		sources = Arrays.asList( sourceAndConverter.getSpimSource().getName() );
-		setDisplaySettings( sourceAndConverter );
-	}
-
 	private void setDisplaySettings( SourceAndConverter< ? > sourceAndConverter )
 	{
 		final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter );
 
-		if( sourceAndConverter.getConverter() instanceof AdjustableOpacityColorConverter )
-		{
-			opacity = ( ( AdjustableOpacityColorConverter ) sourceAndConverter.getConverter() ).getOpacity();
-		}
+		opacity = OpacityHelper.getOpacity( sourceAndConverter.getConverter() );
 
 		if ( sourceAndConverter.getConverter() instanceof ColorConverter)
 		{

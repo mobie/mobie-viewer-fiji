@@ -68,11 +68,22 @@ public abstract class OpacityHelper
 		colorConverter.setColor( new ARGBType( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) ) );
 	}
 
-	public static double getOpacity( SourceAndConverter< ? > sourceAndConverter )
+	public static double getOpacity( Converter< ?, ARGBType > converter )
 	{
-		final ColorConverter colorConverter = ( ColorConverter ) sourceAndConverter.getConverter();
-		final int alpha = alpha( colorConverter.getColor().get() );
-		return alpha / 255.0D;
+		if ( converter instanceof OpacityAdjuster )
+		{
+			return ( ( OpacityAdjuster ) converter ).getOpacity();
+		}
+		else if ( converter instanceof ColorConverter )
+		{
+			final ColorConverter colorConverter = ( ColorConverter ) converter;
+			final int alpha = alpha( colorConverter.getColor().get() );
+			return alpha / 255.0D;
+		}
+		else
+		{
+			throw new RuntimeException("Cannot determine opacity of " + converter.getClass() );
+		}
 	}
 
 	public static void setOpacity( SourceAndConverter< ? > sourceAndConverter, double opacity )

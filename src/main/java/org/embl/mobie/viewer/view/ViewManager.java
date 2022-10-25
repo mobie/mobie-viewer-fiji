@@ -586,10 +586,7 @@ public class ViewManager
 
 			if ( LUTs.isCategorical( lut ) )
 			{
-				CategoricalAnnotationColoringModel< Annotation > coloringModel = ColoringModels.createCategoricalModel(
-								annotationDisplay.getColoringColumnName(),
-								lut,
-								LUTs.TRANSPARENT );
+				CategoricalAnnotationColoringModel< Annotation > coloringModel = ColoringModels.createCategoricalModel( annotationDisplay.getColoringColumnName(), lut, LUTs.TRANSPARENT );
 
 				if ( LUTs.getLut( lut ) instanceof ColumnARGBLut )
 				{

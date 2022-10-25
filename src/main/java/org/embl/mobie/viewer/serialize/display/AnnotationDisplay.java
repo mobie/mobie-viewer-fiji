@@ -29,7 +29,6 @@
 package org.embl.mobie.viewer.serialize.display;
 
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.annotation.AnnotationAdapter;
 import org.embl.mobie.viewer.annotation.DefaultAnnotationAdapter;
@@ -40,6 +39,7 @@ import org.embl.mobie.viewer.color.CategoricalAnnotationColoringModel;
 import org.embl.mobie.viewer.color.ColoringModel;
 import org.embl.mobie.viewer.color.MobieColoringModel;
 import org.embl.mobie.viewer.color.NumericAnnotationColoringModel;
+import org.embl.mobie.viewer.color.OpacityHelper;
 import org.embl.mobie.viewer.color.lut.LUTs;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.SelectionModel;
@@ -53,6 +53,7 @@ import org.embl.mobie.viewer.table.AnnDataHelper;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.table.TableView;
 import net.imglib2.util.ValuePair;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -174,9 +175,11 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		// SourceAndConverter.
 		final SourceAndConverter< ? > sourceAndConverter = annotationDisplay.sourceAndConverters().get( 0 );
 
-		// TODO: get opacity from coloring model instead of sac!
-		//   But from which one? Maybe just from MoBIEColoringModel?!
-		//this.opacity = OpacityAdjuster.getOpacity( sourceAndConverter );
+		// TODO: get opacity from coloring model instead of sac...
+		this.opacity = OpacityHelper.getOpacity( sourceAndConverter.getConverter() );
+
+		this.blendingMode = ( BlendingMode ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.class.getName() );
+
 		final ColoringModel< ? extends Annotation > coloringModel = annotationDisplay.coloringModel.getWrappedColoringModel();
 
 		if ( coloringModel instanceof AbstractAnnotationColoringModel )

@@ -70,7 +70,7 @@ public class MobieColoringModel< T > extends AbstractColoringModel< T >
 
 		if ( ! selectionModel.isSelected( value ) )
 		{
-			applyOpacity( color, opacityNotSelected );
+			applySelectionOpacity( color, opacityNotSelected );
 		}
 		else
 		{
@@ -78,7 +78,7 @@ public class MobieColoringModel< T > extends AbstractColoringModel< T >
 		}
 	}
 
-	private void applyOpacity( ARGBType color, double opacity )
+	private void applySelectionOpacity( ARGBType color, double opacity )
 	{
 		final int value = color.get();
 		final double alpha = alpha( value ) * opacity;

@@ -226,7 +226,6 @@ public class SliceViewer
 		// time added (for alpha blending)
 		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.TIME_ADDED, System.currentTimeMillis() );
 
-
 		// opacity
 		OpacityHelper.setOpacity( sourceAndConverter, display.getOpacity() );
 
