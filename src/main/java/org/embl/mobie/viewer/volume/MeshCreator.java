@@ -34,6 +34,9 @@ import de.embl.cba.bdv.utils.objects3d.FloodFill;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.Utils;
 import isosurface.MeshEditor;
+import net.imglib2.Interval;
+import net.imglib2.RealPoint;
+import net.imglib2.type.logic.BitType;
 import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
 import org.embl.mobie.viewer.annotation.Segment;
 import org.embl.mobie.viewer.source.AnnotationType;
@@ -47,6 +50,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.Views;
 import org.scijava.vecmath.Point3f;
+import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -65,61 +69,88 @@ public class MeshCreator< S extends Segment >
 
 	private float[] createMesh( S segment, @Nullable double[] targetVoxelSpacing, Source< AnnotationType< S > > source )
 	{
-		Integer level = getLevel( segment, source, targetVoxelSpacing );
+		Integer renderingLevel = getLevel( segment, source, targetVoxelSpacing );
 
-		final RandomAccessibleInterval< AnnotationType< S > >  rai = source.getSource( segment.timePoint(), level );
-		double[] sourceVoxelSpacing = Utils.getVoxelSpacings( source ).get( level );
+		final AffineTransform3D sourceTransform = new AffineTransform3D();
+		source.getSourceTransform( segment.timePoint(), renderingLevel, sourceTransform );
+
+		final RandomAccessibleInterval< AnnotationType< S > >  rai = source.getSource( segment.timePoint(), renderingLevel );
+		double[] sourceVoxelSpacing = Utils.getVoxelSpacings( source ).get( renderingLevel );
 
 		if ( segment.boundingBox() == null )
-			computeSegmentBoundingBox( segment, rai, sourceVoxelSpacing );
-
-		FinalInterval boundingBox = getIntervalInVoxelUnits( segment.boundingBox(), sourceVoxelSpacing );
-		final long numElements = Intervals.numElements( boundingBox );
-
-		if ( targetVoxelSpacing == null ) // auto-resolution
 		{
-			if ( numElements > maxNumSegmentVoxels )
-			{
-				Logger.info( "# 3D View:\n" +
-						"The bounding box of the selected segment has " + numElements + " voxels.\n" +
-						"The maximum recommended number is however only " + maxNumSegmentVoxels + ".\n" +
-						"It can take a bit of time to load...." );
-			}
+			// compute bounding box in voxel space
+			//
+			final long[] voxelPositionInSource = SourceAndConverterHelper.getVoxelPositionInSource( source, segment.positionAsRealPoint(), segment.timePoint(), renderingLevel );
+
+			final FloodFill floodFill = new FloodFill(
+					rai,
+					new DiamondShape( 1 ),
+					1000 * 1000 * 1000L );
+
+			floodFill.run( voxelPositionInSource );
+			final RandomAccessibleInterval< BitType > mask = floodFill.getCroppedRegionMask();
+
+			// set segment bounding box in real space
+			//
+
+			final FinalRealInterval realBounds = sourceTransform.estimateBounds( mask );
+			segment.setBoundingBox( realBounds );
 		}
 
-		if ( ! Intervals.contains( rai, boundingBox ) )
+		// FIXME transform into image space
+
+		Interval voxelBounds = Intervals.smallestContainingInterval( sourceTransform.inverse().estimateBounds( segment.boundingBox() ) );
+
+		if ( ! Intervals.contains( rai, voxelBounds ) )
 		{
-			System.err.println( "The segment bounding box " + boundingBox + " is not fully contained in the image interval: " + Arrays.toString( Intervals.minAsLongArray( rai ) ) + "-" +  Arrays.toString( Intervals.maxAsDoubleArray( rai ) ));
+			System.out.println("The segment bounding box " + voxelBounds + " is not fully contained in the image interval: " + Arrays.toString( Intervals.minAsLongArray( rai ) ) + "-" +  Arrays.toString( Intervals.maxAsDoubleArray( rai ) ));
+			voxelBounds = Intervals.intersect( rai, voxelBounds );
 		}
+
+		final long numElements = Intervals.numElements( voxelBounds );
+
+		if ( numElements == 0 )
+			throw new RuntimeException("The segment is not within the image volume.");
+
 		final AnnotationType< S > type = source.getType();
 		final AnnotationType< S > variable = type.createVariable();
-		final RandomAccessible< AnnotationType< S > > extendValue = Views.extendValue( rai, variable );
+		final RandomAccessible< AnnotationType< S > > rra = Views.extendValue( rai, variable );
 
 		final MeshExtractor meshExtractor = new MeshExtractor(
-				extendValue,
-				boundingBox,
+				rra,
+				voxelBounds,
 				new AffineTransform3D(),
 				new int[]{ 1, 1, 1 },
 				() -> false );
 
 		final float[] meshCoordinates = meshExtractor.generateMesh( new AnnotationType( segment ) );
 
-		for ( int i = 0; i < meshCoordinates.length; )
-		{
-			meshCoordinates[ i++ ] *= sourceVoxelSpacing[ 0 ];
-			meshCoordinates[ i++ ] *= sourceVoxelSpacing[ 1 ];
-			meshCoordinates[ i++ ] *= sourceVoxelSpacing[ 2 ];
-		}
-
 		if ( meshCoordinates.length == 0 )
 		{
-			throw new RuntimeException("Mesh has zero pixels.");
+			throw new RuntimeException("The mesh has zero pixels.");
+		}
+
+		// FIXME do a proper transformation into the source coordinate system
+
+		final float[] meshVoxelCoordinate = new float[ 3 ];
+		final float[] meshRealCoordinate = new float[ 3 ];
+
+		for ( int i = 0; i < meshCoordinates.length; i+=3 )
+		{
+			for ( int d = 0; d < 3; d++ )
+				meshVoxelCoordinate[ d ] = meshCoordinates[ i + d ];
+
+			sourceTransform.apply( meshVoxelCoordinate, meshRealCoordinate );
+
+			for ( int d = 0; d < 3; d++ )
+				meshCoordinates[ i + d ] = meshRealCoordinate[ d ];
 		}
 
 		return meshCoordinates;
 	}
 
-	public CustomTriangleMesh createSmoothCustomTriangleMesh( S segment, double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< S > >  source )
+	public CustomTriangleMesh createSmoothCustomTriangleMesh( S segment, double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< S > > source )
 	{
 		CustomTriangleMesh triangleMesh = createCustomTriangleMesh( segment, voxelSpacing, recomputeMesh, source );
 		MeshEditor.smooth2( triangleMesh, meshSmoothingIterations );
@@ -206,33 +237,6 @@ public class MeshCreator< S extends Segment >
 
 		if ( level == numLevels ) level = numLevels - 1;
 		return level;
-	}
-
-	private void computeSegmentBoundingBox(
-			S segment,
-			RandomAccessibleInterval< AnnotationType< S > >  rai,
-			double[] voxelSpacing )
-	{
-		final long[] voxelCoordinate = getSegmentLocationInVoxelsUnits( segment, voxelSpacing );
-
-		final FloodFill floodFill = new FloodFill(
-				rai,
-				new DiamondShape( 1 ),
-				1000 * 1000 * 1000L );
-
-		floodFill.run( voxelCoordinate );
-		final RandomAccessibleInterval mask = floodFill.getCroppedRegionMask();
-
-		final int numDimensions = segment.positionAsDoubleArray().length;
-		final double[] min = new double[ numDimensions ];
-		final double[] max = new double[ numDimensions ];
-		for ( int d = 0; d < numDimensions; d++ )
-		{
-			min[ d ] = mask.min( d ) * voxelSpacing[ d ];
-			max[ d ] = mask.max( d ) * voxelSpacing[ d ];
-		}
-
-		segment.setBoundingBox( new FinalRealInterval( min, max ) );
 	}
 
 	private long[] getSegmentLocationInVoxelsUnits(

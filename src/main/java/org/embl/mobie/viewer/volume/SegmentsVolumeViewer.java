@@ -75,7 +75,6 @@ public class SegmentsVolumeViewer< S extends Segment > implements ColoringListen
 	private double segmentFocusDxyMin;
 	private double segmentFocusDzMin;
 	private long maxNumVoxels;
-	private String objectsName;
 	private boolean showSegments = false;
 	private double[] voxelSpacing; // desired voxel spacings; null = auto
 	private int currentTimePoint = 0;
@@ -102,19 +101,10 @@ public class SegmentsVolumeViewer< S extends Segment > implements ColoringListen
 		this.segmentFocusDxyMin = 20.0;
 		this.segmentFocusDzMin = 20.0;
 		this.maxNumVoxels = 100 * 100 * 100;
-		this.objectsName = "";
 		this.segmentToContent = new ConcurrentHashMap<>();
 		this.contentToSegment = new ConcurrentHashMap<>();
 
 		this.meshCreator = new MeshCreator<>( meshSmoothingIterations, maxNumVoxels );
-	}
-
-	public void setObjectsName( String objectsName )
-	{
-		if ( objectsName == null )
-			throw new RuntimeException( "Cannot set objects name in Segments3dView to null." );
-
-		this.objectsName = objectsName;
 	}
 
 	public void setTransparency( double transparency )
@@ -215,7 +205,7 @@ public class SegmentsVolumeViewer< S extends Segment > implements ColoringListen
 	{
 		for ( Image< AnnotationType< S > > image : images )
 			if ( image.getName().equals( segment.imageId() ) )
-				return ( Source< AnnotationType< S > > ) image.getSourcePair().getSource();
+				return image.getSourcePair().getSource();
 
 		throw new UnsupportedOperationException( "An image segment from " + segment.imageId() + " did not have a corresponding image source."  );
 	}
@@ -290,13 +280,7 @@ public class SegmentsVolumeViewer< S extends Segment > implements ColoringListen
 
 	private synchronized void addSegmentMeshToUniverse( S segment, CustomTriangleMesh mesh )
 	{
-		if ( mesh == null )
-			throw new RuntimeException( "Mesh of segment " + objectsName + "_" + segment.label() + " is null." );
-
-		if ( universe == null )
-			throw new RuntimeException( "Universe is null." );
-
-		final Content content = universe.addCustomMesh( mesh, objectsName + "_" + segment.label() );
+		final Content content = universe.addCustomMesh( mesh, "" + segment.hashCode() );
 
 		content.setTransparency( ( float ) transparency );
 		content.setLocked( true );

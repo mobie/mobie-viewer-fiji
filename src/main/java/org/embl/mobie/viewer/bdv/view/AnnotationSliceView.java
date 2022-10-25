@@ -95,7 +95,6 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, SpotLabelImage.class.getName(), spotLabelImage );
 			}
 
-
 		}
 	}
 

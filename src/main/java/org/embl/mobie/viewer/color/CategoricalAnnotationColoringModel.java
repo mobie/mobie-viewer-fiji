@@ -65,9 +65,17 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 	public void convert( A input, ARGBType output )
 	{
 		if ( columnName != null )
-			convertStringToARGB( input.getValue( columnName ).toString(), output );
+		{
+			final Object value = input.getValue( columnName );
+			if ( value == null )
+				output.setZero();
+			else
+				convertStringToARGB( value.toString(), output );
+		}
 		else
+		{
 			convertStringToARGB( input.toString(), output );
+		}
 	}
 
 	public void convertStringToARGB( String value, ARGBType output )

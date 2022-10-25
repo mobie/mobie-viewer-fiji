@@ -86,7 +86,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	// Runtime
 	public transient SelectionModel< A > selectionModel;
 	public transient MobieColoringModel< A > coloringModel;
-	private transient AnnotationAdapter<A> annotationAdapter;
+	public transient AnnotationAdapter<A> annotationAdapter;
 	public transient TableView< A > tableView;
 	public transient ScatterPlotView< A > scatterPlotView;
 	public transient AnnotationSliceView< A > sliceView;
@@ -185,8 +185,9 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 
 		if ( coloringModel instanceof AbstractAnnotationColoringModel )
 		{
-			this.lut = ( ( AbstractAnnotationColoringModel ) coloringModel ).getLut().getName();
-			this.colorByColumn = ( ( AbstractAnnotationColoringModel ) coloringModel ).getColumnName();
+			final AbstractAnnotationColoringModel annotationColoringModel = ( AbstractAnnotationColoringModel ) coloringModel;
+			this.lut = annotationColoringModel.getLut().getName();
+			this.colorByColumn = annotationColoringModel.getColumnName();
 		}
 
 		if ( coloringModel instanceof NumericAnnotationColoringModel )

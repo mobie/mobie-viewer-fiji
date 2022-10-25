@@ -60,9 +60,8 @@ public class SliceViewAnnotationSelector< A extends Annotation > implements Runn
 		final Collection< AnnotationDisplay< A > > annotationDisplays = annotationDisplaySupplier.get();
 
 		for ( AnnotationDisplay< A > annotationDisplay : annotationDisplays )
-		{
 			annotationDisplay.selectionModel.clearSelection();
-		}
+
 	}
 
 	private synchronized void toggleSelectionAtMousePosition()
