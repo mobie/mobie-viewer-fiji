@@ -16,7 +16,15 @@ public abstract class AbstractTableSawAnnotation implements Annotation
 	@Override
 	public Object getValue( String feature )
 	{
-		return model.getTable().get( rowIndex, model.getTable().columnIndex( feature ) );
+		try
+		{
+			return model.getTable().get( rowIndex, model.getTable().columnIndex( feature ) );
+		}
+		catch ( Exception e )
+		{
+			e.printStackTrace();
+			throw new RuntimeException( e );
+		}
 	}
 
 	@Override

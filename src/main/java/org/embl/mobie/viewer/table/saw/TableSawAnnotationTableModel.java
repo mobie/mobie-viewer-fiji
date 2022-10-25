@@ -104,7 +104,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		// note that this changes the table object, thus
 		// other classes that need that table object need to
 		// retrieve the new one
-		table = table.joinOn( mergeByColumnNames ).inner( additionalTable );
+		table = table.joinOn( mergeByColumnNames ).leftOuter( additionalTable );
 	}
 
 	private void initTable( Table rows )
@@ -142,6 +142,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	public List< String > columnNames()
 	{
 		update();
+
 		return table.columnNames();
 	}
 
@@ -149,6 +150,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	public List< String > numericColumnNames()
 	{
 		update();
+
 		return table.numericColumns().stream().map( c -> c.name() ).collect( Collectors.toList() );
 	}
 
@@ -166,6 +168,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	public int numAnnotations()
 	{
 		update();
+
 		return annotations.size();
 	}
 
@@ -173,6 +176,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	public synchronized int rowIndexOf( A annotation )
 	{
 		update();
+
 		// TODO Note that a Map may be more efficient, but
 		//   since this method is not called very frequently
 		//   the current implementation may do and avoid building the map,
@@ -224,7 +228,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	@Override
 	public LinkedHashSet< String > additionalTablePaths()
 	{
-		return additionalTablePaths; // including the default table
+		return additionalTablePaths; // excluding the default table
 	}
 
 	@Override
@@ -236,6 +240,8 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	@Override
 	public synchronized ArrayList< A > annotations()
 	{
+		update();
+
 		return annotations;
 	}
 

@@ -29,6 +29,8 @@
 package org.embl.mobie.viewer.serialize.display;
 
 import bdv.viewer.SourceAndConverter;
+import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.annotation.AnnotationAdapter;
 import org.embl.mobie.viewer.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
@@ -197,12 +199,17 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		this.scatterPlotAxes = annotationDisplay.scatterPlotView.getSelectedColumns();
 		this.additionalTables = annotationDisplay.additionalTables;
 
-		final LinkedHashSet< String > loadedColumnPaths = annotationDisplay.annData.getTable().additionalTablePaths();
-		if ( loadedColumnPaths.size() > 0 )
+		final LinkedHashSet< String > additionalTablePaths = annotationDisplay.annData.getTable().additionalTablePaths();
+		if ( additionalTablePaths.size() > 0 )
 		{
 			if ( this.additionalTables == null )
 				this.additionalTables = new ArrayList<>();
-			this.additionalTables.addAll( loadedColumnPaths );
+
+			for ( String path : additionalTablePaths )
+			{
+				final String fileName = MoBIEHelper.getFileName( path );
+				this.additionalTables.add( fileName );
+			}
 		}
 
 		this.showTable = annotationDisplay.tableView.getWindow().isVisible();
