@@ -50,7 +50,6 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.ui.UserInterfaceHelper;
 
 import javax.swing.*;
-import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -340,9 +339,10 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		});
 	}
 
-	private void selectRows( List< A > selectedRows, List< A > notSelectedRows ) {
+	private void selectRows( List< A > selectedRows, boolean keepCurrentSelection ) {
+		if ( ! keepCurrentSelection )
+			selectionModel.clearSelection();
 		selectionModel.setSelected( selectedRows, true );
-		selectionModel.setSelected( notSelectedRows, false );
 	}
 
 	private void selectEqualTo()
@@ -352,13 +352,14 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		String[] columnNames = tableModel.columnNames().stream().toArray( String[]::new );
 		gd.addChoice( "Column", columnNames, columnNames[0] );
 		gd.addStringField( "value", "" );
+		gd.addCheckbox( "Keep current selection", true );
 		gd.showDialog();
 		if( gd.wasCanceled() ) return;
 		final String columnName = gd.getNextChoice();
 		final String selectedValue = gd.getNextString();
+		final boolean keepCurrentSelection = gd.getNextBoolean();
 
 		ArrayList< A > selectedRows = new ArrayList<>();
-		ArrayList< A > notSelectedRows = new ArrayList<>();
 		final ArrayList< A > rows = tableModel.annotations();
 
 		final boolean numeric = tableModel.numericColumnNames().contains( columnName ) ? true : false;
@@ -370,37 +371,36 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 			for( A row: rows )
 				if ( row.getNumber( columnName ).equals( selectedNumber ) )
 					selectedRows.add( row );
-				else
-					notSelectedRows.add( row );
 		}
 		else
 		{
 			for( A row: rows )
 				if ( row.getValue( columnName ).equals( selectedValue ) )
 					selectedRows.add( row );
-				else
-					notSelectedRows.add( row );
 		}
 
 		if ( selectedRows.size() > 0 )
-			selectRows( selectedRows, notSelectedRows );
+			selectRows( selectedRows, keepCurrentSelection );
 		else
 			Logger.error( selectedValue + " does not exist in column " + columnName + ", please choose another value." );
 	}
 
-	private void selectGreaterOrLessThan( final boolean greaterThan ) {
+	// TODO Code duplication with the method above
+	private void selectGreaterOrLessThan( final boolean greaterThan )
+	{
 		// only works for numeric columns
 		final GenericDialog gd = new GenericDialog( "" );
 		String[] columnNames = tableModel.numericColumnNames().toArray(new String[0]);
 		gd.addChoice( "Column", columnNames, columnNames[0] );
 		gd.addNumericField( "value", 0 );
+		gd.addCheckbox( "Keep current selection", true );
 		gd.showDialog();
 		if( gd.wasCanceled() ) return;
 		final String columnName = gd.getNextChoice();
 		final double value = gd.getNextNumber();
+		final boolean keepCurrentSelection = gd.getNextBoolean();
 
 		ArrayList< A > selectedRows = new ArrayList<>();
-		ArrayList< A > notSelectedRows = new ArrayList<>();
 		final ArrayList< A > rows = tableModel.annotations();
 
 		for( A row: rows )
@@ -408,11 +408,9 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 					row.getNumber( columnName ) > value :
 					row.getNumber( columnName ) < value )
 				selectedRows.add( row );
-			else
-				notSelectedRows.add( row );
 
 		if ( selectedRows.size() > 0 )
-			selectRows( selectedRows, notSelectedRows );
+			selectRows( selectedRows, keepCurrentSelection );
 		else
 			if ( greaterThan )
 				IJ.showMessage( "No values greater than " + value + " in column " + columnName + ", please choose another value." );
