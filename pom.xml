@@ -238,5 +238,10 @@
             <artifactId>imagej</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.bioimageanalysis.icy</groupId>
+            <artifactId>dl-model-runner</artifactId>
+            <version>1.0.1</version>
+        </dependency>
     </dependencies>
 </project>
