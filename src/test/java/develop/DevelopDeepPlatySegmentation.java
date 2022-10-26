@@ -1,6 +1,5 @@
 package develop;
 
-import bdv.cache.SharedQueue;
 import bdv.util.AxisOrder;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
@@ -16,10 +15,16 @@ import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.view.IntervalView;
+import net.imglib2.view.Views;
 import org.bioimageanalysis.icy.deeplearning.Model;
+import org.bioimageanalysis.icy.deeplearning.tensor.Tensor;
 import org.bioimageanalysis.icy.deeplearning.utils.EngineInfo;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DevelopDeepPlatySegmentation
 {
@@ -39,7 +44,7 @@ public class DevelopDeepPlatySegmentation
 				new ReadOnlyCachedCellImgFactory().create(
 						scale3.dimensionsAsLongArray(),
 						new FloatType(),
-						new PredictionLoader( loadModel() ),
+						new PredictionLoader( loadModel(), scale3 ),
 						ReadOnlyCachedCellImgOptions.options().cellDimensions( 256, 256, 32 )
 				);
 
@@ -74,15 +79,49 @@ public class DevelopDeepPlatySegmentation
 
 	static class PredictionLoader implements CellLoader< FloatType >
 	{
-		public PredictionLoader( Model model )
+		private final Model model;
+		private final RandomAccessibleInterval< ? > input;
+
+		public PredictionLoader( Model model, RandomAccessibleInterval< ? > input )
 		{
 
+			this.model = model;
+			this.input = input;
 		}
 
 		@Override
-		public void load( SingleCellArrayImg< FloatType, ? > cell ) throws Exception
+		public void load( SingleCellArrayImg< FloatType, ? > cell )
 		{
+			final RandomAccessibleInterval< ? > crop = Views.interval( input, cell );
 
+			// Fix data type (all models need float as input)
+			//
+			RandomAccessibleInterval< FloatType > rai = Tensor.createCopyOfRaiInWantedDataType( (RandomAccessibleInterval) crop, new FloatType() );
+
+			// Fix dimension order
+			//
+			final long[] loadedDims = rai.dimensionsAsLongArray();
+			rai = Views.addDimension( rai, 0, 0 );
+			rai = Views.moveAxis( rai, rai.numDimensions()-1, 0 );
+			rai = Views.addDimension( rai, 0, 0 );
+			rai = Views.moveAxis( rai, rai.numDimensions()-1, 0 );
+			final long[] convertedDims = rai.dimensionsAsLongArray();
+
+			// Build input tensor
+			//
+			Tensor< FloatType > inputTensor = Tensor.build("input0", "bczyx", rai);
+			List< Tensor< ? > > inputs = new ArrayList<Tensor<?>>();
+			inputs.add( inputTensor );
+
+			// We need to specify the output tensors with its axes order
+			// and name, but empty
+			final Tensor< T > outputTensor = Tensor.buildEmptyTensor( "output0", "bczyx" );
+			List<Tensor<?>> outputs = new ArrayList<Tensor<?>>();
+			outputs.add(outTensor);
+			outputs = model.runModel(inputs, outputs);
+			System.out.println( "Created outputs: " + outputs.size() );
+			RandomAccessibleInterval< ? > output = outputs.get( 0 ).getData();
+			final long[] outputDims = output.dimensionsAsLongArray();
 		}
 	}
 }
