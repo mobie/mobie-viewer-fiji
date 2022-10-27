@@ -14,7 +14,7 @@ public class DefaultAnnotatedSpot implements AnnotatedSpot
 	private static final String[] idColumns = new String[]{ ColumnNames.SPOT_ID };
 	private final int rowIndex;
 
-	private String uuid;
+	private String uuid; // FIXME not initialised !
 	private int label;
 	private double[] position;
 	private String source;

@@ -590,12 +590,7 @@ public class ViewManager
 
 			if ( LUTs.isCategorical( lut ) )
 			{
-				final String columnName = annotationDisplay.getColoringColumnName();
-				String coloringColumnName = columnName == null ?
-						annotationDisplay.getAnnData().getTable().columnNames().get( 0 ) : columnName;
-
-				CategoricalAnnotationColoringModel< Annotation > coloringModel = ColoringModels.createCategoricalModel( coloringColumnName, lut, LUTs.TRANSPARENT );
-
+				CategoricalAnnotationColoringModel< Annotation > coloringModel = ColoringModels.createCategoricalModel( annotationDisplay.getColoringColumnName(), lut, LUTs.TRANSPARENT );
 
 				if ( LUTs.getLut( lut ) instanceof ColumnARGBLut )
 				{

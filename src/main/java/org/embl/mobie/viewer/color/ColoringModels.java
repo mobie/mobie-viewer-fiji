@@ -60,7 +60,7 @@ public class ColoringModels
 	}
 
 	public static < A extends Annotation > CategoricalAnnotationColoringModel< A > createCategoricalModel(
-			String columnName,
+			String columnName, @Nullable
 			String lutName,
 			ARGBType colorForNoneOrNaN )
 	{
