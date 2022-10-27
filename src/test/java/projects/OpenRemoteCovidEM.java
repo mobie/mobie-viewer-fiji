@@ -28,14 +28,13 @@
  */
 package projects;
 
+import net.imagej.ImageJ;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
-import net.imagej.ImageJ;
 
 import java.io.IOException;
-import org.embl.mobie.io.ImageDataFormat;
 
-public class OpenRemoteCovidTomogramsBranch
+public class OpenRemoteCovidEM
 {
 	public static void main( String[] args )
 	{
@@ -43,7 +42,7 @@ public class OpenRemoteCovidTomogramsBranch
 		imageJ.ui().showUI();
 
 		try {
-			new MoBIE("https://github.com/mobie/covid-tomo-datasets",
+			new MoBIE("https://github.com/mobie/covid-em-project",
 					MoBIESettings.settings().gitProjectBranch( "mobie3" ).view( "s5_mock_segmentation" ) );
 		} catch (IOException e) {
 			e.printStackTrace();

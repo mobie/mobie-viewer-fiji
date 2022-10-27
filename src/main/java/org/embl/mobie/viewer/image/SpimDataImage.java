@@ -74,7 +74,14 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	public RealMaskRealInterval getMask( )
 	{
 		if ( mask == null )
-			return SourceHelper.estimateMask( getSourcePair().getSource(), 0 );
+		{
+			// It is important to add the voxel size,
+			// because otherwise rendering 2D sources in a 3D scene
+			// will make them so thin that the {@code RegionLabelImage}
+			// does not render anything.
+			// TODO maybe better to move this logic of adding the voxel size to {@code RegionLabelImage}? Not sure.
+			return SourceHelper.estimateMaskIncludingVoxelSize( getSourcePair().getSource(), 0 );
+		}
 
 		return mask;
 	}

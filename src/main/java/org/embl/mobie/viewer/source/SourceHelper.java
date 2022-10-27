@@ -33,6 +33,7 @@ import bdv.tools.transformation.TransformedSource;
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
@@ -203,6 +204,20 @@ public abstract class SourceHelper
 	{
 		final FinalRealInterval realInterval = estimateBounds( source, t );
 		return GeomMasks.closedBox( realInterval.minAsDoubleArray(), realInterval.maxAsDoubleArray());
+	}
+
+	public static RealMaskRealInterval estimateMaskIncludingVoxelSize( Source< ? > source, int t )
+	{
+		final FinalRealInterval realInterval = estimateBounds( source, t );
+		final double[] min = realInterval.minAsDoubleArray();
+		final double[] max = realInterval.maxAsDoubleArray();
+		final double[] voxelDimensions = source.getVoxelDimensions().dimensionsAsDoubleArray();
+		for ( int d = 0; d < min.length; d++ )
+		{
+			min[ d ] -= voxelDimensions[ d ];
+			max[ d ] += voxelDimensions[ d ];
+		}
+		return GeomMasks.closedBox( min, max );
 	}
 
 	public static FinalRealInterval estimateBounds( Source< ? > source )
