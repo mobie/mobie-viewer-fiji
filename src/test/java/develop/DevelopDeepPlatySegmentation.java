@@ -127,13 +127,15 @@ public class DevelopDeepPlatySegmentation
 		@Override
 		public void load( SingleCellArrayImg< FloatType, ? > cell )
 		{
-			System.out.println("Predicting: " + Arrays.toString( cell.minAsLongArray() ) + " - " + Arrays.toString( cell.maxAsLongArray() ) );
+			final String cellLocation = Arrays.toString( cell.minAsLongArray() ) + " - " + Arrays.toString( cell.maxAsLongArray() );
+			System.out.println( "Prediction started: " + cellLocation );
 			final RandomAccessibleInterval< I > crop = Views.zeroMin( Views.interval( input, cell ) );
-			RealTypeConverters.copyFromTo( crop, Views.zeroMin( cell ) );
+			// For testing: just copy the raw data over
+			//RealTypeConverters.copyFromTo( crop, Views.zeroMin( cell ) );
 
-			if( false )
+			if( true )
 			{
-				// Fix data type (all models need float as input)
+				// Convert data type (all models need float as input)
 				//
 				// TODO: Use converter to do this lazy
 				//    also apply preprocessing ?
@@ -181,7 +183,10 @@ public class DevelopDeepPlatySegmentation
 					final long[] outputDims = output.dimensionsAsLongArray();
 					final long[] cellDims = cell.dimensionsAsLongArray();
 
-					RealTypeConverters.copyFromTo( output, cell );
+					RealTypeConverters.copyFromTo( Views.zeroMin( output ), Views.zeroMin(  cell ) );
+
+					System.out.println("Prediction done: " + cellLocation );
+					BdvFunctions.show( cell, cellLocation );
 				} catch ( Exception e )
 				{
 					e.printStackTrace();
