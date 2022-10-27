@@ -204,12 +204,16 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	@Override
 	public synchronized A annotation( int rowIndex )
 	{
-		final A annotation = annotations.get( rowIndex );
-
-		if ( annotation == null ) // DEBUG
-			throw new RuntimeException("TableSawAnnotationTableModel: RowIndex " + rowIndex + " does not exist.");
-
-		return annotation;
+		try
+		{
+			final A annotation = annotations.get( rowIndex );
+			return annotation;
+		}
+		catch ( Exception e )
+		{
+			e.printStackTrace();
+			throw new RuntimeException( e );
+		}
 	}
 
 	@Override
