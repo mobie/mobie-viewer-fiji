@@ -104,7 +104,16 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		// note that this changes the table object, thus
 		// other classes that need that table object need to
 		// retrieve the new one
-		table = table.joinOn( mergeByColumnNames ).leftOuter( additionalTable );
+		try
+		{
+			final List< String > additionalColumnNames = additionalTable.columnNames();
+			table = table.joinOn( mergeByColumnNames ).leftOuter( additionalTable );
+		}
+		catch ( Exception e )
+		{
+			e.printStackTrace();
+			throw new RuntimeException( e );
+		}
 	}
 
 	private void initTable( Table rows )

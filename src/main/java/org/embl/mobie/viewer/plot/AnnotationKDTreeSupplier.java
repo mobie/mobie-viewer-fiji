@@ -111,15 +111,26 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 		{
 			final A annotation = iterator.next();
 
-			if ( annotation instanceof Outlier )
-				if ( ( ( Outlier ) annotation ).isOutlier() )  // From plateViewer for Corona screening project
-					continue;
-
 			isValidDataPoint = true;
+
 			for ( int d = 0; d < n; d++ )
 			{
-				final String cell = annotation.getValue( columns[ d ] ).toString();
+				// TODO With the new table model we don't have to
+				//  do the conversion to Double via String anymore.
 
+				// FIXME: It would be convenient to be able to ask the annotation
+				//   whether a feature is numeric or categorical
+
+				Object value = annotation.getValue( columns[ d ] );
+				if ( value == null )
+				{
+					// This can happen when merging tables
+					// and not all rows have a match
+					isValidDataPoint = false;
+					break;
+				}
+
+				String cell = value.toString();
 				try
 				{
 					xy[ d ] = Utils.parseDouble( cell );

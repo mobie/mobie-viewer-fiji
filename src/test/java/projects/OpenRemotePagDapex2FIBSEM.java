@@ -28,18 +28,22 @@
  */
 package projects;
 
+import net.imagej.ImageJ;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
-import net.imagej.ImageJ;
 
 import java.io.IOException;
 
-public class OpenRemotePlatynereisBranch
+public class OpenRemotePagDapex2FIBSEM
 {
-	public static void main( String[] args ) throws IOException
+	public static void main( String[] args )
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE( "https://github.com/mobie/platybrowser-datasets", MoBIESettings.settings().gitProjectBranch( "mobie3" ).view( "Figure1a" ) ); //"Figure 3B: Morphology clustering full body"
+		try {
+			new MoBIE("https://github.com/mobie/pag-dapex2-fibsem", MoBIESettings.settings().gitProjectBranch( "mobie3" ) );
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

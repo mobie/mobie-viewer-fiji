@@ -153,6 +153,10 @@ public class ViewManager
 		final AnnotationTableModel annotationTableModel = annotatedLabelImage.getAnnData().getTable();
 
 		String[] scatterPlotAxes = display.getScatterPlotAxes();
+		if ( scatterPlotAxes == null )
+		{
+			int b = 1;
+		}
 		display.scatterPlotView = new ScatterPlotView( annotationTableModel, display.selectionModel, display.coloringModel, scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
 		display.selectionModel.listeners().add( display.scatterPlotView );
 		display.coloringModel.listeners().add( display.scatterPlotView );
