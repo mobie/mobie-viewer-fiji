@@ -45,8 +45,8 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 	private int randomSeed;
 
 	public CategoricalAnnotationColoringModel(
-			@Nullable String columnName,
-			String lutName )
+			final String columnName,
+			final String lutName )
 	{
 		this.columnName = columnName;
 		this.lut = LUTs.getLut( lutName );
@@ -64,18 +64,11 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 	@Override
 	public void convert( A input, ARGBType output )
 	{
-		if ( columnName != null )
-		{
-			final Object value = input.getValue( columnName );
-			if ( value == null )
-				output.setZero();
-			else
-				convertStringToARGB( value.toString(), output );
-		}
+		final Object value = input.getValue( columnName );
+		if ( value == null )
+			output.setZero();
 		else
-		{
-			convertStringToARGB( input.toString(), output );
-		}
+			convertStringToARGB( value.toString(), output );
 	}
 
 	public void convertStringToARGB( String value, ARGBType output )
