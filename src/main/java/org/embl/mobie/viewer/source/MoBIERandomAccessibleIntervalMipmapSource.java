@@ -17,7 +17,7 @@ import net.imglib2.view.Views;
 
 import java.util.List;
 
-public class RandomAccessibleIntervalMipmapSource< T extends Type< T > > implements Source< T >
+public class MoBIERandomAccessibleIntervalMipmapSource< T extends Type< T > > implements Source< T >
 {
 	private final List< RandomAccessibleInterval< T > > mipmapSources;
 	private final AffineTransform3D[] mipmapTransforms;
@@ -26,7 +26,7 @@ public class RandomAccessibleIntervalMipmapSource< T extends Type< T > > impleme
 	private final String name;
 	private final DefaultInterpolators< ? extends NumericType > interpolators;
 
-	public RandomAccessibleIntervalMipmapSource(
+	public MoBIERandomAccessibleIntervalMipmapSource(
 			final List< RandomAccessibleInterval< T > > imgs,
 			final T type,
 			final VoxelDimensions voxelDimensions,

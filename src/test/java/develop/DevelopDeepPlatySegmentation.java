@@ -1,41 +1,61 @@
 package develop;
 
+import bdv.cache.SharedQueue;
 import bdv.util.AxisOrder;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
-import bdv.util.volatiles.VolatileViews;
+import bdv.util.RandomAccessibleIntervalMipmapSource;
+import bdv.util.VolatileRandomAccessibleIntervalMipmapSource;
 import bdv.viewer.Source;
+import ij.IJ;
 import mpicbg.spim.data.generic.AbstractSpimData;
+import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.Volatile;
+import net.imglib2.RealRandomAccessible;
 import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.cache.img.SingleCellArrayImg;
+import net.imglib2.converter.Converter;
+import net.imglib2.converter.RealTypeConverters;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.RealViews;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
-import net.imglib2.view.IntervalView;
+import net.imglib2.type.volatiles.VolatileFloatType;
+import net.imglib2.util.Util;
 import net.imglib2.view.Views;
 import org.bioimageanalysis.icy.deeplearning.Model;
 import org.bioimageanalysis.icy.deeplearning.tensor.Tensor;
 import org.bioimageanalysis.icy.deeplearning.utils.EngineInfo;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
+import org.embl.mobie.viewer.source.MoBIERandomAccessibleIntervalMipmapSource;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class DevelopDeepPlatySegmentation
 {
 	public static void main( String[] args ) throws Exception
 	{
+		final SharedQueue sharedQueue = new SharedQueue( 3 );
+
 		// Open and show the 8 TB input data
 		//
-		final AbstractSpimData platySBEM = new SpimDataOpener().openSpimData( "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr", ImageDataFormat.OmeZarr );
+		final AbstractSpimData platySBEM = new SpimDataOpener().openSpimData( "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr", ImageDataFormat.OmeZarrS3, sharedQueue );
 		final BdvStackSource< ? > stackSource = BdvFunctions.show( platySBEM ).get( 0 );
 		final BdvHandle bdvHandle = stackSource.getBdvHandle();
 		final Source< ? > source = stackSource.getSources().get( 0 ).getSpimSource();
+
+		final AffineTransform3D viewerTransform = new AffineTransform3D();
+		viewerTransform.set( 31.524161974149372,0.0,0.0,-3471.2941398257967,0.0,31.524161974149372,0.0,-3335.2908913145466,0.0,0.0,31.524161974149372,-4567.901470761989 );
+		bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
+		IJ.wait( 1000 );
 
 		// Create the lazy prediction image
 		//
@@ -48,10 +68,23 @@ public class DevelopDeepPlatySegmentation
 						ReadOnlyCachedCellImgOptions.options().cellDimensions( 256, 256, 32 )
 				);
 
-		// Show the predictions
-		//
-		final RandomAccessibleInterval< Volatile< FloatType > > volatilePredictions = VolatileViews.wrapAsVolatile( prediction );
-		BdvFunctions.show( volatilePredictions, "prediction", BdvOptions.options().axisOrder( AxisOrder.XYZ ).addTo( bdvHandle ) );
+		final AffineTransform3D predictionTransform = new AffineTransform3D();
+		source.getSourceTransform( 0,3, predictionTransform  );
+
+		final RandomAccessibleInterval< FloatType >[] predictionRais = new RandomAccessibleInterval[ 1 ];
+		predictionRais[ 0 ] = prediction;
+
+		// TODO: Fix the voxel dimensions
+		final double[] sourceVoxelSize = source.getVoxelDimensions().dimensionsAsDoubleArray();
+		final double[] predictionVoxelSize = new double[ 3 ];
+		predictionTransform.apply( sourceVoxelSize, predictionVoxelSize );
+		final FinalVoxelDimensions predictionVoxelDimensions = new FinalVoxelDimensions( "micrometer", predictionVoxelSize );
+
+		final double[][] mipmapScales = new double[ 1 ][ 3 ];
+		mipmapScales[ 0 ] = new double[]{ 1, 1, 1 };
+		final RandomAccessibleIntervalMipmapSource predictionSource = new RandomAccessibleIntervalMipmapSource( predictionRais, new FloatType(), mipmapScales, predictionVoxelDimensions, predictionTransform, "prediction" );
+		final VolatileRandomAccessibleIntervalMipmapSource vPredictionSource = new VolatileRandomAccessibleIntervalMipmapSource( predictionSource, new VolatileFloatType(), sharedQueue );
+		BdvFunctions.show( vPredictionSource, BdvOptions.options().addTo( bdvHandle ) );
 	}
 
 	private static Model loadModel()
@@ -77,51 +110,86 @@ public class DevelopDeepPlatySegmentation
 		}
 	}
 
-	static class PredictionLoader implements CellLoader< FloatType >
+	static class PredictionLoader< I extends RealType< I > & NativeType< I >, O extends RealType< O > & NativeType< O > >  implements CellLoader< FloatType >
 	{
 		private final Model model;
-		private final RandomAccessibleInterval< ? > input;
+		private final RandomAccessibleInterval< I > input;
+		private I inputType;
 
-		public PredictionLoader( Model model, RandomAccessibleInterval< ? > input )
+		public PredictionLoader( Model model, RandomAccessibleInterval< I > input )
 		{
-
 			this.model = model;
 			this.input = input;
+			inputType = Util.getTypeFromInterval( input );
+
+			final Converter< I, FloatType > converter = RealTypeConverters.getConverter( inputType, new FloatType() );
 		}
 
 		@Override
 		public void load( SingleCellArrayImg< FloatType, ? > cell )
 		{
-			final RandomAccessibleInterval< ? > crop = Views.interval( input, cell );
+			System.out.println("Predicting: " + Arrays.toString( cell.minAsLongArray() ) + " - " + Arrays.toString( cell.maxAsLongArray() ) );
+			final RandomAccessibleInterval< I > crop = Views.interval( input, cell );
 
 			// Fix data type (all models need float as input)
 			//
+			// TODO: Use converter to do this lazy
+			//    also apply preprocessing ?
 			RandomAccessibleInterval< FloatType > rai = Tensor.createCopyOfRaiInWantedDataType( (RandomAccessibleInterval) crop, new FloatType() );
 
-			// Fix dimension order
-			//
-			final long[] loadedDims = rai.dimensionsAsLongArray();
-			rai = Views.addDimension( rai, 0, 0 );
-			rai = Views.moveAxis( rai, rai.numDimensions()-1, 0 );
-			rai = Views.addDimension( rai, 0, 0 );
-			rai = Views.moveAxis( rai, rai.numDimensions()-1, 0 );
-			final long[] convertedDims = rai.dimensionsAsLongArray();
+			RealTypeConverters.copyFromTo( rai, cell );
 
-			// Build input tensor
-			//
-			Tensor< FloatType > inputTensor = Tensor.build("input0", "bczyx", rai);
-			List< Tensor< ? > > inputs = new ArrayList<Tensor<?>>();
-			inputs.add( inputTensor );
+			if( false )
+			{
 
-			// We need to specify the output tensors with its axes order
-			// and name, but empty
-			final Tensor< T > outputTensor = Tensor.buildEmptyTensor( "output0", "bczyx" );
-			List<Tensor<?>> outputs = new ArrayList<Tensor<?>>();
-			outputs.add(outTensor);
-			outputs = model.runModel(inputs, outputs);
-			System.out.println( "Created outputs: " + outputs.size() );
-			RandomAccessibleInterval< ? > output = outputs.get( 0 ).getData();
-			final long[] outputDims = output.dimensionsAsLongArray();
+				// Add channel and batch dimension
+				//
+				final long[] inputDims = rai.dimensionsAsLongArray();
+				rai = Views.addDimension( rai, 0, 0 );
+				rai = Views.moveAxis( rai, rai.numDimensions() - 1, 0 );
+				rai = Views.addDimension( rai, 0, 0 );
+				rai = Views.moveAxis( rai, rai.numDimensions() - 1, 0 );
+				final long[] convertedDims = rai.dimensionsAsLongArray();
+
+
+				// Preprocess?
+				//
+				// TODO
+
+				// Build input tensor
+				//
+				Tensor< FloatType > inputTensor = Tensor.build( "input0", "bczyx", rai );
+				List< Tensor< ? > > inputs = new ArrayList<>();
+				inputs.add( inputTensor );
+
+				// Prepare output tensor
+				//
+				// TODO
+				//   - can we give the cell?
+				final Tensor< O > outputTensor = Tensor.buildEmptyTensor( "output0", "bczyx" );
+				List< Tensor< ? > > outputs = new ArrayList<>();
+				outputs.add( outputTensor );
+
+				try
+				{
+					outputs = model.runModel( inputs, outputs );
+					RandomAccessibleInterval< FloatType > output = ( RandomAccessibleInterval< FloatType > ) outputs.get( 0 ).getData();
+					// Remove batch and channel dimension
+					output = Views.hyperSlice( output, 0, 0 );
+					output = Views.hyperSlice( output, 0, 0 );
+
+					// Copy output into cell
+					//
+					final long[] outputDims = output.dimensionsAsLongArray();
+					final long[] cellDims = cell.dimensionsAsLongArray();
+
+					RealTypeConverters.copyFromTo( output, cell );
+				} catch ( Exception e )
+				{
+					e.printStackTrace();
+					throw new RuntimeException( e );
+				}
+			}
 		}
 	}
 }

@@ -52,7 +52,7 @@ import org.embl.mobie.viewer.DataStore;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.ThreadHelper;
 import org.embl.mobie.viewer.source.MoBIEVolatileTypeMatcher;
-import org.embl.mobie.viewer.source.RandomAccessibleIntervalMipmapSource;
+import org.embl.mobie.viewer.source.MoBIERandomAccessibleIntervalMipmapSource;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.source.SourcePair;
 import org.embl.mobie.viewer.transform.image.ImageTransformer;
@@ -267,7 +267,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		//
 		final List< RandomAccessibleInterval< T > > mipMapRAIs = createStitchedRAIs( randomAccessibleSupplier );
 
-		final RandomAccessibleIntervalMipmapSource< T > source = new RandomAccessibleIntervalMipmapSource<>(
+		final MoBIERandomAccessibleIntervalMipmapSource< T > source = new MoBIERandomAccessibleIntervalMipmapSource<>(
 				mipMapRAIs,
 				type,
 				voxelDimensions,
@@ -279,7 +279,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		//
 		final List< RandomAccessibleInterval< V > > volatileMipMapRAIs = createVolatileStitchedRAIs( randomAccessibleSupplier );
 
-		final RandomAccessibleIntervalMipmapSource< V > volatileSource = new RandomAccessibleIntervalMipmapSource<>(
+		final MoBIERandomAccessibleIntervalMipmapSource< V > volatileSource = new MoBIERandomAccessibleIntervalMipmapSource<>(
 				volatileMipMapRAIs,
 				volatileType,
 				voxelDimensions,
