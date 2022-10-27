@@ -186,7 +186,7 @@ public class DevelopDeepPlatySegmentation
 					RealTypeConverters.copyFromTo( Views.zeroMin( output ), Views.zeroMin(  cell ) );
 
 					System.out.println("Prediction done: " + cellLocation );
-					BdvFunctions.show( cell, cellLocation );
+					//BdvFunctions.show( cell, cellLocation );
 				} catch ( Exception e )
 				{
 					e.printStackTrace();
