@@ -1,7 +1,6 @@
 package develop;
 
 import bdv.cache.SharedQueue;
-import bdv.util.AxisOrder;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
@@ -13,7 +12,6 @@ import ij.IJ;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealRandomAccessible;
 import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
@@ -21,7 +19,6 @@ import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.converter.Converter;
 import net.imglib2.converter.RealTypeConverters;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.realtransform.RealViews;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
@@ -33,7 +30,6 @@ import org.bioimageanalysis.icy.deeplearning.tensor.Tensor;
 import org.bioimageanalysis.icy.deeplearning.utils.EngineInfo;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
-import org.embl.mobie.viewer.source.MoBIERandomAccessibleIntervalMipmapSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +39,7 @@ public class DevelopDeepPlatySegmentation
 {
 	public static void main( String[] args ) throws Exception
 	{
+		final int level = 3;
 		final SharedQueue sharedQueue = new SharedQueue( 3 );
 
 		// Open and show the 8 TB input data
@@ -59,28 +56,30 @@ public class DevelopDeepPlatySegmentation
 
 		// Create the lazy prediction image
 		//
-		final RandomAccessibleInterval< ? > scale3 = source.getSource( 0, 3 );
+		final RandomAccessibleInterval< ? > inputRAI = source.getSource( 0, level );
 		RandomAccessibleInterval< FloatType > prediction =
 				new ReadOnlyCachedCellImgFactory().create(
-						scale3.dimensionsAsLongArray(),
+						inputRAI.dimensionsAsLongArray(),
 						new FloatType(),
-						new PredictionLoader( loadModel(), scale3 ),
+						new Predictor( loadModel(), inputRAI ),
 						ReadOnlyCachedCellImgOptions.options().cellDimensions( 256, 256, 32 )
 				);
 
+
 		final AffineTransform3D predictionTransform = new AffineTransform3D();
-		source.getSourceTransform( 0,3, predictionTransform  );
+		source.getSourceTransform( 0, level, predictionTransform  );
+
 
 		final RandomAccessibleInterval< FloatType >[] predictionRais = new RandomAccessibleInterval[ 1 ];
 		predictionRais[ 0 ] = prediction;
 
 		// TODO: Fix the voxel dimensions
 		final double[] sourceVoxelSize = source.getVoxelDimensions().dimensionsAsDoubleArray();
-		final double[] predictionVoxelSize = new double[ 3 ];
+		final double[] predictionVoxelSize = new double[ level ];
 		predictionTransform.apply( sourceVoxelSize, predictionVoxelSize );
 		final FinalVoxelDimensions predictionVoxelDimensions = new FinalVoxelDimensions( "micrometer", predictionVoxelSize );
 
-		final double[][] mipmapScales = new double[ 1 ][ 3 ];
+		final double[][] mipmapScales = new double[ 1 ][ level ];
 		mipmapScales[ 0 ] = new double[]{ 1, 1, 1 };
 		final RandomAccessibleIntervalMipmapSource predictionSource = new RandomAccessibleIntervalMipmapSource( predictionRais, new FloatType(), mipmapScales, predictionVoxelDimensions, predictionTransform, "prediction" );
 		final VolatileRandomAccessibleIntervalMipmapSource vPredictionSource = new VolatileRandomAccessibleIntervalMipmapSource( predictionSource, new VolatileFloatType(), sharedQueue );
@@ -110,13 +109,13 @@ public class DevelopDeepPlatySegmentation
 		}
 	}
 
-	static class PredictionLoader< I extends RealType< I > & NativeType< I >, O extends RealType< O > & NativeType< O > >  implements CellLoader< FloatType >
+	static class Predictor< I extends RealType< I > & NativeType< I >, O extends RealType< O > & NativeType< O > >  implements CellLoader< FloatType >
 	{
 		private final Model model;
 		private final RandomAccessibleInterval< I > input;
 		private I inputType;
 
-		public PredictionLoader( Model model, RandomAccessibleInterval< I > input )
+		public Predictor( Model model, RandomAccessibleInterval< I > input )
 		{
 			this.model = model;
 			this.input = input;
@@ -129,18 +128,17 @@ public class DevelopDeepPlatySegmentation
 		public void load( SingleCellArrayImg< FloatType, ? > cell )
 		{
 			System.out.println("Predicting: " + Arrays.toString( cell.minAsLongArray() ) + " - " + Arrays.toString( cell.maxAsLongArray() ) );
-			final RandomAccessibleInterval< I > crop = Views.interval( input, cell );
-
-			// Fix data type (all models need float as input)
-			//
-			// TODO: Use converter to do this lazy
-			//    also apply preprocessing ?
-			RandomAccessibleInterval< FloatType > rai = Tensor.createCopyOfRaiInWantedDataType( (RandomAccessibleInterval) crop, new FloatType() );
-
-			RealTypeConverters.copyFromTo( rai, cell );
+			final RandomAccessibleInterval< I > crop = Views.zeroMin( Views.interval( input, cell ) );
+			RealTypeConverters.copyFromTo( crop, Views.zeroMin( cell ) );
 
 			if( false )
 			{
+				// Fix data type (all models need float as input)
+				//
+				// TODO: Use converter to do this lazy
+				//    also apply preprocessing ?
+
+				RandomAccessibleInterval< FloatType > rai = Tensor.createCopyOfRaiInWantedDataType( (RandomAccessibleInterval) crop, new FloatType() );
 
 				// Add channel and batch dimension
 				//
