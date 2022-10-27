@@ -486,7 +486,7 @@ public class MoBIE
 	public void initDataSources( List< DataSource > dataSources )
 	{
 		if ( dataSources.size() > 20 )
-			IJ.log("Initialising " + dataSources.size() + " data sources (this could take a couple of minutes..." );
+			IJ.log("Initialising " + dataSources.size() + " data sources (this could take a couple of minutes...)" );
 
 		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
 		AtomicInteger sourceIndex = new AtomicInteger(0);
