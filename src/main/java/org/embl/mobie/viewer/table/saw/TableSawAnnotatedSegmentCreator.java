@@ -6,6 +6,7 @@ import org.embl.mobie.viewer.table.ColumnNames;
 import tech.tablesaw.api.Table;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreator< TableSawAnnotatedSegment >
 {
@@ -15,6 +16,7 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 	private int xColumnIndex;
 	private int yColumnIndex;
 	private int zColumnIndex;
+	private AtomicBoolean columnsInitialised = new AtomicBoolean( false );
 
 	public TableSawAnnotatedSegmentCreator( )
 	{
@@ -22,6 +24,12 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 
 	public TableSawAnnotatedSegmentCreator( Table table )
 	{
+		initColumns( table );
+	}
+
+	private synchronized void initColumns( Table table )
+	{
+		columnsInitialised.set( true );
 		final List< String > columnNames = table.columnNames();
 		labelIdColumnIndex =  columnNames.indexOf( ColumnNames.LABEL_ID );
 		timePointColumnIndex = columnNames.indexOf( ColumnNames.TIMEPOINT );
@@ -37,9 +45,12 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 	{
 		final Table table = model.getTable();
 
+		if ( ! columnsInitialised.get() )
+			initColumns( table );
+
 		final boolean is3D = zColumnIndex > -1;
 
-		String source = labelImageColumnIndex > -1 ? table.stringColumn( labelIdColumnIndex ).get( rowIndex ) : table.name();
+		String source = labelImageColumnIndex > -1 ? table.stringColumn( labelImageColumnIndex ).get( rowIndex ) : table.name();
 
 		int timePoint = timePointColumnIndex > -1 ? table.intColumn( timePointColumnIndex ).get( rowIndex ) : 0;
 
