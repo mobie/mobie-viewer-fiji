@@ -241,7 +241,7 @@ public class ViewManager
 		}
 	}
 
-	public synchronized void show( String view )
+	public void show( String view )
 	{
 		show( moBIE.getViews().get( view ) );
 	}

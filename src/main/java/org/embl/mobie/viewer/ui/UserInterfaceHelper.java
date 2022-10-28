@@ -853,7 +853,7 @@ public class UserInterfaceHelper
 			SwingUtilities.invokeLater( () ->
 			{
 				final String dataset = ( String ) comboBox.getSelectedItem();
-				moBIE.setDataset( dataset );
+				moBIE.changeDataset( dataset );
 			} );
 		} );
 

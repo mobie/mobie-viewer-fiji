@@ -145,7 +145,11 @@ public class MoBIE
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( IOHelper.combinePath( projectRoot,  "project.json" ) );
 		setImageDataFormats( projectLocation );
-		openDataset();
+
+		synchronized ( this )
+		{
+			initDataset();
+		}
 	}
 
 	// TODO: Probably such Plugins should rather
@@ -191,16 +195,12 @@ public class MoBIE
 		}
 	}
 
-	private void openDataset() throws IOException
+	private void initDataset() throws IOException
 	{
-		if ( settings.values.getDataset() != null )
-		{
-			openDataset( settings.values.getDataset(), settings.values.getView() );
-		}
-		else
-		{
-			openDataset( project.getDefaultDataset(), settings.values.getView() );
-		}
+		final String dataset = settings.values.getDataset() == null
+				? project.getDefaultDataset() : settings.values.getDataset();
+
+		openDataset( dataset, settings.values.getView() );
 	}
 
 	private void setProjectImageAndTableRootLocations( )
@@ -260,9 +260,10 @@ public class MoBIE
 
 	private void openDataset( String datasetName, String viewName ) throws IOException
 	{
-		IJ.log("Opening dataset: " + datasetName );
+		IJ.log( "Opening dataset: " + datasetName );
+		setCurrentDatasetName( datasetName );
 		sourceNameToImgLoader = new HashMap<>();
-		setDatasetName( datasetName );
+		setCurrentDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
 		for ( Map.Entry< String, DataSource > entry : dataset.sources.entrySet() )
 			entry.getValue().setName( entry.getKey() );
@@ -287,7 +288,7 @@ public class MoBIE
 		return view;
 	}
 
-	private void setDatasetName( String datasetName )
+	private void setCurrentDatasetName( String datasetName )
 	{
 		this.datasetName = datasetName;
 	}
@@ -364,11 +365,6 @@ public class MoBIE
 
 	}
 
-	public synchronized DataSource getData( String sourceName )
-	{
-		return dataset.sources.get( sourceName );
-	}
-
 	private ImageDataFormat getAppropriateImageDataFormat( ImageDataSource imageSource )
 	{
 		for ( ImageDataFormat dataFormat : imageSource.imageData.keySet() )
@@ -389,16 +385,20 @@ public class MoBIE
 		throw new RuntimeException();
 	}
 
-	public void setDataset( String dataset )
+	public void changeDataset( String dataset )
     {
-        setDatasetName( dataset );
-        viewManager.close();
+		synchronized ( this )
+		{
+			viewManager.close();
 
-        try {
-            openDataset( dataset, View.DEFAULT );
-        } catch ( IOException e ) {
-            e.printStackTrace();
-        }
+			try
+			{
+				openDataset( dataset, View.DEFAULT );
+			} catch ( IOException e )
+			{
+				e.printStackTrace();
+			}
+		}
     }
 
     public Map<String, View > getViews()
