@@ -67,6 +67,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -95,6 +96,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private HashMap< Integer, double[] > levelToTileMarginVoxelTranslation;
 	private TransformedSource< T > transformedSource;
 	private RealMaskRealInterval tileImageMask;
+
+	private static AtomicInteger valueSupplierIndex = new AtomicInteger( 0 );
 
 	public StitchedImage( List< ? extends Image< T > > images, Image< T > metadataImage, @Nullable List< int[] > positions, String name, double relativeCellMargin )
 	{
@@ -127,7 +130,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			final AffineTransform3D copy = affineTransform3D.copy();
 			final long[] dimensions = metadataSource.getSource( 0, level ).dimensionsAsLongArray();
 			copy.setTranslation( 0, 0, 0 );
-			if ( level == 0 )
+			if ( false ) // level == 0 )
 			{
 				System.out.println( "StitchedImage: " + name );
 				System.out.println( "StitchedImage: Metadata source: " + metadataSource.getName() );
@@ -319,6 +322,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			this.level = level;
 			this.tileDimension = tileDimensions[ level ];
 			this.background = background;
+			System.out.println( name + ": l" + level + ": " + valueSupplierIndex.incrementAndGet() );
 		}
 
 		@Override
