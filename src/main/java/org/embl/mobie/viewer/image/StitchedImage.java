@@ -298,7 +298,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		{
 			final V background = volatileType.createVariable();
 			background.setValid( true );
-			final FunctionRandomAccessible< V > randomAccessible = new FunctionRandomAccessible( 3, new StitchedLocationToValueSupplier( randomAccessibleSupplier, level, background ), () -> volatileType.createVariable() );
+			final FunctionRandomAccessible< V > randomAccessible = new FunctionRandomAccessible( 3, new StitchedLocationToValueSupplier( randomAccessibleSupplier, level, background ).get(), () -> volatileType.createVariable() );
 			final IntervalView< V > rai = Views.interval( randomAccessible, getInterval( level ) );
 			stitchedMipMapRAIs.add( rai );
 		}
