@@ -98,6 +98,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private RealMaskRealInterval tileImageMask;
 
 	private static AtomicInteger valueSupplierIndex = new AtomicInteger( 0 );
+	private boolean debug = false;
 
 	public StitchedImage( List< ? extends Image< T > > images, Image< T > metadataImage, @Nullable List< int[] > positions, String name, double relativeCellMargin )
 	{
@@ -130,7 +131,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			final AffineTransform3D copy = affineTransform3D.copy();
 			final long[] dimensions = metadataSource.getSource( 0, level ).dimensionsAsLongArray();
 			copy.setTranslation( 0, 0, 0 );
-			if ( false ) // level == 0 )
+
+			if ( debug )
 			{
 				System.out.println( "StitchedImage: " + name );
 				System.out.println( "StitchedImage: Metadata source: " + metadataSource.getName() );
@@ -149,8 +151,11 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		setMinMaxPos();
 		configureMipmapAndTileDimensions();
 		setTileRealDimensions( tileDimensions[ 0 ] );
-		System.out.println( "StitchedImage: Min pos: " + Arrays.toString( minPos ) );
-		System.out.println( "StitchedImage: Tile real dimensions: " + Arrays.toString( tileRealDimensions ) );
+		if ( debug )
+		{
+			System.out.println( "StitchedImage: Min pos: " + Arrays.toString( minPos ) );
+			System.out.println( "StitchedImage: Tile real dimensions: " + Arrays.toString( tileRealDimensions ) );
+		}
 
 		// Transform the individual images that make up the tiles.
 		// And use those images as the basis for the stitched image.
@@ -322,7 +327,6 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			this.level = level;
 			this.tileDimension = tileDimensions[ level ];
 			this.background = background;
-			System.out.println( name + ": l" + level + ": " + valueSupplierIndex.incrementAndGet() );
 		}
 
 		@Override
@@ -356,10 +360,18 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 					return;
 				}
 
-				final Status status = randomAccessibleSupplier.status( level, xTileIndex, yTileIndex );
+				final Status status = randomAccessibleSupplier.getStatus( level, xTileIndex, yTileIndex );
+
 				if ( status.equals( Status.Closed ) )
 				{
-					ThreadHelper.ioExecutorService.submit( () -> randomAccessibleSupplier.open( level, xTileIndex, yTileIndex ) );
+					// set opening status already now, because we do not
+					// know when the executor service will run the actual opening
+					randomAccessibleSupplier.setStatus( level, xTileIndex, yTileIndex, Status.Opening );
+
+					ThreadHelper.ioExecutorService.submit(
+							new RandomAccessibleOpener( level, xTileIndex, yTileIndex )
+					);
+
 					volatileOutput.setValid( false );
 				}
 				else if ( status.equals( Status.Opening ) )
@@ -382,6 +394,28 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 					final V volatileType = randomAccessibleSupplier.getVolatileRandomAccessible( level, xTileIndex, yTileIndex ).getAt( x, y, z );
 					volatileOutput.set( volatileType );
 				}
+			}
+		}
+
+		class RandomAccessibleOpener implements Runnable
+		{
+			private final int level;
+			private final int xTileIndex;
+			private final int yTileIndex;
+
+			public RandomAccessibleOpener( int level, int xTileIndex, int yTileIndex )
+			{
+				//System.out.println( name + " l" + level + " x" + xTileIndex + " y" + yTileIndex + " i" + valueSupplierIndex.incrementAndGet() );
+
+				this.level = level;
+				this.xTileIndex = xTileIndex;
+				this.yTileIndex = yTileIndex;
+			}
+
+			@Override
+			public void run()
+			{
+				randomAccessibleSupplier.open( level, xTileIndex, yTileIndex );
 			}
 		}
 	}
@@ -626,9 +660,14 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			return level + "-" + x + "-" + y;
 		}
 
-		public Status status( int level, int xTileIndex, int yTileIndex )
+		public Status getStatus( int level, int xTileIndex, int yTileIndex )
 		{
 			return keyToStatus.get( getKey( level, xTileIndex, yTileIndex ) );
+		}
+
+		public void setStatus( int level, int xTileIndex, int yTileIndex, Status status )
+		{
+			keyToStatus.put( getKey( level, xTileIndex, yTileIndex ), status );
 		}
 
 		public boolean exists( int level, int xTileIndex, int yTileIndex )
@@ -636,12 +675,13 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			return keyToStatus.containsKey( getKey( level, xTileIndex, yTileIndex ) );
 		}
 
+		// FIXME: Maybe the executor service should be here?
+		//   and not in the LocationToValue...
 		public void open( int level, int xTileIndex, int yTileIndex )
 		{
 			final String key = getKey( level, xTileIndex, yTileIndex );
 
-			if ( keyToStatus.get( key ).equals( Status.Open )
-				|| keyToStatus.get( key ).equals( Status.Opening ) )
+			if ( keyToStatus.get( key ).equals( Status.Open ) )
 				return;
 
 			keyToStatus.put( key, Status.Opening );
