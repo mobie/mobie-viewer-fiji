@@ -134,9 +134,6 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 
 		addAnnotation( annotatedSegment );
 
-		for ( AnnotationListener< AnnotatedSegment > listener : listeners.list )
-			listener.addAnnotation( annotatedSegment );
-
 		return annotatedSegment;
 	}
 
@@ -150,5 +147,8 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	public synchronized void addAnnotation( AnnotatedSegment annotation )
 	{
 		annotations.add( annotation );
+
+		for ( AnnotationListener< AnnotatedSegment > listener : listeners.list )
+			listener.addAnnotation( annotation );
 	}
 }

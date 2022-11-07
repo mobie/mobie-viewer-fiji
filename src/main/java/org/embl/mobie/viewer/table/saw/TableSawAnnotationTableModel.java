@@ -3,6 +3,7 @@ package org.embl.mobie.viewer.table.saw;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.table.AbstractAnnotationTableModel;
 import org.embl.mobie.viewer.table.AnnotationListener;
@@ -72,11 +73,11 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		if ( table == null )
 			initTable( readTable( defaultTablePath ) );
 
-		final List< String > tablePaths = additionalTablePaths.stream()
+		final List< String > tablePathsToBeLoaded = additionalTablePaths.stream()
 				.filter( path -> ! loadedTablePaths.contains( path ) )
 				.collect( Collectors.toList() );
 
-		for ( String tablePath : tablePaths )
+		for ( String tablePath : tablePathsToBeLoaded )
 			joinTable( readTable( tablePath ) );
 
 		if ( updateTransforms )
@@ -99,15 +100,19 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		// some columns, e.g. timepoint, are optional and thus
 		// are only used for merging if they are actually present
 		final List< String > columnNames = table.columnNames();
-		final String[] mergeByColumnNames = Arrays.stream( annotation( 0 ).idColumns() ).filter( column -> columnNames.contains( column ) ).collect( Collectors.toList() ).toArray( new String[ 0 ] );
+		final List< String > mergeByColumnNames = Arrays.stream( annotation( 0 ).idColumns() ).filter( column -> columnNames.contains( column ) ).collect( Collectors.toList() );
 
-		// note that this changes the table object, thus
-		// other classes that need that table object need to
-		// retrieve the new one
+		// note that the below joining changes the table object,
+		// thus other classes that need that table object
+		// need to retrieve the new one using the {@code getTable()}
+		// method
 		try
 		{
-			final List< String > additionalColumnNames = additionalTable.columnNames();
-			table = table.joinOn( mergeByColumnNames ).leftOuter( additionalTable );
+			final List< String > additionalColumnNames = additionalTable.columnNames().stream().filter( col -> ! mergeByColumnNames.contains( col ) ).collect( Collectors.toList() );
+			final List< String > duplicateColumnNames = additionalColumnNames.stream().filter( col -> columnNames.contains( col ) ).collect( Collectors.toList() );
+			// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/888
+			//table.removeColumns( duplicateColumnNames.toArray( new String[ 0 ] ) );
+			table = table.joinOn( mergeByColumnNames.toArray( new String[ 0 ] ) ).leftOuter( additionalTable  );
 		}
 		catch ( Exception e )
 		{
@@ -204,6 +209,8 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	@Override
 	public synchronized A annotation( int rowIndex )
 	{
+		update();
+
 		try
 		{
 			final A annotation = annotations.get( rowIndex );
@@ -309,5 +316,8 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	public synchronized void addAnnotation( A annotation )
 	{
 		annotations.add( annotation );
+
+		for ( AnnotationListener< A > listener : listeners.list )
+			listener.addAnnotation( annotation );
 	}
 }

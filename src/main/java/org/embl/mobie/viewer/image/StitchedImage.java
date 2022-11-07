@@ -120,9 +120,11 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		this.levelToSourceTransform = new HashMap<>();
 		this.levelToSourceDimensions = new HashMap<>();
 		tileImageMask = GeomMasks.closedBox( metadataImage.getMask().minAsDoubleArray(), metadataImage.getMask().maxAsDoubleArray() );
-		final AffineTransform3D translateToZero = new AffineTransform3D();
-		translateToZero.translate( metadataImage.getMask().minAsDoubleArray() );
-		tileImageMask = tileImageMask.transform( translateToZero );
+		final AffineTransform3D translateToZeroInXY = new AffineTransform3D();
+		final double[] translationVector = metadataImage.getMask().minAsDoubleArray();
+		translationVector[ 2 ] = 0; // Don't change the position along the z-axis
+		translateToZeroInXY.translate( translationVector );
+		tileImageMask = tileImageMask.transform( translateToZeroInXY );
 
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
@@ -206,7 +208,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 			// create a copy of the mask, because
 			// it may be transformed within the image
-			final WritableBox mask = GeomMasks.closedBox( tileImageMask.minAsDoubleArray(), tileImageMask.maxAsDoubleArray() );
+			final double[] min = tileImageMask.minAsDoubleArray();
+			final double[] max = tileImageMask.maxAsDoubleArray();
+			final RealMaskRealInterval mask = GeomMasks.closedBox( min, max );
 			image.setMask( mask );
 
 			imagesAtGridPosition.add( image );

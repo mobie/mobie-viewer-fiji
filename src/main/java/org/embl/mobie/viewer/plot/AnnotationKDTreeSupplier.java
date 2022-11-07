@@ -66,7 +66,7 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 	public AnnotationKDTreeSupplier( Collection< A > annotations, String[] columns, double[] scaleFactors )
 	{
 		Arrays.fill( min, Double.MAX_VALUE );
-		Arrays.fill( max, - Double.MAX_VALUE );
+		Arrays.fill( max, -Double.MAX_VALUE );
 
 		initialiseDataPoints( annotations, columns, scaleFactors );
 
