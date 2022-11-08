@@ -3,6 +3,7 @@ package org.embl.mobie.viewer.table.saw;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.table.AbstractAnnotationTableModel;
@@ -31,7 +32,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	private ArrayList< A > annotations = new ArrayList<>();
 
 	private Table table;
-	private AffineTransform3D affineTransform3D;
+	private AffineTransform3D affineTransform3D = new AffineTransform3D();
 	private boolean updateTransforms = false;
 	private String defaultTablePath;
 
@@ -45,7 +46,6 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		this.annotationCreator = annotationCreator;
 		this.dataStore = dataStore;
 		this.defaultTablePath = IOHelper.combinePath( dataStore, defaultTableLocation );
-		this.affineTransform3D = new AffineTransform3D();
 	}
 
 	// Use this constructor if the default table is available already
@@ -80,11 +80,17 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		for ( String tablePath : tablePathsToBeLoaded )
 			joinTable( readTable( tablePath ) );
 
-		if ( updateTransforms )
+		synchronized ( affineTransform3D )
 		{
-			updateTransforms = false;
-			for ( A annotation : annotations )
-				annotation.transform( affineTransform3D );
+			if ( updateTransforms )
+			{
+				//System.out.println( "Table Model " + MoBIEHelper.getFileName( dataStore ) + ": applying " + affineTransform3D );
+				for ( A annotation : annotations )
+					annotation.transform( affineTransform3D );
+				updateTransforms = false;
+				// reset the transform as it has been applied
+				affineTransform3D = new AffineTransform3D();
+			}
 		}
 	}
 
@@ -291,10 +297,14 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	}
 
 	@Override
-	public synchronized void transform( AffineTransform3D affineTransform3D )
+	public void transform( AffineTransform3D affineTransform3D )
 	{
-		this.updateTransforms = true;
-		this.affineTransform3D = affineTransform3D;
+		synchronized ( this.affineTransform3D )
+		{
+			//System.out.println( "Table Model " + MoBIEHelper.getFileName( dataStore ) + ": adding " + affineTransform3D );
+			this.updateTransforms = true;
+			this.affineTransform3D.preConcatenate( affineTransform3D );
+		}
 	}
 
 	@Override

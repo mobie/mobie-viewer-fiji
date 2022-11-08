@@ -43,7 +43,6 @@ import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
-import net.imglib2.roi.geom.real.WritableBox;
 import net.imglib2.type.Type;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
@@ -95,7 +94,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private HashMap< Integer, long[] > levelToSourceDimensions;
 	private HashMap< Integer, double[] > levelToTileMarginVoxelTranslation;
 	private TransformedSource< T > transformedSource;
-	private RealMaskRealInterval tileImageMask;
+	private RealMaskRealInterval referenceMask;
 
 	private static AtomicInteger valueSupplierIndex = new AtomicInteger( 0 );
 	private boolean debug = false;
@@ -119,12 +118,18 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		this.voxelDimensions = metadataSource.getVoxelDimensions();
 		this.levelToSourceTransform = new HashMap<>();
 		this.levelToSourceDimensions = new HashMap<>();
-		tileImageMask = GeomMasks.closedBox( metadataImage.getMask().minAsDoubleArray(), metadataImage.getMask().maxAsDoubleArray() );
+
+		// Get the reference mask from the metadata image.
+		// We only need the spatial extent of the image.
+		// The absolute position will be computed based on the tile
+		// position. Thus, we remove current spatial offset that this
+		// image may have already.
+		this.referenceMask = GeomMasks.closedBox( metadataImage.getMask().minAsDoubleArray(), metadataImage.getMask().maxAsDoubleArray() );
 		final AffineTransform3D translateToZeroInXY = new AffineTransform3D();
 		final double[] translationVector = metadataImage.getMask().minAsDoubleArray();
 		translationVector[ 2 ] = 0; // Don't change the position along the z-axis
 		translateToZeroInXY.translate( translationVector );
-		tileImageMask = tileImageMask.transform( translateToZeroInXY );
+		referenceMask = referenceMask.transform( translateToZeroInXY );
 
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
@@ -140,7 +145,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				System.out.println( "StitchedImage: Metadata source: " + metadataSource.getName() );
 				System.out.println( "StitchedImage: Metadata transform: " + copy );
 				System.out.println( "StitchedImage: Metadata dimensions: " + Arrays.toString( dimensions ) );
-				System.out.println( "StitchedImage: Metadata tile mask: " + TransformHelper.maskToString( tileImageMask ) );
+				System.out.println( "StitchedImage: Metadata tile mask: " + TransformHelper.maskToString( referenceMask ) );
 			}
 			levelToSourceTransform.put( level, copy );
 			levelToSourceDimensions.put( level, dimensions );
@@ -166,7 +171,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		// This also is needed because for annotated images
 		// the annotations (both the table and the AnnotationType pixels)
 		// need to be transformed.
-		transform( images, tileImageMask );
+		transform( images, referenceMask );
 
 		// Create the stitched image
 		stitch();
@@ -185,9 +190,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		return translationOffset;
 	}
 
-	protected void transform( List< ? extends Image< ? > > images, RealMaskRealInterval tileImageMask )
+	protected void transform( List< ? extends Image< ? > > images, RealMaskRealInterval referenceMask )
 	{
-		final double[] offset = computeTileMarginOffset( tileRealDimensions, tileImageMask );
+		final double[] offset = computeTileMarginOffset( tileRealDimensions, referenceMask );
 
 		final List< List< ? extends Image< ? > > > nestedImages = new ArrayList<>();
 		List< List< String > > nestedTransformedNames = new ArrayList<>();
@@ -206,10 +211,10 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			// Right now the only metadata
 			// that is needed is the mask.
 
-			// create a copy of the mask, because
-			// it may be transformed within the image
-			final double[] min = tileImageMask.minAsDoubleArray();
-			final double[] max = tileImageMask.maxAsDoubleArray();
+			// Create a copy of the mask, because
+			// it may be transformed within the image.
+			final double[] min = referenceMask.minAsDoubleArray();
+			final double[] max = referenceMask.maxAsDoubleArray();
 			final RealMaskRealInterval mask = GeomMasks.closedBox( min, max );
 			image.setMask( mask );
 

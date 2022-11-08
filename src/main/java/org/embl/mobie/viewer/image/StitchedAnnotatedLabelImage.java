@@ -67,7 +67,6 @@ public class StitchedAnnotatedLabelImage< A extends Annotation > extends Stitche
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		annData.getTable().transform( affineTransform3D );
 		super.transform( affineTransform3D );
 	}
 }

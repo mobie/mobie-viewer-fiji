@@ -38,14 +38,14 @@ public class TableSawHelper
 			// it has the drawback that we temporarily need to
 			// allocate twice the memory and the GC has some
 			// work to do, which can become a bottleneck.
-			System.out.println("Reading table " + path + "...");
+			//System.out.println("Reading table " + path + "...");
 			final long start = System.currentTimeMillis();
 			final InputStream inputStream = IOHelper.getInputStream( path );
 			//final String string = IOHelper.read( path );
 			// https://jtablesaw.github.io/tablesaw/userguide/importing_data.html
 			CsvReadOptions.Builder builder = CsvReadOptions.builder( inputStream ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" ).sample( numSamples > 0 ).sampleSize( numSamples ).columnTypesPartial( nameToType );
 			final Table rows = Table.read().usingOptions( builder );
-			System.out.println("Read table " + path + " with " + rows.rowCount() + " rows in " + ( System.currentTimeMillis() - start ) + " ms." );
+			//System.out.println("Read table " + path + " with " + rows.rowCount() + " rows in " + ( System.currentTimeMillis() - start ) + " ms." );
 			return rows;
 		}
 		catch ( IOException e )
