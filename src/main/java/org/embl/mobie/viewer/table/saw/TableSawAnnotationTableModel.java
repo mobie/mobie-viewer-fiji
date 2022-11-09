@@ -117,7 +117,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 			final List< String > additionalColumnNames = additionalTable.columnNames().stream().filter( col -> ! mergeByColumnNames.contains( col ) ).collect( Collectors.toList() );
 			final List< String > duplicateColumnNames = additionalColumnNames.stream().filter( col -> columnNames.contains( col ) ).collect( Collectors.toList() );
 			// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/888
-			//table.removeColumns( duplicateColumnNames.toArray( new String[ 0 ] ) );
+			table.removeColumns( duplicateColumnNames.toArray( new String[ 0 ] ) );
 			table = table.joinOn( mergeByColumnNames.toArray( new String[ 0 ] ) ).leftOuter( additionalTable  );
 		}
 		catch ( Exception e )

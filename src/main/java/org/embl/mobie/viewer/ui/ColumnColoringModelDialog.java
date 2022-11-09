@@ -34,7 +34,7 @@ public class ColumnColoringModelDialog< A extends Annotation>
 		gd.addChoice( "Column", columnNameArray, columnName );
 
 		if ( lut == null ) lut = COLORING_LUTS[ 0 ];
-		gd.addChoice( "Coloring Mode", COLORING_LUTS, lut );
+		gd.addChoice( "Coloring", COLORING_LUTS, lut );
 
 		gd.addCheckbox( "Paint Zero Transparent", paintZeroTransparent );
 
