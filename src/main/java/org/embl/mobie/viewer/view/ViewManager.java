@@ -56,6 +56,7 @@ import org.embl.mobie.viewer.color.NumericAnnotationColoringModel;
 import org.embl.mobie.viewer.color.lut.ColumnARGBLut;
 import org.embl.mobie.viewer.color.lut.LUTs;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
+import org.embl.mobie.viewer.image.AnnotationImage;
 import org.embl.mobie.viewer.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.image.AnnotatedRegionImage;
@@ -78,6 +79,7 @@ import org.embl.mobie.viewer.serialize.transformation.CropTransformation;
 import org.embl.mobie.viewer.serialize.transformation.GridTransformation;
 import org.embl.mobie.viewer.serialize.transformation.MergedGridTransformation;
 import org.embl.mobie.viewer.serialize.transformation.Transformation;
+import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.CroppedImage;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
@@ -149,7 +151,7 @@ public class ViewManager
 		//   from multiple tables
 		//   Note that the same code is needed for the TableView,
 		//   thus maybe this needs to happen within annotationDisplay?
-		final AnnotatedLabelImage annotatedLabelImage = ( AnnotatedLabelImage ) display.getImages().iterator().next();
+		final AnnotationImage annotatedLabelImage = ( AnnotationImage ) display.getImages().iterator().next();
 		final AnnotationTableModel annotationTableModel = annotatedLabelImage.getAnnData().getTable();
 
 		String[] scatterPlotAxes = display.getScatterPlotAxes();
@@ -538,7 +540,7 @@ public class ViewManager
 				final Image< ? > image = DataStore.getImage( name );
 				try
 				{
-					annotationDisplay.addImage( ( AnnotatedLabelImage ) image );
+					annotationDisplay.addImage( ( Image< AnnotationType< A > > ) image );
 				}
 				catch ( Exception e )
 				{

@@ -41,6 +41,7 @@ import org.embl.mobie.viewer.color.MobieColoringModel;
 import org.embl.mobie.viewer.color.NumericAnnotationColoringModel;
 import org.embl.mobie.viewer.color.OpacityHelper;
 import org.embl.mobie.viewer.color.lut.LUTs;
+import org.embl.mobie.viewer.image.AnnotationImage;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.SelectionModel;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
@@ -238,9 +239,9 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	// in case this display shows several images
 	public void createAnnData()
 	{
-		final List< AnnotatedLabelImage< A > > annotatedLabelImages = getImages().stream().map( image -> ( AnnotatedLabelImage< A > ) image ).collect( Collectors.toList() );
+		final List< AnnotationImage< A > > annotationImages = getImages().stream().map( image -> ( AnnotationImage< A > ) image ).collect( Collectors.toList() );
 
-		annData = AnnDataHelper.concatenate( annotatedLabelImages );
+		annData = AnnDataHelper.concatenate( annotationImages );
 
 		// FIXME This only is a uuidAdaptor, the stl is not needed
 		annotationAdapter = new DefaultAnnotationAdapter<>( annData );

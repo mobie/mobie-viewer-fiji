@@ -81,8 +81,8 @@ public class AnnotatedRegionImage< AR extends AnnotatedRegion > implements Annot
 
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( getMask() );
-		final FunctionRealRandomAccessible< AnnotationType< AR > > realRandomAccessible = new FunctionRealRandomAccessible( 3, new LocationToAnnotatedRegionSupplier(), UnsignedIntType::new );
 		final AR annotatedRegion = annData.getTable().annotations().get( 0 );
+		final FunctionRealRandomAccessible< AnnotationType< AR > > realRandomAccessible = new FunctionRealRandomAccessible( 3, new LocationToAnnotatedRegionSupplier(), () -> new AnnotationType<>( annotatedRegion ) );
 		final AnnotationType< AR > annotationType = new AnnotationType<>( annotatedRegion );
 		source = new RealRandomAccessibleIntervalTimelapseSource<>( realRandomAccessible, interval, annotationType, new AffineTransform3D(), name, true, timePoints );
 	}

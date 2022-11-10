@@ -6,6 +6,7 @@ import org.embl.mobie.viewer.ThreadHelper;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
+import org.embl.mobie.viewer.image.AnnotationImage;
 import org.embl.mobie.viewer.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.table.AnnData;
@@ -21,8 +22,9 @@ import java.util.concurrent.Future;
 
 public class ImageTransformer
 {
-	// Note that the Image Type may change, e.g. if this is an annotated label image
-	// TODO
+	// FIXME
+	//  Note that the Image Type may change, e.g. if this is an annotated label image
+	//  (maybe this is the only case where the Type changes?
 	//  Is there a cleaner solution? For normal images the type would not change.
 	//  also for annotated images the type would only change
 	//  if transformedImage != image.getName(), because otherwise we would transform in place
@@ -31,20 +33,50 @@ public class ImageTransformer
 	{
 		if ( transformedImageName == null )
 		{
-			// in place transformation
+			// Perform an in place transformation.
+
 			//System.out.println("Transform " + image.getName() + ": " + affineTransform3D.toString() );
 			image.transform( affineTransform3D );
 			return image;
 		}
 
-		// create new transformed image
-
+		// Create a new transformed image.
 		if ( image instanceof AnnotatedLabelImage )
 		{
-			return createTransformedAnnotatedLabelImage( ( AnnotatedLabelImage ) image, affineTransform3D,  transformedImageName );
+			return createTransformedAnnotatedLabelImage( ( AnnotatedLabelImage ) image, affineTransform3D, transformedImageName );
 		}
+		else if ( image instanceof AnnotationImage )
+		{
+			throw new UnsupportedOperationException( "Creating a transformed duplicate of an " + image.getClass() + " is currently not supported." );
+		}
+		else
+		{
+			return new AffineTransformedImage<>( image, transformedImageName, affineTransform3D );
+		}
+	}
 
-		return new AffineTransformedImage<>( image, transformedImageName, affineTransform3D );
+	private static < A extends Annotation, TA extends A > DefaultAnnotatedLabelImage< TA > createTransformedAnnotationImage( AnnotationImage< A > annotationImage, AffineTransform3D affineTransform3D, String transformedImageName )
+	{
+		// TODO (do we need this)?
+//		// Create transformed AnnData
+//		//
+//		final AnnData< A > annData = annotationImage.getAnnData();
+//
+//		final AnnotationAffineTransformer< A, TA > affineTransformer = new AnnotationAffineTransformer<>( affineTransform3D );
+//
+//		TransformedAnnData< A, TA > transformedAnnData = new TransformedAnnData<>( annData, affineTransformer );
+//
+//		// Create transformed image
+//		//
+//		final DefaultImage< AnnotationType< A > > transformedImage = new DefaultImage<>( transformedImageName, annotationImage.getSourcePair(), annotationImage.getMask() );
+//		transformedImage.transform( affineTransform3D );
+//
+//		// Join into transformed AnnotationImage
+//		// FIXME: This is an issue, because the transformed regions are different now.
+//		final DefaultAnnotationImage< TA > transformedAnnotationImage = new DefaultAnnotationImage< TA >( transformedImageName, transformedImage, transformedAnnData );
+//
+//		return transformedAnnotationImage;
+		return null;
 	}
 
 	private static < A extends Annotation, TA extends A > DefaultAnnotatedLabelImage< TA > createTransformedAnnotatedLabelImage( AnnotatedLabelImage< A > annotatedLabelImage, AffineTransform3D affineTransform3D, String transformedImageName )
