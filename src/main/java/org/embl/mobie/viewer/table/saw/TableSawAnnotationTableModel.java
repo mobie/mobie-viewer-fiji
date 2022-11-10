@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.table.saw;
 
+import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import org.embl.mobie.io.util.IOHelper;
@@ -116,8 +117,13 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		{
 			final List< String > additionalColumnNames = additionalTable.columnNames().stream().filter( col -> ! mergeByColumnNames.contains( col ) ).collect( Collectors.toList() );
 			final List< String > duplicateColumnNames = additionalColumnNames.stream().filter( col -> columnNames.contains( col ) ).collect( Collectors.toList() );
-			// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/888
-			//table.removeColumns( duplicateColumnNames.toArray( new String[ 0 ] ) );
+			if ( duplicateColumnNames.size() > 0 )
+			{
+				final String[] duplicateColumnsArray = duplicateColumnNames.toArray( new String[ 0 ] );
+				IJ.log( "There are duplicate columns: " + Arrays.toString( duplicateColumnsArray ) );
+				IJ.log( "Those columns will be replaced by the columns in the newly loaded table." );
+				table.removeColumns( duplicateColumnsArray );
+			}
 			table = table.joinOn( mergeByColumnNames.toArray( new String[ 0 ] ) ).leftOuter( additionalTable  );
 		}
 		catch ( Exception e )

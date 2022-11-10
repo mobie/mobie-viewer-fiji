@@ -42,7 +42,6 @@ public class OpenRemoteSpatialOmics
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-
 		try {
 			final MoBIE moBIE = new MoBIE( "https://github.com/mobie/spatial-transcriptomics-example-project", MoBIESettings.settings().dataset( "pos42" ).view( "default" ) );
 //			final MoBIE moBIE = new MoBIE( "https://github.com/mobie/spatial-transcriptomics-example-project", MoBIESettings.settings().dataset( "pos42" ).gitProjectBranch( "parquet" ).view( "just-spots" ) );
