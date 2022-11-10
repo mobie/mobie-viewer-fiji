@@ -29,17 +29,11 @@
 package org.embl.mobie.viewer.command;
 
 import bdv.viewer.SourceAndConverter;
-import net.imglib2.converter.Converter;
-import org.embl.mobie.viewer.color.CategoricalAnnotationColoringModel;
-import org.embl.mobie.viewer.color.ColoringModel;
-import org.embl.mobie.viewer.color.MobieColoringModelWrapper;
-import org.embl.mobie.viewer.image.SpotLabelImage;
+import org.embl.mobie.viewer.image.SpotAnnotationImage;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
-import sc.fiji.bdvpg.services.ISourceAndConverterService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Spot Rendering")
 public class ConfigureSpotRenderingCommand extends ConfigureLabelRenderingCommand
@@ -74,8 +68,8 @@ public class ConfigureSpotRenderingCommand extends ConfigureLabelRenderingComman
 
 		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
-			final SpotLabelImage spotLabelImage = ( SpotLabelImage ) sourceAndConverterService.getMetadata( sourceAndConverter, SpotLabelImage.class.getName() );
-			spotRadiusItem.setValue( this, spotLabelImage.getRadius() );
+			final SpotAnnotationImage spotAnnotationImage = ( SpotAnnotationImage ) sourceAndConverterService.getMetadata( sourceAndConverter, SpotAnnotationImage.class.getName() );
+			spotRadiusItem.setValue( this, spotAnnotationImage.getRadius() );
 			return;
 		}
 	}
@@ -84,8 +78,8 @@ public class ConfigureSpotRenderingCommand extends ConfigureLabelRenderingComman
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			final SpotLabelImage spotLabelImage = ( SpotLabelImage ) sourceAndConverterService.getMetadata( sourceAndConverter, SpotLabelImage.class.getName() );
-			spotLabelImage.setRadius( spotRadius );
+			final SpotAnnotationImage spotAnnotationImage = ( SpotAnnotationImage ) sourceAndConverterService.getMetadata( sourceAndConverter, SpotAnnotationImage.class.getName() );
+			spotAnnotationImage.setRadius( spotRadius );
 		}
 	}
 

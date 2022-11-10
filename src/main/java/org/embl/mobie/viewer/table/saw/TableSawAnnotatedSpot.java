@@ -48,7 +48,12 @@ public class TableSawAnnotatedSpot extends AbstractTableSawAnnotation implements
 	@Override
 	public double[] positionAsDoubleArray()
 	{
-		throw new RuntimeException("Spots have their positions only stored as floats.");
+		// Create new array (don't cache), because the {@code position}
+		// is subject to change by means of a transformation
+		final double[] doublePosition = new double[ position.length ];
+		for ( int d = 0; d < position.length; d++ )
+			doublePosition[ d ] = position[ d ];
+		return doublePosition;
 	}
 
 	@Override

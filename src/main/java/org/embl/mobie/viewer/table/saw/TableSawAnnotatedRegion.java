@@ -26,6 +26,7 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	private final int timePoint;
 	private double[] position;
 	private String source;
+	private RealMaskRealInterval mask;
 
 	public TableSawAnnotatedRegion(
 			TableSawAnnotationTableModel< TableSawAnnotatedRegion > model,
@@ -117,9 +118,14 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	{
 		// Update every time, because the position of the images
 		// maybe have changed.
-		final Set< Image< ? > > regionImages = DataStore.getImageSet( imageNames );
-		final RealMaskRealInterval unionMask = TransformHelper.getUnionMask( regionImages, timePoint() );
-		return unionMask;
+		// FIXME: needs some listener mechanism!
+		if ( mask == null )
+		{
+			final Set< Image< ? > > regionImages = DataStore.getImageSet( imageNames );
+			mask = TransformHelper.getUnionMask( regionImages, timePoint() );
+		}
+
+		return mask;
 	}
 
 	@Override

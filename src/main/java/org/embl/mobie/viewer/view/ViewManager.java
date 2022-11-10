@@ -36,7 +36,6 @@ import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.type.numeric.integer.UnsignedIntType;
 import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.DataStore;
@@ -56,9 +55,9 @@ import org.embl.mobie.viewer.color.NumericAnnotationColoringModel;
 import org.embl.mobie.viewer.color.lut.ColumnARGBLut;
 import org.embl.mobie.viewer.color.lut.LUTs;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
-import org.embl.mobie.viewer.image.DefaultAnnotatedLabelImage;
+import org.embl.mobie.viewer.image.AnnotationImage;
 import org.embl.mobie.viewer.image.Image;
-import org.embl.mobie.viewer.image.RegionLabelImage;
+import org.embl.mobie.viewer.image.RegionAnnotationImage;
 import org.embl.mobie.viewer.image.StitchedAnnotatedLabelImage;
 import org.embl.mobie.viewer.image.StitchedImage;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
@@ -78,6 +77,7 @@ import org.embl.mobie.viewer.serialize.transformation.CropTransformation;
 import org.embl.mobie.viewer.serialize.transformation.GridTransformation;
 import org.embl.mobie.viewer.serialize.transformation.MergedGridTransformation;
 import org.embl.mobie.viewer.serialize.transformation.Transformation;
+import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.CroppedImage;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
@@ -149,7 +149,7 @@ public class ViewManager
 		//   from multiple tables
 		//   Note that the same code is needed for the TableView,
 		//   thus maybe this needs to happen within annotationDisplay?
-		final AnnotatedLabelImage annotatedLabelImage = ( AnnotatedLabelImage ) display.getImages().iterator().next();
+		final AnnotationImage annotatedLabelImage = ( AnnotationImage ) display.getImages().iterator().next();
 		final AnnotationTableModel annotationTableModel = annotatedLabelImage.getAnnData().getTable();
 
 		String[] scatterPlotAxes = display.getScatterPlotAxes();
@@ -495,23 +495,15 @@ public class ViewManager
 				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( table, regionIdToImageNames );
 
 				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, moBIE.getTableStore( regionDataSource.tableData ), TableDataFormat.DEFAULT_TSV, table );
-
-				// REMOVE
-				final ArrayList< AnnotatedRegion > annotatedRegions = tableModel.annotations();
-				// FIXME This should already have the AnnotationType
-				//   Probably make RegionLabelImage implement AnnotatedImage
-				//   and give the AnnData in the constructor
 				final DefaultAnnData< AnnotatedRegion > annData = new DefaultAnnData<>( tableModel );
-				final Image< UnsignedIntType > labelImage = new RegionLabelImage( regionDisplay.getName(), annotatedRegions );
+				final RegionAnnotationImage< AnnotatedRegion > regionAnnotationImage = new RegionAnnotationImage( regionDisplay.getName(), annData );
 
 				// REMOVE
 				final DefaultAnnotationAdapter< AnnotatedRegion > annotationAdapter = new DefaultAnnotationAdapter<>( annData );
 				// FIXME Just DefaultAnnotatedImage will do
 
-				// REMOVE
-				final DefaultAnnotatedLabelImage regionImage = new DefaultAnnotatedLabelImage( labelImage, annData, annotationAdapter );
 
-				DataStore.putImage( regionImage );
+				DataStore.putImage( regionAnnotationImage );
 			}
 		}
 	}
@@ -546,7 +538,7 @@ public class ViewManager
 				final Image< ? > image = DataStore.getImage( name );
 				try
 				{
-					annotationDisplay.addImage( ( AnnotatedLabelImage ) image );
+					annotationDisplay.addImage( ( Image< AnnotationType< A > > ) image );
 				}
 				catch ( Exception e )
 				{

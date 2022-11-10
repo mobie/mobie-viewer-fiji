@@ -37,17 +37,11 @@ import java.io.IOException;
 
 public class OpenRemoteSpatialOmics
 {
-	public static void main( String[] args )
+	public static void main( String[] args ) throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		try {
-			final MoBIE moBIE = new MoBIE( "https://github.com/mobie/spatial-transcriptomics-example-project", MoBIESettings.settings().dataset( "pos42" ).view( "default" ) );
-//			final MoBIE moBIE = new MoBIE( "https://github.com/mobie/spatial-transcriptomics-example-project", MoBIESettings.settings().dataset( "pos42" ).gitProjectBranch( "parquet" ).view( "just-spots" ) );
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/mouse-embryo-spatial-transcriptomics-project", MoBIESettings.settings().view( "default" ) );
 	}
 }

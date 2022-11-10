@@ -47,7 +47,7 @@ import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.image.SpimDataImage;
-import org.embl.mobie.viewer.image.SpotLabelImage;
+import org.embl.mobie.viewer.image.SpotAnnotationImage;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.viewer.serialize.DataSource;
 import org.embl.mobie.viewer.serialize.Dataset;
@@ -593,15 +593,11 @@ public class MoBIE
 			Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV ), -1 ); // 1000
 			final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator( table );
 			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV, table );
-			// FIXME: Same story as for the RegionLabelImage
-			final ArrayList< AnnotatedSpot > annotatedSpots = tableModel.annotations();
-			final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDataSource.getName(), annotatedSpots, 1.0, spotDataSource.boundingBoxMin, spotDataSource.boundingBoxMax );
 			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
-			final DefaultAnnotationAdapter< AnnotatedSpot > annotationAdapter = new DefaultAnnotationAdapter<>( spotAnnData );
-			final DefaultAnnotatedLabelImage spotsImage = new DefaultAnnotatedLabelImage( labelImage, spotAnnData, annotationAdapter );
+			final SpotAnnotationImage< AnnotatedSpot > spotAnnotationImage = new SpotAnnotationImage( spotDataSource.getName(), spotAnnData, 1.0, spotDataSource.boundingBoxMin, spotDataSource.boundingBoxMax );
 
 			// Spots image, built from spots table
-			DataStore.putImage( spotsImage );
+			DataStore.putImage( spotAnnotationImage );
 
 			// System.out.println("Created spots image " + spotsImage.getName() + " with " + spotAnnData.getTable().numAnnotations() + " spots in [ms] " + ( System.currentTimeMillis() - start ));
 		}

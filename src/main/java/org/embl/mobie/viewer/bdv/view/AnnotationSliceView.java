@@ -39,9 +39,9 @@ import org.embl.mobie.viewer.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.viewer.color.AnnotationARGBConverter;
 import org.embl.mobie.viewer.color.ColoringListener;
 import org.embl.mobie.viewer.color.VolatileAnnotationARGBConverter;
-import org.embl.mobie.viewer.command.OpenMoBIEProjectBranchCommand;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
-import org.embl.mobie.viewer.image.SpotLabelImage;
+import org.embl.mobie.viewer.image.AnnotationImage;
+import org.embl.mobie.viewer.image.SpotAnnotationImage;
 import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
 import org.embl.mobie.viewer.serialize.display.AnnotationDisplay;
 import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
@@ -89,12 +89,10 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 			{
 				final SpotDisplay spotDisplay = ( SpotDisplay ) display;
 
-				final Image labelImage = ( ( AnnotatedLabelImage ) image ).getLabelImage();
-				final SpotLabelImage spotLabelImage = ( SpotLabelImage ) labelImage;
-				spotLabelImage.setRadius( spotDisplay.spotRadius );
-				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, SpotLabelImage.class.getName(), spotLabelImage );
+				final SpotAnnotationImage spotAnnotationImage = ( ( SpotAnnotationImage ) image );
+				spotAnnotationImage.setRadius( spotDisplay.spotRadius );
+				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, SpotAnnotationImage.class.getName(), spotAnnotationImage );
 			}
-
 		}
 	}
 
