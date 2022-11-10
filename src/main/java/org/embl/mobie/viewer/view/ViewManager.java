@@ -58,7 +58,7 @@ import org.embl.mobie.viewer.color.lut.LUTs;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.viewer.image.Image;
-import org.embl.mobie.viewer.image.RegionLabelImage;
+import org.embl.mobie.viewer.image.AnnotatedRegionImage;
 import org.embl.mobie.viewer.image.StitchedAnnotatedLabelImage;
 import org.embl.mobie.viewer.image.StitchedImage;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
@@ -495,23 +495,15 @@ public class ViewManager
 				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( table, regionIdToImageNames );
 
 				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, moBIE.getTableStore( regionDataSource.tableData ), TableDataFormat.DEFAULT_TSV, table );
-
-				// REMOVE
-				final ArrayList< AnnotatedRegion > annotatedRegions = tableModel.annotations();
-				// FIXME This should already have the AnnotationType
-				//   Probably make RegionLabelImage implement AnnotatedImage
-				//   and give the AnnData in the constructor
 				final DefaultAnnData< AnnotatedRegion > annData = new DefaultAnnData<>( tableModel );
-				final Image< UnsignedIntType > labelImage = new RegionLabelImage( regionDisplay.getName(), annotatedRegions );
+				final AnnotatedRegionImage< AnnotatedRegion > annotatedRegionImage = new AnnotatedRegionImage( regionDisplay.getName(), annData );
 
 				// REMOVE
 				final DefaultAnnotationAdapter< AnnotatedRegion > annotationAdapter = new DefaultAnnotationAdapter<>( annData );
 				// FIXME Just DefaultAnnotatedImage will do
 
-				// REMOVE
-				final DefaultAnnotatedLabelImage regionImage = new DefaultAnnotatedLabelImage( labelImage, annData, annotationAdapter );
 
-				DataStore.putImage( regionImage );
+				DataStore.putImage( annotatedRegionImage );
 			}
 		}
 	}

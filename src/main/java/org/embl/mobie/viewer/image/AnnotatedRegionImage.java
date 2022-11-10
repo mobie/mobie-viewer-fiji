@@ -31,7 +31,6 @@ package org.embl.mobie.viewer.image;
 import bdv.viewer.Source;
 import net.imglib2.Interval;
 import net.imglib2.RealLocalizable;
-import net.imglib2.Volatile;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
@@ -39,8 +38,11 @@ import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.viewer.DataStore;
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
+import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.viewer.source.SourcePair;
+import org.embl.mobie.viewer.source.VolatileAnnotationType;
+import org.embl.mobie.viewer.table.AnnData;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedRegion;
 import org.embl.mobie.viewer.transform.TransformHelper;
 
@@ -51,23 +53,44 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< UnsignedIntType >
+public class AnnotatedRegionImage< AR extends AnnotatedRegion > implements AnnotationImage< AR >
 {
 	private final String name;
-	private final ArrayList< AR > annotatedRegions;
-	private Source< UnsignedIntType > source;
-	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
 
-	public RegionLabelImage( String name, ArrayList< AR > annotatedRegions )
+	private final AnnData< AR > annData;
+
+	private Source< AnnotationType< AR > > source;
+
+	// No volatile implementation, because the
+	// {@code source} should be fast enough,
+	// and probably a volatile version would need an {@code CachedCellImg},
+	// which would require deciding on a specific spatial sampling,
+	// which is not nice because a {@code region} is defined in real space.
+	private Source< ? extends VolatileAnnotationType< AR > > volatileSource = null;
+
+	public AnnotatedRegionImage( String name, AnnData< AR > annData )
 	{
 		this.name = name;
-		this.annotatedRegions = annotatedRegions;
-		createLabelImage();
+		this.annData = annData;
+		createImage();
 	}
 
-	private void createLabelImage()
+	private void createImage()
 	{
-		for ( AR annotatedRegion : annotatedRegions )
+		debugLogging();
+
+		final ArrayList< Integer > timePoints = configureTimePoints();
+		final Interval interval = Intervals.smallestContainingInterval( getMask() );
+		final FunctionRealRandomAccessible< AnnotationType< AR > > realRandomAccessible = new FunctionRealRandomAccessible( 3, new LocationToAnnotatedRegionSupplier(), UnsignedIntType::new );
+		final AR annotatedRegion = annData.getTable().annotations().get( 0 );
+		final AnnotationType< AR > annotationType = new AnnotationType<>( annotatedRegion );
+		source = new RealRandomAccessibleIntervalTimelapseSource<>( realRandomAccessible, interval, annotationType, new AffineTransform3D(), name, true, timePoints );
+	}
+
+	private void debugLogging()
+	{
+		final ArrayList< AR > annotations = annData.getTable().annotations();
+		for ( AR annotatedRegion : annotations )
 		{
 			final TableSawAnnotatedRegion tableSawAnnotatedRegion = ( TableSawAnnotatedRegion ) annotatedRegion;
 			//System.out.println( "RegionLabelImage " + name + ": " + annotatedRegion.regionId() + " images = " + Arrays.toString( tableSawAnnotatedRegion.getRegionImageNames().toArray( new String[ 0 ] ) ) + "\n" + TransformHelper.maskToString( annotatedRegion.getMask() ) );
@@ -78,47 +101,43 @@ public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< Un
 				//System.out.println( "Region: " + viewImage.getName() + ": " + Arrays.toString( viewImage.getMask().minAsDoubleArray() ) + " - " + Arrays.toString( viewImage.getMask().maxAsDoubleArray() ) );
 			}
 		}
-		final ArrayList< Integer > timePoints = configureTimePoints();
-		final Interval interval = Intervals.smallestContainingInterval( getMask() );
-		final FunctionRealRandomAccessible< UnsignedIntType > realRandomAccessible = new FunctionRealRandomAccessible( 3, new LocationToLabelSupplier(), UnsignedIntType::new );
-		source = new RealRandomAccessibleIntervalTimelapseSource<>( realRandomAccessible, interval, new UnsignedIntType(), new AffineTransform3D(), name, true, timePoints );
-
-		// TODO MAYBE
-		//   Create volatile source by means of a CachedCellImg?!
-		//   However this not so nice thing is that then I need to decide
-		//   on some specific sampling.
-		//   Currently I can simply create the annotations in real
-		//   space, based on the (real)mask of the images.
 	}
 
-	class LocationToLabelSupplier implements Supplier< BiConsumer< RealLocalizable, UnsignedIntType > >
+	@Override
+	public AnnData< AR > getAnnData()
+	{
+		return annData;
+	}
+
+	class LocationToAnnotatedRegionSupplier implements Supplier< BiConsumer< RealLocalizable, AnnotationType< AR > > >
 	{
 		@Override
-		public BiConsumer< RealLocalizable, UnsignedIntType > get()
+		public BiConsumer< RealLocalizable, AnnotationType< AR > > get()
 		{
-			return new LocationToLabel();
+			return new LocationToRegion();
 		}
 
-		private class LocationToLabel implements BiConsumer< RealLocalizable, UnsignedIntType >
+		private class LocationToRegion implements BiConsumer< RealLocalizable, AnnotationType< AR > >
 		{
 			private RealMaskRealInterval recentMask;
-			private HashMap< RealMaskRealInterval, Integer > maskToLabel;
+			private HashMap< RealMaskRealInterval, AR > maskToAnnotatedRegion;
 
-			public LocationToLabel()
+			public LocationToRegion()
 			{
-				maskToLabel = new HashMap<>();
-				for ( AR regionAnnotation : annotatedRegions )
+				maskToAnnotatedRegion = new HashMap<>();
+				final ArrayList< AR > annotations = annData.getTable().annotations();
+				for ( AR annotatedRegion : annotations )
 				{
-					final RealMaskRealInterval mask = regionAnnotation.getMask();
-					maskToLabel.put( mask, regionAnnotation.label() );
+					final RealMaskRealInterval mask = annotatedRegion.getMask();
+					maskToAnnotatedRegion.put( mask, annotatedRegion );
 				}
-				this.recentMask = maskToLabel.keySet().iterator().next();
+				this.recentMask = maskToAnnotatedRegion.keySet().iterator().next();
 			}
 
 			@Override
-			public void accept( RealLocalizable location, UnsignedIntType value )
+			public void accept( RealLocalizable location, AnnotationType< AR > value )
 			{
-				// TODO MUST
+				// TODO
 				//    There is a lof of background, which is expensive as one
 				//    needs to traverse the whole loop => implement a background mask
 				//    that is tested first.
@@ -135,11 +154,11 @@ public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< Un
 				// to safe some computations.
 				if ( recentMask.test( location ) )
 				{
-					value.setInteger( maskToLabel.get( recentMask) );
+					value.setAnnotation( maskToAnnotatedRegion.get( recentMask) );
 					return;
 				}
 
-				for ( Map.Entry< RealMaskRealInterval, Integer > entry : maskToLabel.entrySet() )
+				for ( Map.Entry< RealMaskRealInterval, AR > entry : maskToAnnotatedRegion.entrySet() )
 				{
 					final RealMaskRealInterval mask = entry.getKey();
 
@@ -149,13 +168,13 @@ public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< Un
 					if ( mask.test( location ) )
 					{
 						recentMask = mask;
-						value.setInteger( entry.getValue() );
+						value.setAnnotation( entry.getValue() );
 						return;
 					}
 				}
 
 				// background
-				value.setInteger( 0 );
+				value.setAnnotation( null );
 			}
 		}
 	}
@@ -168,7 +187,7 @@ public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< Un
 	}
 
 	@Override
-	public SourcePair< UnsignedIntType > getSourcePair()
+	public SourcePair< AnnotationType< AR > > getSourcePair()
 	{
 		return new DefaultSourcePair<>( source, volatileSource );
 	}
@@ -190,13 +209,12 @@ public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< Un
 	@Override
 	public RealMaskRealInterval getMask( )
 	{
-		return TransformHelper.getUnionMask( annotatedRegions, 0 );
+		return TransformHelper.getUnionMask( annData.getTable().annotations(), 0 );
 	}
 
 	@Override
 	public void setMask( RealMaskRealInterval mask )
 	{
-		// TODO
+		throw new RuntimeException("Setting a mask of a " + this.getClass() + " is currently not supported.");
 	}
-
 }
