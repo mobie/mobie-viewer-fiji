@@ -21,6 +21,7 @@ public class DefaultAnnotatedLabelImage< A extends Annotation > implements Annot
 	private AnnotationAdapter<A> annotationAdapter;
 
 	// FIXME This should probably also expose the annotationAdapter in a getter
+	//   already in the interface
 	public DefaultAnnotatedLabelImage( Image< ? extends IntegerType< ? > > labelImage, AnnData< A > annData, AnnotationAdapter< A > annotationAdapter )
 	{
 		this.labelImage = labelImage;
@@ -66,6 +67,8 @@ public class DefaultAnnotatedLabelImage< A extends Annotation > implements Annot
 		//   labelImage or only the annotatedLabelImage (in the open() function).
 		labelImage.transform( affineTransform3D );
 		annData.getTable().transform( affineTransform3D );
+		for ( ImageListener listener : listeners.list )
+			listener.imageChanged();
 	}
 
 	@Override

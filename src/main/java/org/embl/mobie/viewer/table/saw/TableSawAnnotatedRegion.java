@@ -1,11 +1,13 @@
 package org.embl.mobie.viewer.table.saw;
 
+import bdv.viewer.TransformListener;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.viewer.DataStore;
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.image.Image;
+import org.embl.mobie.viewer.image.ImageListener;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.transform.TransformHelper;
 import tech.tablesaw.api.Row;
@@ -15,7 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implements AnnotatedRegion
+public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implements AnnotatedRegion, ImageListener
 {
 	private static final String[] idColumns = new String[]{ ColumnNames.REGION_ID };
 
@@ -106,22 +108,19 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	public void transform( AffineTransform3D affineTransform3D )
 	{
 		// We don't do anything here, because the annotated regions
-		// provide all the spatial coordinates
-
-		//this.affineTransform3D.preConcatenate( affineTransform3D );
-		///this.affineTransform3D.apply( position, position );
-		//realMaskRealInterval = realMaskRealInterval.transform( this.affineTransform3D );
+		// provide all the spatial coordinates.
 	}
 
 	@Override
 	public RealMaskRealInterval getMask()
 	{
-		// Update every time, because the position of the images
-		// maybe have changed.
-		// FIXME: needs some listener mechanism!
 		if ( mask == null )
 		{
 			final Set< Image< ? > > regionImages = DataStore.getImageSet( imageNames );
+
+			for ( Image< ? > regionImage : regionImages )
+				regionImage.listeners().add( this );
+
 			mask = TransformHelper.getUnionMask( regionImages, timePoint() );
 		}
 
@@ -149,5 +148,11 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	public List< String > getRegionImageNames()
 	{
 		return imageNames;
+	}
+
+	@Override
+	public void imageChanged()
+	{
+		mask = null; // force to compute the mask again
 	}
 }

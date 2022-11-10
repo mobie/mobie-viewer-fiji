@@ -197,6 +197,9 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 		this.affineTransform3D.preConcatenate( affineTransform3D );
 		if ( transformedSource != null )
 			transformedSource.setFixedTransform( this.affineTransform3D );
+
+		for ( ImageListener listener : listeners.list )
+			listener.imageChanged();
 	}
 
 	@Override

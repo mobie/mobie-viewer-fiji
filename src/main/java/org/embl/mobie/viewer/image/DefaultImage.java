@@ -55,6 +55,9 @@ public class DefaultImage< T > implements Image< T >
 
 		this.affineTransform3D.preConcatenate( affineTransform3D );
 		transformedSource.setFixedTransform( this.affineTransform3D );
+
+		for ( ImageListener listener : listeners.list )
+			listener.imageChanged();
 	}
 
 	@Override

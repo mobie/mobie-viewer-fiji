@@ -68,6 +68,9 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 
 		if ( transformedSource != null )
 			transformedSource.setFixedTransform( this.affineTransform3D );
+
+		for ( ImageListener listener : listeners.list )
+			listener.imageChanged();
 	}
 
 	@Override
