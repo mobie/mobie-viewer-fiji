@@ -55,6 +55,7 @@ import net.imglib2.util.Util;
 import net.imglib2.view.Views;
 import org.scijava.java3d.View;
 import org.scijava.vecmath.Color3f;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -63,11 +64,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static de.embl.cba.bdv.utils.BdvUtils.getLevel;
 import static de.embl.cba.tables.Utils.getVoxelSpacings;
 
 public class ImageVolumeViewer
@@ -153,13 +152,15 @@ public class ImageVolumeViewer
 
 	private void addSourceToUniverse( SourceAndConverter< ? > sac )
 	{
-		final int[] contrastLimits = getContrastLimits( sac );
+		final double displayRangeMin = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMin();
+		final double displayRangeMax = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMax();
+		final double[] contrastLimits = { displayRangeMin, displayRangeMax };
 		final ARGBType color = ( ( ColorConverter ) sac.getConverter() ).getColor();
-		final Content content = addSourceToUniverse( universe, sac.getSpimSource(), voxelSpacing, maxNumVoxels, ContentConstants.SURFACE, color, transparency, contrastLimits[ 0 ], contrastLimits[ 1 ] );
+		final Content content = addSourceToUniverse( universe, sac.getSpimSource(), voxelSpacing, maxNumVoxels, ContentConstants.SURFACE, color, transparency, contrastLimits );
 		sacToContent.put( sac, content );
 	}
 
-	public static < R extends RealType< R > > Content addSourceToUniverse(
+	public < R extends RealType< R > > Content addSourceToUniverse(
 			Image3DUniverse universe,
 			Source< ? > source,
 			double[] voxelSpacing,
@@ -167,8 +168,7 @@ public class ImageVolumeViewer
 			int displayType,
 			ARGBType argbType,
 			float transparency,
-			int min,
-			int max )
+			double[] contrastLimits )
 	{
 		Integer level;
 		if ( voxelSpacing != null )
@@ -196,7 +196,7 @@ public class ImageVolumeViewer
 			return null;
 		}
 
-		final ImagePlus wrap = createUnsignedByteImagePlus( source, min, max, level );
+		final ImagePlus wrap = createUnsignedByteImagePlus( source, contrastLimits, level );
 		final Content content = universe.addContent( wrap, displayType );
 		content.setTransparency( transparency );
 		content.setLocked( true );
@@ -210,28 +210,28 @@ public class ImageVolumeViewer
 		IJ.log( "3D View: Fetching source " + source.getName() + " at " + Arrays.stream( voxelSpacings ).mapToObj( x -> "" + x ).collect( Collectors.joining( ", " ) ) + " micrometer..." );
 	}
 
-	public static < R extends RealType< R > > Content addSourceToUniverse(
-			Image3DUniverse universe,
-			Source< ? > source,
-			double voxelSpacing,
-			int displayType,
-			ARGBType argbType,
-			float transparency,
-			int min,
-			int max )
-	{
-		final Integer level = getLevel( source, voxelSpacing );
-		System.out.println( "3D View: Fetching source " + source.getName() + " at resolution " + voxelSpacing + " micrometer..." );
-		final ImagePlus wrap = createUnsignedByteImagePlus( source, min, max, level );
-		final Content content = universe.addContent( wrap, displayType );
-		content.setTransparency( transparency );
-		content.setLocked( true );
-		content.setColor( new Color3f( ColorUtils.getColor( argbType ) ) );
-		universe.setAutoAdjustView( false );
-		return content;
-	}
+//	public static < R extends RealType< R > > Content addSourceToUniverse1(
+//			Image3DUniverse universe,
+//			Source< ? > source,
+//			double[] spacing,
+//			double voxelSpacing,
+//			int displayType,
+//			ARGBType argbType,
+//			float transparency,
+//			double[] contrastLimits )
+//	{
+//		final Integer level = getLevel( source, voxelSpacing );
+//		System.out.println( "3D View: Fetching source " + source.getName() + " at resolution " + voxelSpacing + " micrometer..." );
+//		final ImagePlus wrap = createUnsignedByteImagePlus( source, contrastLimits, level );
+//		final Content content = universe.addContent( wrap, displayType );
+//		content.setTransparency( transparency );
+//		content.setLocked( true );
+//		content.setColor( new Color3f( ColorUtils.getColor( argbType ) ) );
+//		universe.setAutoAdjustView( false );
+//		return content;
+//	}
 
-	private static < R extends RealType< R > & NativeType< R > > ImagePlus createUnsignedByteImagePlus( Source< ? > source, int min, int max, Integer level )
+	private static < R extends RealType< R > & NativeType< R > > ImagePlus createUnsignedByteImagePlus( Source< ? > source, double[] contrastLimits, Integer level )
 	{
 		RandomAccessibleInterval< R > rai = ( RandomAccessibleInterval )  source.getSource( 0, level );
 
@@ -241,7 +241,7 @@ public class ImageVolumeViewer
 
 		final ImagePlus wrap = ImageJFunctions.wrapUnsignedByte(
 				rai,
-				new RealUnsignedByteConverter< R >( min, max ),
+				new RealUnsignedByteConverter< R >( contrastLimits[ 0 ], contrastLimits[ 1 ] ),
 				source.getName() );
 
 		final double[] voxelSpacing = getVoxelSpacings( source ).get( level );
@@ -252,9 +252,10 @@ public class ImageVolumeViewer
 		return wrap;
 	}
 
-
 	private int[] getContrastLimits( SourceAndConverter< ? > sac )
 	{
+
+
 		final Object type = Util.getTypeFromInterval( sac.getSpimSource().getSource( 0, 0 ) );
 		final int[] contrastLimits = new int[ 2 ];
 		contrastLimits[ 0 ] = 0;

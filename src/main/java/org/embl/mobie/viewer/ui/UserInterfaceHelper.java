@@ -1043,7 +1043,6 @@ public class UserInterfaceHelper
 			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 				converterSetups.add( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter ) );
 
-
 			UserInterfaceHelper.showContrastLimitsDialog(
 					imageDisplay.getName(),
 					converterSetups );

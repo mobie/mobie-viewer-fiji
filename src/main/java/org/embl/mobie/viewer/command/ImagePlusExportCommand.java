@@ -121,6 +121,7 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 		IJ.log( source.getName() + ": " + RAW + " data transform = " + rootSourceTransform );
 
 		final ImagePlus imagePlus = getImagePlus( rootSource, exportLevel );
+		imagePlus.setTitle( source.getName() );
 		imagePlus.getCalibration().setUnit( rootSource.getVoxelDimensions().unit() );
 		imagePlus.getCalibration().pixelWidth = rootSourceScale[ 0 ];
 		imagePlus.getCalibration().pixelHeight = rootSourceScale[ 1 ];
