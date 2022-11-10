@@ -33,11 +33,8 @@ import bdv.viewer.Source;
 import net.imglib2.Interval;
 import net.imglib2.KDTree;
 import net.imglib2.RealLocalizable;
-import net.imglib2.RealRandomAccessible;
 import net.imglib2.Sampler;
 import net.imglib2.Volatile;
-import net.imglib2.interpolation.neighborsearch.NearestNeighborSearchInterpolatorFactory;
-import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
 import net.imglib2.neighborsearch.RadiusNeighborSearchOnKDTree;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -45,22 +42,22 @@ import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.util.Intervals;
-import net.imglib2.view.Views;
 import org.embl.mobie.viewer.annotation.AnnotatedSpot;
+import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.viewer.source.SourcePair;
+import org.embl.mobie.viewer.table.AnnData;
+import org.embl.mobie.viewer.table.DefaultAnnData;
 
 import javax.annotation.Nullable;
-import java.awt.*;
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< UnsignedIntType >
+public class SpotAnnotationImage< AS extends AnnotatedSpot > implements AnnotationImage< AS >
 {
 	private final String name;
-	private final ArrayList< AS > annotatedSpots;
+	private final DefaultAnnData< AS > annData;
 	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
 	private KDTree< AS > kdTree;
 	private RealMaskRealInterval mask;
@@ -68,18 +65,18 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 	private double[] boundingBoxMin;
 	private double[] boundingBoxMax;
 	private AffineTransform3D affineTransform3D;
-	private Source< UnsignedIntType > source;
-	private TransformedSource< UnsignedIntType > transformedSource;
+	private Source< AnnotationType< AS > > source;
+	private TransformedSource< AnnotationType< AS > > transformedSource;
 
-	public SpotLabelImage( String name, ArrayList< AS > annotatedSpots, double radius, @Nullable double[] boundingBoxMin, @Nullable double[] boundingBoxMax )
+	public SpotAnnotationImage( String name, DefaultAnnData< AS > annData, double radius, @Nullable double[] boundingBoxMin, @Nullable double[] boundingBoxMax )
 	{
 		this.name = name;
-		this.annotatedSpots = annotatedSpots;
+		this.annData = annData;
 		this.radius = radius;
 		this.boundingBoxMin = boundingBoxMin;
 		this.boundingBoxMax = boundingBoxMax;
 		affineTransform3D = new AffineTransform3D();
-		createLabelImage();
+		createImage();
 	}
 
 	public double getRadius()
@@ -92,12 +89,13 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 		this.radius = radius;
 	}
 
-	private void createLabelImage()
+	private void createImage()
 	{
 		//long start = System.currentTimeMillis();
 		// FIXME We could implement a kdTree that just uses float precision
 		//   to save memory.
-		kdTree = new KDTree( annotatedSpots, annotatedSpots );
+		final ArrayList< AS > annotations = annData.getTable().annotations();
+		kdTree = new KDTree( annotations, annotations );
 		//System.out.println( "Built tree with " + annotatedSpots.size() + " elements in " + ( System.currentTimeMillis() - start ) + " ms." );
 
 		if ( boundingBoxMin == null )
@@ -108,61 +106,56 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 
 		mask = GeomMasks.closedBox( boundingBoxMin, boundingBoxMax );
 
-		// TODO: use those for something?
-//		final NearestNeighborSearchOnKDTree< AS > nearestNeighborSearchOnKDTree = new NearestNeighborSearchOnKDTree<>( kdTree );
-//		final RadiusNeighborSearchOnKDTree< AS > radiusNeighborSearchOnKDTree = new RadiusNeighborSearchOnKDTree<>( kdTree );
-
 		// TODO: code duplication with RegionLabelImage
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( getMask() );
-		// FIXME don't go via the label
-		//  also check what Preibisch is doing there.
-
-		final FunctionRealRandomAccessible< UnsignedIntType > realRandomAccessible = new FunctionRealRandomAccessible( 3, new SpotLocationToLabelSupplier(), UnsignedIntType::new );
+		final AS annotatedSpot = annData.getTable().annotation( 0 );
+		final FunctionRealRandomAccessible< AnnotationType< AS > > realRandomAccessible = new FunctionRealRandomAccessible( 3, new LocationToAnnotatedSpotSupplier(), () -> new AnnotationType<>( annotatedSpot ) );
 		//final RealRandomAccessible interpolate = Views.interpolate( new NearestNeighborSearchOnKDTree( kdTree ), new NearestNeighborSearchInterpolatorFactory() );
-		source = new RealRandomAccessibleIntervalTimelapseSource<>( realRandomAccessible, interval, new UnsignedIntType(), new AffineTransform3D(), name, true, timePoints );
+		source = new RealRandomAccessibleIntervalTimelapseSource<>( realRandomAccessible, interval, new AnnotationType<>( annotatedSpot ), new AffineTransform3D(), name, true, timePoints );
 	}
 
-	class SpotLocationToLabelSupplier implements Supplier< BiConsumer< RealLocalizable, UnsignedIntType > >
+	@Override
+	public AnnData< AS > getAnnData()
 	{
-		public SpotLocationToLabelSupplier()
+		return annData;
+	}
+
+	class LocationToAnnotatedSpotSupplier implements Supplier< BiConsumer< RealLocalizable, AnnotationType< AS > > >
+	{
+		public LocationToAnnotatedSpotSupplier()
 		{
 		}
 
 		@Override
-		public BiConsumer< RealLocalizable, UnsignedIntType > get()
+		public BiConsumer< RealLocalizable, AnnotationType< AS > > get()
 		{
-			return new LocationToLabel();
+			return new LocationToAnnotatedSpot();
 		}
 
-		private class LocationToLabel implements BiConsumer< RealLocalizable, UnsignedIntType >
+		private class LocationToAnnotatedSpot implements BiConsumer< RealLocalizable, AnnotationType< AS > >
 		{
 			private RadiusNeighborSearchOnKDTree< AS > search;
 
-			public LocationToLabel( )
+			public LocationToAnnotatedSpot( )
 			{
 				search = new RadiusNeighborSearchOnKDTree<>( kdTree );
 			}
 
 			@Override
-			public void accept( RealLocalizable location, UnsignedIntType value )
+			public void accept( RealLocalizable location, AnnotationType< AS > value )
 			{
 				search.search( location, radius, true );
 				if ( search.numNeighbors() > 0 )
 				{
 					final Sampler< AS > sampler = search.getSampler( 0 );
-					final AS annotatedRegion = sampler.get();
-					// FIXME It is stupid to just return the label here, because
-					//   this is already the spot.
-					//   We could probably safe speed and memory because we
-					//   do not need the annotationAdapter for the spots!
-
-					value.setInteger( annotatedRegion.label() );
+					final AS annotatedSpot = sampler.get();
+					value.setAnnotation( annotatedSpot );
 				}
 				else
 				{
 					// background
-					value.setInteger( 0 );
+					value.setAnnotation( null );
 				}
 			}
 		}
@@ -178,7 +171,7 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 	}
 
 	@Override
-	public SourcePair< UnsignedIntType > getSourcePair()
+	public SourcePair< AnnotationType< AS > > getSourcePair()
 	{
 		transformedSource = new TransformedSource( source );
 		transformedSource.setFixedTransform( affineTransform3D );

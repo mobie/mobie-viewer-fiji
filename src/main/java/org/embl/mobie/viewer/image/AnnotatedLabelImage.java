@@ -5,9 +5,11 @@ import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.table.AnnData;
 
-public interface AnnotatedLabelImage< A extends Annotation > extends Image< AnnotationType< A > >
+public interface AnnotatedLabelImage< A extends Annotation > extends AnnotationImage< A >
 {
-	AnnData< A > getAnnData();
-
+	// This image serves the locations of the annotations,
+	// by corresponding to {@code annotation.label()}
 	Image< ? extends IntegerType< ? > > getLabelImage();
+
+	// FIXME: Add AnnotationAdapter?
 }

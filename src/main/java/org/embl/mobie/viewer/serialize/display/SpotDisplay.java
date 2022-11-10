@@ -31,7 +31,7 @@ package org.embl.mobie.viewer.serialize.display;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.annotation.Annotation;
-import org.embl.mobie.viewer.image.SpotLabelImage;
+import org.embl.mobie.viewer.image.SpotAnnotationImage;
 import org.embl.mobie.viewer.source.AnnotationType;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
@@ -99,7 +99,7 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay
 		final SourceAndConverter< ? extends AnnotationType< ? extends Annotation > > sourceAndConverter = spotDisplay.sourceAndConverters().get( 0 );
 
 		// spot radius
-		final SpotLabelImage spotLabelImage = ( SpotLabelImage ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, SpotLabelImage.class.getName() );
-		this.spotRadius = spotLabelImage.getRadius();
+		final SpotAnnotationImage spotAnnotationImage = ( SpotAnnotationImage ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, SpotAnnotationImage.class.getName() );
+		this.spotRadius = spotAnnotationImage.getRadius();
 	}
 }

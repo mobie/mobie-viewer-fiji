@@ -36,7 +36,6 @@ import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.type.numeric.integer.UnsignedIntType;
 import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.DataStore;
@@ -57,9 +56,8 @@ import org.embl.mobie.viewer.color.lut.ColumnARGBLut;
 import org.embl.mobie.viewer.color.lut.LUTs;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.image.AnnotationImage;
-import org.embl.mobie.viewer.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.viewer.image.Image;
-import org.embl.mobie.viewer.image.AnnotatedRegionImage;
+import org.embl.mobie.viewer.image.RegionAnnotationImage;
 import org.embl.mobie.viewer.image.StitchedAnnotatedLabelImage;
 import org.embl.mobie.viewer.image.StitchedImage;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
@@ -498,14 +496,14 @@ public class ViewManager
 
 				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, moBIE.getTableStore( regionDataSource.tableData ), TableDataFormat.DEFAULT_TSV, table );
 				final DefaultAnnData< AnnotatedRegion > annData = new DefaultAnnData<>( tableModel );
-				final AnnotatedRegionImage< AnnotatedRegion > annotatedRegionImage = new AnnotatedRegionImage( regionDisplay.getName(), annData );
+				final RegionAnnotationImage< AnnotatedRegion > regionAnnotationImage = new RegionAnnotationImage( regionDisplay.getName(), annData );
 
 				// REMOVE
 				final DefaultAnnotationAdapter< AnnotatedRegion > annotationAdapter = new DefaultAnnotationAdapter<>( annData );
 				// FIXME Just DefaultAnnotatedImage will do
 
 
-				DataStore.putImage( annotatedRegionImage );
+				DataStore.putImage( regionAnnotationImage );
 			}
 		}
 	}

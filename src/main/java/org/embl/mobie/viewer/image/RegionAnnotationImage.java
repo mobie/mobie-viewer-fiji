@@ -53,7 +53,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-public class AnnotatedRegionImage< AR extends AnnotatedRegion > implements AnnotationImage< AR >
+public class RegionAnnotationImage< AR extends AnnotatedRegion > implements AnnotationImage< AR >
 {
 	private final String name;
 
@@ -68,7 +68,7 @@ public class AnnotatedRegionImage< AR extends AnnotatedRegion > implements Annot
 	// which is not nice because a {@code region} is defined in real space.
 	private Source< ? extends VolatileAnnotationType< AR > > volatileSource = null;
 
-	public AnnotatedRegionImage( String name, AnnData< AR > annData )
+	public RegionAnnotationImage( String name, AnnData< AR > annData )
 	{
 		this.name = name;
 		this.annData = annData;
