@@ -36,14 +36,40 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class ThreadHelper
 {
 	private static int N_IO_THREADS = Runtime.getRuntime().availableProcessors() - 1;
+
 	private static final int N_THREADS = Runtime.getRuntime().availableProcessors() - 1;
+
 	public static ExecutorService ioExecutorService = Executors.newFixedThreadPool( N_IO_THREADS );
+
 	public static final SharedQueue sharedQueue = new SharedQueue( N_IO_THREADS );
+
 	public static ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
+
+	public static ExecutorService stitchedImageExecutorService;
+	static {
+		// queue that only keep the latest requests.
+		// use case: if a user zooms into a stitched image or adds a new channel
+		// we don't want to wait until all the "old" cells are loaded that
+		// have been requested already, but rather present the user with
+		// the newly requested data.
+		// idea taken from: https://stackoverflow.com/questions/53236911/executor-thread-pool-limit-queue-size-and-dequeue-oldest
+		// fixes: https://github.com/mobie/mobie-viewer-fiji/issues/901
+		RejectedExecutionHandler handler = new ThreadPoolExecutor.DiscardOldestPolicy();
+		final int poolSize = ThreadHelper.getNumIoThreads();
+		final LinkedBlockingQueue< Runnable > workQueue = new LinkedBlockingQueue<>( 2 * poolSize );
+		stitchedImageExecutorService = new ThreadPoolExecutor(poolSize, poolSize,
+				0L, TimeUnit.MILLISECONDS,
+				workQueue,
+				handler );
+	}
 
 	public static void resetIOThreads()
 	{

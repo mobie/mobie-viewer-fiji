@@ -47,6 +47,7 @@ import net.imglib2.type.Type;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
+import org.apache.commons.collections4.queue.CircularFifoQueue;
 import org.embl.mobie.viewer.DataStore;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.ThreadHelper;
@@ -66,6 +67,11 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
@@ -304,6 +310,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				mipmapTransforms );
 		final TransformedSource transformedVolatileSource = new TransformedSource( volatileSource, new TransformedSource( volatileSource, transformedSource ) );
 
+		// combined
+		//
 		sourcePair = new DefaultSourcePair<>( transformedSource, transformedVolatileSource );
 	}
 
@@ -375,9 +383,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				{
 					// set opening status already now, because we do not
 					// know when the executor service will run the actual opening
-					randomAccessibleSupplier.setStatus( level, xTileIndex, yTileIndex, Status.Opening );
+					//randomAccessibleSupplier.setStatus( level, xTileIndex, yTileIndex, Status.Opening );
 
-					ThreadHelper.ioExecutorService.submit(
+					ThreadHelper.stitchedImageExecutorService.submit(
 							new RandomAccessibleOpener( level, xTileIndex, yTileIndex )
 					);
 
@@ -684,16 +692,17 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			return keyToStatus.containsKey( getKey( level, xTileIndex, yTileIndex ) );
 		}
 
-		// FIXME: Maybe the executor service should be here?
-		//   and not in the LocationToValue...
 		public void open( int level, int xTileIndex, int yTileIndex )
 		{
 			final String key = getKey( level, xTileIndex, yTileIndex );
 
-			if ( keyToStatus.get( key ).equals( Status.Open ) )
-				return;
+			synchronized ( keyToStatus )
+			{
+				if ( keyToStatus.get( key ).equals( Status.Open ) )
+					return;
 
-			keyToStatus.put( key, Status.Opening );
+				keyToStatus.put( key, Status.Opening );
+			}
 
 			int t = 0; // TODO
 
