@@ -38,6 +38,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Take Screenshot")
@@ -48,8 +49,11 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     @Parameter
     public BdvHandle bdvh;
 
-    @Parameter(label="Sampling", callback = "showNumPixels", min = "0.0", style="format:#.00000", stepSize = "0.01")
+    @Parameter(label="Sampling (in below units)", callback = "showNumPixels", min = "0.0", style="format:#.00000", stepSize = "0.01")
     public Double targetSamplingInXY = 1D;
+
+    @Parameter(label="Pixel unit", choices = {"micrometer"} )
+    public String pixelUnit;
 
     @Parameter(label="Show RGB Image")
     public boolean showRGB = true;
@@ -57,13 +61,6 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     @Parameter(label="Show Multi-Channel Image")
     public boolean showMultiChannel = true;
 
-//    @Parameter( visibility = MESSAGE, required = false )
-//    String message = CAPTURE_SIZE_PIXELS +"";
-//
-//    @Parameter( visibility = MESSAGE, required = false )
-//    String scaleBarMessage = "Add Scale Bar: [ Analyze > Tools > Scale Bar... ]";
-
-    private String pixelUnit = "Pixels";
 
     @Override
     public void run() {
@@ -80,12 +77,14 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     @Override
     public void initialize() {
 
-        // adapt pixel unit
+        // set pixel unit choices
         //
-        final MutableModuleItem< Double > pixelSizeItem = //
-                getInfo().getMutableInput("targetSamplingInXY", Double.class);
-        pixelUnit = bdvh.getViewerPanel().state().getCurrentSource().getSpimSource().getVoxelDimensions().unit();
-        pixelSizeItem.setLabel( pixelSizeItem.getLabel().replace( "UNIT", pixelUnit ) );
+        final MutableModuleItem< String > pixelUnitItem = //
+                getInfo().getMutableInput("pixelUnit", String.class);
+        String pixelUnit = bdvh.getViewerPanel().state().getCurrentSource().getSpimSource().getVoxelDimensions().unit();
+        final ArrayList< String > units = new ArrayList<>();
+        units.add( pixelUnit );
+        pixelUnitItem.setChoices( units );
     }
 
     // callback
