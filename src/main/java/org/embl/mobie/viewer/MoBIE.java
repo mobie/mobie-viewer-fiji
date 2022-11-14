@@ -485,8 +485,9 @@ public class MoBIE
 
 	public void initDataSources( List< DataSource > dataSources )
 	{
-		if ( dataSources.size() > 20 )
-			IJ.log("Initialising " + dataSources.size() + " data sources (this could take a couple of minutes...)" );
+		final int numPreInit = dataSources.stream().filter( dataSource -> dataSource.preInit() ).collect( Collectors.toList() ).size();
+		if ( numPreInit > 20 )
+			IJ.log("Need to prefetch data from " + numPreInit + " sources (this may take some time...)" );
 
 		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
 		AtomicInteger sourceIndex = new AtomicInteger(0);

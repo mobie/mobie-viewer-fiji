@@ -36,6 +36,7 @@ import net.imglib2.util.ValuePair;
 
 public class NumericAnnotationColoringModel< A extends Annotation > extends AbstractAnnotationColoringModel< A >
 {
+	public static final int ZERO_ARGB = ARGBType.rgba( 0, 0, 0, 0 );
 	private Pair< Double, Double > contrastLimits;
 	private final boolean isZeroTransparent;
 
@@ -53,8 +54,11 @@ public class NumericAnnotationColoringModel< A extends Annotation > extends Abst
 	@Override
 	public void convert( A annotation, ARGBType output )
 	{
-		final Float value = ( (Number) annotation.getValue( columnName ) ).floatValue();
-		setColorLinearly( value, output );
+		final Number number = ( Number ) annotation.getValue( columnName );
+		if ( number == null )
+			output.set( ZERO_ARGB );
+		else
+			setColorLinearly( number.floatValue(), output );
 	}
 	
 	public double getMin()
@@ -85,7 +89,7 @@ public class NumericAnnotationColoringModel< A extends Annotation > extends Abst
 		{
 			if ( value == 0 )
 			{
-				output.set( ARGBType.rgba( 0, 0, 0, 0 ) );
+				output.set( ZERO_ARGB );
 				return;
 			}
 		}
