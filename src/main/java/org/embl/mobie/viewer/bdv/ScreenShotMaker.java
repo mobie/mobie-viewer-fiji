@@ -37,6 +37,8 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.Duplicator;
 import ij.process.LUT;
+import net.imglib2.type.Type;
+import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.bdv.render.AccumulateAlphaBlendingProjectorARGB;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
@@ -53,6 +55,8 @@ import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
+import org.embl.mobie.viewer.source.AnnotatedLabelSource;
+import org.embl.mobie.viewer.source.AnnotationType;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.ISourceAndConverterService;
@@ -103,9 +107,8 @@ public class ScreenShotMaker
     }
 
     private void process() {
-        if ( rgbImagePlus != null) {
+        if ( rgbImagePlus != null)
             return;
-        }
         createScreenShot();
     }
 
@@ -164,7 +167,7 @@ public class ScreenShotMaker
         List< SourceAndConverter< ? > > sacs = new ArrayList<>();
         for ( SourceAndConverter< ?  > sac : visibleSacs )
         {
-            if ( !isSourceIntersectingCurrentView( bdvHandle, sac.getSpimSource(), sourceInteractionWithViewerPlaneOnly2D ) )
+            if ( ! isSourceIntersectingCurrentView( bdvHandle, sac.getSpimSource(), sourceInteractionWithViewerPlaneOnly2D ) )
                 continue;
             sacs.add( sac );
         }
@@ -192,23 +195,20 @@ public class ScreenShotMaker
 
             final double canvasStepSize = samplingXY / getViewerVoxelSpacing( bdvHandle );
 
-            // TODO: Once we have a logic for segmentation images, make this choice depend on this
-            final boolean interpolate = true;
+            boolean interpolate = ! ( source.getType() instanceof AnnotationType );
+
             Grids.collectAllContainedIntervals(
                     Intervals.dimensionsAsLongArray( argbCapture ),
                     new int[]{100, 100}).parallelStream().forEach( interval ->
             {
-                RealRandomAccess< ? extends RealType< ? > > realTypeAccess =
-                        getRealTypeRealRandomAccess( t, source, level, interpolate );
-                RealRandomAccess< ? > access =
-                        getRealRandomAccess( t, source, level, interpolate );
+                RealRandomAccess< ? extends Type< ? > > access = getRealRandomAccess( ( Source< Type< ? > > ) source, t, level, interpolate );
 
                 // to collect raw data
                 final IntervalView< UnsignedShortType > rawCrop = Views.interval( rawCapture, interval );
                 final Cursor< UnsignedShortType > rawCaptureCursor = Views.iterable( rawCrop ).localizingCursor();
                 final RandomAccess< UnsignedShortType > rawCaptureAccess = rawCrop.randomAccess();
 
-                // to collect coloured data
+                // to collect colored data
                 final IntervalView< ARGBType > argbCrop = Views.interval( argbCapture, interval );
                 final RandomAccess< ARGBType > argbCaptureAccess = argbCrop.randomAccess();
 
@@ -225,16 +225,16 @@ public class ScreenShotMaker
                     rawCaptureAccess.setPosition( rawCaptureCursor );
                     argbCaptureAccess.setPosition( rawCaptureCursor );
 
-                    // canvasPosition is the position on the canvas, in calibrated units
-                    // dxy is the step size that is needed to get
+                    // canvasPosition is in calibrated units
+                    // canvasStepSize is the step size that is needed to get
                     // the desired resolution in the output image
                     canvasPosition[ 0 ] *= canvasStepSize;
                     canvasPosition[ 1 ] *= canvasStepSize;
 
                     viewerToSourceTransform.apply( canvasPosition, sourceRealPosition );
-
-                    setRawCapturePixelValue( realTypeAccess, rawCaptureAccess, sourceRealPosition );
-                    setArgbCapturePixelValue( converter, access, argbCaptureAccess, sourceRealPosition, argbType );
+                    access.setPosition( sourceRealPosition );
+                    setUnsignedShortCapturePixelValue( access, rawCaptureAccess );
+                    setArgbCapturePixelValue( converter, access, argbCaptureAccess, argbType );
                 }
             });
 
@@ -276,51 +276,50 @@ public class ScreenShotMaker
         return visibleSacs;
     }
 
-    private void setArgbCapturePixelValue( Converter converter, RealRandomAccess< ? > access, RandomAccess< ARGBType > argbCaptureAccess, double[] sourceRealPosition, ARGBType argbType )
+    private void setArgbCapturePixelValue( Converter converter, RealRandomAccess< ? > access, RandomAccess< ARGBType > argbCaptureAccess, ARGBType argbType )
     {
-        access.setPosition( sourceRealPosition );
         final Object pixelValue = access.get();
+
         if ( pixelValue instanceof ARGBType )
             argbType.set( ( ARGBType ) pixelValue );
         else
             converter.convert( pixelValue, argbType );
 
-        final int sourceARGBIndex = argbType.get();
-        final int captureARGBIndex = argbCaptureAccess.get().get();
-
-        // here the projection happens
-        int a = ARGBType.alpha( sourceARGBIndex ) + ARGBType.alpha( captureARGBIndex );
-        int r = ARGBType.red( sourceARGBIndex ) + ARGBType.red( captureARGBIndex );
-        int g = ARGBType.green( sourceARGBIndex )+ ARGBType.green( captureARGBIndex );
-        int b = ARGBType.blue( sourceARGBIndex )+ ARGBType.blue( captureARGBIndex );
-
-        if ( a > 255 )
-            a = 255;
-        if ( r > 255 )
-            r = 255;
-        if ( g > 255 )
-            g = 255;
-        if ( b > 255 )
-            b = 255;
-
-        argbCaptureAccess.get().set( ARGBType.rgba( r, g, b, a ) );
+        argbCaptureAccess.get().set( argbType.get() );
     }
 
-    private void setRawCapturePixelValue( RealRandomAccess< ? extends RealType< ? > > realTypeAccess, RandomAccess< UnsignedShortType > realCaptureAccess, double[] sourceRealPosition )
+    private void setUnsignedShortCapturePixelValue( RealRandomAccess< ? extends Type< ? > > access, RandomAccess< UnsignedShortType > realCaptureAccess )
     {
-        realTypeAccess.setPosition( sourceRealPosition );
-        final RealType< ? > realType = realTypeAccess.get();
-        realCaptureAccess.get().setReal( realType.getRealDouble() );
-    }
-
-    private RealRandomAccess< ? > getRealRandomAccess( int t, Source< ? > source, int level, boolean interpolate )
-    {
-        RealRandomAccess< ? > access;
-        if ( interpolate )
-            access = source.getInterpolatedSource( t, level, Interpolation.NLINEAR ).realRandomAccess();
+        final Type< ? > type = access.get();
+        if ( type instanceof RealType )
+        {
+            realCaptureAccess.get().setReal( ( ( RealType ) type ).getRealDouble() );
+        }
+        else if ( type instanceof AnnotationType )
+        {
+            try
+            {
+                final Annotation annotation = ( Annotation ) ( ( AnnotationType< ? > ) type ).getAnnotation();
+                if ( annotation != null )
+                    realCaptureAccess.get().setReal( annotation.label() );
+            }
+            catch ( Exception e )
+            {
+                throw new RuntimeException( e );
+            }
+        }
         else
-            access = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR ).realRandomAccess();
-        return access;
+        {
+            throw new UnsupportedOperationException( "Cannot render " + type.getClass() );
+        }
+    }
+
+    private RealRandomAccess< ? extends Type< ? > > getRealRandomAccess( Source< Type< ? > > source, int t, int level, boolean interpolate )
+    {
+        if ( interpolate )
+           return source.getInterpolatedSource( t, level, Interpolation.NLINEAR ).realRandomAccess();
+        else
+            return source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR ).realRandomAccess();
     }
 
     private ImagePlus createImagePlus(
@@ -457,12 +456,17 @@ public class ScreenShotMaker
         return compositeImage;
     }
 
-    public static RealRandomAccess< ? extends RealType< ? > >
-    getRealTypeRealRandomAccess( int t, Source< ? > source, int level, boolean interpolate )
+    private RealRandomAccess< ? extends RealType< ? > >
+    getRealTypeRealRandomAccess( Source< ? > source, int t, int level, boolean interpolate )
     {
+        if ( source instanceof AnnotatedLabelSource )
+        {
+            int a = 1;
+        }
+
         if ( interpolate )
-            return (RealRandomAccess<? extends RealType<?>>) source.getInterpolatedSource(t, level, Interpolation.NLINEAR).realRandomAccess();
+            return ( RealRandomAccess<? extends RealType<?>> ) source.getInterpolatedSource( t, level, Interpolation.NLINEAR).realRandomAccess();
         else
-            return (RealRandomAccess<? extends RealType<?>>) source.getInterpolatedSource(t, level, Interpolation.NEARESTNEIGHBOR).realRandomAccess();
+            return ( RealRandomAccess<? extends RealType<?>> ) source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR).realRandomAccess();
     }
 }
