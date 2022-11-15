@@ -9,8 +9,7 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>3.0.5-SNAPSHOT</version>
-
+    <version>3.0.5</version>
 
     <!-- mvn javadoc:javadoc -Denforcer.skip | grep error -->
     <!-- mvn clean compile -Dmaven.test.skip=true -->
