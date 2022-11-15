@@ -1,6 +1,5 @@
 package org.embl.mobie.viewer.table.saw;
 
-import bdv.viewer.TransformListener;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.util.Intervals;
@@ -10,12 +9,9 @@ import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.image.ImageListener;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.transform.TransformHelper;
-import tech.tablesaw.api.Row;
-import tech.tablesaw.api.Table;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implements AnnotatedRegion, ImageListener
 {
