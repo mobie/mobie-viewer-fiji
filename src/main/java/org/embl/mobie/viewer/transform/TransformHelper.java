@@ -278,30 +278,10 @@ public class TransformHelper
 	public static RealMaskRealInterval getUnionMask( Collection< ? extends Masked > masks, int t )
 	{
 		// use below code once https://github.com/imglib/imglib2-roi/pull/63 is merged
-//		RealMaskRealInterval union = null;
-//		for ( Image< ? > image : images )
-//		{
-//			final RealMaskRealInterval mask = image.getBounds( t );
-//
-//			if ( union == null )
-//			{
-//				union = mask;
-//			}
-//			else
-//			{
-//				if ( Intervals.equals( mask, union ) )
-//					continue;
-//				union = union.or( mask );
-//			}
-//		}
-//		return union;
-
-		RealInterval union = null;
+		RealMaskRealInterval union = null;
 		for ( Masked masked : masks )
 		{
-			final RealInterval mask = masked.getMask();
-			final double[] min = mask.minAsDoubleArray();
-			final double[] max = mask.maxAsDoubleArray();
+			final RealMaskRealInterval mask = masked.getMask();
 
 			if ( union == null )
 			{
@@ -311,13 +291,36 @@ public class TransformHelper
 			{
 				if ( Intervals.equals( mask, union ) )
 					continue;
-				union = Intervals.union( mask, union );
+
+				union = union.or( mask );
 			}
 		}
 
-		final double[] min = union.minAsDoubleArray();
-		final double[] max = union.maxAsDoubleArray();
-		return GeomMasks.closedBox( min, max );
+		return union;
+
+//		RealInterval union = null;
+//		for ( Masked masked : masks )
+//		{
+//			final RealInterval mask = masked.getMask();
+//			final double[] min = mask.minAsDoubleArray();
+//			final double[] max = mask.maxAsDoubleArray();
+//
+//			if ( union == null )
+//			{
+//				union = mask;
+//			}
+//			else
+//			{
+//				if ( Intervals.equals( mask, union ) )
+//					continue;
+//				union = Intervals.union( mask, union );
+//			}
+//		}
+//
+//		final double[] min = union.minAsDoubleArray();
+//		final double[] max = union.maxAsDoubleArray();
+//
+//		return GeomMasks.closedBox( min, max );
 	}
 
 	public static double[] getRealDimensions( RealMaskRealInterval unionMask )

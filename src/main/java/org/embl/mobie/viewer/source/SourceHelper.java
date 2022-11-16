@@ -229,7 +229,7 @@ public abstract class SourceHelper
 	{
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 		source.getSourceTransform( 0, 0, affineTransform3D );
-		final RandomAccessibleInterval< ? > rai = source.getSource( t, 0 );
+ m		final RandomAccessibleInterval< ? > rai = source.getSource( t, 0 );
 		final double[] min = rai.minAsDoubleArray();
 		final double[] max = rai.maxAsDoubleArray();
 		final FinalRealInterval bounds = affineTransform3D.estimateBounds( rai );

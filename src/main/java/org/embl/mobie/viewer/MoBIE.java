@@ -487,7 +487,7 @@ public class MoBIE
 	{
 		final int numPreInit = dataSources.stream().filter( dataSource -> dataSource.preInit() ).collect( Collectors.toList() ).size();
 		if ( numPreInit > 20 )
-			IJ.log("Need to prefetch data from " + numPreInit + " sources (this may take some time...)" );
+			IJ.log("Prefetching data from " + numPreInit + " sources (this may take some time...)" );
 
 		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
 		AtomicInteger sourceIndex = new AtomicInteger(0);

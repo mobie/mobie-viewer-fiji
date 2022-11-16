@@ -62,6 +62,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 			// The mask contains potential previous transforms already,
 			// thus we add the new transform on top.
 			mask = mask.transform( affineTransform3D.inverse() );
+			System.out.println( "Transforming " + name + " with " + affineTransform3D );
 		}
 
 		this.affineTransform3D.preConcatenate( affineTransform3D );
@@ -70,7 +71,10 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 			transformedSource.setFixedTransform( this.affineTransform3D );
 
 		for ( ImageListener listener : listeners.list )
+		{
+			System.out.println( "Notifying " + listener.getClass() );
 			listener.imageChanged();
+		}
 	}
 
 	@Override
@@ -83,6 +87,11 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 			// will make them so thin that the {@code RegionLabelImage}
 			// does not render anything.
 			// TODO maybe better to move this logic of adding the voxel size to {@code RegionLabelImage}? Not sure.
+			// FIXME This is an issue when the image has already been transformed
+			//   then the mask is wrong, because it does include the transformations,
+			//   but it only estimates the bounds without the transformations.
+			//   => probably need to estimate the bounds from the untransformed source
+			//   then create a mask and then transform the mask
 			return SourceHelper.estimateMaskIncludingVoxelSize( getSourcePair().getSource(), 0 );
 		}
 

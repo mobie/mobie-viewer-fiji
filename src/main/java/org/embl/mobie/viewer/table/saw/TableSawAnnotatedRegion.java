@@ -10,6 +10,7 @@ import org.embl.mobie.viewer.image.ImageListener;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.transform.TransformHelper;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -25,6 +26,7 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	private double[] position;
 	private String source;
 	private RealMaskRealInterval mask;
+	private Set< Image< ? > > images;
 
 	public TableSawAnnotatedRegion(
 			TableSawAnnotationTableModel< TableSawAnnotatedRegion > model,
@@ -42,6 +44,10 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 		this.timePoint = timePoint;
 		this.labelId = labelId;
 		this.uuid = uuid;
+
+		images = DataStore.getImageSet( imageNames );
+		for ( Image< ? > image : images )
+			image.listeners().add( this );
 	}
 
 	@Override
@@ -112,12 +118,9 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	{
 		if ( mask == null )
 		{
-			final Set< Image< ? > > regionImages = DataStore.getImageSet( imageNames );
-
-			for ( Image< ? > regionImage : regionImages )
-				regionImage.listeners().add( this );
-
-			mask = TransformHelper.getUnionMask( regionImages, timePoint() );
+			// Compute the mask of the images
+			// that are annotated by this region
+			mask = TransformHelper.getUnionMask( images, timePoint() );
 		}
 
 		return mask;
@@ -149,6 +152,7 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	@Override
 	public void imageChanged()
 	{
+		System.out.println("Image changed: " + imageNames.get( 0 ) );
 		mask = null; // force to compute the mask again
 	}
 }
