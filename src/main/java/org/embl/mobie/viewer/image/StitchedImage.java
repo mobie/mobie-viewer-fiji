@@ -30,7 +30,6 @@ package org.embl.mobie.viewer.image;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.Affine3DHelpers;
-import bdv.util.RealRandomAccessibleIntervalSource;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalInterval;
@@ -67,7 +66,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -78,7 +76,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private final String name;
 	private List< ? extends Image< T > > images;
 	private final List< int[] > positions;
-	private final double relativeCellMargin;
+	private final double relativeTileMargin;
 	private int[][] tileDimensions;
 	private double[][] downSamplingFactors;
 	private double[][] mipmapScales;
@@ -97,11 +95,10 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private TransformedSource< T > transformedSource;
 	private RealMaskRealInterval referenceMask;
 
-	private static AtomicInteger valueSupplierIndex = new AtomicInteger( 0 );
-	private boolean debug = false;
+	private boolean debug = true;
 	private AffineTransform3D sourceTransform;
 
-	public StitchedImage( List< ? extends Image< T > > images, Image< T > metadataImage, @Nullable List< int[] > positions, String name, double relativeCellMargin )
+	public StitchedImage( List< ? extends Image< T > > images, Image< T > metadataImage, @Nullable List< int[] > positions, String name, double relativeTileMargin )
 	{
 		this.images = images;
 
@@ -155,7 +152,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		this.sourceTransform = levelToSourceTransform.get( 0 );
 		this.positions = positions == null ? TransformHelper.createGridPositions( images.size() ) : positions;
-		this.relativeCellMargin = 0;// relativeCellMargin;
+		this.relativeTileMargin = relativeTileMargin;
 		this.name = name;
 
 		setMinMaxPos();
@@ -525,7 +522,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		tileDimensions = new int[ numMipmapLevels ][ numDimensions ];
 		tileDimensions[ 0 ] = MoBIEHelper.asInts( levelToSourceDimensions.get( 0 ) );
 		for ( int d = 0; d < 2; d++ )
-			tileDimensions[ 0 ][ d ] *= ( 1 + 2.0 * relativeCellMargin );
+			tileDimensions[ 0 ][ d ] *= ( 1 + 2.0 * relativeTileMargin );
 
 		// tileDimensions level 1 to N
 		for ( int level = 1; level < numMipmapLevels; level++ )
@@ -534,13 +531,21 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		// Adapt tile dimensions such that they are divisible
 		// by all relative changes of the resolutions between the different levels.
-		// If we don't do this there are jumps of the images when zooming in and out;
-		// i.e. the different resolution levels are rendered at slightly offset
-		// positions.
+		// This is needed such that the stitched images at the different
+		// resolution levels have the same size in voxel space (after
+		// multiplying the voxel size at the respective level with the
+		// mipmap scaling)
+		final double[] downSamplingFactorProducts = new double[ numDimensions ];
+		Arrays.fill( downSamplingFactorProducts, 1.0D );
+
+		for ( int level = 1; level < numMipmapLevels; level++ )
+			for ( int d = 0; d < numDimensions; d++ )
+				downSamplingFactorProducts[ d ] *= downSamplingFactors[ level ][ d ];
+
 		tileDimensions[ 0 ] = MoBIEHelper.asInts( levelToSourceDimensions.get( 0 ) );
 		for ( int d = 0; d < 2; d++ )
 		{
-			tileDimensions[ 0 ][ d ] *= ( 1 + 2.0 * relativeCellMargin );
+			tileDimensions[ 0 ][ d ] *= ( 1 + 2.0 * relativeTileMargin );
 			tileDimensions[ 0 ][ d ] = (int) ( downSamplingFactorProducts[ d ] * Math.ceil( tileDimensions[ 0 ][ d ] / downSamplingFactorProducts[ d ] ) );
 		}
 
@@ -549,10 +554,33 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				tileDimensions[ level ][ d ] = (int) ( tileDimensions[ level - 1 ][ d ] / downSamplingFactors[ level ][ d ] );
 
 		// marginTranslations
-		marginTranslations = new double[ numMipmapLevels ][ numDimensions ];;
-		for ( int level = 0; level < numMipmapLevels; level++ )
-			marginTranslations[ level ] = marginTranslation( tileDimensions[ level ], levelToSourceDimensions.get( level ) );
+		// also here make sure that they are divisible by all resolution
+		// levels to avoid any jumps due to rounding issues
 
+		// level 0
+		marginTranslations = new double[ numMipmapLevels ][ numDimensions ];
+		for ( int d = 0; d < 2; d++ )
+		{
+			marginTranslations[ 0 ][ d ] = ( int ) ( tileDimensions[ 0 ][ d ] * ( relativeTileMargin / ( 1 + 2 * relativeTileMargin ) ) );
+			marginTranslations[ 0 ][ d ] = ( int ) ( downSamplingFactorProducts[ d ] * Math.ceil( marginTranslations[ 0 ][ d ] / downSamplingFactorProducts[ d ] ) );
+		}
+
+		// level 1 to N
+		for ( int level = 1; level < numMipmapLevels; level++ )
+		{
+			for ( int d = 0; d < 2; d++ )
+			{
+				marginTranslations[ level ][ d ] = marginTranslations[ level - 1 ][ d ] / downSamplingFactors[ level ][ d ];
+			}
+		}
+
+		if ( debug )
+		{
+			for ( int level = 0; level < numMipmapLevels; level++ )
+			{
+				System.out.println( "Level " + level + "; Margin translation [voxels] = " + Arrays.toString( marginTranslations[ level ] ) );
+			}
+		}
 	}
 
 	protected FinalInterval getInterval( int level )
@@ -564,6 +592,15 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			min[ d ] = minPos[ d ] * tileDimensions[ level ][ d ];
 			max[ d ] = ( maxPos[ d ] + 1 ) * tileDimensions[ level ][ d ];
 		}
+
+		if ( debug )
+		{
+			final double[] size = new double[ 2 ];
+			for ( int d = 0; d < 2; d++ )
+				size[ d ] = ( max[ d ] - min[ d ] ) * mipmapScales[ level ][ d ];
+			System.out.println("Level " + level + "; Size " + Arrays.toString( size ) );
+		}
+
 		return new FinalInterval( min, max );
 	}
 
@@ -594,13 +631,13 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		}
 	}
 
-	private double[] marginTranslation( int[] tileDimensions, long[] dataDimensions )
+	private double[] marginTranslation( int[] tileDimensions, double downSamplingFactorProduct )
 	{
 		// FIXME: Can we be more precise here?
 		//  Could this lead to jumps between resolution levels?
 		final double[] translation = new double[ 3 ];
 		for ( int d = 0; d < 2; d++ )
-			translation[ d ] = ( tileDimensions[ d ] - dataDimensions[ d ] ) / 2.0;
+			translation[ d ] = tileDimensions[ d ] * ( relativeTileMargin / ( 1 + 2 * relativeTileMargin ) );
 		return translation;
 	}
 
