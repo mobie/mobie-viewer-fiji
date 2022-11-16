@@ -480,11 +480,11 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		return stitchedRAIs;
 	}
 
-	protected void setTileRealDimensions( int[] cellDimensions )
+	protected void setTileRealDimensions( int[] tileDimensions )
 	{
 		tileRealDimensions = new double[ 3 ];
 		for ( int d = 0; d < 2; d++ )
-			tileRealDimensions[ d ] = cellDimensions[ d ] * Affine3DHelpers.extractScale( sourceTransform, d );
+			tileRealDimensions[ d ] = tileDimensions[ d ] * Affine3DHelpers.extractScale( sourceTransform, d );
 	}
 
 	protected void configureMipmapAndTileDimensions( )
@@ -528,6 +528,22 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			tileDimensions[ 0 ][ d ] *= ( 1 + 2.0 * relativeCellMargin );
 
 		// tileDimensions level 1 to N
+		for ( int level = 1; level < numMipmapLevels; level++ )
+			for ( int d = 0; d < numDimensions; d++ )
+				tileDimensions[ level ][ d ] = (int) ( tileDimensions[ level - 1 ][ d ] / downSamplingFactors[ level ][ d ] );
+
+		// Adapt tile dimensions such that they are divisible
+		// by all relative changes of the resolutions between the different levels.
+		// If we don't do this there are jumps of the images when zooming in and out;
+		// i.e. the different resolution levels are rendered at slightly offset
+		// positions.
+		tileDimensions[ 0 ] = MoBIEHelper.asInts( levelToSourceDimensions.get( 0 ) );
+		for ( int d = 0; d < 2; d++ )
+		{
+			tileDimensions[ 0 ][ d ] *= ( 1 + 2.0 * relativeCellMargin );
+			tileDimensions[ 0 ][ d ] = (int) ( downSamplingFactorProducts[ d ] * Math.ceil( tileDimensions[ 0 ][ d ] / downSamplingFactorProducts[ d ] ) );
+		}
+
 		for ( int level = 1; level < numMipmapLevels; level++ )
 			for ( int d = 0; d < numDimensions; d++ )
 				tileDimensions[ level ][ d ] = (int) ( tileDimensions[ level - 1 ][ d ] / downSamplingFactors[ level ][ d ] );
