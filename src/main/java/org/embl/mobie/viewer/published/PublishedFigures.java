@@ -51,8 +51,7 @@ public class PublishedFigures
 		addMobieFigure( "Suppl. Figure 1b (CLEM)", "https://github.com/mobie/clem-example-project", "SupplFig1b" );
 		addMobieFigure( "Suppl. Figure 1c (CLEM)", "https://github.com/mobie/clem-example-project", "SupplFig1c" );
 		addMobieFigure( "Suppl. Figure 1d (CLEM)", "https://github.com/mobie/clem-example-project", "SupplFig1d" );
-        // TODO this one is still missing
-		// addMobieFigure( "Suppl. Figure 1e (CLEM)", "https://github.com/mobie/clem-example-project", "SupplFig1e" );
+		addMobieFigure( "Suppl. Figure 1e (CLEM)", "https://github.com/mobie/clem-example-project", "SupplFig1e" );
 
 		addMobieFigure( "Suppl. Figure 2a (HTM)", "https://github.com/mobie/clem-example-project", "SupplFig2a" );
 		addMobieFigure( "Suppl. Figure 2b (HTM)", "https://github.com/mobie/clem-example-project", "SupplFig2b" );
@@ -61,8 +60,6 @@ public class PublishedFigures
 		
         addMobieFigure( "Suppl. Figure 3a (Spatial Transcriptomics, long loading time)", "https://github.com/mobie/mouse-embryo-spatial-transcriptomics-project", "SupplFig3a" );
 		addMobieFigure( "Suppl. Figure 3b (Spatial Transcriptomics, long loading time)", "https://github.com/mobie/mouse-embryo-spatial-transcriptomics-project", "SupplFig3b" );
-
-        // views for panels in Suppl. Figure 3
 	}
 
 	private void addMobieFigure( final String name, String project, String view )
