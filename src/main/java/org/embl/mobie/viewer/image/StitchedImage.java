@@ -442,16 +442,16 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		final List< RandomAccessibleInterval< T >> stitchedRAIs = new ArrayList<>();
 		for ( int l = 0; l < numMipmapLevels; l++ )
 		{
-			final int[] cellDimension = tileDimensions[ l ];
+			final int[] tileDimension = tileDimensions[ l ];
 			final int level = l;
 			BiConsumer< Localizable, T > biConsumer = ( location, value ) ->
 			{
 				int x = location.getIntPosition( 0 );
 				int y = location.getIntPosition( 1 );
-				final int xTileIndex = x / cellDimension[ 0 ];
-				final int yTileIndex = y / cellDimension[ 1 ];
-				x = x - xTileIndex * cellDimension [ 0 ];
-				y = y - yTileIndex * cellDimension [ 1 ];
+				final int xTileIndex = x / tileDimension[ 0 ];
+				final int yTileIndex = y / tileDimension[ 1 ];
+				x = x - xTileIndex * tileDimension [ 0 ];
+				y = y - yTileIndex * tileDimension [ 1 ];
 
 				if( ! randomAccessibleSupplier.exists( level, xTileIndex, yTileIndex  ) )
 				{
