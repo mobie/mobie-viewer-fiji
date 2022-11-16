@@ -42,14 +42,26 @@ public class PublishedFigures
 	{
         // views for panels in Figure 1
 		addMobieFigure( "Figure 1a (Platy-Atlas)", "https://github.com/mobie/platybrowser-project", "Figure1a" );
-        // TODO
-		addMobieFigure( "Figure 1c (CLEM)", "https://github.com/mobie/clem-example-project", "Figure1c" );
-		addMobieFigure( "Figure 1c (HTM)", "https://github.com/mobie/covid-if-project", "Figure1c" );
+		addMobieFigure( "Figure 1c (CLEM)", "https://github.com/mobie/clem-example-project", "SupplFig1b" );
+		addMobieFigure( "Figure 1c (HTM)", "https://github.com/mobie/covid-if-project", "SupplFig1a" );
 		addMobieFigure( "Figure 1c (Timeseries)", "https://github.com/mobie/arabidopsis-root-lm-project", "Figure1c" );
-		addMobieFigure( "Figure 1c (Spatial Transcriptomics)", "https://github.com/mobie/spatial-transcriptomics-example-project", "Figure1c" );
-        // TODO
-        // views for panels in Suppl. Figure 1
-        // views for panels in Suppl. Figure 2
+		addMobieFigure( "Figure 1c (Spatial Transcriptomics, long loading time)", "https://github.com/mobie/mouse-embryo-spatial-transcriptomics-project", "SupplFig3a" );
+
+		addMobieFigure( "Suppl. Figure 1a (CLEM)", "https://github.com/mobie/clem-example-project", "SupplFig1a" );
+		addMobieFigure( "Suppl. Figure 1b (CLEM)", "https://github.com/mobie/clem-example-project", "SupplFig1b" );
+		addMobieFigure( "Suppl. Figure 1c (CLEM)", "https://github.com/mobie/clem-example-project", "SupplFig1c" );
+		addMobieFigure( "Suppl. Figure 1d (CLEM)", "https://github.com/mobie/clem-example-project", "SupplFig1d" );
+        // TODO this one is still missing
+		// addMobieFigure( "Suppl. Figure 1e (CLEM)", "https://github.com/mobie/clem-example-project", "SupplFig1e" );
+
+		addMobieFigure( "Suppl. Figure 2a (HTM)", "https://github.com/mobie/clem-example-project", "SupplFig2a" );
+		addMobieFigure( "Suppl. Figure 2b (HTM)", "https://github.com/mobie/clem-example-project", "SupplFig2b" );
+		addMobieFigure( "Suppl. Figure 2c (HTM)", "https://github.com/mobie/clem-example-project", "SupplFig2c" );
+		addMobieFigure( "Suppl. Figure 2d (HTM)", "https://github.com/mobie/clem-example-project", "SupplFig2d" );
+		
+        addMobieFigure( "Suppl. Figure 3a (Spatial Transcriptomics, long loading time)", "https://github.com/mobie/mouse-embryo-spatial-transcriptomics-project", "SupplFig3a" );
+		addMobieFigure( "Suppl. Figure 3b (Spatial Transcriptomics, long loading time)", "https://github.com/mobie/mouse-embryo-spatial-transcriptomics-project", "SupplFig3b" );
+
         // views for panels in Suppl. Figure 3
 	}
 
