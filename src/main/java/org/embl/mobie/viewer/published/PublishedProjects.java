@@ -44,6 +44,16 @@ public class PublishedProjects
 		dAPEX();
 		sponge();
 		centrioleExamples();
+		mouseEmbryoTranscriptomics();
+	}
+
+    private void mouseEmbryoTranscriptomics()
+	{
+		final PublishedProject project = new PublishedProject();
+		project.name = "Lohoff et al. (2021) Spatial Transcripomics in Mouse Embryo, Nature Biotechnology";
+		project.location = "https://github.com/mobie/mouse-embryo-spatial-transcriptomics-project";
+		project.publicationURL = "https://doi.org/10.1038/s41587-021-01006-2";
+		publishedProjects.put( project.name, project );
 	}
 	
 	private void centrioleExamples()
