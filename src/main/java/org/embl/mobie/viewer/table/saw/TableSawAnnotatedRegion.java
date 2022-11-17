@@ -65,19 +65,15 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	@Override
 	public synchronized double[] positionAsDoubleArray()
 	{
-		//if ( position == null )
-		//{
-		// Update the position every time, because the underlying
-		// images that are annotated by this region may have changed
-		// their position
-		final RealMaskRealInterval mask = getMask();
-		final double[] min = Intervals.minAsDoubleArray( mask );
-		final double[] max = Intervals.maxAsDoubleArray( mask );
-		position = new double[ min.length ];
-		for ( int d = 0; d < min.length; d++ )
-			position[ d ] = ( max[ d ] + min[ d ] ) / 2.0;
-		//	affineTransform3D.apply( position, position );
-		//}
+		if ( position == null )
+		{
+			final RealMaskRealInterval mask = getMask();
+			final double[] min = Intervals.minAsDoubleArray( mask );
+			final double[] max = Intervals.maxAsDoubleArray( mask );
+			position = new double[ min.length ];
+			for ( int d = 0; d < min.length; d++ )
+				position[ d ] = ( max[ d ] + min[ d ] ) / 2.0;
+		}
 
 		return position;
 	}
@@ -109,7 +105,7 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		// We don't do anything here, because the annotated regions
+		// don't do anything here, because the annotated regions
 		// provide all the spatial coordinates.
 	}
 
@@ -152,7 +148,8 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	@Override
 	public void imageChanged()
 	{
-		System.out.println("Image changed: " + imageNames.get( 0 ) );
+		//System.out.println("Image changed: " + imageNames.get( 0 ) );
 		mask = null; // force to compute the mask again
+		position = null; // force to compute the position again
 	}
 }

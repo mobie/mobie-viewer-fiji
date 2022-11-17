@@ -47,6 +47,13 @@ public abstract class ColorHelper
 				ARGBType.alpha( colorIndex ));
 	}
 
+	public static String toString( ARGBType argbType )
+	{
+		final int colorIndex = argbType.get();
+		final String string = "" + ARGBType.alpha( colorIndex ) + "-" + ARGBType.red( colorIndex ) + "-" + ARGBType.green( colorIndex ) + "-" + ARGBType.blue( colorIndex );
+		return string;
+	}
+
 	public static ARGBType getARGBType( Color color )
 	{
 		return new ARGBType( ARGBType.rgba( color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha() ) );
@@ -98,6 +105,8 @@ public abstract class ColorHelper
 	// Decode MoBIE serialization of argb values
 	public static ARGBType getArgbType( String argbString )
 	{
+		if ( argbString == null ) return null;
+
 		String[] splitArgbString = argbString.split("-");
 		int[] argbValues = new int[4];
 		for (int j = 0; j < splitArgbString.length; j++)

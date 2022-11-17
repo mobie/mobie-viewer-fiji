@@ -666,7 +666,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	@Override
 	public RealMaskRealInterval getMask()
 	{
-		final RealMaskRealInterval mask = SourceHelper.estimateMask( getSourcePair().getSource(), 0 );
+		final RealMaskRealInterval mask = SourceHelper.estimateMask( getSourcePair().getSource(), 0, false );
 		return mask;
 	}
 

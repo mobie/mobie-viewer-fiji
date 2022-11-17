@@ -278,32 +278,11 @@ public class TransformHelper
 	public static RealMaskRealInterval getUnionMask( Collection< ? extends Masked > masks, int t )
 	{
 		// use below code once https://github.com/imglib/imglib2-roi/pull/63 is merged
-		RealMaskRealInterval union = null;
-		for ( Masked masked : masks )
-		{
-			final RealMaskRealInterval mask = masked.getMask();
-
-			if ( union == null )
-			{
-				union = mask;
-			}
-			else
-			{
-				if ( Intervals.equals( mask, union ) )
-					continue;
-
-				union = union.or( mask );
-			}
-		}
-
-		return union;
-
-//		RealInterval union = null;
+//		RealMaskRealInterval union = null;
+//
 //		for ( Masked masked : masks )
 //		{
-//			final RealInterval mask = masked.getMask();
-//			final double[] min = mask.minAsDoubleArray();
-//			final double[] max = mask.maxAsDoubleArray();
+//			final RealMaskRealInterval mask = masked.getMask();
 //
 //			if ( union == null )
 //			{
@@ -313,14 +292,55 @@ public class TransformHelper
 //			{
 //				if ( Intervals.equals( mask, union ) )
 //					continue;
-//				union = Intervals.union( mask, union );
+//
+//				union = union.or( mask );
 //			}
 //		}
 //
-//		final double[] min = union.minAsDoubleArray();
-//		final double[] max = union.maxAsDoubleArray();
-//
-//		return GeomMasks.closedBox( min, max );
+//		return union;
+
+
+		// join the masks using the interval union.
+		// note that this does not work if the masks are rotated.
+		// for this we would need the code above.
+
+		// FIXME There also is a consideration of computational efficiency
+		//   Even if the above code may work, the resulting joined intervals
+		//   may be slow internally (or at least computationally heavy).
+		int masksUsed = 0;
+		RealInterval union = null;
+		for ( Masked masked : masks )
+		{
+			final RealMaskRealInterval mask = masked.getMask();
+			final double[] min = mask.minAsDoubleArray();
+			final double[] max = mask.maxAsDoubleArray();
+
+			if ( union == null )
+			{
+				union = mask;
+				masksUsed++;
+			}
+			else
+			{
+				if ( Intervals.equals( mask, union ) )
+					continue;
+				union = Intervals.union( mask, union );
+				masksUsed++;
+			}
+		}
+
+		// there is only one mask to be considered
+		// thus we can return it (including potential rotations)
+		if ( masksUsed == 1 )
+			return masks.stream().iterator().next().getMask();
+
+		// multiple masks
+		// we need to join
+		// issue here currently is that we loose rotations.
+		final double[] min = union.minAsDoubleArray();
+		final double[] max = union.maxAsDoubleArray();
+
+		return GeomMasks.closedBox( min, max );
 	}
 
 	public static double[] getRealDimensions( RealMaskRealInterval unionMask )
