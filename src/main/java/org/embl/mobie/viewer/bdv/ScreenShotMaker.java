@@ -38,6 +38,7 @@ import ij.ImagePlus;
 import ij.plugin.Duplicator;
 import ij.process.LUT;
 import net.imglib2.type.Type;
+import net.imglib2.type.numeric.real.FloatType;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.bdv.render.AccumulateAlphaBlendingProjectorARGB;
 import net.imglib2.Cursor;
@@ -155,7 +156,7 @@ public class ScreenShotMaker
 
         captureImageSizeInPixels = getCaptureImageSizeInPixels( bdvHandle, samplingXY );
 
-        final ArrayList< RandomAccessibleInterval< UnsignedShortType > > rawCaptures = new ArrayList<>();
+        final ArrayList< RandomAccessibleInterval< FloatType > > floatCaptures = new ArrayList<>();
         final ArrayList< RandomAccessibleInterval< ARGBType > > argbSources = new ArrayList<>();
         final ArrayList< ARGBType > colors = new ArrayList<>();
 
@@ -177,8 +178,8 @@ public class ScreenShotMaker
 
         for ( SourceAndConverter< ?  > sac : sacs )
         {
-            final RandomAccessibleInterval< UnsignedShortType > rawCapture
-                    = ArrayImgs.unsignedShorts( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ] );
+            final RandomAccessibleInterval< FloatType > rawCapture
+                    = ArrayImgs.floats( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ] );
             final RandomAccessibleInterval< ARGBType > argbCapture
                     = ArrayImgs.argbs( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ]  );
 
@@ -204,9 +205,9 @@ public class ScreenShotMaker
                 RealRandomAccess< ? extends Type< ? > > access = getRealRandomAccess( ( Source< Type< ? > > ) source, t, level, interpolate );
 
                 // to collect raw data
-                final IntervalView< UnsignedShortType > rawCrop = Views.interval( rawCapture, interval );
-                final Cursor< UnsignedShortType > rawCaptureCursor = Views.iterable( rawCrop ).localizingCursor();
-                final RandomAccess< UnsignedShortType > rawCaptureAccess = rawCrop.randomAccess();
+                final IntervalView< FloatType > floatCrop = Views.interval( rawCapture, interval );
+                final Cursor< FloatType > floatCaptureCursor = Views.iterable( floatCrop ).localizingCursor();
+                final RandomAccess< FloatType > floatCaptureAccess = floatCrop.randomAccess();
 
                 // to collect colored data
                 final IntervalView< ARGBType > argbCrop = Views.interval( argbCapture, interval );
@@ -218,12 +219,12 @@ public class ScreenShotMaker
                 final ARGBType argbType = new ARGBType();
 
                 // iterate through the target image in pixel units
-                while ( rawCaptureCursor.hasNext() )
+                while ( floatCaptureCursor.hasNext() )
                 {
-                    rawCaptureCursor.fwd();
-                    rawCaptureCursor.localize( canvasPosition );
-                    rawCaptureAccess.setPosition( rawCaptureCursor );
-                    argbCaptureAccess.setPosition( rawCaptureCursor );
+                    floatCaptureCursor.fwd();
+                    floatCaptureCursor.localize( canvasPosition );
+                    floatCaptureAccess.setPosition( floatCaptureCursor );
+                    argbCaptureAccess.setPosition( floatCaptureCursor );
 
                     // canvasPosition is in calibrated units
                     // canvasStepSize is the step size that is needed to get
@@ -233,12 +234,12 @@ public class ScreenShotMaker
 
                     viewerToSourceTransform.apply( canvasPosition, sourceRealPosition );
                     access.setPosition( sourceRealPosition );
-                    setUnsignedShortCapturePixelValue( access, rawCaptureAccess );
-                    setArgbCapturePixelValue( converter, access, argbCaptureAccess, argbType );
+                    setFloatPixelValue( access, floatCaptureAccess );
+                    setArgbPixelValue( converter, access, argbCaptureAccess, argbType );
                 }
             });
 
-            rawCaptures.add( rawCapture );
+            floatCaptures.add( rawCapture );
             argbSources.add( argbCapture );
             // colors.add( getSourceColor( bdv, sourceIndex ) ); Not used, show GrayScale
             displayRanges.add( BdvHandleHelper.getDisplayRange( sacService.getConverterSetup( sac ) ) );
@@ -250,10 +251,10 @@ public class ScreenShotMaker
 
         voxelSpacing[ 2 ] = getViewerVoxelSpacing( bdvHandle ); // TODO: What to put here?
 
-        if ( rawCaptures.size() > 0 )
+        if ( floatCaptures.size() > 0 )
         {
             rgbImagePlus = createImagePlus( physicalUnit, argbSources, voxelSpacing, sacs );
-            compositeImagePlus = createCompositeImage( voxelSpacing, physicalUnit, rawCaptures, colors, displayRanges );
+            compositeImagePlus = createCompositeImage( voxelSpacing, physicalUnit, floatCaptures, colors, displayRanges );
         }
     }
 
@@ -276,7 +277,7 @@ public class ScreenShotMaker
         return visibleSacs;
     }
 
-    private void setArgbCapturePixelValue( Converter converter, RealRandomAccess< ? > access, RandomAccess< ARGBType > argbCaptureAccess, ARGBType argbType )
+    private void setArgbPixelValue( Converter converter, RealRandomAccess< ? > access, RandomAccess< ARGBType > argbCaptureAccess, ARGBType argbType )
     {
         final Object pixelValue = access.get();
 
@@ -288,7 +289,7 @@ public class ScreenShotMaker
         argbCaptureAccess.get().set( argbType.get() );
     }
 
-    private void setUnsignedShortCapturePixelValue( RealRandomAccess< ? extends Type< ? > > access, RandomAccess< UnsignedShortType > realCaptureAccess )
+    private void setFloatPixelValue( RealRandomAccess< ? extends Type< ? > > access, RandomAccess< FloatType > realCaptureAccess )
     {
         final Type< ? > type = access.get();
         if ( type instanceof RealType )
@@ -421,11 +422,11 @@ public class ScreenShotMaker
     public static CompositeImage createCompositeImage(
             double[] voxelSpacing,
             String voxelUnit,
-            ArrayList< RandomAccessibleInterval< UnsignedShortType > > rais,
+            ArrayList< RandomAccessibleInterval< FloatType > > rais,
             ArrayList< ARGBType > colors,
             ArrayList< double[] > displayRanges )
     {
-        final RandomAccessibleInterval< UnsignedShortType > stack = Views.stack( rais );
+        final RandomAccessibleInterval< FloatType > stack = Views.stack( rais );
 
         final ImagePlus imp = ImageJFunctions.wrap( stack, "Multi-Channel" );
 
