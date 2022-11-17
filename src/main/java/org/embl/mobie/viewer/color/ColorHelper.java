@@ -49,6 +49,8 @@ public abstract class ColorHelper
 
 	public static String toString( ARGBType argbType )
 	{
+		if ( argbType == null ) return null;
+
 		final int colorIndex = argbType.get();
 		final String string = "" + ARGBType.alpha( colorIndex ) + "-" + ARGBType.red( colorIndex ) + "-" + ARGBType.green( colorIndex ) + "-" + ARGBType.blue( colorIndex );
 		return string;
