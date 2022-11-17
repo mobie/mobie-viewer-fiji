@@ -40,16 +40,26 @@ public class PublishedFigures
 
 	public PublishedFigures()
 	{
-		addMobieFigure( "Figure 1c (Platy-Atlas)", "https://github.com/mobie/platybrowser-project", "Figure1c" );
-		addMobieFigure( "Figure 2a (CLEM)", "https://github.com/mobie/clem-example-project", "Figure2a" );
-		addMobieFigure( "Figure 2b (CLEM)", "https://github.com/mobie/clem-example-project", "Figure2b" );
-		addMobieFigure( "Figure 2c (CLEM)", "https://github.com/mobie/clem-example-project", "Figure2c" );
-		addMobieFigure( "Figure 2d (CLEM)", "https://github.com/mobie/clem-example-project", "Figure2d" );
-		addMobieFigure( "Figure 2e (CLEM)", "https://github.com/mobie/clem-example-project", "Figure2e" );
-		addMobieFigure( "Figure 3a (HTM, long loading time)", "https://github.com/mobie/covid-if-project", "Figure3a" );
-		addMobieFigure( "Figure 3b (HTM, long loading time)", "https://github.com/mobie/covid-if-project", "Figure3b" );
-		addMobieFigure( "Figure 3c (HTM, long loading time)", "https://github.com/mobie/covid-if-project", "Figure3c" );
-		addMobieFigure( "Figure 3d (HTM, long loading time)", "https://github.com/mobie/covid-if-project", "Figure3d" );
+        // views for panels in Figure 1
+		addMobieFigure( "Figure 1a (Platy-Atlas)", "https://github.com/mobie/platybrowser-project", "Figure1a" );
+		addMobieFigure( "Figure 1c (CLEM)", "https://github.com/mobie/clem-example-project", "SupplFig1b" );
+		addMobieFigure( "Figure 1c (HTM)", "https://github.com/mobie/covid-if-project", "SupplFig1a" );
+		addMobieFigure( "Figure 1c (Timeseries)", "https://github.com/mobie/arabidopsis-root-lm-project", "Figure1c" );
+		addMobieFigure( "Figure 1c (Spatial Transcriptomics, long loading time)", "https://github.com/mobie/mouse-embryo-spatial-transcriptomics-project", "SupplFig3a" );
+
+		addMobieFigure( "Suppl. Figure 1a (CLEM)", "https://github.com/mobie/clem-example-project", "SupplFig1a" );
+		addMobieFigure( "Suppl. Figure 1b (CLEM)", "https://github.com/mobie/clem-example-project", "SupplFig1b" );
+		addMobieFigure( "Suppl. Figure 1c (CLEM)", "https://github.com/mobie/clem-example-project", "SupplFig1c" );
+		addMobieFigure( "Suppl. Figure 1d (CLEM)", "https://github.com/mobie/clem-example-project", "SupplFig1d" );
+		addMobieFigure( "Suppl. Figure 1e (CLEM)", "https://github.com/mobie/clem-example-project", "SupplFig1e" );
+
+		addMobieFigure( "Suppl. Figure 2a (HTM)", "https://github.com/mobie/clem-example-project", "SupplFig2a" );
+		addMobieFigure( "Suppl. Figure 2b (HTM)", "https://github.com/mobie/clem-example-project", "SupplFig2b" );
+		addMobieFigure( "Suppl. Figure 2c (HTM)", "https://github.com/mobie/clem-example-project", "SupplFig2c" );
+		addMobieFigure( "Suppl. Figure 2d (HTM)", "https://github.com/mobie/clem-example-project", "SupplFig2d" );
+		
+        addMobieFigure( "Suppl. Figure 3a (Spatial Transcriptomics, long loading time)", "https://github.com/mobie/mouse-embryo-spatial-transcriptomics-project", "SupplFig3a" );
+		addMobieFigure( "Suppl. Figure 3b (Spatial Transcriptomics, long loading time)", "https://github.com/mobie/mouse-embryo-spatial-transcriptomics-project", "SupplFig3b" );
 	}
 
 	private void addMobieFigure( final String name, String project, String view )

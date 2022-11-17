@@ -43,6 +43,26 @@ public class PublishedProjects
 		covidFIB();
 		dAPEX();
 		sponge();
+		centrioleExamples();
+		mouseEmbryoTranscriptomics();
+	}
+
+    private void mouseEmbryoTranscriptomics()
+	{
+		final PublishedProject project = new PublishedProject();
+		project.name = "Lohoff et al. (2021) Spatial Transcripomics in Mouse Embryo, Nature Biotechnology";
+		project.location = "https://github.com/mobie/mouse-embryo-spatial-transcriptomics-project";
+		project.publicationURL = "https://doi.org/10.1038/s41587-021-01006-2";
+		publishedProjects.put( project.name, project );
+	}
+	
+	private void centrioleExamples()
+	{
+		final PublishedProject project = new PublishedProject();
+		project.name = "Dittrich et al. (2022) Centriole Tomography, Cell Reports Methods";
+		project.location = "https://github.com/mobie/centriole-tomo-examples";
+		project.publicationURL = "https://doi.org/10.1016/j.crmeth.2022.100322";
+		publishedProjects.put( project.name, project );
 	}
 
 	private void sponge()
