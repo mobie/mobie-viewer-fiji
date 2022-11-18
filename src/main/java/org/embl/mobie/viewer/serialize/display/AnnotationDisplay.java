@@ -29,6 +29,7 @@
 package org.embl.mobie.viewer.serialize.display;
 
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.annotation.AnnotationAdapter;
 import org.embl.mobie.viewer.annotation.DefaultAnnotationAdapter;
@@ -36,6 +37,7 @@ import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.color.AbstractAnnotationColoringModel;
 import org.embl.mobie.viewer.color.CategoricalAnnotationColoringModel;
+import org.embl.mobie.viewer.color.ColorHelper;
 import org.embl.mobie.viewer.color.ColoringModel;
 import org.embl.mobie.viewer.color.MobieColoringModel;
 import org.embl.mobie.viewer.color.NumericAnnotationColoringModel;
@@ -44,7 +46,6 @@ import org.embl.mobie.viewer.color.lut.LUTs;
 import org.embl.mobie.viewer.image.AnnotationImage;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.SelectionModel;
-import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.SourceHelper;
@@ -54,7 +55,6 @@ import org.embl.mobie.viewer.table.AnnDataHelper;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.table.TableView;
 import net.imglib2.util.ValuePair;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -83,6 +83,8 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	protected boolean showAsBoundaries = false;
 	protected float boundaryThickness = 1.0F;
 	protected int randomColorSeed = 42;
+	protected String selectionColor = null;
+	protected double opacityNotSelected = 0.15;
 
 	// Runtime
 	public transient SelectionModel< A > selectionModel;
@@ -162,6 +164,16 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		return randomColorSeed;
 	}
 
+	public ARGBType getSelectionColor()
+	{
+		return ColorHelper.getArgbType( selectionColor );
+	}
+
+	public double getOpacityNotSelected()
+	{
+		return opacityNotSelected;
+	}
+
 	private void setSerializableFields( AnnotationDisplay< ? extends Annotation > annotationDisplay )
 	{
 		this.name = annotationDisplay.name;
@@ -182,7 +194,12 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		this.blendingMode = null; // default is Alpha so we don't serialise it
 		// this.blendingMode = ( BlendingMode ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.class.getName() );
 
-		final ColoringModel< ? extends Annotation > coloringModel = annotationDisplay.coloringModel.getWrappedColoringModel();
+		final MobieColoringModel< ? extends Annotation > mobieColoringModel = annotationDisplay.coloringModel;
+
+		this.opacityNotSelected = mobieColoringModel.getOpacityNotSelected();
+		this.selectionColor = ColorHelper.toString( mobieColoringModel.getSelectionColor() );
+
+		final ColoringModel< ? extends Annotation > coloringModel = mobieColoringModel.getWrappedColoringModel();
 
 		if ( coloringModel instanceof AbstractAnnotationColoringModel )
 		{

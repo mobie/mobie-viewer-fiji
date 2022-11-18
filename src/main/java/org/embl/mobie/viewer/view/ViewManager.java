@@ -603,7 +603,8 @@ public class ViewManager
 				}
 
 				coloringModel.setRandomSeed( annotationDisplay.getRandomColorSeed() );
-				annotationDisplay.coloringModel = new MobieColoringModel( coloringModel, annotationDisplay.selectionModel );
+
+				annotationDisplay.coloringModel = new MobieColoringModel( coloringModel, annotationDisplay.selectionModel, annotationDisplay.getSelectionColor(), annotationDisplay.getOpacityNotSelected() );
 			}
 			else if ( LUTs.isNumeric( lut ) )
 			{
@@ -615,7 +616,7 @@ public class ViewManager
 						 true
 							);
 
-				annotationDisplay.coloringModel = new MobieColoringModel( coloringModel, annotationDisplay.selectionModel );
+				annotationDisplay.coloringModel = new MobieColoringModel( coloringModel, annotationDisplay.selectionModel, annotationDisplay.getSelectionColor(), annotationDisplay.getOpacityNotSelected() );
 			}
 			else
 			{

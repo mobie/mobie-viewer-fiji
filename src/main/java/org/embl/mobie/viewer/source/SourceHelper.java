@@ -30,16 +30,17 @@ package org.embl.mobie.viewer.source;
 
 import bdv.SpimSource;
 import bdv.tools.transformation.TransformedSource;
+import bdv.util.Affine3DHelpers;
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
+import net.imglib2.roi.geom.real.WritableBox;
 import org.embl.mobie.viewer.image.StitchedImage;
 
 import java.util.List;
@@ -200,36 +201,42 @@ public abstract class SourceHelper
 		return mask;
 	}
 
-	public static RealMaskRealInterval estimateMask( Source< ? > source, int t )
+	public static RealMaskRealInterval estimateMask( Source< ? > source, int t, boolean includeVoxelDimensions )
 	{
-		final FinalRealInterval realInterval = estimateBounds( source, t );
-		return GeomMasks.closedBox( realInterval.minAsDoubleArray(), realInterval.maxAsDoubleArray());
-	}
+		final AffineTransform3D sourceTransform = new AffineTransform3D();
+		source.getSourceTransform( t, 0, sourceTransform );
 
-	public static RealMaskRealInterval estimateMaskIncludingVoxelSize( Source< ? > source, int t )
-	{
-		final FinalRealInterval realInterval = estimateBounds( source, t );
-		final double[] min = realInterval.minAsDoubleArray();
-		final double[] max = realInterval.maxAsDoubleArray();
-		final double[] voxelDimensions = source.getVoxelDimensions().dimensionsAsDoubleArray();
-		for ( int d = 0; d < min.length; d++ )
+		// determine the extent of the source in voxel space
+		//
+		final RandomAccessibleInterval< ? > rai = source.getSource( t, 0 );
+		final double[] min = rai.minAsDoubleArray();
+		final double[] max = rai.maxAsDoubleArray();
+
+		// extend the bounds in voxel space to include the voxel dimensions
+		if ( includeVoxelDimensions )
 		{
-			min[ d ] -= voxelDimensions[ d ];
-			max[ d ] += voxelDimensions[ d ];
+			final double[] voxelDimensions = source.getVoxelDimensions().dimensionsAsDoubleArray();
+			for ( int d = 0; d < min.length; d++ )
+			{
+				final double scale = Affine3DHelpers.extractScale( sourceTransform, d );
+				min[ d ] -= voxelDimensions[ d ] / scale;
+				max[ d ] += voxelDimensions[ d ] / scale;
+			}
 		}
-		return GeomMasks.closedBox( min, max );
+		WritableBox box = GeomMasks.closedBox( min, max );
+
+		// apply the source transformation to the voxel space box
+		// to get the mask in calibrated space
+		final RealMaskRealInterval realInterval = box.transform( sourceTransform.inverse() );
+
+		return realInterval;
 	}
 
-	public static FinalRealInterval estimateBounds( Source< ? > source )
-	{
-		return estimateBounds( source, 0 );
-	}
-
-	public static FinalRealInterval estimateBounds( Source< ? > source, int t )
+	public static FinalRealInterval bounds( Source< ? > source, int t )
 	{
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 		source.getSourceTransform( 0, 0, affineTransform3D );
-		final RandomAccessibleInterval< ? > rai = source.getSource( t, 0 );
+ 		final RandomAccessibleInterval< ? > rai = source.getSource( t, 0 );
 		final double[] min = rai.minAsDoubleArray();
 		final double[] max = rai.maxAsDoubleArray();
 		final FinalRealInterval bounds = affineTransform3D.estimateBounds( rai );

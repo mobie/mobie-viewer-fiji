@@ -46,17 +46,12 @@ public class MobieColoringModel< T > extends AbstractColoringModel< T >
 
 	// Wraps a base coloring model and combines it with a selection model,
 	// such that selected elements can have special colors and opacities.
-	public MobieColoringModel( ColoringModel< T > coloringModel, SelectionModel< T > selectionModel )
+	public MobieColoringModel( ColoringModel< T > coloringModel, SelectionModel< T > selectionModel, ARGBType selectionColor, double opacityNotSelected  )
 	{
 		setColoringModel( coloringModel );
 		this.selectionModel = selectionModel;
-		init();
-	}
-
-	private void init()
-	{
-		this.selectionColor = null;
-		this.opacityNotSelected = 0.15;
+		this.selectionColor = selectionColor;
+		this.opacityNotSelected = opacityNotSelected;
 	}
 
 	@Override
@@ -89,6 +84,11 @@ public class MobieColoringModel< T > extends AbstractColoringModel< T >
 	{
 		this.selectionColor = selectionColor;
 		notifyColoringListeners();
+	}
+
+	public ARGBType getSelectionColor()
+	{
+		return selectionColor;
 	}
 
 	public void setColoringModel( ColoringModel< T > coloringModel )
