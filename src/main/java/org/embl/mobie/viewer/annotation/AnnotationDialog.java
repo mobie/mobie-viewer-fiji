@@ -44,6 +44,7 @@ import net.imglib2.type.numeric.ARGBType;
 import javax.swing.*;
 import javax.swing.table.TableModel;
 import java.awt.*;
+import java.lang.reflect.Executable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,7 +56,7 @@ import java.util.stream.Collectors;
 import static org.embl.mobie.viewer.color.lut.LUTs.DARK_GREY;
 import static org.embl.mobie.viewer.color.lut.LUTs.GLASBEY;
 
-public class AnnotatorDialog< A extends Annotation > extends JFrame implements SelectionListener< A >
+public class AnnotationDialog< A extends Annotation > extends JFrame implements SelectionListener< A >
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -78,7 +79,7 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 	private String objectName = "Entity";
 	private ArrayList< A > annotations;
 
-	public AnnotatorDialog( String columnName, AnnotationTableModel< A > tableModel, SelectionModel< A > selectionModel, RowSorter< ? extends TableModel > rowSorter )
+	public AnnotationDialog( String columnName, AnnotationTableModel< A > tableModel, SelectionModel< A > selectionModel, RowSorter< ? extends TableModel > rowSorter )
 	{
 		super("");
 		this.annotationColumnName = columnName;
@@ -417,13 +418,19 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 	{
 		final String annotationId = selectAnnotationTextField.getText();
 
-		if ( ( annotations.get( 0 ) instanceof AnnotatedSpot )
-				|| annotations.get( 0 ) instanceof AnnotatedSegment )
+		List< A > selectedAnnotations;
+		try
 		{
-
+			// For spots and segments the entered ID may be just the
+			// label id; as this is a frequently occurring use-case, try this first.
+			final int labelId = Integer.parseInt( annotationId );
+			selectedAnnotations = annotations.parallelStream().filter( a -> a.label() == labelId ).collect( Collectors.toList() );
 		}
-
-		final List< A > selectedAnnotations = annotations.parallelStream().filter( a -> a.uuid().equals( annotationId ) ).collect( Collectors.toList() );
+		catch ( Exception e )
+		{
+			// Match the full UUID
+			selectedAnnotations = annotations.parallelStream().filter( a -> a.uuid().equals( annotationId ) ).collect( Collectors.toList() );
+		}
 
 		if ( selectedAnnotations.size() == 0 )
 			throw new RuntimeException( "Could not find " + annotationId );

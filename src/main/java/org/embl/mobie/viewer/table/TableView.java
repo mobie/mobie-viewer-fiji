@@ -33,7 +33,7 @@ import de.embl.cba.tables.TableUIs;
 import ij.IJ;
 import ij.gui.GenericDialog;
 import org.embl.mobie.viewer.MoBIEHelper;
-import org.embl.mobie.viewer.annotation.AnnotatorDialog;
+import org.embl.mobie.viewer.annotation.AnnotationDialog;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.color.CategoricalAnnotationColoringModel;
 import org.embl.mobie.viewer.color.ColorHelper;
@@ -436,7 +436,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	public void continueAnnotation( String annotationColumnName )
 	{
-		final AnnotatorDialog annotatorDialog = new AnnotatorDialog(
+		final AnnotationDialog annotationDialog = new AnnotationDialog(
 				annotationColumnName,
 				tableModel,
 				selectionModel,
@@ -445,9 +445,9 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		// base the current coloring model
 		// on the values in the annotation column
-		this.coloringModel.setColoringModel( annotatorDialog.getColoringModel() );
+		this.coloringModel.setColoringModel( annotationDialog.getColoringModel() );
 
-		annotatorDialog.showDialog();
+		annotationDialog.showDialog();
 	}
 
 	public void setVisible( boolean visible )
