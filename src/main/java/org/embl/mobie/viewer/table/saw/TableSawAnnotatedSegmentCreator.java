@@ -64,7 +64,7 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 				is3D ? table.numberColumn( zColumnIndex ).getDouble( rowIndex ) : 0
 		};
 
-		String uuid = source + ";" + timePoint + ";" + labelId;
+		final String uuid = source + ";" + timePoint + ";" + labelId;
 
 		return new TableSawAnnotatedSegment( model, rowIndex, source, uuid, labelId, timePoint, position, boundingBox );
 	}

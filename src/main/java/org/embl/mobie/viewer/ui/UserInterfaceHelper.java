@@ -762,16 +762,12 @@ public class UserInterfaceHelper
 		final JButton button = SwingHelper.createButton( ADD );
 		button.addActionListener( e ->
 		{
-			SwingUtilities.invokeLater( () ->
-			{
-				new Thread( () ->
-				{
-					final String viewName = ( String ) comboBox.getSelectedItem();
-					final View view = views.get( viewName );
-					view.setName( viewName );
-					moBIE.getViewManager().show( view );
-				}).start();
-			} );
+			new Thread( () -> {
+				final String viewName = ( String ) comboBox.getSelectedItem();
+				final View view = views.get( viewName );
+				view.setName( viewName );
+				moBIE.getViewManager().show( view );
+			} ).start();
 		} );
 
 		SwingHelper.setComboBoxDimensions( comboBox );

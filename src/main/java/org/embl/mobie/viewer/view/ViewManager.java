@@ -127,7 +127,7 @@ public class ViewManager
 	private final UniverseManager universeManager;
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewSaver viewSaver;
-	private int numViewedTables = 0;
+	private int numTables = 0;
 
 	public ViewManager( MoBIE moBIE, UserInterface userInterface, boolean is2D )
 	{
@@ -686,17 +686,24 @@ public class ViewManager
 		// in which the table window will be
 		// hidden, if {@code display.showTable == false}.
 		display.tableView.show();
+
+		// FIXME only shift the position of tables where display.isVisible() == true
 		setTablePosition( display.sliceViewer.getWindow(), display.tableView.getWindow() );
 		display.selectionModel.listeners().add( display.tableView );
 		display.coloringModel.listeners().add( display.tableView );
-		numViewedTables++;
+		numTables++;
 	}
 
 	private void setTablePosition( Window reference, Window table )
 	{
+		// set the table position
+		// the table is not visible at this point, but the window exists
+		// the table will be toggled visible in the UserInterfaceHelper
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		final int shift = screenSize.height / 20;
-		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, ( numViewedTables - 1 ) * shift ) );
+		final int offset = screenSize.height / 20;
+		// FIXME This is not intuitive as the shift also is applied to tables that
+		//   are not initially visible
+		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, ( numTables - 1 ) * offset ) );
 	}
 
 	private void initSegmentVolumeViewer( SegmentationDisplay< ? extends AnnotatedSegment > display )
@@ -720,7 +727,7 @@ public class ViewManager
 
 			if ( annotationDisplay.tableView != null )
 			{
-				numViewedTables--;
+				numTables--;
 				annotationDisplay.tableView.close();
 				annotationDisplay.scatterPlotView.close();
 				if ( annotationDisplay instanceof SegmentationDisplay )

@@ -1,15 +1,13 @@
 package org.embl.mobie.viewer.table.saw;
 
 import net.imglib2.realtransform.AffineTransform3D;
-import org.apache.kerby.cms.type.OtherRecipientInfo;
 import org.embl.mobie.viewer.annotation.AnnotatedSpot;
 import org.embl.mobie.viewer.table.ColumnNames;
-import tech.tablesaw.api.Table;
 
 public class TableSawAnnotatedSpot extends AbstractTableSawAnnotation implements AnnotatedSpot
 {
 	private static final String[] idColumns = new String[]{ ColumnNames.SPOT_ID };
-	private final int label;
+	private final int labelId;
 	private final int timePoint;
 	private final String source;
 	private float[] position; // may change due to transformations
@@ -20,13 +18,13 @@ public class TableSawAnnotatedSpot extends AbstractTableSawAnnotation implements
 	public TableSawAnnotatedSpot(
 			final TableSawAnnotationTableModel< TableSawAnnotatedSpot > model,
 			int rowIndex,
-			int label,
+			int labelId,
 			float[] position,
 			final int timePoint,
 			String source )
 	{
 		super( model, rowIndex );
-		this.label = label;
+		this.labelId = labelId;
 		this.position = position;
 		this.timePoint = timePoint;
 
@@ -36,7 +34,7 @@ public class TableSawAnnotatedSpot extends AbstractTableSawAnnotation implements
 	@Override
 	public int label()
 	{
-		return label;
+		return labelId;
 	}
 
 	@Override
@@ -71,7 +69,7 @@ public class TableSawAnnotatedSpot extends AbstractTableSawAnnotation implements
 	@Override
 	public String uuid()
 	{
-		return source + ";" + timePoint + ";" + label;
+		return source + ";" + timePoint + ";" + labelId;
 	}
 
 	@Override

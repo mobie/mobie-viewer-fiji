@@ -30,6 +30,7 @@ package org.embl.mobie.viewer.color;
 
 import org.embl.mobie.viewer.annotation.Annotation;
 
+import org.embl.mobie.viewer.color.lut.ColumnARGBLut;
 import org.embl.mobie.viewer.color.lut.LUTs;
 import net.imglib2.type.numeric.ARGBType;
 import javax.annotation.Nullable;
@@ -83,18 +84,36 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 		if ( inputToFixedColor.keySet().contains( value ) )
 		{
 			output.set( inputToFixedColor.get( value ) );
+			return;
 		}
- 		else if ( inputToRandomColor.keySet().contains( value ) )
+
+		if ( lut instanceof ColumnARGBLut )
+		{
+			final ARGBType argbType = ColorHelper.getArgbType( value );
+			if ( argbType == null )
+			{
+				inputToFixedColor.put( value, LUTs.TRANSPARENT.get() );
+			}
+			else
+			{
+				final int argbIndex = argbType.get();
+				inputToFixedColor.put( value, argbIndex );
+			}
+			output.set( inputToFixedColor.get( value ) );
+			return;
+		}
+
+ 		if ( inputToRandomColor.keySet().contains( value ) )
 		{
 			output.set( inputToRandomColor.get( value ) );
+			return;
 		}
-		else // create and remember random color for this value
-		{
-			final double random = createRandom( value.hashCode() );
-			final int argb = lut.getARGB( random );
-			inputToRandomColor.put( value, argb );
-			output.set( argb );
-		}
+
+		// create and remember random color for this value
+		final double random = createRandom( value.hashCode() );
+		final int argb = lut.getARGB( random );
+		inputToRandomColor.put( value, argb );
+		output.set( argb );
 	}
 
 	private double createRandom( double x )

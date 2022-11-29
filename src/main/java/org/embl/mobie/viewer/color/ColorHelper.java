@@ -108,6 +108,7 @@ public abstract class ColorHelper
 	public static ARGBType getArgbType( String argbString )
 	{
 		if ( argbString == null ) return null;
+		if ( argbString.equals( "" ) ) return null;
 
 		String[] splitArgbString = argbString.split("-");
 		int[] argbValues = new int[4];

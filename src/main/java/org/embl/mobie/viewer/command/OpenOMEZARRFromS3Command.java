@@ -28,6 +28,8 @@
  */
 package org.embl.mobie.viewer.command;
 
+import ij.gui.OvalRoi;
+import ij.process.ImageProcessor;
 import org.embl.mobie.OMEZarrViewer;
 import mpicbg.spim.data.SpimData;
 import org.embl.mobie.io.ome.zarr.openers.OMEZarrS3Opener;

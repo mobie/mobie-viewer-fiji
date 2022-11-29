@@ -98,9 +98,10 @@ public class WindowArrangementHelper
 
 	public static void bottomAlignWindow( Window reference, Window window, int offset )
 	{
-		window.setLocation(
-				reference.getLocationOnScreen().x + offset,
-				reference.getLocationOnScreen().y + reference.getHeight() + UserInterfaceHelper.SPACING + offset
-		);
+		// FIXME Somehow the y position is not applied (on Mac)
+		final int x = reference.getLocationOnScreen().x + offset;
+		final int y = reference.getLocationOnScreen().y + reference.getHeight() + UserInterfaceHelper.SPACING + offset;
+
+		window.setLocation( x, y );
 	}
 }

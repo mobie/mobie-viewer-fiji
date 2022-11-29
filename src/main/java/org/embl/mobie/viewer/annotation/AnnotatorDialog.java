@@ -47,8 +47,10 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.embl.mobie.viewer.color.lut.LUTs.DARK_GREY;
 import static org.embl.mobie.viewer.color.lut.LUTs.GLASBEY;
@@ -73,7 +75,7 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 	private JScrollPane annotationButtonsScrollPane;
 	private A currentlySelectedRow;
 	private Set< String > annotationNames;
-	private String objectName = "entity";
+	private String objectName = "Entity";
 	private ArrayList< A > annotations;
 
 	public AnnotatorDialog( String columnName, AnnotationTableModel< A > tableModel, SelectionModel< A > selectionModel, RowSorter< ? extends TableModel > rowSorter )
@@ -85,7 +87,7 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 		this.selectionModel = selectionModel;
 		this.rowSorter = rowSorter;
 		this.currentlySelectedRow = tableModel.annotation( rowSorter.convertRowIndexToModel( 0 ) );
-		setUIFieldNames( tableModel );
+		configureAnnotatedObjectType( tableModel );
 		selectionModel.listeners().add( this );
 
 		if ( ! columnNameToColoringModel.containsKey( annotationColumnName ) )
@@ -105,16 +107,19 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 		return coloringModel;
 	}
 
-	private void setUIFieldNames( AnnotationTableModel< A > tableModel )
+	private void configureAnnotatedObjectType( AnnotationTableModel< A > tableModel )
 	{
-		// TODO: rather implement getType() for tableModel?
 		if ( tableModel.annotation( 0 ) instanceof AnnotatedSegment )
 		{
-			objectName = "segment";
+			objectName = "Segment";
 		}
-		else // TODO: RegionsTableModel
+		else if ( tableModel.annotation( 0 ) instanceof AnnotatedSpot )
 		{
-			objectName = "region";
+			objectName = "Spot";
+		}
+		else
+		{
+			objectName = "Region";
 		}
 	}
 
@@ -411,14 +416,22 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 	private A fetchManuallySelectedAnnotation()
 	{
 		final String annotationId = selectAnnotationTextField.getText();
-		for ( A annotation : annotations )
+
+		if ( ( annotations.get( 0 ) instanceof AnnotatedSpot )
+				|| annotations.get( 0 ) instanceof AnnotatedSegment )
 		{
-			if ( annotationId.equals( annotation.uuid() ) )
-			{
-				return annotation;
-			}
+
 		}
-		throw new RuntimeException( "Could not find " + annotationId );
+
+		final List< A > selectedAnnotations = annotations.parallelStream().filter( a -> a.uuid().equals( annotationId ) ).collect( Collectors.toList() );
+
+		if ( selectedAnnotations.size() == 0 )
+			throw new RuntimeException( "Could not find " + annotationId );
+
+		if ( selectedAnnotations.size() > 1 )
+			throw new RuntimeException( "Found multiple matches of " + annotationId );
+
+		return selectedAnnotations.get( 0 );
 	}
 
 	private boolean isNoneOrNan( A row )

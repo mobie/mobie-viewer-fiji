@@ -74,11 +74,11 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		if ( table == null )
 			initTable( readTable( defaultTablePath ) );
 
-		final List< String > tablePathsToBeLoaded = additionalTablePaths.stream()
+		final List< String > tablePaths = additionalTablePaths.stream()
 				.filter( path -> ! loadedTablePaths.contains( path ) )
 				.collect( Collectors.toList() );
 
-		for ( String tablePath : tablePathsToBeLoaded )
+		for ( String tablePath : tablePaths )
 			joinTable( readTable( tablePath ) );
 
 		synchronized ( affineTransform3D )

@@ -95,7 +95,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private TransformedSource< T > transformedSource;
 	private RealMaskRealInterval referenceMask;
 
-	private boolean debug = true;
+	private boolean debug = false;
 	private AffineTransform3D sourceTransform;
 
 	public StitchedImage( List< ? extends Image< T > > images, Image< T > metadataImage, @Nullable List< int[] > positions, String name, double relativeTileMargin )

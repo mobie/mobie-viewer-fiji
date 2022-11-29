@@ -31,6 +31,7 @@ package org.embl.mobie.viewer;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.bdv.utils.Logger;
 import ij.IJ;
 import mpicbg.spim.data.sequence.ImgLoader;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
@@ -485,9 +486,10 @@ public class MoBIE
 
 	public void initDataSources( List< DataSource > dataSources )
 	{
-		final int numPreInit = dataSources.stream().filter( dataSource -> dataSource.preInit() ).collect( Collectors.toList() ).size();
-		if ( numPreInit > 20 )
-			IJ.log("Prefetching data from " + numPreInit + " sources (this may take some time...)" );
+		IJ.log("Initializing data from " + dataSources.size() + " source(s)..." );
+		//final int numPreInit = dataSources.stream().filter( dataSource -> dataSource.preInit() ).collect( Collectors.toList() ).size();
+		//if ( numPreInit > 20 )
+		//	IJ.log("Prefetching data from " + numPreInit + " sources (this may take some time...)" );
 
 		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
 		AtomicInteger sourceIndex = new AtomicInteger(0);
