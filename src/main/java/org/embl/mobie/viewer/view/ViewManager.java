@@ -245,9 +245,11 @@ public class ViewManager
 		}
 	}
 
-	public synchronized void show( String view )
+	public synchronized void show( String viewName )
 	{
-		show( moBIE.getViews().get( view ) );
+		final View view = moBIE.getViews().get( viewName );
+		view.setName( viewName );
+		show( view );
 	}
 
 	public synchronized void show( View view )

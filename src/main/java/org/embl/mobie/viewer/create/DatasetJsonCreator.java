@@ -165,8 +165,7 @@ public class DatasetJsonCreator {
         dataset.views.put( imageName, view );
     }
 
-    private void addNewSegmentationView( Dataset dataset, String imageName, String uiSelectionGroup, boolean exclusive,
-										 AffineTransform3D sourceTransform ) {
+    private void addNewSegmentationView( Dataset dataset, String imageName, String uiSelectionGroup, boolean exclusive, AffineTransform3D sourceTransform ) {
         View view = createSegmentationView( imageName, uiSelectionGroup, exclusive, sourceTransform );
         dataset.views.put( imageName, view );
     }

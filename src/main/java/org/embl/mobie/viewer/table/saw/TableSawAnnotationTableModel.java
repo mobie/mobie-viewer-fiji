@@ -252,8 +252,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	{
 		if ( availableColumnPaths == null )
 		{
-			final String parentLocation = IOHelper.getParentLocation( additionalTablePaths.iterator().next() );
-			availableColumnPaths = Arrays.stream( IOHelper.getFileNames( parentLocation ) ).collect( Collectors.toSet() );
+			availableColumnPaths = Arrays.stream( IOHelper.getFileNames( dataStore ) ).map( fileName -> IOHelper.combinePath( dataStore, fileName ) ).collect( Collectors.toSet() );
 		}
 		return availableColumnPaths;
 	}

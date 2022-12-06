@@ -44,7 +44,7 @@ public class OpenRemoteOMEZarr
         imageJ.ui().showUI();
         final OpenOMEZARRFromS3Command command = new OpenOMEZARRFromS3Command();
         command.s3URL = "https://s3.embl.de/i2k-2020/ngff-example-data/v0.4/czyx.ome.zarr";
-        command.s3URL = "https://s3.embl.de/i2k-2020/ngff-example-data/v0.4/zyx.ome.zarr";
+        command.s3URL = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
         command.run();
     }
 }
