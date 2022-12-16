@@ -31,6 +31,7 @@ package org.embl.mobie.viewer;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.bdv.utils.io.SPIMDataReaders;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.measure.ResultsTable;
@@ -153,10 +154,11 @@ public class MoBIE
 	public MoBIE( ImagePlus intensityImp, ImagePlus labelImp, ResultsTable resultsTable )
 	{
 		// TODO: Create a SourcePair from an ImagePlus
+		// Maybe, rather create a SpimData such that more of the code could stay the same?
 		// https://github.com/mobie/mobie-viewer-fiji/issues/917
 		// Then we can create an image
+		// We could add a new constructor to SpimDataImage<>( spimData )
 		// within the ImagePlusImageDisplay
-
 
 		datasetName = intensityImp.getTitle();
 		IJ.log("Opening: " + datasetName );
