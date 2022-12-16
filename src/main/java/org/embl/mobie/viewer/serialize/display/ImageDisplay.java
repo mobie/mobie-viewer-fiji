@@ -47,11 +47,11 @@ import java.util.stream.Collectors;
 public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay< T >
 {
 	// Serialization
-	private List< String > sources;
-	private String color;
-	private double[] contrastLimits;
-	private boolean showImagesIn3d;
-	private Double[] resolution3dView;
+	protected List< String > sources;
+	protected String color;
+	protected double[] contrastLimits;
+	protected boolean showImagesIn3d;
+	protected Double[] resolution3dView;
 
 	// Runtime
 	public transient ImageSliceView imageSliceView;

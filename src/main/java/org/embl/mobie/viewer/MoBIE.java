@@ -32,6 +32,8 @@ import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import ij.ImagePlus;
+import ij.measure.ResultsTable;
 import mpicbg.spim.data.sequence.ImgLoader;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.github.GitHubUtils;
@@ -57,6 +59,7 @@ import org.embl.mobie.viewer.serialize.RegionDataSource;
 import org.embl.mobie.viewer.serialize.SegmentationDataSource;
 import org.embl.mobie.viewer.serialize.SpotDataSource;
 import org.embl.mobie.viewer.serialize.View;
+import org.embl.mobie.viewer.serialize.display.ImageDisplay;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.LazyAnnotatedSegmentTableModel;
@@ -74,6 +77,7 @@ import org.embl.mobie.viewer.view.ViewManager;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
@@ -144,6 +148,30 @@ public class MoBIE
 		project = new ProjectJsonParser().parseProject( IOHelper.combinePath( projectRoot,  "project.json" ) );
 		setImageDataFormats( projectLocation );
 		openDataset();
+	}
+
+	public MoBIE( ImagePlus intensityImp, ImagePlus labelImp, ResultsTable resultsTable )
+	{
+		// TODO: Create a SourcePair from an ImagePlus
+		// https://github.com/mobie/mobie-viewer-fiji/issues/917
+		// Then we can create an image
+		// within the ImagePlusImageDisplay
+
+
+		datasetName = intensityImp.getTitle();
+		IJ.log("Opening: " + datasetName );
+		new ImageDisplay<>()
+		setDatasetName( datasetName );
+		//dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
+		//userInterface = new UserInterface( this );
+		viewManager = new ViewManager( this, userInterface, dataset.is2D );
+		for ( String s : getViews().keySet() )
+			System.out.println( s );
+		final View view = getSelectedView( viewName );
+		view.setName( viewName );
+		new View(  );
+
+		viewManager.showImageDisplay( view );
 	}
 
 	// TODO: Probably such Plugins should rather

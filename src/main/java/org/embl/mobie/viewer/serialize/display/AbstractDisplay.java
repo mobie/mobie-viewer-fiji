@@ -46,9 +46,9 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	protected BlendingMode blendingMode = BlendingMode.Sum;
 
 	// Runtime
+	private transient List< Image< T > > images = new ArrayList<>();
 	private transient List< SourceAndConverter< T > > sourceAndConverters = new ArrayList<>();
 	public transient SliceViewer sliceViewer;
-	private transient List< Image< T > > images = new ArrayList<>();
 
 	@Override
 	public String getName()
@@ -88,5 +88,4 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	{
 		return sourceAndConverters;
 	}
-
 }

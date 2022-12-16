@@ -655,7 +655,7 @@ public class ViewManager
 		}
 	}
 
-	private void showImageDisplay( ImageDisplay imageDisplay )
+	public void showImageDisplay( ImageDisplay imageDisplay )
 	{
 		imageDisplay.sliceViewer = sliceViewer;
 		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay );
