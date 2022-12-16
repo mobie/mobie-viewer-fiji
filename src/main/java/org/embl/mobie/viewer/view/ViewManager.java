@@ -562,7 +562,7 @@ public class ViewManager
 				{
 					final AnnotationTableModel< A > tableModel = annotationDisplay.getAnnData().getTable();
 					final String dataStore = tableModel.dataStore();
-					tableModel.requestTable( IOHelper.combinePath( dataStore, table ) );
+					tableModel.requestAdditionalColumns( IOHelper.combinePath( dataStore, table ) );
 				}
 
 			// configure selection model

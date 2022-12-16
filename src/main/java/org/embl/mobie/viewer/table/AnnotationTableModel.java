@@ -37,10 +37,10 @@ public interface AnnotationTableModel< A extends Annotation > extends Annotation
 	int numAnnotations(); // TODO: avoid this as it could hamper lazy loading..?! rather use rows() below? Or maybe add back the iterator?
 	int rowIndexOf( A annotation );
 	A annotation( int rowIndex );
-	void requestTable( String columnsPath ); // load more chucks of columns
-	void setAvailableColumnPaths( Set< String> availableColumnPaths );
-	Collection< String > availableTablePaths(); // where to load more chucks of columns
-	LinkedHashSet< String > additionalTablePaths(); // which column chunks have been loaded, in the order in which they have been loaded
+	void requestAdditionalColumns( String columnsPath ); // load more chucks of columns
+	void setTablePaths( Set< String> availableColumnPaths );
+	Collection< String > getTablePaths(); // where to load more chucks of columns
+	LinkedHashSet< String > getAdditionalTablePaths(); // which column chunks have been loaded, in the order in which they have been loaded
 	Pair< Double, Double > getMinMax( String columnName ); // for contrast limits during rendering
 	ArrayList< A > annotations();
 	void addStringColumn( String columnName );

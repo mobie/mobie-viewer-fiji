@@ -4,8 +4,6 @@ import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.viewer.MoBIEHelper;
-import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.table.AbstractAnnotationTableModel;
 import org.embl.mobie.viewer.table.AnnotationListener;
@@ -27,7 +25,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	private final String dataSourceName;
 	private final TableSawAnnotationCreator< A > annotationCreator;
 	private final String dataStore;
-	private Set< String > availableColumnPaths;
+	private Set< String > tablePaths;
 	private LinkedHashSet< String > additionalTablePaths = new LinkedHashSet<>();
 	private LinkedHashSet< String > loadedTablePaths = new LinkedHashSet<>();
 	private ArrayList< A > annotations = new ArrayList<>();
@@ -236,29 +234,29 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	}
 
 	@Override
-	public void requestTable( String tablePath )
+	public void requestAdditionalColumns( String tablePath )
 	{
 		additionalTablePaths.add( tablePath );
 	}
 
 	@Override
-	public void setAvailableColumnPaths( Set< String > columnPaths )
+	public void setTablePaths( Set< String > tablePaths )
 	{
-		this.availableColumnPaths = columnPaths;
+		this.tablePaths = tablePaths;
 	}
 
 	@Override
-	public Collection< String > availableTablePaths()
+	public Collection< String > getTablePaths()
 	{
-		if ( availableColumnPaths == null )
+		if ( tablePaths == null )
 		{
-			availableColumnPaths = Arrays.stream( IOHelper.getFileNames( dataStore ) ).map( fileName -> IOHelper.combinePath( dataStore, fileName ) ).collect( Collectors.toSet() );
+			tablePaths = Arrays.stream( IOHelper.getFileNames( dataStore ) ).map( fileName -> IOHelper.combinePath( dataStore, fileName ) ).collect( Collectors.toSet() );
 		}
-		return availableColumnPaths;
+		return tablePaths;
 	}
 
 	@Override
-	public LinkedHashSet< String > additionalTablePaths()
+	public LinkedHashSet< String > getAdditionalTablePaths()
 	{
 		return additionalTablePaths; // excluding the default table
 	}

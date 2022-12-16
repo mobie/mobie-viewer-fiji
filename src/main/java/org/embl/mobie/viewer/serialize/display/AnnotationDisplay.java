@@ -222,7 +222,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		this.scatterPlotAxes = annotationDisplay.scatterPlotView.getSelectedColumns();
 		this.additionalTables = annotationDisplay.additionalTables;
 
-		final LinkedHashSet< String > additionalTablePaths = annotationDisplay.annData.getTable().additionalTablePaths();
+		final LinkedHashSet< String > additionalTablePaths = annotationDisplay.annData.getTable().getAdditionalTablePaths();
 		if ( additionalTablePaths.size() > 0 )
 		{
 			if ( this.additionalTables == null )
