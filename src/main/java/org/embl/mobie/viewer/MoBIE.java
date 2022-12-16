@@ -185,6 +185,7 @@ public class MoBIE
 				settings.addImageDataFormat( ImageDataFormat.OmeZarr );
 				settings.addImageDataFormat( ImageDataFormat.BdvOmeZarr );
 				settings.addImageDataFormat( ImageDataFormat.BdvN5 );
+				settings.addImageDataFormat( ImageDataFormat.BdvHDF5 );
 			}
 		}
 	}
@@ -369,9 +370,11 @@ public class MoBIE
 
 	private ImageDataFormat getAppropriateImageDataFormat( ImageDataSource imageSource )
 	{
+		final Set< ImageDataFormat > imageDataFormats = settings.values.getImageDataFormats();
+
 		for ( ImageDataFormat dataFormat : imageSource.imageData.keySet() )
 		{
-			if ( settings.values.getImageDataFormats().contains( dataFormat ) )
+			if ( imageDataFormats.contains( dataFormat ) )
 			{
 				// TODO (discuss with Constantin)
 				//   it is weird that it just returns the first one...
@@ -382,7 +385,7 @@ public class MoBIE
 		System.err.println("Error opening: " + imageSource.getName() );
 		for ( ImageDataFormat dataFormat : imageSource.imageData.keySet() )
 			System.err.println("Source supports: " + dataFormat);
-		for ( ImageDataFormat dataFormat : settings.values.getImageDataFormats() )
+		for ( ImageDataFormat dataFormat : imageDataFormats )
 			System.err.println("Settings support: " + dataFormat);
 		throw new RuntimeException();
 	}
@@ -461,7 +464,8 @@ public class MoBIE
     public synchronized String getImagePath( ImageDataSource source, ImageDataFormat imageDataFormat) {
 
         switch (imageDataFormat) {
-            case BdvN5:
+			case BdvHDF5:
+			case BdvN5:
             case BdvOmeZarr:
             case OmeZarr:
             case BdvOmeZarrS3:
