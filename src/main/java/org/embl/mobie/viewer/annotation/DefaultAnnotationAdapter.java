@@ -52,7 +52,7 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 	@Override
 	public A createVariable()
 	{
-		// MAY
+		// TODO
 		//  is this OK?
 		//  or do we need to create a copy of that?
 		return annData.getTable().annotation( 0 );
@@ -116,8 +116,6 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 
 	private void initMapping()
 	{
-		// FIXME: for spots we don't want to do this at all,
-		//  but skip the label image entirely
 		stlToAnnotation = new ConcurrentHashMap<>();
 		final Iterator< A > iterator = annData.getTable().annotations().iterator();
 		while( iterator.hasNext() )

@@ -488,14 +488,17 @@ public class UserInterfaceHelper
 
 		panel.add( createInfoPanel( moBIE.getSettings().values.getProjectLocation(), moBIE.getSettings().values.getPublicationURL() ) );
 
-		if ( moBIE.getDatasets().size() > 1 )
+		if ( moBIE.getDatasets() != null && moBIE.getDatasets().size() > 1 )
 		{
 			panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 			panel.add( createDatasetSelectionPanel() );
 		}
 
-		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		panel.add( createViewsSelectionPanel() );
+		if ( moBIE.getViews() != null )
+		{
+			panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
+			panel.add( createViewsSelectionPanel( moBIE.getViews() ) );
+		}
 
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		panel.add( createMoveToLocationPanel( moBIE.getDataset().defaultLocation )  );
@@ -633,10 +636,8 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-	public JPanel createViewsSelectionPanel( )
+	public JPanel createViewsSelectionPanel( Map< String, View > views )
 	{
-		final Map< String, View > views = moBIE.getViews();
-
 		groupingsToViews = new HashMap<>(  );
 		groupingsToComboBox = new HashMap<>( );
 		viewSelectionPanel = new JPanel( new BorderLayout() );

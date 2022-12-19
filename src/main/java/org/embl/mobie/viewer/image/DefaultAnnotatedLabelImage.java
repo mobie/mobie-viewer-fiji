@@ -17,8 +17,7 @@ public class DefaultAnnotatedLabelImage< A extends Annotation > implements Annot
 	protected Image< ? extends IntegerType< ? > > labelImage;
 	protected AnnData< A > annData;
 	protected SourcePair< AnnotationType< A > > sourcePair;
-	private RealMaskRealInterval mask;
-	private AnnotationAdapter<A> annotationAdapter;
+	private AnnotationAdapter< A > annotationAdapter;
 
 	// FIXME This should probably also expose the annotationAdapter in a getter
 	//   already in the interface

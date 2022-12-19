@@ -45,6 +45,7 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.AnnotatedSpot;
+import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.viewer.annotation.LazyAnnotatedSegmentAdapter;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
@@ -68,6 +69,7 @@ import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.viewer.table.TableDataFormat;
+import org.embl.mobie.viewer.table.ijresults.ResultsTableAnnotationTableModel;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegment;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegmentCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSpot;
@@ -75,6 +77,8 @@ import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSpotCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.viewer.table.saw.TableSawHelper;
+import org.embl.mobie.viewer.transform.MoBIEViewerTransformAdjuster;
+import org.embl.mobie.viewer.transform.PositionViewerTransform;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.ViewManager;
@@ -155,31 +159,46 @@ public class MoBIE
 		openDataset();
 	}
 
-	public MoBIE( ImagePlus intensityImp, ImagePlus labelImp, ResultsTable resultsTable )
+	public MoBIE( ImagePlus intensityImp, ImagePlus labelImp )
 	{
+		settings = new MoBIESettings();
 		projectName = intensityImp.toString();
-
-		// TODO: Create a SourcePair from an ImagePlus
-		// Maybe, rather create a SpimData such that more of the code could stay the same?
-		// https://github.com/mobie/mobie-viewer-fiji/issues/917
-		// Then we can create an image
-		// We could add a new constructor to SpimDataImage<>( spimData )
-		// within the ImagePlusImageDisplay
+		datasetName = intensityImp.toString();
+		// TODO: one could construct and add sources and views to the dataset if that is useful
+		dataset = new Dataset( intensityImp.getNSlices() == 1 );
+		userInterface = new UserInterface( this );
+		viewManager = new ViewManager( this, userInterface, dataset.is2D );
 
 		// intensity image
 		final AbstractSpimData< ? > intensitySpimData = ImagePlusToSpimData.getSpimData( intensityImp );
 		final SpimDataImage< ? > image = new SpimDataImage<>( intensitySpimData, 0, intensityImp.getTitle(), null );
 		final Displaysettings displaysettings = intensitySpimData.getSequenceDescription().getViewSetupsOrdered().get( 0 ).getAttribute( Displaysettings.class );
+		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( image, displaysettings );
+		viewManager.showImageDisplay( imageDisplay );
+
+		new MoBIEViewerTransformAdjuster( viewManager.getSliceViewer().getBdvHandle(), imageDisplay ).applyMultiSourceTransform();
 
 		// segmentation image
 		final AbstractSpimData< ? > labelSpimData = ImagePlusToSpimData.getSpimData( labelImp );
 		final SpimDataImage< ? > labelImage = new SpimDataImage<>( labelSpimData, 0, labelImp.getTitle(), null );
-		// create the table from the results table
-		final DefaultAnnData< TableSawAnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
-		final DefaultAnnotationAdapter< TableSawAnnotatedSegment > annotationAdapter = new DefaultAnnotationAdapter( annData );
-		final AnnotatedLabelImage< TableSawAnnotatedSegment > annotatedLabelImage = new DefaultAnnotatedLabelImage( labelImage, annData, annotationAdapter );
-		final SegmentationDisplay< ? > segmentationDisplay = new SegmentationDisplay( labelImage );
 
+		// lazy segment table
+		final LazyAnnotatedSegmentTableModel tableModel = new LazyAnnotatedSegmentTableModel( labelImage.getName() );
+		final DefaultAnnData< AnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
+		final LazyAnnotatedSegmentAdapter segmentAdapter = new LazyAnnotatedSegmentAdapter( image.getName(), tableModel );
+		final DefaultAnnotatedLabelImage< AnnotatedSegment > annotatedLabelImage = new DefaultAnnotatedLabelImage( labelImage, annData, segmentAdapter );
+		final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( annotatedLabelImage );
+
+
+
+
+//		final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( table );
+//		tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV  );
+//		final ResultsTableAnnotationTableModel tableModel = new ResultsTableAnnotationTableModel( resultsTable );
+//		final DefaultAnnData< TableSawAnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
+//		final DefaultAnnotationAdapter< TableSawAnnotatedSegment > annotationAdapter = new DefaultAnnotationAdapter( annData );
+//		final AnnotatedLabelImage< TableSawAnnotatedSegment > annotatedLabelImage = new DefaultAnnotatedLabelImage( labelImage, annData, annotationAdapter );
+//		final SegmentationDisplay< ? > segmentationDisplay = new SegmentationDisplay( labelImage );
 
 //		datasetName = intensityImp.getTitle();
 //		IJ.log("Opening: " + datasetName );
@@ -194,7 +213,7 @@ public class MoBIE
 //		view.setName( viewName );
 //		new View(  );
 //
-		//viewManager.showImageDisplay( view );
+
 	}
 
 	// TODO: Probably such Plugins should rather
@@ -318,8 +337,11 @@ public class MoBIE
 			entry.getValue().setName( entry.getKey() );
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D );
+
+		System.out.println("# Available views");
 		for ( String s : getViews().keySet() )
 			System.out.println( s );
+		System.out.println("/n");
 
 		final View view = getSelectedView( viewName );
 		view.setName( viewName );
@@ -389,6 +411,7 @@ public class MoBIE
 
 	public List< String > getDatasets()
 	{
+		if ( project == null ) return null;
 		return project.getDatasets();
 	}
 
@@ -453,8 +476,9 @@ public class MoBIE
         }
     }
 
-    public Map<String, View > getViews()
+    public Map< String, View > getViews()
     {
+		if ( dataset == null ) return null;
         return dataset.views;
     }
 

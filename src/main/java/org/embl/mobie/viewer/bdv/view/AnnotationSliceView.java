@@ -39,11 +39,9 @@ import org.embl.mobie.viewer.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.viewer.color.AnnotationARGBConverter;
 import org.embl.mobie.viewer.color.ColoringListener;
 import org.embl.mobie.viewer.color.VolatileAnnotationARGBConverter;
-import org.embl.mobie.viewer.image.AnnotatedLabelImage;
-import org.embl.mobie.viewer.image.AnnotationImage;
 import org.embl.mobie.viewer.image.SpotAnnotationImage;
 import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
-import org.embl.mobie.viewer.serialize.display.AnnotationDisplay;
+import org.embl.mobie.viewer.serialize.display.AbstractAnnotationDisplay;
 import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
 import org.embl.mobie.viewer.select.SelectionListener;
 import org.embl.mobie.viewer.serialize.display.SpotDisplay;
@@ -64,9 +62,9 @@ import java.awt.*;
 
 public class AnnotationSliceView< A extends Annotation > extends AbstractSliceView implements ColoringListener, SelectionListener< A >
 {
-	protected final AnnotationDisplay< A > display;
+	protected final AbstractAnnotationDisplay< A > display;
 
-	public AnnotationSliceView( MoBIE moBIE, AnnotationDisplay< A > display )
+	public AnnotationSliceView( MoBIE moBIE, AbstractAnnotationDisplay< A > display )
 	{
 		super( moBIE, display );
 		this.display = display;
@@ -96,7 +94,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		}
 	}
 
-	private SourceAndConverter createSourceAndConverter( AnnotationDisplay< A > display, Image< AnnotationType< A > > image )
+	private SourceAndConverter createSourceAndConverter( AbstractAnnotationDisplay< A > display, Image< AnnotationType< A > > image )
 	{
 		// create non-volatile sac
 		//

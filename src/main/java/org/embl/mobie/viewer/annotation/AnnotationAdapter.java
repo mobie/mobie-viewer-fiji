@@ -10,7 +10,7 @@ public interface AnnotationAdapter< A extends Annotation >
 	// https://github.com/mobie/mobie-viewer-fiji/issues/827
 	A getAnnotation( String uuid );
 
-	// This is for mapping for voxels within an
+	// For mapping of voxels within an
 	// {@code AnnotatedLabelSource}
 	// to the corresponding annotation.
 	A getAnnotation( String source, int timePoint, int label );

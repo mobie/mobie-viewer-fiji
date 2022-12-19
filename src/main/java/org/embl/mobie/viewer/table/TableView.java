@@ -40,7 +40,7 @@ import org.embl.mobie.viewer.color.ColorHelper;
 import org.embl.mobie.viewer.color.ColoringListener;
 import org.embl.mobie.viewer.color.ColoringModel;
 import org.embl.mobie.viewer.color.MobieColoringModel;
-import org.embl.mobie.viewer.serialize.display.AnnotationDisplay;
+import org.embl.mobie.viewer.serialize.display.AbstractAnnotationDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotDialog;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.SelectionListener;
@@ -85,7 +85,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		ToggleSelectionAndFocusIfSelected
 	}
 
-	public TableView( AnnotationDisplay< A > display )
+	public TableView( AbstractAnnotationDisplay< A > display )
 	{
 		this.tableModel = display.getAnnData().getTable();
 		this.coloringModel = display.coloringModel;

@@ -53,7 +53,6 @@ public class View
 	private boolean isExclusive = false;
 	private String name;
 	
-	
 	public View( String uiSelectionGroup, List< Display< ? > > sourceDisplays, List< Transformation > sourceTransforms, ViewerTransform viewerTransform, boolean isExclusive ) {
 		this.uiSelectionGroup = uiSelectionGroup;
 		this.sourceDisplays = sourceDisplays;

@@ -65,7 +65,7 @@ import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.serialize.DataSource;
 import org.embl.mobie.viewer.serialize.RegionDataSource;
 import org.embl.mobie.viewer.serialize.View;
-import org.embl.mobie.viewer.serialize.display.AnnotationDisplay;
+import org.embl.mobie.viewer.serialize.display.AbstractAnnotationDisplay;
 import org.embl.mobie.viewer.serialize.display.Display;
 import org.embl.mobie.viewer.serialize.display.ImageDisplay;
 import org.embl.mobie.viewer.serialize.display.RegionDisplay;
@@ -142,7 +142,7 @@ public class ViewManager
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 	}
 
-	private void initScatterPlotView( AnnotationDisplay< ? > display )
+	private void initScatterPlotView( AbstractAnnotationDisplay< ? > display )
 	{
 		// TODO: implement for multiple images
 		//   probably needs an AnnotationTableModel constructed
@@ -282,10 +282,7 @@ public class ViewManager
 		if ( view.getViewerTransform() == null && currentDisplays.size() > 0 && ( view.isExclusive() || currentDisplays.size() == 1 ) )
 		{
 			final Display< ? > display = currentDisplays.get( currentDisplays.size() - 1);
-			final List< ? extends SourceAndConverter< ? > > sourceAndConverters = display.sourceAndConverters();
-			final AffineTransform3D multiSourceTransform = new MoBIEViewerTransformAdjuster( sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ).getMultiSourceTransform();
-			sliceViewer.getBdvHandle().getViewerPanel().state().setViewerTransform( multiSourceTransform );
-			//new ViewerTransformAdjuster( sliceViewer.getBdvHandle(), (( AbstractDisplay< ? > ) display ).getSourceAndConverters().values().iterator().next() ).run();
+			new MoBIEViewerTransformAdjuster( sliceViewer.getBdvHandle(), display ).applyMultiSourceTransform();
 		}
 
 		// trigger rendering of source name overlay
@@ -520,7 +517,7 @@ public class ViewManager
 				display.addImage( ( Image ) DataStore.getImage( name ) );
 			showImageDisplay( ( ImageDisplay ) display );
 		}
-		else if ( display instanceof AnnotationDisplay )
+		else if ( display instanceof AbstractAnnotationDisplay )
 		{
 			// FIXME What about label mask images that are NOT annotated,
 			//   i.e. don't have a table?
@@ -530,7 +527,7 @@ public class ViewManager
 			//   segmentations there is no anchor(), maybe still fine, but
 			//   then the table would not move the slice view anywhere.
 
-			final AnnotationDisplay< A > annotationDisplay = ( AnnotationDisplay ) display;
+			final AbstractAnnotationDisplay< A > annotationDisplay = ( AbstractAnnotationDisplay ) display;
 
 			// Register all images that are shown by this display.
 			// This is needed for the annotationDisplay to create the annData,
@@ -553,7 +550,7 @@ public class ViewManager
 			// create an annData object,
 			// potentially combining the annData from
 			// several images.
-			annotationDisplay.createAnnData();
+			annotationDisplay.initAnnData();
 
 			// Load additional tables (to be merged)
 			final List< String > additionalTables = annotationDisplay.getAdditionalTables();
@@ -678,7 +675,7 @@ public class ViewManager
 
 	}
 
-	private void initTableView( AnnotationDisplay< ? extends Annotation > display )
+	private void initTableView( AbstractAnnotationDisplay< ? extends Annotation > display )
 	{
 		display.tableView = new TableView( display );
 		// Note that currently we must show the table here
@@ -722,9 +719,9 @@ public class ViewManager
 
 	public synchronized void removeDisplay( Display display, boolean closeImgLoader )
 	{
-		if ( display instanceof AnnotationDisplay )
+		if ( display instanceof AbstractAnnotationDisplay )
 		{
-			final AnnotationDisplay< ? > annotationDisplay = ( AnnotationDisplay< ? > ) display;
+			final AbstractAnnotationDisplay< ? > annotationDisplay = ( AbstractAnnotationDisplay< ? > ) display;
 			annotationDisplay.sliceView.close( closeImgLoader );
 
 			if ( annotationDisplay.tableView != null )
@@ -768,9 +765,9 @@ public class ViewManager
 	}
 
 	// TODO: typing ( or remove )
-	public Collection< AnnotationDisplay< ? > > getAnnotationDisplays()
+	public Collection< AbstractAnnotationDisplay< ? > > getAnnotationDisplays()
 	{
-		final List< AnnotationDisplay< ? > > collect = getCurrentSourceDisplays().stream().filter( s -> s instanceof AnnotationDisplay ).map( s -> ( AnnotationDisplay< ? > ) s ).collect( Collectors.toList() );
+		final List< AbstractAnnotationDisplay< ? > > collect = getCurrentSourceDisplays().stream().filter( s -> s instanceof AbstractAnnotationDisplay ).map( s -> ( AbstractAnnotationDisplay< ? > ) s ).collect( Collectors.toList() );
 
 		return collect;
 	}

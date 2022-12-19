@@ -27,8 +27,8 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	private String name;
 	private final SharedQueue sharedQueue; @Nullable
 	private RealMaskRealInterval mask;
-	private AffineTransform3D affineTransform3D;
 	private TransformedSource transformedSource;
+	private AffineTransform3D affineTransform3D = new AffineTransform3D();
 
 	public SpimDataImage( AbstractSpimData< ? > spimData, int setupId, String name, @Nullable SharedQueue sharedQueue )
 	{
@@ -46,7 +46,6 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		this.setupId = setupId;
 		this.name = name;
 		this.sharedQueue = sharedQueue;
-		this.affineTransform3D = new AffineTransform3D();
 	}
 
 	@Override

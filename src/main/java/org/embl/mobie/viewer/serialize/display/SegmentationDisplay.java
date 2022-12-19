@@ -30,7 +30,7 @@ package org.embl.mobie.viewer.serialize.display;
 
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.image.Image;
-import org.embl.mobie.viewer.image.SpimDataImage;
+import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class SegmentationDisplay< AS extends AnnotatedSegment > extends AnnotationDisplay< AS >
+public class SegmentationDisplay< AS extends AnnotatedSegment > extends AbstractAnnotationDisplay< AS >
 {
 	// Serialization
 	protected List< String > sources; // label mask images
@@ -50,9 +50,10 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Annotati
 	// TODO: below is almost not needed
 	public transient SegmentsVolumeViewer< AS > segmentsVolumeViewer;
 
-	public SegmentationDisplay( Image< ? > labelImage )
+	public SegmentationDisplay( Image< AnnotationType< AS > > annotatedImage )
 	{
-
+		addImage( annotatedImage );
+		initAnnData();
 	}
 
 	public List< String > getSources()

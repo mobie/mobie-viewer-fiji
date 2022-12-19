@@ -70,7 +70,7 @@ import java.util.stream.Collectors;
  *
  * @param <A>
  */
-public abstract class AnnotationDisplay< A extends Annotation > extends AbstractDisplay< AnnotationType< A > >
+public abstract class AbstractAnnotationDisplay< A extends Annotation > extends AbstractDisplay< AnnotationType< A > >
 {
 	// Serialization
 	protected String lut = LUTs.GLASBEY;
@@ -98,13 +98,13 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	// Methods
 
 	// Used by Gson deserialization
-	public AnnotationDisplay()
+	public AbstractAnnotationDisplay()
 	{
 		blendingMode = BlendingMode.Alpha;
 	}
 
 	// Use this for serialization
-	public AnnotationDisplay( AnnotationDisplay< ? extends Annotation > annotationDisplay )
+	public AbstractAnnotationDisplay( AbstractAnnotationDisplay< ? extends Annotation > annotationDisplay )
 	{
 		setSerializableFields( annotationDisplay );
 	}
@@ -174,7 +174,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		return opacityNotSelected;
 	}
 
-	private void setSerializableFields( AnnotationDisplay< ? extends Annotation > annotationDisplay )
+	private void setSerializableFields( AbstractAnnotationDisplay< ? extends Annotation > annotationDisplay )
 	{
 		this.name = annotationDisplay.name;
 
@@ -254,7 +254,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	// fetch annData from the annotated images
 	// the main use is to concatenate the tables
 	// in case this display shows several images
-	public void createAnnData()
+	public void initAnnData()
 	{
 		final List< AnnotationImage< A > > annotationImages = getImages().stream().map( image -> ( AnnotationImage< A > ) image ).collect( Collectors.toList() );
 

@@ -40,4 +40,19 @@ public class Dataset
 	public ViewerTransform defaultLocation = new PositionViewerTransform( new double[]{0,0,0}, 0 );
 	public Map< String, DataSource > sources;
 	public Map< String, View > views;
+
+	public Dataset() { }
+
+	public Dataset( boolean is2D )
+	{
+		this.is2D = is2D;
+	}
+
+	public Dataset( boolean is2D, ViewerTransform defaultLocation, Map< String, DataSource > sources, Map< String, View > views )
+	{
+		this.is2D = is2D;
+		this.defaultLocation = defaultLocation;
+		this.sources = sources;
+		this.views = views;
+	}
 }

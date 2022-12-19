@@ -30,7 +30,6 @@ package org.embl.mobie.viewer.serialize.display;
 
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.annotation.Annotation;
-import org.embl.mobie.viewer.bdv.render.BlendingMode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class RegionDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay< AR >
+public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotationDisplay< AR >
 {
 	// Serialization
 

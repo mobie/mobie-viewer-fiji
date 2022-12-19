@@ -25,6 +25,7 @@ class MoBIEMorpholibJTest
 		final ImagePlus labelImp = IJ.openImage( root + "src/test/resources/golgi-cell-labels.tif");
 		//labelImp.show();
 
-		new MoBIE( intensityImp, labelImp, resultsTable );
+		// no table
+		new MoBIE( intensityImp, labelImp );
 	}
 }

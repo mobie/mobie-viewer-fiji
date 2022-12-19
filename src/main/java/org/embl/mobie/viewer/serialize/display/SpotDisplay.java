@@ -38,7 +38,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import java.util.List;
 import java.util.Set;
 
-public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay< AR >
+public class SpotDisplay< AR extends AnnotatedRegion > extends AbstractAnnotationDisplay< AR >
 {
 	// Serialization
 

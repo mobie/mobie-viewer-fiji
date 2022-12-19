@@ -35,7 +35,7 @@ import bdv.viewer.SourceAndConverter;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.bdv.GlobalMousePositionProvider;
-import org.embl.mobie.viewer.serialize.display.AnnotationDisplay;
+import org.embl.mobie.viewer.serialize.display.AbstractAnnotationDisplay;
 import org.embl.mobie.viewer.source.AnnotationType;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
@@ -46,9 +46,9 @@ public class SliceViewAnnotationSelector< A extends Annotation > implements Runn
 {
 	private BdvHandle bdvHandle;
 	private boolean is2D;
-	private Supplier< Collection< AnnotationDisplay< A > > > annotationDisplaySupplier;
+	private Supplier< Collection< AbstractAnnotationDisplay< A > > > annotationDisplaySupplier;
 
-	public SliceViewAnnotationSelector( BdvHandle bdvHandle, boolean is2D, Supplier< Collection< AnnotationDisplay< A > > > annotationDisplaySupplier )
+	public SliceViewAnnotationSelector( BdvHandle bdvHandle, boolean is2D, Supplier< Collection< AbstractAnnotationDisplay< A > > > annotationDisplaySupplier )
 	{
 		this.bdvHandle = bdvHandle;
 		this.is2D = is2D;
@@ -57,9 +57,9 @@ public class SliceViewAnnotationSelector< A extends Annotation > implements Runn
 
 	public synchronized void clearSelection()
 	{
-		final Collection< AnnotationDisplay< A > > annotationDisplays = annotationDisplaySupplier.get();
+		final Collection< AbstractAnnotationDisplay< A > > annotationDisplays = annotationDisplaySupplier.get();
 
-		for ( AnnotationDisplay< A > annotationDisplay : annotationDisplays )
+		for ( AbstractAnnotationDisplay< A > annotationDisplay : annotationDisplays )
 			annotationDisplay.selectionModel.clearSelection();
 
 	}
@@ -70,9 +70,9 @@ public class SliceViewAnnotationSelector< A extends Annotation > implements Runn
 		final int timePoint = positionProvider.getTimePoint();
 		final RealPoint realPosition = positionProvider.getPositionAsRealPoint();
 
-		final Collection< AnnotationDisplay< A > > annotationDisplays = annotationDisplaySupplier.get();
+		final Collection< AbstractAnnotationDisplay< A > > annotationDisplays = annotationDisplaySupplier.get();
 
-		for ( AnnotationDisplay< A > annotationDisplay : annotationDisplays )
+		for ( AbstractAnnotationDisplay< A > annotationDisplay : annotationDisplays )
 		{
 			final Collection< SourceAndConverter< AnnotationType< A > > > sourceAndConverters = annotationDisplay.sourceAndConverters();
 

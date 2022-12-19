@@ -37,6 +37,8 @@ import net.imglib2.Interval;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.LinAlgHelpers;
+import org.embl.mobie.viewer.serialize.display.AbstractDisplay;
+import org.embl.mobie.viewer.serialize.display.Display;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,6 +46,11 @@ import java.util.stream.Collectors;
 public class MoBIEViewerTransformAdjuster {
 	private final BdvHandle bdvHandle;
 	private final List< ? extends Source< ? > > sources;
+
+	public MoBIEViewerTransformAdjuster( BdvHandle bdvHandle, Display< ? > display) {
+		this.bdvHandle = bdvHandle;
+		this.sources = display.sourceAndConverters().stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() );
+	}
 
 	public MoBIEViewerTransformAdjuster( BdvHandle bdvHandle, List< ? extends Source< ? > > sources) {
 		this.bdvHandle = bdvHandle;
@@ -114,6 +121,11 @@ public class MoBIEViewerTransformAdjuster {
 		final RealInterval bounds = TransformHelper.createMask( sources, state.getCurrentTimepoint() );
 		final AffineTransform3D transform = TransformHelper.getIntervalViewerTransform( bdvHandle, bounds );
 		return transform;
+	}
+
+	public void applyMultiSourceTransform()
+	{
+		bdvHandle.getViewerPanel().state().setViewerTransform( getMultiSourceTransform() );
 	}
 
 }

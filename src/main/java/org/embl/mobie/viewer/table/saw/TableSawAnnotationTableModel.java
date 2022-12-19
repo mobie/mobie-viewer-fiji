@@ -47,7 +47,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		this.defaultTablePath = IOHelper.combinePath( dataStore, defaultTableLocation );
 	}
 
-	// Use this constructor if the default table is available already
+	// use this if the default table is available already
 	public TableSawAnnotationTableModel(
 			String name,
 			TableSawAnnotationCreator< A > annotationCreator,
