@@ -25,11 +25,19 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	private final int setupId;
 	private SourcePair< T > sourcePair;
 	private String name;
-	@Nullable
-	private final SharedQueue sharedQueue;
+	private final SharedQueue sharedQueue; @Nullable
 	private RealMaskRealInterval mask;
 	private AffineTransform3D affineTransform3D;
 	private TransformedSource transformedSource;
+
+	public SpimDataImage( AbstractSpimData< ? > spimData, int setupId, String name, @Nullable SharedQueue sharedQueue )
+	{
+		this.imageDataFormat = null;
+		this.path = null;
+		this.setupId = setupId;
+		this.sharedQueue = sharedQueue;
+		createSourcePair( spimData, setupId, name );
+	}
 
 	public SpimDataImage( ImageDataFormat imageDataFormat, String path, int setupId, String name, @Nullable SharedQueue sharedQueue )
 	{
@@ -98,6 +106,11 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	{
 		final AbstractSpimData spimData = tryOpenSpimData( path, imageDataFormat, sharedQueue );
 
+		createSourcePair( spimData, setupId, name );
+	}
+
+	private void createSourcePair( AbstractSpimData spimData, int setupId, String name )
+	{
 		final SpimSource< T > s = new SpimSource<>( spimData, setupId, name );
 		transformedSource = new TransformedSource( s );
 		transformedSource.setFixedTransform( affineTransform3D );

@@ -29,6 +29,8 @@
 package org.embl.mobie.viewer.serialize.display;
 
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
+import org.embl.mobie.viewer.image.Image;
+import org.embl.mobie.viewer.image.SpimDataImage;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 
 import java.util.ArrayList;
@@ -47,6 +49,11 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Annotati
 	// Runtime
 	// TODO: below is almost not needed
 	public transient SegmentsVolumeViewer< AS > segmentsVolumeViewer;
+
+	public SegmentationDisplay( Image< ? > labelImage )
+	{
+
+	}
 
 	public List< String > getSources()
 	{

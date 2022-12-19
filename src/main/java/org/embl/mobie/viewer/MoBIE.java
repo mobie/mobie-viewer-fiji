@@ -31,10 +31,12 @@ package org.embl.mobie.viewer;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import ch.epfl.biop.bdv.img.imageplus.ImagePlusToSpimData;
 import de.embl.cba.bdv.utils.io.SPIMDataReaders;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.measure.ResultsTable;
+import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.github.GitHubUtils;
@@ -61,6 +63,7 @@ import org.embl.mobie.viewer.serialize.SegmentationDataSource;
 import org.embl.mobie.viewer.serialize.SpotDataSource;
 import org.embl.mobie.viewer.serialize.View;
 import org.embl.mobie.viewer.serialize.display.ImageDisplay;
+import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.LazyAnnotatedSegmentTableModel;
@@ -79,6 +82,7 @@ import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
+import spimdata.util.Displaysettings;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
@@ -153,6 +157,8 @@ public class MoBIE
 
 	public MoBIE( ImagePlus intensityImp, ImagePlus labelImp, ResultsTable resultsTable )
 	{
+		projectName = intensityImp.toString();
+
 		// TODO: Create a SourcePair from an ImagePlus
 		// Maybe, rather create a SpimData such that more of the code could stay the same?
 		// https://github.com/mobie/mobie-viewer-fiji/issues/917
@@ -160,20 +166,35 @@ public class MoBIE
 		// We could add a new constructor to SpimDataImage<>( spimData )
 		// within the ImagePlusImageDisplay
 
-		datasetName = intensityImp.getTitle();
-		IJ.log("Opening: " + datasetName );
-		new ImageDisplay<>()
-		setDatasetName( datasetName );
-		//dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
-		//userInterface = new UserInterface( this );
-		viewManager = new ViewManager( this, userInterface, dataset.is2D );
-		for ( String s : getViews().keySet() )
-			System.out.println( s );
-		final View view = getSelectedView( viewName );
-		view.setName( viewName );
-		new View(  );
+		// intensity image
+		final AbstractSpimData< ? > intensitySpimData = ImagePlusToSpimData.getSpimData( intensityImp );
+		final SpimDataImage< ? > image = new SpimDataImage<>( intensitySpimData, 0, intensityImp.getTitle(), null );
+		final Displaysettings displaysettings = intensitySpimData.getSequenceDescription().getViewSetupsOrdered().get( 0 ).getAttribute( Displaysettings.class );
 
-		viewManager.showImageDisplay( view );
+		// segmentation image
+		final AbstractSpimData< ? > labelSpimData = ImagePlusToSpimData.getSpimData( labelImp );
+		final SpimDataImage< ? > labelImage = new SpimDataImage<>( labelSpimData, 0, labelImp.getTitle(), null );
+		// create the table from the results table
+		final DefaultAnnData< TableSawAnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
+		final DefaultAnnotationAdapter< TableSawAnnotatedSegment > annotationAdapter = new DefaultAnnotationAdapter( annData );
+		final AnnotatedLabelImage< TableSawAnnotatedSegment > annotatedLabelImage = new DefaultAnnotatedLabelImage( labelImage, annData, annotationAdapter );
+		final SegmentationDisplay< ? > segmentationDisplay = new SegmentationDisplay( labelImage );
+
+
+//		datasetName = intensityImp.getTitle();
+//		IJ.log("Opening: " + datasetName );
+//		new ImageDisplay<>()
+//		setDatasetName( datasetName );
+//		//dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
+//		//userInterface = new UserInterface( this );
+//		viewManager = new ViewManager( this, userInterface, dataset.is2D );
+//		for ( String s : getViews().keySet() )
+//			System.out.println( s );
+//		final View view = getSelectedView( viewName );
+//		view.setName( viewName );
+//		new View(  );
+//
+		//viewManager.showImageDisplay( view );
 	}
 
 	// TODO: Probably such Plugins should rather

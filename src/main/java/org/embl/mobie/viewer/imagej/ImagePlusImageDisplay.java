@@ -8,6 +8,6 @@ public class ImagePlusImageDisplay< T extends NumericType< T > > extends ImageDi
 {
 	public ImagePlusImageDisplay()
 	{
-		new DefaultImage<>(  )
+		//new DefaultImage<>(  )
 	}
 }

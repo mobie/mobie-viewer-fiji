@@ -30,17 +30,19 @@ package org.embl.mobie.viewer.serialize.display;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
+import org.embl.mobie.viewer.color.ColorHelper;
 import org.embl.mobie.viewer.color.OpacityHelper;
-import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
+import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.volume.ImageVolumeViewer;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.NumericType;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import spimdata.util.Displaysettings;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,7 +59,14 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	public transient ImageSliceView imageSliceView;
 	public transient ImageVolumeViewer imageVolumeViewer;
 
-	// Getters for serialised fields
+	public ImageDisplay( Image< T > image, Displaysettings displaySettings )
+	{
+		addImage( image );
+		final ARGBType argbType = ColorHelper.toArgbType( displaySettings.color );
+		color = ColorHelper.toString( argbType );
+		contrastLimits = new double[]{ displaySettings.min, displaySettings.max };
+	}
+
 	public String getColor()
 	{
 		return color;

@@ -216,6 +216,11 @@
             <version>${tablesaw-parquet.version}</version>
         </dependency>
         <dependency>
+            <groupId>ch.epfl.biop</groupId>
+            <artifactId>bigdataviewer-image-loaders</artifactId>
+            <version>0.4.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>5.4.2</version>

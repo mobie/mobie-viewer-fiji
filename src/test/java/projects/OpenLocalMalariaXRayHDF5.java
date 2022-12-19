@@ -42,7 +42,7 @@ public class OpenLocalMalariaXRayHDF5
 		imageJ.ui().showUI();
 
 		try {
-			new MoBIE("/Volumes/cba/exchange/Nedal_Jonas_XrayImaging/mobie/test1", MoBIESettings.settings() );//.getViewManager().show( "cell-segmentation" );
+			new MoBIE("/Volumes/cba/exchange/Nedal_Jonas_XrayImaging/mobie/test_hdf5/", MoBIESettings.settings() );//.getViewManager().show( "cell-segmentation" );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

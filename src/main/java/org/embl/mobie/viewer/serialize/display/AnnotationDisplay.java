@@ -89,7 +89,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	// Runtime
 	public transient SelectionModel< A > selectionModel;
 	public transient MobieColoringModel< A > coloringModel;
-	public transient AnnotationAdapter<A> annotationAdapter;
+	public transient AnnotationAdapter< A > annotationAdapter;
 	public transient TableView< A > tableView;
 	public transient ScatterPlotView< A > scatterPlotView;
 	public transient AnnotationSliceView< A > sliceView;

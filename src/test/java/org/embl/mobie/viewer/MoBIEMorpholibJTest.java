@@ -21,9 +21,9 @@ class MoBIEMorpholibJTest
 		IJ.open(  root + "src/test/resources/golgi-cell-features.csv");
 		final ResultsTable resultsTable = new ResultsTableFetcher().fetch( "golgi-cell-features.csv" );
 		final ImagePlus intensityImp = IJ.openImage( root + "src/test/resources/golgi-intensities.tif" );
-		intensityImp.show();
+		//intensityImp.show();
 		final ImagePlus labelImp = IJ.openImage( root + "src/test/resources/golgi-cell-labels.tif");
-		labelImp.show();
+		//labelImp.show();
 
 		new MoBIE( intensityImp, labelImp, resultsTable );
 	}

@@ -117,4 +117,11 @@ public abstract class ColorHelper
 		final ARGBType argbType = new ARGBType( ARGBType.rgba( argbValues[ 1 ], argbValues[ 2 ], argbValues[ 3 ], argbValues[ 0 ] ) );
 		return argbType;
 	}
+
+	public static ARGBType toArgbType( int[] color )
+	{
+		final int rgba = ARGBType.rgba( color[ 0 ], color[ 1 ], color[ 2 ], color[ 3 ] );
+		final ARGBType argbType = new ARGBType( rgba );
+		return argbType;
+	}
 }
