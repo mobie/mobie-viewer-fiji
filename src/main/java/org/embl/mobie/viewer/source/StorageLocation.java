@@ -30,8 +30,16 @@ package org.embl.mobie.viewer.source;
 
 public class StorageLocation
 {
+	// for data on disk or S3
 	public String relativePath;
 	public String s3Address;
 	public String signingRegion;
+
+	// for data in RAM
+	public Object data;
+
+	// the image data model in MoBIE is single channel,
+	// and thus one needs to subset a potentially
+	// multi-channel image data source
 	public Integer channel = 0;
 }

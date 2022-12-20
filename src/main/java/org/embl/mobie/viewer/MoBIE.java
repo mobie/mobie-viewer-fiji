@@ -163,7 +163,9 @@ public class MoBIE
 	public MoBIE( ImagePlus intensityImp, ImagePlus labelImp )
 	{
 		settings = new MoBIESettings();
-		projectName = intensityImp.toString();
+		project = new Project();
+		new ImageDataSource( Im	 )
+ 		projectName = intensityImp.toString();
 		datasetName = intensityImp.toString();
 		// TODO: one could construct and add sources and views to the dataset if that is useful
 		dataset = new Dataset( intensityImp.getNSlices() == 1 );

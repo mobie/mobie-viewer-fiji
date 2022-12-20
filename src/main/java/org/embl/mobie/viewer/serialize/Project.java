@@ -28,8 +28,6 @@
  */
 package org.embl.mobie.viewer.serialize;
 
-import org.embl.mobie.io.ImageDataFormat;
-
 import java.util.List;
 
 public class Project
@@ -53,7 +51,7 @@ public class Project
 		return specVersion;
 	}
 
-	public void setDatasets( List<String> datasets ) { this.datasets = datasets; }
+	public void setDatasets( List< String > datasets ) { this.datasets = datasets; }
 
 	public void setDefaultDataset( String defaultDataset ) { this.defaultDataset = defaultDataset; }
 

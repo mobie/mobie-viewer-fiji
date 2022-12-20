@@ -31,6 +31,7 @@ package org.embl.mobie.viewer.serialize;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.io.ImageDataFormat;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class ImageDataSource extends AbstractDataSource
@@ -38,4 +39,9 @@ public class ImageDataSource extends AbstractDataSource
 	// Serialization
 	public Map< ImageDataFormat, StorageLocation > imageData;
 
+	public ImageDataSource( ImageDataFormat imageDataFormat, StorageLocation storageLocation )
+	{
+		imageData = new HashMap<>();
+		imageData.put( imageDataFormat, storageLocation );
+	}
 }
