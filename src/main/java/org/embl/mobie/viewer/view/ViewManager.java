@@ -237,11 +237,11 @@ public class ViewManager
 			final BdvHandle bdvHandle = sliceViewer.getBdvHandle();
 			AffineTransform3D normalisedViewTransform = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
 			final NormalizedAffineViewerTransform transform = new NormalizedAffineViewerTransform( normalisedViewTransform.getRowPackedCopy(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() );
-			return new View(uiSelectionGroup, viewDisplays, viewTransformations, transform, isExclusive);
+			return new View( "", uiSelectionGroup, viewDisplays, viewTransformations, transform, isExclusive);
 		}
 		else
 		{
-			return new View( uiSelectionGroup, viewDisplays, viewTransformations, isExclusive );
+			return new View( "", uiSelectionGroup, viewDisplays, viewTransformations, isExclusive );
 		}
 	}
 

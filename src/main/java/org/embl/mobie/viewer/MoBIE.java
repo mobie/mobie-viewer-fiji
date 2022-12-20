@@ -31,14 +31,15 @@ package org.embl.mobie.viewer;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import ch.epfl.biop.bdv.img.imageplus.ImagePlusToSpimData;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.process.ImageProcessor;
 import ij.process.LUT;
+import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.IOHelper;
@@ -50,6 +51,7 @@ import org.embl.mobie.viewer.annotation.LazyAnnotatedSegmentAdapter;
 import org.embl.mobie.viewer.color.ColorHelper;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.image.DefaultAnnotatedLabelImage;
+import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.image.SpimDataImage;
 import org.embl.mobie.viewer.image.SpotAnnotationImage;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
@@ -64,7 +66,6 @@ import org.embl.mobie.viewer.serialize.SegmentationDataSource;
 import org.embl.mobie.viewer.serialize.SpotDataSource;
 import org.embl.mobie.viewer.serialize.View;
 import org.embl.mobie.viewer.serialize.display.ImageDisplay;
-import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.LazyAnnotatedSegmentTableModel;
@@ -77,20 +78,19 @@ import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSpotCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.viewer.table.saw.TableSawHelper;
-import org.embl.mobie.viewer.transform.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.ViewManager;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
-import spimdata.util.Displaysettings;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -108,6 +108,8 @@ public class MoBIE
 
 		// Force TableSaw class loading and compilation to save time during the actual loading
 		Table.read().usingOptions( CsvReadOptions.builderFromString( "aaa\tbbb" ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" ) );
+
+		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 	}
 
 	private static MoBIE moBIE;
@@ -150,7 +152,6 @@ public class MoBIE
 		setS3Credentials( settings );
 		setProjectImageAndTableRootLocations( );
 		registerProjectPlugins( settings.values.getProjectLocation() );
-		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( IOHelper.combinePath( projectRoot,  "project.json" ) );
 		if ( project.getName() == null )
 			project.setName( MoBIEHelper.getFileName( projectLocation ) );
@@ -161,6 +162,9 @@ public class MoBIE
 	public MoBIE( String projectName, ImagePlus intensityImp, ImagePlus labelImp )
 	{
 		settings = new MoBIESettings();
+		settings.addImageDataFormat( ImageDataFormat.ImagePlus );
+
+
 
 		// project and dataset
 		project = new Project( projectName );
@@ -177,8 +181,8 @@ public class MoBIE
 		final StorageLocation intensityStorageLocation = new StorageLocation();
 		intensityStorageLocation.data = intensityImp;
 		intensityStorageLocation.channel = channel;
-		final ImageDataSource imageDataSource = new ImageDataSource( ImageDataFormat.ImagePlus, intensityStorageLocation );
-		dataset.sources.put( intensityImageName, imageDataSource );
+		final ImageDataSource imageDataSource = new ImageDataSource( intensityImageName, ImageDataFormat.ImagePlus, intensityStorageLocation );
+		dataset.sources.put( imageDataSource.getName(), imageDataSource );
 
 		// intensity display
 		intensityImp.setC( channel );
@@ -188,17 +192,18 @@ public class MoBIE
 		final double[] contrastLimits = { processor.getMin(), processor.getMax() };
 
 		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( Arrays.asList( intensityImageName ), color, contrastLimits, false, null );
-		final View intensityView = new View( "intensity", Arrays.asList( imageDisplay ), null, false );
+		final View intensityView = new View( intensityImageName, "intensity", Arrays.asList( imageDisplay ), null, false );
 		dataset.views.put( intensityImageName, intensityView );
 
 		// label image
+		final String labelImageName = labelImp.getTitle();
 		final StorageLocation labelStorageLocation = new StorageLocation();
 		labelStorageLocation.data = intensityImp;
-		final SegmentationDataSource segmentationDataSource = new SegmentationDataSource( ImageDataFormat.ImagePlus, labelStorageLocation );
-		dataset.sources.put( labelImp.getTitle(), segmentationDataSource );
+		final SegmentationDataSource segmentationDataSource = new SegmentationDataSource( labelImageName, ImageDataFormat.ImagePlus, labelStorageLocation );
+		dataset.sources.put( segmentationDataSource.getName(), segmentationDataSource );
 
 		// view dataset
-		// TODO make a function
+		initUIandShowView( intensityImageName );
 
 		// intensity image
 //		final AbstractSpimData< ? > intensitySpimData = ImagePlusToSpimData.getSpimData( intensityImp );
@@ -210,15 +215,15 @@ public class MoBIE
 //		new MoBIEViewerTransformAdjuster( viewManager.getSliceViewer().getBdvHandle(), imageDisplay ).applyMultiSourceTransform();
 
 		// segmentation image
-		final AbstractSpimData< ? > labelSpimData = ImagePlusToSpimData.getSpimData( labelImp );
-		final SpimDataImage< ? > labelImage = new SpimDataImage<>( labelSpimData, 0, labelImp.getTitle(), null );
-
-		// lazy segment table
-		final LazyAnnotatedSegmentTableModel tableModel = new LazyAnnotatedSegmentTableModel( labelImage.getName() );
-		final DefaultAnnData< AnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
-		final LazyAnnotatedSegmentAdapter segmentAdapter = new LazyAnnotatedSegmentAdapter( image.getName(), tableModel );
-		final DefaultAnnotatedLabelImage< AnnotatedSegment > annotatedLabelImage = new DefaultAnnotatedLabelImage( labelImage, annData, segmentAdapter );
-		final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( annotatedLabelImage );
+//		final AbstractSpimData< ? > labelSpimData = ImagePlusToSpimData.getSpimData( labelImp );
+//		final SpimDataImage< ? > labelImage = new SpimDataImage<>( labelSpimData, 0, labelImp.getTitle(), null );
+//
+//		// lazy segment table
+//		final LazyAnnotatedSegmentTableModel tableModel = new LazyAnnotatedSegmentTableModel( labelImage.getName() );
+//		final DefaultAnnData< AnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
+//		final LazyAnnotatedSegmentAdapter segmentAdapter = new LazyAnnotatedSegmentAdapter( image.getName(), tableModel );
+//		final DefaultAnnotatedLabelImage< AnnotatedSegment > annotatedLabelImage = new DefaultAnnotatedLabelImage( labelImage, annData, segmentAdapter );
+//		final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( annotatedLabelImage );
 
 
 
@@ -360,9 +365,8 @@ public class MoBIE
 
 	private void openAndViewDataset( String datasetName, String viewName ) throws IOException
 	{
-		IJ.log("Opening dataset: " + datasetName );
-
 		// read dataset from file
+		IJ.log("Opening dataset: " + datasetName );
 		setCurrentDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
 
@@ -370,12 +374,18 @@ public class MoBIE
 		for ( Map.Entry< String, DataSource > entry : dataset.sources.entrySet() )
 			entry.getValue().setName( entry.getKey() );
 
+		// log views
 		System.out.println("# Available views");
 		for ( String s : getViews().keySet() )
 			System.out.println( s );
 		System.out.println("/n");
 
 		// build UI and show a view
+		initUIandShowView( viewName );
+	}
+
+	private void initUIandShowView( String viewName )
+	{
 		sourceNameToImgLoader = new HashMap<>();
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D );
@@ -383,14 +393,11 @@ public class MoBIE
 		viewManager.show( view );
 	}
 
-	private View getView( String viewName, Dataset dataset ) throws IOException
+	private View getView( String viewName, Dataset dataset )
 	{
 		final View view = dataset.views.get( viewName );
 		if ( view == null )
-		{
-			System.err.println("The view \"" + viewName + "\" could not be found in this dataset." );
-			throw new IOException();
-		}
+			throw new UnsupportedOperationException("The view \"" + viewName + "\" does not exist in the current dataset." );
 		view.setName( viewName );
 		return view;
 	}
@@ -409,12 +416,7 @@ public class MoBIE
 
 		final ArrayList< String > strings = new ArrayList<>();
 		strings.add( rootLocation );
-
-		for ( int i = 0; i < files.length; i++ )
-		{
-			strings.add( files[ i ] );
-		}
-
+		Collections.addAll( strings, files );
 		final String path = IOHelper.combinePath( strings.toArray( new String[0] ) );
 
 		return path;
@@ -497,6 +499,7 @@ public class MoBIE
 			System.err.println("Source supports: " + dataFormat);
 		for ( ImageDataFormat dataFormat : imageDataFormats )
 			System.err.println("Settings support: " + dataFormat);
+
 		throw new RuntimeException();
 	}
 
@@ -571,20 +574,20 @@ public class MoBIE
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
 	}
 
-    public synchronized String getImagePath( ImageDataSource source, ImageDataFormat imageDataFormat) {
-
-        switch (imageDataFormat) {
+    public synchronized String getImagePath( ImageDataFormat imageDataFormat, StorageLocation storageLocation )
+	{
+		switch (imageDataFormat) {
 			case BdvHDF5:
 			case BdvN5:
             case BdvOmeZarr:
             case OmeZarr:
             case BdvOmeZarrS3:
             case BdvN5S3:
-                final String relativePath = source.imageData.get( imageDataFormat ).relativePath;
+                final String relativePath = storageLocation.relativePath;
                 return IOHelper.combinePath( imageRoot, getCurrentDatasetName(), relativePath );
             case OpenOrganelleS3:
             case OmeZarrS3:
-                return source.imageData.get( imageDataFormat ).s3Address;
+                return storageLocation.s3Address;
             default:
                 throw new UnsupportedOperationException( "File format not supported: " + imageDataFormat );
         }
@@ -623,7 +626,13 @@ public class MoBIE
 				ThreadHelper.ioExecutorService.submit( () ->
 					{
 						String log = getLog( sourceIndex, numImages, sourceLoggingModulo, lastLogMillis );
-						initDataSource( dataSource, log );
+						try
+						{
+							initDataSource( dataSource, log );
+						} catch ( SpimDataException e )
+						{
+							e.printStackTrace();
+						}
 					}
 				) );
 		}
@@ -632,18 +641,15 @@ public class MoBIE
 		IJ.log( "Initialised " + dataSources.size() + " data source(s) in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + ThreadHelper.getNumIoThreads() + " thread(s).");
 	}
 
-	private void initDataSource( DataSource dataSource, String log )
+	private void initDataSource( DataSource dataSource, String log ) throws SpimDataException
 	{
 		if ( dataSource instanceof ImageDataSource )
 		{
 			ImageDataSource imageSource = ( ImageDataSource ) dataSource;
 			ImageDataFormat imageDataFormat = getAppropriateImageDataFormat( imageSource );
-
-			final Integer channel = imageSource.imageData.get( imageDataFormat ).channel;
-			final String imagePath = getImagePath( imageSource, imageDataFormat );
-
-			// TODO  Caching? https://github.com/mobie/mobie-viewer-fiji/issues/857
-			final SpimDataImage< ? > image = new SpimDataImage( imageDataFormat, imagePath, channel, dataSource.getName(), ThreadHelper.sharedQueue );
+			final StorageLocation storageLocation = imageSource.imageData.get( imageDataFormat );
+			final Integer channel = storageLocation.channel;
+			final Image< ? > image = initImage( imageDataFormat, channel, storageLocation, imageSource.getName() );
 
 			if ( dataSource.preInit() )
 			{
@@ -736,6 +742,22 @@ public class MoBIE
 
 		if ( log != null )
 			IJ.log( log + dataSource.getName() );
+	}
+
+	private SpimDataImage< ? > initImage( ImageDataFormat imageDataFormat, Integer channel, StorageLocation storageLocation, String name ) throws SpimDataException
+	{
+		// FIXME: replace with imageDataFormat.isInMemory()
+		if ( imageDataFormat.equals( ImageDataFormat.ImagePlus ) )
+		{
+			final AbstractSpimData spimData = new SpimDataOpener().asSpimData( storageLocation.data, imageDataFormat );
+			return new SpimDataImage<>( spimData, channel, name );
+		}
+		else
+		{
+			final String imagePath = getImagePath( imageDataFormat, storageLocation );
+			// TODO  Caching? https://github.com/mobie/mobie-viewer-fiji/issues/857
+			return new SpimDataImage( imageDataFormat, imagePath, channel, name, ThreadHelper.sharedQueue );
+		}
 	}
 
 	public Set< String > getTablePaths( Map< TableDataFormat, StorageLocation > tableData )

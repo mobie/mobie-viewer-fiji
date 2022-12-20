@@ -53,7 +53,8 @@ public class View
 	private boolean isExclusive = false;
 	private String name;
 	
-	public View( String uiSelectionGroup, List< Display< ? > > sourceDisplays, List< Transformation > sourceTransforms, ViewerTransform viewerTransform, boolean isExclusive ) {
+	public View( String name, String uiSelectionGroup, List< Display< ? > > sourceDisplays, List< Transformation > sourceTransforms, ViewerTransform viewerTransform, boolean isExclusive ) {
+		this.name = name;
 		this.uiSelectionGroup = uiSelectionGroup;
 		this.sourceDisplays = sourceDisplays;
 		this.sourceTransforms = sourceTransforms;
@@ -61,7 +62,8 @@ public class View
 		this.isExclusive = isExclusive;
 	}
 
-	public View( String uiSelectionGroup, List< Display< ? > > sourceDisplays, List< Transformation > sourceTransforms, boolean isExclusive ) {
+	public View( String name, String uiSelectionGroup, List< Display< ? > > sourceDisplays, List< Transformation > sourceTransforms, boolean isExclusive ) {
+		this.name = name;
 		this.uiSelectionGroup = uiSelectionGroup;
 		this.sourceDisplays = sourceDisplays;
 		this.sourceTransforms = sourceTransforms;

@@ -26,6 +26,6 @@ class MoBIEMorpholibJTest
 		//labelImp.show();
 
 		// no table
-		new MoBIE( intensityImp, labelImp );
+		new MoBIE( "MLJ test", intensityImp, labelImp );
 	}
 }

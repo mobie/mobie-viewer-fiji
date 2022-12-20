@@ -30,13 +30,14 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	private TransformedSource transformedSource;
 	private AffineTransform3D affineTransform3D = new AffineTransform3D();
 
-	public SpimDataImage( AbstractSpimData< ? > spimData, int setupId, String name, @Nullable SharedQueue sharedQueue )
+	public SpimDataImage( AbstractSpimData< ? > spimData, int channel, String name )
 	{
 		this.imageDataFormat = null;
 		this.path = null;
-		this.setupId = setupId;
-		this.sharedQueue = sharedQueue;
-		createSourcePair( spimData, setupId, name );
+		this.sharedQueue = null;
+		this.setupId = channel;
+		this.name = name;
+		createSourcePair( spimData, channel, name );
 	}
 
 	public SpimDataImage( ImageDataFormat imageDataFormat, String path, int setupId, String name, @Nullable SharedQueue sharedQueue )

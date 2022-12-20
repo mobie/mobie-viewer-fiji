@@ -41,7 +41,6 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
@@ -84,7 +83,6 @@ class DatasetJsonParserTest {
         imageSource.imageData = new HashMap<>();
         imageSource.imageData.put( ImageDataFormat.BdvN5, storageLocation);
         dataset.sources.put("testSource", imageSource );
-
     }
 
     void validateJSON( String jsonPath ) throws IOException {

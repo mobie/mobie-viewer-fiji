@@ -39,6 +39,10 @@ public class Project
 	private String defaultDataset;
 	private String specVersion;
 
+	public Project()
+	{
+	}
+
 	public Project( String name )
 	{
 		this.name = name;

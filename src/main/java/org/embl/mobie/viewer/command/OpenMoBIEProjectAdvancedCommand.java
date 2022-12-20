@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.viewer.command;
 
+import org.embl.mobie.io.ImageDataFormatNames;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
 import org.embl.mobie.io.ImageDataFormat;
@@ -46,8 +47,8 @@ public class OpenMoBIEProjectAdvancedCommand implements Command
 	@Parameter ( label = "Project Branch" )
 	public String projectBranch = "master";
 
-	@Parameter ( label = "Image Data Storage Modality", choices = { ImageDataFormat.BDVN5, ImageDataFormat.BDVN5S3, ImageDataFormat.BDVOMEZARR, ImageDataFormat.BDVOMEZARRS3, ImageDataFormat.OMEZARR, ImageDataFormat.OMEZARRS3, ImageDataFormat.OPENORGANELLES3 } )
-	public String imageDataStorageModality = ImageDataFormat.OMEZARRS3;
+	@Parameter ( label = "Image Data Storage Modality", choices = { ImageDataFormatNames.BDVN5, ImageDataFormatNames.BDVN5S3, ImageDataFormatNames.BDVOMEZARR, ImageDataFormatNames.BDVOMEZARRS3, ImageDataFormatNames.OMEZARR, ImageDataFormatNames.OMEZARRS3, ImageDataFormatNames.OPENORGANELLES3 } )
+	public String imageDataStorageModality = ImageDataFormatNames.OMEZARRS3;
 
 	@Parameter ( label = "Image Data Location" )
 	public String imageDataLocation = "https://github.com/platybrowser/platybrowser";

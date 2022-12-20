@@ -43,8 +43,9 @@ public class ImageDataSource extends AbstractDataSource
 	{
 	}
 
-	public ImageDataSource( ImageDataFormat imageDataFormat, StorageLocation storageLocation )
+	public ImageDataSource( String name, ImageDataFormat imageDataFormat, StorageLocation storageLocation )
 	{
+		setName( name );
 		imageData = new HashMap<>();
 		imageData.put( imageDataFormat, storageLocation );
 	}

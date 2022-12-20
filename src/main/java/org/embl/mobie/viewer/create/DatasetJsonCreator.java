@@ -200,10 +200,10 @@ public class DatasetJsonCreator {
 
         View view;
         if ( sourceTransform.isIdentity() ) {
-            view = new View( uiSelectionGroup, displays, null, null, isExclusive);
+            view = new View( imageName, uiSelectionGroup, displays, null, null, isExclusive);
         } else {
             List< Transformation > imageTransformationList = createSourceTransformerList( sourceTransform, sources );
-            view = new View( uiSelectionGroup, displays, imageTransformationList, null, isExclusive );
+            view = new View( imageName, uiSelectionGroup, displays, imageTransformationList, null, isExclusive );
         }
 
         return view;
@@ -220,10 +220,10 @@ public class DatasetJsonCreator {
         displays.add( segmentationDisplay );
 
         if ( sourceTransform.isIdentity() ) {
-            return new View( uiSelectionGroup, displays, null, null, isExclusive );
+            return new View( imageName, uiSelectionGroup, displays, null, null, isExclusive );
         } else {
             List< Transformation > imageTransformationList = createSourceTransformerList( sourceTransform, sources );
-            return new View( uiSelectionGroup, displays, imageTransformationList, null, isExclusive );
+            return new View( imageName, uiSelectionGroup, displays, imageTransformationList, null, isExclusive );
         }
     }
 
