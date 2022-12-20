@@ -854,7 +854,7 @@ public class UserInterfaceHelper
 			} );
 		} );
 
-		comboBox.setSelectedItem( moBIE.getDatasetName() );
+		comboBox.setSelectedItem( moBIE.getCurrentDatasetName() );
 		SwingHelper.setComboBoxDimensions( comboBox );
 
 		panel.add( SwingHelper.getJLabel( "dataset" ) );

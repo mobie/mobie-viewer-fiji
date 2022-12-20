@@ -74,7 +74,7 @@ public class RemoteMetadataCreator {
     }
 
     private void deleteAllRemoteMetadata() throws IOException {
-        for ( String datasetName: projectCreator.getProject().getDatasets() ) {
+        for ( String datasetName: projectCreator.getProject().datasets() ) {
             if ( !datasetName.equals("") ) {
                 Dataset dataset = projectCreator.getDataset( datasetName );
                 for ( String imageName: dataset.sources.keySet() ) {
@@ -216,7 +216,7 @@ public class RemoteMetadataCreator {
     }
 
     private void addAllRemoteMetadata() throws SpimDataException, IOException {
-        for ( String datasetName: projectCreator.getProject().getDatasets() ) {
+        for ( String datasetName: projectCreator.getProject().datasets() ) {
             if ( !datasetName.equals("") ) {
                 IJ.log("Adding metadata for dataset: " + datasetName );
                 addRemoteMetadataForDataset( datasetName );

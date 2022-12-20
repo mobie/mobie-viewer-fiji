@@ -32,10 +32,8 @@ import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ch.epfl.biop.bdv.img.imageplus.ImagePlusToSpimData;
-import de.embl.cba.bdv.utils.io.SPIMDataReaders;
 import ij.IJ;
 import ij.ImagePlus;
-import ij.measure.ResultsTable;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
 import org.embl.mobie.io.ImageDataFormat;
@@ -45,7 +43,6 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.AnnotatedSpot;
-import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.viewer.annotation.LazyAnnotatedSegmentAdapter;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
@@ -70,7 +67,6 @@ import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.viewer.table.MoBIESegmentColumnNames;
 import org.embl.mobie.viewer.table.TableDataFormat;
-import org.embl.mobie.viewer.table.ijresults.ResultsTableAnnotationTableModel;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegment;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegmentCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSpot;
@@ -79,14 +75,12 @@ import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.viewer.table.saw.TableSawHelper;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformAdjuster;
-import org.embl.mobie.viewer.transform.PositionViewerTransform;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.ViewManager;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 import spimdata.util.Displaysettings;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
@@ -114,9 +108,8 @@ public class MoBIE
 
 	private static MoBIE moBIE;
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
-	private final String projectName;
 	private MoBIESettings settings;
-	private String datasetName;
+	private String currentDatasetName;
 	private Dataset dataset;
 	private ViewManager viewManager;
 	private Project project;
@@ -153,33 +146,50 @@ public class MoBIE
 		setS3Credentials( settings );
 		setProjectImageAndTableRootLocations( );
 		registerProjectPlugins( settings.values.getProjectLocation() );
-		projectName = MoBIEHelper.getFileName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( IOHelper.combinePath( projectRoot,  "project.json" ) );
+		if ( project.getName() == null )
+			project.setName( MoBIEHelper.getFileName( projectLocation ) );
 		setImageDataFormats( projectLocation );
-		openDataset();
+		openAndViewDataset();
 	}
 
 	public MoBIE( ImagePlus intensityImp, ImagePlus labelImp )
 	{
 		settings = new MoBIESettings();
-		project = new Project();
-		new ImageDataSource( Im	 )
- 		projectName = intensityImp.toString();
-		datasetName = intensityImp.toString();
-		// TODO: one could construct and add sources and views to the dataset if that is useful
+
+		// project and dataset
+		project = new Project( intensityImp.getTitle() );
+		currentDatasetName = project.getName();
 		dataset = new Dataset( intensityImp.getNSlices() == 1 );
-		userInterface = new UserInterface( this );
-		viewManager = new ViewManager( this, userInterface, dataset.is2D );
+		project.datasets().add( currentDatasetName );
 
 		// intensity image
-		final AbstractSpimData< ? > intensitySpimData = ImagePlusToSpimData.getSpimData( intensityImp );
-		final SpimDataImage< ? > image = new SpimDataImage<>( intensitySpimData, 0, intensityImp.getTitle(), null );
-		final Displaysettings displaysettings = intensitySpimData.getSequenceDescription().getViewSetupsOrdered().get( 0 ).getAttribute( Displaysettings.class );
-		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( image, displaysettings );
-		viewManager.showImageDisplay( imageDisplay );
+		final StorageLocation intensityStorageLocation = new StorageLocation();
+		intensityStorageLocation.data = intensityImp;
+		final ImageDataSource imageDataSource = new ImageDataSource( ImageDataFormat.ImagePlus, intensityStorageLocation );
+		dataset.sources.put( intensityImp.getTitle(), imageDataSource );
 
-		new MoBIEViewerTransformAdjuster( viewManager.getSliceViewer().getBdvHandle(), imageDisplay ).applyMultiSourceTransform();
+		// label image
+		final StorageLocation labelStorageLocation = new StorageLocation();
+		labelStorageLocation.data = intensityImp;
+		final SegmentationDataSource segmentationDataSource = new SegmentationDataSource( ImageDataFormat.ImagePlus, labelStorageLocation );
+		dataset.sources.put( labelImp.getTitle(), segmentationDataSource );
+
+		// view
+
+
+		// view dataset
+		// TODO make a function
+
+		// intensity image
+//		final AbstractSpimData< ? > intensitySpimData = ImagePlusToSpimData.getSpimData( intensityImp );
+//		final SpimDataImage< ? > image = new SpimDataImage<>( intensitySpimData, 0, intensityImp.getTitle(), null );
+//		final Displaysettings displaysettings = intensitySpimData.getSequenceDescription().getViewSetupsOrdered().get( 0 ).getAttribute( Displaysettings.class );
+//		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( image, displaysettings );
+//		viewManager.showImageDisplay( imageDisplay );
+
+//		new MoBIEViewerTransformAdjuster( viewManager.getSliceViewer().getBdvHandle(), imageDisplay ).applyMultiSourceTransform();
 
 		// segmentation image
 		final AbstractSpimData< ? > labelSpimData = ImagePlusToSpimData.getSpimData( labelImp );
@@ -263,15 +273,15 @@ public class MoBIE
 		}
 	}
 
-	private void openDataset() throws IOException
+	private void openAndViewDataset() throws IOException
 	{
 		if ( settings.values.getDataset() != null )
 		{
-			openDataset( settings.values.getDataset(), settings.values.getView() );
+			openAndViewDataset( settings.values.getDataset(), settings.values.getView() );
 		}
 		else
 		{
-			openDataset( project.getDefaultDataset(), settings.values.getView() );
+			openAndViewDataset( project.getDefaultDataset(), settings.values.getView() );
 		}
 	}
 
@@ -330,28 +340,32 @@ public class MoBIE
 		}
 	}
 
-	private void openDataset( String datasetName, String viewName ) throws IOException
+	private void openAndViewDataset( String datasetName, String viewName ) throws IOException
 	{
 		IJ.log("Opening dataset: " + datasetName );
-		sourceNameToImgLoader = new HashMap<>();
-		setDatasetName( datasetName );
+
+		// read dataset from file
+		setCurrentDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
+
+		// set data source names
 		for ( Map.Entry< String, DataSource > entry : dataset.sources.entrySet() )
 			entry.getValue().setName( entry.getKey() );
-		userInterface = new UserInterface( this );
-		viewManager = new ViewManager( this, userInterface, dataset.is2D );
 
 		System.out.println("# Available views");
 		for ( String s : getViews().keySet() )
 			System.out.println( s );
 		System.out.println("/n");
 
-		final View view = getSelectedView( viewName );
-		view.setName( viewName );
+		// build UI and show a view
+		sourceNameToImgLoader = new HashMap<>();
+		userInterface = new UserInterface( this );
+		viewManager = new ViewManager( this, userInterface, dataset.is2D );
+		final View view = getView( viewName, dataset );
 		viewManager.show( view );
 	}
 
-	private View getSelectedView( String viewName ) throws IOException
+	private View getView( String viewName, Dataset dataset ) throws IOException
 	{
 		final View view = dataset.views.get( viewName );
 		if ( view == null )
@@ -359,12 +373,13 @@ public class MoBIE
 			System.err.println("The view \"" + viewName + "\" could not be found in this dataset." );
 			throw new IOException();
 		}
+		view.setName( viewName );
 		return view;
 	}
 
-	private void setDatasetName( String datasetName )
+	private void setCurrentDatasetName( String datasetName )
 	{
-		this.datasetName = datasetName;
+		this.currentDatasetName = datasetName;
 	}
 
 	private String createPath( String rootLocation, String githubBranch, String... files )
@@ -394,7 +409,7 @@ public class MoBIE
 
 	public String getProjectName()
 	{
-		return projectName;
+		return project.getName();
 	}
 
 	public MoBIESettings getSettings()
@@ -407,15 +422,15 @@ public class MoBIE
 		return dataset;
 	}
 
-	public String getDatasetName()
+	public String getCurrentDatasetName()
 	{
-		return datasetName;
+		return currentDatasetName;
 	}
 
 	public List< String > getDatasets()
 	{
 		if ( project == null ) return null;
-		return project.getDatasets();
+		return project.datasets();
 	}
 
 	public UserInterface getUserInterface() { return userInterface; }
@@ -469,11 +484,11 @@ public class MoBIE
 
 	public void setDataset( String dataset )
     {
-        setDatasetName( dataset );
+        setCurrentDatasetName( dataset );
         viewManager.close();
 
         try {
-            openDataset( dataset, View.DEFAULT );
+            openAndViewDataset( dataset, View.DEFAULT );
         } catch ( IOException e ) {
             e.printStackTrace();
         }
@@ -481,7 +496,6 @@ public class MoBIE
 
     public Map< String, View > getViews()
     {
-		if ( dataset == null ) return null;
         return dataset.views;
     }
 
@@ -498,12 +512,12 @@ public class MoBIE
 
     public String getTableStore( String relativeTableLocation )
     {
-        return IOHelper.combinePath( tableRoot, datasetName, relativeTableLocation );
+        return IOHelper.combinePath( tableRoot, currentDatasetName, relativeTableLocation );
     }
 
 	public String getDatasetPath( String... files )
 	{
-		final String datasetRoot = IOHelper.combinePath( projectRoot, getDatasetName() );
+		final String datasetRoot = IOHelper.combinePath( projectRoot, getCurrentDatasetName() );
 		return createPath( datasetRoot, files );
 	}
 
@@ -549,7 +563,7 @@ public class MoBIE
             case BdvOmeZarrS3:
             case BdvN5S3:
                 final String relativePath = source.imageData.get( imageDataFormat ).relativePath;
-                return IOHelper.combinePath( imageRoot, getDatasetName(), relativePath );
+                return IOHelper.combinePath( imageRoot, getCurrentDatasetName(), relativePath );
             case OpenOrganelleS3:
             case OmeZarrS3:
                 return source.imageData.get( imageDataFormat ).s3Address;

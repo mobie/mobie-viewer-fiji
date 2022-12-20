@@ -148,10 +148,10 @@ public class ProjectsCreatorPanel extends JFrame {
 
     private String[] getDatasetNames() {
         Project project = projectsCreator.getProject();
-        if ( project.getDatasets() != null && project.getDatasets().size() > 0 ) {
-            String[] datasetNames = new String[project.getDatasets().size()];
-            for (int i = 0; i < project.getDatasets().size(); i++) {
-                datasetNames[i] = project.getDatasets().get(i);
+        if ( project.datasets() != null && project.datasets().size() > 0 ) {
+            String[] datasetNames = new String[project.datasets().size()];
+            for ( int i = 0; i < project.datasets().size(); i++) {
+                datasetNames[i] = project.datasets().get(i);
             }
             return datasetNames;
         } else {
@@ -340,7 +340,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
     private void remoteMetadataSettingsDialog()
     {
-        List <String > datasets = projectsCreator.getProject().getDatasets();
+        List <String > datasets = projectsCreator.getProject().datasets();
         if ( datasets == null || datasets.size() == 0 )
         {
             IJ.log( "Remote metadata aborted - there are no datasets in your project!" );
@@ -764,7 +764,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
     private void updateDatasetsComboBox( String selection ) {
         datasetComboBox.removeAllItems();
-        for ( String datasetName : projectsCreator.getProject().getDatasets() ) {
+        for ( String datasetName : projectsCreator.getProject().datasets() ) {
             datasetComboBox.addItem(datasetName);
         }
 

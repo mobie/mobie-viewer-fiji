@@ -41,7 +41,7 @@ public class ProjectJsonCreator {
     }
 
     public void addDataset( String datasetName ) {
-        List<String> currentDatasets = projectCreator.getProject().getDatasets();
+        List<String> currentDatasets = projectCreator.getProject().datasets();
 
         // if this is the first dataset, then make this the default
         if ( currentDatasets.size() == 0 ) {
@@ -56,8 +56,8 @@ public class ProjectJsonCreator {
             projectCreator.getProject().setDefaultDataset( newName );
         }
 
-        int indexOld = projectCreator.getProject().getDatasets().indexOf(oldName);
-        projectCreator.getProject().getDatasets().set(indexOld, newName);
+        int indexOld = projectCreator.getProject().datasets().indexOf(oldName);
+        projectCreator.getProject().datasets().set(indexOld, newName);
 
         writeProjectJson();
     }

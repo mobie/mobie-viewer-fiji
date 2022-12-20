@@ -28,13 +28,31 @@
  */
 package org.embl.mobie.viewer.serialize;
 
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class SegmentationDataSource extends ImageDataSource
 {
 	// Serialisation
 	public Map< TableDataFormat, StorageLocation > tableData;
+
+	public SegmentationDataSource( )
+	{
+	}
+
+	public SegmentationDataSource( ImageDataFormat imageDataFormat, StorageLocation imageLocation )
+	{
+		super( imageDataFormat, imageLocation );
+	}
+
+	public SegmentationDataSource( ImageDataFormat imageDataFormat, StorageLocation imageLocation, TableDataFormat tableDataFormat, StorageLocation tableLocation )
+	{
+		super( imageDataFormat, imageLocation );
+		this.tableData = new HashMap<>();
+		this.tableData.put( tableDataFormat, tableLocation );
+	}
 }

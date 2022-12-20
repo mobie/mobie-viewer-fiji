@@ -54,7 +54,7 @@ public class DatasetsCreator {
      * @param is2D whether dataset only contains 2D images
      */
     public void addDataset ( String datasetName, boolean is2D ) {
-        List<String> currentDatasets = projectCreator.getProject().getDatasets();
+        List<String> currentDatasets = projectCreator.getProject().datasets();
         boolean contains = currentDatasets.contains(datasetName);
         if ( !contains ) {
             File datasetDir = new File ( IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
@@ -91,7 +91,7 @@ public class DatasetsCreator {
 
         if ( !newName.equals(oldName) ) {
             // check not already in datasets
-            List<String> currentDatasets = projectCreator.getProject().getDatasets();
+            List<String> currentDatasets = projectCreator.getProject().datasets();
             boolean contains = currentDatasets.contains( newName );
             if ( !contains ) {
                 File oldDatasetDir = new File( IOHelper.combinePath(

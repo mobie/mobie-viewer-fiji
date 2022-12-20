@@ -28,15 +28,24 @@
  */
 package org.embl.mobie.viewer.serialize;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Project
 {
+	// Serialisation
+	private String name;
 	private List< String > datasets;
 	private String defaultDataset;
 	private String specVersion;
 
-	public List< String > getDatasets()
+	public Project( String name )
+	{
+		this.name = name;
+		this.datasets = new ArrayList<>();
+	}
+
+	public List< String > datasets()
 	{
 		return datasets;
 	}
@@ -56,4 +65,14 @@ public class Project
 	public void setDefaultDataset( String defaultDataset ) { this.defaultDataset = defaultDataset; }
 
 	public void setSpecVersion( String specVersion ) { this.specVersion = specVersion; }
+
+	public String getName()
+	{
+		return name;
+	}
+
+	public void setName( String name )
+	{
+		this.name = name;
+	}
 }

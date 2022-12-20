@@ -62,8 +62,8 @@ class DatasetsCreatorTest {
         datasetsCreator.addDataset(datasetName, false);
 
         Project project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
-        assertEquals(project.getDatasets().size(), 1);
-        assertEquals(project.getDatasets().get(0), datasetName);
+        assertEquals(project.datasets().size(), 1);
+        assertEquals(project.datasets().get(0), datasetName);
         assertTrue(new File(projectCreator.getProjectLocation(), datasetName).exists());
     }
 
@@ -75,8 +75,8 @@ class DatasetsCreatorTest {
         datasetsCreator.renameDataset(oldDatasetName, newDatasetName);
 
         Project project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
-        assertEquals(project.getDatasets().size(), 1);
-        assertEquals(project.getDatasets().get(0), newDatasetName);
+        assertEquals(project.datasets().size(), 1);
+        assertEquals(project.datasets().get(0), newDatasetName);
         assertTrue(new File(projectCreator.getProjectLocation(), newDatasetName).exists());
         assertFalse(new File(projectCreator.getProjectLocation(), oldDatasetName).exists());
     }

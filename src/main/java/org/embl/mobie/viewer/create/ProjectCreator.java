@@ -224,11 +224,11 @@ public class ProjectCreator {
 
     private void readVoxelUnitFromImage() throws SpimDataException {
         // open first image (if any exist) to determine voxel unit
-        if ( project.getDatasets().size() == 0 ) {
+        if ( project.datasets().size() == 0 ) {
             return;
         }
 
-        for ( String datasetName: project.getDatasets() ) {
+        for ( String datasetName: project.datasets() ) {
             Dataset dataset = getDataset( datasetName );
             if ( dataset != null && dataset.sources.size() > 0 ) {
                 for ( DataSource dataSource : dataset.sources.values() ) {

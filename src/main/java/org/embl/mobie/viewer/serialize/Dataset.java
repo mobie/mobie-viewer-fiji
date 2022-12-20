@@ -31,6 +31,7 @@ package org.embl.mobie.viewer.serialize;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 import org.embl.mobie.viewer.transform.ViewerTransform;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class Dataset
@@ -46,6 +47,8 @@ public class Dataset
 	public Dataset( boolean is2D )
 	{
 		this.is2D = is2D;
+		this.sources = new HashMap<>();
+		this.views = new HashMap<>();
 	}
 
 	public Dataset( boolean is2D, ViewerTransform defaultLocation, Map< String, DataSource > sources, Map< String, View > views )

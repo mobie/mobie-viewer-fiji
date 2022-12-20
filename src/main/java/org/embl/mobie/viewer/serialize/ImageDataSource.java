@@ -39,6 +39,10 @@ public class ImageDataSource extends AbstractDataSource
 	// Serialization
 	public Map< ImageDataFormat, StorageLocation > imageData;
 
+	public ImageDataSource()
+	{
+	}
+
 	public ImageDataSource( ImageDataFormat imageDataFormat, StorageLocation storageLocation )
 	{
 		imageData = new HashMap<>();
