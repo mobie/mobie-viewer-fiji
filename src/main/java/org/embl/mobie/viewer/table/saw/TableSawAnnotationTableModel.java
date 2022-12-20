@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class TableSawAnnotationTableModel< A extends Annotation > extends AbstractAnnotationTableModel<A>
+public class TableSawAnnotationTableModel< A extends Annotation > extends AbstractAnnotationTableModel< A >
 {
 	private final String dataSourceName;
 	private final TableSawAnnotationCreator< A > annotationCreator;

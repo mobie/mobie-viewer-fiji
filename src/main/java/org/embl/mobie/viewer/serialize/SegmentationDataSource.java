@@ -36,6 +36,5 @@ import java.util.Map;
 public class SegmentationDataSource extends ImageDataSource
 {
 	// Serialisation
-
 	public Map< TableDataFormat, StorageLocation > tableData;
 }

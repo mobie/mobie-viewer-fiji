@@ -68,6 +68,7 @@ import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.LazyAnnotatedSegmentTableModel;
+import org.embl.mobie.viewer.table.MoBIESegmentColumnNames;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.ijresults.ResultsTableAnnotationTableModel;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegment;
@@ -603,6 +604,7 @@ public class MoBIE
 		{
 			ImageDataSource imageSource = ( ImageDataSource ) dataSource;
 			ImageDataFormat imageDataFormat = getAppropriateImageDataFormat( imageSource );
+
 			final Integer channel = imageSource.imageData.get( imageDataFormat ).channel;
 			final String imagePath = getImagePath( imageSource, imageDataFormat );
 
@@ -627,16 +629,19 @@ public class MoBIE
 					TableSawAnnotationTableModel< TableSawAnnotatedSegment > tableModel;
 					if ( dataSource.preInit() )
 					{
+						// TODO create a Table from other sources, e.g. from a ResultsTable in RAM
+						//   Like this the Table (from tablesaw) becomes the
+						//   equivalent of SpimData for images.
 						// load table already now
 						Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV ), -1 );
-						final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( table );
+						final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( new MoBIESegmentColumnNames(), table );
 						tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV, table  );
 					}
 					else
 					{
 						// don't load the table yet
 						// (for lazy-loading in a stitched or grid image)
-						final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator();
+						final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( new MoBIESegmentColumnNames() );
 						tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV  );
 					}
 
@@ -710,9 +715,11 @@ public class MoBIE
 		return columnPaths;
 	}
 
-	public List< DataSource > getDataSources( Set< String > dataName )
+	public List< DataSource > getDataSources( Set< String > names )
 	{
-		final List< DataSource > dataSources = dataName.stream().filter( name -> ( getDataset().sources.containsKey( name ) ) ).map( s -> getDataset().sources.get( s ) ).collect( Collectors.toList() );
-		return dataSources;
+		return names.stream()
+				.filter( name -> ( dataset.sources.containsKey( name ) ) )
+				.map( s -> dataset.sources.get( s ) )
+				.collect( Collectors.toList() );
 	}
 }

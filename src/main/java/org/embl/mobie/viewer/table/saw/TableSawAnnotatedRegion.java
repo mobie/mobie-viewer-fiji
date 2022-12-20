@@ -28,6 +28,11 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	private RealMaskRealInterval mask;
 	private Set< Image< ? > > images;
 
+	// TODO also here it is misleading that the model is
+	//  is given, one only needs something that can read the values from the correct table
+	//  Maybe a new class is needed?
+	//  Maybe simply the Annotation itself is given in the constructor?
+	//  Rather than extending it?
 	public TableSawAnnotatedRegion(
 			TableSawAnnotationTableModel< TableSawAnnotatedRegion > model,
 			int rowIndex,

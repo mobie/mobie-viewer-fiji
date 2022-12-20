@@ -23,6 +23,8 @@ public class TableSawAnnotatedSegment extends AbstractTableSawAnnotation impleme
 	private String source;
 	private String uuid;
 
+	// TODO only the model is TableSaw specific
+	//   all the other code is generic and could be reused to open other tables
 	public TableSawAnnotatedSegment(
 			TableSawAnnotationTableModel< TableSawAnnotatedSegment > model,
 			int rowIndex,

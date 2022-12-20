@@ -309,8 +309,8 @@ public class ViewManager
 		if ( sourceToTransformOrDisplay.size() == 0 ) return;
 
 		// instantiate source that can be directly opened
-		// ( other sources may be created later,
-		// by a display or transformation )
+		// (other sources may be created later,
+		// by a display or transformation)
 		final List< DataSource > dataSources = moBIE.getDataSources( sourceToTransformOrDisplay.keySet() );
 
 		for ( DataSource dataSource : dataSources )

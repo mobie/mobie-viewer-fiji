@@ -3,41 +3,66 @@ package org.embl.mobie.viewer.table.saw;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.KDTree;
 import org.embl.mobie.viewer.table.ColumnNames;
+import org.embl.mobie.viewer.table.SegmentColumnNames;
 import tech.tablesaw.api.Table;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreator< TableSawAnnotatedSegment >
 {
+	private final SegmentColumnNames segmentColumnNames;
 	private int labelImageColumnIndex;
 	private int labelIdColumnIndex;
 	private int timePointColumnIndex;
-	private int xColumnIndex;
-	private int yColumnIndex;
-	private int zColumnIndex;
-	private AtomicBoolean columnsInitialised = new AtomicBoolean( false );
+	private int[] anchorColumnIndices;
+	private int[] bbMinColumnIndices;
+	private int[] bbMaxColumnIndices;
 
-	public TableSawAnnotatedSegmentCreator( )
+	private AtomicBoolean columnsInitialised = new AtomicBoolean( false );
+	private boolean is3D;
+	private boolean hasBoundingBox;
+
+	public TableSawAnnotatedSegmentCreator( SegmentColumnNames segmentColumnNames )
 	{
+		this.segmentColumnNames = segmentColumnNames;
 	}
 
-	public TableSawAnnotatedSegmentCreator( Table table )
+	public TableSawAnnotatedSegmentCreator( SegmentColumnNames segmentColumnNames, Table table )
 	{
+		this.segmentColumnNames = segmentColumnNames;
 		initColumns( table );
 	}
 
 	private synchronized void initColumns( Table table )
 	{
 		columnsInitialised.set( true );
+
 		final List< String > columnNames = table.columnNames();
-		labelIdColumnIndex =  columnNames.indexOf( ColumnNames.LABEL_ID );
-		timePointColumnIndex = columnNames.indexOf( ColumnNames.TIMEPOINT );
-		xColumnIndex = columnNames.indexOf( ColumnNames.ANCHOR_X );
-		yColumnIndex = columnNames.indexOf( ColumnNames.ANCHOR_Y );
-		zColumnIndex = columnNames.indexOf( ColumnNames.ANCHOR_Z );
-		labelImageColumnIndex = columnNames.indexOf( ColumnNames.LABEL_IMAGE_ID );
-		columnNames.indexOf( ColumnNames.BB_MIN_X );
+
+		labelIdColumnIndex =  columnNames.indexOf( segmentColumnNames.labelIdColumn() );
+
+		timePointColumnIndex = columnNames.indexOf( segmentColumnNames.timePointColumn() );
+
+		anchorColumnIndices = Arrays.stream( segmentColumnNames.anchorColumns() )
+				.mapToInt( name -> columnNames.indexOf( name ) )
+				.toArray();
+
+		bbMinColumnIndices = Arrays.stream( segmentColumnNames.bbMinColumns() )
+				.mapToInt( name -> columnNames.indexOf( name ) )
+				.toArray();
+
+		bbMaxColumnIndices = Arrays.stream( segmentColumnNames.bbMaxColumns() )
+				.mapToInt( name -> columnNames.indexOf( name ) )
+				.toArray();
+
+		labelImageColumnIndex = columnNames.indexOf( segmentColumnNames.labelImageColumn() );
+
+		is3D = anchorColumnIndices[ 2 ] > -1;
+
+		hasBoundingBox = bbMinColumnIndices[ 0 ] > -1;
+
 	}
 
 	@Override
@@ -48,20 +73,18 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 		if ( ! columnsInitialised.get() )
 			initColumns( table );
 
-		final boolean is3D = zColumnIndex > -1;
-
 		String source = labelImageColumnIndex > -1 ? table.stringColumn( labelImageColumnIndex ).get( rowIndex ) : table.name();
 
 		int timePoint = timePointColumnIndex > -1 ? table.intColumn( timePointColumnIndex ).get( rowIndex ) : 0;
 
 		Integer labelId = table.intColumn( labelIdColumnIndex ).get( rowIndex );
 
-		final FinalRealInterval boundingBox = boundingBox( table, rowIndex, is3D );
+		final FinalRealInterval boundingBox = boundingBox( table, rowIndex );
 
-		double [] position = new double[]{
-				table.numberColumn( xColumnIndex ).getDouble( rowIndex ),
-				table.numberColumn( yColumnIndex ).getDouble( rowIndex ),
-				is3D ? table.numberColumn( zColumnIndex ).getDouble( rowIndex ) : 0
+		double[] position = new double[]{
+				table.numberColumn( anchorColumnIndices[ 0 ] ).getDouble( rowIndex ),
+				table.numberColumn( anchorColumnIndices[ 1 ] ).getDouble( rowIndex ),
+				is3D ? table.numberColumn( anchorColumnIndices[ 2 ] ).getDouble( rowIndex ) : 0
 		};
 
 		final String uuid = source + ";" + timePoint + ";" + labelId;
@@ -75,26 +98,24 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 		return new int[ 0 ];
 	}
 
-	private FinalRealInterval boundingBox( Table table, int rowIndex, boolean is3D )
+	private FinalRealInterval boundingBox( Table table, int rowIndex )
 	{
-		// TODO add the column names as indices to the constructor
-		final boolean rowContainsBoundingBox = table.columnNames().contains( ColumnNames.BB_MIN_X );
-
-		if ( ! rowContainsBoundingBox ) return null;
+		if ( ! hasBoundingBox ) return null;
 
 		final double[] min = {
-				table.numberColumn( ColumnNames.BB_MIN_X ).getDouble( rowIndex ),
-				table.numberColumn( ColumnNames.BB_MIN_Y ).getDouble( rowIndex ),
-				is3D ? table.numberColumn( ColumnNames.BB_MIN_Z ).getDouble( rowIndex ) : 0
+				table.numberColumn( bbMinColumnIndices[ 0 ] ).getDouble( rowIndex ),
+				table.numberColumn( bbMinColumnIndices[ 1 ] ).getDouble( rowIndex ),
+				is3D ? table.numberColumn( bbMinColumnIndices[ 2 ] ).getDouble( rowIndex ) : 0
 		};
 
 		final double[] max = {
-				table.numberColumn( ColumnNames.BB_MAX_X ).getDouble( rowIndex ),
-				table.numberColumn( ColumnNames.BB_MAX_Y ).getDouble( rowIndex ),
-				is3D ? table.numberColumn( ColumnNames.BB_MAX_Z ).getDouble( rowIndex ) : 0
+				table.numberColumn( bbMaxColumnIndices[ 0 ] ).getDouble( rowIndex ),
+				table.numberColumn( bbMaxColumnIndices[ 1 ] ).getDouble( rowIndex ),
+				is3D ? table.numberColumn( bbMaxColumnIndices[ 2 ] ).getDouble( rowIndex ) : 0
 		};
 
-		FinalRealInterval boundingBox = new FinalRealInterval( min, max );
+		final FinalRealInterval boundingBox = new FinalRealInterval( min, max );
+
 		return boundingBox;
 	}
 }
