@@ -34,6 +34,8 @@ import bdv.viewer.SourceAndConverter;
 import ch.epfl.biop.bdv.img.imageplus.ImagePlusToSpimData;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.process.ImageProcessor;
+import ij.process.LUT;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
 import org.embl.mobie.io.ImageDataFormat;
@@ -45,6 +47,7 @@ import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.AnnotatedSpot;
 import org.embl.mobie.viewer.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.viewer.annotation.LazyAnnotatedSegmentAdapter;
+import org.embl.mobie.viewer.color.ColorHelper;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.viewer.image.SpimDataImage;
@@ -87,6 +90,7 @@ import tech.tablesaw.io.csv.CsvReadOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -154,30 +158,44 @@ public class MoBIE
 		openAndViewDataset();
 	}
 
-	public MoBIE( ImagePlus intensityImp, ImagePlus labelImp )
+	public MoBIE( String projectName, ImagePlus intensityImp, ImagePlus labelImp )
 	{
 		settings = new MoBIESettings();
 
 		// project and dataset
-		project = new Project( intensityImp.getTitle() );
+		project = new Project( projectName );
 		currentDatasetName = project.getName();
-		dataset = new Dataset( intensityImp.getNSlices() == 1 );
 		project.datasets().add( currentDatasetName );
+		project.setDefaultDataset( currentDatasetName );
+		// FIXME where is the link of a dataset to its name?
+		dataset = new Dataset( intensityImp.getNSlices() == 1 );
 
 		// intensity image
+		final int channel = 0;  // TODO
+
+		final String intensityImageName = intensityImp.getTitle();
 		final StorageLocation intensityStorageLocation = new StorageLocation();
 		intensityStorageLocation.data = intensityImp;
+		intensityStorageLocation.channel = channel;
 		final ImageDataSource imageDataSource = new ImageDataSource( ImageDataFormat.ImagePlus, intensityStorageLocation );
-		dataset.sources.put( intensityImp.getTitle(), imageDataSource );
+		dataset.sources.put( intensityImageName, imageDataSource );
+
+		// intensity display
+		intensityImp.setC( channel );
+		final ImageProcessor processor = intensityImp.getProcessor();
+		final LUT lut = processor.getLut();
+		final String color = ColorHelper.toString( lut );
+		final double[] contrastLimits = { processor.getMin(), processor.getMax() };
+
+		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( Arrays.asList( intensityImageName ), color, contrastLimits, false, null );
+		final View intensityView = new View( "intensity", Arrays.asList( imageDisplay ), null, false );
+		dataset.views.put( intensityImageName, intensityView );
 
 		// label image
 		final StorageLocation labelStorageLocation = new StorageLocation();
 		labelStorageLocation.data = intensityImp;
 		final SegmentationDataSource segmentationDataSource = new SegmentationDataSource( ImageDataFormat.ImagePlus, labelStorageLocation );
 		dataset.sources.put( labelImp.getTitle(), segmentationDataSource );
-
-		// view
-
 
 		// view dataset
 		// TODO make a function

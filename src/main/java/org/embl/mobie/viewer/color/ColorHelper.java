@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.viewer.color;
 
+import ij.process.LUT;
 import net.imglib2.type.numeric.ARGBType;
 
 import java.awt.*;
@@ -122,6 +123,18 @@ public abstract class ColorHelper
 	{
 		final int rgba = ARGBType.rgba( color[ 0 ], color[ 1 ], color[ 2 ], color[ 3 ] );
 		final ARGBType argbType = new ARGBType( rgba );
+		return argbType;
+	}
+
+	public static String toString( LUT lut )
+	{
+		return toString( toArgbType( lut ) );
+	}
+
+	public static ARGBType toArgbType( LUT lut )
+	{
+		final int[] ints = { lut.getRed( 255 ), lut.getGreen( 255 ), lut.getBlue( 255 ), lut.getAlpha( 255 ) };
+		final ARGBType argbType = toArgbType( ints );
 		return argbType;
 	}
 }

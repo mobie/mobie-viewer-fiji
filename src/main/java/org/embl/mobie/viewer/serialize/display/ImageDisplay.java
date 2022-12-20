@@ -42,7 +42,9 @@ import net.imglib2.type.numeric.NumericType;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import spimdata.util.Displaysettings;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,12 +61,13 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	public transient ImageSliceView imageSliceView;
 	public transient ImageVolumeViewer imageVolumeViewer;
 
-	public ImageDisplay( Image< T > image, Displaysettings displaySettings )
+	public ImageDisplay( List< String > sources, String color, double[] contrastLimits, boolean showImagesIn3d, Double[] resolution3dView )
 	{
-		addImage( image );
-		final ARGBType argbType = ColorHelper.toArgbType( displaySettings.color );
-		color = ColorHelper.toString( argbType );
-		contrastLimits = new double[]{ displaySettings.min, displaySettings.max };
+		this.sources = sources;
+		this.color = color;
+		this.contrastLimits = contrastLimits;
+		this.showImagesIn3d = showImagesIn3d;
+		this.resolution3dView = resolution3dView;
 	}
 
 	public String getColor()
