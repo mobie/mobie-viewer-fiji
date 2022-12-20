@@ -30,7 +30,7 @@ public class DefaultAnnotatedSegment implements AnnotatedSegment
 		this.source = source;
 		this.timePoint = timePoint;
 		this.labelId = labelId;
-		this.position = new double[]{ 0,0,0 };
+		this.position = null;
 
 		columnToValue = new HashMap<>();
 		columnToValue.put( ColumnNames.LABEL_IMAGE_ID, source );

@@ -49,6 +49,7 @@ import org.embl.mobie.viewer.annotation.AnnotatedSpot;
 import org.embl.mobie.viewer.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.viewer.annotation.LazyAnnotatedSegmentAdapter;
 import org.embl.mobie.viewer.color.ColorHelper;
+import org.embl.mobie.viewer.color.lut.LUTs;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.viewer.image.Image;
@@ -66,6 +67,7 @@ import org.embl.mobie.viewer.serialize.SegmentationDataSource;
 import org.embl.mobie.viewer.serialize.SpotDataSource;
 import org.embl.mobie.viewer.serialize.View;
 import org.embl.mobie.viewer.serialize.display.ImageDisplay;
+import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.LazyAnnotatedSegmentTableModel;
@@ -128,13 +130,15 @@ public class MoBIE
 	public static int minLogTimeMillis = 100;
 	public static boolean initiallyShowSourceNames = false;
 
-	public MoBIE( String projectRoot ) throws IOException
+	public MoBIE( String projectLocation ) throws IOException
 	{
-		this( projectRoot, MoBIESettings.settings() );
+		this( projectLocation, MoBIESettings.settings() );
 	}
 
 	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
+		settings.projectLocation( projectLocation );
+
 		// Only allow one instance to avoid confusion
 		if ( moBIE != null )
 		{
@@ -143,12 +147,11 @@ public class MoBIE
 		}
 		moBIE = this;
 
+		this.settings = settings;
+
 		// Open project
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening project: " + projectLocation );
-		WindowArrangementHelper.setLogWindowPositionAndSize();
-
-		this.settings = settings.projectLocation( projectLocation );
 		setS3Credentials( settings );
 		setProjectImageAndTableRootLocations( );
 		registerProjectPlugins( settings.values.getProjectLocation() );
@@ -156,6 +159,7 @@ public class MoBIE
 		if ( project.getName() == null )
 			project.setName( MoBIEHelper.getFileName( projectLocation ) );
 		setImageDataFormats( projectLocation );
+
 		openAndViewDataset();
 	}
 
@@ -163,8 +167,6 @@ public class MoBIE
 	{
 		settings = new MoBIESettings();
 		settings.addImageDataFormat( ImageDataFormat.ImagePlus );
-
-
 
 		// project and dataset
 		project = new Project( projectName );
@@ -175,7 +177,7 @@ public class MoBIE
 		dataset = new Dataset( intensityImp.getNSlices() == 1 );
 
 		// intensity image
-		final int channel = 0;  // TODO
+		final int channel = 0;  // TODO: For loop
 
 		final String intensityImageName = intensityImp.getTitle();
 		final StorageLocation intensityStorageLocation = new StorageLocation();
@@ -191,19 +193,25 @@ public class MoBIE
 		final String color = ColorHelper.toString( lut );
 		final double[] contrastLimits = { processor.getMin(), processor.getMax() };
 
-		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( Arrays.asList( intensityImageName ), color, contrastLimits, false, null );
+		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( intensityImageName, Arrays.asList( intensityImageName ), color, contrastLimits, false, null );
 		final View intensityView = new View( intensityImageName, "intensity", Arrays.asList( imageDisplay ), null, false );
-		dataset.views.put( intensityImageName, intensityView );
+		dataset.views.put( intensityView.getName(), intensityView );
 
 		// label image
 		final String labelImageName = labelImp.getTitle();
 		final StorageLocation labelStorageLocation = new StorageLocation();
-		labelStorageLocation.data = intensityImp;
+		labelStorageLocation.data = labelImp;
 		final SegmentationDataSource segmentationDataSource = new SegmentationDataSource( labelImageName, ImageDataFormat.ImagePlus, labelStorageLocation );
 		dataset.sources.put( segmentationDataSource.getName(), segmentationDataSource );
 
+		// segmentation display
+		final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( labelImageName, Arrays.asList( segmentationDataSource.getName() ) );
+		final View segmentationView = new View( labelImageName, "segmentation", Arrays.asList( segmentationDisplay ), null, false );
+		dataset.views.put( segmentationView.getName(), segmentationView );
+
 		// view dataset
 		initUIandShowView( intensityImageName );
+		viewManager.show( segmentationView );
 
 		// intensity image
 //		final AbstractSpimData< ? > intensitySpimData = ImagePlusToSpimData.getSpimData( intensityImp );
@@ -386,6 +394,7 @@ public class MoBIE
 
 	private void initUIandShowView( String viewName )
 	{
+		WindowArrangementHelper.setLogWindowPositionAndSize();
 		sourceNameToImgLoader = new HashMap<>();
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D );

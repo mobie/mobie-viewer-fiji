@@ -101,6 +101,7 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 	public AbstractAnnotationDisplay()
 	{
 		blendingMode = BlendingMode.Alpha;
+		opacity = 0.5;
 	}
 
 	// Use this for serialization

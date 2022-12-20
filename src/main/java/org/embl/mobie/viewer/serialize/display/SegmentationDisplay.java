@@ -29,10 +29,12 @@
 package org.embl.mobie.viewer.serialize.display;
 
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
+import org.embl.mobie.viewer.color.lut.LUTs;
 import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,12 +51,6 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Abstract
 	// Runtime
 	// TODO: below is almost not needed
 	public transient SegmentsVolumeViewer< AS > segmentsVolumeViewer;
-
-	public SegmentationDisplay( Image< AnnotationType< AS > > annotatedImage )
-	{
-		addImage( annotatedImage );
-		initAnnData();
-	}
 
 	public List< String > getSources()
 	{
@@ -86,13 +82,31 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Abstract
 		super();
 	}
 
-	// Project creator serialization
-	public SegmentationDisplay( String name, double opacity, List< String > sources, String lut, String colorByColumn, Double[] valueLimits, Set< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, Double[] resolution3dView )
+	public SegmentationDisplay( String name, List< String > sources )
+	{
+		super();
+		this.name = name;
+		this.sources = sources;
+	}
+
+	public SegmentationDisplay(
+			String name,
+			@Nullable Double opacity,
+			List< String > sources,
+			@Nullable String lut,
+			@Nullable String colorByColumn,
+			@Nullable Double[] valueLimits,
+			@Nullable Set< String > selectedSegmentIds,
+			boolean showSelectedSegmentsIn3d,
+			boolean showScatterPlot,
+			@Nullable String[] scatterPlotAxes,
+			@Nullable List< String > tables,
+			@Nullable Double[] resolution3dView )
 	{
 		this.name = name;
-		this.opacity = opacity;
+		this.opacity = opacity == null ? 0.5 : opacity;
 		this.sources = sources;
-		this.lut = lut;
+		this.lut = lut == null ? LUTs.GLASBEY : lut;
 		this.colorByColumn = colorByColumn;
 		this.valueLimits = valueLimits;
 		this.selectedSegmentIds = selectedSegmentIds;

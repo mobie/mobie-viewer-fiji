@@ -164,8 +164,8 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		final SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
 		state.setCurrentTimepoint( selection.timePoint() );
 		final double[] position = selection.positionAsDoubleArray();
-
-		new ViewerTransformChanger(
+		if ( position != null )
+			new ViewerTransformChanger(
 				bdvHandle,
 				BdvPlaygroundHelper.getViewerTransformWithNewCenter( bdvHandle, position ),
 				false,
