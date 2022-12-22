@@ -30,10 +30,16 @@ package org.embl.mobie.viewer.table;
 
 import com.google.gson.annotations.SerializedName;
 
+import static org.embl.mobie.viewer.table.TableDataFormatNames.*;
+
 public enum TableDataFormat
 {
-	@SerializedName( "tsv" )
-	TabDelimitedFile;  // with the MoBIE spec
+	@SerializedName( TSV )
+	TabDelimitedFile,  // TSV file with MoBIE column names
+	@SerializedName( MLJCSV )
+	MorpholibJCSV; // CSV file with MorpholibJ column names
+	@SerializedName( MLJ )
+	MorpholibJResultsTable; // RAM resident table with MorpholibJ column names
 
 	public static final String DEFAULT_TSV = "default.tsv";
 
@@ -43,31 +49,19 @@ public enum TableDataFormat
 		switch ( this )
 		{
 			case TabDelimitedFile:
-				return "tsv";
 			default:
-				throw new UnsupportedOperationException( "Unknown table file format: " + this );
+				return TSV;
 		}
 	}
 
-	public String getDefaultTable()
-	{
-		switch ( this )
-		{
-			case TabDelimitedFile:
-				return DEFAULT_TSV;
-			default:
-				throw new UnsupportedOperationException( "Unknown table file format: " + this );
-		}
-	}
 
 	public Character getSeparator()
 	{
 		switch ( this )
 		{
 			case TabDelimitedFile:
-				return '\t';
 			default:
-				throw new UnsupportedOperationException( "Unknown table file format: " + this );
+				return '\t';
 		}
 	}
 
@@ -75,7 +69,9 @@ public enum TableDataFormat
 	{
 		switch ( this )
 		{
-
+			case TabDelimitedFile:
+			default:
+				return new MoBIESegmentColumnNames();
 		}
 	}
 }

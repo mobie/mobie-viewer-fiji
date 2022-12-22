@@ -79,7 +79,7 @@ import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSpot;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSpotCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
-import org.embl.mobie.viewer.table.saw.TableSawHelper;
+import org.embl.mobie.viewer.table.saw.TableOpener;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.ViewManager;
@@ -689,7 +689,7 @@ public class MoBIE
 		throw new RuntimeException();
 	}
 
-	private TableDataFormat getTableDataFormat( Map< TableDataFormat, StorageLocation > tableData )
+	public TableDataFormat getTableDataFormat( Map< TableDataFormat, StorageLocation > tableData )
 	{
 		final Set< TableDataFormat > tableDataFormats = settings.values.getTableDataFormats();
 
@@ -911,10 +911,17 @@ public class MoBIE
 		{
 			//final long start = System.currentTimeMillis();
 			final SpotDataSource spotDataSource = ( SpotDataSource ) dataSource;
-			Table table = TableSawHelper.readTable( getDefaultTablePath( spotDataSource.tableData ), getTableDataFormat( spotDataSource.tableData ), -1 ); // 1000
+			final String defaultTablePath = getDefaultTableLocation( spotDataSource.tableData );
+			final TableDataFormat tableDataFormat = getTableDataFormat( spotDataSource.tableData );
+
+			Table table = TableOpener.openTable( defaultTablePath, tableDataFormat, -1 ); // 1000
+
 			final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator( table );
-			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV, tableDataFormat, table );
+
+			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, moBIE.getTableStore( spotDataSource.tableData ), defaultTablePath, tableDataFormat, table );
+
 			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
+
 			final SpotAnnotationImage< AnnotatedSpot > spotAnnotationImage = new SpotAnnotationImage( spotDataSource.getName(), spotAnnData, 1.0, spotDataSource.boundingBoxMin, spotDataSource.boundingBoxMax );
 
 			// Spots image, built from spots table
@@ -932,8 +939,9 @@ public class MoBIE
 			// However, we can already load the region table here.
 
 			final RegionDataSource regionDataSource = ( RegionDataSource ) dataSource;
-			Table table = TableSawHelper.readTable( getDefaultTablePath( regionDataSource.tableData ), getTableDataFormat( segmentationDataSource.tableData ), -1 );
-			regionDataSource.table = table;
+
+			regionDataSource.table = TableOpener.openTable( getDefaultTableLocation( regionDataSource.tableData ), getTableDataFormat( regionDataSource.tableData ), -1 );;
+
 			DataStore.putRawData( regionDataSource );
 		}
 
@@ -944,12 +952,12 @@ public class MoBIE
 	private TableSawAnnotationTableModel< TableSawAnnotatedSegment > createTableModel( SegmentationDataSource dataSource )
 	{
 		final String tableStore = getTableStore( dataSource.tableData );
-		final String defaultTablePath = getDefaultTablePath( dataSource.tableData );
+		final String defaultTablePath = getDefaultTableLocation( dataSource.tableData );
 		final TableDataFormat tableDataFormat = getTableDataFormat( dataSource.tableData );
 		final SegmentColumnNames segmentColumnNames = tableDataFormat.getSegmentColumnNames();
 
 		Table table = dataSource.preInit() ?
-				TableSawHelper.readTable( defaultTablePath, tableDataFormat, -1 ) : null;
+				TableOpener.openTable( defaultTablePath, tableDataFormat, -1 ) : null;
 
 		final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( segmentColumnNames, table );
 
@@ -959,12 +967,18 @@ public class MoBIE
 
 	}
 
-	public String getDefaultTablePath( Map< TableDataFormat, StorageLocation > tableData )
+	public StorageLocation getDefaultTableLocation( Map< TableDataFormat, StorageLocation > tableData )
 	{
-		if ( project.isFromCLI() )
-			return getTableStore( tableData );
+		final StorageLocation storageLocation = new StorageLocation();
 
-		return IOHelper.combinePath( getTableStore( tableData ), TableDataFormat.DEFAULT_TSV );
+		if ( project.isFromCLI() )
+		{
+			storageLocation.absolutePath = getTableStore( tableData );
+			return storageLocation;
+		}
+
+		storageLocation.absolutePath = IOHelper.combinePath( getTableStore( tableData ), TableDataFormat.DEFAULT_TSV );
+		return storageLocation;
 	}
 
 	private SpimDataImage< ? > initImage( ImageDataFormat imageDataFormat, Integer channel, StorageLocation storageLocation, String name ) throws SpimDataException

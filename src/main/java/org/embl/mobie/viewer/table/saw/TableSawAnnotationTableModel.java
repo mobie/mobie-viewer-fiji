@@ -96,7 +96,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	private Table readTable( String tablePath )
 	{
 		loadedTablePaths.add( tablePath );
-		return TableSawHelper.readTable( tablePath, tableDataFormat, -1 );
+		return TableOpener.openTable( tablePath, tableDataFormat, -1 );
 	}
 
 	private void joinTable( Table additionalTable )

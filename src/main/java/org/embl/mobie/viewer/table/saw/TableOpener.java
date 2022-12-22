@@ -12,7 +12,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TableSawHelper
+public class TableOpener
 {
 	public static Map< String, ColumnType > nameToType;
 	static
@@ -24,7 +24,7 @@ public class TableSawHelper
 		nameToType.put( ColumnNames.SPOT_Z, ColumnType.FLOAT );
 	}
 
-	public static Table readTable( String path, TableDataFormat tableDataFormat, int numSamples )
+	public static Table openTable( String path, TableDataFormat tableDataFormat, int numSamples )
 	{
 		path = resolveTablePath( path );
 

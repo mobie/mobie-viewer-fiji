@@ -43,7 +43,6 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.Annotation;
-import org.embl.mobie.viewer.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
 import org.embl.mobie.viewer.bdv.view.SliceViewer;
@@ -458,8 +457,9 @@ public class ViewManager
 			}
 		}
 
-		// Instantiate images that are created by
-		// RegionDisplay
+		// instantiate {@code RegionDisplay}
+		// note that this could not be done already in MoBIE.initData()
+		// because we needed to wait until all images are present
 		for ( Display< ? > display : view.getDisplays() )
 		{
 			// https://github.com/mobie/mobie-viewer-fiji/issues/818
@@ -479,7 +479,8 @@ public class ViewManager
 				// initialisation of that data source
 				Table table = regionDataSource.table;
 
-				// Only keep the subset of rows that are actually needed.
+				// only keep the subset of rows (regions)
+				// that are actually needed
 				final Map< String, List< String > > regionIdToImageNames = regionDisplay.sources;
 				final Set< String > regionIDs = regionIdToImageNames.keySet();
 				final ArrayList< Integer > dropRows = new ArrayList<>();
@@ -494,16 +495,14 @@ public class ViewManager
 				if ( dropRows.size() > 0 )
 					table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
 
+
 				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( table, regionIdToImageNames );
 
-				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, moBIE.getTableStore( regionDataSource.tableData ), moBIE.getDefaultTablePath( regionDataSource.tableData ), tableDataFormat, table );
+				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, moBIE.getTableStore( regionDataSource.tableData ), moBIE.getDefaultTableLocation( regionDataSource.tableData ), moBIE.getTableDataFormat( regionDataSource.tableData ), table );
+
 				final DefaultAnnData< AnnotatedRegion > annData = new DefaultAnnData<>( tableModel );
+
 				final RegionAnnotationImage< AnnotatedRegion > regionAnnotationImage = new RegionAnnotationImage( regionDisplay.getName(), annData );
-
-				// REMOVE
-				final DefaultAnnotationAdapter< AnnotatedRegion > annotationAdapter = new DefaultAnnotationAdapter<>( annData );
-				// FIXME Just DefaultAnnotatedImage will do
-
 
 				DataStore.putImage( regionAnnotationImage );
 			}
