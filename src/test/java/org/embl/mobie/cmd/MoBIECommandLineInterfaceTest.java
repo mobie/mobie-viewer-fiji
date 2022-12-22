@@ -7,6 +7,8 @@ class MoBIECommandLineInterfaceTest
 	public static void main( String[] args )
 	{
 		final MoBIECommandLineInterface commandLineInterface = new MoBIECommandLineInterface();
-		commandLineInterface.run( ROOT + "src/test/resources/golgi-intensities.tif", ROOT + "src/test/resources/golgi-cell-labels.tif" );
+		commandLineInterface.run(
+				new String[]{ ROOT + "src/test/resources/golgi-intensities.tif" },
+				new String[]{ ROOT + "src/test/resources/golgi-cell-labels.tif" } );
 	}
 }
