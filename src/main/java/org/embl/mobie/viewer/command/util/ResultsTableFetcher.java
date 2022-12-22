@@ -1,4 +1,4 @@
-package org.embl.mobie.viewer.table.ijresults;
+package org.embl.mobie.viewer.command.util;
 
 import ij.IJ;
 import ij.WindowManager;

@@ -30,8 +30,11 @@ package org.embl.mobie.viewer.source;
 
 public class StorageLocation
 {
-	// for data on disk
+	// for data on disk in a MoBIE project
 	public String relativePath;
+
+	// for other data on disk
+	public String absolutePath;
 
 	// for data on s3
 	public String s3Address;

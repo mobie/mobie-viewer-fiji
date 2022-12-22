@@ -6,6 +6,7 @@ import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.table.SegmentColumnNames;
 import tech.tablesaw.api.Table;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -24,15 +25,13 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 	private boolean is3D;
 	private boolean hasBoundingBox;
 
-	public TableSawAnnotatedSegmentCreator( SegmentColumnNames segmentColumnNames )
+	public TableSawAnnotatedSegmentCreator(
+			SegmentColumnNames segmentColumnNames,
+			@Nullable Table table )
 	{
 		this.segmentColumnNames = segmentColumnNames;
-	}
-
-	public TableSawAnnotatedSegmentCreator( SegmentColumnNames segmentColumnNames, Table table )
-	{
-		this.segmentColumnNames = segmentColumnNames;
-		initColumns( table );
+		if ( table != null )
+			initColumns( table );
 	}
 
 	private synchronized void initColumns( Table table )

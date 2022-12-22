@@ -8,10 +8,12 @@ import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.table.AbstractAnnotationTableModel;
 import org.embl.mobie.viewer.table.AnnotationListener;
 import org.embl.mobie.viewer.table.DefaultValues;
+import org.embl.mobie.viewer.table.TableDataFormat;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,30 +36,28 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	private AffineTransform3D affineTransform3D = new AffineTransform3D();
 	private boolean updateTransforms = false;
 	private String defaultTablePath;
-
-	public TableSawAnnotationTableModel(
-			String dataSourceName,
-			TableSawAnnotationCreator< A > annotationCreator,
-			String dataStore,
-			String defaultTableLocation )
-	{
-		this.dataSourceName = dataSourceName;
-		this.annotationCreator = annotationCreator;
-		this.dataStore = dataStore;
-		this.defaultTablePath = IOHelper.combinePath( dataStore, defaultTableLocation );
-	}
+	private final TableDataFormat tableDataFormat;
 
 	// use this if the default table is available already
 	public TableSawAnnotationTableModel(
 			String name,
 			TableSawAnnotationCreator< A > annotationCreator,
 			String tableStore,
-			String defaultTableLocation,
-			Table defaultTable )
+			String defaultTablePath,
+			TableDataFormat tableDataFormat,
+			@Nullable Table defaultTable )
 	{
-		this( name, annotationCreator, tableStore, defaultTableLocation );
-		initTable( defaultTable );
-		loadedTablePaths.add( defaultTablePath );
+		this.dataSourceName = name;
+		this.annotationCreator = annotationCreator;
+		this.dataStore = tableStore;
+		this.defaultTablePath = defaultTablePath;
+		this.tableDataFormat = tableDataFormat;
+
+		if ( defaultTable != null )
+		{
+			initTable( defaultTable );
+			loadedTablePaths.add( defaultTablePath );
+		}
 	}
 
 	public String getDataSourceName()
@@ -96,7 +96,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	private Table readTable( String tablePath )
 	{
 		loadedTablePaths.add( tablePath );
-		return TableSawHelper.readTable( tablePath, -1 );
+		return TableSawHelper.readTable( tablePath, tableDataFormat, -1 );
 	}
 
 	private void joinTable( Table additionalTable )

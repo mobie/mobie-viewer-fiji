@@ -35,18 +35,21 @@ public class Project
 {
 	// Serialisation
 	private String name;
-	private List< String > datasets;
+	private List< String > datasets = new ArrayList<>();
 	private String defaultDataset;
 	private String specVersion;
+
+	// Runtime
+	private boolean fromCLI = false;
 
 	public Project()
 	{
 	}
 
-	public Project( String name )
+	public Project( String name, boolean fromCLI )
 	{
 		this.name = name;
-		this.datasets = new ArrayList<>();
+		this.fromCLI = true;
 	}
 
 	public List< String > datasets()
@@ -78,5 +81,10 @@ public class Project
 	public void setName( String name )
 	{
 		this.name = name;
+	}
+
+	public boolean isFromCLI()
+	{
+		return fromCLI;
 	}
 }

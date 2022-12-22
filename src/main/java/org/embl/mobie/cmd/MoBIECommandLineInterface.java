@@ -29,13 +29,11 @@ public class MoBIECommandLineInterface implements Callable<Void> {
 	public void run( String[] images, String[] segmentations ) throws SpimDataException
 	{
 		final ImageJ imageJ = new ImageJ();
-		//imageJ.ui().showUI(); // TODO maybe don't?
-
-		final ImagePlus intensityImp = IJ.openImage( images[ 0 ] );
-		final ImagePlus segmentationImp = IJ.openImage( segmentations[ 0 ] );
-
-		new MoBIE( "", intensityImp, segmentationImp );
-		//new MoBIE( "", images, segmentations );
+		//imageJ.ui().showUI(); // TODO open on demand w
+		//final ImagePlus intensityImp = IJ.openImage( images[ 0 ] );
+		//final ImagePlus segmentationImp = IJ.openImage( segmentations[ 0 ] );
+		//new MoBIE( "", intensityImp, segmentationImp );
+		new MoBIE( "", images, segmentations );
 	}
 
 	public static final void main( final String... args ) {

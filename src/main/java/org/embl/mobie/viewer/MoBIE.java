@@ -71,7 +71,7 @@ import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.LazyAnnotatedSegmentTableModel;
-import org.embl.mobie.viewer.table.MoBIESegmentColumnNames;
+import org.embl.mobie.viewer.table.SegmentColumnNames;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegment;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegmentCreator;
@@ -125,9 +125,9 @@ public class MoBIE
 	private ViewManager viewManager;
 	private Project project;
 	private UserInterface userInterface;
-	private String projectRoot;
-	private String imageRoot = "";
-	private String tableRoot;
+	private String projectRoot = "";
+	private String imageRoot = ""; // see https://github.com/mobie/mobie-viewer-fiji/issues/933
+	private String tableRoot = ""; // see https://github.com/mobie/mobie-viewer-fiji/issues/933
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 	private ArrayList< String > projectCommands = new ArrayList<>();;
 	public static int minLogTimeMillis = 100;
@@ -156,7 +156,7 @@ public class MoBIE
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening project: " + projectLocation );
 		setS3Credentials( settings );
-		setProjectImageAndTableRootLocations( );
+		setProjectImageAndTableRootLocations();
 		registerProjectPlugins( settings.values.getProjectLocation() );
 		project = new ProjectJsonParser().parseProject( IOHelper.combinePath( projectRoot,  "project.json" ) );
 		if ( project.getName() == null )
@@ -170,7 +170,7 @@ public class MoBIE
 	{
 		// init settings, project and dataset
 		settings = new MoBIESettings();
-		project = new Project( projectName );
+		project = new Project( projectName, true );
 		currentDatasetName = project.getName();
 		project.datasets().add( currentDatasetName );
 		project.setDefaultDataset( currentDatasetName );
@@ -241,7 +241,7 @@ public class MoBIE
 		for ( int imageIndex = 0; imageIndex < numImages; imageIndex++ )
 		{
 			// configure {@code DataSource}
-			final StorageLocation storageLocation = configureStorageLocation( imagePath, imageIndex, ImageDataFormat.fromPath( imagePath ) );
+			final StorageLocation storageLocation = configureImageStorageLocation( imagePath, imageIndex, ImageDataFormat.fromPath( imagePath ) );
 			String imageName = getImageName( imagePath, numImages, imageIndex );
 
 			final ImageDataSource dataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
@@ -292,7 +292,7 @@ public class MoBIE
 		for ( int imageIndex = 0; imageIndex < numImages; imageIndex++ )
 		{
 			// configure {@code SegmentationDataSource}
-			final StorageLocation storageLocation = configureStorageLocation( imagePath, imageIndex, ImageDataFormat.fromPath( imagePath ) );
+			final StorageLocation storageLocation = configureImageStorageLocation( imagePath, imageIndex, ImageDataFormat.fromPath( imagePath ) );
 			String imageName = getImageName( imagePath, numImages, imageIndex );
 			final SegmentationDataSource dataSource = new SegmentationDataSource( imageName, imageDataFormat, storageLocation );
 			dataSource.preInit( true );
@@ -318,15 +318,25 @@ public class MoBIE
 		}
 	}
 
-	private StorageLocation configureStorageLocation( String imagePath, int channel, ImageDataFormat imageDataFormat )
+	private StorageLocation configureImageStorageLocation( String imagePath, int channel, ImageDataFormat imageDataFormat )
 	{
 		final StorageLocation imageStorageLocation = new StorageLocation();
-		if ( imageDataFormat.isRemote() )
-			imageStorageLocation.s3Address = imagePath;
-		else
-			imageStorageLocation.relativePath = imagePath;
 		imageStorageLocation.channel = channel;
 
+		if ( imageDataFormat.isRemote() )
+		{
+			imageStorageLocation.s3Address = imagePath;
+			return imageStorageLocation;
+		}
+
+		if ( project.isFromCLI() )
+		{
+			imageStorageLocation.absolutePath = imagePath;
+			return imageStorageLocation;
+		}
+
+		// MoBIE project on disk or GitHub
+		imageStorageLocation.relativePath = imagePath;
 		return imageStorageLocation;
 	}
 
@@ -336,7 +346,7 @@ public class MoBIE
 		settings.addImageDataFormat( ImageDataFormat.ImagePlus );
 
 		// project and dataset
-		project = new Project( projectName );
+		project = new Project( projectName, true );
 		currentDatasetName = project.getName();
 		project.datasets().add( currentDatasetName );
 		project.setDefaultDataset( currentDatasetName );
@@ -656,7 +666,7 @@ public class MoBIE
 		return dataset.sources.get( sourceName );
 	}
 
-	private ImageDataFormat getAppropriateImageDataFormat( ImageDataSource imageSource )
+	private ImageDataFormat getImageDataFormat( ImageDataSource imageSource )
 	{
 		final Set< ImageDataFormat > imageDataFormats = settings.values.getImageDataFormats();
 
@@ -674,6 +684,29 @@ public class MoBIE
 		for ( ImageDataFormat dataFormat : imageSource.imageData.keySet() )
 			System.err.println("Source supports: " + dataFormat);
 		for ( ImageDataFormat dataFormat : imageDataFormats )
+			System.err.println("Settings support: " + dataFormat);
+
+		throw new RuntimeException();
+	}
+
+	private TableDataFormat getTableDataFormat( Map< TableDataFormat, StorageLocation > tableData )
+	{
+		final Set< TableDataFormat > tableDataFormats = settings.values.getTableDataFormats();
+
+		for ( TableDataFormat dataFormat : tableData.keySet() )
+		{
+			if ( tableDataFormats.contains( dataFormat ) )
+			{
+				// TODO (discuss with Constantin)
+				//   it is weird that it just returns the first one...
+				return dataFormat;
+			}
+		}
+
+		System.err.println("Error opening table.");
+		for ( TableDataFormat dataFormat : tableData.keySet() )
+			System.err.println("Source supports: " + dataFormat);
+		for ( TableDataFormat dataFormat : tableDataFormats )
 			System.err.println("Settings support: " + dataFormat);
 
 		throw new RuntimeException();
@@ -698,11 +731,14 @@ public class MoBIE
 
     private String getRelativeTablePath( Map< TableDataFormat, StorageLocation > tableData )
     {
-        return tableData.get( TableDataFormat.TabDelimitedFile ).relativePath;
+		return tableData.get( getTableDataFormat( tableData ) ).relativePath;
     }
 
     public String getTableStore( Map< TableDataFormat, StorageLocation > tableData )
     {
+		if ( project.isFromCLI() )
+			return tableData.get( getTableDataFormat( tableData ) ).absolutePath;
+
 		final String relativeTablePath = getRelativeTablePath( tableData );
 		return getTableStore( relativeTablePath );
     }
@@ -756,12 +792,13 @@ public class MoBIE
 			case BioFormats:
 			case BdvHDF5:
 			case BdvN5:
-            case BdvOmeZarr:
-            case OmeZarr:
-            case BdvOmeZarrS3:
-            case BdvN5S3:
-                final String relativePath = storageLocation.relativePath;
-                return IOHelper.combinePath( imageRoot, getCurrentDatasetName(), relativePath );
+			case BdvOmeZarr:
+			case BdvOmeZarrS3: // assuming that the xml is not at storageLocation.s3Address
+			case BdvN5S3: // assuming that the xml is not at storageLocation.s3Address
+			case OmeZarr:
+            	if ( project.isFromCLI() )
+					return storageLocation.absolutePath;
+                return IOHelper.combinePath( imageRoot, getCurrentDatasetName(), storageLocation.relativePath );
             case OpenOrganelleS3:
             case OmeZarrS3:
                 return storageLocation.s3Address;
@@ -823,7 +860,7 @@ public class MoBIE
 		if ( dataSource instanceof ImageDataSource )
 		{
 			ImageDataSource imageSource = ( ImageDataSource ) dataSource;
-			ImageDataFormat imageDataFormat = getAppropriateImageDataFormat( imageSource );
+			ImageDataFormat imageDataFormat = getImageDataFormat( imageSource );
 			final StorageLocation storageLocation = imageSource.imageData.get( imageDataFormat );
 			final Integer channel = storageLocation.channel;
 			final Image< ? > image = initImage( imageDataFormat, channel, storageLocation, imageSource.getName() );
@@ -843,24 +880,7 @@ public class MoBIE
 
 				if ( segmentationDataSource.tableData != null )
 				{
-					TableSawAnnotationTableModel< TableSawAnnotatedSegment > tableModel;
-					if ( dataSource.preInit() )
-					{
-						// TODO create a Table from other sources, e.g. from a ResultsTable in RAM
-						//   Like this the Table (from tablesaw) becomes the
-						//   equivalent of SpimData for images.
-						// load table already now
-						Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV ), -1 );
-						final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( new MoBIESegmentColumnNames(), table );
-						tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV, table  );
-					}
-					else
-					{
-						// don't load the table yet
-						// (for lazy-loading in a stitched or grid image)
-						final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( new MoBIESegmentColumnNames() );
-						tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV  );
-					}
+					TableSawAnnotationTableModel< TableSawAnnotatedSegment > tableModel = createTableModel( segmentationDataSource );
 
 					final DefaultAnnData< TableSawAnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
 					final DefaultAnnotationAdapter< TableSawAnnotatedSegment > annotationAdapter = new DefaultAnnotationAdapter( annData );
@@ -891,9 +911,9 @@ public class MoBIE
 		{
 			//final long start = System.currentTimeMillis();
 			final SpotDataSource spotDataSource = ( SpotDataSource ) dataSource;
-			Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV ), -1 ); // 1000
+			Table table = TableSawHelper.readTable( getDefaultTablePath( spotDataSource.tableData ), getTableDataFormat( spotDataSource.tableData ), -1 ); // 1000
 			final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator( table );
-			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV, table );
+			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV, tableDataFormat, table );
 			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
 			final SpotAnnotationImage< AnnotatedSpot > spotAnnotationImage = new SpotAnnotationImage( spotDataSource.getName(), spotAnnData, 1.0, spotDataSource.boundingBoxMin, spotDataSource.boundingBoxMax );
 
@@ -912,13 +932,39 @@ public class MoBIE
 			// However, we can already load the region table here.
 
 			final RegionDataSource regionDataSource = ( RegionDataSource ) dataSource;
-			Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( regionDataSource.tableData ), TableDataFormat.DEFAULT_TSV ), -1 );
+			Table table = TableSawHelper.readTable( getDefaultTablePath( regionDataSource.tableData ), getTableDataFormat( segmentationDataSource.tableData ), -1 );
 			regionDataSource.table = table;
 			DataStore.putRawData( regionDataSource );
 		}
 
 		if ( log != null )
 			IJ.log( log + dataSource.getName() );
+	}
+
+	private TableSawAnnotationTableModel< TableSawAnnotatedSegment > createTableModel( SegmentationDataSource dataSource )
+	{
+		final String tableStore = getTableStore( dataSource.tableData );
+		final String defaultTablePath = getDefaultTablePath( dataSource.tableData );
+		final TableDataFormat tableDataFormat = getTableDataFormat( dataSource.tableData );
+		final SegmentColumnNames segmentColumnNames = tableDataFormat.getSegmentColumnNames();
+
+		Table table = dataSource.preInit() ?
+				TableSawHelper.readTable( defaultTablePath, tableDataFormat, -1 ) : null;
+
+		final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( segmentColumnNames, table );
+
+		final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, tableStore, defaultTablePath, tableDataFormat, table );
+
+		return tableModel;
+
+	}
+
+	public String getDefaultTablePath( Map< TableDataFormat, StorageLocation > tableData )
+	{
+		if ( project.isFromCLI() )
+			return getTableStore( tableData );
+
+		return IOHelper.combinePath( getTableStore( tableData ), TableDataFormat.DEFAULT_TSV );
 	}
 
 	private SpimDataImage< ? > initImage( ImageDataFormat imageDataFormat, Integer channel, StorageLocation storageLocation, String name ) throws SpimDataException

@@ -2,6 +2,7 @@ package org.embl.mobie.viewer.table.saw;
 
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.table.ColumnNames;
+import org.embl.mobie.viewer.table.TableDataFormat;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
@@ -10,7 +11,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 
 public class TableSawHelper
 {
@@ -24,12 +24,11 @@ public class TableSawHelper
 		nameToType.put( ColumnNames.SPOT_Z, ColumnType.FLOAT );
 	}
 
-	public static Table readTable( String path, int numSamples )
+	public static Table readTable( String path, TableDataFormat tableDataFormat, int numSamples )
 	{
-		// Sometimes the path does not actually contain a table
-		// but another link to a table
-		// Example: https://raw.githubusercontent.com/mobie/platybrowser-datasets/mobie3/data/1.0.1/tables/sbem-6dpf-1-whole-segmented-ganglia/default.tsv
 		path = resolveTablePath( path );
+
+		final Character separator = tableDataFormat.getSeparator();
 
 		try
 		{
@@ -43,7 +42,8 @@ public class TableSawHelper
 			final InputStream inputStream = IOHelper.getInputStream( path );
 			//final String string = IOHelper.read( path );
 			// https://jtablesaw.github.io/tablesaw/userguide/importing_data.html
-			CsvReadOptions.Builder builder = CsvReadOptions.builder( inputStream ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" ).sample( numSamples > 0 ).sampleSize( numSamples ).columnTypesPartial( nameToType );
+			// FIXME: separator
+			CsvReadOptions.Builder builder = CsvReadOptions.builder( inputStream ).separator( separator ).missingValueIndicator( "na", "none", "nan" ).sample( numSamples > 0 ).sampleSize( numSamples ).columnTypesPartial( nameToType );
 			final Table rows = Table.read().usingOptions( builder );
 			//System.out.println("Read table " + path + " with " + rows.rowCount() + " rows in " + ( System.currentTimeMillis() - start ) + " ms." );
 			return rows;
@@ -55,6 +55,9 @@ public class TableSawHelper
 		}
 	}
 
+	// Sometimes the path does not actually contain a table
+	// but another link to a table
+	// Example: https://raw.githubusercontent.com/mobie/platybrowser-datasets/mobie3/data/1.0.1/tables/sbem-6dpf-1-whole-segmented-ganglia/default.tsv
 	public static String resolveTablePath( String tablePath )
 	{
 		if ( tablePath.startsWith( "http" ) ) {

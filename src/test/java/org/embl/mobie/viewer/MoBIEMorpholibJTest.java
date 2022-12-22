@@ -4,9 +4,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.measure.ResultsTable;
 import net.imagej.ImageJ;
-import org.embl.mobie.viewer.table.ijresults.ResultsTableFetcher;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.embl.mobie.viewer.command.util.ResultsTableFetcher;
 
 class MoBIEMorpholibJTest
 {

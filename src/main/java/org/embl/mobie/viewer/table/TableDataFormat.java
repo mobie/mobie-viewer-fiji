@@ -33,7 +33,7 @@ import com.google.gson.annotations.SerializedName;
 public enum TableDataFormat
 {
 	@SerializedName( "tsv" )
-	TabDelimitedFile;
+	TabDelimitedFile;  // with the MoBIE spec
 
 	public static final String DEFAULT_TSV = "default.tsv";
 
@@ -57,6 +57,25 @@ public enum TableDataFormat
 				return DEFAULT_TSV;
 			default:
 				throw new UnsupportedOperationException( "Unknown table file format: " + this );
+		}
+	}
+
+	public Character getSeparator()
+	{
+		switch ( this )
+		{
+			case TabDelimitedFile:
+				return '\t';
+			default:
+				throw new UnsupportedOperationException( "Unknown table file format: " + this );
+		}
+	}
+
+	public SegmentColumnNames getSegmentColumnNames()
+	{
+		switch ( this )
+		{
+
 		}
 	}
 }
