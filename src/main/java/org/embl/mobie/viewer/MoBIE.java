@@ -38,6 +38,7 @@ import ij.process.LUT;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
+import net.imglib2.Dimensions;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
@@ -167,18 +168,15 @@ public class MoBIE
 
 	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths ) throws SpimDataException
 	{
+		// init settings, project and dataset
 		settings = new MoBIESettings();
-
-		final ImageDataFormat segmentationDataFormat = ImageDataFormat.fromPath( segmentationPath );
-		settings.addImageDataFormat( segmentationDataFormat );
-
-		// init project and dataset
 		project = new Project( projectName );
 		currentDatasetName = project.getName();
 		project.datasets().add( currentDatasetName );
 		project.setDefaultDataset( currentDatasetName );
 		// FIXME where is the link of a dataset to its name?
-		dataset = new Dataset( intensityImp.getNSlices() == 1 );
+		dataset = new Dataset();
+		dataset.is2D = true; // changed further down
 
 		final SpimDataOpener spimDataOpener = new SpimDataOpener();
 
@@ -200,10 +198,17 @@ public class MoBIE
 				// configure DataSource
 				final StorageLocation storageLocation = configureStorageLocation( imagePath, imageIndex, ImageDataFormat.fromPath( imagePath ) );
 				final String imageName = new File( imagePath ).getName();
-
 				final ImageDataSource imageDataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
 				imageDataSource.preInit( true );
+
+				// amend Dataset with the new DataSource
 				dataset.sources.put( imageDataSource.getName(), imageDataSource );
+				if ( dataset.is2D )
+				{
+					final Dimensions dimensions = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex ).getSize();
+					if ( dimensions.numDimensions() > 2 )
+						dataset.is2D = false;
+				}
 
 				// configure corresponding Display
 				final Displaysettings displaysettings = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex ).getAttribute( Displaysettings.class );
@@ -218,8 +223,10 @@ public class MoBIE
 				}
 				else
 				{
+					// TODO: auto-display
 					throw new UnsupportedOperationException("Please contact @tischi to fix this :)");
 				}
+
 			}
 		}
 
@@ -254,9 +261,9 @@ public class MoBIE
 //		dataset.views.put( segmentationView.getName(), segmentationView );
 
 
-		// view dataset
-		initUIandShowView( imageName );
-		viewManager.show( segmentationView );
+//		// view dataset
+//		initUIandShowView( imageName );
+//		viewManager.show( segmentationView );
 
 	}
 
@@ -283,7 +290,8 @@ public class MoBIE
 		project.datasets().add( currentDatasetName );
 		project.setDefaultDataset( currentDatasetName );
 		// FIXME where is the link of a dataset to its name?
-		dataset = new Dataset( intensityImp.getNSlices() == 1 );
+		dataset = new Dataset();
+		dataset.is2D = intensityImp.getNSlices() == 1;
 
 		// intensity image
 		final int channel = 0;  // TODO: For loop

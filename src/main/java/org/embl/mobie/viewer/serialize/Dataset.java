@@ -39,17 +39,10 @@ public class Dataset
 	// Serialisation
 	public boolean is2D = false;
 	public ViewerTransform defaultLocation = new PositionViewerTransform( new double[]{0,0,0}, 0 );
-	public Map< String, DataSource > sources;
-	public Map< String, View > views;
+	public Map< String, DataSource > sources = new HashMap<>();
+	public Map< String, View > views = new HashMap<>();
 
 	public Dataset() { }
-
-	public Dataset( boolean is2D )
-	{
-		this.is2D = is2D;
-		this.sources = new HashMap<>();
-		this.views = new HashMap<>();
-	}
 
 	public Dataset( boolean is2D, ViewerTransform defaultLocation, Map< String, DataSource > sources, Map< String, View > views )
 	{

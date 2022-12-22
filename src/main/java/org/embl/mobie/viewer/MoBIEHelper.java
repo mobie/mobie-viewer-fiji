@@ -54,7 +54,7 @@ public abstract class MoBIEHelper
 
 		for(int i = 0; i < longs.length; ++i)
 			longs[i] = ints[i];
-R
+
 		return longs;
 	}
 

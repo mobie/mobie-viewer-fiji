@@ -30,21 +30,20 @@ package org.embl.mobie.viewer.annotation;
 
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.SwingUtils;
-import de.embl.cba.tables.color.ColorHelper;
 import ij.IJ;
+import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.color.CategoricalAnnotationColoringModel;
+import org.embl.mobie.viewer.color.ColorHelper;
 import org.embl.mobie.viewer.color.ColoringModels;
 import org.embl.mobie.viewer.select.SelectionListener;
 import org.embl.mobie.viewer.select.SelectionModel;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
 import org.embl.mobie.viewer.table.DefaultValues;
 import org.embl.mobie.viewer.ui.MoBIELaf;
-import net.imglib2.type.numeric.ARGBType;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
 import java.awt.*;
-import java.lang.reflect.Executable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
