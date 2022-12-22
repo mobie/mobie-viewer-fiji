@@ -72,15 +72,9 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	}
 
 	@Override
-	public List< Image< T > > getImages()
+	public List< Image< T > > images()
 	{
 		return images;
-	}
-
-	@Override
-	public void addImage( Image< T > image )
-	{
-		images.add( image );
 	}
 
 	@Override

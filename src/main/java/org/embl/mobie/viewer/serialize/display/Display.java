@@ -61,7 +61,6 @@ public interface Display< T >
 	BlendingMode getBlendingMode();
 	double getOpacity();
 	boolean isVisible();
-	List< Image< T > > getImages();
+	List< Image< T > > images();
 	List< SourceAndConverter< T > > sourceAndConverters();
-	void addImage( Image< T > image );
 }

@@ -149,7 +149,7 @@ public class ViewManager
 		//   from multiple tables
 		//   Note that the same code is needed for the TableView,
 		//   thus maybe this needs to happen within annotationDisplay?
-		final AnnotationImage annotatedLabelImage = ( AnnotationImage ) display.getImages().iterator().next();
+		final AnnotationImage annotatedLabelImage = ( AnnotationImage ) display.images().iterator().next();
 		final AnnotationTableModel annotationTableModel = annotatedLabelImage.getAnnData().getTable();
 
 		String[] scatterPlotAxes = display.getScatterPlotAxes();
@@ -515,10 +515,16 @@ public class ViewManager
 	{
 		if ( currentDisplays.contains( display ) ) return;
 
+		// remove previous images
+		// this is necessary because the object identity of the images
+		// changes when they are reloaded, which
+		// currently is the case when (repeatedly) selecting a view
+		display.images().clear();
+
 		if ( display instanceof ImageDisplay )
 		{
 			for ( String name : display.getSources() )
-				display.addImage( ( Image ) DataStore.getImage( name ) );
+				display.images().add( ( Image ) DataStore.getImage( name ) );
 			showImageDisplay( ( ImageDisplay ) display );
 		}
 		else if ( display instanceof AbstractAnnotationDisplay )
@@ -539,15 +545,7 @@ public class ViewManager
 			for ( String name : display.getSources() )
 			{
 				final Image< ? > image = DataStore.getImage( name );
-				try
-				{
-					annotationDisplay.addImage( ( Image< AnnotationType< A > > ) image );
-				}
-				catch ( Exception e )
-				{
-					e.printStackTrace();
-					throw new UnsupportedOperationException( "The image " + name + " does not implement AnnotatedLabelImage, but is an " + image.getClass().getName() + " and thus cannot be shown by " + annotationDisplay.getClass().getName() );
-				}
+				annotationDisplay.images().add( ( Image< AnnotationType< A > > ) image );
 			}
 
 			// Now that all images are added to the display,
@@ -711,7 +709,7 @@ public class ViewManager
 
 	private void initSegmentVolumeViewer( SegmentationDisplay< ? extends AnnotatedSegment > display )
 	{
-		display.segmentsVolumeViewer = new SegmentsVolumeViewer( display.selectionModel, display.coloringModel, display.getImages(), universeManager );
+		display.segmentsVolumeViewer = new SegmentsVolumeViewer( display.selectionModel, display.coloringModel, display.images(), universeManager );
 		Double[] resolution3dView = display.getResolution3dView();
 		if ( resolution3dView != null ) {
 			display.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive( display.getResolution3dView() ) );

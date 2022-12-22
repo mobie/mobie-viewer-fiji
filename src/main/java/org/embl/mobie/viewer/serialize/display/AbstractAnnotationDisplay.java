@@ -257,7 +257,7 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 	// in case this display shows several images
 	public void initAnnData()
 	{
-		final List< AnnotationImage< A > > annotationImages = getImages().stream().map( image -> ( AnnotationImage< A > ) image ).collect( Collectors.toList() );
+		final List< AnnotationImage< A > > annotationImages = images().stream().map( image -> ( AnnotationImage< A > ) image ).collect( Collectors.toList() );
 
 		annData = AnnDataHelper.concatenate( annotationImages );
 

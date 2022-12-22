@@ -44,9 +44,6 @@ import net.imglib2.type.numeric.RealType;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class ImageSliceView< T extends NumericType< T > & RealType< T > > extends AbstractSliceView
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
@@ -62,13 +59,9 @@ public class ImageSliceView< T extends NumericType< T > & RealType< T > > extend
 
 	private void show( )
 	{
-		Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter = new HashMap<>();
-		for ( Image< T > image : display.getImages() )
-			sourceNameToSourceAndConverter.put( image.getName(), createSourceAndConverter( image ) );
-
-		for ( String name : sourceNameToSourceAndConverter.keySet() )
+		for ( Image< T > image : display.images() )
 		{
-			SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( name );
+			SourceAndConverter< ? > sourceAndConverter = createSourceAndConverter( image );
 
 			adaptColor( sourceAndConverter );
 

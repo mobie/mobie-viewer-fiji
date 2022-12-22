@@ -61,6 +61,7 @@ public abstract class AbstractSliceView implements SliceView
 			// FIXME https://github.com/bigdataviewer/bigdataviewer-playground/issues/259#issuecomment-1279705489
 			moBIE.closeSourceAndConverter( sourceAndConverter, closeImgLoader );
 		}
+		display.images().clear();
 		display.sourceAndConverters().clear();
 
 		sliceViewer.updateTimepointSlider();

@@ -2,6 +2,7 @@ package org.embl.mobie.cmd;
 
 import ij.IJ;
 import ij.ImagePlus;
+import mpicbg.spim.data.SpimDataException;
 import net.imagej.ImageJ;
 import org.embl.mobie.viewer.MoBIE;
 import picocli.CommandLine;
@@ -25,7 +26,7 @@ public class MoBIECommandLineInterface implements Callable<Void> {
 		return null;
 	}
 
-	public void run( String[] images, String[] segmentations )
+	public void run( String[] images, String[] segmentations ) throws SpimDataException
 	{
 		final ImageJ imageJ = new ImageJ();
 		//imageJ.ui().showUI(); // TODO maybe don't?
@@ -34,6 +35,7 @@ public class MoBIECommandLineInterface implements Callable<Void> {
 		final ImagePlus segmentationImp = IJ.openImage( segmentations[ 0 ] );
 
 		new MoBIE( "", intensityImp, segmentationImp );
+		//new MoBIE( "", images, segmentations );
 	}
 
 	public static final void main( final String... args ) {

@@ -1,10 +1,12 @@
 package org.embl.mobie.cmd;
 
+import mpicbg.spim.data.SpimDataException;
+
 class MoBIECommandLineInterfaceTest
 {
 	public static final String ROOT = "/Users/tischer/Documents/mobie/";
 
-	public static void main( String[] args )
+	public static void main( String[] args ) throws SpimDataException
 	{
 		final MoBIECommandLineInterface commandLineInterface = new MoBIECommandLineInterface();
 		commandLineInterface.run(

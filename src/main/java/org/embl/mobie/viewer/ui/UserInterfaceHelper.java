@@ -578,7 +578,7 @@ public class UserInterfaceHelper
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		final AnnData annData = display.getAnnData();
 		final AnnotationTableModel table = annData.getTable();
-		display.getImages();
+		display.images();
 		if ( annData != null )
 		{
 			// segments 3D view
