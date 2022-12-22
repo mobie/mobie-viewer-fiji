@@ -268,7 +268,11 @@ public class ViewManager
 			SliceViewLocationChanger.changeLocation( sliceViewer.getBdvHandle(), view.getViewerTransform() );
 		}
 
-		// init and transform
+		// init and transform the data of this view
+		// currently, data is reloaded every time a view is shown
+		// this is a bit expensive, but simpler and has the
+		// advantage that one could change the data on disk
+		// and use MoBIE to interactively view changes
 		initData( view );
 
 		// display the data
@@ -276,7 +280,7 @@ public class ViewManager
 		for ( Display< ? > display : displays )
 			show( display );
 
-		// Adjust viewer transform to accommodate the displayed sources.
+		// adjust viewer transform to accommodate the displayed sources.
 		// Note that if {@code view.getViewerTransform() != null}
 		// the viewer transform has already been adjusted above.
 		if ( view.getViewerTransform() == null && currentDisplays.size() > 0 && ( view.isExclusive() || currentDisplays.size() == 1 ) )
@@ -595,7 +599,7 @@ public class ViewManager
 						if ( argbString.equals("") )
 							continue;
 
-						final ARGBType argbType = ColorHelper.getArgbType( argbString );
+						final ARGBType argbType = ColorHelper.getARGBType( argbString );
 
 						coloringModel.assignColor( argbString, argbType.get() );
 					}

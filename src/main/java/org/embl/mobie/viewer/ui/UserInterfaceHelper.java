@@ -35,37 +35,37 @@ import bdv.util.BoundedValueDouble;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.SwingUtils;
-import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
 import ij.gui.GenericDialog;
+import net.imglib2.converter.Converter;
+import net.imglib2.display.ColorConverter;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper.FileLocation;
 import org.embl.mobie.viewer.MoBIEInfo;
 import org.embl.mobie.viewer.Services;
+import org.embl.mobie.viewer.color.ColorHelper;
+import org.embl.mobie.viewer.color.OpacityHelper;
+import org.embl.mobie.viewer.color.opacity.OpacityAdjuster;
 import org.embl.mobie.viewer.command.ConfigureImageRenderingCommand;
 import org.embl.mobie.viewer.command.ConfigureLabelRenderingCommand;
 import org.embl.mobie.viewer.command.ConfigureSpotRenderingCommand;
-import org.embl.mobie.viewer.serialize.display.SpotDisplay;
-import org.embl.mobie.viewer.serialize.display.VisibilityListener;
-import org.embl.mobie.viewer.color.OpacityHelper;
-import org.embl.mobie.viewer.color.opacity.OpacityAdjuster;
+import org.embl.mobie.viewer.plot.ScatterPlotView;
+import org.embl.mobie.viewer.serialize.View;
 import org.embl.mobie.viewer.serialize.display.AbstractDisplay;
+import org.embl.mobie.viewer.serialize.display.Display;
 import org.embl.mobie.viewer.serialize.display.ImageDisplay;
 import org.embl.mobie.viewer.serialize.display.RegionDisplay;
 import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
-import org.embl.mobie.viewer.serialize.display.Display;
-import org.embl.mobie.viewer.plot.ScatterPlotView;
+import org.embl.mobie.viewer.serialize.display.SpotDisplay;
+import org.embl.mobie.viewer.serialize.display.VisibilityListener;
 import org.embl.mobie.viewer.table.AnnData;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.ViewerTransform;
-import org.embl.mobie.viewer.serialize.View;
-import net.imglib2.converter.Converter;
-import net.imglib2.display.ColorConverter;
-import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.numeric.ARGBType;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
@@ -1079,7 +1079,7 @@ public class UserInterfaceHelper
 
 			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 			{
-				new ColorChanger( sourceAndConverter, ColorUtils.getARGBType( color ) ).run();
+				new ColorChanger( sourceAndConverter, ColorHelper.getARGBType( color ) ).run();
 			}
 
 			bdvHandle.getViewerPanel().requestRepaint();
@@ -1090,7 +1090,7 @@ public class UserInterfaceHelper
 
 	private void setPanelColor( JPanel panel, ARGBType argbType )
 	{
-		final Color color = ColorUtils.getColor( argbType );
+		final Color color = ColorHelper.getColor( argbType );
 		if ( color != null )
 		{
 			panel.setOpaque( true );
@@ -1100,7 +1100,7 @@ public class UserInterfaceHelper
 
 	private void setPanelColor( JPanel panel, String colorString )
 	{
-		final Color color = ColorUtils.getColor( colorString );
+		final Color color = ColorHelper.getColor( colorString );
 		if ( color != null )
 		{
 			panel.setOpaque( true );

@@ -31,7 +31,7 @@ package org.embl.mobie.viewer.volume;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
-import de.embl.cba.tables.color.ColorUtils;
+import de.embl.cba.tables.color.ColorHelper;
 import de.embl.cba.util.CopyUtils;
 import ij.IJ;
 import ij.ImagePlus;
@@ -40,6 +40,7 @@ import ij3d.Content;
 import ij3d.ContentConstants;
 import ij3d.Image3DUniverse;
 import ij3d.UniverseListener;
+import org.embl.mobie.viewer.color.ColorHelper;
 import org.embl.mobie.viewer.serialize.display.VisibilityListener;
 import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
 import net.imglib2.RandomAccessibleInterval;
@@ -200,7 +201,7 @@ public class ImageVolumeViewer
 		final Content content = universe.addContent( wrap, displayType );
 		content.setTransparency( transparency );
 		content.setLocked( true );
-		content.setColor( new Color3f( ColorUtils.getColor( argbType ) ) );
+		content.setColor( new Color3f( ColorHelper.getColor( argbType ) ) );
 		universe.setAutoAdjustView( false );
 		return content;
 	}
@@ -226,7 +227,7 @@ public class ImageVolumeViewer
 //		final Content content = universe.addContent( wrap, displayType );
 //		content.setTransparency( transparency );
 //		content.setLocked( true );
-//		content.setColor( new Color3f( ColorUtils.getColor( argbType ) ) );
+//		content.setColor( new Color3f( ColorHelper.getColor( argbType ) ) );
 //		universe.setAutoAdjustView( false );
 //		return content;
 //	}

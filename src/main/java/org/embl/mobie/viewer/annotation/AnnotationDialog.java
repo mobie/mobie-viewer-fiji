@@ -30,7 +30,7 @@ package org.embl.mobie.viewer.annotation;
 
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.SwingUtils;
-import de.embl.cba.tables.color.ColorUtils;
+import de.embl.cba.tables.color.ColorHelper;
 import ij.IJ;
 import org.embl.mobie.viewer.color.CategoricalAnnotationColoringModel;
 import org.embl.mobie.viewer.color.ColoringModels;
@@ -223,7 +223,7 @@ public class AnnotationDialog< A extends Annotation > extends JFrame implements 
 
 		final ARGBType argbType = new ARGBType();
 		coloringModel.convertStringToARGB( annotationName, argbType );
-		annotateButton.setBackground( ColorUtils.getColor( argbType ) );
+		annotateButton.setBackground( ColorHelper.getColor( argbType ) );
 
 		annotateButton.addActionListener( e ->
 		{
@@ -254,7 +254,7 @@ public class AnnotationDialog< A extends Annotation > extends JFrame implements 
 			Color color = JColorChooser.showDialog( this.panel, "", null );
 			if ( color == null ) return;
 			annotateButton.setBackground( color );
-			coloringModel.assignColor( annotationName, ColorUtils.getARGBType( color ).get() );
+			coloringModel.assignColor( annotationName, ColorHelper.getARGBType( color ).get() );
 		} );
 
 		panel.add( annotateButton );

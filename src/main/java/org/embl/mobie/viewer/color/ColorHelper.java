@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.viewer.color;
 
+import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import ij.process.LUT;
 import net.imglib2.type.numeric.ARGBType;
 
@@ -37,6 +38,10 @@ import java.util.regex.Pattern;
 
 public abstract class ColorHelper
 {
+	final static public double goldenRatio = 1.0 / ( 0.5 * Math.sqrt( 5 ) + 0.5 );
+
+	public static final String RANDOM_FROM_GLASBEY = "randomFromGlasbey";
+
 	public static Color getColor( ARGBType argbType )
 	{
 		final int colorIndex = argbType.get();
@@ -48,11 +53,22 @@ public abstract class ColorHelper
 				ARGBType.alpha( colorIndex ));
 	}
 
-	public static String toString( ARGBType argbType )
+	public static String getString( int[] ints )
+	{
+		return getString( getARGBType( ints ) );
+	}
+
+	public static String getString( LUT lut )
+	{
+		return getString( getARGBType( lut ) );
+	}
+
+	public static String getString( ARGBType argbType )
 	{
 		if ( argbType == null ) return null;
 
 		final int colorIndex = argbType.get();
+		// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/924
 		final String string = "" + ARGBType.alpha( colorIndex ) + "-" + ARGBType.red( colorIndex ) + "-" + ARGBType.green( colorIndex ) + "-" + ARGBType.blue( colorIndex );
 		return string;
 	}
@@ -62,79 +78,71 @@ public abstract class ColorHelper
 		return new ARGBType( ARGBType.rgba( color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha() ) );
 	}
 
-	public static Color getColor( String argbTypeToString ) {
-		// ARGBType.toString()
-		// i.e. "(r=255,g=255,b=255,a=255)"
-		Pattern pattern = Pattern.compile("\\(r=(.+),g=(.+),b=(.+),a=(.+)\\)");
-		Matcher matcher = pattern.matcher(argbTypeToString);
-		if ( matcher.matches() )
-		{
-			Color color = new Color(Integer.parseInt(matcher.group(1)),
-					Integer.parseInt(matcher.group(2)),
-					Integer.parseInt(matcher.group(3)),
-					Integer.parseInt(matcher.group(4)));
-			return color;
-		}
-		else
-		{
-			// assume of form ".*r=255,g=255,b=255,a=255.*"
-			pattern = Pattern.compile(".*r=(.+),g=(.+),b=(.+),a=(.+).*");
-			matcher = pattern.matcher(argbTypeToString);
-			if ( matcher.matches() )
-			{
-				Color color = new Color(Integer.parseInt(matcher.group(1)),
-						Integer.parseInt(matcher.group(2)),
-						Integer.parseInt(matcher.group(3)),
-						Integer.parseInt(matcher.group(4)));
-				return color;
-			}
-			else
-			{
-				try {
-					return (Color) Color.class.getField(argbTypeToString.toUpperCase()).get(null);
-				} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
-					return null;
-				}
-			}
-		}
+	public static Color getColor( String string ) {
+		return getColor( getARGBType( string ) );
 	}
 
-	public static ARGBType getARGBType( String name ) {
-		final Color color = getColor( name );
-		if ( color == null ) return null;
-		else return getARGBType( color );
-	}
-
-	// Decode MoBIE serialization of argb values
-	public static ARGBType getArgbType( String argbString )
+	// convert a string to a color
+	// trying various encodings
+	public static ARGBType getARGBType( String string )
 	{
-		if ( argbString == null ) return null;
-		if ( argbString.equals( "" ) ) return null;
+		if ( string == null ) return null;
+		if ( string.equals( "" ) ) return null;
 
-		String[] splitArgbString = argbString.split("-");
-		int[] argbValues = new int[4];
-		for (int j = 0; j < splitArgbString.length; j++)
-			argbValues[j] = Integer.parseInt(splitArgbString[j]);
-		final ARGBType argbType = new ARGBType( ARGBType.rgba( argbValues[ 1 ], argbValues[ 2 ], argbValues[ 3 ], argbValues[ 0 ] ) );
-		return argbType;
+		Pattern pattern = Pattern.compile("(.+)-(.+)-(.+)-(.+)");
+		Matcher matcher = pattern.matcher(string);
+		if ( matcher.matches() )
+			return getArgbType( matcher );
+
+		pattern = Pattern.compile(".*r=(.+),g=(.+),b=(.+),a=(.+).*");
+		matcher = pattern.matcher(string);
+		if ( matcher.matches() )
+			return getArgbType( matcher );
+
+		try {
+			final Color color = ( Color ) Color.class.getField( string.toUpperCase() ).get( null );
+			return getARGBType( color );
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+			return null;
+		}
+
 	}
 
-	public static ARGBType toArgbType( int[] color )
+	private static ARGBType getArgbType( Matcher matcher )
+	{
+		return new ARGBType(
+						ARGBType.rgba(
+								Integer.parseInt(matcher.group(1)),
+								Integer.parseInt(matcher.group(2)),
+								Integer.parseInt(matcher.group(3)),
+								Integer.parseInt(matcher.group(4))
+								));
+	}
+
+	public static ARGBType getARGBType( int[] color )
 	{
 		final int rgba = ARGBType.rgba( color[ 0 ], color[ 1 ], color[ 2 ], color[ 3 ] );
 		final ARGBType argbType = new ARGBType( rgba );
 		return argbType;
 	}
 
-	public static String toString( LUT lut )
+	public static ARGBType getARGBType( LUT lut )
 	{
-		return toString( toArgbType( lut ) );
+		return getARGBType( getInts( lut ) );
 	}
 
-	public static ARGBType toArgbType( LUT lut )
+	private static int[] getInts( LUT lut )
 	{
-		final int[] ints = { lut.getRed( 255 ), lut.getGreen( 255 ), lut.getBlue( 255 ), lut.getAlpha( 255 ) };
-		final ARGBType argbType = toArgbType( ints );
+		return new int[]{ lut.getRed( 255 ), lut.getGreen( 255 ), lut.getBlue( 255 ), lut.getAlpha( 255 ) };
+	}
+
+	public static ARGBType getPseudoRandomGlasbeyARGBType( String name )
+	{
+		final GlasbeyARGBLut glasbeyARGBLut = new GlasbeyARGBLut();
+		double random = name.hashCode() * goldenRatio;
+		random = random - ( long ) Math.floor( random );
+		final int argb = glasbeyARGBLut.getARGB( random );
+		final ARGBType argbType = new ARGBType( argb );
 		return argbType;
 	}
 }

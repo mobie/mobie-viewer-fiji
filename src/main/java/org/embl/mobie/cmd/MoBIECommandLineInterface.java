@@ -4,7 +4,6 @@ import ij.IJ;
 import ij.ImagePlus;
 import net.imagej.ImageJ;
 import org.embl.mobie.viewer.MoBIE;
-import org.jetbrains.annotations.TestOnly;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
@@ -12,25 +11,27 @@ import java.util.concurrent.Callable;
 
 public class MoBIECommandLineInterface implements Callable<Void> {
 
-	@Option(names = {"-i", "--image"}, required = true, description = "intensity image, e.g. -i /home/image.tif")
-	private String image = null;
+	// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/926
 
-	@Option(names = {"-s", "--segmentation"}, required = true, description = "label mask image, e.g. -s /home/labels.tif")
-	private String segmentation = null;
+	@Option(names = {"-i", "--image"}, required = false, description = "intensity image, e.g. -i /home/image.tif")
+	private String[] images = null;
+
+	@Option(names = {"-s", "--segmentation"}, required = false, description = "label mask image, e.g. -s /home/labels.tif")
+	private String[] segmentations = null;
 
 	@Override
 	public Void call() throws Exception {
-		run( image, segmentation );
+		run( images, segmentations );
 		return null;
 	}
 
-	public void run( String image, String segmentation )
+	public void run( String[] images, String[] segmentations )
 	{
 		final ImageJ imageJ = new ImageJ();
 		//imageJ.ui().showUI(); // TODO maybe don't?
 
-		final ImagePlus intensityImp = IJ.openImage( image );
-		final ImagePlus segmentationImp = IJ.openImage( segmentation );
+		final ImagePlus intensityImp = IJ.openImage( images[ 0 ] );
+		final ImagePlus segmentationImp = IJ.openImage( segmentations[ 0 ] );
 
 		new MoBIE( "", intensityImp, segmentationImp );
 	}

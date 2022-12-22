@@ -144,6 +144,8 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		}
 	}
 
+
+
 	private void setDisplaySettings( SourceAndConverter< ? > sourceAndConverter )
 	{
 		final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter );

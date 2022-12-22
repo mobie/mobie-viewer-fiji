@@ -167,7 +167,7 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 
 	public ARGBType getSelectionColor()
 	{
-		return ColorHelper.getArgbType( selectionColor );
+		return ColorHelper.getARGBType( selectionColor );
 	}
 
 	public double getOpacityNotSelected()
@@ -198,7 +198,7 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 		final MobieColoringModel< ? extends Annotation > mobieColoringModel = annotationDisplay.coloringModel;
 
 		this.opacityNotSelected = mobieColoringModel.getOpacityNotSelected();
-		this.selectionColor = ColorHelper.toString( mobieColoringModel.getSelectionColor() );
+		this.selectionColor = ColorHelper.getString( mobieColoringModel.getSelectionColor() );
 
 		final ColoringModel< ? extends Annotation > coloringModel = mobieColoringModel.getWrappedColoringModel();
 

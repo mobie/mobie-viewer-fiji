@@ -30,11 +30,10 @@ package org.embl.mobie.viewer.bdv.view;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
-import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
 import net.imglib2.converter.Converter;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.color.ColorHelper;
 import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
 import org.embl.mobie.viewer.serialize.display.ImageDisplay;
 import org.embl.mobie.viewer.image.Image;
@@ -47,8 +46,6 @@ import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 
 public class ImageSliceView< T extends NumericType< T > & RealType< T > > extends AbstractSliceView
 {
@@ -101,36 +98,33 @@ public class ImageSliceView< T extends NumericType< T > & RealType< T > > extend
 
 	private void adaptContrastLimits( SourceAndConverter< ? > sourceAndConverter )
 	{
-		final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter );
-		converterSetup.setDisplayRange( display.getContrastLimits()[ 0 ], display.getContrastLimits()[ 1 ] );
+		final double[] contrastLimits = display.getContrastLimits();
+		if ( contrastLimits != null )
+		{
+			final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter );
+			converterSetup.setDisplayRange( contrastLimits[ 0 ], contrastLimits[ 1 ] );
+		}
 	}
-
 
 	private void adaptColor( SourceAndConverter< ? > sourceAndConverter )
 	{
-		if ( display.getColor() != null )
-		{
-			final String color = display.getColor();
+		if ( display.getColor() == null ) return;
 
-			if ( color.equals( "randomFromGlasbey" ) )
-			{
-				final GlasbeyARGBLut glasbeyARGBLut = new GlasbeyARGBLut();
-				double random = sourceAndConverter.getSpimSource().getName().hashCode() * goldenRatio;
-				random = random - ( long ) Math.floor( random );
-				final int argb = glasbeyARGBLut.getARGB( random );
-				new ColorChanger( sourceAndConverter, new ARGBType( argb ) ).run();
-			}
-			else
-			{
-				final ARGBType argbType = ColorUtils.getARGBType( color );
-				if ( argbType == null )
-				{
-					IJ.log( "[WARN] Could not parse color: " + color );
-				} else
-				{
-					new ColorChanger( sourceAndConverter, argbType ).run();
-				}
-			}
+		final String color = display.getColor();
+
+		ARGBType argbType;
+		if ( color.equals( "randomFromGlasbey" ) )
+			argbType = ColorHelper.getPseudoRandomGlasbeyARGBType( sourceAndConverter.getSpimSource().getName() );
+		else
+			argbType = ColorHelper.getARGBType( color );
+
+		if ( argbType == null )
+		{
+			IJ.log( "[WARN] Could not parse color: " + color );
+			return;
 		}
+
+		new ColorChanger( sourceAndConverter, argbType ).run();
 	}
+
 }

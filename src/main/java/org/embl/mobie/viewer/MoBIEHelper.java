@@ -54,7 +54,7 @@ public abstract class MoBIEHelper
 
 		for(int i = 0; i < longs.length; ++i)
 			longs[i] = ints[i];
-
+R
 		return longs;
 	}
 
@@ -64,6 +64,7 @@ public abstract class MoBIEHelper
 		{
 			ImporterOptions opts = new ImporterOptions();
 			opts.setId( path );
+			opts.setVirtual( true );
 			opts.setSeriesOn( seriesIndex, true );
 			ImportProcess process = new ImportProcess( opts );
 			process.execute();

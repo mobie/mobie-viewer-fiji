@@ -79,40 +79,42 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 		}
 	}
 
-	public void convertStringToARGB( String value, ARGBType output )
+	public void convertStringToARGB( String categoricalValue, ARGBType output )
 	{
-		if ( inputToFixedColor.keySet().contains( value ) )
+		// fixed color
+		//
+		if ( inputToFixedColor.keySet().contains( categoricalValue ) )
 		{
-			output.set( inputToFixedColor.get( value ) );
+			output.set( inputToFixedColor.get( categoricalValue ) );
 			return;
 		}
 
 		if ( lut instanceof ColumnARGBLut )
 		{
-			final ARGBType argbType = ColorHelper.getArgbType( value );
+			final ARGBType argbType = ColorHelper.getARGBType( categoricalValue );
+
+			final int argbIndex;
 			if ( argbType == null )
-			{
-				inputToFixedColor.put( value, LUTs.TRANSPARENT.get() );
-			}
+				argbIndex = LUTs.TRANSPARENT.get();
 			else
-			{
-				final int argbIndex = argbType.get();
-				inputToFixedColor.put( value, argbIndex );
-			}
-			output.set( inputToFixedColor.get( value ) );
+				argbIndex = argbType.get();
+
+			inputToFixedColor.put( categoricalValue, argbIndex );
+			output.set( argbIndex );
 			return;
 		}
 
- 		if ( inputToRandomColor.keySet().contains( value ) )
+		// random color
+		//
+ 		if ( inputToRandomColor.keySet().contains( categoricalValue ) )
 		{
-			output.set( inputToRandomColor.get( value ) );
+			output.set( inputToRandomColor.get( categoricalValue ) );
 			return;
 		}
 
-		// create and remember random color for this value
-		final double random = createRandom( value.hashCode() );
+		final double random = createRandom( categoricalValue.hashCode() );
 		final int argb = lut.getARGB( random );
-		inputToRandomColor.put( value, argb );
+		inputToRandomColor.put( categoricalValue, argb );
 		output.set( argb );
 	}
 

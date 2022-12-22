@@ -16,6 +16,7 @@ public abstract class DataStore
 	// Images of the current view
 	private static Map< String, Image< ? > > images = new ConcurrentHashMap<>();
 
+	// Currently, only used to pre-load tables for region annotations
 	private static Map< String, DataSource > rawData = new ConcurrentHashMap<>();
 
 	public static void putRawData( DataSource dataSource )

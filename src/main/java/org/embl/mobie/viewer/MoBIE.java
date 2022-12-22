@@ -49,7 +49,6 @@ import org.embl.mobie.viewer.annotation.AnnotatedSpot;
 import org.embl.mobie.viewer.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.viewer.annotation.LazyAnnotatedSegmentAdapter;
 import org.embl.mobie.viewer.color.ColorHelper;
-import org.embl.mobie.viewer.color.lut.LUTs;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.viewer.image.Image;
@@ -86,12 +85,15 @@ import org.embl.mobie.viewer.view.ViewManager;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import spimdata.util.Displaysettings;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -163,6 +165,113 @@ public class MoBIE
 		openAndViewDataset();
 	}
 
+	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths ) throws SpimDataException
+	{
+		settings = new MoBIESettings();
+
+		final ImageDataFormat segmentationDataFormat = ImageDataFormat.fromPath( segmentationPath );
+		settings.addImageDataFormat( segmentationDataFormat );
+
+		// init project and dataset
+		project = new Project( projectName );
+		currentDatasetName = project.getName();
+		project.datasets().add( currentDatasetName );
+		project.setDefaultDataset( currentDatasetName );
+		// FIXME where is the link of a dataset to its name?
+		dataset = new Dataset( intensityImp.getNSlices() == 1 );
+
+		final SpimDataOpener spimDataOpener = new SpimDataOpener();
+
+		// init images: data and corresponding display
+		//
+		for ( String imagePath : imagePaths )
+		{
+			final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( imagePath );
+			settings.addImageDataFormat( imageDataFormat );
+			final AbstractSpimData< ? > spimData = spimDataOpener.openSpimData( imagePath, imageDataFormat );
+
+			// spimData can contain multiple images
+			// (bio-formats series and/or channels)
+			// (moBIE images are single channel)
+			final int numImages = spimData.getSequenceDescription().getViewSetupsOrdered().size();
+
+			for ( int imageIndex = 0; imageIndex < numImages; imageIndex++ )
+			{
+				// configure DataSource
+				final StorageLocation storageLocation = configureStorageLocation( imagePath, imageIndex, ImageDataFormat.fromPath( imagePath ) );
+				final String imageName = new File( imagePath ).getName();
+
+				final ImageDataSource imageDataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
+				imageDataSource.preInit( true );
+				dataset.sources.put( imageDataSource.getName(), imageDataSource );
+
+				// configure corresponding Display
+				final Displaysettings displaysettings = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex ).getAttribute( Displaysettings.class );
+				if ( displaysettings != null )
+				{
+					final String color = ColorHelper.getString( displaysettings.color );
+					final double[] contrastLimits = { displaysettings.min, displaysettings.max };
+
+					final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, Arrays.asList( imageName ), color, contrastLimits, false, null );
+					final View view = new View( imageName, "intensity", Arrays.asList( imageDisplay ), null, false );
+					dataset.views.put( view.getName(), view );
+				}
+				else
+				{
+					throw new UnsupportedOperationException("Please contact @tischi to fix this :)");
+				}
+			}
+		}
+
+////		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( image, displaysettings );
+//		final int channel = 0;  // TODO: For loop
+//
+//
+//
+//
+//		// intensity display
+//		// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/923
+//		intensityImp.setC( channel );
+//		final ImageProcessor processor = intensityImp.getProcessor();
+//		final LUT lut = processor.getLut();
+//		final String color = ColorHelper.getString( lut );
+//		final double[] contrastLimits = { processor.getMin(), processor.getMax() };
+//
+//		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, Arrays.asList( imageName ), color, contrastLimits, false, null );
+//		final View intensityView = new View( imageName, "intensity", Arrays.asList( imageDisplay ), null, false );
+//		dataset.views.put( intensityView.getName(), intensityView );
+//
+//		// init segmentations
+//		final String labelImageName = labelImp.getTitle();
+//		final StorageLocation labelStorageLocation = new StorageLocation();
+//		labelStorageLocation.data = labelImp;
+//		final SegmentationDataSource segmentationDataSource = new SegmentationDataSource( labelImageName, ImageDataFormat.ImagePlus, labelStorageLocation );
+//		dataset.sources.put( segmentationDataSource.getName(), segmentationDataSource );
+//
+//		// segmentation display
+//		final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( labelImageName, Arrays.asList( segmentationDataSource.getName() ) );
+//		final View segmentationView = new View( labelImageName, "segmentation", Arrays.asList( segmentationDisplay ), null, false );
+//		dataset.views.put( segmentationView.getName(), segmentationView );
+
+
+		// view dataset
+		initUIandShowView( imageName );
+		viewManager.show( segmentationView );
+
+	}
+
+	private StorageLocation configureStorageLocation( String imagePath, int channel, ImageDataFormat imageDataFormat )
+	{
+		final StorageLocation imageStorageLocation = new StorageLocation();
+		if ( imageDataFormat.isRemote() )
+			imageStorageLocation.s3Address = imagePath;
+		else
+			imageStorageLocation.relativePath = imagePath;
+		imageStorageLocation.channel = channel;
+
+		return imageStorageLocation;
+	}
+
 	public MoBIE( String projectName, ImagePlus intensityImp, ImagePlus labelImp )
 	{
 		settings = new MoBIESettings();
@@ -190,7 +299,7 @@ public class MoBIE
 		intensityImp.setC( channel );
 		final ImageProcessor processor = intensityImp.getProcessor();
 		final LUT lut = processor.getLut();
-		final String color = ColorHelper.toString( lut );
+		final String color = ColorHelper.getString( lut );
 		final double[] contrastLimits = { processor.getMin(), processor.getMax() };
 
 		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( intensityImageName, Arrays.asList( intensityImageName ), color, contrastLimits, false, null );
@@ -607,12 +716,9 @@ public class MoBIE
 		return projectCommands;
 	}
 
-	public void initDataSources( List< DataSource > dataSources )
+	public void initDataSources( Collection< DataSource > dataSources )
 	{
 		IJ.log("Initializing data from " + dataSources.size() + " source(s)..." );
-		//final int numPreInit = dataSources.stream().filter( dataSource -> dataSource.preInit() ).collect( Collectors.toList() ).size();
-		//if ( numPreInit > 20 )
-		//	IJ.log("Prefetching data from " + numPreInit + " sources (this may take some time...)" );
 
 		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
 		AtomicInteger sourceIndex = new AtomicInteger(0);
@@ -626,6 +732,9 @@ public class MoBIE
 		{
 			// FIXME Cache SpimData?
 			//   https://github.com/mobie/mobie-viewer-fiji/issues/857
+			// FIXME This currently only is used for region tables,
+			//   and thus seems to be of no general use
+			//   also consider:
 			if ( DataStore.containsRawData( dataSource.getName() ) )
 			{
 				continue;

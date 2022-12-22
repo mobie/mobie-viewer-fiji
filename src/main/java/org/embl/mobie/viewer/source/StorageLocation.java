@@ -30,8 +30,10 @@ package org.embl.mobie.viewer.source;
 
 public class StorageLocation
 {
-	// for data on disk or S3
+	// for data on disk
 	public String relativePath;
+
+	// for data on s3
 	public String s3Address;
 	public String signingRegion;
 
@@ -40,6 +42,15 @@ public class StorageLocation
 
 	// the image data model in MoBIE is single channel,
 	// and thus one needs to subset a potentially
-	// multi-channel image data source
+	// multi-channel image data source.
+	//
+	// as data is opened as {@code SpimData}
+	// the channel can also refer to a setup, which
+	// does not need to be a channel, but could be some
+	// entirely other image, e.g. in CZI or LIF files
+	//
+	// historically, we only had channels, and thus the name
+	// of the variable is "channel" and cannot readily be changed
+	// because we use in the MoBIE JSON spec
 	public Integer channel = 0;
 }
