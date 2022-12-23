@@ -37,7 +37,10 @@ import ij.ImagePlus;
 import ij.measure.ResultsTable;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.table.TableDataFormatNames;
+import org.scijava.Initializable;
 import org.scijava.command.Command;
+import org.scijava.command.DynamicCommand;
+import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
@@ -54,7 +57,7 @@ import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Y;
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Z;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Explore>Explore Image and Segmentation and Table..."  )
-public class ExploreImageAndSegmentationAndTableCommand implements Command
+public class ExploreImageAndSegmentationAndTableCommand extends DynamicCommand implements Initializable
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -87,6 +90,14 @@ public class ExploreImageAndSegmentationAndTableCommand implements Command
 		new MoBIE( "ImageJ", image, segmentation, resultsTable );
 	}
 
+	@Override
+	public void initialize()
+	{
+		final ResultsTableFetcher tableFetcher = new ResultsTableFetcher();
+		final HashMap< String, ResultsTable > titleToTable = tableFetcher.fetchCurrentlyOpenResultsTables();
+		MutableModuleItem< String > input = getInfo().getMutableInput("tableName", String.class );
+		input.setChoices( new ArrayList<>( titleToTable.keySet() ));
+	}
 
 	private List< TableRowImageSegment > createMLJTableRowImageSegments( ResultsTable resultsTable, String labelImageId )
 	{
