@@ -139,8 +139,8 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 		return scatterPlotAxes;
 	}
 
-	// table = chunk of columns
-	public List< String > getAdditionalTables()
+	// in addition to the default table chunk
+	public List< String > getRequestedTableChunks()
 	{
 		return additionalTables;
 	}
@@ -223,7 +223,7 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 		this.scatterPlotAxes = annotationDisplay.scatterPlotView.getSelectedColumns();
 		this.additionalTables = annotationDisplay.additionalTables;
 
-		final LinkedHashSet< String > additionalTablePaths = annotationDisplay.annData.getTable().getAdditionalTablePaths();
+		final LinkedHashSet< String > additionalTablePaths = annotationDisplay.annData.getTable().getLoadedTableChunks();
 		if ( additionalTablePaths.size() > 0 )
 		{
 			if ( this.additionalTables == null )

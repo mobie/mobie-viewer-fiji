@@ -67,25 +67,25 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	}
 
 	@Override
-	public void requestAdditionalColumns( String columnsPath )
+	public void requestTableChunk( String columnsPath )
 	{
 		// not implemented
 	}
 
 	@Override
-	public void setTablePaths( Set< String > columnPaths )
+	public void setAvailableTableChunks( Set< String > columnPaths )
 	{
 		// not implemented
 	}
 
 	@Override
-	public Collection< String > getTablePaths()
+	public Collection< String > getAvailableTableChunks()
 	{
 		throw new UnsupportedOperationException( this.getClass().getName() + " does not support loading of additional tables." );
 	}
 
 	@Override
-	public LinkedHashSet< String > getAdditionalTablePaths()
+	public LinkedHashSet< String > getLoadedTableChunks()
 	{
 		return loadedColumnPaths;
 	}
@@ -109,7 +109,7 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	}
 
 	@Override
-	public String dataStore()
+	public String getStorageLocation()
 	{
 		return null;
 	}

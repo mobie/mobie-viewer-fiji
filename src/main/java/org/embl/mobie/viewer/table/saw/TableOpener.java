@@ -1,6 +1,7 @@
 package org.embl.mobie.viewer.table.saw;
 
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import tech.tablesaw.api.ColumnType;
@@ -24,8 +25,35 @@ public class TableOpener
 		nameToType.put( ColumnNames.SPOT_Z, ColumnType.FLOAT );
 	}
 
-	public static Table openTable( String path, TableDataFormat tableDataFormat, int numSamples )
+	public static Table open( StorageLocation storageLocation, TableDataFormat tableDataFormat )
 	{
+		return open( storageLocation, storageLocation.defaultChunk, tableDataFormat, -1 );
+	}
+	public static Table open( StorageLocation storageLocation, String relativeChunkLocation, TableDataFormat tableDataFormat )
+	{
+		return open( storageLocation, relativeChunkLocation, tableDataFormat, -1 );
+	}
+	public static Table open( StorageLocation storageLocation, String relativeChunkLocation, TableDataFormat tableDataFormat, int numSamples )
+	{
+		switch ( tableDataFormat )
+		{
+			case MorpholibJCSV:
+				// FIXME
+				return null;
+			case MorpholibJ:
+				// FIXME
+				return null;
+			case MoBIETSV:
+			default:
+				return openMoBIETSV( storageLocation, relativeChunkLocation, tableDataFormat, numSamples );
+
+		}
+
+	}
+
+	private static Table openMoBIETSV( StorageLocation storageLocation, String relativeChunkLocation, TableDataFormat tableDataFormat, int numSamples )
+	{
+		String path = IOHelper.combinePath( storageLocation.absolutePath, relativeChunkLocation );
 		path = resolveTablePath( path );
 
 		final Character separator = tableDataFormat.getSeparator();

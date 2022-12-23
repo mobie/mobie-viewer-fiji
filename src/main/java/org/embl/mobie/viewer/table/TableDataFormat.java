@@ -35,11 +35,11 @@ import static org.embl.mobie.viewer.table.TableDataFormatNames.*;
 public enum TableDataFormat
 {
 	@SerializedName( TSV )
-	TabDelimitedFile,  // TSV file with MoBIE column names
+	MoBIETSV,  // TSV file with MoBIE column names
 	@SerializedName( MLJCSV )
-	MorpholibJCSV; // CSV file with MorpholibJ column names
+	MorpholibJCSV, // CSV file with MorpholibJ column names
 	@SerializedName( MLJ )
-	MorpholibJResultsTable; // RAM resident table with MorpholibJ column names
+	MorpholibJ; // RAM resident table with MorpholibJ column names
 
 	public static final String DEFAULT_TSV = "default.tsv";
 
@@ -48,7 +48,7 @@ public enum TableDataFormat
 	{
 		switch ( this )
 		{
-			case TabDelimitedFile:
+			case MoBIETSV:
 			default:
 				return TSV;
 		}
@@ -59,7 +59,7 @@ public enum TableDataFormat
 	{
 		switch ( this )
 		{
-			case TabDelimitedFile:
+			case MoBIETSV:
 			default:
 				return '\t';
 		}
@@ -69,7 +69,7 @@ public enum TableDataFormat
 	{
 		switch ( this )
 		{
-			case TabDelimitedFile:
+			case MoBIETSV:
 			default:
 				return new MoBIESegmentColumnNames();
 		}

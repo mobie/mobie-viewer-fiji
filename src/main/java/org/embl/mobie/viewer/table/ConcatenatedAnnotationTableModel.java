@@ -3,6 +3,7 @@ package org.embl.mobie.viewer.table;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import org.embl.mobie.viewer.annotation.Annotation;
+import org.embl.mobie.viewer.source.StorageLocation;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -69,29 +70,29 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	}
 
 	@Override
-	public void requestAdditionalColumns( String columnsPath )
+	public void requestTableChunk( String columnsPath )
 	{
 		for ( AnnotationTableModel< A > tableModel : tableModels )
-			tableModel.requestAdditionalColumns( columnsPath );
+			tableModel.requestTableChunk( columnsPath );
 	}
 
 	@Override
-	public void setTablePaths( Set< String > availableColumnPaths )
+	public void setAvailableTableChunks( Set< String > availableTableChunks )
 	{
 		for ( AnnotationTableModel< A > tableModel : tableModels )
-			tableModel.setTablePaths( availableColumnPaths );
+			tableModel.setAvailableTableChunks( availableTableChunks );
 	}
 
 	@Override
-	public Collection< String > getTablePaths()
+	public Collection< String > getAvailableTableChunks()
 	{
-		return referenceTable.getTablePaths();
+		return referenceTable.getAvailableTableChunks();
 	}
 
 	@Override
-	public LinkedHashSet< String > getAdditionalTablePaths()
+	public LinkedHashSet< String > getLoadedTableChunks()
 	{
-		return referenceTable.getAdditionalTablePaths();
+		return referenceTable.getLoadedTableChunks();
 	}
 
 	@Override
@@ -114,9 +115,9 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	}
 
 	@Override
-	public String dataStore()
+	public StorageLocation getStorageLocation()
 	{
-		return referenceTable.dataStore();
+		return referenceTable.getStorageLocation();
 	}
 
 	@Override

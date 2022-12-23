@@ -28,10 +28,6 @@
  */
 package org.embl.mobie.viewer.command;
 
-import bdv.viewer.SourceAndConverter;
-import de.embl.cba.segmentationannotator.ImagePlusToSourceAndConverter;
-import de.embl.cba.segmentationannotator.SourceMetadata;
-import de.embl.cba.segmentationannotator.SourcesAndSegmentsViewer;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
 import de.embl.cba.tables.imagesegment.SegmentUtils;
@@ -39,6 +35,7 @@ import de.embl.cba.tables.results.ResultsTableFetcher;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.ImagePlus;
 import ij.measure.ResultsTable;
+import org.embl.mobie.viewer.table.TableDataFormatNames;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -73,37 +70,21 @@ public class ExploreImageAndSegmentationAndTable implements Command
 	@Parameter ( label = "Label mask image" )
 	public ImagePlus labelImage;
 
-	@Parameter ( label = "Results table title" )
-	public String resultsTableTitle;
+	@Parameter ( label = "Table" )
+	public String tableName; // FIXME: widget for ResultsTable or init to auto-populate
 
-	@Parameter ( label = "Results table title" )
-	public String resultsTableTitle;
-
-
-
-	private List< TableRowImageSegment > tableRowImageSegments;
+	@Parameter ( label = "Table format", choices = { TableDataFormatNames.MLJ } )
+	public String tableFormat;
 
 	@Override
 	public void run()
 	{
-		// create sources
-		Map< SourceAndConverter< ? >, SourceMetadata > sources = new HashMap<>();
-		final String labelImageId = ImagePlusToSourceAndConverter.addPrimaryLabelSource( sources, labelImage );
-		ImagePlusToSourceAndConverter.addIntensitySource( sources, intensityImage );
-
-		// create table
+		// fetch table
 		final ResultsTableFetcher tableFetcher = new ResultsTableFetcher();
-		ResultsTable resultsTable = tableFetcher.fetch( resultsTableTitle );
-		tableRowImageSegments = createMLJTableRowImageSegments( resultsTable, labelImageId );
+		ResultsTable resultsTable = tableFetcher.fetch( tableName );
 
-		// view
-		SourcesAndSegmentsViewer.view( sources, tableRowImageSegments, intensityImage.getNSlices() == 1, intensityImage.getNFrames() );
 	}
 
-	public List< TableRowImageSegment > getTableRowImageSegments()
-	{
-		return tableRowImageSegments;
-	}
 
 	private List< TableRowImageSegment > createMLJTableRowImageSegments( ResultsTable resultsTable, String labelImageId )
 	{

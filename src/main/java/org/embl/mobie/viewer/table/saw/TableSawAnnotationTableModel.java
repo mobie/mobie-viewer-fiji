@@ -5,6 +5,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.annotation.Annotation;
+import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.AbstractAnnotationTableModel;
 import org.embl.mobie.viewer.table.AnnotationListener;
 import org.embl.mobie.viewer.table.DefaultValues;
@@ -22,41 +23,38 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+// https://jtablesaw.github.io/tablesaw/userguide/tables.html
 public class TableSawAnnotationTableModel< A extends Annotation > extends AbstractAnnotationTableModel< A >
 {
 	private final String dataSourceName;
 	private final TableSawAnnotationCreator< A > annotationCreator;
-	private final String dataStore;
-	private Set< String > tablePaths;
-	private LinkedHashSet< String > additionalTablePaths = new LinkedHashSet<>();
-	private LinkedHashSet< String > loadedTablePaths = new LinkedHashSet<>();
+	private Set< String > tableChunks;
+	private LinkedHashSet< String > requestedTableChunks = new LinkedHashSet<>();
+	private LinkedHashSet< String > loadedTableChunks = new LinkedHashSet<>();
 	private ArrayList< A > annotations = new ArrayList<>();
 
 	private Table table;
 	private AffineTransform3D affineTransform3D = new AffineTransform3D();
 	private boolean updateTransforms = false;
-	private String defaultTablePath;
+	private StorageLocation storageLocation;
 	private final TableDataFormat tableDataFormat;
 
-	// use this if the default table is available already
 	public TableSawAnnotationTableModel(
 			String name,
 			TableSawAnnotationCreator< A > annotationCreator,
-			String tableStore,
-			String defaultTablePath,
+			StorageLocation storageLocation,
 			TableDataFormat tableDataFormat,
 			@Nullable Table defaultTable )
 	{
 		this.dataSourceName = name;
 		this.annotationCreator = annotationCreator;
-		this.dataStore = tableStore;
-		this.defaultTablePath = defaultTablePath;
+		this.storageLocation = storageLocation;
 		this.tableDataFormat = tableDataFormat;
 
 		if ( defaultTable != null )
 		{
 			initTable( defaultTable );
-			loadedTablePaths.add( defaultTablePath );
+			loadedTableChunks.add( storageLocation.defaultChunk );
 		}
 	}
 
@@ -65,19 +63,17 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		return dataSourceName;
 	}
 
-	// https://jtablesaw.github.io/tablesaw/userguide/tables.html
-
 	private synchronized void update()
 	{
 		if ( table == null )
-			initTable( readTable( defaultTablePath ) );
+			initTable( openTable( storageLocation.defaultChunk ) );
 
-		final List< String > tablePaths = additionalTablePaths.stream()
-				.filter( path -> ! loadedTablePaths.contains( path ) )
+		final List< String > tableChunks = requestedTableChunks.stream()
+				.filter( path -> ! loadedTableChunks.contains( path ) )
 				.collect( Collectors.toList() );
 
-		for ( String tablePath : tablePaths )
-			joinTable( readTable( tablePath ) );
+		for ( String tableChunk : tableChunks )
+			joinTable( openTable( tableChunk ) );
 
 		synchronized ( affineTransform3D )
 		{
@@ -93,10 +89,10 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		}
 	}
 
-	private Table readTable( String tablePath )
+	private Table openTable( String tableChunk )
 	{
-		loadedTablePaths.add( tablePath );
-		return TableOpener.openTable( tablePath, tableDataFormat, -1 );
+		loadedTableChunks.add( tableChunk );
+		return TableOpener.open( storageLocation, tableChunk, tableDataFormat, -1 );
 	}
 
 	private void joinTable( Table additionalTable )
@@ -234,31 +230,30 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	}
 
 	@Override
-	public void requestAdditionalColumns( String tablePath )
+	public void requestTableChunk( String tablePath )
 	{
-		additionalTablePaths.add( tablePath );
+		requestedTableChunks.add( tablePath );
 	}
 
 	@Override
-	public void setTablePaths( Set< String > tablePaths )
+	public void setAvailableTableChunks( Set< String > tableChunks )
 	{
-		this.tablePaths = tablePaths;
+		this.tableChunks = tableChunks;
 	}
 
 	@Override
-	public Collection< String > getTablePaths()
+	public Collection< String > getAvailableTableChunks()
 	{
-		if ( tablePaths == null )
-		{
-			tablePaths = Arrays.stream( IOHelper.getFileNames( dataStore ) ).map( fileName -> IOHelper.combinePath( dataStore, fileName ) ).collect( Collectors.toSet() );
-		}
-		return tablePaths;
+		if ( tableChunks == null )
+			tableChunks = Arrays.stream( IOHelper.getFileNames( storageLocation.absolutePath ) ).collect( Collectors.toSet() );
+
+		return tableChunks;
 	}
 
 	@Override
-	public LinkedHashSet< String > getAdditionalTablePaths()
+	public LinkedHashSet< String > getLoadedTableChunks()
 	{
-		return additionalTablePaths; // excluding the default table
+		return requestedTableChunks; // excluding the default table
 	}
 
 	@Override
@@ -294,9 +289,9 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	}
 
 	@Override
-	public String dataStore()
+	public StorageLocation getStorageLocation()
 	{
-		return dataStore;
+		return storageLocation;
 	}
 
 	@Override

@@ -689,7 +689,7 @@ public class MoBIE
 		throw new RuntimeException();
 	}
 
-	public TableDataFormat getTableDataFormat( Map< TableDataFormat, StorageLocation > tableData )
+	public TableDataFormat getTableFormat( Map< TableDataFormat, StorageLocation > tableData )
 	{
 		final Set< TableDataFormat > tableDataFormats = settings.values.getTableDataFormats();
 
@@ -731,21 +731,25 @@ public class MoBIE
 
     private String getRelativeTablePath( Map< TableDataFormat, StorageLocation > tableData )
     {
-		return tableData.get( getTableDataFormat( tableData ) ).relativePath;
+		return tableData.get( getTableFormat( tableData ) ).relativePath;
     }
 
-    public String getTableStore( Map< TableDataFormat, StorageLocation > tableData )
+    public StorageLocation getTableLocation( Map< TableDataFormat, StorageLocation > tableData )
     {
+		final TableDataFormat tableDataFormat = getTableFormat( tableData );
+		final StorageLocation storageLocation = tableData.get( tableDataFormat );
+
 		if ( project.isFromCLI() )
-			return tableData.get( getTableDataFormat( tableData ) ).absolutePath;
+			return storageLocation;
 
-		final String relativeTablePath = getRelativeTablePath( tableData );
-		return getTableStore( relativeTablePath );
-    }
+		if ( tableDataFormat.equals( TableDataFormat.MoBIETSV ) )
+		{
+			storageLocation.defaultChunk = TableDataFormat.DEFAULT_TSV;
+			storageLocation.absolutePath = IOHelper.combinePath( tableRoot, currentDatasetName, storageLocation.relativePath );
+			return storageLocation;
+		}
 
-    public String getTableStore( String relativeTableLocation )
-    {
-        return IOHelper.combinePath( tableRoot, currentDatasetName, relativeTableLocation );
+		return storageLocation;
     }
 
 	public String getDatasetPath( String... files )
@@ -883,7 +887,9 @@ public class MoBIE
 					TableSawAnnotationTableModel< TableSawAnnotatedSegment > tableModel = createTableModel( segmentationDataSource );
 
 					final DefaultAnnData< TableSawAnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
+
 					final DefaultAnnotationAdapter< TableSawAnnotatedSegment > annotationAdapter = new DefaultAnnotationAdapter( annData );
+
 					final AnnotatedLabelImage< TableSawAnnotatedSegment > annotatedLabelImage = new DefaultAnnotatedLabelImage( image, annData, annotationAdapter );
 
 					// label image representing annotated segments
@@ -911,14 +917,14 @@ public class MoBIE
 		{
 			//final long start = System.currentTimeMillis();
 			final SpotDataSource spotDataSource = ( SpotDataSource ) dataSource;
-			final String defaultTablePath = getDefaultTableLocation( spotDataSource.tableData );
-			final TableDataFormat tableDataFormat = getTableDataFormat( spotDataSource.tableData );
+			final StorageLocation tableLocation = getTableLocation( spotDataSource.tableData );
+			final TableDataFormat tableFormat = getTableFormat( spotDataSource.tableData );
 
-			Table table = TableOpener.openTable( defaultTablePath, tableDataFormat, -1 ); // 1000
+			Table table = TableOpener.open( tableLocation, tableFormat );
 
 			final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator( table );
 
-			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, moBIE.getTableStore( spotDataSource.tableData ), defaultTablePath, tableDataFormat, table );
+			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, tableLocation, tableFormat, table );
 
 			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
 
@@ -939,8 +945,10 @@ public class MoBIE
 			// However, we can already load the region table here.
 
 			final RegionDataSource regionDataSource = ( RegionDataSource ) dataSource;
+			final StorageLocation tableLocation = getTableLocation( regionDataSource.tableData );
+			final TableDataFormat tableFormat = getTableFormat( regionDataSource.tableData );
 
-			regionDataSource.table = TableOpener.openTable( getDefaultTableLocation( regionDataSource.tableData ), getTableDataFormat( regionDataSource.tableData ), -1 );;
+			regionDataSource.table = TableOpener.open( tableLocation, tableFormat );
 
 			DataStore.putRawData( regionDataSource );
 		}
@@ -951,34 +959,18 @@ public class MoBIE
 
 	private TableSawAnnotationTableModel< TableSawAnnotatedSegment > createTableModel( SegmentationDataSource dataSource )
 	{
-		final String tableStore = getTableStore( dataSource.tableData );
-		final String defaultTablePath = getDefaultTableLocation( dataSource.tableData );
-		final TableDataFormat tableDataFormat = getTableDataFormat( dataSource.tableData );
-		final SegmentColumnNames segmentColumnNames = tableDataFormat.getSegmentColumnNames();
+		final StorageLocation tableLocation = getTableLocation( dataSource.tableData );
+		final TableDataFormat tableFormat = getTableFormat( dataSource.tableData );
+		final SegmentColumnNames segmentColumnNames = tableFormat.getSegmentColumnNames();
 
 		Table table = dataSource.preInit() ?
-				TableOpener.openTable( defaultTablePath, tableDataFormat, -1 ) : null;
+				TableOpener.open( tableLocation, tableFormat ) : null;
 
 		final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( segmentColumnNames, table );
 
-		final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, tableStore, defaultTablePath, tableDataFormat, table );
+		final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, tableLocation, tableFormat, table );
 
 		return tableModel;
-
-	}
-
-	public StorageLocation getDefaultTableLocation( Map< TableDataFormat, StorageLocation > tableData )
-	{
-		final StorageLocation storageLocation = new StorageLocation();
-
-		if ( project.isFromCLI() )
-		{
-			storageLocation.absolutePath = getTableStore( tableData );
-			return storageLocation;
-		}
-
-		storageLocation.absolutePath = IOHelper.combinePath( getTableStore( tableData ), TableDataFormat.DEFAULT_TSV );
-		return storageLocation;
 	}
 
 	private SpimDataImage< ? > initImage( ImageDataFormat imageDataFormat, Integer channel, StorageLocation storageLocation, String name ) throws SpimDataException
@@ -995,17 +987,6 @@ public class MoBIE
 			// TODO  Caching? https://github.com/mobie/mobie-viewer-fiji/issues/857
 			return new SpimDataImage( imageDataFormat, imagePath, channel, name, ThreadHelper.sharedQueue );
 		}
-	}
-
-	public Set< String > getTablePaths( Map< TableDataFormat, StorageLocation > tableData )
-	{
-		final String tableDirectory = getTableStore( tableData );
-		String[] fileNames = IOHelper.getFileNames( tableDirectory );
-		//"https://raw.githubusercontent.com/mobie/clem-example-project/main/data/hela/tables/em-detail"
-		final Set< String > columnPaths = new HashSet<>();
-		for ( String fileName : fileNames )
-			columnPaths.add( IOHelper.combinePath( tableDirectory, fileName ) );
-		return columnPaths;
 	}
 
 	public List< DataSource > getDataSources( Set< String > names )

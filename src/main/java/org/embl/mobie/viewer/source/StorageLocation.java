@@ -40,6 +40,15 @@ public class StorageLocation
 	public String s3Address;
 	public String signingRegion;
 
+	// for tables the above locations refer to
+	// a container, typically a folder,
+	// which may contain multiple files with
+	// different columns.
+	// the {@code defaultChunk} points to the file
+	// that contains the default columns,
+	// such as anchor_x, ...
+	public String defaultChunk;
+
 	// for data in RAM
 	public Object data;
 
@@ -56,4 +65,5 @@ public class StorageLocation
 	// of the variable is "channel" and cannot readily be changed
 	// because we use in the MoBIE JSON spec
 	public Integer channel = 0;
+
 }

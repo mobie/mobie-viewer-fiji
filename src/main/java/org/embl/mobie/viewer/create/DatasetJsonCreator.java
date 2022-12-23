@@ -134,7 +134,7 @@ public class DatasetJsonCreator {
         annotatedLabelMaskSource.tableData = new HashMap<>();
         StorageLocation tableStorageLocation = new StorageLocation();
         tableStorageLocation.relativePath = "tables/" + imageName;
-        annotatedLabelMaskSource.tableData.put( TableDataFormat.TabDelimitedFile, tableStorageLocation );
+        annotatedLabelMaskSource.tableData.put( TableDataFormat.MoBIETSV, tableStorageLocation );
 
         imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
         annotatedLabelMaskSource.imageData = imageDataLocations;

@@ -235,7 +235,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				String path = null;
 				if ( fileLocation.equals( FileLocation.Project ) )
 				{
-					final String[] paths = tableModel.getTablePaths().toArray( new String[ 0 ] );
+					final String[] paths = tableModel.getAvailableTableChunks().toArray( new String[ 0 ] );
 					final GenericDialog gd = new GenericDialog("Choose columns");
 					gd.addChoice("Columns", paths, paths[0]);
 					gd.showDialog();
@@ -249,7 +249,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				}
 
 				IJ.log( "Loading and joining table: " + MoBIEHelper.getFileName( path ) + "..." );
-				tableModel.requestAdditionalColumns( path );
+				tableModel.requestTableChunk( path );
 				jTable.tableChanged( null );
 
 			}).start()

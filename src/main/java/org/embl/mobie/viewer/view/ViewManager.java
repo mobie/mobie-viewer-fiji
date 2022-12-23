@@ -495,10 +495,9 @@ public class ViewManager
 				if ( dropRows.size() > 0 )
 					table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
 
-
 				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( table, regionIdToImageNames );
 
-				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, moBIE.getTableStore( regionDataSource.tableData ), moBIE.getDefaultTableLocation( regionDataSource.tableData ), moBIE.getTableDataFormat( regionDataSource.tableData ), table );
+				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, moBIE.getTableLocation( regionDataSource.tableData ), moBIE.getTableFormat( regionDataSource.tableData ), table );
 
 				final DefaultAnnData< AnnotatedRegion > annData = new DefaultAnnData<>( tableModel );
 
@@ -553,13 +552,12 @@ public class ViewManager
 			annotationDisplay.initAnnData();
 
 			// Load additional tables (to be merged)
-			final List< String > additionalTables = annotationDisplay.getAdditionalTables();
-			if ( additionalTables != null )
-				for ( String table : additionalTables )
+			final List< String > requestedTableChunks = annotationDisplay.getRequestedTableChunks();
+			if ( requestedTableChunks != null )
+				for ( String tableChunk : requestedTableChunks )
 				{
 					final AnnotationTableModel< A > tableModel = annotationDisplay.getAnnData().getTable();
-					final String dataStore = tableModel.dataStore();
-					tableModel.requestAdditionalColumns( IOHelper.combinePath( dataStore, table ) );
+					tableModel.requestTableChunk( tableChunk );
 				}
 
 			// configure selection model
