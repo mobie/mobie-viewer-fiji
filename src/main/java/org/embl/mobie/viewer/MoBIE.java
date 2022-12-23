@@ -36,6 +36,7 @@ import ij.ImagePlus;
 import ij.measure.ResultsTable;
 import ij.process.ImageProcessor;
 import ij.process.LUT;
+import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
@@ -108,7 +109,8 @@ import java.util.stream.Collectors;
 
 public class MoBIE
 {
-	static {
+	static
+	{
 		net.imagej.patcher.LegacyInjector.preinit();
 
 		// Force TableSaw class loading and compilation to save time during the actual loading
@@ -129,9 +131,15 @@ public class MoBIE
 	private String imageRoot = ""; // see https://github.com/mobie/mobie-viewer-fiji/issues/933
 	private String tableRoot = ""; // see https://github.com/mobie/mobie-viewer-fiji/issues/933
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
-	private ArrayList< String > projectCommands = new ArrayList<>();;
+	private ArrayList< String > projectCommands = new ArrayList<>();
+	;
 	public static int minLogTimeMillis = 100;
 	public static boolean initiallyShowSourceNames = false;
+
+	public MoBIE( String projectLocation ) throws IOException
+	{
+		this( projectLocation, new MoBIESettings() );
+	}
 
 	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
@@ -161,7 +169,7 @@ public class MoBIE
 		openAndViewDataset();
 	}
 
-	// Called from command line
+	// command line
 	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths ) throws SpimDataException
 	{
 		initProject( projectName );
@@ -171,14 +179,10 @@ public class MoBIE
 			addCommandLineImages( imagePath );
 
 		// init segmentations
-		// TODO add tablePaths?!
 		for ( String segmentationPath : segmentationPaths )
-			addCommandLineSegmentations( segmentationPath );
+			addCommandLineSegmentations( segmentationPath ); // TODO add tablePaths
 
-		// show one view on the dataset
-		final String viewName = dataset.views.keySet().iterator().next();
-		initUI();
-		viewManager.show( getView( viewName, dataset ) );
+		initUIandShowFirstView();
 
 		//viewManager.show( segmentationView );
 
@@ -215,69 +219,15 @@ public class MoBIE
 
 	}
 
-	private void initProject( String projectName )
-	{
-		// init settings, project and dataset
-		settings = new MoBIESettings();
-		project = new Project( projectName );
-		currentDatasetName = project.getName();
-		project.datasets().add( currentDatasetName );
-		project.setDefaultDataset( currentDatasetName );
-		// FIXME where is the link of a dataset to its name?
-		dataset = new Dataset();
-		dataset.is2D = true; // changed further down
-	}
-
+	// from fiji ui
 	public MoBIE( String projectName, ImagePlus intensityImp, ImagePlus labelImp, ResultsTable resultsTable )
 	{
-		settings = new MoBIESettings();
-		settings.addImageDataFormat( ImageDataFormat.ImagePlus );
+		initProject( projectName );
 
-		// project and dataset
-		project = new Project( projectName, true );
-		currentDatasetName = project.getName();
-		project.datasets().add( currentDatasetName );
-		project.setDefaultDataset( currentDatasetName );
-		// FIXME where is the link of a dataset to its name?
-		dataset = new Dataset();
-		dataset.is2D = intensityImp.getNSlices() == 1;
+		addImagePlusImages( intensityImp, false );
+		addImagePlusImages( labelImp, true ); // TODO add table
 
-		// intensity image
-		final int channel = 0;  // TODO: For loop
-
-		final String intensityImageName = intensityImp.getTitle();
-		final StorageLocation intensityStorageLocation = new StorageLocation();
-		intensityStorageLocation.data = intensityImp;
-		intensityStorageLocation.channel = channel;
-		final ImageDataSource imageDataSource = new ImageDataSource( intensityImageName, ImageDataFormat.ImagePlus, intensityStorageLocation );
-		dataset.sources.put( imageDataSource.getName(), imageDataSource );
-
-		// intensity display
-		intensityImp.setC( channel );
-		final ImageProcessor processor = intensityImp.getProcessor();
-		final LUT lut = processor.getLut();
-		final String color = ColorHelper.getString( lut );
-		final double[] contrastLimits = { processor.getMin(), processor.getMax() };
-
-		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( intensityImageName, Arrays.asList( intensityImageName ), color, contrastLimits, false, null );
-		final View intensityView = new View( intensityImageName, "intensity", Arrays.asList( imageDisplay ), null, false );
-		dataset.views.put( intensityView.getName(), intensityView );
-
-		// label image
-		final String labelImageName = labelImp.getTitle();
-		final StorageLocation labelStorageLocation = new StorageLocation();
-		labelStorageLocation.data = labelImp;
-		final SegmentationDataSource segmentationDataSource = new SegmentationDataSource( labelImageName, ImageDataFormat.ImagePlus, labelStorageLocation );
-		dataset.sources.put( segmentationDataSource.getName(), segmentationDataSource );
-
-		// segmentation display
-		final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( labelImageName, Arrays.asList( segmentationDataSource.getName() ) );
-		final View segmentationView = new View( labelImageName, "segmentation", Arrays.asList( segmentationDisplay ), null, false );
-		dataset.views.put( segmentationView.getName(), segmentationView );
-
-		// open UI and show view
-		initUI();
-		viewManager.show( getView( intensityImageName, dataset ) );
+		initUIandShowFirstView();
 
 		// intensity image
 //		final AbstractSpimData< ? > intensitySpimData = ImagePlusToSpimData.getSpimData( intensityImp );
@@ -324,6 +274,63 @@ public class MoBIE
 //		new View(  );
 //
 
+	}
+
+
+	private void initUIandShowFirstView()
+	{
+		final String viewName = dataset.views.keySet().iterator().next();
+		initUI();
+		viewManager.show( getView( viewName, dataset ) );
+	}
+
+	private void initProject( String projectName )
+	{
+		// init settings, project and dataset
+		settings = new MoBIESettings();
+		project = new Project( projectName );
+		currentDatasetName = project.getName();
+		project.datasets().add( currentDatasetName );
+		project.setDefaultDataset( currentDatasetName );
+		// FIXME where is the link of a dataset to its name?
+		dataset = new Dataset();
+		dataset.is2D = true; // changed further down
+	}
+
+	private void addImagePlusImages( ImagePlus imagePlus, boolean isSegmentation )
+	{
+		final ImageDataFormat imageDataFormat = ImageDataFormat.SpimData;
+
+		final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( imagePlus );
+		settings.addImageDataFormat( imageDataFormat );
+
+		final int numChannels = spimData.getSequenceDescription().getViewSetupsOrdered().size();
+
+		for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
+		{
+			final StorageLocation storageLocation = new StorageLocation();
+			storageLocation.data = spimData;
+			storageLocation.channel = channelIndex;
+			String imageName = getImageName( imagePlus.getTitle(), numChannels, channelIndex );
+
+			DataSource dataSource;
+			if ( isSegmentation )
+			{
+				dataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
+				addImageDisplayToDataset( spimData, channelIndex, imageName );
+			}
+			else
+			{
+				dataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
+				addSegmentationDisplayToDataset( dataSource.getName() );
+
+			}
+
+			dataSource.preInit( true );
+			addSourceToDataset( spimData, channelIndex, dataSource );
+
+			addImageDisplayToDataset( spimData, channelIndex, imageName );
+		}
 	}
 
 	private void addCommandLineImages( String imagePath ) throws SpimDataException
@@ -404,15 +411,20 @@ public class MoBIE
 			addSourceToDataset( spimData, imageIndex, dataSource );
 
 			// configure corresponding {@code Display}
-			final SegmentationDisplay< ? > display = new SegmentationDisplay<>( imageName, Arrays.asList( imageName ) );
-			final View view = new View( imageName, "segmentation", Arrays.asList( display ), null, false );
-			dataset.views.put( view.getName(), view );
+			addSegmentationDisplayToDataset( dataSource.getName() );
 		}
 	}
 
-	private void addSourceToDataset( AbstractSpimData< ? > spimData, int imageIndex, ImageDataSource segmentationDataSource )
+	private void addSegmentationDisplayToDataset( String imageName )
 	{
-		dataset.sources.put( segmentationDataSource.getName(), segmentationDataSource );
+		final SegmentationDisplay< ? > display = new SegmentationDisplay<>( imageName, Arrays.asList( imageName ) );
+		final View view = new View( imageName, "segmentation", Arrays.asList( display ), null, false );
+		dataset.views.put( view.getName(), view );
+	}
+
+	private void addSourceToDataset( AbstractSpimData< ? > spimData, int imageIndex, DataSource dataSource )
+	{
+		dataset.sources.put( dataSource.getName(), dataSource );
 		if ( dataset.is2D )
 		{
 			final Dimensions dimensions = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex ).getSize();
@@ -727,18 +739,11 @@ public class MoBIE
         return dataset.views;
     }
 
-    private String getRelativeTablePath( Map< TableDataFormat, StorageLocation > tableData )
-    {
-		return tableData.get( getTableFormat( tableData ) ).relativePath;
-    }
-
+	// equivalent to {@code getImageLocation}
     public StorageLocation getTableLocation( Map< TableDataFormat, StorageLocation > tableData )
     {
 		final TableDataFormat tableDataFormat = getTableFormat( tableData );
 		final StorageLocation storageLocation = tableData.get( tableDataFormat );
-
-		if ( project.isFromCLI() )
-			return storageLocation;
 
 		if ( tableDataFormat.equals( TableDataFormat.MoBIETSV ) )
 		{
@@ -788,7 +793,8 @@ public class MoBIE
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
 	}
 
-    public synchronized String getImagePath( ImageDataFormat imageDataFormat, StorageLocation storageLocation )
+	// equivalent to {@code getTableLocation}
+    public synchronized String getImageLocation( ImageDataFormat imageDataFormat, StorageLocation storageLocation )
 	{
 		switch (imageDataFormat) {
 			case BioFormats:
@@ -973,17 +979,14 @@ public class MoBIE
 
 	private SpimDataImage< ? > initImage( ImageDataFormat imageDataFormat, Integer channel, StorageLocation storageLocation, String name )
 	{
-		// FIXME: replace with imageDataFormat.isInMemory()
-		if ( imageDataFormat.equals( ImageDataFormat.ImagePlus ) )
+		switch ( imageDataFormat )
 		{
-			final AbstractSpimData spimData = new SpimDataOpener().asSpimData( storageLocation.data, imageDataFormat );
-			return new SpimDataImage<>( spimData, channel, name );
-		}
-		else
-		{
-			final String imagePath = getImagePath( imageDataFormat, storageLocation );
-			// TODO  Caching? https://github.com/mobie/mobie-viewer-fiji/issues/857
-			return new SpimDataImage( imageDataFormat, imagePath, channel, name, ThreadHelper.sharedQueue );
+			case SpimData:
+				return new SpimDataImage<>( ( SpimData ) storageLocation.data, channel, name );
+			default:
+				// TODO https://github.com/mobie/mobie-viewer-fiji/issues/857
+				final String imagePath = getImageLocation( imageDataFormat, storageLocation );
+				return new SpimDataImage( imageDataFormat, imagePath, channel, name, ThreadHelper.sharedQueue );
 		}
 	}
 

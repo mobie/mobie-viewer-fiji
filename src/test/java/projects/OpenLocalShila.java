@@ -40,7 +40,7 @@ public class OpenLocalShila
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 		try {
-			new MoBIE("/Volumes/kreshuk/data/marioni/shila/mouse-atlas-2020/ngff/", intensityImage, labelImage, resultsTable );
+			new MoBIE("/Volumes/kreshuk/data/marioni/shila/mouse-atlas-2020/ngff/" );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

@@ -38,6 +38,6 @@ public class OpenLocalMarianne
     public static void main(String[] args) throws IOException {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        new MoBIE( "/Volumes/cba/exchange/marianne-beckwidth/220509_MSB26_sample2_MoBIE", intensityImage, labelImage, resultsTable );
+        new MoBIE( "/Volumes/cba/exchange/marianne-beckwidth/220509_MSB26_sample2_MoBIE");
     }
 }

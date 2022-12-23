@@ -41,7 +41,6 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,7 +54,7 @@ import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Y;
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Z;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Explore>Explore Image and Segmentation and Table..."  )
-public class ExploreImageAndSegmentationAndTable implements Command
+public class ExploreImageAndSegmentationAndTableCommand implements Command
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -67,10 +66,10 @@ public class ExploreImageAndSegmentationAndTable implements Command
 	public static final String MEAN_BREADTH = "MeanBreadth";
 
 	@Parameter ( label = "Intensity image", required = false )
-	public ImagePlus intensityImage;
+	public ImagePlus image;
 
 	@Parameter ( label = "Label mask image" )
-	public ImagePlus labelImage;
+	public ImagePlus segmentation;
 
 	// FIXME https://forum.image.sc/t/fetch-imagej1-resultstable-in-imagej2-command/22843/5
 	@Parameter ( label = "Table" )
@@ -82,17 +81,10 @@ public class ExploreImageAndSegmentationAndTable implements Command
 	@Override
 	public void run()
 	{
-		// fetch table
 		final ResultsTableFetcher tableFetcher = new ResultsTableFetcher();
 		ResultsTable resultsTable = tableFetcher.fetch( tableName );
 
-		try
-		{
-			new MoBIE( "ImageJ", intensityImage, labelImage, resultsTable );
-		} catch ( IOException e )
-		{
-			e.printStackTrace();
-		}
+		new MoBIE( "ImageJ", image, segmentation, resultsTable );
 	}
 
 
@@ -106,7 +98,7 @@ public class ExploreImageAndSegmentationAndTable implements Command
 				labelImageId );
 
 		// TODO: replace this by proper bounding box
-		if ( labelImage.getNSlices() > 1 )
+		if ( segmentation.getNSlices() > 1 )
 		{
 			addBoundingBoxColumn( columns, CENTROID_X, BB_MIN_X, true );
 			addBoundingBoxColumn( columns, CENTROID_Y, BB_MIN_Y, true );
@@ -174,7 +166,7 @@ public class ExploreImageAndSegmentationAndTable implements Command
 				SegmentProperty.Y,
 				columns.get( CENTROID_Y ) );
 
-		if ( labelImage.getNSlices() > 1 )
+		if ( segmentation.getNSlices() > 1 )
 		{
 			segmentPropertyToColumn.put(
 					SegmentProperty.Z,

@@ -38,6 +38,6 @@ public class OpenLocalXRay
     public static void main(String[] args) throws IOException {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        new MoBIE( "/Volumes/emcf/Hamburg_XRay/20220522/mobie_demo", intensityImage, labelImage, resultsTable );
+        new MoBIE( "/Volumes/emcf/Hamburg_XRay/20220522/mobie_demo");
     }
 }

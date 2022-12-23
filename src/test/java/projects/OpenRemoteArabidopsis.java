@@ -39,6 +39,6 @@ public class OpenRemoteArabidopsis
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE("https://github.com/mobie/arabidopsis-root-lm-datasets", intensityImage, labelImage, resultsTable );
+		new MoBIE("https://github.com/mobie/arabidopsis-root-lm-datasets");
 	}
 }

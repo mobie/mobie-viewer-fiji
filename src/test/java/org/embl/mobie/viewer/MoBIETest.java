@@ -30,7 +30,7 @@ package org.embl.mobie.viewer;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class MoBIEViewerTest
+public class MoBIETest
 {
 //	static {
 //		LegacyInjector.preinit();
