@@ -34,7 +34,7 @@ public class UniverseManager
 {
 	private Image3DUniverse universe;
 
-	public Image3DUniverse get()
+	public synchronized Image3DUniverse get()
 	{
 		if ( universe == null )
 		{

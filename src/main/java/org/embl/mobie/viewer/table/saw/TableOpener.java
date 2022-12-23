@@ -5,13 +5,17 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.table.TableDataFormat;
+import org.embl.mobie.viewer.table.columns.MorpholibJSegmentColumnNames;
+import org.embl.mobie.viewer.table.columns.SegmentColumnNames;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.DoubleColumn;
+import tech.tablesaw.api.IntColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -100,17 +104,27 @@ public class TableOpener
 		return tablePath;
 	}
 
-	public static Table open( ResultsTable resultsTable )
+	public static Table open( ResultsTable resultsTable, TableDataFormat tableDataFormat )
 	{
+		final SegmentColumnNames segmentColumnNames = tableDataFormat.getSegmentColumnNames();
 		final String[] columnNames = resultsTable.getHeadings();
 
 		final Table table = Table.create( resultsTable.getTitle() );
 		for ( String columnName : columnNames )
 		{
-			final DoubleColumn doubleColumn = DoubleColumn.create( columnName, resultsTable.getColumn( columnName ) );
-			table.addColumns( doubleColumn );
+			if ( columnName.equals( segmentColumnNames.labelIdColumn() ) )
+			{
+				final int[] ints = Arrays.stream( resultsTable.getColumn( columnName ) ).mapToInt( x -> ( int ) x ).toArray();
+				final IntColumn intColumn = IntColumn.create( columnName, ints );
+				table.addColumns( intColumn );
+			}
+			else
+			{
+				final DoubleColumn doubleColumn = DoubleColumn.create( columnName, resultsTable.getColumn( columnName ) );
+				table.addColumns( doubleColumn );
+			}
 		}
 
-		return null;
+		return table;
 	}
 }

@@ -54,7 +54,7 @@ public class LazyAnnotatedSegmentAdapter implements AnnotationAdapter< Annotated
 	@Override
 	public AnnotatedSegment createVariable()
 	{
-		return new DefaultAnnotatedSegment( name, 0, 1 );
+		return new DefaultAnnotatedSegment( name, 0, 0 );
 	}
 
 	@Override

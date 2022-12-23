@@ -90,17 +90,19 @@ public class ExploreImageAndSegmentationAndTableCommand extends DynamicCommand i
 	@Override
 	public void run()
 	{
+		final TableDataFormat tableDataFormat = TableDataFormat.fromString( tableFormat );
+
 		final ResultsTableFetcher tableFetcher = new ResultsTableFetcher();
 		ResultsTable resultsTable = tableFetcher.fetch( tableName );
 
-		final Table table = TableOpener.open( resultsTable );
+		final Table table = TableOpener.open( resultsTable, tableDataFormat );
 		final StorageLocation tableStorageLocation = new StorageLocation();
 		tableStorageLocation.data = table;
 
 		final AbstractSpimData< ? > imageData = new SpimDataOpener().open( image );
 		final AbstractSpimData< ? > segmentationData = new SpimDataOpener().open( segmentation );
 
-		new MoBIE( "ImageJ", imageData, segmentationData, tableStorageLocation, TableDataFormat.fromString( tableFormat ) );
+		new MoBIE( "ImageJ", imageData, segmentationData, tableStorageLocation, tableDataFormat );
 	}
 
 	@Override

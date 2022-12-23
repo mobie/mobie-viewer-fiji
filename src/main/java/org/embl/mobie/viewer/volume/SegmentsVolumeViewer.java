@@ -237,9 +237,7 @@ public class SegmentsVolumeViewer< S extends Segment > implements ColoringListen
 						setShowSegments( false );
 						universeManager.setUniverse( null );
 						for ( VisibilityListener listener : listeners )
-						{
 							listener.visibility( false );
-						}
 					}
 				} );
 		}
@@ -370,9 +368,8 @@ public class SegmentsVolumeViewer< S extends Segment > implements ColoringListen
 			public void universeClosed()
 			{
 				for ( VisibilityListener listener : listeners )
-				{
 					listener.visibility( false );
-				}
+
 				window = null;
 				universe = null;
 			}

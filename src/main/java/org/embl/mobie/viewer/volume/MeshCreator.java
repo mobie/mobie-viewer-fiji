@@ -30,8 +30,6 @@ package org.embl.mobie.viewer.volume;
 
 import bdv.viewer.Source;
 import customnode.CustomTriangleMesh;
-import de.embl.cba.bdv.utils.objects3d.FloodFill;
-import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.Utils;
 import isosurface.MeshEditor;
 import net.imglib2.Interval;
@@ -94,6 +92,7 @@ public class MeshCreator< S extends Segment >
 
 			final long[] voxelPositionInSource = SourceAndConverterHelper.getVoxelPositionInSource( source, position, segment.timePoint(), renderingLevel );
 
+			// FIXME make work for arbitrary type
 			final FloodFill floodFill = new FloodFill(
 					rai,
 					new DiamondShape( 1 ),
@@ -104,12 +103,9 @@ public class MeshCreator< S extends Segment >
 
 			// set segment bounding box in real space
 			//
-
 			final FinalRealInterval realBounds = sourceTransform.estimateBounds( mask );
 			segment.setBoundingBox( realBounds );
 		}
-
-		// FIXME transform into image space
 
 		Interval voxelBounds = Intervals.smallestContainingInterval( sourceTransform.inverse().estimateBounds( segment.boundingBox() ) );
 
@@ -217,7 +213,7 @@ public class MeshCreator< S extends Segment >
 		{
 			if ( segment.boundingBox() == null )
 			{
-				Logger.error( "3D View:\nAutomated resolution level selection is enabled, but the segment has no bounding box.\nThis combination is currently not supported." );
+				System.err.println( "3D View:\nAutomated resolution level selection is enabled, but the segment has no bounding box.\nThis combination is currently not supported." );
 				throw new RuntimeException();
 			}
 			else

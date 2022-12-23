@@ -37,6 +37,9 @@ import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.ImgLoader;
 import net.imglib2.Dimensions;
+import org.apache.commons.compress.compressors.FileNameUtil;
+import org.apache.commons.compress.utils.FileNameUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
@@ -243,6 +246,8 @@ public class MoBIE
 	{
 		final ImageDataFormat imageDataFormat = ImageDataFormat.SpimData;
 		settings.addImageDataFormat( imageDataFormat );
+		if ( tableDataFormat != null )
+			settings.addTableDataFormat( tableDataFormat );
 
 		final int numChannels = spimData.getSequenceDescription().getViewSetupsOrdered().size();
 
@@ -255,7 +260,6 @@ public class MoBIE
 			String imageName = getImageName( viewSetup.getName(), numChannels, channelIndex );
 
 			DataSource dataSource;
-
 			if ( isSegmentation )
 			{
 				dataSource = new SegmentationDataSource( imageName, imageDataFormat, storageLocation, tableDataFormat, tableStorageLocation );
@@ -293,7 +297,7 @@ public class MoBIE
 
 	private String getImageName( String imagePath, int numImages, int imageIndex )
 	{
-		String imageName = new File( imagePath ).getName();
+		String imageName = FilenameUtils.removeExtension( new File( imagePath ).getName() );
 		if ( numImages > 1 )
 			imageName += "_" + imageIndex;
 		return imageName;
