@@ -190,7 +190,19 @@ public class MoBIE
 		initUIandShowAllViews();
 	}
 
-	// from fiji ui
+	// use this constructor from the Fiji UI
+	//
+	// images: the idea is to convert all image data to {@code SpimData}
+	// before calling this constructor.
+	// {@code SpimDataOpener} in mobie-io provides methods for this.
+	//
+	// tables: one needs to provide the tableStorageLocation
+	// and the tableDataFormat, which also specifies necessary column names.
+	// note that this is more complex than for images, because we are not
+	// aware of a good java implementation of tables
+	// that would allow to wrap the various ways
+	// in which tables can be stored, in particular considering lazy loading of
+	// table chunks.
 	public MoBIE( String projectName, AbstractSpimData< ? > image, AbstractSpimData< ? > segmentation, StorageLocation tableStorageLocation, TableDataFormat tableDataFormat )
 	{
 		initProject( projectName );
