@@ -35,11 +35,13 @@ import de.embl.cba.tables.results.ResultsTableFetcher;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.ImagePlus;
 import ij.measure.ResultsTable;
+import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.table.TableDataFormatNames;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -84,6 +86,13 @@ public class ExploreImageAndSegmentationAndTable implements Command
 		final ResultsTableFetcher tableFetcher = new ResultsTableFetcher();
 		ResultsTable resultsTable = tableFetcher.fetch( tableName );
 
+		try
+		{
+			new MoBIE( "ImageJ", intensityImage, labelImage, resultsTable );
+		} catch ( IOException e )
+		{
+			e.printStackTrace();
+		}
 	}
 
 

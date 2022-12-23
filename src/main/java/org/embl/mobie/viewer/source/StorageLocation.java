@@ -40,13 +40,19 @@ public class StorageLocation
 	public String s3Address;
 	public String signingRegion;
 
-	// for tables the above locations refer to
-	// a container, typically a folder,
-	// which may contain multiple files with
-	// different columns.
-	// the {@code defaultChunk} points to the file
-	// that contains the default columns,
-	// such as anchor_x, ...
+	// MoBIE is for big data,
+	// thus the above locations typically refer to
+	// a container, which may contain multiple
+	// chunks of data that are lazy loaded.
+	// for images, those chunks are specified
+	// by the file format.
+	// for tables, we don't yet have such
+	// a specification; to solve this
+	// the {@code defaultChunk} points to the chunk
+	// (typically a file in the {@code absolutePath} folder),
+	// that contains the default columns.
+	// additional available chunks may be discovered,
+	// e.g. by looking into {@code absolutePath}.
 	public String defaultChunk;
 
 	// for data in RAM

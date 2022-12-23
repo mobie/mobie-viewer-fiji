@@ -39,17 +39,13 @@ public class Project
 	private String defaultDataset;
 	private String specVersion;
 
-	// Runtime
-	private boolean fromCLI = false;
-
 	public Project()
 	{
 	}
 
-	public Project( String name, boolean fromCLI )
+	public Project( String name )
 	{
 		this.name = name;
-		this.fromCLI = true;
 	}
 
 	public List< String > datasets()
@@ -83,8 +79,4 @@ public class Project
 		this.name = name;
 	}
 
-	public boolean isFromCLI()
-	{
-		return fromCLI;
-	}
 }

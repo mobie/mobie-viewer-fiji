@@ -33,6 +33,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.measure.ResultsTable;
 import ij.process.ImageProcessor;
 import ij.process.LUT;
 import mpicbg.spim.data.SpimDataException;
@@ -97,7 +98,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -133,11 +133,6 @@ public class MoBIE
 	public static int minLogTimeMillis = 100;
 	public static boolean initiallyShowSourceNames = false;
 
-	public MoBIE( String projectLocation ) throws IOException
-	{
-		this( projectLocation, MoBIESettings.settings() );
-	}
-
 	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
 		settings.projectLocation( projectLocation );
@@ -166,26 +161,19 @@ public class MoBIE
 		openAndViewDataset();
 	}
 
+	// Called from command line
 	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths ) throws SpimDataException
 	{
-		// init settings, project and dataset
-		settings = new MoBIESettings();
-		project = new Project( projectName, true );
-		currentDatasetName = project.getName();
-		project.datasets().add( currentDatasetName );
-		project.setDefaultDataset( currentDatasetName );
-		// FIXME where is the link of a dataset to its name?
-		dataset = new Dataset();
-		dataset.is2D = true; // changed further down
+		initProject( projectName );
 
-		// init images: data and corresponding display
+		// init images
 		for ( String imagePath : imagePaths )
-			addImages( imagePath );
+			addCommandLineImages( imagePath );
 
-		// init images: data and corresponding display
+		// init segmentations
 		// TODO add tablePaths?!
 		for ( String segmentationPath : segmentationPaths )
-			addSegmentations( segmentationPath );
+			addCommandLineSegmentations( segmentationPath );
 
 		// show one view on the dataset
 		final String viewName = dataset.views.keySet().iterator().next();
@@ -227,120 +215,20 @@ public class MoBIE
 
 	}
 
-	private void addImages( String imagePath ) throws SpimDataException
+	private void initProject( String projectName )
 	{
-		final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( imagePath );
-		settings.addImageDataFormat( imageDataFormat );
-		final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( imagePath, imageDataFormat );
-
-		// spimData can contain multiple images
-		// (bio-formats series and/or channels)
-		// (moBIE images are single channel)
-		final int numImages = spimData.getSequenceDescription().getViewSetupsOrdered().size();
-
-		for ( int imageIndex = 0; imageIndex < numImages; imageIndex++ )
-		{
-			// configure {@code DataSource}
-			final StorageLocation storageLocation = configureImageStorageLocation( imagePath, imageIndex, ImageDataFormat.fromPath( imagePath ) );
-			String imageName = getImageName( imagePath, numImages, imageIndex );
-
-			final ImageDataSource dataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
-			dataSource.preInit( true );
-
-			// amend {@code Dataset} with the new {@code DataSource}
-			addSourceToDataset( spimData, imageIndex, dataSource );
-
-			// configure corresponding {@code Display}
-			final Displaysettings displaysettings = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex ).getAttribute( Displaysettings.class );
-			if ( displaysettings != null )
-			{
-				final String color = ColorHelper.getString( displaysettings.color );
-				final double[] contrastLimits = { displaysettings.min, displaysettings.max };
-
-				final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, Arrays.asList( imageName ), color, contrastLimits, false, null );
-				final View view = new View( imageName, "image", Arrays.asList( imageDisplay ), null, false );
-				dataset.views.put( view.getName(), view );
-			}
-			else
-			{
-				// TODO: auto-display
-				throw new UnsupportedOperationException("Please contact @tischi to fix this :)");
-			}
-
-		}
+		// init settings, project and dataset
+		settings = new MoBIESettings();
+		project = new Project( projectName );
+		currentDatasetName = project.getName();
+		project.datasets().add( currentDatasetName );
+		project.setDefaultDataset( currentDatasetName );
+		// FIXME where is the link of a dataset to its name?
+		dataset = new Dataset();
+		dataset.is2D = true; // changed further down
 	}
 
-	private String getImageName( String imagePath, int numImages, int imageIndex )
-	{
-		String imageName = new File( imagePath ).getName();
-		if ( numImages > 1 )
-			imageName += "_" + imageIndex;
-		return imageName;
-	}
-
-	private void addSegmentations( String imagePath ) throws SpimDataException
-	{
-		final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( imagePath );
-		settings.addImageDataFormat( imageDataFormat );
-		final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( imagePath, imageDataFormat );
-
-		// spimData can contain multiple images
-		// (bio-formats series and/or channels)
-		// (moBIE images are single channel)
-		final int numImages = spimData.getSequenceDescription().getViewSetupsOrdered().size();
-
-		for ( int imageIndex = 0; imageIndex < numImages; imageIndex++ )
-		{
-			// configure {@code SegmentationDataSource}
-			final StorageLocation storageLocation = configureImageStorageLocation( imagePath, imageIndex, ImageDataFormat.fromPath( imagePath ) );
-			String imageName = getImageName( imagePath, numImages, imageIndex );
-			final SegmentationDataSource dataSource = new SegmentationDataSource( imageName, imageDataFormat, storageLocation );
-			dataSource.preInit( true );
-
-			// amend Dataset with the new {@code DataSource}
-			addSourceToDataset( spimData, imageIndex, dataSource );
-
-			// configure corresponding {@code Display}
-			final SegmentationDisplay< ? > display = new SegmentationDisplay<>( imageName, Arrays.asList( imageName ) );
-			final View view = new View( imageName, "segmentation", Arrays.asList( display ), null, false );
-			dataset.views.put( view.getName(), view );
-		}
-	}
-
-	private void addSourceToDataset( AbstractSpimData< ? > spimData, int imageIndex, ImageDataSource segmentationDataSource )
-	{
-		dataset.sources.put( segmentationDataSource.getName(), segmentationDataSource );
-		if ( dataset.is2D )
-		{
-			final Dimensions dimensions = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex ).getSize();
-			if ( dimensions.dimension( 2 ) > 1 )
-				dataset.is2D = false;
-		}
-	}
-
-	private StorageLocation configureImageStorageLocation( String imagePath, int channel, ImageDataFormat imageDataFormat )
-	{
-		final StorageLocation imageStorageLocation = new StorageLocation();
-		imageStorageLocation.channel = channel;
-
-		if ( imageDataFormat.isRemote() )
-		{
-			imageStorageLocation.s3Address = imagePath;
-			return imageStorageLocation;
-		}
-
-		if ( project.isFromCLI() )
-		{
-			imageStorageLocation.absolutePath = imagePath;
-			return imageStorageLocation;
-		}
-
-		// MoBIE project on disk or GitHub
-		imageStorageLocation.relativePath = imagePath;
-		return imageStorageLocation;
-	}
-
-	public MoBIE( String projectName, ImagePlus intensityImp, ImagePlus labelImp )
+	public MoBIE( String projectName, ImagePlus intensityImp, ImagePlus labelImp, ResultsTable resultsTable )
 	{
 		settings = new MoBIESettings();
 		settings.addImageDataFormat( ImageDataFormat.ImagePlus );
@@ -436,6 +324,116 @@ public class MoBIE
 //		new View(  );
 //
 
+	}
+
+	private void addCommandLineImages( String imagePath ) throws SpimDataException
+	{
+		final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( imagePath );
+		settings.addImageDataFormat( imageDataFormat );
+
+		final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( imagePath, imageDataFormat );
+
+		// bio-formats series and/or channels
+		final int numImages = spimData.getSequenceDescription().getViewSetupsOrdered().size();
+
+		for ( int imageIndex = 0; imageIndex < numImages; imageIndex++ )
+		{
+			// configure {@code DataSource}
+			final StorageLocation storageLocation = configureCommandLineImageLocation( imagePath, imageIndex, ImageDataFormat.fromPath( imagePath ) );
+
+			String imageName = getImageName( imagePath, numImages, imageIndex );
+
+			final ImageDataSource dataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
+			dataSource.preInit( true );
+
+			addSourceToDataset( spimData, imageIndex, dataSource );
+
+			addImageDisplayToDataset( spimData, imageIndex, imageName );
+		}
+	}
+
+	private void addImageDisplayToDataset( AbstractSpimData< ? > spimData, int imageIndex, String imageName )
+	{
+		final Displaysettings displaysettings = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex ).getAttribute( Displaysettings.class );
+		if ( displaysettings != null )
+		{
+			final String color = ColorHelper.getString( displaysettings.color );
+			final double[] contrastLimits = { displaysettings.min, displaysettings.max };
+
+			final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, Arrays.asList( imageName ), color, contrastLimits, false, null );
+			final View view = new View( imageName, "image", Arrays.asList( imageDisplay ), null, false );
+			dataset.views.put( view.getName(), view );
+		}
+		else
+		{
+			// TODO: auto-display
+			throw new UnsupportedOperationException("Please contact @tischi to fix this :)");
+		}
+	}
+
+	private String getImageName( String imagePath, int numImages, int imageIndex )
+	{
+		String imageName = new File( imagePath ).getName();
+		if ( numImages > 1 )
+			imageName += "_" + imageIndex;
+		return imageName;
+	}
+
+	private void addCommandLineSegmentations( String imagePath ) throws SpimDataException
+	{
+		final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( imagePath );
+		settings.addImageDataFormat( imageDataFormat );
+		final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( imagePath, imageDataFormat );
+
+		// spimData can contain multiple images
+		// (bio-formats series and/or channels)
+		// (moBIE images are single channel)
+		final int numImages = spimData.getSequenceDescription().getViewSetupsOrdered().size();
+
+		for ( int imageIndex = 0; imageIndex < numImages; imageIndex++ )
+		{
+			// configure {@code SegmentationDataSource}
+			final StorageLocation storageLocation = configureCommandLineImageLocation( imagePath, imageIndex, ImageDataFormat.fromPath( imagePath ) );
+			String imageName = getImageName( imagePath, numImages, imageIndex );
+
+			final SegmentationDataSource dataSource = new SegmentationDataSource( imageName, imageDataFormat, storageLocation );
+
+			dataSource.preInit( true );
+
+			// amend Dataset with the new {@code DataSource}
+			addSourceToDataset( spimData, imageIndex, dataSource );
+
+			// configure corresponding {@code Display}
+			final SegmentationDisplay< ? > display = new SegmentationDisplay<>( imageName, Arrays.asList( imageName ) );
+			final View view = new View( imageName, "segmentation", Arrays.asList( display ), null, false );
+			dataset.views.put( view.getName(), view );
+		}
+	}
+
+	private void addSourceToDataset( AbstractSpimData< ? > spimData, int imageIndex, ImageDataSource segmentationDataSource )
+	{
+		dataset.sources.put( segmentationDataSource.getName(), segmentationDataSource );
+		if ( dataset.is2D )
+		{
+			final Dimensions dimensions = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex ).getSize();
+			if ( dimensions.dimension( 2 ) > 1 )
+				dataset.is2D = false;
+		}
+	}
+
+	private StorageLocation configureCommandLineImageLocation( String imagePath, int channel, ImageDataFormat imageDataFormat )
+	{
+		final StorageLocation imageStorageLocation = new StorageLocation();
+		imageStorageLocation.channel = channel;
+
+		if ( imageDataFormat.isRemote() )
+		{
+			imageStorageLocation.s3Address = imagePath;
+			return imageStorageLocation;
+		}
+
+		imageStorageLocation.absolutePath = imagePath;
+		return imageStorageLocation;
 	}
 
 	// TODO: Probably such Plugins should rather
@@ -800,7 +798,7 @@ public class MoBIE
 			case BdvOmeZarrS3: // assuming that the xml is not at storageLocation.s3Address
 			case BdvN5S3: // assuming that the xml is not at storageLocation.s3Address
 			case OmeZarr:
-            	if ( project.isFromCLI() )
+            	if ( storageLocation.absolutePath != null  )
 					return storageLocation.absolutePath;
                 return IOHelper.combinePath( imageRoot, getCurrentDatasetName(), storageLocation.relativePath );
             case OpenOrganelleS3:
@@ -863,8 +861,8 @@ public class MoBIE
 	{
 		if ( dataSource instanceof ImageDataSource )
 		{
-			ImageDataSource imageSource = ( ImageDataSource ) dataSource;
-			ImageDataFormat imageDataFormat = getImageDataFormat( imageSource );
+			final ImageDataSource imageSource = ( ImageDataSource ) dataSource;
+			final ImageDataFormat imageDataFormat = getImageDataFormat( imageSource );
 			final StorageLocation storageLocation = imageSource.imageData.get( imageDataFormat );
 			final Integer channel = storageLocation.channel;
 			final Image< ? > image = initImage( imageDataFormat, channel, storageLocation, imageSource.getName() );
@@ -973,7 +971,7 @@ public class MoBIE
 		return tableModel;
 	}
 
-	private SpimDataImage< ? > initImage( ImageDataFormat imageDataFormat, Integer channel, StorageLocation storageLocation, String name ) throws SpimDataException
+	private SpimDataImage< ? > initImage( ImageDataFormat imageDataFormat, Integer channel, StorageLocation storageLocation, String name )
 	{
 		// FIXME: replace with imageDataFormat.isInMemory()
 		if ( imageDataFormat.equals( ImageDataFormat.ImagePlus ) )

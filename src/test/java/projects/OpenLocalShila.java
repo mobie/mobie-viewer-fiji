@@ -29,9 +29,7 @@
 package projects;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MoBIESettings;
 
 import java.io.IOException;
 
@@ -42,7 +40,7 @@ public class OpenLocalShila
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 		try {
-			new MoBIE("/Volumes/kreshuk/data/marioni/shila/mouse-atlas-2020/ngff/" );
+			new MoBIE("/Volumes/kreshuk/data/marioni/shila/mouse-atlas-2020/ngff/", intensityImage, labelImage, resultsTable );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
