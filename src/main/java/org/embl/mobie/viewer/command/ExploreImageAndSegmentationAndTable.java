@@ -70,8 +70,9 @@ public class ExploreImageAndSegmentationAndTable implements Command
 	@Parameter ( label = "Label mask image" )
 	public ImagePlus labelImage;
 
+	// FIXME https://forum.image.sc/t/fetch-imagej1-resultstable-in-imagej2-command/22843/5
 	@Parameter ( label = "Table" )
-	public String tableName; // FIXME: widget for ResultsTable or init to auto-populate
+	public String tableName;
 
 	@Parameter ( label = "Table format", choices = { TableDataFormatNames.MLJ } )
 	public String tableFormat;
