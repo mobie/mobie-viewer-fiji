@@ -35,14 +35,20 @@ import de.embl.cba.tables.results.ResultsTableFetcher;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.ImagePlus;
 import ij.measure.ResultsTable;
+import mpicbg.spim.data.generic.AbstractSpimData;
+import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.source.StorageLocation;
+import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableDataFormatNames;
+import org.embl.mobie.viewer.table.saw.TableOpener;
 import org.scijava.Initializable;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import tech.tablesaw.api.Table;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,7 +84,7 @@ public class ExploreImageAndSegmentationAndTableCommand extends DynamicCommand i
 	@Parameter ( label = "Table" )
 	public String tableName;
 
-	@Parameter ( label = "Table format", choices = { TableDataFormatNames.MLJ } )
+	@Parameter ( label = "Table format", choices = { TableDataFormatNames.MORPHOLIBJ } )
 	public String tableFormat;
 
 	@Override
@@ -87,7 +93,14 @@ public class ExploreImageAndSegmentationAndTableCommand extends DynamicCommand i
 		final ResultsTableFetcher tableFetcher = new ResultsTableFetcher();
 		ResultsTable resultsTable = tableFetcher.fetch( tableName );
 
-		new MoBIE( "ImageJ", image, segmentation, resultsTable );
+		final Table table = TableOpener.open( resultsTable );
+		final StorageLocation storageLocation = new StorageLocation();
+		storageLocation.data = table;
+
+		final AbstractSpimData< ? > imageData = new SpimDataOpener().open( image );
+		final AbstractSpimData< ? > segmentationData = new SpimDataOpener().open( segmentation );
+
+		new MoBIE( "ImageJ", imageData, segmentationData, storageLocation, TableDataFormat.fromString( tableFormat ) );
 	}
 
 	@Override

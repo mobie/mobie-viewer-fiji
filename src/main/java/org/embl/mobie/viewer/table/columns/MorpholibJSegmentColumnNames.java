@@ -1,6 +1,8 @@
-package org.embl.mobie.viewer.table;
+package org.embl.mobie.viewer.table.columns;
 
-public class MoBIESegmentColumnNames implements SegmentColumnNames
+import org.embl.mobie.viewer.table.ColumnNames;
+
+public class MorpholibJSegmentColumnNames implements SegmentColumnNames
 {
 	@Override
 	public String labelImageColumn()

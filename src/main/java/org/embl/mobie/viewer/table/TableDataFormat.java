@@ -29,6 +29,9 @@
 package org.embl.mobie.viewer.table;
 
 import com.google.gson.annotations.SerializedName;
+import org.embl.mobie.viewer.table.columns.MoBIESegmentColumnNames;
+import org.embl.mobie.viewer.table.columns.MorpholibJSegmentColumnNames;
+import org.embl.mobie.viewer.table.columns.SegmentColumnNames;
 
 import static org.embl.mobie.viewer.table.TableDataFormatNames.*;
 
@@ -36,9 +39,9 @@ public enum TableDataFormat
 {
 	@SerializedName( TSV )
 	MoBIETSV,  // TSV file with MoBIE column names
-	@SerializedName( MLJCSV )
+	@SerializedName( MORPHOLIBJCSV )
 	MorpholibJCSV, // CSV file with MorpholibJ column names
-	@SerializedName( MLJ )
+	@SerializedName( MORPHOLIBJ )
 	MorpholibJ; // RAM resident table with MorpholibJ column names
 
 	public static final String DEFAULT_TSV = "default.tsv";
@@ -48,9 +51,27 @@ public enum TableDataFormat
 	{
 		switch ( this )
 		{
+			case MorpholibJ:
+				return MORPHOLIBJ;
+			case MorpholibJCSV:
+				return MORPHOLIBJCSV;
 			case MoBIETSV:
 			default:
 				return TSV;
+		}
+	}
+
+	public static TableDataFormat fromString( String name )
+	{
+		switch ( name )
+		{
+			case MORPHOLIBJ:
+				return MorpholibJ;
+			case MORPHOLIBJCSV:
+				return TableDataFormat.MorpholibJCSV;
+			case TSV:
+			default:
+				return TableDataFormat.MoBIETSV;
 		}
 	}
 
@@ -69,6 +90,9 @@ public enum TableDataFormat
 	{
 		switch ( this )
 		{
+			case MorpholibJ:
+			case MorpholibJCSV:
+				return new MorpholibJSegmentColumnNames();
 			case MoBIETSV:
 			default:
 				return new MoBIESegmentColumnNames();

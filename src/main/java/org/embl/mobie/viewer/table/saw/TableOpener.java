@@ -1,10 +1,12 @@
 package org.embl.mobie.viewer.table.saw;
 
+import ij.measure.ResultsTable;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import tech.tablesaw.api.ColumnType;
+import tech.tablesaw.api.DoubleColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 import java.io.IOException;
@@ -29,10 +31,12 @@ public class TableOpener
 	{
 		return open( storageLocation, storageLocation.defaultChunk, tableDataFormat, -1 );
 	}
+
 	public static Table open( StorageLocation storageLocation, String relativeChunkLocation, TableDataFormat tableDataFormat )
 	{
 		return open( storageLocation, relativeChunkLocation, tableDataFormat, -1 );
 	}
+
 	public static Table open( StorageLocation storageLocation, String relativeChunkLocation, TableDataFormat tableDataFormat, int numSamples )
 	{
 		switch ( tableDataFormat )
@@ -42,7 +46,7 @@ public class TableOpener
 				return null;
 			case MorpholibJ:
 				// FIXME
-				return null;
+				return (Table) storageLocation.data;
 			case MoBIETSV:
 			default:
 				return openMoBIETSV( storageLocation, relativeChunkLocation, tableDataFormat, numSamples );
@@ -94,5 +98,19 @@ public class TableOpener
 			tablePath = IOHelper.resolvePath( tablePath );
 		}
 		return tablePath;
+	}
+
+	public static Table open( ResultsTable resultsTable )
+	{
+		final String[] columnNames = resultsTable.getHeadings();
+
+		final Table table = Table.create( resultsTable.getTitle() );
+		for ( String columnName : columnNames )
+		{
+			final DoubleColumn doubleColumn = DoubleColumn.create( columnName, resultsTable.getColumn( columnName ) );
+			table.addColumns( doubleColumn );
+		}
+
+		return null;
 	}
 }

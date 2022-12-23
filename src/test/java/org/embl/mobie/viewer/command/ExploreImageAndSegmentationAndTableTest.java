@@ -4,7 +4,6 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.measure.ResultsTable;
 import net.imagej.ImageJ;
-import org.embl.mobie.viewer.command.util.ResultsTableFetcher;
 import org.embl.mobie.viewer.table.TableDataFormatNames;
 
 import java.io.IOException;
@@ -22,7 +21,7 @@ class ExploreImageAndSegmentationAndTableTest
 		final ImagePlus image = IJ.openImage( root + "src/test/resources/golgi-intensities.tif" );
 		final ImagePlus segmentation = IJ.openImage( root + "src/test/resources/golgi-cell-labels.tif" );
 
-		boolean interactive = true;
+		boolean interactive = false;
 
 		if ( interactive )
 		{
@@ -36,7 +35,7 @@ class ExploreImageAndSegmentationAndTableTest
 			command.image = image;
 			command.segmentation = segmentation;
 			command.tableName = resultsTable.getTitle();
-			command.tableFormat = TableDataFormatNames.MLJ;
+			command.tableFormat = TableDataFormatNames.MORPHOLIBJ;
 			command.run();
 		}
 	}

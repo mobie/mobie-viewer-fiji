@@ -32,10 +32,9 @@ import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import ij.ImagePlus;
-import ij.measure.ResultsTable;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
+import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.ImgLoader;
 import net.imglib2.Dimensions;
 import org.embl.mobie.io.ImageDataFormat;
@@ -70,7 +69,7 @@ import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.LazyAnnotatedSegmentTableModel;
-import org.embl.mobie.viewer.table.SegmentColumnNames;
+import org.embl.mobie.viewer.table.columns.SegmentColumnNames;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegment;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegmentCreator;
@@ -89,6 +88,7 @@ import spimdata.util.Displaysettings;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -171,106 +171,35 @@ public class MoBIE
 	{
 		initProject( projectName );
 
-		// init images
-		for ( String imagePath : imagePaths )
-			addCommandLineImages( imagePath );
+		// images
+		for ( String path : imagePaths )
+		{
+			final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
+			final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( path, imageDataFormat );
+			addSpimDataImages( spimData, false, null, null );
+		}
 
-		// init segmentations
-		for ( String segmentationPath : segmentationPaths )
-			addCommandLineSegmentations( segmentationPath ); // TODO add tablePaths
+		// segmentations (with tables)
+		for ( String path : segmentationPaths )
+		{
+			final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
+			final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( path, imageDataFormat );
+			addSpimDataImages( spimData, true, null, null );
+		}
 
 		initUIandShowAllViews();
-
-		//viewManager.show( segmentationView );
-
-////		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( image, displaysettings );
-//		final int channel = 0;  // TODO: For loop
-//
-//
-//
-//
-//		// intensity display
-//		// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/923
-//		intensityImp.setC( channel );
-//		final ImageProcessor processor = intensityImp.getProcessor();
-//		final LUT lut = processor.getLut();
-//		final String color = ColorHelper.getString( lut );
-//		final double[] contrastLimits = { processor.getMin(), processor.getMax() };
-//
-//		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, Arrays.asList( imageName ), color, contrastLimits, false, null );
-//		final View intensityView = new View( imageName, "intensity", Arrays.asList( imageDisplay ), null, false );
-//		dataset.views.put( intensityView.getName(), intensityView );
-//
-//		// init segmentations
-//		final String labelImageName = labelImp.getTitle();
-//		final StorageLocation labelStorageLocation = new StorageLocation();
-//		labelStorageLocation.data = labelImp;
-//		final SegmentationDataSource segmentationDataSource = new SegmentationDataSource( labelImageName, ImageDataFormat.ImagePlus, labelStorageLocation );
-//		dataset.sources.put( segmentationDataSource.getName(), segmentationDataSource );
-//
-//		// segmentation display
-//		final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( labelImageName, Arrays.asList( segmentationDataSource.getName() ) );
-//		final View segmentationView = new View( labelImageName, "segmentation", Arrays.asList( segmentationDisplay ), null, false );
-//		dataset.views.put( segmentationView.getName(), segmentationView );
-
-
 	}
 
 	// from fiji ui
-	public MoBIE( String projectName, ImagePlus intensityImp, ImagePlus labelImp, ResultsTable resultsTable )
+	public MoBIE( String projectName, AbstractSpimData< ? > image, AbstractSpimData< ? > segmentation, StorageLocation tableStorageLocation, TableDataFormat tableDataFormat )
 	{
 		initProject( projectName );
 
-		addImagePlusImages( intensityImp, false );
-		addImagePlusImages( labelImp, true ); // TODO add table
+		addSpimDataImages( image, false, null, null );
+
+		addSpimDataImages( segmentation, true, tableStorageLocation, tableDataFormat );
 
 		initUIandShowAllViews();
-
-		// intensity image
-//		final AbstractSpimData< ? > intensitySpimData = ImagePlusToSpimData.getSpimData( intensityImp );
-//		final SpimDataImage< ? > image = new SpimDataImage<>( intensitySpimData, 0, intensityImp.getTitle(), null );
-//		final Displaysettings displaysettings = intensitySpimData.getSequenceDescription().getViewSetupsOrdered().get( 0 ).getAttribute( Displaysettings.class );
-//		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( image, displaysettings );
-//		viewManager.showImageDisplay( imageDisplay );
-
-//		new MoBIEViewerTransformAdjuster( viewManager.getSliceViewer().getBdvHandle(), imageDisplay ).applyMultiSourceTransform();
-
-		// segmentation image
-//		final AbstractSpimData< ? > labelSpimData = ImagePlusToSpimData.getSpimData( labelImp );
-//		final SpimDataImage< ? > labelImage = new SpimDataImage<>( labelSpimData, 0, labelImp.getTitle(), null );
-//
-//		// lazy segment table
-//		final LazyAnnotatedSegmentTableModel tableModel = new LazyAnnotatedSegmentTableModel( labelImage.getName() );
-//		final DefaultAnnData< AnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
-//		final LazyAnnotatedSegmentAdapter segmentAdapter = new LazyAnnotatedSegmentAdapter( image.getName(), tableModel );
-//		final DefaultAnnotatedLabelImage< AnnotatedSegment > annotatedLabelImage = new DefaultAnnotatedLabelImage( labelImage, annData, segmentAdapter );
-//		final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( annotatedLabelImage );
-
-
-
-
-//		final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( table );
-//		tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV  );
-//		final ResultsTableAnnotationTableModel tableModel = new ResultsTableAnnotationTableModel( resultsTable );
-//		final DefaultAnnData< TableSawAnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
-//		final DefaultAnnotationAdapter< TableSawAnnotatedSegment > annotationAdapter = new DefaultAnnotationAdapter( annData );
-//		final AnnotatedLabelImage< TableSawAnnotatedSegment > annotatedLabelImage = new DefaultAnnotatedLabelImage( labelImage, annData, annotationAdapter );
-//		final SegmentationDisplay< ? > segmentationDisplay = new SegmentationDisplay( labelImage );
-
-//		datasetName = intensityImp.getTitle();
-//		IJ.log("Opening: " + datasetName );
-//		new ImageDisplay<>()
-//		setDatasetName( datasetName );
-//		//dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
-//		//userInterface = new UserInterface( this );
-//		viewManager = new ViewManager( this, userInterface, dataset.is2D );
-//		for ( String s : getViews().keySet() )
-//			System.out.println( s );
-//		final View view = getSelectedView( viewName );
-//		view.setName( viewName );
-//		new View(  );
-//
-
 	}
 
 	private void initUIandShowAllViews()
@@ -293,11 +222,15 @@ public class MoBIE
 		dataset.is2D = true; // changed further down
 	}
 
-	private void addImagePlusImages( ImagePlus imagePlus, boolean isSegmentation )
+	private void addSpimDataImages(
+			AbstractSpimData< ? > spimData,
+			boolean isSegmentation,
+			@Nullable StorageLocation tableStorageLocation, // for segmentations
+			@Nullable TableDataFormat tableDataFormat // for segmentations
+	)
 	{
 		final ImageDataFormat imageDataFormat = ImageDataFormat.SpimData;
 		settings.addImageDataFormat( imageDataFormat );
-		final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( imagePlus );
 
 		final int numChannels = spimData.getSequenceDescription().getViewSetupsOrdered().size();
 
@@ -306,50 +239,24 @@ public class MoBIE
 			final StorageLocation storageLocation = new StorageLocation();
 			storageLocation.data = spimData;
 			storageLocation.channel = channelIndex;
-			String imageName = getImageName( imagePlus.getTitle(), numChannels, channelIndex );
+			final BasicViewSetup viewSetup = spimData.getSequenceDescription().getViewSetupsOrdered().get( channelIndex );
+			String imageName = getImageName( viewSetup.getName(), numChannels, channelIndex );
 
 			DataSource dataSource;
 
 			if ( isSegmentation )
 			{
-				dataSource = new SegmentationDataSource( imageName, imageDataFormat, storageLocation );
-				addSegmentationDisplayToDataset( dataSource.getName(), imagePlus.getCalibration().pixelWidth );
+				dataSource = new SegmentationDataSource( imageName, imageDataFormat, storageLocation, tableDataFormat, tableStorageLocation );
+				addSegmentationDisplayToDataset( dataSource.getName(), spimData, channelIndex );
 			}
 			else
 			{
 				dataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
 				addImageDisplayToDataset( spimData, channelIndex, imageName );
-
 			}
 
 			dataSource.preInit( true );
 			addDataSourceToDataset( spimData, channelIndex, dataSource );
-		}
-	}
-
-	private void addCommandLineImages( String imagePath ) throws SpimDataException
-	{
-		final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( imagePath );
-		settings.addImageDataFormat( imageDataFormat );
-
-		final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( imagePath, imageDataFormat );
-
-		// bio-formats series and/or channels
-		final int numImages = spimData.getSequenceDescription().getViewSetupsOrdered().size();
-
-		for ( int imageIndex = 0; imageIndex < numImages; imageIndex++ )
-		{
-			// configure {@code DataSource}
-			final StorageLocation storageLocation = configureCommandLineImageLocation( imagePath, imageIndex, ImageDataFormat.fromPath( imagePath ) );
-
-			String imageName = getImageName( imagePath, numImages, imageIndex );
-
-			final ImageDataSource dataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
-			dataSource.preInit( true );
-
-			addDataSourceToDataset( spimData, imageIndex, dataSource );
-
-			addImageDisplayToDataset( spimData, imageIndex, imageName );
 		}
 	}
 
@@ -380,40 +287,14 @@ public class MoBIE
 		return imageName;
 	}
 
-	private void addCommandLineSegmentations( String imagePath ) throws SpimDataException
-	{
-		final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( imagePath );
-		settings.addImageDataFormat( imageDataFormat );
-		final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( imagePath, imageDataFormat );
-
-		// spimData can contain multiple images
-		// (bio-formats series and/or channels)
-		// (moBIE images are single channel)
-		final int numImages = spimData.getSequenceDescription().getViewSetupsOrdered().size();
-
-		for ( int imageIndex = 0; imageIndex < numImages; imageIndex++ )
-		{
-			// configure {@code SegmentationDataSource}
-			final StorageLocation storageLocation = configureCommandLineImageLocation( imagePath, imageIndex, ImageDataFormat.fromPath( imagePath ) );
-			String imageName = getImageName( imagePath, numImages, imageIndex );
-
-			final SegmentationDataSource dataSource = new SegmentationDataSource( imageName, imageDataFormat, storageLocation );
-
-			dataSource.preInit( true );
-
-			// amend Dataset with the new {@code DataSource}
-			addDataSourceToDataset( spimData, imageIndex, dataSource );
-
-			// configure corresponding {@code Display}
-			final double pixelWidth = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex ).getVoxelSize().dimension( 0 );
-			addSegmentationDisplayToDataset( dataSource.getName(), pixelWidth );
-		}
-	}
-
-	private void addSegmentationDisplayToDataset( String imageName, double resolution3d )
+	private void addSegmentationDisplayToDataset( String imageName, AbstractSpimData< ? > spimData, int setupId  )
 	{
 		final SegmentationDisplay< ? > display = new SegmentationDisplay<>( imageName, Arrays.asList( imageName ) );
-		display.setResolution3dView( new Double[]{ resolution3d, resolution3d,resolution3d } );
+
+		final BasicViewSetup viewSetup = spimData.getSequenceDescription().getViewSetupsOrdered().get( setupId );
+		final double pixelWidth = viewSetup.getVoxelSize().dimension( 0 );
+		display.setResolution3dView( new Double[]{ pixelWidth, pixelWidth, pixelWidth } );
+
 		final View view = new View( imageName, "segmentation", Arrays.asList( display ), null, false );
 		dataset.views.put( view.getName(), view );
 	}

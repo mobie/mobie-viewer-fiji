@@ -1,4 +1,4 @@
-package org.embl.mobie.viewer.table;
+package org.embl.mobie.viewer.table.columns;
 
 public interface SegmentColumnNames
 {
