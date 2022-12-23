@@ -3,6 +3,7 @@ package org.embl.mobie.viewer.table;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
+import org.embl.mobie.viewer.source.StorageLocation;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -109,7 +110,7 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	}
 
 	@Override
-	public String getStorageLocation()
+	public StorageLocation getStorageLocation()
 	{
 		return null;
 	}

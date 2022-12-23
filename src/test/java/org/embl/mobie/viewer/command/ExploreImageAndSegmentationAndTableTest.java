@@ -1,10 +1,8 @@
 package org.embl.mobie.viewer.command;
 
 import ij.IJ;
-import ij.ImagePlus;
 import ij.measure.ResultsTable;
 import net.imagej.ImageJ;
-import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.command.util.ResultsTableFetcher;
 import org.embl.mobie.viewer.table.TableDataFormatNames;
 

@@ -59,6 +59,11 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Abstract
 
 	public Double[] getResolution3dView(){ return resolution3dView; }
 
+	public void setResolution3dView( Double[] resolution3dView )
+	{
+		this.resolution3dView = resolution3dView;
+	}
+
 	@Override
 	public Set< String > selectedAnnotationIds()
 	{

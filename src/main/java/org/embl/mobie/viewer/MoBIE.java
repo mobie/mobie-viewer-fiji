@@ -34,9 +34,6 @@ import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.measure.ResultsTable;
-import ij.process.ImageProcessor;
-import ij.process.LUT;
-import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
@@ -182,7 +179,7 @@ public class MoBIE
 		for ( String segmentationPath : segmentationPaths )
 			addCommandLineSegmentations( segmentationPath ); // TODO add tablePaths
 
-		initUIandShowFirstView();
+		initUIandShowAllViews();
 
 		//viewManager.show( segmentationView );
 
@@ -227,7 +224,7 @@ public class MoBIE
 		addImagePlusImages( intensityImp, false );
 		addImagePlusImages( labelImp, true ); // TODO add table
 
-		initUIandShowFirstView();
+		initUIandShowAllViews();
 
 		// intensity image
 //		final AbstractSpimData< ? > intensitySpimData = ImagePlusToSpimData.getSpimData( intensityImp );
@@ -276,12 +273,11 @@ public class MoBIE
 
 	}
 
-
-	private void initUIandShowFirstView()
+	private void initUIandShowAllViews()
 	{
-		final String viewName = dataset.views.keySet().iterator().next();
 		initUI();
-		viewManager.show( getView( viewName, dataset ) );
+		for ( String viewName : dataset.views.keySet() )
+			viewManager.show( getView( viewName, dataset ) );
 	}
 
 	private void initProject( String projectName )
@@ -300,9 +296,8 @@ public class MoBIE
 	private void addImagePlusImages( ImagePlus imagePlus, boolean isSegmentation )
 	{
 		final ImageDataFormat imageDataFormat = ImageDataFormat.SpimData;
-
-		final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( imagePlus );
 		settings.addImageDataFormat( imageDataFormat );
+		final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( imagePlus );
 
 		final int numChannels = spimData.getSequenceDescription().getViewSetupsOrdered().size();
 
@@ -314,22 +309,21 @@ public class MoBIE
 			String imageName = getImageName( imagePlus.getTitle(), numChannels, channelIndex );
 
 			DataSource dataSource;
+
 			if ( isSegmentation )
 			{
-				dataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
-				addImageDisplayToDataset( spimData, channelIndex, imageName );
+				dataSource = new SegmentationDataSource( imageName, imageDataFormat, storageLocation );
+				addSegmentationDisplayToDataset( dataSource.getName(), imagePlus.getCalibration().pixelWidth );
 			}
 			else
 			{
 				dataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
-				addSegmentationDisplayToDataset( dataSource.getName() );
+				addImageDisplayToDataset( spimData, channelIndex, imageName );
 
 			}
 
 			dataSource.preInit( true );
-			addSourceToDataset( spimData, channelIndex, dataSource );
-
-			addImageDisplayToDataset( spimData, channelIndex, imageName );
+			addDataSourceToDataset( spimData, channelIndex, dataSource );
 		}
 	}
 
@@ -353,7 +347,7 @@ public class MoBIE
 			final ImageDataSource dataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
 			dataSource.preInit( true );
 
-			addSourceToDataset( spimData, imageIndex, dataSource );
+			addDataSourceToDataset( spimData, imageIndex, dataSource );
 
 			addImageDisplayToDataset( spimData, imageIndex, imageName );
 		}
@@ -408,26 +402,28 @@ public class MoBIE
 			dataSource.preInit( true );
 
 			// amend Dataset with the new {@code DataSource}
-			addSourceToDataset( spimData, imageIndex, dataSource );
+			addDataSourceToDataset( spimData, imageIndex, dataSource );
 
 			// configure corresponding {@code Display}
-			addSegmentationDisplayToDataset( dataSource.getName() );
+			final double pixelWidth = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex ).getVoxelSize().dimension( 0 );
+			addSegmentationDisplayToDataset( dataSource.getName(), pixelWidth );
 		}
 	}
 
-	private void addSegmentationDisplayToDataset( String imageName )
+	private void addSegmentationDisplayToDataset( String imageName, double resolution3d )
 	{
 		final SegmentationDisplay< ? > display = new SegmentationDisplay<>( imageName, Arrays.asList( imageName ) );
+		display.setResolution3dView( new Double[]{ resolution3d, resolution3d,resolution3d } );
 		final View view = new View( imageName, "segmentation", Arrays.asList( display ), null, false );
 		dataset.views.put( view.getName(), view );
 	}
 
-	private void addSourceToDataset( AbstractSpimData< ? > spimData, int imageIndex, DataSource dataSource )
+	private void addDataSourceToDataset( AbstractSpimData< ? > spimData, int setupId, DataSource dataSource )
 	{
 		dataset.sources.put( dataSource.getName(), dataSource );
 		if ( dataset.is2D )
 		{
-			final Dimensions dimensions = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex ).getSize();
+			final Dimensions dimensions = spimData.getSequenceDescription().getViewSetupsOrdered().get( setupId ).getSize();
 			if ( dimensions.dimension( 2 ) > 1 )
 				dataset.is2D = false;
 		}
@@ -982,7 +978,7 @@ public class MoBIE
 		switch ( imageDataFormat )
 		{
 			case SpimData:
-				return new SpimDataImage<>( ( SpimData ) storageLocation.data, channel, name );
+				return new SpimDataImage<>( ( AbstractSpimData ) storageLocation.data, channel, name );
 			default:
 				// TODO https://github.com/mobie/mobie-viewer-fiji/issues/857
 				final String imagePath = getImageLocation( imageDataFormat, storageLocation );

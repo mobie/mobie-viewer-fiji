@@ -53,6 +53,7 @@ import org.scijava.vecmath.Point3f;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Executable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -75,13 +76,23 @@ public class MeshCreator< S extends Segment >
 		source.getSourceTransform( segment.timePoint(), renderingLevel, sourceTransform );
 
 		final RandomAccessibleInterval< AnnotationType< S > >  rai = source.getSource( segment.timePoint(), renderingLevel );
-		double[] sourceVoxelSpacing = Utils.getVoxelSpacings( source ).get( renderingLevel );
 
 		if ( segment.boundingBox() == null )
 		{
 			// compute bounding box in voxel space
 			//
-			final long[] voxelPositionInSource = SourceAndConverterHelper.getVoxelPositionInSource( source, segment.positionAsRealPoint(), segment.timePoint(), renderingLevel );
+			RealPoint position;
+			try
+			{
+				position = segment.positionAsRealPoint();
+			}
+			catch ( Exception e )
+			{
+				e.printStackTrace();
+				throw new UnsupportedOperationException( "The location of segment " + segment.label() + " could not be determined and thus no mesh could be created;\npossibly the corresponding table has no anchor point entries for this segment" );
+			}
+
+			final long[] voxelPositionInSource = SourceAndConverterHelper.getVoxelPositionInSource( source, position, segment.timePoint(), renderingLevel );
 
 			final FloodFill floodFill = new FloodFill(
 					rai,
