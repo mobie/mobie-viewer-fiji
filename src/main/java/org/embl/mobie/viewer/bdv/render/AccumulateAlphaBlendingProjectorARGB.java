@@ -71,9 +71,7 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 	public static synchronized int[] getOrder( List< SourceAndConverter< ? > > sources )
 	{
 		final ArrayList< SourceAndConverter< ? > > sorted = new ArrayList<>( sources );
-		Collections.sort( sorted, ( sac1, sac2 ) ->
-				Long.compare( (long) sacService.getMetadata( sac1, BlendingMode.TIME_ADDED ),
-				(long) sacService.getMetadata( sac2, BlendingMode.TIME_ADDED ) ) );
+		Collections.sort( sorted, Comparator.comparingLong( sac -> ( long ) sacService.getMetadata( sac, BlendingMode.TIME_ADDED ) ) );
 		int[] order = new int[ sorted.size() ];
 		for ( int i = 0; i < order.length; i++)
 			order[i] = sources.indexOf( sorted.get(i) );

@@ -23,7 +23,8 @@ public class TableOpener
 	public static Map< String, ColumnType > nameToType;
 	static
 	{
-		// FIXME Add more
+		// TODO Add more
+		// TODO Get this from the ColumnNames instead?
 		nameToType = new HashMap<>();
 		nameToType.put( ColumnNames.SPOT_X, ColumnType.FLOAT );
 		nameToType.put( ColumnNames.SPOT_Y, ColumnType.FLOAT );
@@ -35,12 +36,7 @@ public class TableOpener
 		return open( storageLocation, storageLocation.defaultChunk, tableDataFormat, -1 );
 	}
 
-	public static Table open( StorageLocation storageLocation, String relativeChunkLocation, TableDataFormat tableDataFormat )
-	{
-		return open( storageLocation, relativeChunkLocation, tableDataFormat, -1 );
-	}
-
-	public static Table open( StorageLocation storageLocation, String relativeChunkLocation, TableDataFormat tableDataFormat, int numSamples )
+	public static Table open( StorageLocation storageLocation, String chunk, TableDataFormat tableDataFormat, int numSamples )
 	{
 		switch ( tableDataFormat )
 		{
@@ -49,23 +45,24 @@ public class TableOpener
 				// FIXME
 				return null;
 			case MorphoLibJCSV:
-				// FIXME
-				return null;
+				return openFile( storageLocation, chunk, tableDataFormat );
 			case MorphoLibJResultsTable:
 				return open( (ResultsTable) storageLocation.data, tableDataFormat );
 			case MobieTSV:
 			default:
-				return openMoBIETSV( storageLocation, relativeChunkLocation, tableDataFormat, numSamples );
+				return openFile( storageLocation, chunk, tableDataFormat, numSamples );
 
 		}
-
 	}
 
-	private static Table openMoBIETSV( StorageLocation storageLocation, String relativeChunkLocation, TableDataFormat tableDataFormat, int numSamples )
+	private static Table openFile( StorageLocation storageLocation, String relativeChunkLocation, TableDataFormat tableDataFormat )
 	{
-		String path = IOHelper.combinePath( storageLocation.absolutePath, relativeChunkLocation );
-		path = resolveTablePath( path );
+		return openFile( storageLocation, relativeChunkLocation, tableDataFormat, -1 );
+	}
 
+	private static Table openFile( StorageLocation storageLocation, String chunk, TableDataFormat tableDataFormat, int numSamples )
+	{
+		final String path = resolveTablePath( IOHelper.combinePath( storageLocation.absolutePath, chunk ) );
 		final Character separator = tableDataFormat.getSeparator();
 
 		try
@@ -80,7 +77,6 @@ public class TableOpener
 			final InputStream inputStream = IOHelper.getInputStream( path );
 			//final String string = IOHelper.read( path );
 			// https://jtablesaw.github.io/tablesaw/userguide/importing_data.html
-			// FIXME: separator
 			CsvReadOptions.Builder builder = CsvReadOptions.builder( inputStream ).separator( separator ).missingValueIndicator( "na", "none", "nan" ).sample( numSamples > 0 ).sampleSize( numSamples ).columnTypesPartial( nameToType );
 			final Table rows = Table.read().usingOptions( builder );
 			//System.out.println("Read table " + path + " with " + rows.rowCount() + " rows in " + ( System.currentTimeMillis() - start ) + " ms." );

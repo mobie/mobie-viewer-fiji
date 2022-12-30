@@ -82,6 +82,8 @@ public enum TableDataFormat
 	{
 		switch ( this )
 		{
+			case MorphoLibJCSV:
+				return ',';
 			case MobieTSV:
 			default:
 				return '\t';

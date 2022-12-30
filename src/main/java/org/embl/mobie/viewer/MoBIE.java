@@ -169,7 +169,7 @@ public class MoBIE
 
 	// use this constructor from the command line
 
-	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths ) throws SpimDataException
+	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths, String[] tablePaths ) throws SpimDataException
 	{
 		initProject( projectName );
 
@@ -181,12 +181,28 @@ public class MoBIE
 			addSpimDataImages( spimData, false, null, null );
 		}
 
+
 		// segmentations (with tables)
-		for ( String path : segmentationPaths )
+		for ( int segmentationIndex = 0; segmentationIndex < segmentationPaths.length; segmentationIndex++ )
 		{
+			final String path = segmentationPaths[ segmentationIndex ];
 			final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
 			final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( path, imageDataFormat );
-			addSpimDataImages( spimData, true, null, null );
+
+			if ( tablePaths != null && tablePaths.length > segmentationIndex )
+			{
+				// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/936
+				final TableDataFormat tableDataFormat = TableDataFormat.MorphoLibJCSV;
+				final StorageLocation storageLocation = new StorageLocation();
+				final File tableFile = new File( tablePaths[ segmentationIndex ] );
+				storageLocation.absolutePath = tableFile.getParent();
+				storageLocation.defaultChunk = tableFile.getName();
+				addSpimDataImages( spimData, true, storageLocation, tableDataFormat  );
+			}
+			else
+			{
+				addSpimDataImages( spimData, true, null, null );
+			}
 		}
 
 		initUIandShowAllViews();
@@ -248,30 +264,30 @@ public class MoBIE
 		if ( tableDataFormat != null )
 			settings.addTableDataFormat( tableDataFormat );
 
-		final int numChannels = spimData.getSequenceDescription().getViewSetupsOrdered().size();
+		final int numSetups = spimData.getSequenceDescription().getViewSetupsOrdered().size();
 
-		for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
+		for ( int setupIndex = 0; setupIndex < numSetups; setupIndex++ )
 		{
 			final StorageLocation storageLocation = new StorageLocation();
 			storageLocation.data = spimData;
-			storageLocation.channel = channelIndex;
-			final BasicViewSetup viewSetup = spimData.getSequenceDescription().getViewSetupsOrdered().get( channelIndex );
-			String imageName = getImageName( viewSetup.getName(), numChannels, channelIndex );
+			storageLocation.channel = setupIndex;
+			final String setupName = spimData.getSequenceDescription().getViewSetupsOrdered().get( setupIndex ).getName();
+			String imageName = getImageName( setupName, numSetups, setupIndex );
 
 			DataSource dataSource;
 			if ( isSegmentation )
 			{
 				dataSource = new SegmentationDataSource( imageName, imageDataFormat, storageLocation, tableDataFormat, tableStorageLocation );
-				addSegmentationDisplayToDataset( dataSource.getName(), spimData, channelIndex );
+				addSegmentationDisplayToDataset( dataSource.getName(), spimData, setupIndex );
 			}
 			else
 			{
 				dataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
-				addImageDisplayToDataset( spimData, channelIndex, imageName );
+				addImageDisplayToDataset( spimData, setupIndex, imageName );
 			}
 
 			dataSource.preInit( true );
-			addDataSourceToDataset( spimData, channelIndex, dataSource );
+			addDataSourceToDataset( spimData, setupIndex, dataSource );
 		}
 	}
 

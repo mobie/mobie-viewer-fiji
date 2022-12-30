@@ -17,7 +17,7 @@ class ExploreImageAndSegmentationAndTableTest
 		ImageJ ij = new ImageJ();
 		ij.ui().showUI();
 
-		final ResultsTable resultsTable = ResultsTable.open( root + "src/test/resources/golgi-cell-features.csv" );
+		final ResultsTable resultsTable = ResultsTable.open( root + "src/test/resources/golgi-cell-features-mlj.csv" );
 		resultsTable.show( "MLJ" );
 
 		final ImagePlus image = IJ.openImage( root + "src/test/resources/golgi-intensities.tif" );
