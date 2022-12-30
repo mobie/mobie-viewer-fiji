@@ -7,6 +7,7 @@ import tech.tablesaw.api.Table;
 import java.util.Set;
 import java.util.function.Supplier;
 
+
 public interface TableSawAnnotationCreator< A extends Annotation >
 {
 	A create( TableSawAnnotationTableModel< A > tableModel, int rowIndex );

@@ -38,11 +38,13 @@ import static org.embl.mobie.viewer.table.TableDataFormatNames.*;
 public enum TableDataFormat
 {
 	@SerializedName( TSV )
-	MoBIETSV,  // TSV file with MoBIE column names
-	@SerializedName( MORPHOLIBJCSV )
-	MorpholibJCSV, // CSV file with MorpholibJ column names
-	@SerializedName( MORPHOLIBJ )
-	MorpholibJ; // RAM resident table with MorpholibJ column names
+	MobieTSV,  // MoBIE TSV file
+	@SerializedName( SKIMAGE_TSV )
+	SkimageTSV, // Skimage region props CSV FILE
+	@SerializedName( MLJ_CSV )
+	MorphoLibJCSV, // MorpholibJ CSV FILE
+	@SerializedName( MLJ_RESULTS_TABLE )
+	MorphoLibJResultsTable; // MorpholibJ ResultsTable in RAM
 
 	public static final String DEFAULT_TSV = "default.tsv";
 
@@ -51,11 +53,11 @@ public enum TableDataFormat
 	{
 		switch ( this )
 		{
-			case MorpholibJ:
-				return MORPHOLIBJ;
-			case MorpholibJCSV:
-				return MORPHOLIBJCSV;
-			case MoBIETSV:
+			case MorphoLibJResultsTable:
+				return MLJ_RESULTS_TABLE;
+			case MorphoLibJCSV:
+				return MLJ_CSV;
+			case MobieTSV:
 			default:
 				return TSV;
 		}
@@ -65,13 +67,13 @@ public enum TableDataFormat
 	{
 		switch ( name )
 		{
-			case MORPHOLIBJ:
-				return MorpholibJ;
-			case MORPHOLIBJCSV:
-				return TableDataFormat.MorpholibJCSV;
+			case MLJ_RESULTS_TABLE:
+				return MorphoLibJResultsTable;
+			case MLJ_CSV:
+				return TableDataFormat.MorphoLibJCSV;
 			case TSV:
 			default:
-				return TableDataFormat.MoBIETSV;
+				return TableDataFormat.MobieTSV;
 		}
 	}
 
@@ -80,7 +82,7 @@ public enum TableDataFormat
 	{
 		switch ( this )
 		{
-			case MoBIETSV:
+			case MobieTSV:
 			default:
 				return '\t';
 		}
@@ -90,10 +92,10 @@ public enum TableDataFormat
 	{
 		switch ( this )
 		{
-			case MorpholibJ:
-			case MorpholibJCSV:
+			case MorphoLibJResultsTable:
+			case MorphoLibJCSV:
 				return new MorpholibJSegmentColumnNames();
-			case MoBIETSV:
+			case MobieTSV:
 			default:
 				return new MoBIESegmentColumnNames();
 		}

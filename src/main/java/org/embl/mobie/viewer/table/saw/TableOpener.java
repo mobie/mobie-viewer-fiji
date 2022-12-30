@@ -5,7 +5,6 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.table.TableDataFormat;
-import org.embl.mobie.viewer.table.columns.MorpholibJSegmentColumnNames;
 import org.embl.mobie.viewer.table.columns.SegmentColumnNames;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.DoubleColumn;
@@ -45,13 +44,16 @@ public class TableOpener
 	{
 		switch ( tableDataFormat )
 		{
-			case MorpholibJCSV:
+			// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/935
+			case SkimageTSV:
 				// FIXME
 				return null;
-			case MorpholibJ:
+			case MorphoLibJCSV:
 				// FIXME
-				return (Table) storageLocation.data;
-			case MoBIETSV:
+				return null;
+			case MorphoLibJResultsTable:
+				return open( (ResultsTable) storageLocation.data, tableDataFormat );
+			case MobieTSV:
 			default:
 				return openMoBIETSV( storageLocation, relativeChunkLocation, tableDataFormat, numSamples );
 
@@ -104,6 +106,7 @@ public class TableOpener
 		return tablePath;
 	}
 
+	// convert ImageJ ResultsTable to tableSaw Table
 	public static Table open( ResultsTable resultsTable, TableDataFormat tableDataFormat )
 	{
 		final SegmentColumnNames segmentColumnNames = tableDataFormat.getSegmentColumnNames();

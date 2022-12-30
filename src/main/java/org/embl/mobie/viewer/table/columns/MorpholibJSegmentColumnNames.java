@@ -2,12 +2,11 @@ package org.embl.mobie.viewer.table.columns;
 
 public class MorpholibJSegmentColumnNames implements SegmentColumnNames
 {
-	public static final String LABEL = "Label";
-	public static final String CENTROID_X = "Centroid.X";
-	public static final String CENTROID_Y = "Centroid.Y";
-	public static final String CENTROID_Z = "Centroid.Z";
 	public static final String NONE = "None";
-	public static final String MEAN_BREADTH = "MeanBreadth";
+	public static final String LABEL_ID = "Label";
+	public static final String[] ANCHOR = { "Centroid.X", "Centroid.Y", "Centroid.Z" };
+	public static final String[] BB_MIN = { "Box.X.Min", "Box.Y.Min", "Box.Z.Min" };
+	public static final String[] BB_MAX = { "Box.X.Max", "Box.Y.Max", "Box.Z.Max" };
 
 	@Override
 	public String labelImageColumn()
@@ -18,7 +17,7 @@ public class MorpholibJSegmentColumnNames implements SegmentColumnNames
 	@Override
 	public String labelIdColumn()
 	{
-		return LABEL;
+		return LABEL_ID;
 	}
 
 	@Override
@@ -30,18 +29,18 @@ public class MorpholibJSegmentColumnNames implements SegmentColumnNames
 	@Override
 	public String[] anchorColumns()
 	{
-		return new String[]{ CENTROID_X, CENTROID_Y, CENTROID_Z };
+		return ANCHOR;
 	}
 
 	@Override
 	public String[] bbMinColumns()
 	{
-		return new String[]{ NONE, NONE, NONE };
+		return BB_MIN;
 	}
 
 	@Override
 	public String[] bbMaxColumns()
 	{
-		return new String[]{ NONE, NONE, NONE };
+		return BB_MAX;
 	}
 }

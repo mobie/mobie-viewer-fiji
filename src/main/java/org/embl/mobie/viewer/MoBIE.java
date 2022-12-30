@@ -37,8 +37,6 @@ import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.ImgLoader;
 import net.imglib2.Dimensions;
-import org.apache.commons.compress.compressors.FileNameUtil;
-import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
@@ -169,7 +167,8 @@ public class MoBIE
 		openAndViewDataset();
 	}
 
-	// command line
+	// use this constructor from the command line
+
 	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths ) throws SpimDataException
 	{
 		initProject( projectName );
@@ -638,7 +637,7 @@ public class MoBIE
 		final TableDataFormat tableDataFormat = getTableFormat( tableData );
 		final StorageLocation storageLocation = tableData.get( tableDataFormat );
 
-		if ( tableDataFormat.equals( TableDataFormat.MoBIETSV ) )
+		if ( tableDataFormat.equals( TableDataFormat.MobieTSV ) )
 		{
 			storageLocation.defaultChunk = TableDataFormat.DEFAULT_TSV;
 			storageLocation.absolutePath = IOHelper.combinePath( tableRoot, currentDatasetName, storageLocation.relativePath );

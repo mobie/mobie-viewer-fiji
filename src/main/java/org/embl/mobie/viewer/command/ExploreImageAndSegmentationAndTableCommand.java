@@ -84,20 +84,18 @@ public class ExploreImageAndSegmentationAndTableCommand extends DynamicCommand i
 	@Parameter ( label = "Table" )
 	public String tableName;
 
-	@Parameter ( label = "Table format", choices = { TableDataFormatNames.MORPHOLIBJ } )
+	@Parameter ( label = "Table format", choices = { TableDataFormatNames.MLJ_RESULTS_TABLE } )
 	public String tableFormat;
 
 	@Override
 	public void run()
 	{
-		final TableDataFormat tableDataFormat = TableDataFormat.fromString( tableFormat );
-
 		final ResultsTableFetcher tableFetcher = new ResultsTableFetcher();
 		ResultsTable resultsTable = tableFetcher.fetch( tableName );
 
-		final Table table = TableOpener.open( resultsTable, tableDataFormat );
+		final TableDataFormat tableDataFormat = TableDataFormat.fromString( tableFormat );
 		final StorageLocation tableStorageLocation = new StorageLocation();
-		tableStorageLocation.data = table;
+		tableStorageLocation.data = resultsTable;
 
 		final AbstractSpimData< ? > imageData = new SpimDataOpener().open( image );
 		final AbstractSpimData< ? > segmentationData = new SpimDataOpener().open( segmentation );
