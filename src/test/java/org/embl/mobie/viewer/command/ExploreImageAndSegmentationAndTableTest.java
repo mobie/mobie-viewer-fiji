@@ -37,7 +37,6 @@ class ExploreImageAndSegmentationAndTableTest
 			command.image = image;
 			command.segmentation = segmentation;
 			command.tableName = resultsTable.getTitle();
-			command.tableFormat = TableDataFormatNames.MLJ_RESULTS_TABLE;
 			command.run();
 		}
 	}
