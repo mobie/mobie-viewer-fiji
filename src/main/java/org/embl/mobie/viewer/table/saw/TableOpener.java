@@ -43,11 +43,11 @@ public class TableOpener
 			// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/935
 			case ResultsTable:
 				return openResultTable( (ResultsTable) storageLocation.data );
-			case CSV:
-				return openFile( storageLocation, chunk, tableDataFormat );
+
 			case TSV:
+			case CSV:
 			default:
-				return openFile( storageLocation, chunk, tableDataFormat, numSamples );
+				return openFile( storageLocation, chunk, tableDataFormat );
 
 		}
 	}

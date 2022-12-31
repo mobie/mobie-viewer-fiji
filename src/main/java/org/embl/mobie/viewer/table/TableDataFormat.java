@@ -33,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.embl.mobie.viewer.table.columns.MoBIESegmentColumnNames;
 import org.embl.mobie.viewer.table.columns.MorpholibJSegmentColumnNames;
 import org.embl.mobie.viewer.table.columns.SegmentColumnNames;
+import org.embl.mobie.viewer.table.columns.SkimageSegmentColumnNames;
 
 import java.util.Collection;
 
@@ -62,7 +63,7 @@ public enum TableDataFormat
 //	@SerializedName( MLJ_RESULTS_TABLE )
 //	MorphoLibJResultsTable; // MorpholibJ ResultsTable in RAM
 
-	public static final String DEFAULT_TSV = "default.tsv";
+	public static final String MOBIE_DEFAULT_CHUNK = "default.tsv";
 
 	@Override
 	public String toString()
@@ -126,6 +127,9 @@ public enum TableDataFormat
 
 		if ( MorpholibJSegmentColumnNames.matches( columnNames ) )
 			return new MoBIESegmentColumnNames();
+
+		if ( SkimageSegmentColumnNames.matches( columnNames ) )
+			return new SkimageSegmentColumnNames( columnNames );
 
 		throw new UnsupportedOperationException( "Could not match column names. " + StringUtils.join( columnNames ) );
 	}

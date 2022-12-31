@@ -60,7 +60,7 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 
 		labelImageColumnIndex = columnNames.indexOf( segmentColumnNames.labelImageColumn() );
 
-		is3D = anchorColumnIndices[ 2 ] > -1;
+		is3D = anchorColumnIndices.length == 3 && anchorColumnIndices[ 2 ] > -1;
 
 		hasBoundingBox = bbMinColumnIndices[ 0 ] > -1;
 

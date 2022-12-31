@@ -291,20 +291,19 @@ public class MoBIE
 	private void addImageDisplayToDataset( AbstractSpimData< ? > spimData, int imageIndex, String imageName )
 	{
 		final Displaysettings displaysettings = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex ).getAttribute( Displaysettings.class );
+
+		String color = "White";
+		double[] contrastLimits = null;
+
 		if ( displaysettings != null )
 		{
-			final String color = ColorHelper.getString( displaysettings.color );
-			final double[] contrastLimits = { displaysettings.min, displaysettings.max };
+			color = ColorHelper.getString( displaysettings.color );
+			contrastLimits = new double[]{ displaysettings.min, displaysettings.max };
+		}
 
-			final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, Arrays.asList( imageName ), color, contrastLimits, false, null );
-			final View view = new View( imageName, "image", Arrays.asList( imageDisplay ), null, false );
-			dataset.views.put( view.getName(), view );
-		}
-		else
-		{
-			// TODO: auto-display
-			throw new UnsupportedOperationException("Please contact @tischi to fix this :)");
-		}
+		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, Arrays.asList( imageName ), color, contrastLimits, false, null );
+		final View view = new View( imageName, "image", Arrays.asList( imageDisplay ), null, false );
+		dataset.views.put( view.getName(), view );
 	}
 
 	private String getImageName( String imagePath, int numImages, int imageIndex )
@@ -650,9 +649,9 @@ public class MoBIE
 		final TableDataFormat tableDataFormat = getTableFormat( tableData );
 		final StorageLocation storageLocation = tableData.get( tableDataFormat );
 
-		if ( tableDataFormat.equals( TableDataFormat.TSV ) )
+		if ( storageLocation.relativePath != null )
 		{
-			storageLocation.defaultChunk = TableDataFormat.DEFAULT_TSV;
+			storageLocation.defaultChunk = TableDataFormat.MOBIE_DEFAULT_CHUNK;
 			storageLocation.absolutePath = IOHelper.combinePath( tableRoot, currentDatasetName, storageLocation.relativePath );
 			return storageLocation;
 		}

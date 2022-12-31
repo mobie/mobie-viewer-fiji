@@ -2,7 +2,7 @@ package org.embl.mobie.viewer.table.columns;
 
 import java.util.Collection;
 
-public class SkImageSegmentColumnNames implements SegmentColumnNames
+public class SkimageSegmentColumnNames implements SegmentColumnNames
 {
 	private static final String NONE = "None";
 	private static final String LABEL_ID = "label";
@@ -13,7 +13,13 @@ public class SkImageSegmentColumnNames implements SegmentColumnNames
 
 	// https://github.com/mobie/mobie-viewer-fiji/issues/935
 	// TODO add image calibration?
-	public SkImageSegmentColumnNames( int numDimensions )
+
+	public SkimageSegmentColumnNames( Collection< String > columns  )
+	{
+		this( numDimensions( columns ) );
+	}
+
+	public SkimageSegmentColumnNames( int numDimensions )
 	{
 		ANCHOR = new String[ numDimensions ];
 		BB_MIN = new String[ numDimensions ];
@@ -70,9 +76,14 @@ public class SkImageSegmentColumnNames implements SegmentColumnNames
 		return columns.contains( "centroid-0" );
 	}
 
+	public static int numDimensions( Collection< String > columns )
+	{
+		return columns.contains( "centroid-2" ) ? 3 : 2;
+	}
+
 	public static void main( String[] args )
 	{
-		final SkImageSegmentColumnNames columnNames2D = new SkImageSegmentColumnNames( 2 );
-		final SkImageSegmentColumnNames columnNames3D = new SkImageSegmentColumnNames( 3 );
+		final SkimageSegmentColumnNames columnNames2D = new SkimageSegmentColumnNames( 2 );
+		final SkimageSegmentColumnNames columnNames3D = new SkimageSegmentColumnNames( 3 );
 	}
 }
