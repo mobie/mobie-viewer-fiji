@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.table.columns;
 
+
 public interface SegmentColumnNames
 {
 	String labelImageColumn();
@@ -13,4 +14,5 @@ public interface SegmentColumnNames
 	String[] bbMinColumns();
 
 	String[] bbMaxColumns();
+
 }

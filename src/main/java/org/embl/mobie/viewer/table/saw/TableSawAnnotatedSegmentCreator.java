@@ -1,6 +1,7 @@
 package org.embl.mobie.viewer.table.saw;
 
 import net.imglib2.FinalRealInterval;
+import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.columns.SegmentColumnNames;
 import tech.tablesaw.api.Table;
 
@@ -11,7 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreator< TableSawAnnotatedSegment >
 {
-	private final SegmentColumnNames segmentColumnNames;
+	private SegmentColumnNames segmentColumnNames;
 	private int labelImageColumnIndex;
 	private int labelIdColumnIndex;
 	private int timePointColumnIndex;
@@ -24,7 +25,7 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 	private boolean hasBoundingBox;
 
 	public TableSawAnnotatedSegmentCreator(
-			SegmentColumnNames segmentColumnNames,
+			@Nullable SegmentColumnNames segmentColumnNames,
 			@Nullable Table table )
 	{
 		this.segmentColumnNames = segmentColumnNames;
@@ -37,6 +38,9 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 		columnsInitialised.set( true );
 
 		final List< String > columnNames = table.columnNames();
+
+		if ( segmentColumnNames == null )
+			segmentColumnNames = TableDataFormat.getSegmentColumnNames( columnNames );
 
 		labelIdColumnIndex =  columnNames.indexOf( segmentColumnNames.labelIdColumn() );
 

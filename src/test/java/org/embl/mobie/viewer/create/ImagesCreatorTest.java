@@ -155,7 +155,7 @@ class ImagesCreatorTest {
 
         Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
         SegmentationDataSource segmentationData = (( SegmentationDataSource ) dataset.sources.get(imageName));
-        assertTrue( segmentationData.tableData.containsKey(TableDataFormat.MobieTSV ) );
+        assertTrue( segmentationData.tableData.containsKey(TableDataFormat.TSV ) );
     }
 
     String writeImageAndGetPath( ImageDataFormat imageDataFormat, boolean is2D ) {

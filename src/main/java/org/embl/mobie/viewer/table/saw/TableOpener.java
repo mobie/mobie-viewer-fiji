@@ -41,14 +41,11 @@ public class TableOpener
 		switch ( tableDataFormat )
 		{
 			// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/935
-			case SkimageTSV:
-				// FIXME
-				return null;
-			case MorphoLibJCSV:
+			case ResultsTable:
+				return openResultTable( (ResultsTable) storageLocation.data );
+			case CSV:
 				return openFile( storageLocation, chunk, tableDataFormat );
-			case MorphoLibJResultsTable:
-				return open( (ResultsTable) storageLocation.data, tableDataFormat );
-			case MobieTSV:
+			case TSV:
 			default:
 				return openFile( storageLocation, chunk, tableDataFormat, numSamples );
 
@@ -103,12 +100,13 @@ public class TableOpener
 	}
 
 	// convert ImageJ ResultsTable to tableSaw Table
-	public static Table open( ResultsTable resultsTable, TableDataFormat tableDataFormat )
+	public static Table openResultTable( ResultsTable resultsTable )
 	{
-		final SegmentColumnNames segmentColumnNames = tableDataFormat.getSegmentColumnNames();
 		final String[] columnNames = resultsTable.getHeadings();
+		final SegmentColumnNames segmentColumnNames = TableDataFormat.getSegmentColumnNames( Arrays.asList( columnNames ) );
 
 		final Table table = Table.create( resultsTable.getTitle() );
+
 		for ( String columnName : columnNames )
 		{
 			if ( columnName.equals( segmentColumnNames.labelIdColumn() ) )

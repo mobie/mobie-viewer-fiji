@@ -2,6 +2,9 @@ package org.embl.mobie.viewer.table.columns;
 
 import org.embl.mobie.viewer.table.ColumnNames;
 
+import java.util.Collection;
+import java.util.List;
+
 public class MoBIESegmentColumnNames implements SegmentColumnNames
 {
 	@Override
@@ -39,4 +42,10 @@ public class MoBIESegmentColumnNames implements SegmentColumnNames
 	{
 		return new String[]{ ColumnNames.BB_MAX_X, ColumnNames.BB_MAX_Y, ColumnNames.BB_MAX_Z };
 	}
+
+	public static boolean matches( Collection< String > columns )
+	{
+		return columns.contains( ColumnNames.ANCHOR_X );
+	}
+
 }

@@ -70,7 +70,6 @@ import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.LazyAnnotatedSegmentTableModel;
-import org.embl.mobie.viewer.table.columns.SegmentColumnNames;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegment;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegmentCreator;
@@ -168,7 +167,6 @@ public class MoBIE
 	}
 
 	// use this constructor from the command line
-
 	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths, String[] tablePaths ) throws SpimDataException
 	{
 		initProject( projectName );
@@ -181,7 +179,6 @@ public class MoBIE
 			addSpimDataImages( spimData, false, null, null );
 		}
 
-
 		// segmentations (with tables)
 		for ( int segmentationIndex = 0; segmentationIndex < segmentationPaths.length; segmentationIndex++ )
 		{
@@ -192,12 +189,12 @@ public class MoBIE
 			if ( tablePaths != null && tablePaths.length > segmentationIndex )
 			{
 				// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/936
-				final TableDataFormat tableDataFormat = TableDataFormat.MorphoLibJCSV;
-				final StorageLocation storageLocation = new StorageLocation();
+				final TableDataFormat tableDataFormat = TableDataFormat.fromPath( tablePaths[ segmentationIndex ] );
+				final StorageLocation tableStorageLocation = new StorageLocation();
 				final File tableFile = new File( tablePaths[ segmentationIndex ] );
-				storageLocation.absolutePath = tableFile.getParent();
-				storageLocation.defaultChunk = tableFile.getName();
-				addSpimDataImages( spimData, true, storageLocation, tableDataFormat  );
+				tableStorageLocation.absolutePath = tableFile.getParent();
+				tableStorageLocation.defaultChunk = tableFile.getName();
+				addSpimDataImages( spimData, true, tableStorageLocation, tableDataFormat );
 			}
 			else
 			{
@@ -653,7 +650,7 @@ public class MoBIE
 		final TableDataFormat tableDataFormat = getTableFormat( tableData );
 		final StorageLocation storageLocation = tableData.get( tableDataFormat );
 
-		if ( tableDataFormat.equals( TableDataFormat.MobieTSV ) )
+		if ( tableDataFormat.equals( TableDataFormat.TSV ) )
 		{
 			storageLocation.defaultChunk = TableDataFormat.DEFAULT_TSV;
 			storageLocation.absolutePath = IOHelper.combinePath( tableRoot, currentDatasetName, storageLocation.relativePath );
@@ -873,12 +870,10 @@ public class MoBIE
 	{
 		final StorageLocation tableLocation = getTableLocation( dataSource.tableData );
 		final TableDataFormat tableFormat = getTableFormat( dataSource.tableData );
-		final SegmentColumnNames segmentColumnNames = tableFormat.getSegmentColumnNames();
 
-		Table table = dataSource.preInit() ?
-				TableOpener.open( tableLocation, tableFormat ) : null;
+		Table table = dataSource.preInit() ? TableOpener.open( tableLocation, tableFormat ) : null;
 
-		final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( segmentColumnNames, table );
+		final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( null, table );
 
 		final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, tableLocation, tableFormat, table );
 

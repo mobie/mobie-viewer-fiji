@@ -1,5 +1,8 @@
 package org.embl.mobie.viewer.table.columns;
 
+import java.util.Collection;
+import java.util.List;
+
 public class MorpholibJSegmentColumnNames implements SegmentColumnNames
 {
 	public static final String NONE = "None";
@@ -42,5 +45,10 @@ public class MorpholibJSegmentColumnNames implements SegmentColumnNames
 	public String[] bbMaxColumns()
 	{
 		return BB_MAX;
+	}
+
+	public static boolean matches( Collection< String > columns )
+	{
+		return columns.contains( ANCHOR[ 0 ] );
 	}
 }

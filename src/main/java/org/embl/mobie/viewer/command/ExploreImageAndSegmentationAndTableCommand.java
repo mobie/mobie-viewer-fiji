@@ -84,8 +84,8 @@ public class ExploreImageAndSegmentationAndTableCommand extends DynamicCommand i
 	@Parameter ( label = "Table" )
 	public String tableName;
 
-	@Parameter ( label = "Table format", choices = { TableDataFormatNames.MLJ_RESULTS_TABLE } )
-	public String tableFormat;
+//	@Parameter ( label = "Table format", choices = { TableDataFormatNames.MLJ_RESULTS_TABLE } )
+//	public String tableFormat;
 
 	@Override
 	public void run()
@@ -93,7 +93,7 @@ public class ExploreImageAndSegmentationAndTableCommand extends DynamicCommand i
 		final ResultsTableFetcher tableFetcher = new ResultsTableFetcher();
 		ResultsTable resultsTable = tableFetcher.fetch( tableName );
 
-		final TableDataFormat tableDataFormat = TableDataFormat.fromString( tableFormat );
+		final TableDataFormat tableDataFormat = TableDataFormat.ResultsTable;
 		final StorageLocation tableStorageLocation = new StorageLocation();
 		tableStorageLocation.data = resultsTable;
 

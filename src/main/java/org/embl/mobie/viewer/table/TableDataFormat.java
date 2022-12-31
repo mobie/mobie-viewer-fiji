@@ -29,22 +29,38 @@
 package org.embl.mobie.viewer.table;
 
 import com.google.gson.annotations.SerializedName;
+import org.apache.commons.lang3.StringUtils;
 import org.embl.mobie.viewer.table.columns.MoBIESegmentColumnNames;
 import org.embl.mobie.viewer.table.columns.MorpholibJSegmentColumnNames;
 import org.embl.mobie.viewer.table.columns.SegmentColumnNames;
 
+import java.util.Collection;
+
 import static org.embl.mobie.viewer.table.TableDataFormatNames.*;
 
+/**
+ * Note that this does not fully specify the table file format.
+ *
+ * Use the static methods to further specify the format:
+ * - {@code getSegmentColumnNames()}
+ *
+ */
 public enum TableDataFormat
 {
-	@SerializedName( TSV )
-	MobieTSV,  // MoBIE TSV file
-	@SerializedName( SKIMAGE_TSV )
-	SkimageTSV, // Skimage region props CSV FILE
-	@SerializedName( MLJ_CSV )
-	MorphoLibJCSV, // MorpholibJ CSV FILE
-	@SerializedName( MLJ_RESULTS_TABLE )
-	MorphoLibJResultsTable; // MorpholibJ ResultsTable in RAM
+	@SerializedName( TableDataFormatNames.TSV )
+	TSV,  // TSV file
+	@SerializedName( TableDataFormatNames.CSV )
+	CSV,  // CSV file
+	@SerializedName( TableDataFormatNames.RESULTS_TABLE )
+	ResultsTable;  // ResultsTable in memory
+
+//	// TODO: Remove the below?
+//	@SerializedName( SKIMAGE_TSV )
+//	SkimageTSV, // Skimage region props CSV FILE
+//	@SerializedName( MLJ_CSV )
+//	MorphoLibJCSV, // MorpholibJ CSV FILE
+//	@SerializedName( MLJ_RESULTS_TABLE )
+//	MorphoLibJResultsTable; // MorpholibJ ResultsTable in RAM
 
 	public static final String DEFAULT_TSV = "default.tsv";
 
@@ -53,53 +69,64 @@ public enum TableDataFormat
 	{
 		switch ( this )
 		{
-			case MorphoLibJResultsTable:
-				return MLJ_RESULTS_TABLE;
-			case MorphoLibJCSV:
-				return MLJ_CSV;
-			case MobieTSV:
-			default:
-				return TSV;
-		}
-	}
-
-	public static TableDataFormat fromString( String name )
-	{
-		switch ( name )
-		{
-			case MLJ_RESULTS_TABLE:
-				return MorphoLibJResultsTable;
-			case MLJ_CSV:
-				return TableDataFormat.MorphoLibJCSV;
+			case ResultsTable:
+				return RESULTS_TABLE;
+			case CSV:
+				return TableDataFormatNames.CSV;
 			case TSV:
 			default:
-				return TableDataFormat.MobieTSV;
+				return TableDataFormatNames.TSV;
 		}
 	}
 
+	public static TableDataFormat fromString( String string )
+	{
+		switch ( string )
+		{
+			case RESULTS_TABLE:
+				return ResultsTable;
+			case TableDataFormatNames.CSV:
+				return CSV;
+			case TableDataFormatNames.TSV:
+			default:
+				return TableDataFormat.TSV;
+		}
+	}
+
+	public static TableDataFormat fromPath( String path )
+	{
+		if ( path.endsWith( ".csv" ) ) return CSV;
+		if ( path.endsWith( ".tsv" ) ) return TSV;
+		throw new RuntimeException("Could not determine table format of " + path );
+	}
 
 	public Character getSeparator()
 	{
 		switch ( this )
 		{
-			case MorphoLibJCSV:
+			case CSV:
 				return ',';
-			case MobieTSV:
+			case TSV:
 			default:
 				return '\t';
 		}
 	}
 
-	public SegmentColumnNames getSegmentColumnNames()
+	public static Character getSeparator( String path )
 	{
-		switch ( this )
-		{
-			case MorphoLibJResultsTable:
-			case MorphoLibJCSV:
-				return new MorpholibJSegmentColumnNames();
-			case MobieTSV:
-			default:
-				return new MoBIESegmentColumnNames();
-		}
+		if ( path.endsWith( ".csv" ) ) return ',';
+		if ( path.endsWith( ".tsv" ) ) return '\t';
+		throw new RuntimeException("Could not determine table separator of " + path );
+	}
+
+	public static SegmentColumnNames getSegmentColumnNames( Collection< String > columnNames )
+	{
+		if ( MoBIESegmentColumnNames.matches( columnNames ) )
+			return new MoBIESegmentColumnNames();
+
+		if ( MorpholibJSegmentColumnNames.matches( columnNames ) )
+			return new MoBIESegmentColumnNames();
+
+		throw new UnsupportedOperationException( "Could not match column names. " + StringUtils.join( columnNames ) );
 	}
 }
