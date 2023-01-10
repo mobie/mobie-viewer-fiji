@@ -162,6 +162,7 @@ public class MoBIE
 		if ( project.getName() == null )
 			project.setName( MoBIEHelper.getFileName( projectLocation ) );
 		setImageDataFormats( projectLocation );
+		settings.addTableDataFormat( TableDataFormat.TSV );
 
 		openAndViewDataset();
 	}
