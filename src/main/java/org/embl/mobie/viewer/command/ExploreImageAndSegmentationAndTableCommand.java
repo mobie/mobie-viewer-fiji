@@ -40,15 +40,12 @@ import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
-import org.embl.mobie.viewer.table.TableDataFormatNames;
-import org.embl.mobie.viewer.table.saw.TableOpener;
 import org.scijava.Initializable;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import tech.tablesaw.api.Table;
 
 import java.util.ArrayList;
 import java.util.HashMap;

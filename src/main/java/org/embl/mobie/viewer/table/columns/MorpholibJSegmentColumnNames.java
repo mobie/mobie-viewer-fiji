@@ -10,6 +10,7 @@ public class MorpholibJSegmentColumnNames implements SegmentColumnNames
 	public static final String[] ANCHOR = { "Centroid.X", "Centroid.Y", "Centroid.Z" };
 	public static final String[] BB_MIN = { "Box.X.Min", "Box.Y.Min", "Box.Z.Min" };
 	public static final String[] BB_MAX = { "Box.X.Max", "Box.Y.Max", "Box.Z.Max" };
+	public static final String TIMEPOINT = "Timepoint";
 
 	@Override
 	public String labelImageColumn()
@@ -26,7 +27,7 @@ public class MorpholibJSegmentColumnNames implements SegmentColumnNames
 	@Override
 	public String timePointColumn()
 	{
-		return NONE;
+		return TIMEPOINT;
 	}
 
 	@Override
