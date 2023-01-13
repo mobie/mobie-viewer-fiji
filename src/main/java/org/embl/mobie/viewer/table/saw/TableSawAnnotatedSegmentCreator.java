@@ -42,7 +42,9 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 		if ( segmentColumnNames == null )
 			segmentColumnNames = TableDataFormat.getSegmentColumnNames( columnNames );
 
-		labelIdColumnIndex =  columnNames.indexOf( segmentColumnNames.labelIdColumn() );
+		labelIdColumnIndex = columnNames.indexOf( segmentColumnNames.labelIdColumn() );
+		if ( labelIdColumnIndex == -1 )
+			throw new RuntimeException("The label id column \"" + segmentColumnNames.labelIdColumn() + "\" could not be found in table " + table.name() );
 
 		timePointColumnIndex = columnNames.indexOf( segmentColumnNames.timePointColumn() );
 
@@ -74,11 +76,12 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 		if ( ! columnsInitialised.get() )
 			initColumns( table );
 
+		Integer labelId = table.intColumn( labelIdColumnIndex ).get( rowIndex );
+
 		String source = labelImageColumnIndex > -1 ? table.stringColumn( labelImageColumnIndex ).get( rowIndex ) : table.name();
 
 		int timePoint = timePointColumnIndex > -1 ? table.intColumn( timePointColumnIndex ).get( rowIndex ) : 0;
 
-		Integer labelId = table.intColumn( labelIdColumnIndex ).get( rowIndex );
 
 		final FinalRealInterval boundingBox = boundingBox( table, rowIndex );
 

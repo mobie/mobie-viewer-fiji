@@ -126,7 +126,7 @@ public enum TableDataFormat
 			return new MoBIESegmentColumnNames();
 
 		if ( MorpholibJSegmentColumnNames.matches( columnNames ) )
-			return new MoBIESegmentColumnNames();
+			return new MorpholibJSegmentColumnNames();
 
 		if ( SkimageSegmentColumnNames.matches( columnNames ) )
 			return new SkimageSegmentColumnNames( columnNames );

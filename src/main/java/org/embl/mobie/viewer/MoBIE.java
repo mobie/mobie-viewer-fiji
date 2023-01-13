@@ -756,7 +756,8 @@ public class MoBIE
 						try
 						{
 							initDataSource( dataSource, log );
-						} catch ( SpimDataException e )
+						}
+						catch ( SpimDataException e )
 						{
 							e.printStackTrace();
 						}
