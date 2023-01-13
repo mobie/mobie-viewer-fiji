@@ -62,14 +62,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * This class holds all the information that is
- * needed to both view it and serialise the display.
- *
- * Note: This could still be compatible with Spots visualisation
- *
- * @param <A>
- */
+//
+// This class holds all the information that is
+// needed to both view it and serialise the display.
+//
+// Note: This could still be compatible with Spots visualisation
+//
+//
 public abstract class AbstractAnnotationDisplay< A extends Annotation > extends AbstractDisplay< AnnotationType< A > >
 {
 	// Serialization

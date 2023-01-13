@@ -50,7 +50,6 @@ import java.util.function.BooleanSupplier;
  * This class implements the marching cubes algorithm.
  * Based on http://paulbourke.net/geometry/polygonise/
  *
- * @param < T >
  *
  * @author Vanessa Leite
  * @author Philipp Hanslovsky

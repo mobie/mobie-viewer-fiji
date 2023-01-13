@@ -3,15 +3,6 @@ package org.embl.mobie.viewer.source;
 import net.imglib2.Volatile;
 import net.imglib2.type.Type;
 
-
-/**
- *  * This could be an example to work from (very similar to my use case):
- *  *
- *  * abstract public class AbstractVolatileNumericType< N extends NumericType< N >, T extends AbstractVolatileNumericType< N, T > >
- *  * 		extends Volatile< N >
- *  * 		implements NumericType< T >
- */
-
 // Note: This must be a type (as in right now implementing Type< VolatileAnnotationType< T > > ) otherwise it cannot be a pixel in a Source
 public class VolatileAnnotationType< T > extends Volatile< AnnotationType< T > > implements Type< VolatileAnnotationType< T > >
 {

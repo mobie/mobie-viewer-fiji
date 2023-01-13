@@ -67,7 +67,7 @@
     <scm>
         <connection>scm:git:https://github.com/mobie/mobie-viewer-fiji</connection>
         <developerConnection>scm:git:git@github.com:mobie/mobie-viewer-fiji</developerConnection>
-        <tag>mobie-viewer-fiji-3.0.9</tag>
+        <tag>mobie-viewer-fiji-2.1.11</tag>
         <url>https://github.com/mobie/mobie-viewer-fiji</url>
     </scm>
     <issueManagement>

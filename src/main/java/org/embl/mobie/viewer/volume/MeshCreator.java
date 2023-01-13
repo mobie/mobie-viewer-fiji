@@ -51,7 +51,6 @@ import org.scijava.vecmath.Point3f;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Executable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
