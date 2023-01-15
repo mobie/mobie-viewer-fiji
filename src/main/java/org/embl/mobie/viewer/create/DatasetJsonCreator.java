@@ -37,7 +37,7 @@ import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ImageDataSource;
 import org.embl.mobie.viewer.serialize.SegmentationDataSource;
-import org.embl.mobie.viewer.source.StorageLocation;
+import org.embl.mobie.viewer.io.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.serialize.transformation.AffineTransformation;
 import org.embl.mobie.viewer.serialize.transformation.Transformation;

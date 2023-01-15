@@ -1,7 +1,7 @@
-package develop;
+package users.kristina;
 
 import mpicbg.spim.data.SpimDataException;
-import org.embl.mobie.cmd.MoBIECommandLineInterface;
+import org.embl.mobie.cmd.MoBIECmd;
 
 class CommandLineFlatwormKristina
 {
@@ -10,7 +10,7 @@ class CommandLineFlatwormKristina
 
 	public static void main( String[] args ) throws SpimDataException
 	{
-		final MoBIECommandLineInterface commandLineInterface = new MoBIECommandLineInterface();
+		final MoBIECmd commandLineInterface = new MoBIECmd();
 		commandLineInterface.run(
 				new String[]{ ROOT + DATASET + "-pro.tif" },
 				new String[]{ ROOT + DATASET + "-seg.tif" },

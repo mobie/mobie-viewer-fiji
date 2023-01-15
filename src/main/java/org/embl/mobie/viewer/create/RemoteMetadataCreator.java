@@ -31,7 +31,7 @@ package org.embl.mobie.viewer.create;
 import ij.IJ;
 import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.ImageDataSource;
-import org.embl.mobie.viewer.source.StorageLocation;
+import org.embl.mobie.viewer.io.StorageLocation;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.SpimDataIOException;

@@ -5,7 +5,8 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.annotation.Annotation;
-import org.embl.mobie.viewer.source.StorageLocation;
+import org.embl.mobie.viewer.io.Status;
+import org.embl.mobie.viewer.io.StorageLocation;
 import org.embl.mobie.viewer.table.AbstractAnnotationTableModel;
 import org.embl.mobie.viewer.table.AnnotationListener;
 import org.embl.mobie.viewer.table.DefaultValues;
@@ -18,8 +19,10 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,15 +31,16 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 {
 	private final String dataSourceName;
 	private final TableSawAnnotationCreator< A > annotationCreator;
-	private Set< String > tableChunks;
-	private LinkedHashSet< String > requestedTableChunks = new LinkedHashSet<>();
-	private LinkedHashSet< String > loadedTableChunks = new LinkedHashSet<>();
 	private ArrayList< A > annotations = new ArrayList<>();
+
+	private Set< String > availableTableChunks;
+	private LinkedHashMap< String, Status > chunkToStatus = new LinkedHashMap<>();
+	private LinkedHashMap< StorageLocation, Status > externalChunkToStatus = new LinkedHashMap<>();
 
 	private Table table;
 	private AffineTransform3D affineTransform3D = new AffineTransform3D();
 	private boolean updateTransforms = false;
-	private StorageLocation storageLocation;
+	private final StorageLocation storageLocation;
 	private final TableDataFormat tableDataFormat;
 
 	public TableSawAnnotationTableModel(
@@ -54,7 +58,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		if ( defaultTable != null )
 		{
 			initTable( defaultTable );
-			loadedTableChunks.add( storageLocation.defaultChunk );
+			//chunkToStatus.put( storageLocation.defaultChunk, Status.Open );
 		}
 	}
 
@@ -66,14 +70,27 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	private synchronized void update()
 	{
 		if ( table == null )
-			initTable( openTable( storageLocation.defaultChunk ) );
+			initTable( openTableChunk( storageLocation.defaultChunk ) );
 
-		final List< String > tableChunks = requestedTableChunks.stream()
-				.filter( path -> ! loadedTableChunks.contains( path ) )
+		// load and join internal table chunks
+		//
+		final List< String > tableChunks = chunkToStatus.entrySet().stream()
+				.filter( chunk -> chunk.getValue().equals( Status.Closed ) )
+				.map( chunk -> chunk.getKey() )
 				.collect( Collectors.toList() );
 
 		for ( String tableChunk : tableChunks )
-			joinTable( openTable( tableChunk ) );
+			joinTable( openTableChunk( tableChunk ) );
+
+		// load and join external table chunks
+		//
+		final List< StorageLocation > storageLocations = externalChunkToStatus.entrySet().stream()
+				.filter( chunk -> chunk.getValue().equals( Status.Closed ) )
+				.map( chunk -> chunk.getKey() )
+				.collect( Collectors.toList() );
+
+		for ( StorageLocation storageLocation : storageLocations )
+			joinTable( openExternalTableChunk( storageLocation ) );
 
 		synchronized ( affineTransform3D )
 		{
@@ -89,10 +106,22 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		}
 	}
 
-	private Table openTable( String tableChunk )
+	private Table openTableChunk( String tableChunk )
 	{
-		loadedTableChunks.add( tableChunk );
-		return TableOpener.open( storageLocation, tableChunk, tableDataFormat, -1 );
+		chunkToStatus.put( tableChunk, Status.Opening );
+		final Table table = TableOpener.open( storageLocation, tableChunk, tableDataFormat );
+		chunkToStatus.put( tableChunk, Status.Open );
+		return table;
+	}
+
+	private Table openExternalTableChunk( StorageLocation storageLocation )
+	{
+		externalChunkToStatus.put( storageLocation, Status.Opening );
+		final String chunk = storageLocation.defaultChunk;
+		final TableDataFormat format = TableDataFormat.fromPath( chunk );
+		final Table table = TableOpener.open( storageLocation, chunk, format );
+		externalChunkToStatus.put( storageLocation, Status.Open );
+		return table;
 	}
 
 	private void joinTable( Table additionalTable )
@@ -230,30 +259,36 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	}
 
 	@Override
-	public void requestTableChunk( String tablePath )
+	public void loadTableChunk( String tableChunk )
 	{
-		requestedTableChunks.add( tablePath );
+		chunkToStatus.put( tableChunk, Status.Closed );
 	}
 
 	@Override
-	public void setAvailableTableChunks( Set< String > tableChunks )
+	public void loadExternalTableChunk( StorageLocation location )
 	{
-		this.tableChunks = tableChunks;
+		externalChunkToStatus.put( location, Status.Closed );
 	}
+
+//	@Override
+//	public void setAvailableTableChunks( Set< String > tableChunks )
+//	{
+//		this.tableChunks = tableChunks;
+//	}
 
 	@Override
 	public Collection< String > getAvailableTableChunks()
 	{
-		if ( tableChunks == null )
-			tableChunks = Arrays.stream( IOHelper.getFileNames( storageLocation.absolutePath ) ).collect( Collectors.toSet() );
+		if ( availableTableChunks == null )
+			availableTableChunks = Arrays.stream( IOHelper.getFileNames( storageLocation.absolutePath ) ).collect( Collectors.toSet() );
 
-		return tableChunks;
+		return availableTableChunks;
 	}
 
 	@Override
 	public LinkedHashSet< String > getLoadedTableChunks()
 	{
-		return requestedTableChunks; // excluding the default table
+		return new LinkedHashSet<>( chunkToStatus.keySet() );
 	}
 
 	@Override

@@ -3,14 +3,13 @@ package org.embl.mobie.viewer.table;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import org.embl.mobie.viewer.annotation.Annotation;
-import org.embl.mobie.viewer.source.StorageLocation;
+import org.embl.mobie.viewer.io.StorageLocation;
 import org.embl.mobie.viewer.transform.AnnotationTransformer;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 public class TransformedAnnotationTableModel< A extends Annotation, TA extends A > extends AbstractAnnotationTableModel< TA >
 {
@@ -63,16 +62,16 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	}
 
 	@Override
-	public void requestTableChunk( String columnsPath )
+	public void loadTableChunk( String tableChunk )
 	{
-		tableModel.requestTableChunk( columnsPath );
+		tableModel.loadTableChunk( tableChunk );
 	}
 
-	@Override
-	public void setAvailableTableChunks( Set< String > availableColumnPaths )
-	{
-		tableModel.setAvailableTableChunks( availableColumnPaths );
-	}
+//	@Override
+//	public void setAvailableTableChunks( Set< String > availableColumnPaths )
+//	{
+//		tableModel.setAvailableTableChunks( availableColumnPaths );
+//	}
 
 	@Override
 	public Collection< String > getAvailableTableChunks()

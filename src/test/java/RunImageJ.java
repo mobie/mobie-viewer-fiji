@@ -26,7 +26,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package run;
 
 import net.imagej.ImageJ;
 import org.scijava.command.CommandService;

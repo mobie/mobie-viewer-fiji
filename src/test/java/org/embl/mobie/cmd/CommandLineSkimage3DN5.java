@@ -9,7 +9,7 @@ class CommandLineSkimage3DN5
 
 	public static void main( String[] args ) throws SpimDataException
 	{
-		final MoBIECommandLineInterface commandLineInterface = new MoBIECommandLineInterface();
+		final MoBIECmd commandLineInterface = new MoBIECmd();
 		commandLineInterface.run(
 				new String[]{ ROOT + DIR + "image.xml" },
 				new String[]{ ROOT + DIR + "segmentation.xml" },

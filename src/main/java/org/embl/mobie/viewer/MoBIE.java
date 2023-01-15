@@ -67,7 +67,7 @@ import org.embl.mobie.viewer.serialize.SpotDataSource;
 import org.embl.mobie.viewer.serialize.View;
 import org.embl.mobie.viewer.serialize.display.ImageDisplay;
 import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
-import org.embl.mobie.viewer.source.StorageLocation;
+import org.embl.mobie.viewer.io.StorageLocation;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.viewer.table.TableDataFormat;

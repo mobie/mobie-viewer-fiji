@@ -4,13 +4,12 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.ValuePair;
 import org.embl.mobie.viewer.annotation.Annotation;
 import net.imglib2.util.Pair;
-import org.embl.mobie.viewer.source.StorageLocation;
+import org.embl.mobie.viewer.io.StorageLocation;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 public interface AnnotationTableModel< A extends Annotation > extends AnnotationListener< A >
 {
@@ -38,10 +37,11 @@ public interface AnnotationTableModel< A extends Annotation > extends Annotation
 	int numAnnotations(); // TODO: avoid this as it could hamper lazy loading..?! rather use rows() below? Or maybe add back the iterator?
 	int rowIndexOf( A annotation );
 	A annotation( int rowIndex );
-	void requestTableChunk( String columnsPath ); // load more chucks of columns
-	void setAvailableTableChunks( Set< String> availableColumnPaths );
-	Collection< String > getAvailableTableChunks(); // where to load more chucks of columns
-	LinkedHashSet< String > getLoadedTableChunks(); // which column chunks have been loaded, in the order in which they have been loaded
+	void loadTableChunk( String tableChunk ); // load additional chunks from the table source
+	void loadExternalTableChunk( StorageLocation location ); // load chunks from an external table source
+	//void setAvailableTableChunks( Set< String> availableColumnPaths );
+	Collection< String > getAvailableTableChunks();
+	LinkedHashSet< String > getLoadedTableChunks(); // loaded chunks, in the order in which they have been loaded
 	Pair< Double, Double > getMinMax( String columnName ); // for contrast limits during rendering
 	ArrayList< A > annotations();
 	void addStringColumn( String columnName );

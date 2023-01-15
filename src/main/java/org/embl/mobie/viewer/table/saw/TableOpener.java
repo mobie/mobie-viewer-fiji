@@ -2,7 +2,7 @@ package org.embl.mobie.viewer.table.saw;
 
 import ij.measure.ResultsTable;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.viewer.source.StorageLocation;
+import org.embl.mobie.viewer.io.StorageLocation;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.columns.SegmentColumnNames;
@@ -33,22 +33,20 @@ public class TableOpener
 
 	public static Table open( StorageLocation storageLocation, TableDataFormat tableDataFormat )
 	{
-		return open( storageLocation, storageLocation.defaultChunk, tableDataFormat, -1 );
+		return open( storageLocation, storageLocation.defaultChunk, tableDataFormat );
 	}
 
-	public static Table open( StorageLocation storageLocation, String chunk, TableDataFormat tableDataFormat, int numSamples )
+	public static Table open( StorageLocation storageLocation, String chunk, TableDataFormat tableDataFormat )
 	{
 		switch ( tableDataFormat )
 		{
 			// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/935
 			case ResultsTable:
 				return openResultTable( (ResultsTable) storageLocation.data );
-
 			case TSV:
 			case CSV:
 			default:
 				return openFile( storageLocation, chunk, tableDataFormat );
-
 		}
 	}
 

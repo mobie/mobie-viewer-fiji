@@ -9,7 +9,7 @@ class CommandLineSkimage2DTZarr
 
 	public static void main( String[] args ) throws SpimDataException
 	{
-		final MoBIECommandLineInterface commandLineInterface = new MoBIECommandLineInterface();
+		final MoBIECmd commandLineInterface = new MoBIECmd();
 		commandLineInterface.run(
 				new String[]{ ROOT + DIR + "image.ome.zarr" },
 				new String[]{ ROOT + DIR + "segmentation.ome.zarr" },

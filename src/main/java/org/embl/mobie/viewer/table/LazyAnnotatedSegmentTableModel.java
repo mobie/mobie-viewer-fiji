@@ -3,7 +3,7 @@ package org.embl.mobie.viewer.table;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
-import org.embl.mobie.viewer.source.StorageLocation;
+import org.embl.mobie.viewer.io.StorageLocation;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -68,7 +68,7 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	}
 
 	@Override
-	public void requestTableChunk( String columnsPath )
+	public void loadTableChunk( String tableChunk )
 	{
 		// not implemented
 	}

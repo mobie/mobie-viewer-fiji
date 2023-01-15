@@ -222,16 +222,16 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 		this.scatterPlotAxes = annotationDisplay.scatterPlotView.getSelectedColumns();
 		this.additionalTables = annotationDisplay.additionalTables;
 
-		final LinkedHashSet< String > additionalTablePaths = annotationDisplay.annData.getTable().getLoadedTableChunks();
-		if ( additionalTablePaths.size() > 0 )
+		final LinkedHashSet< String > loadedTableChunks = annotationDisplay.annData.getTable().getLoadedTableChunks();
+		if ( loadedTableChunks.size() > 0 )
 		{
 			if ( this.additionalTables == null )
 				this.additionalTables = new ArrayList<>();
 
-			for ( String path : additionalTablePaths )
+			for ( String chunk : loadedTableChunks )
 			{
-				final String fileName = MoBIEHelper.getFileName( path );
-				this.additionalTables.add( fileName );
+				//final String fileName = MoBIEHelper.getFileName( chunk );
+				this.additionalTables.add( chunk );
 			}
 		}
 

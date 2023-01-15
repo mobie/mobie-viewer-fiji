@@ -8,7 +8,7 @@ import picocli.CommandLine.Option;
 
 import java.util.concurrent.Callable;
 
-public class MoBIECommandLineInterface implements Callable<Void> {
+public class MoBIECmd implements Callable<Void> {
 
 	// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/926
 
@@ -34,6 +34,6 @@ public class MoBIECommandLineInterface implements Callable<Void> {
 	}
 
 	public static final void main( final String... args ) {
-		new CommandLine( new MoBIECommandLineInterface() ).execute( args );
+		new CommandLine( new MoBIECmd() ).execute( args );
 	}
 }

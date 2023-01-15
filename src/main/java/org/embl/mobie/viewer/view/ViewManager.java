@@ -37,7 +37,6 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.lang.ArrayUtils;
-import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.DataStore;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
@@ -557,7 +556,7 @@ public class ViewManager
 				for ( String tableChunk : requestedTableChunks )
 				{
 					final AnnotationTableModel< A > tableModel = annotationDisplay.getAnnData().getTable();
-					tableModel.requestTableChunk( tableChunk );
+					tableModel.loadTableChunk( tableChunk );
 				}
 
 			// configure selection model

@@ -28,7 +28,7 @@
  */
 package org.embl.mobie.viewer.serialize;
 
-import org.embl.mobie.viewer.source.StorageLocation;
+import org.embl.mobie.viewer.io.StorageLocation;
 import org.embl.mobie.io.ImageDataFormat;
 
 import java.util.HashMap;

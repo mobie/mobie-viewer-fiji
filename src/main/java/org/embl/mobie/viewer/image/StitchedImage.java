@@ -50,6 +50,7 @@ import net.imglib2.view.Views;
 import org.embl.mobie.viewer.DataStore;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.ThreadHelper;
+import org.embl.mobie.viewer.io.Status;
 import org.embl.mobie.viewer.source.MoBIEVolatileTypeMatcher;
 import org.embl.mobie.viewer.source.RandomAccessibleIntervalMipmapSource;
 import org.embl.mobie.viewer.source.SourceHelper;
@@ -674,13 +675,6 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	public void setMask( RealMaskRealInterval mask )
 	{
 		this.mask = mask;
-	}
-
-	enum Status // for RandomAccessSupplier
-	{
-		Closed,
-		Opening,
-		Open;
 	}
 
 	class RandomAccessibleSupplier

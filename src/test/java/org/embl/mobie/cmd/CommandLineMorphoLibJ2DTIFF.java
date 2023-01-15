@@ -9,7 +9,7 @@ class CommandLineMorphoLibJ2DTIFF
 
 	public static void main( String[] args ) throws SpimDataException
 	{
-		final MoBIECommandLineInterface commandLineInterface = new MoBIECommandLineInterface();
+		final MoBIECmd commandLineInterface = new MoBIECmd();
 		commandLineInterface.run(
 				new String[]{ ROOT + DIR + "image.tif" },
 				new String[]{ ROOT + DIR + "segmentation.tif" },

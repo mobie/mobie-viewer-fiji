@@ -3,7 +3,7 @@ package org.embl.mobie.viewer.table;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import org.embl.mobie.viewer.annotation.Annotation;
-import org.embl.mobie.viewer.source.StorageLocation;
+import org.embl.mobie.viewer.io.StorageLocation;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -70,18 +70,18 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	}
 
 	@Override
-	public void requestTableChunk( String columnsPath )
+	public void loadTableChunk( String tableChunk )
 	{
 		for ( AnnotationTableModel< A > tableModel : tableModels )
-			tableModel.requestTableChunk( columnsPath );
+			tableModel.loadTableChunk( tableChunk );
 	}
 
-	@Override
-	public void setAvailableTableChunks( Set< String > availableTableChunks )
-	{
-		for ( AnnotationTableModel< A > tableModel : tableModels )
-			tableModel.setAvailableTableChunks( availableTableChunks );
-	}
+//	@Override
+//	public void setAvailableTableChunks( Set< String > availableTableChunks )
+//	{
+//		for ( AnnotationTableModel< A > tableModel : tableModels )
+//			tableModel.setAvailableTableChunks( availableTableChunks );
+//	}
 
 	@Override
 	public Collection< String > getAvailableTableChunks()

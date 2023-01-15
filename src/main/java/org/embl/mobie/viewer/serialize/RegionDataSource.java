@@ -28,12 +28,10 @@
  */
 package org.embl.mobie.viewer.serialize;
 
-import org.embl.mobie.viewer.source.StorageLocation;
+import org.embl.mobie.viewer.io.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
-import script.imglib.math.Abs;
 import tech.tablesaw.api.Table;
 
-import java.util.List;
 import java.util.Map;
 
 
