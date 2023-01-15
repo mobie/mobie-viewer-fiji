@@ -76,6 +76,12 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 			tableModel.loadTableChunk( tableChunk );
 	}
 
+	@Override
+	public void loadExternalTableChunk( StorageLocation location )
+	{
+		throw new UnsupportedOperationException("loadExternalTableChunk is not implemented for " + this.getClass() );
+	}
+
 //	@Override
 //	public void setAvailableTableChunks( Set< String > availableTableChunks )
 //	{

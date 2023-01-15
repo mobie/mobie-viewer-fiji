@@ -74,9 +74,9 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	}
 
 	@Override
-	public void setAvailableTableChunks( Set< String > columnPaths )
+	public void loadExternalTableChunk( StorageLocation location )
 	{
-		// not implemented
+		throw new UnsupportedOperationException("loadExternalTableChunk is not implemented for " + this.getClass() );
 	}
 
 	@Override

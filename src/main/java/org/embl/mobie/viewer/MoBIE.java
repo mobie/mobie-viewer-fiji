@@ -160,7 +160,7 @@ public class MoBIE
 		registerProjectPlugins( settings.values.getProjectLocation() );
 		project = new ProjectJsonParser().parseProject( IOHelper.combinePath( projectRoot,  "project.json" ) );
 		if ( project.getName() == null )
-			project.setName( IOHelper.getFilename( projectLocation ) );
+			project.setName( IOHelper.getFileName( projectLocation ) );
 		setImageDataFormats( projectLocation );
 		settings.addTableDataFormat( TableDataFormat.TSV );
 

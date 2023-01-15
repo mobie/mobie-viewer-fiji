@@ -253,10 +253,12 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 					IJ.log( "Loading table chunk: " + path + "..." );
 					final StorageLocation storageLocation = new StorageLocation();
 					storageLocation.absolutePath = IOHelper.getParentLocation( path );
-					storageLocation.defaultChunk = IOHelper.getFilename( path );
+					storageLocation.defaultChunk = IOHelper.getFileName( path );
 					tableModel.loadExternalTableChunk( storageLocation );
+
 				}
 
+				IJ.log( "...done!" );
 				jTable.tableChanged( null );
 
 			}).start()

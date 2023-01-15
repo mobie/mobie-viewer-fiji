@@ -67,11 +67,12 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 		tableModel.loadTableChunk( tableChunk );
 	}
 
-//	@Override
-//	public void setAvailableTableChunks( Set< String > availableColumnPaths )
-//	{
-//		tableModel.setAvailableTableChunks( availableColumnPaths );
-//	}
+	@Override
+	public void loadExternalTableChunk( StorageLocation location )
+	{
+		tableModel.loadExternalTableChunk( location );
+	}
+
 
 	@Override
 	public Collection< String > getAvailableTableChunks()
