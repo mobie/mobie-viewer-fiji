@@ -96,7 +96,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		{
 			if ( updateTransforms )
 			{
-				//System.out.println( "Table Model " + MoBIEHelper.getFileName( dataStore ) + ": applying " + affineTransform3D );
+				//System.out.println( "Table Model " + IOHelper.getFileName( dataStore ) + ": applying " + affineTransform3D );
 				for ( A annotation : annotations )
 					annotation.transform( affineTransform3D );
 				updateTransforms = false;
@@ -334,7 +334,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	{
 		synchronized ( this.affineTransform3D )
 		{
-			//System.out.println( "Table Model " + MoBIEHelper.getFileName( dataStore ) + ": adding " + affineTransform3D );
+			//System.out.println( "Table Model " + IOHelper.getFileName( dataStore ) + ": adding " + affineTransform3D );
 			this.updateTransforms = true;
 			this.affineTransform3D.preConcatenate( affineTransform3D );
 		}

@@ -84,18 +84,4 @@ public abstract class MoBIEHelper
 		Project,
 		FileSystem
 	}
-
-	// TODO: Proper implementation in IOHelper in mobie-io
-	public static String getFileName( String path )
-	{
-		if ( path.startsWith( "http" ) )
-		{
-			final String[] split = path.split( "/" );
-			return split[ split.length - 1 ];
-		}
-		else
-		{
-			return new File( path ).getName();
-		}
-	}
 }

@@ -230,7 +230,7 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 
 			for ( String chunk : loadedTableChunks )
 			{
-				//final String fileName = MoBIEHelper.getFileName( chunk );
+				//final String fileName = IOHelper.getFileName( chunk );
 				this.additionalTables.add( chunk );
 			}
 		}

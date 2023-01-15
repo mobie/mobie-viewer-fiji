@@ -32,6 +32,7 @@ import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.TableUIs;
 import ij.IJ;
 import ij.gui.GenericDialog;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.annotation.AnnotationDialog;
 import org.embl.mobie.viewer.annotation.Annotation;
@@ -40,6 +41,7 @@ import org.embl.mobie.viewer.color.ColorHelper;
 import org.embl.mobie.viewer.color.ColoringListener;
 import org.embl.mobie.viewer.color.ColoringModel;
 import org.embl.mobie.viewer.color.MobieColoringModel;
+import org.embl.mobie.viewer.io.StorageLocation;
 import org.embl.mobie.viewer.serialize.display.AbstractAnnotationDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotDialog;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
@@ -232,24 +234,29 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		menuItem.addActionListener( e ->
 			new Thread( () -> {
 				FileLocation fileLocation = loadFromProjectOrFileSystemDialog();
-				String path = null;
+
 				if ( fileLocation.equals( FileLocation.Project ) )
 				{
-					final String[] paths = tableModel.getAvailableTableChunks().toArray( new String[ 0 ] );
+					final String[] availableChunks = tableModel.getAvailableTableChunks().toArray( new String[ 0 ] );
 					final GenericDialog gd = new GenericDialog("Choose table chunk");
-					gd.addChoice("Columns", paths, paths[0]);
+					gd.addChoice("Chunks", availableChunks, availableChunks[0]);
 					gd.showDialog();
 					if ( gd.wasCanceled() ) return;
-					path = gd.getNextChoice();
+					String chunk = gd.getNextChoice();
+					IJ.log( "Loading table chunk: " + chunk + "..." );
+					tableModel.loadTableChunk( chunk );
 				}
 				else if ( fileLocation.equals( FileLocation.FileSystem ) )
 				{
-					path = UserInterfaceHelper.selectFilePath( "tsv", "Table", true );
+					String path = UserInterfaceHelper.selectFilePath( "tsv", "Table", true );
 					if ( path == null )  return;
+					IJ.log( "Loading table chunk: " + path + "..." );
+					final StorageLocation storageLocation = new StorageLocation();
+					storageLocation.absolutePath = IOHelper.getParentLocation( path );
+					storageLocation.defaultChunk = IOHelper.getFilename( path );
+					tableModel.loadExternalTableChunk( storageLocation );
 				}
 
-				IJ.log( "Loading and joining table: " + MoBIEHelper.getFileName( path ) + "..." );
-				tableModel.loadTableChunk( path );
 				jTable.tableChanged( null );
 
 			}).start()
