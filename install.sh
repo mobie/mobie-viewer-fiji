@@ -16,7 +16,7 @@ echo '  -XX:+UseConcMarkSweepGC \' >> mobie
 echo -n '  -cp $JAR:' >> mobie
 echo -n $(cat cp.txt) >> mobie
 echo ' \' >> mobie
-echo '  org.embl.mobie.cmd.MoBIECommandLineInterface "$@"' >> mobie
+echo '  org.embl.mobie.cmd.MoBIECmd "$@"' >> mobie
 chmod a+x mobie
 echo ""
 echo "Installed MoBIE in current directory."
