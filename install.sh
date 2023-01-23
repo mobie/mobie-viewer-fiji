@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script is shamelessly adapted from https://github.com/saalfeldlab/n5-utils, thanks @axtimwalde & co!
 
-VERSION="3.0.10-SNAPSHOT"
+VERSION=$1
 MEM=8 # FIXME
 
 mvn clean install -Denforcer.skip -Dmaven.test.skip=true
