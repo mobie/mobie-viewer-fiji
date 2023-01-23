@@ -1,10 +1,10 @@
 #!/bin/bash
 # This script is shamelessly adapted from https://github.com/saalfeldlab/n5-utils, thanks @axtimwalde & co!
 
-VERSION="3.0.7-SNAPSHOT"
+VERSION="3.0.10-SNAPSHOT"
 MEM=8 # FIXME
 
-mvn clean install -Denforcer.skip
+mvn clean install -Denforcer.skip -Dmaven.test.skip=true
 mvn -Dmdep.outputFile=cp.txt -Dmdep.includeScope=runtime dependency:build-classpath
 
 echo '#!/bin/bash' > mobie
@@ -22,7 +22,7 @@ echo ""
 echo "Installed MoBIE in current directory."
 echo "Type ./mobie to see all options"
 echo "Example call:"
-echo "./mobie -i \"./src/test/resources/golgi-intensities.tif\" -s \"./src/test/resources/golgi-cell-labels.tif\""
+echo "./mobie -i \"./src/test/resources/input/mlj-2d-tiff/image.tif\" -s \"./src/test/resources/input/mlj-2d-tiff/segmentation.tif\" -t \"./src/test/resources/input/mlj-2d-tiff/table-mlj.csv\""
 echo ""
 
 rm cp.txt

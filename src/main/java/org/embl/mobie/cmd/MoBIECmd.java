@@ -8,7 +8,6 @@ import picocli.CommandLine.Option;
 
 import java.util.concurrent.Callable;
 
-
 public class MoBIECmd implements Callable<Void> {
 
 	// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/926
