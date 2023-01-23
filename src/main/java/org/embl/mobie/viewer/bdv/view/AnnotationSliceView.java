@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.viewer.bdv.view;
 
+import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
@@ -103,6 +104,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		final Source< AnnotationType< A > > source = image.getSourcePair().getSource();
 		final BoundarySource boundarySource = new BoundarySource( source, false, 0.0F, image.getMask() );
 		final Converter< AnnotationType< A >, ARGBType > annotationARGBConverter = new AnnotationARGBConverter<>( display.coloringModel );
+		final TransformedSource transformedSource = new TransformedSource( boundarySource );
 
 		// create volatile sac
 		//
@@ -112,15 +114,18 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 			final Source< ? extends Volatile< ? extends AnnotationType< ? > > > volatileSource = image.getSourcePair().getVolatileSource();
 			final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileSource, false, 1.0F, image.getMask() );
 			final VolatileAnnotationARGBConverter volatileAnnotationConverter = new VolatileAnnotationARGBConverter( display.coloringModel );
-			SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, volatileAnnotationConverter );
+			final TransformedSource volatileTransformedSource = new TransformedSource( volatileBoundarySource, transformedSource );
+			SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileTransformedSource, volatileAnnotationConverter );
 
 			// combine non-volatile and volatile sac
 			//
-			return new SourceAndConverter( boundarySource, annotationARGBConverter, volatileSourceAndConverter );
+			final SourceAndConverter combinedSAC = new SourceAndConverter( transformedSource, annotationARGBConverter, volatileSourceAndConverter );
+			return combinedSAC;
 		}
 
 		// only non-volatile sac
-		return new SourceAndConverter( boundarySource, annotationARGBConverter );
+		final SourceAndConverter sac = new SourceAndConverter( transformedSource, annotationARGBConverter );
+		return sac;
 	}
 
 	private void show( SourceAndConverter< ? > sourceAndConverter )
