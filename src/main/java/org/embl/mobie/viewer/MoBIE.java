@@ -38,6 +38,7 @@ import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.ImgLoader;
 import net.imglib2.Dimensions;
 import org.apache.commons.io.FilenameUtils;
+import org.embl.mobie.cmd.CmdHelper;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
@@ -91,6 +92,10 @@ import tech.tablesaw.io.csv.CsvReadOptions;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -168,9 +173,22 @@ public class MoBIE
 	}
 
 	// use this constructor from the command line
-	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths, String[] tablePaths ) throws SpimDataException
+	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths, String[] tablePaths ) throws SpimDataException, IOException
 	{
 		initProject( projectName );
+
+		if ( imagePaths.length == 1 && imagePaths[ 0 ].contains( "*" ) )
+		{
+			final String regExPath = imagePaths[ 0 ];
+
+			final String dir = new File( regExPath ).getParent();
+			String name = new File( regExPath ).getName();
+			final String regex = CmdHelper.wildcardToRegex( name );
+
+			final List< Path > pathList = Files.find( Paths.get( dir ), 999,
+					( path, basicFileAttribute ) -> basicFileAttribute.isRegularFile()
+							&& path.getFileName().toString().matches( regex ) ).collect( Collectors.toList() );
+		}
 
 		// images
 		for ( String path : imagePaths )
@@ -276,12 +294,12 @@ public class MoBIE
 			if ( isSegmentation )
 			{
 				dataSource = new SegmentationDataSource( imageName, imageDataFormat, storageLocation, tableDataFormat, tableStorageLocation );
-				addSegmentationDisplayToDataset( dataSource.getName(), spimData, setupIndex );
+				addSegmentationView( dataSource.getName(), spimData, setupIndex );
 			}
 			else
 			{
 				dataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
-				addImageDisplayToDataset( spimData, setupIndex, imageName );
+				addImageView( spimData, setupIndex, imageName );
 			}
 
 			dataSource.preInit( true );
@@ -289,7 +307,7 @@ public class MoBIE
 		}
 	}
 
-	private void addImageDisplayToDataset( AbstractSpimData< ? > spimData, int imageIndex, String imageName )
+	private void addImageView( AbstractSpimData< ? > spimData, int imageIndex, String imageName )
 	{
 		final Displaysettings displaysettings = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex ).getAttribute( Displaysettings.class );
 
@@ -315,7 +333,7 @@ public class MoBIE
 		return imageName;
 	}
 
-	private void addSegmentationDisplayToDataset( String imageName, AbstractSpimData< ? > spimData, int setupId  )
+	private void addSegmentationView( String imageName, AbstractSpimData< ? > spimData, int setupId  )
 	{
 		final SegmentationDisplay< ? > display = new SegmentationDisplay<>( imageName, Arrays.asList( imageName ) );
 
