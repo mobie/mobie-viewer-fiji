@@ -38,12 +38,11 @@ import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.ImgLoader;
 import net.imglib2.Dimensions;
 import org.apache.commons.io.FilenameUtils;
-import org.embl.mobie.cmd.CmdHelper;
+import org.embl.mobie.viewer.io.IOHelper;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
-import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.AnnotatedSpot;
@@ -92,10 +91,6 @@ import tech.tablesaw.io.csv.CsvReadOptions;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -163,9 +158,9 @@ public class MoBIE
 		setS3Credentials( settings );
 		setProjectImageAndTableRootLocations();
 		registerProjectPlugins( settings.values.getProjectLocation() );
-		project = new ProjectJsonParser().parseProject( IOHelper.combinePath( projectRoot,  "project.json" ) );
+		project = new ProjectJsonParser().parseProject( org.embl.mobie.io.util.IOHelper.combinePath( projectRoot,  "project.json" ) );
 		if ( project.getName() == null )
-			project.setName( IOHelper.getFileName( projectLocation ) );
+			project.setName( org.embl.mobie.io.util.IOHelper.getFileName( projectLocation ) );
 		setImageDataFormats( projectLocation );
 		settings.addTableDataFormat( TableDataFormat.TSV );
 
@@ -177,18 +172,14 @@ public class MoBIE
 	{
 		initProject( projectName );
 
-		if ( imagePaths.length == 1 && imagePaths[ 0 ].contains( "*" ) )
-		{
-			final String regExPath = imagePaths[ 0 ];
+		if ( imagePaths[ 0 ].contains( "*" ) )
+			imagePaths = IOHelper.getPaths( imagePaths[ 0 ] );
 
-			final String dir = new File( regExPath ).getParent();
-			String name = new File( regExPath ).getName();
-			final String regex = CmdHelper.wildcardToRegex( name );
+		if ( segmentationPaths[ 0 ].contains( "*" ) )
+			segmentationPaths = IOHelper.getPaths( segmentationPaths[ 0 ] );
 
-			final List< Path > pathList = Files.find( Paths.get( dir ), 999,
-					( path, basicFileAttribute ) -> basicFileAttribute.isRegularFile()
-							&& path.getFileName().toString().matches( regex ) ).collect( Collectors.toList() );
-		}
+		if ( tablePaths[ 0 ].contains( "*" ) )
+			tablePaths = IOHelper.getPaths( tablePaths[ 0 ] );
 
 		// images
 		for ( String path : imagePaths )
@@ -433,27 +424,27 @@ public class MoBIE
 				settings.values.getProjectLocation(),
 				settings.values.getProjectBranch() );
 
-		if( ! IOHelper.exists( IOHelper.combinePath( projectRoot, "project.json" ) ) )
+		if( ! org.embl.mobie.io.util.IOHelper.exists( org.embl.mobie.io.util.IOHelper.combinePath( projectRoot, "project.json" ) ) )
 		{
-			projectRoot = IOHelper.combinePath( projectRoot, "data" );
+			projectRoot = org.embl.mobie.io.util.IOHelper.combinePath( projectRoot, "data" );
 		}
 
 		imageRoot = createPath(
 				settings.values.getImageDataLocation(),
 				settings.values.getImageDataBranch() );
 
-		if( ! IOHelper.exists( IOHelper.combinePath( imageRoot, "project.json" ) ) )
+		if( ! org.embl.mobie.io.util.IOHelper.exists( org.embl.mobie.io.util.IOHelper.combinePath( imageRoot, "project.json" ) ) )
 		{
-			imageRoot = IOHelper.combinePath( imageRoot, "data" );
+			imageRoot = org.embl.mobie.io.util.IOHelper.combinePath( imageRoot, "data" );
 		}
 
 		tableRoot = createPath(
 				settings.values.getTableDataLocation(),
 				settings.values.getTableDataBranch() );
 
-		if( ! IOHelper.exists( IOHelper.combinePath( tableRoot, "project.json" ) ) )
+		if( ! org.embl.mobie.io.util.IOHelper.exists( org.embl.mobie.io.util.IOHelper.combinePath( tableRoot, "project.json" ) ) )
 		{
-			tableRoot = IOHelper.combinePath( tableRoot, "data" );
+			tableRoot = org.embl.mobie.io.util.IOHelper.combinePath( tableRoot, "data" );
 		}
 	}
 
@@ -536,7 +527,7 @@ public class MoBIE
 		final ArrayList< String > strings = new ArrayList<>();
 		strings.add( rootLocation );
 		Collections.addAll( strings, files );
-		final String path = IOHelper.combinePath( strings.toArray( new String[0] ) );
+		final String path = org.embl.mobie.io.util.IOHelper.combinePath( strings.toArray( new String[0] ) );
 
 		return path;
 	}
@@ -671,7 +662,7 @@ public class MoBIE
 		if ( storageLocation.relativePath != null )
 		{
 			storageLocation.defaultChunk = TableDataFormat.MOBIE_DEFAULT_CHUNK;
-			storageLocation.absolutePath = IOHelper.combinePath( tableRoot, currentDatasetName, storageLocation.relativePath );
+			storageLocation.absolutePath = org.embl.mobie.io.util.IOHelper.combinePath( tableRoot, currentDatasetName, storageLocation.relativePath );
 			return storageLocation;
 		}
 
@@ -680,7 +671,7 @@ public class MoBIE
 
 	public String getDatasetPath( String... files )
 	{
-		final String datasetRoot = IOHelper.combinePath( projectRoot, getCurrentDatasetName() );
+		final String datasetRoot = org.embl.mobie.io.util.IOHelper.combinePath( projectRoot, getCurrentDatasetName() );
 		return createPath( datasetRoot, files );
 	}
 
@@ -688,7 +679,7 @@ public class MoBIE
 	{
 		String location = root;
 		for ( String file : files )
-			location = IOHelper.combinePath( location, file );
+			location = org.embl.mobie.io.util.IOHelper.combinePath( location, file );
 		return location;
 	}
 
@@ -729,7 +720,7 @@ public class MoBIE
 			case OmeZarr:
             	if ( storageLocation.absolutePath != null  )
 					return storageLocation.absolutePath;
-                return IOHelper.combinePath( imageRoot, getCurrentDatasetName(), storageLocation.relativePath );
+                return org.embl.mobie.io.util.IOHelper.combinePath( imageRoot, getCurrentDatasetName(), storageLocation.relativePath );
             case OpenOrganelleS3:
             case OmeZarrS3:
                 return storageLocation.s3Address;

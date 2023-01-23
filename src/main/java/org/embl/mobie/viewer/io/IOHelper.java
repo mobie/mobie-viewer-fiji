@@ -1,6 +1,13 @@
-package org.embl.mobie.cmd;
+package org.embl.mobie.viewer.io;
 
-public class CmdHelper
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
+public class IOHelper
 {
 	// from https://stackoverflow.com/questions/28734455/java-converting-file-pattern-to-regular-expression-pattern
 	public static String wildcardToRegex(String wildcard){
@@ -32,5 +39,22 @@ public class CmdHelper
 		}
 		s.append('$');
 		return(s.toString());
+	}
+
+	public static String[] getPaths( String imagePath ) throws IOException
+	{
+		final String regExPath = imagePath;
+
+		final String dir = new File( regExPath ).getParent();
+		String name = new File( regExPath ).getName();
+		final String regex = wildcardToRegex( name );
+
+		final String[] paths = Files.find( Paths.get( dir ), 999,
+				( path, basicFileAttribute ) -> basicFileAttribute.isRegularFile()
+						&& path.getFileName().toString().matches( regex ) ).map( path -> path.toString() ).collect( Collectors.toList() ).toArray( new String[ 0 ] );
+
+		Arrays.sort( paths );
+
+		return paths;
 	}
 }

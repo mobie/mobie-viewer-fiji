@@ -6,6 +6,7 @@ import org.embl.mobie.viewer.MoBIE;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
+import java.io.IOException;
 import java.util.concurrent.Callable;
 
 public class MoBIECmd implements Callable<Void> {
@@ -27,7 +28,7 @@ public class MoBIECmd implements Callable<Void> {
 		return null;
 	}
 
-	public void run( String[] images, String[] segmentations, String[] tables ) throws SpimDataException
+	public void run( String[] images, String[] segmentations, String[] tables ) throws SpimDataException, IOException
 	{
 		new ImageJ();// init SciJava services
 		new MoBIE( "", images, segmentations, tables );
