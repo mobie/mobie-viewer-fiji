@@ -273,7 +273,7 @@ public class ViewManager
 		initData( view );
 
 		// display the data
-		final List< Display< ? > > displays = view.getDisplays();
+		final List< Display< ? > > displays = view.displays();
 		for ( Display< ? > display : displays )
 			show( display );
 
@@ -459,7 +459,7 @@ public class ViewManager
 		// instantiate {@code RegionDisplay}
 		// note that this could not be done already in MoBIE.initData()
 		// because we needed to wait until all images are present
-		for ( Display< ? > display : view.getDisplays() )
+		for ( Display< ? > display : view.displays() )
 		{
 			// https://github.com/mobie/mobie-viewer-fiji/issues/818
 			if ( display instanceof RegionDisplay )

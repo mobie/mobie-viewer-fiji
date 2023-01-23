@@ -6,7 +6,7 @@ import java.io.IOException;
 
 class CommandLineWildcardMovies
 {
-	public static final String DIR = "/Users/tischer/Desktop/Kristina/output/";
+	public static final String DIR = "/Users/tischer/Desktop/Kristina/2022_11_18/";
 
 	public static void main( String[] args ) throws SpimDataException, IOException
 	{

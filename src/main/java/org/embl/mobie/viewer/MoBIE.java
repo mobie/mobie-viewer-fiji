@@ -65,6 +65,7 @@ import org.embl.mobie.viewer.serialize.RegionDataSource;
 import org.embl.mobie.viewer.serialize.SegmentationDataSource;
 import org.embl.mobie.viewer.serialize.SpotDataSource;
 import org.embl.mobie.viewer.serialize.View;
+import org.embl.mobie.viewer.serialize.display.Display;
 import org.embl.mobie.viewer.serialize.display.ImageDisplay;
 import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
 import org.embl.mobie.viewer.io.StorageLocation;
@@ -212,7 +213,30 @@ public class MoBIE
 			}
 		}
 
-		initUIandShowAllViews();
+		// try to combine image and segmentation views into segmented image views
+		final String[] views = dataset.views.keySet().toArray( new String[ 0 ] );
+		Arrays.sort( views );
+		String segmentedImageView = null;
+		for ( int viewIndex = 0; viewIndex < views.length; viewIndex+=2 )
+		{
+			final Display< ? > maybeImageDisplay = dataset.views.get( views[ viewIndex ] ).displays().get( 0 );
+			final Display< ? > maybeSegmentationDisplay = dataset.views.get( views[ viewIndex + 1 ] ).displays().get( 0 );
+
+			if ( maybeImageDisplay instanceof ImageDisplay &&
+			     maybeSegmentationDisplay instanceof SegmentationDisplay )
+			{
+				final String name = maybeImageDisplay.getName() + "-" + maybeSegmentationDisplay.getName();
+				final ArrayList< Display< ? > > displays = new ArrayList<>();
+				displays.add( maybeImageDisplay );
+				displays.add( maybeSegmentationDisplay );
+				final View combinedView = new View( maybeImageDisplay.getName(), "segmented image", displays, null, true );
+				segmentedImageView = name;
+				dataset.views.put( name, combinedView );
+			}
+
+		}
+
+		initUIandShowViews( segmentedImageView );
 	}
 
 	// use this constructor from the Fiji UI
@@ -236,14 +260,22 @@ public class MoBIE
 
 		addSpimDataImages( segmentation, true, tableStorageLocation, tableDataFormat );
 
-		initUIandShowAllViews();
+		initUIandShowViews( null );
 	}
 
-	private void initUIandShowAllViews()
+	private void initUIandShowViews( @Nullable String view )
 	{
 		initUI();
-		for ( String viewName : dataset.views.keySet() )
-			viewManager.show( getView( viewName, dataset ) );
+		if ( view == null )
+		{
+			// show all views
+			for ( String viewName : dataset.views.keySet() )
+				viewManager.show( getView( viewName, dataset ) );
+		}
+		else
+		{
+			viewManager.show( getView( view, dataset ) );
+		}
 	}
 
 	private void initProject( String projectName )

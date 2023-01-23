@@ -77,7 +77,7 @@ public class View
 	{
 		final Map< String, Object > sources = new HashMap<>();
 
-		for ( Display< ? > display : getDisplays() )
+		for ( Display< ? > display : displays() )
 		{
 			for ( String source : display.getSources() )
 			{
@@ -127,7 +127,7 @@ public class View
 			return sourceTransforms;
 	}
 
-	public List< Display< ? > > getDisplays()
+	public List< Display< ? > > displays()
 	{
 		if ( sourceDisplays == null )
 			return new ArrayList<>();
