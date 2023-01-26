@@ -213,27 +213,29 @@ public class MoBIE
 			}
 		}
 
-		// try to combine image and segmentation views into segmented image views
+		// combine image and segmentation views into segmented image views, if possible
 		final String[] views = dataset.views.keySet().toArray( new String[ 0 ] );
 		Arrays.sort( views );
 		String segmentedImageView = null;
 		for ( int viewIndex = 0; viewIndex < views.length; viewIndex+=2 )
 		{
-			final Display< ? > maybeImageDisplay = dataset.views.get( views[ viewIndex ] ).displays().get( 0 );
-			final Display< ? > maybeSegmentationDisplay = dataset.views.get( views[ viewIndex + 1 ] ).displays().get( 0 );
+			final Display< ? > displayA = dataset.views.get( views[ viewIndex ] ).displays().get( 0 );
+			final Display< ? > displayB = dataset.views.get( views[ viewIndex + 1 ] ).displays().get( 0 );
 
-			if ( maybeImageDisplay instanceof ImageDisplay &&
-			     maybeSegmentationDisplay instanceof SegmentationDisplay )
+			if ( (     displayA instanceof ImageDisplay
+					&& displayB instanceof SegmentationDisplay )
+			     || (  displayB instanceof ImageDisplay
+					&& displayA instanceof SegmentationDisplay )
+			)
 			{
-				final String name = maybeImageDisplay.getName() + "-" + maybeSegmentationDisplay.getName();
+				final String name = displayA.getName() + "-" + displayB.getName();
 				final ArrayList< Display< ? > > displays = new ArrayList<>();
-				displays.add( maybeImageDisplay );
-				displays.add( maybeSegmentationDisplay );
-				final View combinedView = new View( maybeImageDisplay.getName(), "segmented image", displays, null, true );
+				displays.add( displayA );
+				displays.add( displayB );
+				final View combinedView = new View( displayA.getName(), "segmented image", displays, null, true );
 				segmentedImageView = name;
 				dataset.views.put( name, combinedView );
 			}
-
 		}
 
 		initUIandShowViews( segmentedImageView );
