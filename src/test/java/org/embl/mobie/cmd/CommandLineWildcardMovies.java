@@ -1,9 +1,5 @@
 package org.embl.mobie.cmd;
 
-import mpicbg.spim.data.SpimDataException;
-
-import java.io.IOException;
-
 class CommandLineWildcardMovies
 {
 	public static final String DIR = "/Users/tischer/Desktop/Kristina/2022_11_18/";
