@@ -1,9 +1,6 @@
 package users.kristina;
 
-import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.cmd.MoBIECmd;
-
-import java.io.IOException;
 
 class CommandLineFlatwormKristina
 {
