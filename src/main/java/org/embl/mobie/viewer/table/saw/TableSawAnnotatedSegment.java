@@ -5,6 +5,7 @@ import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
 import org.embl.mobie.viewer.table.ColumnNames;
+import org.embl.mobie.viewer.volume.MeshTransformer;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 
@@ -119,10 +120,14 @@ public class TableSawAnnotatedSegment extends AbstractTableSawAnnotation impleme
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		// update fields
-		affineTransform3D.apply( position, position );
-		boundingBox = affineTransform3D.estimateBounds( boundingBox );
-		// FIXME transform mesh
+		if ( position != null )
+			affineTransform3D.apply( position, position );
+
+		if ( boundingBox != null )
+			boundingBox = affineTransform3D.estimateBounds( boundingBox );
+
+		if ( mesh != null )
+			mesh = MeshTransformer.transform( mesh, affineTransform3D );
 	}
 
 	@Override

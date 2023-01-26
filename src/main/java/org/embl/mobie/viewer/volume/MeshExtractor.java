@@ -470,7 +470,7 @@ public class MeshExtractor< T extends Type< T > >
 	 * @return
 	 * @param segment
 	 */
-	public float[] generateMesh( T segment )
+	public float[] extractMesh( T segment )
 	{
 		final long[]                   stride           = Arrays.stream(cubeSize).mapToLong(i -> i).toArray();
 		final FinalInterval            expandedInterval = Intervals.expand(

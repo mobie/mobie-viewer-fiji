@@ -110,7 +110,7 @@ public class MeshCreator< S extends Segment >
 
 		if ( ! Intervals.contains( rai, voxelBounds ) )
 		{
-			System.out.println("The segment bounding box " + voxelBounds + " is not fully contained in the image interval: " + Arrays.toString( Intervals.minAsLongArray( rai ) ) + "-" +  Arrays.toString( Intervals.maxAsDoubleArray( rai ) ));
+			System.out.println("Warning: The segment bounding box " + voxelBounds + " is not fully contained in the image interval: " + Arrays.toString( Intervals.minAsLongArray( rai ) ) + "-" +  Arrays.toString( Intervals.maxAsDoubleArray( rai ) ) + "; taking the intersection.");
 			voxelBounds = Intervals.intersect( rai, voxelBounds );
 		}
 
@@ -130,30 +130,14 @@ public class MeshCreator< S extends Segment >
 				new int[]{ 1, 1, 1 },
 				() -> false );
 
-		final float[] meshCoordinates = meshExtractor.generateMesh( new AnnotationType( segment ) );
+		final float[] mesh = meshExtractor.extractMesh( new AnnotationType( segment ) );
 
-		if ( meshCoordinates.length == 0 )
-		{
-			throw new RuntimeException("The mesh has zero pixels.");
-		}
+		if ( mesh.length == 0 )
+			throw new RuntimeException("The mesh has zero vertices.");
 
-		// FIXME do a proper transformation into the source coordinate system
+		final float[] transformedMesh = MeshTransformer.transform( mesh, sourceTransform );
 
-		final float[] meshVoxelCoordinate = new float[ 3 ];
-		final float[] meshRealCoordinate = new float[ 3 ];
-
-		for ( int i = 0; i < meshCoordinates.length; i+=3 )
-		{
-			for ( int d = 0; d < 3; d++ )
-				meshVoxelCoordinate[ d ] = meshCoordinates[ i + d ];
-
-			sourceTransform.apply( meshVoxelCoordinate, meshRealCoordinate );
-
-			for ( int d = 0; d < 3; d++ )
-				meshCoordinates[ i + d ] = meshRealCoordinate[ d ];
-		}
-
-		return meshCoordinates;
+		return transformedMesh;
 	}
 
 	public CustomTriangleMesh createSmoothCustomTriangleMesh( S segment, double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< S > > source )

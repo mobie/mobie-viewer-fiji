@@ -1,13 +1,18 @@
 package org.embl.mobie.viewer.transform;
 
+import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import net.imglib2.RealInterval;
+import org.embl.mobie.viewer.volume.MeshTransformer;
 
 public class AffineTransformedAnnotatedSegment< AS extends AnnotatedSegment > implements AnnotatedSegment
 {
 	private final AS annotatedSegment;
 	private final AffineTransform3D affineTransform3D;
+	private float[] mesh; // the transformed mesh
+	private RealInterval boundingBox; // the transformed bb
+	private double[] position; // the transformed position
 
 	public AffineTransformedAnnotatedSegment( AS annotatedSegment, AffineTransform3D affineTransform3D )
 	{
@@ -30,19 +35,20 @@ public class AffineTransformedAnnotatedSegment< AS extends AnnotatedSegment > im
 	@Override
 	public int timePoint()
 	{
-		// could be transformed
+		// TODO could be transformed
 		return annotatedSegment.timePoint();
 	}
 
 	@Override
 	public double[] positionAsDoubleArray()
 	{
-		// TODO: cache this?! this would assume the that wrapped
-		//   segment is not changing its position.
-		final double[] position = annotatedSegment.positionAsDoubleArray();
-		final double[] transformedPosition = new double[ 3 ];
-		affineTransform3D.apply( position, transformedPosition );
-		return transformedPosition;
+		if ( position == null )
+		{
+			position = new double[ 3 ];
+			affineTransform3D.apply( annotatedSegment.positionAsDoubleArray(), position );
+		}
+
+		return position;
 	}
 
 	@Override
@@ -54,32 +60,31 @@ public class AffineTransformedAnnotatedSegment< AS extends AnnotatedSegment > im
 	@Override
 	public RealInterval boundingBox()
 	{
-		return affineTransform3D.estimateBounds( annotatedSegment.boundingBox() );
+		if ( boundingBox == null )
+			boundingBox = affineTransform3D.estimateBounds( annotatedSegment.boundingBox() );
+
+		return boundingBox;
 	}
 
 	@Override
 	public void setBoundingBox( RealInterval boundingBox )
 	{
-		// FIXME: this should probably just set the bounding box!
-		throw new RuntimeException();
-
-		//annotatedSegment.setBoundingBox( affineTransform3D.inverse().estimateBounds( annotatedSegment.boundingBox() ) );
+		this.boundingBox = boundingBox;
 	}
 
 	@Override
 	public float[] mesh()
 	{
-		// FIXME transform the mesh
-		return annotatedSegment.mesh();
+		if ( mesh == null )
+			mesh = MeshTransformer.transform( annotatedSegment.mesh(), affineTransform3D );
+
+		return mesh;
 	}
 
 	@Override
 	public void setMesh( float[] mesh )
 	{
-		// FIXME store the mesh locally, don't
-		//   modify the annotatedSegment!
-
-		annotatedSegment.setMesh( mesh );
+		this.mesh = mesh;
 	}
 
 	@Override
@@ -121,6 +126,15 @@ public class AffineTransformedAnnotatedSegment< AS extends AnnotatedSegment > im
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
+		if ( position != null )
+			affineTransform3D.apply( position, position );
+
+		if ( boundingBox != null )
+			boundingBox = affineTransform3D.estimateBounds( boundingBox );
+
+		if ( mesh != null )
+			mesh = MeshTransformer.transform( mesh, affineTransform3D );
+
 		this.affineTransform3D.preConcatenate( affineTransform3D );
 	}
 
