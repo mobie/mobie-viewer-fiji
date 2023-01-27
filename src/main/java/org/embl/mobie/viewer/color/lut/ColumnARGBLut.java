@@ -30,7 +30,7 @@ package org.embl.mobie.viewer.color.lut;
 
 public class ColumnARGBLut implements ARGBLut
 {
-	private String name = LUTs.ARGB_COLUMN;
+	private String name = LUTs.RGBA_COLUMN;
 
 	@Override
 	public int getARGB( double x )

@@ -45,12 +45,16 @@ import org.embl.mobie.viewer.select.SelectionListener;
 import org.embl.mobie.viewer.select.SelectionModel;
 import org.embl.mobie.viewer.source.AnnotationType;
 import net.imglib2.type.numeric.ARGBType;
+import org.scijava.java3d.Bounds;
 import org.scijava.java3d.View;
 import org.scijava.vecmath.Color3f;
+import org.scijava.vecmath.Point3f;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -278,6 +282,34 @@ public class SegmentsVolumeViewer< S extends Segment > implements ColoringListen
 
 	private synchronized void addSegmentMeshToUniverse( S segment, CustomTriangleMesh mesh )
 	{
+		final float volume = mesh.getVolume();
+		final List< Point3f > mesh1 = mesh.getMesh();
+		float maxY = - Float.MAX_VALUE;
+		final float[] ys = new float[ mesh1.size() ];
+		int i = 0;
+		int iMax = 0;
+		for ( Point3f point3f : mesh1 )
+		{
+			ys[ i++ ] = point3f.y;
+			if ( point3f.y > maxY )
+			{
+				maxY = point3f.y;
+				iMax = i - 1;
+			}
+		}
+
+		final Point3f maxPoint = mesh1.get( iMax );
+		final float y = maxPoint.y;
+
+		Arrays.sort( ys );
+
+		for ( int j = 0; j < 10; j++ )
+			System.out.println( ys[ j ] );
+
+		for ( int j = 0; j < 10; j++ )
+			System.out.println( ys[ ys.length - j - 1 ] );
+
+		final Bounds bounds = mesh.getBounds();
 		final Content content = universe.addCustomMesh( mesh, "" + segment.hashCode() );
 
 		content.setTransparency( ( float ) transparency );

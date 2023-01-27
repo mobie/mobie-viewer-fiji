@@ -35,7 +35,8 @@ public class LUTs
 	public static final String BLUE_WHITE_RED = "blueWhiteRed";
 	public static final String VIRIDIS = "viridis";
 	public static final String GLASBEY = "glasbey";
-	public static final String ARGB_COLUMN = "argbColumn";
+	public static final String ARGB_COLUMN = "argbColumn"; // https://github.com/mobie/mobie.github.io/issues/100#issuecomment-1405459668
+	public static final String RGBA_COLUMN = "rgbaColumn";
 
 	public static final String ZERO_TRANSPARENT = "ZeroTransparent";
 
@@ -44,7 +45,7 @@ public class LUTs
 		BLUE_WHITE_RED,
 		VIRIDIS,
 		GLASBEY,
-		ARGB_COLUMN
+		RGBA_COLUMN
 	};
 
 	public static final ARGBType TRANSPARENT = new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) );
@@ -58,7 +59,7 @@ public class LUTs
 
 	public static boolean isCategorical( String lut )
 	{
-		return lut.contains( GLASBEY ) || lut.contains( ARGB_COLUMN );
+		return lut.contains( GLASBEY ) || lut.contains( ARGB_COLUMN ) || lut.contains( RGBA_COLUMN );
 	}
 
 
@@ -80,7 +81,7 @@ public class LUTs
 		{
 			lut = new GlasbeyARGBLut();
 		}
-		else if ( lutName.contains( ARGB_COLUMN ) )
+		else if ( lutName.contains( ARGB_COLUMN ) || lutName.contains( RGBA_COLUMN ) )
 		{
 			lut = new ColumnARGBLut();
 		}
