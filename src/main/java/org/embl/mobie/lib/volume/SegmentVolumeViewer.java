@@ -52,6 +52,7 @@ import org.scijava.vecmath.Color3f;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -415,9 +416,16 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 		return new Color3f( ColorHelper.getColor( argbType ) );
 	}
 
-	public void setVoxelSpacing( double[] voxelSpacing )
+	public boolean setVoxelSpacing( double[] voxelSpacing )
 	{
+		if ( this.voxelSpacing == null && voxelSpacing == null )
+			return false;
+
+		if ( Arrays.equals( this.voxelSpacing, voxelSpacing ) )
+			return false;
+
 		this.voxelSpacing = voxelSpacing;
+		return true; // voxel spacing changed
 	}
 
 	public double[] getVoxelSpacing()

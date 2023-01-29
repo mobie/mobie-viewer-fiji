@@ -71,7 +71,7 @@ public class ConfigureLabelRenderingCommand extends DynamicCommand implements Bd
 	@Parameter( label = "Boundary thickness", callback = "logBoundaryThickness", style = "format:#.00" )
 	public float boundaryThickness = 1.0F;
 
-	@Parameter( label = "Selected labels coloring", choices = { SEGMENT_COLOR, SELECTION_COLOR } )
+	@Parameter( label = "Label coloring", choices = { SEGMENT_COLOR, SELECTION_COLOR } )
 	public String coloringMode = SEGMENT_COLOR;
 
 	@Parameter( label = "Selection color" )

@@ -140,14 +140,14 @@ public class MeshCreator< S extends Segment >
 		return transformedMesh;
 	}
 
-	public CustomTriangleMesh createSmoothCustomTriangleMesh( S segment, double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< S > > source )
+	public CustomTriangleMesh createSmoothCustomTriangleMesh( S segment, @Nullable double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< S > > source )
 	{
 		CustomTriangleMesh triangleMesh = createCustomTriangleMesh( segment, voxelSpacing, recomputeMesh, source );
 		MeshEditor.smooth2( triangleMesh, meshSmoothingIterations );
 		return triangleMesh;
 	}
 
-	private CustomTriangleMesh createCustomTriangleMesh( S segment, double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< S > >  source )
+	private CustomTriangleMesh createCustomTriangleMesh( S segment, @Nullable double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< S > >  source )
 	{
 		if ( segment.mesh() == null || recomputeMesh )
 		{

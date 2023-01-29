@@ -28,59 +28,39 @@
  */
 package org.embl.mobie.command;
 
-import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
-
-import static org.scijava.ItemVisibility.MESSAGE;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Segment Rendering")
 public class ConfigureSegmentRenderingCommand extends ConfigureLabelRenderingCommand
 {
+	public static final String AUTO = "Automatic";
+	public static final String USE_BELOW_RESOLUTION = "Use below resolution";
+
 	@Parameter
 	protected SegmentVolumeViewer< ? > segmentVolumeViewer;
 
-	@Parameter ( label = "Volume rendering resolution X", style="format:#.000" )
-	public double sx;
+	@Parameter ( label = "Volume rendering", choices = { AUTO, USE_BELOW_RESOLUTION } )
+	public String volumeRenderingMode = AUTO;
 
-	@Parameter ( label = "Volume rendering resolution Y", style="format:#.000" )
-	public double sy;
-
-	@Parameter ( label = "Volume rendering resolution Z", style="format:#.000" )
-	public double sz;
-
-
-	@Parameter ( visibility = MESSAGE )
-	String msg = "( Resolution units: see BigDataViewer scale bar )";
-
-	@Parameter ( label = "Repaint segments")
-	public boolean repaint;
+	@Parameter ( label = "Volume rendering resolution", style="format:#0.000" )
+	public double voxelSpacing;
 
 	@Override
 	public void run()
 	{
-		configureVolumeRendering( sourceAndConverters, new double[]{ sx, sy, sz }, repaint );
-
 		super.run();
-	}
 
-	protected void configureVolumeRendering( SourceAndConverter[] sourceAndConverters, double[] voxelSpacing, boolean repaint )
-	{
-		final SourceAndConverterService sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
+		boolean updateVolumeRendering = false;
 
-		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
-		{
-			final SegmentVolumeViewer volumeViewer = ( SegmentVolumeViewer ) sacService.getMetadata( sourceAndConverter, SegmentVolumeViewer.class.getName() );
-			if ( volumeViewer != null )
-			{
-				volumeViewer.setVoxelSpacing( voxelSpacing );
-				if ( repaint )
-					volumeViewer.updateView( true );
-			}
-		}
+		if ( volumeRenderingMode.equals( AUTO ) )
+			updateVolumeRendering = segmentVolumeViewer.setVoxelSpacing( null );
+		else if ( volumeRenderingMode.equals( USE_BELOW_RESOLUTION ) )
+			updateVolumeRendering = segmentVolumeViewer.setVoxelSpacing( new double[]{ voxelSpacing, voxelSpacing, voxelSpacing } );
+
+		if ( updateVolumeRendering )
+			segmentVolumeViewer.updateView( updateVolumeRendering );
 	}
 }

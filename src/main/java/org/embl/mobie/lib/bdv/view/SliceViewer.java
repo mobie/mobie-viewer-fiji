@@ -42,7 +42,6 @@ import org.embl.mobie.lib.color.OpacityHelper;
 import org.embl.mobie.command.BigWarpRegistrationCommand;
 import org.embl.mobie.command.ConfigureImageVolumeRenderingCommand;
 import org.embl.mobie.command.ConfigureLabelRenderingCommand;
-import org.embl.mobie.command.ConfigureLabelVolumeRenderingCommand;
 import org.embl.mobie.command.ManualRegistrationCommand;
 import org.embl.mobie.command.ScreenShotMakerCommand;
 import org.embl.mobie.command.ShowRasterImagesCommand;
@@ -153,7 +152,6 @@ public class SliceViewer
 		actions.add( sacService.getCommandName( ViewerTransformLogger.class ) );
 		actions.add( sacService.getCommandName( BigWarpRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( ManualRegistrationCommand.class ) );
-		actions.add( sacService.getCommandName( ConfigureLabelVolumeRenderingCommand.class ) );
 		actions.add( sacService.getCommandName( ConfigureImageVolumeRenderingCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );
 		actions.add( LOAD_ADDITIONAL_VIEWS );
