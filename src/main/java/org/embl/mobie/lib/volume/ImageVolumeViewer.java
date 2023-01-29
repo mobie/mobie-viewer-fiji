@@ -364,9 +364,16 @@ public class ImageVolumeViewer
 		return true;
 	}
 
-	public void setVoxelSpacing( double[] voxelSpacing )
+	public boolean setVoxelSpacing( double[] voxelSpacing )
 	{
+		if ( this.voxelSpacing == null && voxelSpacing == null )
+			return false;
+
+		if ( Arrays.equals( this.voxelSpacing, voxelSpacing ) )
+			return false;
+
 		this.voxelSpacing = voxelSpacing;
+		return true; // voxel spacing changed
 	}
 
 	public double[] getVoxelSpacing()

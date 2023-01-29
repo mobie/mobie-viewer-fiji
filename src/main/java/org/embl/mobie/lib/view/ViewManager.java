@@ -662,7 +662,7 @@ public class ViewManager
 		imageDisplay.imageVolumeViewer = new ImageVolumeViewer( imageDisplay.sourceAndConverters(), universeManager );
 		Double[] resolution3dView = imageDisplay.getResolution3dView();
 		if ( resolution3dView != null ) {
-			imageDisplay.imageVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(imageDisplay.getResolution3dView() ));
+			imageDisplay.imageVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive( imageDisplay.getResolution3dView() ));
 		}
 		imageDisplay.imageVolumeViewer.showImages( imageDisplay.showImagesIn3d() );
 

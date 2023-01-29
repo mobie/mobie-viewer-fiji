@@ -31,6 +31,7 @@ package org.embl.mobie.command;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.lib.bdv.render.BlendingMode;
+import org.embl.mobie.lib.volume.ImageVolumeViewer;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
@@ -56,7 +57,7 @@ public class ConfigureImageRenderingCommand extends DynamicCommand implements Bd
 	protected SourceAndConverter< ? >[] sourceAndConverters;
 
 	@Parameter
-	protected SegmentVolumeViewer< ? > volumeViewer;
+	protected ImageVolumeViewer volumeViewer;
 
 	@Parameter( label = "Blending Mode", choices = { BlendingMode.SUM, BlendingMode.ALPHA }, persist = false )
 	String blendingMode = BlendingMode.SUM;
@@ -116,6 +117,6 @@ public class ConfigureImageRenderingCommand extends DynamicCommand implements Bd
 			updateVolumeRendering = volumeViewer.setVoxelSpacing( new double[]{ voxelSpacing, voxelSpacing, voxelSpacing } );
 
 		if ( updateVolumeRendering )
-			volumeViewer.updateView( updateVolumeRendering );
+			volumeViewer.updateView();
 	}
 }

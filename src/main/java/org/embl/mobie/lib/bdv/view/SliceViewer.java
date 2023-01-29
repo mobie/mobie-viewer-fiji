@@ -151,7 +151,6 @@ public class SliceViewer
 		actions.add( sacService.getCommandName( ViewerTransformLogger.class ) );
 		actions.add( sacService.getCommandName( BigWarpRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( ManualRegistrationCommand.class ) );
-		actions.add( sacService.getCommandName( ConfigureImageVolumeRenderingCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );
 		actions.add( LOAD_ADDITIONAL_VIEWS );
 		actions.add( SAVE_CURRENT_SETTINGS_AS_VIEW );
