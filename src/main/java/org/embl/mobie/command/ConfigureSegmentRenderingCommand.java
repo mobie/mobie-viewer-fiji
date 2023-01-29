@@ -40,27 +40,34 @@ public class ConfigureSegmentRenderingCommand extends ConfigureLabelRenderingCom
 	public static final String USE_BELOW_RESOLUTION = "Use below resolution";
 
 	@Parameter
-	protected SegmentVolumeViewer< ? > segmentVolumeViewer;
+	protected SegmentVolumeViewer< ? > volumeViewer;
 
 	@Parameter ( label = "Volume rendering", choices = { AUTO, USE_BELOW_RESOLUTION } )
 	public String volumeRenderingMode = AUTO;
 
 	@Parameter ( label = "Volume rendering resolution", style="format:#0.000" )
-	public double voxelSpacing;
+	public double voxelSpacing = 1.0;
 
 	@Override
 	public void run()
 	{
 		super.run();
 
+		updateVolumeRendering();
+	}
+
+	private void updateVolumeRendering()
+	{
+		if ( volumeViewer == null ) return;
+
 		boolean updateVolumeRendering = false;
 
 		if ( volumeRenderingMode.equals( AUTO ) )
-			updateVolumeRendering = segmentVolumeViewer.setVoxelSpacing( null );
+			updateVolumeRendering = volumeViewer.setVoxelSpacing( null );
 		else if ( volumeRenderingMode.equals( USE_BELOW_RESOLUTION ) )
-			updateVolumeRendering = segmentVolumeViewer.setVoxelSpacing( new double[]{ voxelSpacing, voxelSpacing, voxelSpacing } );
+			updateVolumeRendering = volumeViewer.setVoxelSpacing( new double[]{ voxelSpacing, voxelSpacing, voxelSpacing } );
 
 		if ( updateVolumeRendering )
-			segmentVolumeViewer.updateView( updateVolumeRendering );
+			volumeViewer.updateView( updateVolumeRendering );
 	}
 }

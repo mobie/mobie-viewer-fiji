@@ -31,6 +31,7 @@ package org.embl.mobie.command;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.lib.bdv.render.BlendingMode;
+import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
@@ -39,6 +40,9 @@ import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
+
+import static org.embl.mobie.command.ConfigureSegmentRenderingCommand.AUTO;
+import static org.embl.mobie.command.ConfigureSegmentRenderingCommand.USE_BELOW_RESOLUTION;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Image Rendering")
 public class ConfigureImageRenderingCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
@@ -51,8 +55,17 @@ public class ConfigureImageRenderingCommand extends DynamicCommand implements Bd
 	@Parameter
 	protected SourceAndConverter< ? >[] sourceAndConverters;
 
+	@Parameter
+	protected SegmentVolumeViewer< ? > volumeViewer;
+
 	@Parameter( label = "Blending Mode", choices = { BlendingMode.SUM, BlendingMode.ALPHA }, persist = false )
 	String blendingMode = BlendingMode.SUM;
+
+	@Parameter ( label = "Volume rendering", choices = { AUTO, USE_BELOW_RESOLUTION } )
+	public String volumeRenderingMode = AUTO;
+
+	@Parameter ( label = "Volume rendering resolution", style="format:#0.000" )
+	public double voxelSpacing = 1.0;
 
 	@Override
 	public void initialize()
@@ -76,12 +89,33 @@ public class ConfigureImageRenderingCommand extends DynamicCommand implements Bd
 	@Override
 	public void run()
 	{
+		updateBlendingMode();
+
+		updateVolumeRendering();
+	}
+
+	private void updateBlendingMode()
+	{
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			final BlendingMode blendingMode = BlendingMode.valueOf( this.blendingMode );
 			SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.class.getName(), blendingMode );
 		}
-
 		bdvh.getViewerPanel().requestRepaint();
+	}
+
+	private void updateVolumeRendering()
+	{
+		if ( volumeViewer == null ) return;
+
+		boolean updateVolumeRendering = false;
+
+		if ( volumeRenderingMode.equals( AUTO ) )
+			updateVolumeRendering = volumeViewer.setVoxelSpacing( null );
+		else if ( volumeRenderingMode.equals( USE_BELOW_RESOLUTION ) )
+			updateVolumeRendering = volumeViewer.setVoxelSpacing( new double[]{ voxelSpacing, voxelSpacing, voxelSpacing } );
+
+		if ( updateVolumeRendering )
+			volumeViewer.updateView( updateVolumeRendering );
 	}
 }

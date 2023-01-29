@@ -40,7 +40,6 @@ import org.embl.mobie.lib.bdv.render.AccumulateAlphaBlendingProjectorARGB;
 import org.embl.mobie.lib.bdv.render.BlendingMode;
 import org.embl.mobie.lib.color.OpacityHelper;
 import org.embl.mobie.command.BigWarpRegistrationCommand;
-import org.embl.mobie.command.ConfigureImageVolumeRenderingCommand;
 import org.embl.mobie.command.ConfigureLabelRenderingCommand;
 import org.embl.mobie.command.ManualRegistrationCommand;
 import org.embl.mobie.command.ScreenShotMakerCommand;

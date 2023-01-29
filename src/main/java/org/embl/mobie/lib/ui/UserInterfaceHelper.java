@@ -67,6 +67,7 @@ import org.embl.mobie.lib.table.AnnotationTableModel;
 import org.embl.mobie.lib.transform.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.lib.transform.SliceViewLocationChanger;
 import org.embl.mobie.lib.transform.ViewerTransform;
+import org.embl.mobie.lib.volume.ImageVolumeViewer;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -529,7 +530,7 @@ public class UserInterfaceHelper
 		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createColorButton( panel, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
 		panel.add( createImageDisplayBrightnessButton( display ) );
-		panel.add( createImageRenderingSettingsButton( sourceAndConverters ) );
+		panel.add( createImageRenderingSettingsButton( sourceAndConverters, display.imageVolumeViewer ) );
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( space() );
@@ -600,7 +601,7 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	private JButton createImageRenderingSettingsButton( List< ? extends SourceAndConverter< ? > > sourceAndConverters )
+	private JButton createImageRenderingSettingsButton( List< ? extends SourceAndConverter< ? > > sourceAndConverters, ImageVolumeViewer imageVolumeViewer )
 	{
 		JButton button = new JButton( "S" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
@@ -608,7 +609,7 @@ public class UserInterfaceHelper
 		{
 			final SourceAndConverter[] sacArray = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
 
-			Services.commandService.run( ConfigureImageRenderingCommand.class, true, "sourceAndConverters", sacArray );
+			Services.commandService.run( ConfigureImageRenderingCommand.class, true, "sourceAndConverters", sacArray, "volumeViewer", imageVolumeViewer );
 		} );
 		return button;
 	}
@@ -625,7 +626,7 @@ public class UserInterfaceHelper
 	{
 		JButton button = new JButton( "S" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
-		button.addActionListener( e -> Services.commandService.run( ConfigureSegmentRenderingCommand.class, true, "sourceAndConverters", sourceAndConverters.toArray( new SourceAndConverter[ 0 ] ), "segmentVolumeViewer", segmentVolumeViewer ) );
+		button.addActionListener( e -> Services.commandService.run( ConfigureSegmentRenderingCommand.class, true, "sourceAndConverters", sourceAndConverters.toArray( new SourceAndConverter[ 0 ] ), "volumeViewer", segmentVolumeViewer ) );
 		return button;
 	}
 
