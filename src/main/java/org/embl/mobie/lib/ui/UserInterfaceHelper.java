@@ -41,6 +41,7 @@ import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.command.ConfigureSegmentRenderingCommand;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.MoBIE;
 import org.embl.mobie.lib.MoBIEHelper.FileLocation;
@@ -66,10 +67,12 @@ import org.embl.mobie.lib.table.AnnotationTableModel;
 import org.embl.mobie.lib.transform.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.lib.transform.SliceViewLocationChanger;
 import org.embl.mobie.lib.transform.ViewerTransform;
+import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
+import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
@@ -572,12 +575,11 @@ public class UserInterfaceHelper
 		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createButtonPlaceholder() );
 		panel.add( createButtonPlaceholder() );
-		panel.add( createLabelRenderingSettingsButton( sourceAndConverters ) ); // special settings
+		panel.add( createSegmentRenderingSettingsButton( sourceAndConverters, display.segmentVolumeViewer ) );
 		panel.add( createRemoveButton( display ) );
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		final AnnData annData = display.getAnnData();
-		final AnnotationTableModel table = annData.getTable();
 		display.images();
 		if ( annData != null )
 		{
@@ -615,12 +617,15 @@ public class UserInterfaceHelper
 	{
 		JButton button = new JButton( "S" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
-		button.addActionListener( e ->
-		{
-			final SourceAndConverter[] sacArray = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
+		button.addActionListener( e -> Services.commandService.run( ConfigureLabelRenderingCommand.class, true, "sourceAndConverters", sourceAndConverters.toArray( new SourceAndConverter[ 0 ] ) ) );
+		return button;
+	}
 
-			Services.commandService.run( ConfigureLabelRenderingCommand.class, true, "sourceAndConverters", sacArray );
-		} );
+	private JButton createSegmentRenderingSettingsButton( List< SourceAndConverter< ? > > sourceAndConverters, SegmentVolumeViewer< ? > segmentVolumeViewer )
+	{
+		JButton button = new JButton( "S" );
+		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
+		button.addActionListener( e -> Services.commandService.run( ConfigureSegmentRenderingCommand.class, true, "sourceAndConverters", sourceAndConverters.toArray( new SourceAndConverter[ 0 ] ), "segmentVolumeViewer", segmentVolumeViewer ) );
 		return button;
 	}
 
@@ -887,10 +892,10 @@ public class UserInterfaceHelper
 
 		checkBox.addActionListener( e -> new Thread( () ->
 		{
-				display.segmentsVolumeViewer.showSegments( checkBox.isSelected(), false );
+				display.segmentVolumeViewer.showSegments( checkBox.isSelected(), false );
 		}).start() );
 
-		display.segmentsVolumeViewer.getListeners().add( new VisibilityListener()
+		display.segmentVolumeViewer.getListeners().add( new VisibilityListener()
 		{
 			@Override
 			public void visibility( boolean isVisible )

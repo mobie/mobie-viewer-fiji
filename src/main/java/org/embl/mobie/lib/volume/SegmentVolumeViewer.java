@@ -58,7 +58,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SegmentsVolumeViewer< S extends Segment > implements ColoringListener, SelectionListener< S >
+public class SegmentVolumeViewer< S extends Segment > implements ColoringListener, SelectionListener< S >
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -84,7 +84,7 @@ public class SegmentsVolumeViewer< S extends Segment > implements ColoringListen
 	private ImageWindow3D window;
 	private Image3DUniverse universe;
 
-	public SegmentsVolumeViewer(
+	public SegmentVolumeViewer(
 			final SelectionModel< S > selectionModel,
 			final ColoringModel< S > coloringModel,
 			final Collection< ? extends Image< AnnotationType< S > > > images,

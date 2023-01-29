@@ -95,7 +95,7 @@ import org.embl.mobie.lib.ui.UserInterface;
 import org.embl.mobie.lib.ui.WindowArrangementHelper;
 import org.embl.mobie.lib.view.save.ViewSaver;
 import org.embl.mobie.lib.volume.ImageVolumeViewer;
-import org.embl.mobie.lib.volume.SegmentsVolumeViewer;
+import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.embl.mobie.lib.volume.UniverseManager;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -704,14 +704,14 @@ public class ViewManager
 
 	private void initSegmentVolumeViewer( SegmentationDisplay< ? extends AnnotatedSegment > display )
 	{
-		display.segmentsVolumeViewer = new SegmentsVolumeViewer( display.selectionModel, display.coloringModel, display.images(), universeManager );
+		display.segmentVolumeViewer = new SegmentVolumeViewer( display.selectionModel, display.coloringModel, display.images(), universeManager );
 		Double[] resolution3dView = display.getResolution3dView();
 		if ( resolution3dView != null ) {
-			display.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive( display.getResolution3dView() ) );
+			display.segmentVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive( display.getResolution3dView() ) );
 		}
-		display.segmentsVolumeViewer.showSegments( display.showSelectedSegmentsIn3d(), true );
-		display.coloringModel.listeners().add( display.segmentsVolumeViewer );
-		display.selectionModel.listeners().add( display.segmentsVolumeViewer );
+		display.segmentVolumeViewer.showSegments( display.showSelectedSegmentsIn3d(), true );
+		display.coloringModel.listeners().add( display.segmentVolumeViewer );
+		display.selectionModel.listeners().add( display.segmentVolumeViewer );
 	}
 
 	public synchronized void removeDisplay( Display display, boolean closeImgLoader )
@@ -727,7 +727,7 @@ public class ViewManager
 				annotationDisplay.tableView.close();
 				annotationDisplay.scatterPlotView.close();
 				if ( annotationDisplay instanceof SegmentationDisplay )
-					( ( SegmentationDisplay ) annotationDisplay ).segmentsVolumeViewer.close();
+					( ( SegmentationDisplay ) annotationDisplay ).segmentVolumeViewer.close();
 			}
 
 		}

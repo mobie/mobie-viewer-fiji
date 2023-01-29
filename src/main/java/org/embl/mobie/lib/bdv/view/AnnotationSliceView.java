@@ -53,7 +53,7 @@ import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.source.VolatileBoundarySource;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.transform.SliceViewLocationChanger;
-import org.embl.mobie.lib.volume.SegmentsVolumeViewer;
+import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import net.imglib2.Volatile;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -81,7 +81,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 			if ( display instanceof SegmentationDisplay )
 			{
 				final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) display;
-				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, SegmentsVolumeViewer.class.getName(), segmentationDisplay.segmentsVolumeViewer );
+				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, SegmentVolumeViewer.class.getName(), segmentationDisplay.segmentVolumeViewer );
 			}
 
 			if ( display instanceof SpotDisplay )

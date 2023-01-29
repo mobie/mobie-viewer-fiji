@@ -30,7 +30,7 @@ package org.embl.mobie.lib.serialize.display;
 
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.color.lut.LUTs;
-import org.embl.mobie.lib.volume.SegmentsVolumeViewer;
+import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Abstract
 
 	// Runtime
 	// TODO: below is almost not needed
-	public transient SegmentsVolumeViewer< AS > segmentsVolumeViewer;
+	public transient SegmentVolumeViewer< AS > segmentVolumeViewer;
 
 	public List< String > getSources()
 	{
@@ -131,11 +131,11 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Abstract
 		this.sources = new ArrayList<>();
 		this.sources.addAll( segmentationDisplay.sources );
 
-		if ( segmentationDisplay.segmentsVolumeViewer != null )
+		if ( segmentationDisplay.segmentVolumeViewer != null )
 		{
-			this.showSelectedSegmentsIn3d = segmentationDisplay.segmentsVolumeViewer.isShowSegments();
+			this.showSelectedSegmentsIn3d = segmentationDisplay.segmentVolumeViewer.isShowSegments();
 
-			double[] voxelSpacing = segmentationDisplay.segmentsVolumeViewer.getVoxelSpacing();
+			double[] voxelSpacing = segmentationDisplay.segmentVolumeViewer.getVoxelSpacing();
 			if ( voxelSpacing != null ) {
 				resolution3dView = new Double[voxelSpacing.length];
 				for (int i = 0; i < voxelSpacing.length; i++) {

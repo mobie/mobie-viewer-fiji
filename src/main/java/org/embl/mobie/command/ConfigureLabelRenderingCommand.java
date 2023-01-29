@@ -40,6 +40,7 @@ import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.source.VolatileBoundarySource;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
@@ -83,7 +84,7 @@ public class ConfigureLabelRenderingCommand extends DynamicCommand implements Bd
 	@Parameter( label = "Random label color seed [ Ctrl L ]", persist = false )
 	public Integer randomColorSeed = 42;
 
-	private ARGBType selectionARGB;
+	protected ARGBType selectionARGB;
 
 	@Override
 	public void initialize()
@@ -91,7 +92,7 @@ public class ConfigureLabelRenderingCommand extends DynamicCommand implements Bd
 		initRandomColorSeedItem();
 	}
 
-	private void initRandomColorSeedItem()
+	protected void initRandomColorSeedItem()
 	{
 		final MutableModuleItem< Integer > randomColorSeedItem = getInfo().getMutableInput("randomColorSeed", Integer.class );
 
@@ -187,7 +188,7 @@ public class ConfigureLabelRenderingCommand extends DynamicCommand implements Bd
 		}
 	}
 
-	private void logBoundaryThickness()
+	protected void logBoundaryThickness()
 	{
 		final String unit = sourceAndConverters[ 0 ].getSpimSource().getVoxelDimensions().unit();
 		IJ.log("Thickness: " + boundaryThickness + " " + unit );
