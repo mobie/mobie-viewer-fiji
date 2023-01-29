@@ -28,7 +28,7 @@
  */
 package projects;
 
-import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.lib.MoBIE;
 import net.imagej.ImageJ;
 
 import java.io.IOException;

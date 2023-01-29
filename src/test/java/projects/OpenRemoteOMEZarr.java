@@ -28,13 +28,11 @@
  */
 package projects;
 
-import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MoBIESettings;
 import net.imagej.ImageJ;
 
 import java.io.IOException;
-import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.viewer.command.OpenOMEZARRFromS3Command;
+
+import org.embl.mobie.command.OpenOMEZARRFromS3Command;
 
 public class OpenRemoteOMEZarr
 {

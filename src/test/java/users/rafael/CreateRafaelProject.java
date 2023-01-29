@@ -39,11 +39,11 @@ import net.imagej.ImageJ;
 import net.imagej.patcher.LegacyInjector;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MoBIEHelper;
-import org.embl.mobie.viewer.create.DatasetsCreator;
-import org.embl.mobie.viewer.create.ImagesCreator;
-import org.embl.mobie.viewer.create.ProjectCreator;
+import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.create.DatasetsCreator;
+import org.embl.mobie.lib.create.ImagesCreator;
+import org.embl.mobie.lib.create.ProjectCreator;
 
 import java.io.File;
 import java.io.IOException;

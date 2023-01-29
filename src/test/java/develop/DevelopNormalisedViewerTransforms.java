@@ -29,8 +29,8 @@
 package develop;
 
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MoBIESettings;
+import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.lib.MoBIESettings;
 import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;

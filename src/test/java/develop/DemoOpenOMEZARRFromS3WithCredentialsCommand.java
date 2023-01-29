@@ -28,7 +28,7 @@
  */
 package develop;
 
-import org.embl.mobie.viewer.command.OpenOMEZARRFromS3WithCredentialsCommand;
+import org.embl.mobie.command.OpenOMEZARRFromS3WithCredentialsCommand;
 
 public class DemoOpenOMEZARRFromS3WithCredentialsCommand
 {

@@ -2,17 +2,13 @@ package develop;
 
 import net.imglib2.KDTree;
 import net.imglib2.RealPoint;
-import org.embl.mobie.viewer.annotation.AnnotatedSpot;
-import org.embl.mobie.viewer.table.DefaultAnnotatedSpot;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 import java.util.function.Supplier;
 
 public class BenchmarkKDTree

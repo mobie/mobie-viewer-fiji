@@ -96,7 +96,7 @@
 
         Alternatively, as the fix included in 1.6.0-scijava-3-SNAPSHOT is not critical,
         the easiest is to use version 1.6.0-scijava-2 instead, which is available
-        on a central repository, and which we will use here for the ome.zarr branch
+        on a central repository.
         -->
         <j3dcore.version>1.6.0-scijava-2</j3dcore.version>
 
@@ -171,6 +171,7 @@
         <dependency>
             <groupId>sc.fiji</groupId>
             <artifactId>3D_Viewer</artifactId>
+            <version>4.0.5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.scijava</groupId>

@@ -1,12 +1,9 @@
 package org.embl.mobie.cmd;
 
-import mpicbg.spim.data.SpimDataException;
-import net.imagej.ImageJ;
-import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.lib.MoBIE;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
-import java.io.IOException;
 import java.util.concurrent.Callable;
 
 @CommandLine.Command(name = "mobie", mixinStandardHelpOptions = true, version = "3.0.11",

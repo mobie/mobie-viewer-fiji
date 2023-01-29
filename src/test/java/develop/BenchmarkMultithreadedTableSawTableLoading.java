@@ -1,16 +1,12 @@
 package develop;
 
-import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.viewer.ThreadHelper;
-import tech.tablesaw.api.ColumnType;
+import org.embl.mobie.lib.ThreadHelper;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
