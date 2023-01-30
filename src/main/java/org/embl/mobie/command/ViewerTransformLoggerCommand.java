@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.bdv;
+package org.embl.mobie.command;
 
 import bdv.util.BdvHandle;
 import com.google.gson.Gson;
@@ -44,8 +44,8 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-@Plugin( type = BdvPlaygroundActionCommand.class, name = ViewerTransformLogger.NAME, menuPath = ViewerTransformLogger.NAME )
-public class ViewerTransformLogger implements BdvPlaygroundActionCommand
+@Plugin( type = BdvPlaygroundActionCommand.class, name = ViewerTransformLoggerCommand.NAME, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + ViewerTransformLoggerCommand.NAME )
+public class ViewerTransformLoggerCommand implements BdvPlaygroundActionCommand
 {
 	public static final String NAME = "Log Current View";
 

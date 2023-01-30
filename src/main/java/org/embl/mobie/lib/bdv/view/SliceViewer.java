@@ -35,7 +35,7 @@ import org.embl.mobie.lib.bdv.MobieBdvSupplier;
 import org.embl.mobie.lib.bdv.MobieSerializableBdvOptions;
 import org.embl.mobie.lib.bdv.SourceNameRenderer;
 import org.embl.mobie.lib.bdv.SourcesAtMousePositionSupplier;
-import org.embl.mobie.lib.bdv.ViewerTransformLogger;
+import org.embl.mobie.command.ViewerTransformLoggerCommand;
 import org.embl.mobie.lib.bdv.render.AccumulateAlphaBlendingProjectorARGB;
 import org.embl.mobie.lib.bdv.render.BlendingMode;
 import org.embl.mobie.lib.color.OpacityHelper;
@@ -148,7 +148,7 @@ public class SliceViewer
 		final ArrayList< String > actions = new ArrayList< String >();
 		actions.add( sacService.getCommandName( ScreenShotMakerCommand.class ) );
 		actions.add( sacService.getCommandName( ShowRasterImagesCommand.class ) );
-		actions.add( sacService.getCommandName( ViewerTransformLogger.class ) );
+		actions.add( sacService.getCommandName( ViewerTransformLoggerCommand.class ) );
 		actions.add( sacService.getCommandName( BigWarpRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( ManualRegistrationCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );
