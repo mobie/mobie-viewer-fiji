@@ -7,33 +7,45 @@ import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.view.Views;
 import org.bioimageanalysis.icy.deeplearning.model.Model;
 
 import java.util.function.Consumer;
 
 
 //
-public class PredictorOp< I extends RealType< I > & NativeType< I >, O extends RealType< O > & NativeType< O > >
+public class PredictorOp< I extends RealType< I > & NativeType< I >, O extends RealType< O > & NativeType< O > > implements Consumer< RandomAccessibleInterval< O > >
 {
+	private final RandomAccessible< I > source;
 	private Model model;
 
 	// Mimiching https://github.com/saalfeldlab/i2k2020-imglib2-advanced/blob/main/src/main/java/org/janelia/saalfeldlab/i2k2020/ops/CLIJ2FilterOp.java#L69
 	public PredictorOp( final RandomAccessible< I > source )
 	{
+		this.source = source;
 		//Tensor.build();
 		model = Model.createDeepLearningModel();
 		//model.runModel(  );
 	}
 
-	public Interval getOutputInterval( Interval inputInterval )
+	public Interval getInputInterval( Interval outputInterval )
 	{
 		// the
-		return outputInterval;
+		return inputInterval;
 	}
+
+	@Override
+	public void accept( RandomAccessibleInterval< O > outputCell )
+	{
+		predict( getInputInterval( outputCell ), outputCell );
+	}
+
 
 	public void predict( Interval inputInterval, RandomAccessibleInterval< O > outputCell )
 	{
-		Interval outputInterval = outputInterval(model, inputInterval);
+		// but with padding!
+		Views.interval( source, inputInterval );
+
 
 		// build inputTensors
 
@@ -50,7 +62,7 @@ public class PredictorOp< I extends RealType< I > & NativeType< I >, O extends R
 		// build outputTensors
 
 
-		model.runModel(  );
+		model.runModel();
 
 		// remove dimensions if needed
 
@@ -58,4 +70,5 @@ public class PredictorOp< I extends RealType< I > & NativeType< I >, O extends R
 		// copy results into cell
 
 	}
+
 }
