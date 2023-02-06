@@ -77,6 +77,8 @@ public class UserInterface
 				{
 					frame.dispose();
 					moBIE.close();
+					if ( MoBIE.openedFromCLI )
+						System.exit( 0 );
 				}
 			});
 	}

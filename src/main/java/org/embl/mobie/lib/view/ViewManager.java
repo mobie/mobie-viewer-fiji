@@ -108,6 +108,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -124,7 +125,6 @@ public class ViewManager
 	private final UniverseManager universeManager;
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewSaver viewSaver;
-	private int numTables = 0;
 
 	public ViewManager( MoBIE moBIE, UserInterface userInterface, boolean is2D )
 	{
@@ -525,14 +525,6 @@ public class ViewManager
 		}
 		else if ( display instanceof AbstractAnnotationDisplay )
 		{
-			// FIXME What about label mask images that are NOT annotated,
-			//   i.e. don't have a table?
-			//   Maybe implement an AnnData that lazily builds up
-			//   upon browsing around?
-			//   This may be tricky, because if we want to support semantic
-			//   segmentations there is no anchor(), maybe still fine, but
-			//   then the table would not move the slice view anywhere.
-
 			final AbstractAnnotationDisplay< A > annotationDisplay = ( AbstractAnnotationDisplay ) display;
 
 			// Register all images that are shown by this display.
@@ -682,24 +674,20 @@ public class ViewManager
 		// in which the table window will be
 		// hidden, if {@code display.showTable == false}.
 		display.tableView.show();
-
-		// FIXME only shift the position of tables where display.isVisible() == true
 		setTablePosition( display.sliceViewer.getWindow(), display.tableView.getWindow() );
 		display.selectionModel.listeners().add( display.tableView );
 		display.coloringModel.listeners().add( display.tableView );
-		numTables++;
 	}
 
 	private void setTablePosition( Window reference, Window table )
 	{
-		// set the table position
-		// the table is not visible at this point, but the window exists
-		// the table will be toggled visible in the UserInterfaceHelper
+		// set the table position.
+		// the table may not visible at this point, but the window exists
+		// already and thus its location can be set.
+		// the table can be toggled visible in the UserInterfaceHelper.
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		final int offset = screenSize.height / 20;
-		// FIXME This is not intuitive as the shift also is applied to tables that
-		//   are not initially visible
-		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, ( numTables - 1 ) * offset ) );
+		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, (int) ( new Random().nextDouble() * offset ) ) );
 	}
 
 	private void initSegmentVolumeViewer( SegmentationDisplay< ? extends AnnotatedSegment > display )
@@ -723,11 +711,15 @@ public class ViewManager
 
 			if ( annotationDisplay.tableView != null )
 			{
-				numTables--;
 				annotationDisplay.tableView.close();
 				annotationDisplay.scatterPlotView.close();
 				if ( annotationDisplay instanceof SegmentationDisplay )
 					( ( SegmentationDisplay ) annotationDisplay ).segmentVolumeViewer.close();
+			}
+
+			if  ( annotationDisplay instanceof SegmentationDisplay )
+			{
+				( ( SegmentationDisplay ) annotationDisplay ).segmentVolumeViewer.close();
 			}
 
 		}
@@ -735,7 +727,9 @@ public class ViewManager
 		{
 			final ImageDisplay imageDisplay = ( ImageDisplay ) display;
 			imageDisplay.imageSliceView.close( false );
+			imageDisplay.imageVolumeViewer.close();
 		}
+
 
 		userInterface.removeDisplaySettingsPanel( display );
 		currentDisplays.remove( display );

@@ -91,7 +91,6 @@ public class MeshCreator< S extends Segment >
 
 			final long[] voxelPositionInSource = SourceAndConverterHelper.getVoxelPositionInSource( source, position, segment.timePoint(), renderingLevel );
 
-			// FIXME make work for arbitrary type
 			final FloodFill floodFill = new FloodFill(
 					rai,
 					new DiamondShape( 1 ),

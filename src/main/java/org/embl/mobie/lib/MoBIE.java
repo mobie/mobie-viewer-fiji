@@ -118,6 +118,7 @@ public class MoBIE
 	}
 
 	private static MoBIE moBIE;
+	public static boolean openedFromCLI = false;
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 	private MoBIESettings settings;
 	private String currentDatasetName;

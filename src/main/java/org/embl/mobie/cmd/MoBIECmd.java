@@ -1,6 +1,7 @@
 package org.embl.mobie.cmd;
 
 import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.lib.MoBIESettings;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
@@ -13,6 +14,9 @@ public class MoBIECmd implements Callable<Void> {
 
 	@Option(names = {"-p", "--project"}, required = false, description = "project, e.g. -p \"https://github.com/mobie/platybrowser-datasets\"")
 	public String project = null;
+
+	@Option(names = {"-v", "--view"}, required = false, description = "opens a specific view within a project (-p), e.g. -v \"cells")
+	public String view = null;
 
 	@Option(names = {"-i", "--image"}, required = false, description = "intensity image, e.g. -i \"/home/image.tif\"")
 	public String[] images = null;
@@ -30,8 +34,13 @@ public class MoBIECmd implements Callable<Void> {
 		// Runnable does not allow me to throw an Exception
 		// Callable wants to return something, but what?
 
+		MoBIE.openedFromCLI = true;
 		if ( project != null )
-			new MoBIE( project );
+		{
+			final MoBIESettings settings = new MoBIESettings();
+			if ( view != null ) settings.view( view );
+			new MoBIE( project, settings );
+		}
 		else
 			new MoBIE( "", images, segmentations, tables );
 

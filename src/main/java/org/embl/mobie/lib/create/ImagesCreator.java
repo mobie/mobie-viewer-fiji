@@ -60,6 +60,7 @@ import org.embl.mobie.io.n5.writers.WriteImagePlusToN5;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.ome.zarr.writers.imageplus.WriteImagePlusToN5OmeZarr;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.lib.color.ColorHelper;
 import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.GzipCompression;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
@@ -257,10 +258,8 @@ public class ImagesCreator {
         if ( imageFile.exists() ) {
             if (imageType == ProjectCreator.ImageType.image) {
                 double[] contrastLimits = new double[]{imp.getDisplayRangeMin(), imp.getDisplayRangeMax()};
-                LUT lut = imp.getLuts()[0];
-                // FIXME: use ColorHelper.toString( lut );
-                String colour = "r=" + lut.getRed(255) + ",g=" + lut.getGreen(255) + ",b=" +
-                        lut.getBlue(255) + ",a=" + lut.getAlpha(255);
+                LUT lut = imp.getLuts()[ 0 ];
+                String colour = ColorHelper.getString( lut );
                 updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup,
                         imageDataFormat, contrastLimits, colour, exclusive, sourceTransform );
             } else {
