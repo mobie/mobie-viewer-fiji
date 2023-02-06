@@ -70,6 +70,7 @@ public class DevelopDeepPlatySegmentation
 		// Create the lazy prediction image
 		//
 		final RandomAccessibleInterval< ? > inputRAI = emSource.getSource( 0, predictionResolutionLevel );
+		// TODO add padding!
 		RandomAccessibleInterval< FloatType > predictionRAI =
 				new ReadOnlyCachedCellImgFactory().create(
 						inputRAI.dimensionsAsLongArray(),
@@ -131,7 +132,7 @@ public class DevelopDeepPlatySegmentation
 		}
 	}
 
-	static class Predictor< I extends RealType< I > & NativeType< I >, O extends RealType< O > & NativeType< O > >  implements CellLoader< FloatType >
+	static class Predictor< I extends RealType< I > & NativeType< I >, O extends RealType< O > & NativeType< O > >  implements CellLoader< O >
 	{
 		private final Model model;
 		private final RandomAccessibleInterval< I > input;
@@ -143,29 +144,32 @@ public class DevelopDeepPlatySegmentation
 			this.input = input;
 			inputType = Util.getTypeFromInterval( input );
 
-			final Converter< I, FloatType > converter = RealTypeConverters.getConverter( inputType, new FloatType() );
+			//final Converter< I, FloatType > converter = RealTypeConverters.getConverter( inputType, new FloatType() );
 		}
 
 		@Override
-		public void load( SingleCellArrayImg< FloatType, ? > cell )
+		public void load( SingleCellArrayImg< O, ? > cell )
 		{
 			final String cellLocation = Arrays.toString( cell.minAsLongArray() ) + " - " + Arrays.toString( cell.maxAsLongArray() );
 			System.out.println( "Prediction started: " + cellLocation );
 			final RandomAccessibleInterval< I > crop = Views.zeroMin( Views.interval( input, cell ) );
-			// For testing: just copy the raw data over
+			// For testing: copy the raw data over
 			//RealTypeConverters.copyFromTo( crop, Views.zeroMin( cell ) );
 
 			if( true )
 			{
 				// Convert data type (all models need float as input)
 				//
-				// TODO: Use converter to do this lazy
-				//    also apply preprocessing ?
+				// TODO: use converter to do this lazy
+				// TODO: also apply preprocessing ?
 
-				RandomAccessibleInterval< FloatType > rai = Tensor.createCopyOfRaiInWantedDataType( (RandomAccessibleInterval) crop, new FloatType() );
+				final O outputType = Util.getTypeFromInterval( cell );
+				RandomAccessibleInterval< O > rai = Tensor.createCopyOfRaiInWantedDataType( (RandomAccessibleInterval) crop, outputType );
 
 				// Add channel and batch dimension
 				//
+
+				// TODO: Padding and intialize in Constructor
 				final long[] inputDims = rai.dimensionsAsLongArray();
 				rai = Views.addDimension( rai, 0, 0 );
 				rai = Views.moveAxis( rai, rai.numDimensions() - 1, 0 );
@@ -173,29 +177,42 @@ public class DevelopDeepPlatySegmentation
 				rai = Views.moveAxis( rai, rai.numDimensions() - 1, 0 );
 				final long[] convertedDims = rai.dimensionsAsLongArray();
 
-
 				// Preprocess?
 				//
 				// TODO
 
+				// There are 4 types!
+
+
+				// ModelParser
+				// output: padding, input and output type, axis order
+				//
+				// use getters from ModelParser to build PredictionOp
+				// PredictionOp should have the
+				// correct data types just for the model!
+
+				//
+
+
 				// Build input tensor
 				//
-				Tensor< FloatType > inputTensor = Tensor.build( "input0", "bczyx", rai );
+				// What is the type for the input tensor?
+				Tensor< ? > inputTensor = Tensor.build( "input0", "bczyx", rai );
 				List< Tensor< ? > > inputs = new ArrayList<>();
 				inputs.add( inputTensor );
 
 				// Prepare output tensor
 				//
-				// TODO
-				//   - can we give the cell?
+				// TODO: could we instead give the cell?
+				// What is the type for the output tensor?
 				final Tensor< O > outputTensor = Tensor.buildEmptyTensor( "output0", "bczyx" );
-				List< Tensor< ? > > outputs = new ArrayList<>();
+				List< Tensor< O > > outputs = new ArrayList<>();
 				outputs.add( outputTensor );
 
 				try
 				{
 					outputs = model.runModel( inputs, outputs );
-					RandomAccessibleInterval< FloatType > output = ( RandomAccessibleInterval< FloatType > ) outputs.get( 0 ).getData();
+					RandomAccessibleInterval< O > output = ( RandomAccessibleInterval< O > ) outputs.get( 0 ).getData();
 					// Remove batch and channel dimension
 					output = Views.hyperSlice( output, 0, 0 );
 					output = Views.hyperSlice( output, 0, 0 );
