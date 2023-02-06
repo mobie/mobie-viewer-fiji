@@ -20,6 +20,7 @@ import net.imglib2.converter.Converter;
 import net.imglib2.converter.RealTypeConverters;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.type.volatiles.VolatileFloatType;
@@ -39,16 +40,28 @@ public class DevelopDeepPlatySegmentation
 {
 	public static void main( String[] args ) throws Exception
 	{
-		final int level = 3;
+		final int predictionResolutionLevel = 3;
 		final SharedQueue sharedQueue = new SharedQueue( 3 );
 
-		// Open and show the 8 TB input data
+		// Open the input data
 		//
 		final AbstractSpimData platySBEM = new SpimDataOpener().openSpimData( "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr", ImageDataFormat.OmeZarrS3, sharedQueue );
-		final BdvStackSource< ? > stackSource = BdvFunctions.show( platySBEM ).get( 0 );
-		final BdvHandle bdvHandle = stackSource.getBdvHandle();
-		final Source< ? > source = stackSource.getSources().get( 0 ).getSpimSource();
 
+		// Show the input data in BDV
+		final List< BdvStackSource< ? > > stackSources = BdvFunctions.show( platySBEM );
+		// Get Source containing EM data
+		final BdvStackSource< ? > emStackSource = stackSources.get( 0 );
+		final Source< ? > emSource = emStackSource.getSources().get( 0 ).getSpimSource();
+
+		// Get a bdv handle
+		final BdvHandle bdvHandle = emStackSource.getBdvHandle();
+
+		// Make the cell segmentation invisible
+		// (the ome.zarr contains two images, the EM raw data
+		// and a cell segmentation label mask)
+		bdvHandle.getViewerPanel().state().setSourceActive( stackSources.get( 1 ).getSources().get( 0 ), false );
+
+		// Focus on some smaller area within the volume
 		final AffineTransform3D viewerTransform = new AffineTransform3D();
 		viewerTransform.set( 31.524161974149372,0.0,0.0,-3471.2941398257967,0.0,31.524161974149372,0.0,-3335.2908913145466,0.0,0.0,31.524161974149372,-4567.901470761989 );
 		bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
@@ -56,8 +69,8 @@ public class DevelopDeepPlatySegmentation
 
 		// Create the lazy prediction image
 		//
-		final RandomAccessibleInterval< ? > inputRAI = source.getSource( 0, level );
-		RandomAccessibleInterval< FloatType > prediction =
+		final RandomAccessibleInterval< ? > inputRAI = emSource.getSource( 0, predictionResolutionLevel );
+		RandomAccessibleInterval< FloatType > predictionRAI =
 				new ReadOnlyCachedCellImgFactory().create(
 						inputRAI.dimensionsAsLongArray(),
 						new FloatType(),
@@ -66,24 +79,33 @@ public class DevelopDeepPlatySegmentation
 				);
 
 
+		// Map the prediction image into the same coordinate system
+		// as the input image
+		//
+		// For this we wrap the predictionRAI into a Source
+		//
 		final AffineTransform3D predictionTransform = new AffineTransform3D();
-		source.getSourceTransform( 0, level, predictionTransform  );
-
+		emSource.getSourceTransform( 0, predictionResolutionLevel, predictionTransform  );
 
 		final RandomAccessibleInterval< FloatType >[] predictionRais = new RandomAccessibleInterval[ 1 ];
-		predictionRais[ 0 ] = prediction;
+		predictionRais[ 0 ] = predictionRAI;
 
 		// TODO: Fix the voxel dimensions
-		final double[] sourceVoxelSize = source.getVoxelDimensions().dimensionsAsDoubleArray();
-		final double[] predictionVoxelSize = new double[ level ];
+		final double[] sourceVoxelSize = emSource.getVoxelDimensions().dimensionsAsDoubleArray();
+		final double[] predictionVoxelSize = new double[ predictionResolutionLevel ];
 		predictionTransform.apply( sourceVoxelSize, predictionVoxelSize );
 		final FinalVoxelDimensions predictionVoxelDimensions = new FinalVoxelDimensions( "micrometer", predictionVoxelSize );
 
-		final double[][] mipmapScales = new double[ 1 ][ level ];
+		final double[][] mipmapScales = new double[ 1 ][ predictionResolutionLevel ];
 		mipmapScales[ 0 ] = new double[]{ 1, 1, 1 };
 		final RandomAccessibleIntervalMipmapSource predictionSource = new RandomAccessibleIntervalMipmapSource( predictionRais, new FloatType(), mipmapScales, predictionVoxelDimensions, predictionTransform, "prediction" );
 		final VolatileRandomAccessibleIntervalMipmapSource vPredictionSource = new VolatileRandomAccessibleIntervalMipmapSource( predictionSource, new VolatileFloatType(), sharedQueue );
-		BdvFunctions.show( vPredictionSource, BdvOptions.options().addTo( bdvHandle ) );
+
+		// Show the prediction Source
+		//
+		final BdvStackSource bdvStackSource = BdvFunctions.show( vPredictionSource, BdvOptions.options().addTo( bdvHandle ) );
+		bdvStackSource.setDisplayRange( 0, 1 );
+		bdvStackSource.setColor( new ARGBType( ARGBType.rgba( 255, 0, 255, 255) ) );
 	}
 
 	private static Model loadModel()
