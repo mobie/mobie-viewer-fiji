@@ -30,6 +30,7 @@ package org.embl.mobie.lib.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import org.embl.mobie.command.ModelRunnerCommand;
 import org.embl.mobie.lib.MoBIE;
 import org.embl.mobie.lib.bdv.MobieBdvSupplier;
 import org.embl.mobie.lib.bdv.MobieSerializableBdvOptions;
@@ -151,6 +152,7 @@ public class SliceViewer
 		actions.add( sacService.getCommandName( ViewerTransformLoggerCommand.class ) );
 		actions.add( sacService.getCommandName( BigWarpRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( ManualRegistrationCommand.class ) );
+		actions.add( sacService.getCommandName( ModelRunnerCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );
 		actions.add( LOAD_ADDITIONAL_VIEWS );
 		actions.add( SAVE_CURRENT_SETTINGS_AS_VIEW );

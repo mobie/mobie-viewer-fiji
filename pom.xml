@@ -226,6 +226,11 @@
             <artifactId>imagej</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.bioimageanalysis.icy</groupId>
+            <artifactId>dl-model-runner</artifactId>
+            <version>0.0.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>5.4.2</version>
