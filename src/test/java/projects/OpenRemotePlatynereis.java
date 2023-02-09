@@ -28,6 +28,7 @@
  */
 package projects;
 
+import org.embl.mobie.command.ModelRunnerCommand;
 import org.embl.mobie.lib.MoBIE;
 import net.imagej.ImageJ;
 
@@ -42,5 +43,9 @@ public class OpenRemotePlatynereis
 
 		final MoBIE moBIE = new MoBIE( "https://github.com/platybrowser/platybrowser");
 		//moBIE.getViewManager().show( "cells" );
+
+		final ModelRunnerCommand command = new ModelRunnerCommand();
+		command.bdvHandle = moBIE.getViewManager().getSliceViewer().getBdvHandle();
+		command.run();
 	}
 }

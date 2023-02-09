@@ -38,10 +38,8 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
-import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.converter.RealTypeConverters;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
@@ -79,8 +77,14 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 	@Parameter(label = "Model directory", style = "directory" )
 	public File modelDirectory = new File( "/Users/tischer/Desktop/deep-models/platynereisemnucleisegmentationboundarymodel_torchscript" );
 
-	@Parameter(label = "Engine directory", style = "directory" )
+	@Parameter(label = "Engines directory", style = "directory" )
 	public File engineDirectory = new File( "/Users/tischer/Desktop/deep-engines/Pytorch-1.9.1-1.9.1-macosx-x86_64-cpu-gpu" );
+
+	@Parameter(label = "Engine")
+	public String engine = "torchscript";;
+
+	@Parameter(label = "Engine version")
+	private String engineVersion = "1.9.1";
 
 	@Override
 	public void run()
@@ -104,7 +108,6 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 		final BdvStackSource< ? > stackSource = BdvFunctions.show( predictionSource, BdvOptions.options().addTo( bdvHandle ) );
 		stackSource.setDisplayRange( 0, 1 ); // TODO: fetch from model!
 		stackSource.setColor( new ARGBType( ARGBType.rgba( 255, 0, 255, 255) ) );
-
 	}
 
 	private ModelSpec loadModelSpec( File modelDirectory )
@@ -139,12 +142,16 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 		return vPredictionSource;
 	}
 
-	private RandomAccessibleInterval< FloatType > createLazyOutputImage( RandomAccessibleInterval< FloatType > inputImage, Model model, ModelSpec modelSpec )
+	private RandomAccessibleInterval< FloatType > createLazyOutputImage( RandomAccessibleInterval< FloatType > inputXYZ, Model model, ModelSpec modelSpec )
 	{
-		// add missing axes and rearrange dimension order
-		final RandomAccessibleInterval< FloatType > modelInput = AxesMatcher.matchAxes( modelSpec.inputAxes, "xyz", inputImage );
+		// create model input image
+		final RandomAccessibleInterval< FloatType > modelInput = AxesMatcher.matchAxes( modelSpec.inputAxes, "xyz", inputXYZ );
 
-		// create output image
+		// instantiate predictor with the input image
+		final PredictorOp< FloatType, FloatType > predictorOp = new PredictorOp<>( model, Views.extendMirrorSingle( modelInput ), modelSpec );
+
+		// create model output image
+		//
 		final String outputDataType = modelSpec.outputDataType;
 		// TODO: Use the outputDataType
 		final FloatType type = new FloatType();
@@ -159,9 +166,10 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 										.mapToLong( x -> x ).toArray() )
 				).mapToInt( x -> ( int ) x ).toArray();
 
-		final long[] outputInterval = shapeMath.getOutputDimensions( inputImage.dimensionsAsLongArray() );
+		final long[] outputInterval = shapeMath.getOutputDimensions( modelInput.dimensionsAsLongArray() );
 
-		final PredictorOp< FloatType, FloatType > predictorOp = new PredictorOp<>( model, Views.extendMirrorSingle( modelInput ), modelSpec );
+		System.out.println("Output image dimensions: " + Arrays.toString( outputInterval ) );
+		System.out.println("Output cell dimensions: " + Arrays.toString( outputCellDimensions ) );
 
 		RandomAccessibleInterval< FloatType > lazyTiledOutputImage =
 				new ReadOnlyCachedCellImgFactory().create(
@@ -171,7 +179,9 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 						ReadOnlyCachedCellImgOptions.options().cellDimensions( outputCellDimensions )
 				);
 
-		return lazyTiledOutputImage;
+		final RandomAccessibleInterval< FloatType > outputXYZ = AxesMatcher.matchAxes( "xyz", modelSpec.outputAxes, lazyTiledOutputImage );
+
+		return outputXYZ;
 	}
 
 	// TODO: add to the model runner library
@@ -179,13 +189,19 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 	{
 		try
 		{
-			final String engine = "torchscript"; // TODO (Carlos) get from engine dir name?
-			final String engineVersion = "1.9.1"; // TODO (Carlos) get from engine dir name?
-			final String modelSource = new File( modelDirectory, "/weights-torchscript.pt" ).getAbsolutePath();
+			final String modelSource = new File( modelDirectory, "weights-torchscript.pt" ).getAbsolutePath();
 			final boolean cpu = true;
 			final boolean gpu = true;
-			final EngineInfo engineInfo = EngineInfo.defineDLEngine( engine, engineVersion, engineDirectory.getAbsolutePath(), cpu, gpu );
-			final Model model = Model.createDeepLearningModel( modelDirectory.getAbsolutePath(), modelSource, engineInfo );
+			final String engineDirectoryAbsolutePath = engineDirectory.getAbsolutePath();
+			final String modelDirectoryAbsolutePath = modelDirectory.getAbsolutePath();
+
+			System.out.println( "Engine dir: " + engineDirectoryAbsolutePath);
+			System.out.println( "Model dir: " + modelDirectoryAbsolutePath);
+			System.out.println( "Model source: " + modelSource);
+
+			final EngineInfo engineInfo = EngineInfo.defineDLEngine( engine, engineVersion, engineDirectoryAbsolutePath, cpu, gpu );
+			final Model model = Model.createDeepLearningModel( modelDirectoryAbsolutePath, modelSource, engineInfo );
+
 			model.loadModel();
 			return model;
 		}
