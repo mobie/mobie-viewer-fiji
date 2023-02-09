@@ -30,14 +30,14 @@ package projects;
 
 import bdv.util.BdvHandle;
 import ij.IJ;
+import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.ModelRunnerCommand;
 import org.embl.mobie.lib.MoBIE;
-import net.imagej.ImageJ;
 
 import java.io.IOException;
 
-public class OpenRemotePlatynereis
+public class OpenRemotePlatynereisAndRunModel
 {
 	public static void main( String[] args ) throws IOException
 	{
@@ -45,5 +45,17 @@ public class OpenRemotePlatynereis
 		imageJ.ui().showUI();
 
 		final MoBIE moBIE = new MoBIE( "https://github.com/platybrowser/platybrowser");
+		final BdvHandle bdvHandle = moBIE.getViewManager().getSliceViewer().getBdvHandle();
+
+		// Focus on some smaller area within the volume
+		final AffineTransform3D viewerTransform = new AffineTransform3D();
+		viewerTransform.set( 31.524161974149372,0.0,0.0,-3471.2941398257967,0.0,31.524161974149372,0.0,-3335.2908913145466,0.0,0.0,31.524161974149372,-4567.901470761989 );
+		bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
+		IJ.wait( 1000 );
+
+		// run the model runner command
+		final ModelRunnerCommand command = new ModelRunnerCommand();
+		command.bdvHandle = bdvHandle;
+		command.run();
 	}
 }

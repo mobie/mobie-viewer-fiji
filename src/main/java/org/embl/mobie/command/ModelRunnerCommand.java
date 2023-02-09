@@ -60,16 +60,15 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Predict>Run Model")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Predict>Run Model on Current Source")
 public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 {
 	@Parameter
 	public BdvHandle bdvHandle;
-
-	@Parameter(label = "Source") // TODO: https://github.com/mobie/mobie-viewer-fiji/issues/952
-	public SourceAndConverter< ? > sourceAndConverter;
 
 	@Parameter(label = "Resolution level")
 	public int resolutionLevel = 3;
@@ -78,7 +77,7 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 	public File modelDirectory = new File( "/Users/tischer/Desktop/deep-models/platynereisemnucleisegmentationboundarymodel_torchscript" );
 
 	@Parameter(label = "Engines directory", style = "directory" )
-	public File engineDirectory = new File( "/Users/tischer/Desktop/deep-engines/Pytorch-1.9.1-1.9.1-macosx-x86_64-cpu-gpu" );
+	public File enginesDirectory = new File( "/Users/tischer/Desktop/deep-engines" );
 
 	@Parameter(label = "Engine")
 	public String engine = "torchscript";;
@@ -89,9 +88,13 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 	@Override
 	public void run()
 	{
+		//new Throwable().printStackTrace();
+
+		final SourceAndConverter< ? > sourceAndConverter = bdvHandle.getViewerPanel().state().getCurrentSource();
+
 		ModelSpec modelSpec = loadModelSpec( modelDirectory );
 
-		final Model model = loadModel( modelDirectory, engineDirectory );
+		final Model model = loadModel( modelDirectory, enginesDirectory );
 
 		int timepoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
 
@@ -101,13 +104,16 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 
 		final RandomAccessibleInterval< FloatType > floatInputImage = RealTypeConverters.convert( ( RandomAccessibleInterval< ? extends RealType< ? > > ) inputImage, new FloatType() );
 
-		RandomAccessibleInterval< FloatType > lazyPredictionImage = createLazyOutputImage( floatInputImage, model, modelSpec );
+		List< RandomAccessibleInterval< FloatType > > xyzOutputs = createLazyXYZOutputImages( floatInputImage, model, modelSpec );
 
-		final VolatileRandomAccessibleIntervalMipmapSource< FloatType, VolatileFloatType > predictionSource = wrapAsSource( lazyPredictionImage, inputSource, timepoint );
+		for ( RandomAccessibleInterval< FloatType > xyzOutput : xyzOutputs )
+		{
+			final VolatileRandomAccessibleIntervalMipmapSource< FloatType, VolatileFloatType > predictionSource = wrapAsSource( xyzOutput, inputSource, timepoint );
 
-		final BdvStackSource< ? > stackSource = BdvFunctions.show( predictionSource, BdvOptions.options().addTo( bdvHandle ) );
-		stackSource.setDisplayRange( 0, 1 ); // TODO: fetch from model!
-		stackSource.setColor( new ARGBType( ARGBType.rgba( 255, 0, 255, 255) ) );
+			final BdvStackSource< ? > stackSource = BdvFunctions.show( predictionSource, BdvOptions.options().addTo( bdvHandle ) );
+			stackSource.setDisplayRange( 0, 1 ); // TODO: fetch from model!
+			stackSource.setColor( new ARGBType( ARGBType.rgba( 255, 0, 255, 255 ) ) );
+		}
 	}
 
 	private ModelSpec loadModelSpec( File modelDirectory )
@@ -142,10 +148,10 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 		return vPredictionSource;
 	}
 
-	private RandomAccessibleInterval< FloatType > createLazyOutputImage( RandomAccessibleInterval< FloatType > inputXYZ, Model model, ModelSpec modelSpec )
+	private List< RandomAccessibleInterval< FloatType > > createLazyXYZOutputImages( RandomAccessibleInterval< FloatType > xyzInput, Model model, ModelSpec modelSpec )
 	{
 		// create model input image
-		final RandomAccessibleInterval< FloatType > modelInput = AxesMatcher.matchAxes( modelSpec.inputAxes, "xyz", inputXYZ );
+		final RandomAccessibleInterval< FloatType > modelInput = AxesMatcher.matchAxes( modelSpec.inputAxes, "xyz", xyzInput );
 
 		// instantiate predictor with the input image
 		final PredictorOp< FloatType, FloatType > predictorOp = new PredictorOp<>( model, Views.extendMirrorSingle( modelInput ), modelSpec );
@@ -171,7 +177,7 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 		System.out.println("Output image dimensions: " + Arrays.toString( outputInterval ) );
 		System.out.println("Output cell dimensions: " + Arrays.toString( outputCellDimensions ) );
 
-		RandomAccessibleInterval< FloatType > lazyTiledOutputImage =
+		RandomAccessibleInterval< FloatType > modelOutput =
 				new ReadOnlyCachedCellImgFactory().create(
 						outputInterval,
 						type,
@@ -179,9 +185,15 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 						ReadOnlyCachedCellImgOptions.options().cellDimensions( outputCellDimensions )
 				);
 
-		final RandomAccessibleInterval< FloatType > outputXYZ = AxesMatcher.matchAxes( "xyz", modelSpec.outputAxes, lazyTiledOutputImage );
+		final RandomAccessibleInterval< FloatType > cxyzOutput = AxesMatcher.matchAxes( "cxyz", modelSpec.outputAxes, modelOutput );
 
-		return outputXYZ;
+		final ArrayList< RandomAccessibleInterval< FloatType > > xyzOutputs = new ArrayList<>();
+		for ( int c = 0; c < cxyzOutput.dimension( 0 ); c++ )
+		{
+			xyzOutputs.add( Views.hyperSlice( cxyzOutput , 0, c ) );
+		}
+
+		return xyzOutputs;
 	}
 
 	// TODO: add to the model runner library

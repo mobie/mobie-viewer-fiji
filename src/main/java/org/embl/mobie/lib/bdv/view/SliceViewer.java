@@ -165,6 +165,7 @@ public class SliceViewer
 			}
 		}
 
+		// FIXME: Do we still consume those sources at mouse position in any way???
 		contextMenu = new SourceAndConverterContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions.toArray( new String[0] ) );
 
 		// Install keyboard shortcuts
