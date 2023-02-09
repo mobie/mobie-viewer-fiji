@@ -42,25 +42,39 @@ import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.cache.img.SingleCellArrayImg;
+import net.imglib2.converter.RealTypeConverters;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.type.volatiles.VolatileFloatType;
+import net.imglib2.view.Views;
+import org.bioimageanalysis.icy.deeplearning.engine.EngineInfo;
+import org.bioimageanalysis.icy.deeplearning.model.Model;
+import org.bioimageanalysis.icy.deeplearning.predict.AxesMatcher;
+import org.bioimageanalysis.icy.deeplearning.predict.ModelSpec;
+import org.bioimageanalysis.icy.deeplearning.predict.PredictorOp;
+import org.bioimageanalysis.icy.deeplearning.predict.ShapeMath;
 import org.embl.mobie.lib.ThreadHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Arrays;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Predict>ModelZoo")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Predict>Run Model")
 public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 {
 	@Parameter
 	public BdvHandle bdvHandle;
 
-	@Parameter(label = "Source")
+	@Parameter(label = "Source") // TODO: https://github.com/mobie/mobie-viewer-fiji/issues/952
 	public SourceAndConverter< ? > sourceAndConverter;
+
+	@Parameter(label = "Resolution level")
+	public int resolutionLevel = 3;
 
 	@Parameter(label = "Model directory", style = "directory" )
 	public File modelDirectory = new File( "/Users/tischer/Desktop/deep-models/platynereisemnucleisegmentationboundarymodel_torchscript" );
@@ -68,20 +82,24 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 	@Parameter(label = "Engine directory", style = "directory" )
 	public File engineDirectory = new File( "/Users/tischer/Desktop/deep-engines/Pytorch-1.9.1-1.9.1-macosx-x86_64-cpu-gpu" );
 
-	private Source< ? > source;
-	private int resolutionLevel;
-	private int timepoint;
-
 	@Override
 	public void run()
 	{
-		timepoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
+		ModelSpec modelSpec = loadModelSpec( modelDirectory );
 
-		final RandomAccessibleInterval< ? > input = getInput( timepoint );
+		final Model model = loadModel( modelDirectory, engineDirectory );
 
-		RandomAccessibleInterval< FloatType > prediction = getPrediction( input );
+		int timepoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
 
-		final VolatileRandomAccessibleIntervalMipmapSource< FloatType, VolatileFloatType > predictionSource = asSource( prediction );
+		Source< ? > inputSource = sourceAndConverter.getSpimSource();
+
+		final RandomAccessibleInterval< ? > inputImage = inputSource.getSource( timepoint, resolutionLevel );
+
+		final RandomAccessibleInterval< FloatType > floatInputImage = RealTypeConverters.convert( ( RandomAccessibleInterval< ? extends RealType< ? > > ) inputImage, new FloatType() );
+
+		RandomAccessibleInterval< FloatType > lazyPredictionImage = createLazyOutputImage( floatInputImage, model, modelSpec );
+
+		final VolatileRandomAccessibleIntervalMipmapSource< FloatType, VolatileFloatType > predictionSource = wrapAsSource( lazyPredictionImage, inputSource, timepoint );
 
 		final BdvStackSource< ? > stackSource = BdvFunctions.show( predictionSource, BdvOptions.options().addTo( bdvHandle ) );
 		stackSource.setDisplayRange( 0, 1 ); // TODO: fetch from model!
@@ -89,16 +107,27 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 
 	}
 
-	private VolatileRandomAccessibleIntervalMipmapSource< FloatType, VolatileFloatType > asSource( RandomAccessibleInterval< FloatType > prediction )
+	private ModelSpec loadModelSpec( File modelDirectory )
+	{
+		try
+		{
+			return ModelSpec.from( new File( modelDirectory, "rdf.yaml" ).getPath() );
+		} catch ( FileNotFoundException e )
+		{
+			throw new RuntimeException( e );
+		}
+	}
+
+	private VolatileRandomAccessibleIntervalMipmapSource< FloatType, VolatileFloatType > wrapAsSource( RandomAccessibleInterval< FloatType > prediction, Source< ? > inputSource, int timepoint )
 	{
 		final AffineTransform3D predictionTransform = new AffineTransform3D();
-		source.getSourceTransform( timepoint, resolutionLevel, predictionTransform  );
+		inputSource.getSourceTransform( timepoint, resolutionLevel, predictionTransform  );
 
 		final RandomAccessibleInterval< FloatType >[] predictions = new RandomAccessibleInterval[ 1 ];
 		predictions[ 0 ] = prediction;
 
 		// TODO: Apply scale factor to the prediction voxel dimensions?
-		final double[] sourceVoxelSize = source.getVoxelDimensions().dimensionsAsDoubleArray();
+		final double[] sourceVoxelSize = inputSource.getVoxelDimensions().dimensionsAsDoubleArray();
 		final double[] predictionVoxelSize = new double[ resolutionLevel ];
 		predictionTransform.apply( sourceVoxelSize, predictionVoxelSize );
 		final FinalVoxelDimensions predictionVoxelDimensions = new FinalVoxelDimensions( "micrometer", predictionVoxelSize );
@@ -110,37 +139,60 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 		return vPredictionSource;
 	}
 
-	private RandomAccessibleInterval< FloatType > getPrediction( RandomAccessibleInterval< ? > input )
+	private RandomAccessibleInterval< FloatType > createLazyOutputImage( RandomAccessibleInterval< FloatType > inputImage, Model model, ModelSpec modelSpec )
 	{
-		// TODO: determine from model
-		final long[] dimensions = input.dimensionsAsLongArray();
-		final FloatType type = new FloatType();
-		final int[] cellDimensions = { 256, 256, 32 };
+		// add missing axes and rearrange dimension order
+		final RandomAccessibleInterval< FloatType > modelInput = AxesMatcher.matchAxes( modelSpec.inputAxes, "xyz", inputImage );
 
-		RandomAccessibleInterval< FloatType > prediction =
+		// create output image
+		final String outputDataType = modelSpec.outputDataType;
+		// TODO: Use the outputDataType
+		final FloatType type = new FloatType();
+
+		final ShapeMath shapeMath = new ShapeMath( modelSpec );
+
+		// TODO remove the long mapping if we change it in the modelSpec
+		final int[] outputCellDimensions =
+				Arrays.stream(
+						shapeMath.getOutputDimensions(
+								Arrays.stream( modelSpec.inputShapeMin )
+										.mapToLong( x -> x ).toArray() )
+				).mapToInt( x -> ( int ) x ).toArray();
+
+		final long[] outputInterval = shapeMath.getOutputDimensions( inputImage.dimensionsAsLongArray() );
+
+		final PredictorOp< FloatType, FloatType > predictorOp = new PredictorOp<>( model, Views.extendMirrorSingle( modelInput ), modelSpec );
+
+		RandomAccessibleInterval< FloatType > lazyTiledOutputImage =
 				new ReadOnlyCachedCellImgFactory().create(
-						dimensions,
+						outputInterval,
 						type,
-						new CellLoader< FloatType >()
-						{
-							@Override
-							public void load( SingleCellArrayImg< FloatType, ? > cell ) throws Exception
-							{
-								// TODO: Use Predictor-Op
-							}
-						},
-						ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions )
+						predictorOp::accept,
+						ReadOnlyCachedCellImgOptions.options().cellDimensions( outputCellDimensions )
 				);
 
-		return prediction;
+		return lazyTiledOutputImage;
 	}
 
-	private RandomAccessibleInterval< ? > getInput( int timepoint )
+	// TODO: add to the model runner library
+	private Model loadModel( File modelDirectory, File engineDirectory )
 	{
-		source = sourceAndConverter.getSpimSource();
-		final int numMipmapLevels = source.getNumMipmapLevels();
-		resolutionLevel = 3; // TODO: determine somehow
-		final RandomAccessibleInterval< ? > inputRAI = source.getSource( timepoint, resolutionLevel );
-		return inputRAI;
+		try
+		{
+			final String engine = "torchscript"; // TODO (Carlos) get from engine dir name?
+			final String engineVersion = "1.9.1"; // TODO (Carlos) get from engine dir name?
+			final String modelSource = new File( modelDirectory, "/weights-torchscript.pt" ).getAbsolutePath();
+			final boolean cpu = true;
+			final boolean gpu = true;
+			final EngineInfo engineInfo = EngineInfo.defineDLEngine( engine, engineVersion, engineDirectory.getAbsolutePath(), cpu, gpu );
+			final Model model = Model.createDeepLearningModel( modelDirectory.getAbsolutePath(), modelSource, engineInfo );
+			model.loadModel();
+			return model;
+		}
+		catch ( final Exception e )
+		{
+			e.printStackTrace();
+			throw new RuntimeException( e );
+		}
 	}
 }

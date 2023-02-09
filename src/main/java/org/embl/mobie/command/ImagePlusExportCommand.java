@@ -58,7 +58,7 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 	public static final String RAW = "Raster"; // aka "Array" or "Voxel Grid", ... (not sure yet...)
 
 	@Parameter( label = "Source(s)" )
-	public SourceAndConverter[] sourceAndConverterArray;
+	public SourceAndConverter< ? >[] sourceAndConverterArray;
 
 	@Parameter( label = "Maximum number of voxels [10^6]" )
 	public int maxNumMegaVoxels = 1;
