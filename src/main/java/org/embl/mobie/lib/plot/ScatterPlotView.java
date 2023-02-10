@@ -33,9 +33,14 @@ import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
 import bdv.util.Prefs;
+import bdv.util.RealRandomAccessibleIntervalSource;
+import bdv.util.RealRandomAccessibleSource;
 import bdv.viewer.TimePointListener;
 import ij.IJ;
 import ij.gui.GenericDialog;
+import net.imglib2.FinalRealInterval;
+import net.imglib2.RealInterval;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.color.ColoringListener;
 import org.embl.mobie.lib.color.ColoringModel;
@@ -45,6 +50,7 @@ import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.select.SelectionModel;
+import org.embl.mobie.lib.transform.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.lib.transform.SliceViewLocationChanger;
 import net.imglib2.FinalInterval;
 import net.imglib2.KDTree;
@@ -53,6 +59,7 @@ import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
 import net.imglib2.neighborsearch.RadiusNeighborSearchOnKDTree;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.lib.transform.TransformHelper;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -73,6 +80,9 @@ import java.util.stream.Collectors;
 public class ScatterPlotView< A extends Annotation > implements SelectionListener< A >, ColoringListener, TimePointListener
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
+	private double[] min;
+	private double[] max;
 
 	public enum PointSelectionModes
 	{
@@ -160,8 +170,8 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		Collection< A > annotations = getAnnotationsForCurrentTimePoint( );
 		AnnotationKDTreeSupplier< A > kdTreeSupplier = new AnnotationKDTreeSupplier<>( annotations, selectedColumns, axesScaleFactors );
 		KDTree< A > kdTree = kdTreeSupplier.get();
-		double[] min = kdTreeSupplier.getMin();
-		double[] max = kdTreeSupplier.getMax();
+		min = kdTreeSupplier.getMin();
+		max = kdTreeSupplier.getMax();
 		tableRowToRealPoint = kdTreeSupplier.getAnnotationToRealPoint();
 		nearestNeighborSearchOnKDTree = new NearestNeighborSearchOnKDTree<>( kdTree );
 		radiusNeighborSearchOnKDTree = new RadiusNeighborSearchOnKDTree<>( kdTree );
@@ -170,17 +180,17 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		if ( aspectRatio > 10 || aspectRatio < 0.1 )
 		{
 			IJ.showMessage( "The aspect ratio, (yMax-yMin)/(xMax-xMin), of your data is " + aspectRatio + "." +
-					"\nIn order to see something you may have to scale either the x or y values such that the aspect ratio is closer to 1.0." +
-					"\nYou can change the axis scaling by right-clicking into the scatter plot and selecting \"Reconfigure...\"." );
+					"\nThe plot may look better scaling either the x or y values such that the aspect ratio is closer to 1.0." +
+					"\nYou can change the scaling by right-clicking into the scatter plot and selecting \"Reconfigure...\"." );
 		}
 
-		if ( Math.abs( max[ 1 ] - min[ 1 ] ) < 1 || Math.abs( max[ 0 ] - min[ 0 ] ) < 1  )
-		{
-			IJ.showMessage( "The difference between the minimum and maximum value along on of the dimensions is smaller than 1.0.\n" +
-					"The plot may thus appear very small.\n" +
-					"You may either have to zoom in or change the axis scaling to produce larger values." +
-					"\nYou can change the axis scaling by right-clicking into the scatter plot and selecting \"Reconfigure...\"." );
-		}
+//		if ( Math.abs( max[ 1 ] - min[ 1 ] ) < 1 || Math.abs( max[ 0 ] - min[ 0 ] ) < 1  )
+//		{
+//			IJ.showMessage( "The difference between the minimum and maximum value along on of the dimensions is smaller than 1.0.\n" +
+//					"The plot may thus appear very small.\n" +
+//					"You may either have to zoom in or change the axis scaling to produce larger values." +
+//					"\nYou can change the axis scaling by right-clicking into the scatter plot and selecting \"Reconfigure...\"." );
+//		}
 
 		Supplier< BiConsumer< RealPoint, ARGBType > > biConsumerSupplier = new RealPointARGBTypeBiConsumerSupplier( kdTree, coloringModel, dotSizeScaleFactor * ( min[ 0 ] - max[ 0 ] ) / 100.0, ARGBType.rgba( 100,  100, 100, 255 ) );
 
@@ -296,6 +306,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 				selectionModel.toggle( selection );
 				if ( selectionModel.isSelected( selection ) )
 				{
+					logCoordinates( selection );
 					recentFocus = selection;
 					selectionModel.focus( selection, this );
 				}
@@ -312,12 +323,20 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		}
 	}
 
+	private void logCoordinates( A selection )
+	{
+		final Double x = selection.getNumber( selectedColumns[ 0 ] );
+		final Double y = selection.getNumber( selectedColumns[ 1 ] );
+		IJ.log( selection.uuid() + ": " + x + ", " + y );
+	}
+
 	private synchronized void focusClosestPoint()
 	{
 		final A selection = searchClosestPoint();
 
 		if ( selection != null )
 		{
+			logCoordinates( selection );
 			recentFocus = selection;
 			selectionModel.focus( selection, this );
 		}
@@ -327,7 +346,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		}
 	}
 
-	private A searchClosestPoint(  )
+	private A searchClosestPoint( )
 	{
 		final RealPoint realPoint = new RealPoint( 3 );
 		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( realPoint );
@@ -336,7 +355,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		return nearestNeighborSearchOnKDTree.getSampler().get();
 	}
 
-	private ArrayList< A > searchWithinRadius(  )
+	private ArrayList< A > searchWithinRadius( )
 	{
 		final RealPoint realPoint = new RealPoint( 3 );
 		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( realPoint );
@@ -345,17 +364,13 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		final int numNeighbors = radiusNeighborSearchOnKDTree.numNeighbors();
 		final ArrayList< A > neighbors = new ArrayList<>();
 		for ( int i = 0; i < numNeighbors; i++ )
-		{
 			neighbors.add( radiusNeighborSearchOnKDTree.getSampler( i ).get() );
-		}
+
 		return neighbors;
 	}
 
 	private void showInBdv( FunctionRealRandomAccessible< ARGBType > realRandomAccessible, FinalInterval interval, String[] selectedColumns )
 	{
-		Prefs.showMultibox( false );
-		Prefs.showScaleBar( true ); // This clashes with the main BDV...
-
 		final BdvOptions bdvOptions = BdvOptions.options().is2D().frameTitle( "Scatter plot" ).addTo( bdvHandle );
 
 		scatterPlotSource = BdvFunctions.show(
@@ -365,6 +380,18 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 				bdvOptions );
 
 		bdvHandle = scatterPlotSource.getBdvHandle();
+
+		// zoom to see all points
+		final double[] min3D = new double[ 3 ];
+		final double[] max3D = new double[ 3 ];
+		for ( int d = 0; d < 2; d++ )
+		{
+			min3D[ d ] = min[ d ];
+			max3D[ d ] = max[ d ];
+		}
+		final FinalRealInterval bounds = new FinalRealInterval( min3D, max3D );
+		final AffineTransform3D transform = TransformHelper.getIntervalViewerTransform( bdvHandle, bounds );
+		bdvHandle.getViewerPanel().state().setViewerTransform( transform );
 	}
 
 	private static String createPlotName( String[] selectedColumns )
@@ -375,9 +402,8 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	public String[] getSelectedColumns()
 	{
 		if ( selectedColumns == null )
-		{
 			selectedColumns = new String[]{ tableModel.columnNames().get( 0 ), tableModel.columnNames().get( 1 ) };
-		}
+
 		return selectedColumns;
 	}
 

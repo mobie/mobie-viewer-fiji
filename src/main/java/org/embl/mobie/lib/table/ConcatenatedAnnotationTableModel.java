@@ -146,7 +146,7 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 
 	private void addAnnotations( Collection< A > annotations )
 	{
-		annotations.addAll( annotations );
+		this.annotations.addAll( annotations );
 
 		for ( AnnotationListener< A > annotationListener : listeners.list )
 			annotationListener.annotationsAdded( annotations );

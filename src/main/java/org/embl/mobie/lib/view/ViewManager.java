@@ -141,20 +141,8 @@ public class ViewManager
 
 	private void initScatterPlotView( AbstractAnnotationDisplay< ? > display )
 	{
-		// TODO: implement for multiple images
-		//   probably needs an AnnotationTableModel constructed
-		//   from multiple tables
-		//   Note that the same code is needed for the TableView,
-		//   thus maybe this needs to happen within annotationDisplay?
-		final AnnotationImage annotatedLabelImage = ( AnnotationImage ) display.images().iterator().next();
-		final AnnotationTableModel annotationTableModel = annotatedLabelImage.getAnnData().getTable();
-
 		String[] scatterPlotAxes = display.getScatterPlotAxes();
-		if ( scatterPlotAxes == null )
-		{
-			int b = 1;
-		}
-		display.scatterPlotView = new ScatterPlotView( annotationTableModel, display.selectionModel, display.coloringModel, scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
+		display.scatterPlotView = new ScatterPlotView( display.getAnnData().getTable(), display.selectionModel, display.coloringModel, scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
 		display.selectionModel.listeners().add( display.scatterPlotView );
 		display.coloringModel.listeners().add( display.scatterPlotView );
 		display.sliceViewer.getBdvHandle().getViewerPanel().timePointListeners().add( display.scatterPlotView );

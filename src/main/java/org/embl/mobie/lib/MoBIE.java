@@ -235,6 +235,7 @@ public class MoBIE
 		// image views and segmentation views
 		// into segmented image views
 		// and create a grid view
+
 		final String[] views = dataset.views.keySet().toArray( new String[ 0 ] );
 		Arrays.sort( views );
 
@@ -303,19 +304,16 @@ public class MoBIE
 
 	// use this constructor from the Fiji UI
 	//
-	// images: the idea is to convert all image data to {@code SpimData}
+	// images: convert all image data to {@code SpimData}
 	// before calling this constructor.
 	// {@code SpimDataOpener} in mobie-io provides methods for this.
 	//
-	// tables: one needs to provide the tableStorageLocation
-	// and the tableDataFormat, which also specifies necessary column names.
-	// note that this is more complex than for images, because we are not
-	// aware of a good java implementation of tables
-	// that would allow to wrap the various ways
-	// in which tables can be stored, in particular considering lazy loading of
-	// table chunks.
+	// tables: provide the {@code StorageLocation}
+	// and the {@code TableDataFormat}.
 	public MoBIE( String projectName, AbstractSpimData< ? > image, AbstractSpimData< ? > segmentation, StorageLocation tableStorageLocation, TableDataFormat tableDataFormat )
 	{
+		init();
+
 		initProject( projectName );
 
 		addSpimDataImages( image, false, null, null );
