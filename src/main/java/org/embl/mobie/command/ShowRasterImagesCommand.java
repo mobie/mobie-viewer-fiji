@@ -59,17 +59,13 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 	public static final String RAW = "Raw";
 
 	@Parameter( label = "Source(s)" )
-	public SourceAndConverter[] sourceAndConverterArray;
+	public SourceAndConverter< T >[] sourceAndConverters;
 
 	@Override
 	public void run()
 	{
-		final List< SourceAndConverter< T > > sourceAndConverters = getSacs();
-
 		for ( SourceAndConverter< T > sourceAndConverter : sourceAndConverters )
-		{
 			export( sourceAndConverter );
-		}
 	}
 
 	private void export( SourceAndConverter< T > sourceAndConverter )
@@ -181,10 +177,8 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 	private List< SourceAndConverter< T > > getSacs()
 	{
 		final List< SourceAndConverter< T > > sourceAndConverters = new ArrayList<>();
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverterArray )
-		{
+		for ( SourceAndConverter< ? > sourceAndConverter : this.sourceAndConverters )
 			sourceAndConverters.add( ( SourceAndConverter< T > ) sourceAndConverter );
-		}
 		return sourceAndConverters;
 	}
 

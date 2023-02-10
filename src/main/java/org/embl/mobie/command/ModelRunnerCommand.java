@@ -94,7 +94,7 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 
 		ModelSpec modelSpec = loadModelSpec( modelDirectory );
 
-		final Model model = loadModel( modelDirectory, enginesDirectory );
+		final Model model = loadModel( modelDirectory, enginesDirectory, true, true, engine, engineVersion );
 
 		int timepoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
 
@@ -170,7 +170,7 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 						shapeMath.getOutputDimensions(
 								Arrays.stream( modelSpec.inputShapeMin )
 										.mapToLong( x -> x ).toArray() )
-				).mapToInt( x -> ( int ) x ).toArray();
+				).mapToInt( x -> ( int ) ( 4 * x ) ).toArray();
 
 		final long[] outputInterval = shapeMath.getOutputDimensions( modelInput.dimensionsAsLongArray() );
 
@@ -197,13 +197,11 @@ public class ModelRunnerCommand implements BdvPlaygroundActionCommand
 	}
 
 	// TODO: add to the model runner library
-	private Model loadModel( File modelDirectory, File engineDirectory )
+	private Model loadModel( File modelDirectory, File engineDirectory, boolean cpu, boolean gpu, String engine, String engineVersion )
 	{
 		try
 		{
 			final String modelSource = new File( modelDirectory, "weights-torchscript.pt" ).getAbsolutePath();
-			final boolean cpu = true;
-			final boolean gpu = true;
 			final String engineDirectoryAbsolutePath = engineDirectory.getAbsolutePath();
 			final String modelDirectoryAbsolutePath = modelDirectory.getAbsolutePath();
 

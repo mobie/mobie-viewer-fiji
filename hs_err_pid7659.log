@@ -1,0 +1,100 @@
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  SIGSEGV (0xb) at pc=0x000000018ae4cf73, pid=7659, tid=0x000000000001f70b
+#
+# JRE version: OpenJDK Runtime Environment (8.0_312-b07) (build 1.8.0_312-b07)
+# Java VM: OpenJDK 64-Bit Server VM (25.312-b07 mixed mode bsd-amd64 compressed oops)
+# Problematic frame:
+# C  [libtorch_cpu.dylib+0xaa80f73]  dnnl::impl::primitive_execute(dnnl_primitive const*, dnnl::impl::exec_ctx_t&)+0x1b3
+#
+# Failed to write core dump. Core dumps have been disabled. To enable core dumping, try "ulimit -c unlimited" before starting Java again
+#
+# If you would like to submit a bug report, please visit:
+#   https://github.com/corretto/corretto-8/issues/
+# The crash happened outside the Java Virtual Machine in native code.
+# See problematic frame for where to report the bug.
+#
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x00007fcede959000):  JavaThread "Fetcher-1" daemon [_thread_in_native, id=128779, stack(0x0000700005ec6000,0x0000700005fc6000)]
+
+siginfo: si_signo: 11 (SIGSEGV), si_code: 0 (unknown), si_addr: 0x0000000000000000
+
+Registers:
+RAX=0xa000000000000000, RBX=0x0000700005fc2818, RCX=0xecd3814c8d26008c, RDX=0x0000000000000000
+RSP=0x0000700005fc2770, RBP=0x0000700005fc2800, RSI=0x000000017f9fb7e0, RDI=0x00007fcee15f4e80
+R8 =0x0000000000000008, R9 =0x000000000000fa00, R10=0x0000000000000008, R11=0x0000000000000001
+R12=0x00007fcee1bbe160, R13=0x00007fcee15f4e80, R14=0x0000000000000000, R15=0x00007fcee1bbe180
+RIP=0x000000018ae4cf73, EFLAGS=0x0000000000010206, ERR=0x0000000000000000
+  TRAPNO=0x000000000000000d
+
+Top of Stack: (sp=0x0000700005fc2770)
+0x0000700005fc2770:   00007fcede4c7e00 00007fcee1b193c0
+0x0000700005fc2780:   0000000000000001 ecd3814c8d26008c
+0x0000700005fc2790:   0000700005fc2800 000000018ae569ee
+0x0000700005fc27a0:   000000010bc0a800 0000000000000002
+0x0000700005fc27b0:   0000700005fc2880 0000000161f0643b
+0x0000700005fc27c0:   0000000100000000 0000000100000000
+0x0000700005fc27d0:   ecd3814c8d26008c 0000700005fc2830
+0x0000700005fc27e0:   00007fcee1bbe160 0000000000000002
+0x0000700005fc27f0:   0000000000000000 00007fcee1bbe180
+0x0000700005fc2800:   0000700005fc28e0 000000018ae4d1f3
+0x0000700005fc2810:   000000010bc06080 00007fcee15f4e80
+0x0000700005fc2820:   00007fceda683700 0000000000000002
+0x0000700005fc2830:   00007fcedf28ab00 0000000000000002
+0x0000700005fc2840:   000070003f800000 0000000000000000
+0x0000700005fc2850:   0000000000000000 0000000000000000
+0x0000700005fc2860:   0000000000000000 000000003f800000
+0x0000700005fc2870:   00007fcee1bbe1a8 0000000000000000
+0x0000700005fc2880:   0000000000000000 0000000000000000
+0x0000700005fc2890:   0000000000000000 0000000000000000
+0x0000700005fc28a0:   000070003f800000 00007fff61f04c15
+0x0000700005fc28b0:   ecd3814c8d26008c 00007fcee1bbe180
+0x0000700005fc28c0:   000000017ec11000 0000000000000002
+0x0000700005fc28d0:   00007fcee1bbe180 0000000000000000
+0x0000700005fc28e0:   0000700005fc2960 0000000180a78337
+0x0000700005fc28f0:   0000000000000001 00007fcee15b8fc0
+0x0000700005fc2900:   00000001918ed570 0000700005fc2a10
+0x0000700005fc2910:   0000700005fc29d0 0000700005fc2988
+0x0000700005fc2920:   00007fcee1bbe160 00007fcee1bbe180
+0x0000700005fc2930:   00007fcee1bbe180 0000700005fc2a10
+0x0000700005fc2940:   000000017ec11000 0000700005fc3080
+0x0000700005fc2950:   00000001918ed570 00007fcedf291b10
+0x0000700005fc2960:   0000700005fc29f0 0000000180a79af2 
+
+Instructions: (pc=0x000000018ae4cf73)
+0x000000018ae4cf53:   3a 06 48 8b 38 e8 11 5a a5 03 f6 45 a0 01 74 09
+0x000000018ae4cf63:   48 8b 7d b0 e8 d8 56 a5 03 49 8b 45 00 4c 89 ef
+0x000000018ae4cf73:   ff 50 28 48 8b 05 4b 34 3a 06 48 8b 00 48 3b 45
+0x000000018ae4cf83:   d0 75 12 44 89 f0 48 83 c4 68 5b 41 5c 41 5d 41 
+
+Register to memory mapping:
+
+RAX=0xa000000000000000 is an unknown value
+RBX=0x0000700005fc2818 is pointing into the stack for thread: 0x00007fcede959000
+RCX=0xecd3814c8d26008c is an unknown value
+RDX=0x0000000000000000 is an unknown value
+RSP=0x0000700005fc2770 is pointing into the stack for thread: 0x00007fcede959000
+RBP=0x0000700005fc2800 is pointing into the stack for thread: 0x00007fcede959000
+RSI=0x000000017f9fb7e0 is an unknown value
+RDI=0x00007fcee15f4e80 is an unknown value
+R8 =0x0000000000000008 is an unknown value
+R9 =0x000000000000fa00 is an unknown value
+R10=0x0000000000000008 is an unknown value
+R11=0x0000000000000001 is an unknown value
+R12=0x00007fcee1bbe160 is an unknown value
+R13=0x00007fcee15f4e80 is an unknown value
+R14=0x0000000000000000 is an unknown value
+R15=0x00007fcee1bbe180 is an unknown value
+
+
+Stack: [0x0000700005ec6000,0x0000700005fc6000],  sp=0x0000700005fc2770,  free space=1009k
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+C  [libtorch_cpu.dylib+0xaa80f73]  dnnl::impl::primitive_execute(dnnl_primitive const*, dnnl::impl::exec_ctx_t&)+0x1b3
+C  [libtorch_cpu.dylib+0xaa811f3]  dnnl_primitive_execute+0x173
+C  [libtorch_cpu.dylib+0x6ac337]  dnnl::primitive::execute(dnnl::stream const&, std::__1::unordered_map<int, dnnl::memory, std::__1::hash<int>, std::__1::equal_to<int>, std::__1::allocator<std::__1::pair<int const, dnnl::memory> > > const&) const+0x1e7
+C  [libtorch_cpu.dylib+0x6adaf2]  dnnl::reorder::execute(dnnl::stream const&, dnnl::memory&, dnnl::memory&) const+0x82
+C  [libtorch_cpu.dylib+0x6ad1a3]  ideep::tensor::reorder_to(ideep::tensor&, ideep::attr_t const&) const+0x53
+C  [libtorch_cpu.dylib+0x6cd24b]  ideep::tensor::to_public(void*, dnnl::memory::data_type) const+0x1eb

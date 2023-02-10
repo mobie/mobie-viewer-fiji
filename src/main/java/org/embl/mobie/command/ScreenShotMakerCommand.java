@@ -61,7 +61,6 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     @Parameter(label="Show Multi-Channel Image")
     public boolean showMultiChannel = true;
 
-
     @Override
     public void run() {
         ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvh );
