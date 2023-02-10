@@ -30,6 +30,7 @@ package org.embl.mobie.command;
 
 import bdv.util.BdvHandle;
 import ij.IJ;
+import org.embl.mobie.lib.MoBIE;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
@@ -72,6 +73,9 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
 
         if( showMultiChannel )
             screenShotMaker.getRawScreenShot().show();
+
+        if ( MoBIE.openedFromCLI )
+            MoBIE.imageJ.ui().showUI();
     }
 
     @Override

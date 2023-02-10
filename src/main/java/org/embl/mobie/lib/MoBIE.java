@@ -32,10 +32,12 @@ import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import loci.common.DebugTools;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.ImgLoader;
+import net.imagej.ImageJ;
 import net.imglib2.Dimensions;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.lib.io.IOHelper;
@@ -119,6 +121,7 @@ public class MoBIE
 
 	private static MoBIE moBIE;
 	public static boolean openedFromCLI = false;
+	public static ImageJ imageJ;
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 	private MoBIESettings settings;
 	private String currentDatasetName;
@@ -131,8 +134,6 @@ public class MoBIE
 	private String tableRoot = ""; // see https://github.com/mobie/mobie-viewer-fiji/issues/933
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 	private ArrayList< String > projectCommands = new ArrayList<>();
-	;
-	public static int minLogTimeMillis = 100;
 	public static boolean initiallyShowSourceNames = false;
 
 	public MoBIE( String projectLocation ) throws IOException
@@ -142,6 +143,8 @@ public class MoBIE
 
 	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
+		init();
+
 		settings.projectLocation( projectLocation );
 
 		// Only allow one instance to avoid confusion
@@ -169,9 +172,19 @@ public class MoBIE
 		openAndViewDataset();
 	}
 
+	private void init()
+	{
+		DebugTools.setRootLevel( "OFF" ); // Bio-Formats logging
+
+		if ( MoBIE.openedFromCLI )
+			imageJ = new ImageJ(); // Init SciJava Services
+	}
+
 	// use this constructor from the command line
 	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths, String[] tablePaths ) throws SpimDataException, IOException
 	{
+		init();
+
 		initProject( projectName );
 
 		if ( imagePaths[ 0 ].contains( "*" ) )

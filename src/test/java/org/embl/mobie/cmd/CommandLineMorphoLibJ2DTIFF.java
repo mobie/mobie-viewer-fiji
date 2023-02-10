@@ -1,9 +1,5 @@
 package org.embl.mobie.cmd;
 
-import mpicbg.spim.data.SpimDataException;
-
-import java.io.IOException;
-
 class CommandLineMorphoLibJ2DTIFF
 {
 	public static final String ROOT = "/Users/tischer/Documents/mobie/";

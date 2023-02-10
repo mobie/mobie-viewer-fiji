@@ -53,6 +53,7 @@ import org.embl.mobie.lib.ui.UserInterfaceHelper;
 import javax.swing.*;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -60,6 +61,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.List;
 
 import static org.embl.mobie.lib.MoBIEHelper.FileLocation;
@@ -77,9 +79,8 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private int recentlySelectedRowInView;
 	private RowSelectionMode selectionMode = RowSelectionMode.FocusOnly;
 	private JFrame frame;
-
-	// Keyboard
 	private boolean controlKeyPressed;
+	private SwingTableModel swingTableModel;
 
 	private enum RowSelectionMode
 	{
@@ -139,8 +140,9 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private void configureJTable()
 	{
-		final SwingTableModel swingTableModel = new SwingTableModel( tableModel );
+		swingTableModel = new SwingTableModel( tableModel );
 		jTable = new JTable( swingTableModel );
+		jTable.updateUI();
 		jTable.setPreferredScrollableViewportSize( new Dimension(500, 200) );
 		jTable.setFillsViewportHeight( true );
 		jTable.setAutoCreateRowSorter( true );
@@ -261,11 +263,17 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				}
 
 				IJ.log( "...done!" );
-				jTable.tableChanged( null );
+				updateJTable();
 
 			}).start()
 		);
 		return menuItem;
+	}
+
+	private void updateJTable()
+	{
+		if ( jTable == null ) return;
+		jTable.tableChanged( null );
 	}
 
 	private JMenuItem createSaveTableAsMenuItem()
@@ -775,12 +783,19 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	@Override
 	public void annotationsAdded( Collection< A > annotations )
 	{
-		jTable.repaint();
+		updateJTable();
 	}
 
 	@Override
 	public void columnAdded( String columnName )
 	{
-		jTable.columnAdded( null );
+		updateJTable();
+		final List< String > columnNames = tableModel.columnNames();
+		for ( int i = 0; i < columnNames.size(); i++ )
+		{
+			System.out.println( columnNames.get( i ) );
+			System.out.println( swingTableModel.getColumnName( i ) );
+			System.out.println( jTable.getColumnName( i ) );
+		}
 	}
 }

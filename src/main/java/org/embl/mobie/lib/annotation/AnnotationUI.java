@@ -162,7 +162,7 @@ public class AnnotationUI< A extends Annotation > extends JFrame implements Sele
 	{
 		final JPanel panel = SwingUtils.horizontalLayoutPanel();
 		final JButton button = new JButton( "Create new category" );
-		final JTextField textField = new JTextField( "Class A" );
+		final JTextField textField = new JTextField( "nice_cell" );
 		panel.add( button );
 		panel.add( textField );
 		button.addActionListener( e -> {

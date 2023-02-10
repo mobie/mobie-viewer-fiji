@@ -2,12 +2,14 @@ package org.embl.mobie.cmd;
 
 import org.embl.mobie.lib.MoBIE;
 import org.embl.mobie.lib.MoBIESettings;
+import loci.common.DebugTools;
+import net.imagej.ImageJ;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
 import java.util.concurrent.Callable;
 
-@CommandLine.Command(name = "mobie", mixinStandardHelpOptions = true, version = "3.0.11", description = "Visualise multi-modal big image data, see https://mobie.github.io/")
+@CommandLine.Command(name = "mobie", mixinStandardHelpOptions = true, version = "3.0.12", description = "Visualise multi-modal big image data, see https://mobie.github.io/")
 public class MoBIECmd implements Callable<Void> {
 
 	// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/926
@@ -30,11 +32,19 @@ public class MoBIECmd implements Callable<Void> {
 	@Override
 	public Void call() throws Exception {
 
+		if ( project == null && images == null && segmentations == null )
+		{
+			System.exit( 0 );
+			return null;
+		}
+
 		// I don't understand whether I should use callable or runnable
 		// Runnable does not allow me to throw an Exception
 		// Callable wants to return something, but what?
 
 		MoBIE.openedFromCLI = true;
+
+
 		if ( project != null )
 		{
 			final MoBIESettings settings = new MoBIESettings();
@@ -49,14 +59,15 @@ public class MoBIECmd implements Callable<Void> {
 
 	public static final void main( final String... args ) {
 
-		// Show help if there are no arguments
+		// Only show help if there are no arguments
 		if ( args == null || args.length == 0 )
 		{
-			final int exitCode = new CommandLine( new MoBIECmd() ).execute( "--help" );
-			System.exit( exitCode );
+			final MoBIECmd cmd = new MoBIECmd();
+			final int exitCode = new CommandLine( cmd ).execute( "--help" );
+			//System.exit( exitCode ); // MoBIE would be terminated immediately
 		}
 
 		final int exitCode = new CommandLine( new MoBIECmd() ).execute( args );
-		System.exit( exitCode );
+		//System.exit( exitCode );
 	}
 }

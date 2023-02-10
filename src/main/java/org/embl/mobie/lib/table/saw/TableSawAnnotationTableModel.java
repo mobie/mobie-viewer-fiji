@@ -168,7 +168,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 			table.addColumns( source );
 		}
 
-		final ArrayList< A > annotations = new ArrayList<>( rowCount );
+		annotations = new ArrayList<>( rowCount );
 		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
 			annotations.add( annotationCreator.create( this, rowIndex ) );
 
@@ -247,17 +247,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	public synchronized A annotation( int rowIndex )
 	{
 		update();
-
-		try
-		{
-			final A annotation = annotations.get( rowIndex );
-			return annotation;
-		}
-		catch ( Exception e )
-		{
-			e.printStackTrace();
-			throw new RuntimeException( e );
-		}
+		return  annotations.get( rowIndex );
 	}
 
 	@Override
