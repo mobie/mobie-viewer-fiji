@@ -779,15 +779,8 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	}
 
 	@Override
-	public void annotationAdded( A annotation )
-	{
-		jTable.repaint();
-	}
-
-	@Override
 	public void columnAdded( String columnName )
 	{
 		jTable.columnAdded( null );
 	}
-
 }

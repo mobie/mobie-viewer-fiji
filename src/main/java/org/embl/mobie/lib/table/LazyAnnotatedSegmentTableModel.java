@@ -7,8 +7,10 @@ import org.embl.mobie.lib.io.StorageLocation;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel< AnnotatedSegment >
@@ -134,8 +136,9 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 
 		annotations.add( annotatedSegment );
 
+		final Set< AnnotatedSegment > singletonCollection = Collections.singleton( annotatedSegment );
 		for ( AnnotationListener< AnnotatedSegment > listener : listeners.list )
-			listener.annotationAdded( annotatedSegment );
+			listener.annotationsAdded( singletonCollection );
 
 		return annotatedSegment;
 	}
