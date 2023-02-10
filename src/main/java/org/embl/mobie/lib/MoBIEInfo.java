@@ -37,12 +37,12 @@ public class MoBIEInfo
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static final String MOBIE_VIEWER = "MoBIE Viewer";
-	public static final String MOBIE_FRAMEWORK = "MoBIE Framework";
-	public static final String BIG_DATA_VIEWER = "BigDataViewer";
-	public static final String REPOSITORY = "Project Repository";
-	public static final String PUBLICATION = "Project Publication";
-	public static final String SEGMENTATIONS = "Segmentations Browsing";
+	public static final String MOBIE_PUBLICATION = "MoBIE Publication";
+	public static final String MOBIE_GITHUB = "MoBIE Source Code";
+	public static final String MOBIE_DOCUMENTATION = "MoBIE Documentation";
+	public static final String BIG_DATA_VIEWER = "BigDataViewer Help";
+	public static final String PROJECT_REPOSITORY = "Project Repository";
+	public static final String PROJECT_PUBLICATION = "Project Publication";
 	private final String projectLocation;
 	private final String publicationURL;
 
@@ -55,43 +55,39 @@ public class MoBIEInfo
 	public String[] getInfoChoices()
 	{
 		return new String[]{
-				REPOSITORY,
-				PUBLICATION,
-				MOBIE_VIEWER,
-				MOBIE_FRAMEWORK,
-				BIG_DATA_VIEWER,
-				SEGMENTATIONS };
+				PROJECT_REPOSITORY,
+				PROJECT_PUBLICATION,
+				MOBIE_PUBLICATION,
+				MOBIE_GITHUB,
+				MOBIE_DOCUMENTATION,
+				BIG_DATA_VIEWER};
 	}
 
 	public void showInfo( String selectedItem )
 	{
 		switch ( selectedItem )
 		{
-			case MOBIE_VIEWER:
-				IOHelper.openURI( "https://github.com/mobie/mobie-viewer-fiji/blob/master/README.md#mobie-fiji-viewer" );
+			case MOBIE_GITHUB:
+				IOHelper.openURI( "https://github.com/mobie/" );
 				break;
-			case MOBIE_FRAMEWORK:
-				IOHelper.openURI( "https://github.com/mobie/mobie#mobie" );
+			case MOBIE_DOCUMENTATION:
+				IOHelper.openURI( "https://mobie.github.io/" );
 				break;
-			case REPOSITORY:
+			case MOBIE_PUBLICATION:
+				IOHelper.openURI( "https://www.nature.com/articles/s41592-023-01776-4" );
+				break;
+			case PROJECT_REPOSITORY:
 				IOHelper.openURI( IOHelper.combinePath( projectLocation, "blob/master/README.md" ) );
 				break;
-			case PUBLICATION:
+			case PROJECT_PUBLICATION:
 				if ( publicationURL == null )
-				{
-					IJ.showMessage( "There is no publication registered with this project.");
-					return;
-				}
+					IJ.showMessage( "There is no publication yet registered with this project.");
 				else
-				{
 					IOHelper.openURI( publicationURL );
-				}
 				break;
 			case BIG_DATA_VIEWER:
 				showBdvHelp();
 				break;
-			case SEGMENTATIONS:
-				Help.showSegmentationImageHelp();
 		}
 	}
 
