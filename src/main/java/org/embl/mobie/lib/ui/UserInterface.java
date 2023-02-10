@@ -64,7 +64,7 @@ public class UserInterface
 		displaySettingsScrollPane = userInterfaceHelper.createDisplaySettingsScrollPane( displaySettingsContainer );
 		JPanel displaySettingsPanel = userInterfaceHelper.createDisplaySettingsPanel( displaySettingsScrollPane );
 		displayToPanel = new HashMap<>();
-		frame = createAndShowFrame( selectionPanel, displaySettingsPanel, moBIE.getProjectName() + "-" + moBIE.getCurrentDatasetName() );
+		frame = createAndShowFrame( selectionPanel, displaySettingsPanel, moBIE.getProjectName() + " " + moBIE.getCurrentDatasetName() );
 		MoBIELaf.MoBIELafOff();
 		configureWindowClosing( moBIE );
 	}
@@ -85,7 +85,7 @@ public class UserInterface
 
 	private JFrame createAndShowFrame( JPanel selectionPanel, JPanel displaySettingsPanel, String panelName )
 	{
-		JFrame frame = new JFrame( "MoBIE: " + panelName );
+		JFrame frame = new JFrame( "MoBIE " + panelName );
 
 		splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );

@@ -9,7 +9,7 @@ import picocli.CommandLine.Option;
 
 import java.util.concurrent.Callable;
 
-@CommandLine.Command(name = "mobie", mixinStandardHelpOptions = true, version = "3.0.12", description = "Visualise multi-modal big image data, see https://mobie.github.io/")
+@CommandLine.Command(name = "mobie", mixinStandardHelpOptions = true, version = "3.0.13", description = "Visualise multi-modal big image data, see https://mobie.github.io/")
 public class MoBIECmd implements Callable<Void> {
 
 	// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/926
@@ -43,7 +43,6 @@ public class MoBIECmd implements Callable<Void> {
 		// Callable wants to return something, but what?
 
 		MoBIE.openedFromCLI = true;
-
 
 		if ( project != null )
 		{

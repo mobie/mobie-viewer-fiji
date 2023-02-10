@@ -685,9 +685,7 @@ public class ViewManager
 		// the table may not visible at this point, but the window exists
 		// already and thus its location can be set.
 		// the table can be toggled visible in the UserInterfaceHelper.
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		final int offset = screenSize.height / 20;
-		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, (int) ( new Random().nextDouble() * offset ) ) );
+		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, true, true ) );
 	}
 
 	private void initSegmentVolumeViewer( SegmentationDisplay< ? extends AnnotatedSegment > display )

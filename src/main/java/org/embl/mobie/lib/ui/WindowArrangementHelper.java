@@ -34,72 +34,49 @@ import ij.WindowManager;
 
 import java.awt.*;
 
+import static org.embl.mobie.lib.ui.UserInterfaceHelper.*;
+
 public class WindowArrangementHelper
 {
-
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static int getDefaultWindowWidth()
+	public static void rightAlignWindow( Window reference, Window window, boolean adjustHeight, boolean maximiseWidth )
 	{
-		// TODO: does not work for multiple screens
-		return (int) ( Toolkit.getDefaultToolkit().getScreenSize().width / 3.1 );
-	}
-
-	public static void setBdvWindowPositionAndSize( BdvHandle bdvHandle )
-	{
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		final double relativeHeight = 2.0/3;
-		final int height = (int) ( relativeHeight * screenSize.height - 2 * UserInterfaceHelper.SPACING );
-		final int width = screenSize.width / 2 - 2 * UserInterfaceHelper.SPACING;
-
-		BdvUtils.getViewerFrame( bdvHandle ).setLocation(
-				screenSize.width / 2 + UserInterfaceHelper.SPACING,
-				UserInterfaceHelper.SPACING );
-
-		BdvUtils.getViewerFrame( bdvHandle ).setSize( width, height );
-	}
-
-	public static void setLogWindowPositionAndSize( Window reference )
-	{
-		final Frame log = WindowManager.getFrame( "Log" );
-		if (log != null) {
-			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			final int logWindowHeight = screenSize.height - ( reference.getLocationOnScreen().y + reference.getHeight() + 2 * UserInterfaceHelper.SPACING );
-			log.setSize( reference.getWidth(), logWindowHeight  );
-			log.setLocation( reference.getLocationOnScreen().x, reference.getLocationOnScreen().y + UserInterfaceHelper.SPACING + reference.getHeight() );
-		}
-	}
-
-	public static void setLogWindowPositionAndSize()
-	{
-		final Frame log = WindowManager.getFrame( "Log" );
-		if (log != null) {
-			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			final double relativeHeight = 1.0/3;
-			final int height = (int) ( relativeHeight * screenSize.height ) - 2 * UserInterfaceHelper.SPACING;
-			final int width = screenSize.width - 2 * UserInterfaceHelper.SPACING;
-			log.setSize( width, height  );
-			log.setLocation( UserInterfaceHelper.SPACING, (int) ( ( 1.0 - relativeHeight ) * screenSize.height ) + UserInterfaceHelper.SPACING );
-		}
-	}
-
-	public static void rightAlignWindow( Window reference, Window window, boolean adjustWidth, boolean adjustHeight )
-	{
-		window.setLocation(
-				reference.getLocationOnScreen().x + reference.getWidth() + UserInterfaceHelper.SPACING,
-				reference.getLocationOnScreen().y );
-
-		if ( adjustWidth )
-			window.setSize( reference.getWidth(), window.getHeight() );
+		final int x = reference.getLocationOnScreen().x + reference.getWidth() + SPACING;
+		final int y = reference.getLocationOnScreen().y;
+		int width = window.getWidth();
+		int height = window.getHeight();
 
 		if ( adjustHeight )
-			window.setSize( window.getWidth(), reference.getHeight() );
+			height = reference.getHeight();
+
+		if ( maximiseWidth )
+		{
+			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			width = screenSize.width - x - SPACING;
+		}
+
+		window.setLocation( x, y );
+		window.setSize( width, height );
 	}
 
-	public static void bottomAlignWindow( Window reference, Window window, int offset )
+	public static void bottomAlignWindow( Window reference, Window window, boolean adjustWidth, boolean maximiseHeight )
 	{
-		final int x = reference.getLocationOnScreen().x + offset;
-		final int y = reference.getLocationOnScreen().y + reference.getHeight() + UserInterfaceHelper.SPACING + offset;
+		final int x = reference.getLocationOnScreen().x;
+		final int y = reference.getLocationOnScreen().y + reference.getHeight() + SPACING;
+		int width = window.getWidth();
+		int height = window.getHeight();
+
+		if ( adjustWidth )
+			width = reference.getWidth();
+
+		if ( maximiseHeight )
+		{
+			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			height = screenSize.height - y - SPACING;
+		}
+
 		window.setLocation( x, y );
+		window.setSize( width, height );
 	}
 }

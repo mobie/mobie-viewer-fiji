@@ -32,6 +32,7 @@ import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import ij.WindowManager;
 import loci.common.DebugTools;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
@@ -92,6 +93,7 @@ import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
 import javax.annotation.Nullable;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -282,6 +284,7 @@ public class MoBIE
 	private void initUIandShowViews( @Nullable String view )
 	{
 		initUI();
+
 		if ( view == null )
 		{
 			// show all views
@@ -292,6 +295,14 @@ public class MoBIE
 		{
 			viewManager.show( getView( view, dataset ) );
 		}
+
+		adjustLogWindow();
+	}
+
+	private void adjustLogWindow()
+	{
+		final Window userInterfaceWindow = userInterface.getWindow();
+		WindowArrangementHelper.bottomAlignWindow( userInterfaceWindow, WindowManager.getWindow( "Log" ), true, true );
 	}
 
 	private void initProject( String projectName )
@@ -541,11 +552,11 @@ public class MoBIE
 		// build UI and show view
 		initUI();
 		viewManager.show( getView( viewName, dataset ) );
+		adjustLogWindow();
 	}
 
 	private void initUI()
 	{
-		WindowArrangementHelper.setLogWindowPositionAndSize();
 		sourceNameToImgLoader = new HashMap<>();
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D );

@@ -107,7 +107,7 @@ public class UserInterfaceHelper
 	private static final String HELP = "show";
 	private static final String LEVEL = "level";
 	private static final String ADD = "view";
-	public static final int SPACING = 20;
+	public static final int SPACING = 10;
 	public static File lastSelectedDir;
 
 	private final MoBIE moBIE;

@@ -30,23 +30,24 @@ package org.embl.mobie.lib.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.lib.MoBIE;
-import org.embl.mobie.lib.bdv.MobieBdvSupplier;
-import org.embl.mobie.lib.bdv.MobieSerializableBdvOptions;
-import org.embl.mobie.lib.bdv.SourceNameRenderer;
-import org.embl.mobie.lib.bdv.SourcesAtMousePositionSupplier;
-import org.embl.mobie.command.ViewerTransformLoggerCommand;
-import org.embl.mobie.lib.bdv.render.AccumulateAlphaBlendingProjectorARGB;
-import org.embl.mobie.lib.bdv.render.BlendingMode;
-import org.embl.mobie.lib.color.OpacityHelper;
 import org.embl.mobie.command.BigWarpRegistrationCommand;
 import org.embl.mobie.command.ConfigureLabelRenderingCommand;
 import org.embl.mobie.command.ManualRegistrationCommand;
 import org.embl.mobie.command.ScreenShotMakerCommand;
 import org.embl.mobie.command.ShowRasterImagesCommand;
-import org.embl.mobie.lib.serialize.display.AbstractDisplay;
+import org.embl.mobie.command.ViewerTransformLoggerCommand;
+import org.embl.mobie.lib.MoBIE;
 import org.embl.mobie.lib.annotation.SliceViewAnnotationSelector;
+import org.embl.mobie.lib.bdv.MobieBdvSupplier;
+import org.embl.mobie.lib.bdv.MobieSerializableBdvOptions;
+import org.embl.mobie.lib.bdv.SourceNameRenderer;
+import org.embl.mobie.lib.bdv.SourcesAtMousePositionSupplier;
+import org.embl.mobie.lib.bdv.render.AccumulateAlphaBlendingProjectorARGB;
+import org.embl.mobie.lib.bdv.render.BlendingMode;
+import org.embl.mobie.lib.color.OpacityHelper;
+import org.embl.mobie.lib.serialize.display.AbstractDisplay;
 import org.embl.mobie.lib.source.SourceHelper;
+import org.embl.mobie.lib.ui.WindowArrangementHelper;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -62,14 +63,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static org.embl.mobie.lib.ui.WindowArrangementHelper.setBdvWindowPositionAndSize;
-
 public class SliceViewer
 {
 	public static final String UNDO_SEGMENT_SELECTIONS = "Undo Segment Selections [ Ctrl Shift N ]";
 	public static final String LOAD_ADDITIONAL_VIEWS = "Load Additional Views";
 	public static final String SAVE_CURRENT_SETTINGS_AS_VIEW = "Save Current View";
-	public static final String FRAME_TITLE = "MoBIE - BigDataViewer";
+	public static final String FRAME_TITLE = "MoBIE BigDataViewer";
 	public static boolean tileRenderOverlay = false;
 
 	private final SourceAndConverterBdvDisplayService sacDisplayService;
@@ -99,12 +98,14 @@ public class SliceViewer
 			tileRenderOverlay = false; // don't show twice
 		}
 
-		setBdvWindowPositionAndSize( bdvHandle );
 		sacDisplayService.registerBdvHandle( bdvHandle );
 
 		sourceNameRenderer = new SourceNameRenderer( bdvHandle, moBIE.initiallyShowSourceNames );
 
 		installContextMenuAndKeyboardShortCuts();
+
+		WindowArrangementHelper.rightAlignWindow( moBIE.getUserInterface().getWindow(), SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() ), true, true );
+
 	}
 
 	public SourceNameRenderer getSourceNameRenderer()
