@@ -111,6 +111,9 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 				final TA transformedAnnotation = transformer.transform( tableModel.annotation( rowIndex ) );
 				annotations.add( transformedAnnotation );
 			}
+
+			for ( AnnotationListener< TA > listener : listeners.list )
+				listener.annotationsAdded( annotations );
 		}
 	}
 
@@ -138,15 +141,4 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 		listeners.add( listener );
 	}
 
-	@Override
-	public void addAnnotations( Collection< TA > annotations )
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void addAnnotation( TA annotation )
-	{
-		throw new UnsupportedOperationException();
-	}
 }

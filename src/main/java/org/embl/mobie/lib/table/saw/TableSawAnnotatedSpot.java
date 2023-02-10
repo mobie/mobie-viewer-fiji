@@ -12,9 +12,6 @@ public class TableSawAnnotatedSpot extends AbstractTableSawAnnotation implements
 	private final String source;
 	private float[] position; // may change due to transformations
 
-	// We use {@code Supplier< Table > tableSupplier}
-	// because the table object may change, e.g.
-	// due to merging of additional columns.
 	public TableSawAnnotatedSpot(
 			final TableSawAnnotationTableModel< TableSawAnnotatedSpot > model,
 			int rowIndex,
@@ -77,7 +74,6 @@ public class TableSawAnnotatedSpot extends AbstractTableSawAnnotation implements
 	{
 		return source;
 	}
-
 
 	@Override
 	public String[] idColumns()

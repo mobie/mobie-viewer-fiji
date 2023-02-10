@@ -33,7 +33,7 @@ import de.embl.cba.tables.TableUIs;
 import ij.IJ;
 import ij.gui.GenericDialog;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.lib.annotation.AnnotationDialog;
+import org.embl.mobie.lib.annotation.AnnotationUI;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.color.CategoricalAnnotationColoringModel;
 import org.embl.mobie.lib.color.ColorHelper;
@@ -51,6 +51,7 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.ui.UserInterfaceHelper;
 
 import javax.swing.*;
+import javax.swing.event.TableColumnModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -58,12 +59,13 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static org.embl.mobie.lib.MoBIEHelper.FileLocation;
 import static org.embl.mobie.lib.ui.UserInterfaceHelper.loadFromProjectOrFileSystemDialog;
 
-public class TableView< A extends Annotation > implements SelectionListener< A >, ColoringListener
+public class TableView< A extends Annotation > implements SelectionListener< A >, ColoringListener, AnnotationListener< A >
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -94,6 +96,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		this.tableName = display.getName();
 		this.recentlySelectedRowInView = -1;
 
+		tableModel.addAnnotationListener( this );
 		configureJTable();
 		installSelectionModelNotification();
 		configureRowColoring();
@@ -444,7 +447,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	public void continueAnnotation( String annotationColumnName )
 	{
-		final AnnotationDialog annotationDialog = new AnnotationDialog(
+		final AnnotationUI annotationUI = new AnnotationUI(
 				annotationColumnName,
 				tableModel,
 				selectionModel,
@@ -453,9 +456,9 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		// base the current coloring model
 		// on the values in the annotation column
-		this.coloringModel.setColoringModel( annotationDialog.getColoringModel() );
+		this.coloringModel.setColoringModel( annotationUI.getColoringModel() );
 
-		annotationDialog.showDialog();
+		annotationUI.showDialog();
 	}
 
 	public void setVisible( boolean visible )
@@ -626,7 +629,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 			setRecentlySelectedRowInView( -1 );
 			jTable.getSelectionModel().clearSelection();
 		}
-		SwingUtilities.invokeLater( () -> repaintTable() );
+		repaintTable();
 	}
 
 	@Override
@@ -638,7 +641,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	@Override
 	public void coloringChanged()
 	{
-		SwingUtilities.invokeLater( () -> repaintTable() );
+		repaintTable();
 	}
 
 	private void configureRowColoring()
@@ -766,7 +769,25 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private synchronized void repaintTable()
 	{
+		SwingUtilities.invokeLater( () -> jTable.repaint() );
+	}
+
+	@Override
+	public void annotationsAdded( Collection< A > annotations )
+	{
 		jTable.repaint();
+	}
+
+	@Override
+	public void annotationAdded( A annotation )
+	{
+		jTable.repaint();
+	}
+
+	@Override
+	public void columnAdded( String columnName )
+	{
+		jTable.columnAdded( null );
 	}
 
 }

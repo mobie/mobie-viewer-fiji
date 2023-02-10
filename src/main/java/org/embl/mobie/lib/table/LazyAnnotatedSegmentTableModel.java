@@ -69,19 +69,19 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	@Override
 	public void loadTableChunk( String tableChunk )
 	{
-		// not implemented
+		throw new UnsupportedOperationException(this.getClass().getName()  + " does not support loading of additional table columns."  );
 	}
 
 	@Override
 	public void loadExternalTableChunk( StorageLocation location )
 	{
-		throw new UnsupportedOperationException("loadExternalTableChunk is not implemented for " + this.getClass() );
+		throw new UnsupportedOperationException(this.getClass().getName()  + " does not support loading of additional table columns."  );
 	}
 
 	@Override
 	public Collection< String > getAvailableTableChunks()
 	{
-		throw new UnsupportedOperationException( this.getClass().getName() + " does not support loading of additional tables." );
+		throw new UnsupportedOperationException( this.getClass().getName() + " does not support loading of additional table columns." );
 	}
 
 	@Override
@@ -105,7 +105,7 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	@Override
 	public void addStringColumn( String columnName )
 	{
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException( this.getClass().getName() + " does not support adding table columns." );
 	}
 
 	@Override
@@ -117,7 +117,7 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	@Override
 	public synchronized void transform( AffineTransform3D affineTransform3D )
 	{
-		//throw new UnsupportedOperationException();
+		throw new RuntimeException( this.getClass().getName() + " cannot be transformed yet. Please report on https://github.com/mobie/mobie-viewer-fiji/issues" );
 	}
 
 	@Override
@@ -125,30 +125,18 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	{
 		listeners.add( listener );
 		if ( annotations.size() > 0 )
-			listener.addAnnotations( annotations );
+			listener.annotationsAdded( annotations );
 	}
 
 	public AnnotatedSegment createAnnotation( String source, int timePoint, int label )
 	{
 		final DefaultAnnotatedSegment annotatedSegment = new DefaultAnnotatedSegment( source, timePoint, label );
 
-		addAnnotation( annotatedSegment );
-
-		return annotatedSegment;
-	}
-
-	@Override
-	public void addAnnotations( Collection< AnnotatedSegment > annotations )
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public synchronized void addAnnotation( AnnotatedSegment annotation )
-	{
-		annotations.add( annotation );
+		annotations.add( annotatedSegment );
 
 		for ( AnnotationListener< AnnotatedSegment > listener : listeners.list )
-			listener.addAnnotation( annotation );
+			listener.annotationAdded( annotatedSegment );
+
+		return annotatedSegment;
 	}
 }

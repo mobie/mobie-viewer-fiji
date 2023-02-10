@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-public interface AnnotationTableModel< A extends Annotation > extends AnnotationListener< A >
+public interface AnnotationTableModel< A extends Annotation >
 {
 	default ValuePair< Double, Double > getColumnMinMax( String columnName, ArrayList< A > annotations )
 	{

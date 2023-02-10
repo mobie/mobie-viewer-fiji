@@ -6,6 +6,6 @@ import java.util.Collection;
 
 public interface AnnotationListener< A extends Annotation >
 {
-	void addAnnotations( Collection< A > annotations );
-	void addAnnotation( A annotation );
+	void annotationsAdded( Collection< A > annotations );
+	void columnAdded( String columnName );
 }

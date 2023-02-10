@@ -172,13 +172,16 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
 			annotations.add( annotationCreator.create( this, rowIndex ) );
 
-		// FIXME:
-		//  - refer to the removed columns via the annotations
-		//  - ensure that {@code .removeColumns()} is properly implemented
-		//    for all {@code AnnotationCreator}
+		for ( AnnotationListener< A > listener : listeners.list )
+			listener.annotationsAdded( annotations );
+
+		// Some columns are needed to create the annotations,
+		// but then we don't want to keep them, to save
+		// memory and also because it is not interesting to
+		// view them in the table.
+		// Currently, this only concerns the SpotAnnotations.
 		table.removeColumns( annotationCreator.removeColumns() );
 
-		addAnnotations( annotations );
 	}
 
 	public Table getTable()
@@ -315,6 +318,9 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 			Arrays.fill( strings, DefaultValues.NONE );
 			final StringColumn stringColumn = StringColumn.create( columnName, strings );
 			table.addColumns( stringColumn );
+
+			for ( AnnotationListener< A > listener : listeners.list )
+				listener.columnAdded( columnName );
 		}
 		else
 		{
@@ -344,22 +350,6 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	{
 		listeners.add( listener );
 		if ( table != null )
-			listener.addAnnotations( annotations() );
-	}
-
-	@Override
-	public void addAnnotations( Collection< A > annotations )
-	{
-		for( A annotation : annotations )
-			addAnnotation( annotation );
-	}
-
-	@Override
-	public synchronized void addAnnotation( A annotation )
-	{
-		annotations.add( annotation );
-
-		for ( AnnotationListener< A > listener : listeners.list )
-			listener.addAnnotation( annotation );
+			listener.annotationsAdded( annotations() );
 	}
 }

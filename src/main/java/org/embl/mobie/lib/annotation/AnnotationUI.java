@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
 import static org.embl.mobie.lib.color.lut.LUTs.DARK_GREY;
 import static org.embl.mobie.lib.color.lut.LUTs.GLASBEY;
 
-public class AnnotationDialog< A extends Annotation > extends JFrame implements SelectionListener< A >
+public class AnnotationUI< A extends Annotation > extends JFrame implements SelectionListener< A >
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -78,7 +78,7 @@ public class AnnotationDialog< A extends Annotation > extends JFrame implements 
 	private String objectName = "Entity";
 	private ArrayList< A > annotations;
 
-	public AnnotationDialog( String columnName, AnnotationTableModel< A > tableModel, SelectionModel< A > selectionModel, RowSorter< ? extends TableModel > rowSorter )
+	public AnnotationUI( String columnName, AnnotationTableModel< A > tableModel, SelectionModel< A > selectionModel, RowSorter< ? extends TableModel > rowSorter )
 	{
 		super("");
 		this.annotationColumnName = columnName;

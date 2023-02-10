@@ -11,7 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class ConcatenatedAnnotationTableModel< A extends Annotation > extends AbstractAnnotationTableModel< A >
+public class ConcatenatedAnnotationTableModel< A extends Annotation > extends AbstractAnnotationTableModel< A > implements AnnotationListener< A >
 {
 	private final Set< AnnotationTableModel< A > > tableModels;
 	private AnnotationTableModel< A > referenceTable;
@@ -22,7 +22,7 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 		this.tableModels = tableModels;
 
 		// Note that all loading of data from the {@code tableModels}
-		// it handled by the listening
+		// it handled by the listening.
 		for ( AnnotationTableModel< A > tableModel : tableModels )
 			tableModel.addAnnotationListener( this );
 
@@ -82,13 +82,6 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 		throw new UnsupportedOperationException("loadExternalTableChunk is not implemented for " + this.getClass() );
 	}
 
-//	@Override
-//	public void setAvailableTableChunks( Set< String > availableTableChunks )
-//	{
-//		for ( AnnotationTableModel< A > tableModel : tableModels )
-//			tableModel.setAvailableTableChunks( availableTableChunks );
-//	}
-
 	@Override
 	public Collection< String > getAvailableTableChunks()
 	{
@@ -138,22 +131,31 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	{
 		listeners.add( listener );
 		if( annotations.size() > 0 )
-			listener.addAnnotations( annotations );
+			listener.annotationsAdded( annotations );
 	}
 
 	@Override
-	public void addAnnotations( Collection< A > annotations )
+	public void annotationsAdded( Collection< A > annotations )
 	{
-		for( A annotation : annotations )
-			addAnnotation( annotation );
+		// A main reason this method is called is
+		// that {@code Annotations} have been added to the wrapped
+		// {code Set< AnnotationTableModel< A > > tableModels}
+		// and should thus be added to this model.
+		addAnnotations( annotations );
 	}
 
-	@Override
-	public synchronized void addAnnotation( A annotation )
+	private void addAnnotations( Collection< A > annotations )
 	{
-		annotations.add( annotation );
+		annotations.addAll( annotations );
 
 		for ( AnnotationListener< A > annotationListener : listeners.list )
-			annotationListener.addAnnotation( annotation );
+			annotationListener.annotationsAdded( annotations );
+	}
+
+	@Override
+	public void columnAdded( String columnName )
+	{
+		for ( AnnotationListener< A > annotationListener : listeners.list )
+			annotationListener.columnAdded( columnName );
 	}
 }
