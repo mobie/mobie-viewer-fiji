@@ -2,8 +2,6 @@ package org.embl.mobie.cmd;
 
 import org.embl.mobie.lib.MoBIE;
 import org.embl.mobie.lib.MoBIESettings;
-import loci.common.DebugTools;
-import net.imagej.ImageJ;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
@@ -14,33 +12,32 @@ public class MoBIECmd implements Callable<Void> {
 
 	// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/926
 
-	@Option(names = {"-p", "--project"}, required = false, description = "project, e.g. -p \"https://github.com/mobie/platybrowser-datasets\"")
+	@Option(names = {"-p", "--project"}, required = false, description = "open a MoBIE project, e.g. -p \"https://github.com/mobie/platybrowser-datasets\"")
 	public String project = null;
 
-	@Option(names = {"-v", "--view"}, required = false, description = "opens a specific view within a project (-p), e.g. -v \"cells")
+	@Option(names = {"-v", "--view"}, required = false, description = "open a specific view within the above MoBIE project, e.g. -v \"cells")
 	public String view = null;
 
-	@Option(names = {"-i", "--image"}, required = false, description = "intensity image, e.g. -i \"/home/image.tif\"")
+	@Option(names = {"-i", "--image"}, required = false, description = "open an intensity image from a path, e.g., -i \"/home/image.tif\"; you can use wild-cards to open several images, e.g., -i \"/home/*-image.tif\"")
 	public String[] images = null;
 
-	@Option(names = {"-s", "--segmentation"}, required = false, description = "segmentation label mask image, e.g. -s \"/home/labels.tif\"")
+	@Option(names = {"-s", "--segmentation"}, required = false, description = "opens a segmentation label mask image from a path, e.g. -s \"/home/labels.tif\"; wild cards are supported (see --image)")
 	public String[] segmentations = null;
 
-	@Option(names = {"-t", "--table"}, required = false, description = "segments feature table, e.g. -t \"/home/features.csv\"")
+	@Option(names = {"-t", "--table"}, required = false, description = "opens a segment feature table from a path, e.g. -t \"/home/features.csv\"; wild cards are supported (see --image)")
 	public String[] tables = null;
+
+	@Option(names = {"-g", "--grid"}, required = false, description = "create a grid view")
+	public Boolean grid = false;
 
 	@Override
 	public Void call() throws Exception {
 
 		if ( project == null && images == null && segmentations == null )
 		{
-			System.exit( 0 );
-			return null;
+			System.out.println( "Please either provide a project (-p), or an image (-i) and/or a segmentation (-s).");
+			System.exit( 1 );
 		}
-
-		// I don't understand whether I should use callable or runnable
-		// Runnable does not allow me to throw an Exception
-		// Callable wants to return something, but what?
 
 		MoBIE.openedFromCLI = true;
 
@@ -51,22 +48,20 @@ public class MoBIECmd implements Callable<Void> {
 			new MoBIE( project, settings );
 		}
 		else
+		{
 			new MoBIE( "", images, segmentations, tables );
+		}
 
 		return null;
 	}
 
 	public static final void main( final String... args ) {
 
-		// Only show help if there are no arguments
-		if ( args == null || args.length == 0 )
-		{
-			final MoBIECmd cmd = new MoBIECmd();
-			final int exitCode = new CommandLine( cmd ).execute( "--help" );
-			//System.exit( exitCode ); // MoBIE would be terminated immediately
-		}
+		final MoBIECmd moBIECmd = new MoBIECmd();
 
-		final int exitCode = new CommandLine( new MoBIECmd() ).execute( args );
-		//System.exit( exitCode );
+		if ( args == null || args.length == 0 )
+			new CommandLine( moBIECmd ).execute( "--help" );
+		else
+			new CommandLine( moBIECmd ).execute( args );
 	}
 }

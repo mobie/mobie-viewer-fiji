@@ -72,6 +72,7 @@ import org.embl.mobie.lib.serialize.display.Display;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.io.StorageLocation;
+import org.embl.mobie.lib.serialize.transformation.GridTransformation;
 import org.embl.mobie.lib.table.DefaultAnnData;
 import org.embl.mobie.lib.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.lib.table.TableDataFormat;
@@ -96,6 +97,7 @@ import javax.annotation.Nullable;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -229,32 +231,74 @@ public class MoBIE
 			}
 		}
 
-		// combine image and segmentation views into segmented image views, if possible
+		// if possible, combine
+		// image views and segmentation views
+		// into segmented image views
+		// and create a grid view
 		final String[] views = dataset.views.keySet().toArray( new String[ 0 ] );
 		Arrays.sort( views );
-		String segmentedImageView = null;
-		for ( int viewIndex = 0; viewIndex < views.length; viewIndex+=2 )
-		{
-			final Display< ? > displayA = dataset.views.get( views[ viewIndex ] ).displays().get( 0 );
-			final Display< ? > displayB = dataset.views.get( views[ viewIndex + 1 ] ).displays().get( 0 );
 
-			if ( (     displayA instanceof ImageDisplay
+		final GridTransformation imageGridTransformation = new GridTransformation();
+		imageGridTransformation.nestedSources = new ArrayList<>();
+		final GridTransformation segmentationGridTransformation = new GridTransformation();
+		segmentationGridTransformation.nestedSources = new ArrayList<>();
+
+		final ArrayList< String > imageGridSources = new ArrayList<>();
+		final ArrayList< String > segmentationGridSources = new ArrayList<>();
+
+		ImageDisplay< ? > imageDisplay = null;
+		SegmentationDisplay< ? > segmentationDisplay = null;
+
+		for ( int viewIndex = 0; viewIndex < views.length; )
+		{
+			final Display< ? > displayA = dataset.views.get( views[ viewIndex++ ] ).displays().get( 0 );
+			final Display< ? > displayB = dataset.views.get( views[ viewIndex++ ] ).displays().get( 0 );
+
+			if (  displayA instanceof ImageDisplay
 					&& displayB instanceof SegmentationDisplay )
-			     || (  displayB instanceof ImageDisplay
-					&& displayA instanceof SegmentationDisplay )
-			)
 			{
-				final String name = displayA.getName() + "-" + displayB.getName();
-				final ArrayList< Display< ? > > displays = new ArrayList<>();
-				displays.add( displayA );
-				displays.add( displayB );
-				final View combinedView = new View( displayA.getName(), "segmented image", displays, null, true );
-				segmentedImageView = name;
-				dataset.views.put( name, combinedView );
+				imageDisplay = ( ImageDisplay< ? > ) displayA;
+				segmentationDisplay = ( SegmentationDisplay< ? > ) displayB;
 			}
+			else if (  displayB instanceof ImageDisplay
+					&& displayA instanceof SegmentationDisplay )
+			{
+				imageDisplay = ( ImageDisplay< ? > ) displayB;
+				segmentationDisplay = ( SegmentationDisplay< ? > ) displayA;
+			}
+			else
+			{
+				continue;
+			}
+
+			final String name = imageDisplay.getName() + "-" + segmentationDisplay.getName();
+			final ArrayList< Display< ? > > displays = new ArrayList<>();
+			displays.add( imageDisplay );
+			displays.add( segmentationDisplay );
+			final View combinedView = new View( name, "segmented image", displays, null, true );
+			dataset.views.put( name, combinedView );
+
+			//gridDisplays.add( displayB );
+			imageGridSources.addAll( imageDisplay.getSources() );
+			segmentationGridSources.addAll( segmentationDisplay.getSources() );
+			//gridSources.addAll( displayB.getSources() );
+			imageGridTransformation.nestedSources.add( imageDisplay.getSources() );
+			segmentationGridTransformation.nestedSources.add( segmentationDisplay.getSources() );
 		}
 
-		initUIandShowViews( segmentedImageView );
+		// if possible also create a grid view
+		//
+		if ( imageGridSources.size() > 1 )
+		{
+			final ImageDisplay< ? > imageGridDisplay = new ImageDisplay<>( "images", imageGridSources, imageDisplay.getColor(), imageDisplay.getContrastLimits() );
+			final SegmentationDisplay< ? > segmentationGridDisplay = new SegmentationDisplay<>( "segmentations", segmentationGridSources );
+			final View gridView = new View( "segmented images", "grid", Arrays.asList( imageGridDisplay, segmentationGridDisplay ), Arrays.asList( imageGridTransformation, segmentationGridTransformation ), true );
+			dataset.views.put( gridView.getName(), gridView );
+		}
+
+		// show the last added view
+		final String[] viewNames = dataset.views.keySet().toArray( new String[ 0 ] );
+		initUIandShowViews( viewNames[ viewNames.length -1 ] );
 	}
 
 	// use this constructor from the Fiji UI
@@ -370,7 +414,7 @@ public class MoBIE
 			contrastLimits = new double[]{ displaysettings.min, displaysettings.max };
 		}
 
-		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, Arrays.asList( imageName ), color, contrastLimits, false, null );
+		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, Arrays.asList( imageName ), color, contrastLimits );
 		final View view = new View( imageName, "image", Arrays.asList( imageDisplay ), null, false );
 		dataset.views.put( view.getName(), view );
 	}
