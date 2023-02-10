@@ -51,9 +51,7 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.ui.UserInterfaceHelper;
 
 import javax.swing.*;
-import javax.swing.event.TableColumnModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -61,7 +59,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.List;
 
 import static org.embl.mobie.lib.MoBIEHelper.FileLocation;
@@ -201,12 +198,12 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				SwingUtilities.invokeLater( () ->
 				{
 					String[] columnNames = tableModel.columnNames().stream().toArray( String[]::new );
-					ScatterPlotDialog dialog = new ScatterPlotDialog( columnNames, new String[]{ columnNames[ 0 ], columnNames[ 1 ] }, new double[]{ 1.0, 1.0 }, 1.0 );
+					ScatterPlotDialog dialog = new ScatterPlotDialog( columnNames, new String[]{ columnNames[ 0 ], columnNames[ 1 ] }, new double[]{ 1.0, 1.0 }, 1.0, true );
 
 					if ( dialog.show() )
 					{
 						ScatterPlotView< A > scatterPlot = new ScatterPlotView<>( tableModel, selectionModel, coloringModel,  dialog.getSelectedColumns(), dialog.getAxesScaleFactors(), dialog.getDotSizeScaleFactor() );
-						scatterPlot.show();
+						scatterPlot.show( false );
 					}
 				});
 			}

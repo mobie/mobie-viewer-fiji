@@ -32,34 +32,30 @@ import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
-import bdv.util.Prefs;
-import bdv.util.RealRandomAccessibleIntervalSource;
-import bdv.util.RealRandomAccessibleSource;
 import bdv.viewer.TimePointListener;
 import ij.IJ;
 import ij.gui.GenericDialog;
-import net.imglib2.FinalRealInterval;
-import net.imglib2.RealInterval;
-import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.lib.annotation.Annotation;
-import org.embl.mobie.lib.color.ColoringListener;
-import org.embl.mobie.lib.color.ColoringModel;
-import org.embl.mobie.lib.playground.BdvPopupMenus;
-import org.embl.mobie.lib.table.AnnotationTableModel;
-import org.embl.mobie.lib.table.ColumnNames;
-import org.embl.mobie.lib.serialize.display.VisibilityListener;
-import org.embl.mobie.lib.select.SelectionListener;
-import org.embl.mobie.lib.select.SelectionModel;
-import org.embl.mobie.lib.transform.MoBIEViewerTransformAdjuster;
-import org.embl.mobie.lib.transform.SliceViewLocationChanger;
 import net.imglib2.FinalInterval;
+import net.imglib2.FinalRealInterval;
 import net.imglib2.KDTree;
 import net.imglib2.RealPoint;
 import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
 import net.imglib2.neighborsearch.RadiusNeighborSearchOnKDTree;
 import net.imglib2.position.FunctionRealRandomAccessible;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.lib.annotation.Annotation;
+import org.embl.mobie.lib.color.ColoringListener;
+import org.embl.mobie.lib.color.ColoringModel;
+import org.embl.mobie.lib.color.MobieColoringModel;
+import org.embl.mobie.lib.playground.BdvPopupMenus;
+import org.embl.mobie.lib.select.SelectionListener;
+import org.embl.mobie.lib.select.SelectionModel;
+import org.embl.mobie.lib.serialize.display.VisibilityListener;
+import org.embl.mobie.lib.table.AnnotationTableModel;
+import org.embl.mobie.lib.transform.SliceViewLocationChanger;
 import org.embl.mobie.lib.transform.TransformHelper;
+import org.embl.mobie.lib.ui.ColumnColoringModelDialog;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -83,6 +79,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 
 	private double[] min;
 	private double[] max;
+	private boolean showAllTimepoints = true;
 
 	public enum PointSelectionModes
 	{
@@ -94,7 +91,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	private double selectionRadius = 1.0;
 
 	private final AnnotationTableModel< A > tableModel;
-	private final ColoringModel< A > coloringModel;
+	private final MobieColoringModel< A > coloringModel;
 	private final SelectionModel< A > selectionModel;
 
 	private String[] selectedColumns;
@@ -108,13 +105,12 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	private BdvStackSource< ARGBType > scatterPlotSource;
 	private int currentTimePoint;
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
-	private boolean showConfigurationUI = true;
 	private RadiusNeighborSearchOnKDTree< A > radiusNeighborSearchOnKDTree;
 
 	public ScatterPlotView(
 			AnnotationTableModel< A > tableModel,
 			SelectionModel< A > selectionModel,
-			ColoringModel< A > coloringModel,
+			MobieColoringModel< A > coloringModel,
 			String[] selectedColumns,
 			double[] axesScaleFactors,
 			double dotSizeScaleFactor )
@@ -128,36 +124,22 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		this.currentTimePoint = 0;
 	}
 
-	public void show()
+	public synchronized void show( boolean showDialog )
 	{
-		if ( window == null )
-		{
-			if ( showConfigurationUI )
-			{
-				ScatterPlotDialog dialog = new ScatterPlotDialog( tableModel.columnNames().toArray( new String[0] ), getSelectedColumns(), axesScaleFactors, dotSizeScaleFactor );
-
-				if ( dialog.show() )
-				{
-					selectedColumns = dialog.getSelectedColumns();
-					axesScaleFactors = dialog.getAxesScaleFactors();
-					dotSizeScaleFactor = dialog.getDotSizeScaleFactor();
-				}
-			}
-
-			showConfigurationUI = false; // only show the first time
-
-			updateScatterPlotSource();
-			installBdvBehaviours();
-			configureWindow();
-		}
-		else
+		if ( bdvHandle != null )
 		{
 			window.setVisible( true );
+			return;
 		}
-	}
 
-	public void setShowConfigurationUI( boolean showConfigurationUI ) {
-		this.showConfigurationUI = showConfigurationUI;
+		if ( showDialog )
+		{
+			configureViaDialog();
+		}
+
+		updatePlot();
+		installBdvBehaviours();
+		configureWindowClosing();
 	}
 
 	public List< VisibilityListener > getListeners()
@@ -165,8 +147,11 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		return listeners;
 	}
 
-	private void updateScatterPlotSource( )
+	private void updatePlot( )
 	{
+		if ( scatterPlotSource != null)
+			scatterPlotSource.removeFromBdv();
+
 		Collection< A > annotations = getAnnotationsForCurrentTimePoint( );
 		AnnotationKDTreeSupplier< A > kdTreeSupplier = new AnnotationKDTreeSupplier<>( annotations, selectedColumns, axesScaleFactors );
 		KDTree< A > kdTree = kdTreeSupplier.get();
@@ -181,7 +166,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		{
 			IJ.showMessage( "The aspect ratio, (yMax-yMin)/(xMax-xMin), of your data is " + aspectRatio + "." +
 					"\nThe plot may look better scaling either the x or y values such that the aspect ratio is closer to 1.0." +
-					"\nYou can change the scaling by right-clicking into the scatter plot and selecting \"Reconfigure...\"." );
+					"\nYou can change the scaling by right-clicking into the scatter plot and selecting \"Reconfigure Plot...\"." );
 		}
 
 //		if ( Math.abs( max[ 1 ] - min[ 1 ] ) < 1 || Math.abs( max[ 0 ] - min[ 0 ] ) < 1  )
@@ -196,22 +181,18 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 
 		FunctionRealRandomAccessible< ARGBType > realRandomAccessible = new FunctionRealRandomAccessible( 2, biConsumerSupplier, ARGBType::new );
 
-		showInBdv( realRandomAccessible, FinalInterval.createMinMax( ( long ) min[ 0 ], ( long ) min[ 1 ], 0, ( long ) Math.ceil( max[ 0 ] ), ( long ) Math.ceil( max[ 1 ] ), 0 ), selectedColumns );
+		showInBdv( realRandomAccessible, FinalInterval.createMinMax( ( long ) min[ 0 ], ( long ) min[ 1 ], 0, ( long ) Math.ceil( max[ 0 ] ), ( long ) Math.ceil( max[ 1 ] ), 0 ) );
 	}
 
 	private Collection< A > getAnnotationsForCurrentTimePoint( )
 	{
-		if ( tableModel.columnNames().contains( ColumnNames.TIMEPOINT ) )
-		{
-			return tableModel.annotations().stream().filter( a -> (int) a.getValue( ColumnNames.TIMEPOINT ) == currentTimePoint ).collect( Collectors.toList() );
-		}
-		else
-		{
+		if ( showAllTimepoints )
 			return tableModel.annotations();
-		}
+		else
+			return tableModel.annotations().stream().filter( annotation -> annotation.timePoint() == currentTimePoint ).collect( Collectors.toList() );
 	}
 
-	private void configureWindow()
+	private void configureWindowClosing()
 	{
 		window = SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
 		window.addWindowListener(
@@ -236,41 +217,59 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		behaviours.install( bdvHandle.getTriggerbindings(), getBehavioursName() );
 		behaviours.getBehaviourMap().clear();
 
-		installFocusClosestPoint( behaviours );
-
-		installSelectClosestPoints( behaviours );
-
-		BdvPopupMenus.addAction( bdvHandle,"Reconfigure...",
-			( x, y ) -> {
+		BdvPopupMenus.addAction( bdvHandle,"Configure Plot...",
+			( x, y ) ->
+			{
 				SwingUtilities.invokeLater( () ->  {
-
-					ScatterPlotDialog dialog = new ScatterPlotDialog( tableModel.columnNames().toArray( new String[ 0 ] ), getSelectedColumns(), axesScaleFactors, dotSizeScaleFactor );
-
-					if ( dialog.show() )
-					{
-						selectedColumns = dialog.getSelectedColumns();
-						axesScaleFactors = dialog.getAxesScaleFactors();
-						dotSizeScaleFactor = dialog.getDotSizeScaleFactor();
-						if ( scatterPlotSource != null)
-							scatterPlotSource.removeFromBdv();
-						updateScatterPlotSource();
-					}
+					configureViaDialog();
 				});
 			}
 		);
+
+		BdvPopupMenus.addAction( bdvHandle, "Color by Column...",
+				( x, y ) ->
+				{
+					final ColoringModel< A > coloringModel = new ColumnColoringModelDialog<>( tableModel  ).showDialog();
+
+					if ( coloringModel != null )
+						this.coloringModel.setColoringModel( coloringModel );
+				});
+
+		installPointSelections( behaviours );
+
 	}
 
-	private void installSelectClosestPoints( Behaviours behaviours )
+	private void configureViaDialog()
 	{
-		BdvPopupMenus.addAction( bdvHandle,"Select closest point(s) [ Ctrl Left-Click ]",
-				( x, y ) -> focusAndSelectClosestPoints()
-		);
+		ScatterPlotDialog dialog = new ScatterPlotDialog( tableModel.columnNames().toArray( new String[ 0 ] ), getSelectedColumns(), axesScaleFactors, dotSizeScaleFactor, showAllTimepoints );
+
+		if ( dialog.show() )
+		{
+			updateSettings( dialog );
+			updatePlot();
+		}
+	}
+
+	private void updateSettings( ScatterPlotDialog dialog )
+	{
+		selectedColumns = dialog.getSelectedColumns();
+		axesScaleFactors = dialog.getAxesScaleFactors();
+		dotSizeScaleFactor = dialog.getDotSizeScaleFactor();
+		showAllTimepoints = dialog.isShowAllTimepoints();
+	}
+
+	private void installPointSelections( Behaviours behaviours )
+	{
+		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> focusClosestPoint(), "Focus closest point", "button1" ) ;
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> focusAndSelectClosestPoints(), "Select closest point(s)", "ctrl button1" ) ;
 
-		BdvPopupMenus.addAction( bdvHandle,"Configure point(s) selection...",
+		BdvPopupMenus.addAction( bdvHandle,"Configure Point(s) Selection...",
 				( x, y ) -> {
 					final GenericDialog genericDialog = new GenericDialog( "Point selection configuration" );
+					genericDialog.addMessage( "Focus: [ Left-Click ]" );
+					genericDialog.addMessage( "Select: [ Ctrl Left-Click ]" );
+
 					genericDialog.addChoice( "Selection mode",  Arrays.stream( PointSelectionModes.values() ).map( Enum::name ).toArray( String[]::new ), pointSelectionMode.toString()  );
 					genericDialog.addNumericField( "Radius", selectionRadius );
 					genericDialog.showDialog();
@@ -281,14 +280,6 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		);
 	}
 
-	private void installFocusClosestPoint( Behaviours behaviours )
-	{
-		BdvPopupMenus.addAction( bdvHandle,"Focus closest point [ Left-Click ]",
-				( x, y ) -> focusClosestPoint()
-		);
-
-		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> focusClosestPoint(), "Focus closest point", "button1" ) ;
-	}
 
 	private String getBehavioursName()
 	{
@@ -369,7 +360,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		return neighbors;
 	}
 
-	private void showInBdv( FunctionRealRandomAccessible< ARGBType > realRandomAccessible, FinalInterval interval, String[] selectedColumns )
+	private void showInBdv( FunctionRealRandomAccessible< ARGBType > realRandomAccessible, FinalInterval interval )
 	{
 		final BdvOptions bdvOptions = BdvOptions.options().is2D().frameTitle( "Scatter plot" ).addTo( bdvHandle );
 
@@ -413,11 +404,9 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	public void timePointChanged( int timepoint )
 	{
 		this.currentTimePoint = timepoint;
-		if ( window == null )
-			return;
-		if ( scatterPlotSource != null)
-			scatterPlotSource.removeFromBdv();
-		updateScatterPlotSource();
+		if ( showAllTimepoints ) return;
+		if ( window == null )  return;
+		updatePlot();
 	}
 
 	@Override
@@ -441,14 +430,12 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	{
 		if ( bdvHandle == null ) return;
 
-		if ( tableModel.columnNames().contains( ColumnNames.TIMEPOINT  ) )
+		int selectedTimePoint = selection.timePoint();
+		if ( selectedTimePoint != currentTimePoint )
 		{
-			int selectedTimePoint = (int) selection.getValue( ColumnNames.TIMEPOINT );
-			if ( selectedTimePoint != currentTimePoint )
-			{
-				currentTimePoint = selectedTimePoint;
-				updateScatterPlotSource();
-			}
+			currentTimePoint = selectedTimePoint;
+			if ( ! showAllTimepoints )
+				updatePlot();
 		}
 
 		if ( selection == recentFocus )
@@ -467,6 +454,11 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	public Window getWindow()
 	{
 		return window;
+	}
+
+	public boolean isShown()
+	{
+		return window != null  && window.isVisible();
 	}
 
 	public void hide()

@@ -967,7 +967,7 @@ public class UserInterfaceHelper
 			SwingUtilities.invokeLater( () ->
 				{
 					if ( checkBox.isSelected() )
-						scatterPlotView.show();
+						scatterPlotView.show( true );
 					else
 						scatterPlotView.hide();
 				} ) );

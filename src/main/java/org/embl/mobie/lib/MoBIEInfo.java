@@ -40,8 +40,8 @@ public class MoBIEInfo
 	public static final String MOBIE_VIEWER = "MoBIE Viewer";
 	public static final String MOBIE_FRAMEWORK = "MoBIE Framework";
 	public static final String BIG_DATA_VIEWER = "BigDataViewer";
-	public static final String REPOSITORY = "Datasets Repository";
-	public static final String PUBLICATION = "Datasets Publication";
+	public static final String REPOSITORY = "Project Repository";
+	public static final String PUBLICATION = "Project Publication";
 	public static final String SEGMENTATIONS = "Segmentations Browsing";
 	private final String projectLocation;
 	private final String publicationURL;

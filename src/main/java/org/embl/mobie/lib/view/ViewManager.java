@@ -148,10 +148,7 @@ public class ViewManager
 		display.sliceViewer.getBdvHandle().getViewerPanel().timePointListeners().add( display.scatterPlotView );
 
 		if ( display.showScatterPlot() )
-		{
-			display.scatterPlotView.setShowConfigurationUI( false );
-			display.scatterPlotView.show();
-		}
+			display.scatterPlotView.show( false );
 	}
 
 	public List< Display > getCurrentSourceDisplays()
