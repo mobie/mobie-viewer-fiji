@@ -55,7 +55,7 @@ public class ScatterPlotDialog
 
 		final GenericDialog gd = new GenericDialog( "Scatter Plot Configuration" );
 
-		gd.addCheckbox( "Plot All Timepoints", showAllTimepoints );
+		gd.addCheckbox( "Plot All Timepoints at Once", showAllTimepoints );
 
 		for ( int d = 0; d < 2; d++ )
 		{

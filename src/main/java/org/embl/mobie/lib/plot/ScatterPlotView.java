@@ -35,14 +35,17 @@ import bdv.util.BdvStackSource;
 import bdv.viewer.TimePointListener;
 import ij.IJ;
 import ij.gui.GenericDialog;
+import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imglib2.FinalInterval;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.KDTree;
 import net.imglib2.RealPoint;
+import net.imglib2.RealRandomAccessible;
 import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
 import net.imglib2.neighborsearch.RadiusNeighborSearchOnKDTree;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.RealViews;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.color.ColoringListener;
@@ -102,7 +105,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	private A recentFocus;
 	private Window window;
 	private NearestNeighborSearchOnKDTree< A > nearestNeighborSearchOnKDTree;
-	private BdvStackSource< ARGBType > scatterPlotSource;
+	private BdvStackSource< ARGBType > bdvStackSource;
 	private int currentTimePoint;
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
 	private RadiusNeighborSearchOnKDTree< A > radiusNeighborSearchOnKDTree;
@@ -149,8 +152,8 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 
 	private void updatePlot( )
 	{
-		if ( scatterPlotSource != null)
-			scatterPlotSource.removeFromBdv();
+		if ( bdvStackSource != null)
+			bdvStackSource.removeFromBdv();
 
 		Collection< A > annotations = getAnnotationsForCurrentTimePoint( );
 		AnnotationKDTreeSupplier< A > kdTreeSupplier = new AnnotationKDTreeSupplier<>( annotations, selectedColumns, axesScaleFactors );
@@ -169,19 +172,25 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 					"\nYou can change the scaling by right-clicking into the scatter plot and selecting \"Reconfigure Plot...\"." );
 		}
 
-//		if ( Math.abs( max[ 1 ] - min[ 1 ] ) < 1 || Math.abs( max[ 0 ] - min[ 0 ] ) < 1  )
-//		{
-//			IJ.showMessage( "The difference between the minimum and maximum value along on of the dimensions is smaller than 1.0.\n" +
-//					"The plot may thus appear very small.\n" +
-//					"You may either have to zoom in or change the axis scaling to produce larger values." +
-//					"\nYou can change the axis scaling by right-clicking into the scatter plot and selecting \"Reconfigure...\"." );
-//		}
-
 		Supplier< BiConsumer< RealPoint, ARGBType > > biConsumerSupplier = new RealPointARGBTypeBiConsumerSupplier( kdTree, coloringModel, dotSizeScaleFactor * ( min[ 0 ] - max[ 0 ] ) / 100.0, ARGBType.rgba( 100,  100, 100, 255 ) );
 
-		FunctionRealRandomAccessible< ARGBType > realRandomAccessible = new FunctionRealRandomAccessible( 2, biConsumerSupplier, ARGBType::new );
+		// create source
 
-		showInBdv( realRandomAccessible, FinalInterval.createMinMax( ( long ) min[ 0 ], ( long ) min[ 1 ], 0, ( long ) Math.ceil( max[ 0 ] ), ( long ) Math.ceil( max[ 1 ] ), 0 ) );
+		// TODO: create a source with multiple time points
+		FunctionRealRandomAccessible< ARGBType > rra = new FunctionRealRandomAccessible( 2, biConsumerSupplier, ARGBType::new );
+		final RealRandomAccessible< ARGBType > rra3D = RealViews.addDimension( rra );
+		final FinalVoxelDimensions voxelDimensions = new FinalVoxelDimensions( "", 1.0, 1.0, 1.0 );
+		final FinalInterval interval = FinalInterval.createMinMax( ( long ) min[ 0 ], ( long ) min[ 1 ], 0, ( long ) Math.ceil( max[ 0 ] ), ( long ) Math.ceil( max[ 1 ] ), 0 );
+
+		final ScatterPlotSource< ARGBType > scatterPlotSource =
+				new ScatterPlotSource<>(
+						rra3D,
+						interval,
+						new ARGBType(),
+						createPlotName( selectedColumns ),
+						voxelDimensions );
+
+		showInBdv( scatterPlotSource );
 	}
 
 	private Collection< A > getAnnotationsForCurrentTimePoint( )
@@ -235,7 +244,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 						this.coloringModel.setColoringModel( coloringModel );
 				});
 
-		installPointSelections( behaviours );
+		installPointSelectionBehaviours( behaviours );
 
 	}
 
@@ -258,7 +267,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		showAllTimepoints = dialog.isShowAllTimepoints();
 	}
 
-	private void installPointSelections( Behaviours behaviours )
+	private void installPointSelectionBehaviours( Behaviours behaviours )
 	{
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> focusClosestPoint(), "Focus closest point", "button1" ) ;
 
@@ -360,19 +369,14 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		return neighbors;
 	}
 
-	private void showInBdv( FunctionRealRandomAccessible< ARGBType > realRandomAccessible, FinalInterval interval )
+	private void showInBdv( ScatterPlotSource< ARGBType > scatterPlotSource )
 	{
 		final BdvOptions bdvOptions = BdvOptions.options().is2D().frameTitle( "Scatter plot" ).addTo( bdvHandle );
 
-		scatterPlotSource = BdvFunctions.show(
-				realRandomAccessible,
-				interval,
-				createPlotName( selectedColumns ),
-				bdvOptions );
+		bdvStackSource = BdvFunctions.show( scatterPlotSource, bdvOptions );
+		bdvHandle = bdvStackSource.getBdvHandle();
 
-		bdvHandle = scatterPlotSource.getBdvHandle();
-
-		// zoom to see all points
+		// Set viewer transform to see all points.
 		final double[] min3D = new double[ 3 ];
 		final double[] max3D = new double[ 3 ];
 		for ( int d = 0; d < 2; d++ )
@@ -381,7 +385,8 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 			max3D[ d ] = max[ d ];
 		}
 		final FinalRealInterval bounds = new FinalRealInterval( min3D, max3D );
-		final AffineTransform3D transform = TransformHelper.getIntervalViewerTransform( bdvHandle, bounds );
+		// TODO: add scaling!
+		final AffineTransform3D transform = TransformHelper.getScatterPlotViewerTransform( bdvHandle, bounds );
 		bdvHandle.getViewerPanel().state().setViewerTransform( transform );
 	}
 

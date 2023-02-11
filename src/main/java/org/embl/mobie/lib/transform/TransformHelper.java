@@ -200,6 +200,37 @@ public class TransformHelper
 		return transform;
 	}
 
+	public static AffineTransform3D getScatterPlotViewerTransform( BdvHandle bdv, RealInterval interval )
+	{
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+
+		double[] centerPosition = new double[ 3 ];
+		for( int d = 0; d < 2; ++d )
+		{
+			final double center = ( interval.realMin( d ) + interval.realMax( d ) ) / 2.0;
+			centerPosition[ d ] = - center;
+		}
+		affineTransform3D.translate( centerPosition );
+
+		int[] bdvWindowDimensions = getWindowDimensions( bdv );
+
+		double scale = Double.MAX_VALUE;
+		for ( int d = 0; d < 2; d++ )
+		{
+			final double size = interval.realMax( d ) - interval.realMin( d );
+			scale = Math.min( scale, 1.0 * bdvWindowDimensions[ d ] / size );
+		}
+		scale *= 0.9;
+		affineTransform3D.scale( scale, -scale, 1.0 );
+
+		double[] shiftToBdvWindowCenter = new double[ 3 ];
+		for( int d = 0; d < 2; ++d )
+			shiftToBdvWindowCenter[ d ] += bdvWindowDimensions[ d ] / 2.0;
+		affineTransform3D.translate( shiftToBdvWindowCenter );
+
+		return affineTransform3D;
+	}
+
 	public static AffineTransform3D getIntervalViewerTransform( BdvHandle bdv, RealInterval interval  )
 	{
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
