@@ -62,12 +62,12 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 	double[] max = new double[ n ];
 	private HashMap< String, Double > string2num;
 
-	public AnnotationKDTreeSupplier( Collection< A > annotations, String[] columns, double[] scaleFactors )
+	public AnnotationKDTreeSupplier( Collection< A > annotations, String[] columns )
 	{
 		Arrays.fill( min, Double.MAX_VALUE );
 		Arrays.fill( max, -Double.MAX_VALUE );
 
-		initialiseDataPoints( annotations, columns, scaleFactors );
+		initialiseDataPoints( annotations, columns );
 
 		annotationToRealPoint = IntStream.range( 0, realPoints.size() ).boxed().collect( Collectors.toMap( i -> this.annotations.get( i ), i -> realPoints.get( i ) ) );
 	}
@@ -87,15 +87,7 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 		return kdTree;
 	}
 
-	/**
-	 * Some tableRows contain entries that cannot be plotted (e.g., NaN or Inf).
-	 * Also, some tableRows can be marked as outliers.
-	 * Here we subset for all valid tableRows and determine the corresponding coordinates.
-	 *  @param annotations
-	 * @param columns
-	 * @param scaleFactors
-	 */
-	private void initialiseDataPoints( Collection< A > annotations, String[] columns, double[] scaleFactors )
+	private void initialiseDataPoints( Collection< A > annotations, String[] columns )
 	{
 		string2num = new HashMap<>(); // in case we need to plot categorical columns
 		realPoints = new ArrayList<>();
@@ -149,8 +141,6 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 					isValidDataPoint = false;
 					break;
 				}
-
-				xy[ d ] *= scaleFactors[ d ];
 
 				if ( xy[ d ] < min[ d ] ) min[ d ] = xy[ d ];
 				if ( xy[ d ] > max[ d ] ) max[ d ] = xy[ d ];

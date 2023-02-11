@@ -142,7 +142,7 @@ public class ViewManager
 	private void initScatterPlotView( AbstractAnnotationDisplay< ? > display )
 	{
 		String[] scatterPlotAxes = display.getScatterPlotAxes();
-		display.scatterPlotView = new ScatterPlotView( display.getAnnData().getTable(), display.selectionModel, display.coloringModel, scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
+		display.scatterPlotView = new ScatterPlotView( display.getAnnData().getTable(), display.selectionModel, display.coloringModel, scatterPlotAxes, true, 1.0, 1.0 );
 		display.selectionModel.listeners().add( display.scatterPlotView );
 		display.coloringModel.listeners().add( display.scatterPlotView );
 		display.sliceViewer.getBdvHandle().getViewerPanel().timePointListeners().add( display.scatterPlotView );

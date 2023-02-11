@@ -45,6 +45,7 @@ public class RealPointARGBTypeBiConsumerSupplier< T > implements Supplier< BiCon
 	private final double radius;
 	private final int background;
 
+	// TODO take into account the aspect ratio!
 	public RealPointARGBTypeBiConsumerSupplier( KDTree< T > kdTree, ColoringModel< T > coloringModel, final double radius, int background )
 	{
 		this.kdTree = kdTree;

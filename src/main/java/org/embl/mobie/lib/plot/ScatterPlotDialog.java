@@ -32,19 +32,11 @@ import ij.gui.GenericDialog;
 
 public class ScatterPlotDialog
 {
-	private final String[] columnNames;
-	private final String[] selectedColumnNames;
-	private final double[] axesScaleFactors;
-	private double dotSizeScaleFactor;
-	private boolean showAllTimepoints;
+	private final ScatterPlotSettings settings;
 
-	public ScatterPlotDialog( String[] columnNames, String[] selectedColumnNames, double[] axesScaleFactors, double dotSizeScaleFactor, boolean showAllTimepoints )
+	public ScatterPlotDialog( ScatterPlotSettings settings )
 	{
-		this.columnNames = columnNames;
-		this.selectedColumnNames = selectedColumnNames;
-		this.axesScaleFactors = axesScaleFactors;
-		this.dotSizeScaleFactor = dotSizeScaleFactor;
-		this.showAllTimepoints = showAllTimepoints;
+		this.settings = settings;
 	}
 
 	public boolean show()
@@ -55,48 +47,30 @@ public class ScatterPlotDialog
 
 		final GenericDialog gd = new GenericDialog( "Scatter Plot Configuration" );
 
-		gd.addCheckbox( "Plot All Timepoints at Once", showAllTimepoints );
+		gd.addCheckbox( "Plot All Timepoints at Once", settings.showAllTimepoints );
 
 		for ( int d = 0; d < 2; d++ )
 		{
-			gd.addChoice( "Column " + xy[ d ], columnNames, selectedColumnNames[ d ] );
-			gd.addNumericField( "Axis Scale Factor " + xy[ d ], axesScaleFactors[ d ] );
+			gd.addChoice( "Column " + xy[ d ], settings.columns, settings.columns[ d ] );
 		}
 
-		gd.addNumericField( "Dot Size", dotSizeScaleFactor );
-		//gd.addChoice( "Add lines", lineChoices, GridLinesOverlay.NONE );
+		gd.addNumericField( "Aspect Ratio (-1 = Auto)", settings.aspectRatio );
+		gd.addNumericField( "Dot Size", settings.dotSize );
 		gd.showDialog();
 
 		if ( gd.wasCanceled() ) return false;
 
 		for ( int d = 0; d < xy.length; d++ )
-		{
-			selectedColumnNames[ d ] = gd.getNextChoice();
-			axesScaleFactors[ d ] = gd.getNextNumber();
-		}
-		showAllTimepoints = gd.getNextBoolean();
-		dotSizeScaleFactor = gd.getNextNumber();
+			settings.columns[ d ] = gd.getNextChoice();
+		settings.aspectRatio = gd.getNextNumber();
+		settings.showAllTimepoints = gd.getNextBoolean();
+		settings.dotSize = gd.getNextNumber();
 
 		return true;
 	}
 
-	public String[] getSelectedColumns()
+	public ScatterPlotSettings getSettings()
 	{
-		return selectedColumnNames;
-	}
-
-	public double[] getAxesScaleFactors()
-	{
-		return axesScaleFactors;
-	}
-
-	public double getDotSizeScaleFactor()
-	{
-		return dotSizeScaleFactor;
-	}
-
-	public boolean isShowAllTimepoints()
-	{
-		return showAllTimepoints;
+		return settings;
 	}
 }

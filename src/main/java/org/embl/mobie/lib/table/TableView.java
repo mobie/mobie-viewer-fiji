@@ -41,6 +41,7 @@ import org.embl.mobie.lib.color.ColoringListener;
 import org.embl.mobie.lib.color.ColoringModel;
 import org.embl.mobie.lib.color.MobieColoringModel;
 import org.embl.mobie.lib.io.StorageLocation;
+import org.embl.mobie.lib.plot.ScatterPlotSettings;
 import org.embl.mobie.lib.serialize.display.AbstractAnnotationDisplay;
 import org.embl.mobie.lib.plot.ScatterPlotDialog;
 import org.embl.mobie.lib.plot.ScatterPlotView;
@@ -198,11 +199,11 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				SwingUtilities.invokeLater( () ->
 				{
 					String[] columnNames = tableModel.columnNames().stream().toArray( String[]::new );
-					ScatterPlotDialog dialog = new ScatterPlotDialog( columnNames, new String[]{ columnNames[ 0 ], columnNames[ 1 ] }, new double[]{ 1.0, 1.0 }, 1.0, true );
-
+					final ScatterPlotSettings settings = new ScatterPlotSettings( new String[]{ columnNames[ 0 ], columnNames[ 1 ] } );
+					ScatterPlotDialog dialog = new ScatterPlotDialog( settings );
 					if ( dialog.show() )
 					{
-						ScatterPlotView< A > scatterPlot = new ScatterPlotView<>( tableModel, selectionModel, coloringModel,  dialog.getSelectedColumns(), dialog.getAxesScaleFactors(), dialog.getDotSizeScaleFactor() );
+						ScatterPlotView< A > scatterPlot = new ScatterPlotView<>( tableModel, selectionModel, coloringModel, dialog.getSettings() );
 						scatterPlot.show( false );
 					}
 				});

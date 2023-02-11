@@ -218,7 +218,7 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 			this.randomColorSeed = ( ( CategoricalAnnotationColoringModel ) coloringModel ).getRandomSeed();
 
 		this.showScatterPlot = annotationDisplay.scatterPlotView.isVisible();
-		this.scatterPlotAxes = annotationDisplay.scatterPlotView.getSelectedColumns();
+		this.scatterPlotAxes = annotationDisplay.scatterPlotView.getSettings().columns;
 		this.additionalTables = annotationDisplay.additionalTables;
 
 		final LinkedHashSet< String > loadedTableChunks = annotationDisplay.annData.getTable().getLoadedTableChunks();

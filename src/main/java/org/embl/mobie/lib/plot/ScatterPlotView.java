@@ -82,7 +82,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 
 	private double[] min;
 	private double[] max;
-	private boolean showAllTimepoints = true;
+	private ScatterPlotSettings settings;
 
 	public enum PointSelectionModes
 	{
@@ -97,9 +97,6 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	private final MobieColoringModel< A > coloringModel;
 	private final SelectionModel< A > selectionModel;
 
-	private String[] selectedColumns;
-	private double[] axesScaleFactors;
-	private double dotSizeScaleFactor;
 	private BdvHandle bdvHandle;
 	private Map< A, RealPoint > tableRowToRealPoint;
 	private A recentFocus;
@@ -114,16 +111,17 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 			AnnotationTableModel< A > tableModel,
 			SelectionModel< A > selectionModel,
 			MobieColoringModel< A > coloringModel,
-			String[] selectedColumns,
-			double[] axesScaleFactors,
-			double dotSizeScaleFactor )
+			ScatterPlotSettings settings )
 	{
 		this.tableModel = tableModel;
 		this.coloringModel = coloringModel;
 		this.selectionModel = selectionModel;
-		this.selectedColumns = selectedColumns;
-		this.axesScaleFactors = axesScaleFactors;
-		this.dotSizeScaleFactor = dotSizeScaleFactor;
+		this.settings = settings;
+		if ( settings.columns == null )
+			settings.columns = new String[]{
+					tableModel.columnNames().get( 0 ),
+					tableModel.columnNames().get( 1 ) };
+
 		this.currentTimePoint = 0;
 	}
 
@@ -156,7 +154,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 			bdvStackSource.removeFromBdv();
 
 		Collection< A > annotations = getAnnotationsForCurrentTimePoint( );
-		AnnotationKDTreeSupplier< A > kdTreeSupplier = new AnnotationKDTreeSupplier<>( annotations, selectedColumns, axesScaleFactors );
+		AnnotationKDTreeSupplier< A > kdTreeSupplier = new AnnotationKDTreeSupplier<>( annotations, settings.columns );
 		KDTree< A > kdTree = kdTreeSupplier.get();
 		min = kdTreeSupplier.getMin();
 		max = kdTreeSupplier.getMax();
@@ -164,15 +162,10 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		nearestNeighborSearchOnKDTree = new NearestNeighborSearchOnKDTree<>( kdTree );
 		radiusNeighborSearchOnKDTree = new RadiusNeighborSearchOnKDTree<>( kdTree );
 
-		double aspectRatio = ( max[ 1 ] - min[ 1 ] ) / ( max[ 0 ] - min[ 0 ] );
-		if ( aspectRatio > 10 || aspectRatio < 0.1 )
-		{
-			IJ.showMessage( "The aspect ratio, (yMax-yMin)/(xMax-xMin), of your data is " + aspectRatio + "." +
-					"\nThe plot may look better scaling either the x or y values such that the aspect ratio is closer to 1.0." +
-					"\nYou can change the scaling by right-clicking into the scatter plot and selecting \"Reconfigure Plot...\"." );
-		}
+		if ( settings.aspectRatio == -1 )
+			settings.aspectRatio = ( max[ 1 ] - min[ 1 ] ) / ( max[ 0 ] - min[ 0 ] );
 
-		Supplier< BiConsumer< RealPoint, ARGBType > > biConsumerSupplier = new RealPointARGBTypeBiConsumerSupplier( kdTree, coloringModel, dotSizeScaleFactor * ( min[ 0 ] - max[ 0 ] ) / 100.0, ARGBType.rgba( 100,  100, 100, 255 ) );
+		Supplier< BiConsumer< RealPoint, ARGBType > > biConsumerSupplier = new RealPointARGBTypeBiConsumerSupplier( kdTree, coloringModel, settings.dotSize * ( min[ 0 ] - max[ 0 ] ) / 100.0, ARGBType.rgba( 100,  100, 100, 255 ) );
 
 		// create source
 
@@ -187,7 +180,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 						rra3D,
 						interval,
 						new ARGBType(),
-						createPlotName( selectedColumns ),
+						"x: " + settings.columns[ 0 ] + ", y: " + settings.columns[ 1 ],
 						voxelDimensions );
 
 		showInBdv( scatterPlotSource );
@@ -195,7 +188,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 
 	private Collection< A > getAnnotationsForCurrentTimePoint( )
 	{
-		if ( showAllTimepoints )
+		if ( settings.showAllTimepoints )
 			return tableModel.annotations();
 		else
 			return tableModel.annotations().stream().filter( annotation -> annotation.timePoint() == currentTimePoint ).collect( Collectors.toList() );
@@ -223,7 +216,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	private void installBdvBehaviours( )
 	{
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
-		behaviours.install( bdvHandle.getTriggerbindings(), getBehavioursName() );
+		behaviours.install( bdvHandle.getTriggerbindings(), "scatterplot" + settings.columns[ 0 ] + settings.columns[ 1 ] );
 		behaviours.getBehaviourMap().clear();
 
 		BdvPopupMenus.addAction( bdvHandle,"Configure Plot...",
@@ -250,21 +243,13 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 
 	private void configureViaDialog()
 	{
-		ScatterPlotDialog dialog = new ScatterPlotDialog( tableModel.columnNames().toArray( new String[ 0 ] ), getSelectedColumns(), axesScaleFactors, dotSizeScaleFactor, showAllTimepoints );
+		ScatterPlotDialog dialog = new ScatterPlotDialog( settings );
 
 		if ( dialog.show() )
 		{
-			updateSettings( dialog );
+			settings = dialog.getSettings();
 			updatePlot();
 		}
-	}
-
-	private void updateSettings( ScatterPlotDialog dialog )
-	{
-		selectedColumns = dialog.getSelectedColumns();
-		axesScaleFactors = dialog.getAxesScaleFactors();
-		dotSizeScaleFactor = dialog.getDotSizeScaleFactor();
-		showAllTimepoints = dialog.isShowAllTimepoints();
 	}
 
 	private void installPointSelectionBehaviours( Behaviours behaviours )
@@ -287,12 +272,6 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 					selectionRadius = genericDialog.getNextNumber();
 				}
 		);
-	}
-
-
-	private String getBehavioursName()
-	{
-		return "scatterplot" + selectedColumns[ 0 ] + selectedColumns[ 1 ];
 	}
 
 	private synchronized void focusAndSelectClosestPoints( )
@@ -325,8 +304,8 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 
 	private void logCoordinates( A selection )
 	{
-		final Double x = selection.getNumber( selectedColumns[ 0 ] );
-		final Double y = selection.getNumber( selectedColumns[ 1 ] );
+		final Double x = selection.getNumber( settings.columns[ 0 ] );
+		final Double y = selection.getNumber( settings.columns[ 1 ] );
 		IJ.log( selection.uuid() + ": " + x + ", " + y );
 	}
 
@@ -386,7 +365,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		}
 		final FinalRealInterval bounds = new FinalRealInterval( min3D, max3D );
 		// TODO: add scaling!
-		final AffineTransform3D transform = TransformHelper.getScatterPlotViewerTransform( bdvHandle, bounds );
+		final AffineTransform3D transform = TransformHelper.getScatterPlotViewerTransform( bdvHandle, bounds, settings.aspectRatio, settings.invertY );
 		bdvHandle.getViewerPanel().state().setViewerTransform( transform );
 	}
 
@@ -395,12 +374,9 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		return "x: " + selectedColumns[ 0 ] + ", y: " + selectedColumns[ 1 ];
 	}
 
-	public String[] getSelectedColumns()
+	public ScatterPlotSettings getSettings()
 	{
-		if ( selectedColumns == null )
-			selectedColumns = new String[]{ tableModel.columnNames().get( 0 ), tableModel.columnNames().get( 1 ) };
-
-		return selectedColumns;
+		return settings;
 	}
 
 	public boolean isVisible() { return (window != null) && window.isVisible(); }
@@ -409,7 +385,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	public void timePointChanged( int timepoint )
 	{
 		this.currentTimePoint = timepoint;
-		if ( showAllTimepoints ) return;
+		if ( settings.showAllTimepoints ) return;
 		if ( window == null )  return;
 		updatePlot();
 	}
@@ -435,12 +411,13 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	{
 		if ( bdvHandle == null ) return;
 
-		int selectedTimePoint = selection.timePoint();
-		if ( selectedTimePoint != currentTimePoint )
+		if ( ! settings.showAllTimepoints )
 		{
-			currentTimePoint = selectedTimePoint;
-			if ( ! showAllTimepoints )
+			if ( selection.timePoint() != currentTimePoint )
+			{
+				currentTimePoint = selection.timePoint();
 				updatePlot();
+			}
 		}
 
 		if ( selection == recentFocus )
