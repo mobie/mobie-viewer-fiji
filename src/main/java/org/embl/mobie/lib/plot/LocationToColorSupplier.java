@@ -28,67 +28,61 @@
  */
 package org.embl.mobie.lib.plot;
 
+import net.imglib2.RealLocalizable;
 import org.embl.mobie.lib.color.ColoringModel;
 import net.imglib2.KDTree;
 import net.imglib2.RealPoint;
 import net.imglib2.Sampler;
-import net.imglib2.neighborsearch.RadiusNeighborSearchOnKDTree;
 import net.imglib2.type.numeric.ARGBType;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-public class RealPointARGBTypeBiConsumerSupplier< T > implements Supplier< BiConsumer< RealPoint, ARGBType > >
+public class LocationToColorSupplier< T > implements Supplier< BiConsumer< RealPoint, ARGBType > >
 {
 	private final KDTree< T > kdTree;
 	private final ColoringModel< T > coloringModel;
-	private final double radius;
+	protected final double[] radii;
 	private final int background;
 
 	// TODO take into account the aspect ratio!
-	public RealPointARGBTypeBiConsumerSupplier( KDTree< T > kdTree, ColoringModel< T > coloringModel, final double radius, int background )
+	public LocationToColorSupplier( KDTree kdTree, ColoringModel coloringModel, final double[] radii, int background )
 	{
 		this.kdTree = kdTree;
 		this.coloringModel = coloringModel;
-		this.radius = radius;
+		this.radii = radii;
 		this.background = background;
 	}
 
 	@Override
 	public BiConsumer< RealPoint, ARGBType > get()
 	{
-		return new RealPointARGBTypeBiConsumer( kdTree, coloringModel, radius );
+		return new LocationToColor();
 	}
 
-	class RealPointARGBTypeBiConsumer implements BiConsumer< RealPoint, ARGBType >
+	class LocationToColor implements BiConsumer< RealPoint, ARGBType >
 	{
-		private final RadiusNeighborSearchOnKDTree< T > search;
-		private final ColoringModel< T > coloringModel;
-		private final double radius;
+		private final WithinDistancesSearchOnKDTree< T > search;
 
-		public RealPointARGBTypeBiConsumer( KDTree< T > kdTree, ColoringModel< T > coloringModel, double radius )
+		public LocationToColor( )
 		{
-			search = new RadiusNeighborSearchOnKDTree<>( kdTree );
-			this.coloringModel = coloringModel;
-			this.radius = radius;
+			search = new WithinDistancesSearchOnKDTree<>( kdTree );
 		}
 
 		@Override
 		public void accept( RealPoint realPoint, ARGBType argbType )
 		{
-			search.search( realPoint, radius, true );
+			search.search( realPoint, radii, false );
 
 			if ( search.numNeighbors() > 0 )
 			{
-				final Sampler< T > sampler = search.getSampler( 0 );
-				final T tableRow = sampler.get();
-				coloringModel.convert( tableRow, argbType );
+				coloringModel.convert( search.getSampler( 0 ).get(), argbType );
 
 				// The coloring model uses the alpha value to adjust the brightness.
-				// Since the default renderer in BDV ignores this we multiply the rgb values accordingly
-				final int alpha = ARGBType.alpha( argbType.get() );
-				if( alpha < 255 )
-					argbType.mul( alpha / 255.0 );
+				// Since the default renderer in BDV ignores
+				// this we multiply the rgb values accordingly
+				argbType.mul( ARGBType.alpha( argbType.get() ) / 255.0 );
 			}
 			else
 			{

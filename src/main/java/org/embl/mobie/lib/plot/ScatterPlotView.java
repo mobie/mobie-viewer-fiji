@@ -165,19 +165,20 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		if ( settings.aspectRatio == 0 )
 		{
 			aspectRatio = ( max[ 1 ] - min[ 1 ] ) / ( max[ 0 ] - min[ 0 ] );
-			IJ.log("ScatterPlot: Aspect Ratio = " + settings.aspectRatio );
+			IJ.log("ScatterPlot: Aspect Ratio = " + aspectRatio );
 		}
 		else
 		{
 			aspectRatio = settings.aspectRatio;
 		}
 
-		Supplier< BiConsumer< RealPoint, ARGBType > > biConsumerSupplier = new RealPointARGBTypeBiConsumerSupplier( kdTree, coloringModel, settings.dotSize * ( min[ 0 ] - max[ 0 ] ) / 100.0, ARGBType.rgba( 100,  100, 100, 255 ) );
-
-		// create source
+		final double[] radii = new double[ 2 ];
+		radii[ 0 ] = settings.dotSize * ( max[ 0 ] - min[ 0 ] ) / 100.0;
+		radii[ 1 ] = radii[ 0 ] * aspectRatio;
+		Supplier< BiConsumer< RealPoint, ARGBType > > locationToDotSupplier = new LocationToColorSupplier( kdTree, coloringModel, radii, ARGBType.rgba( 100,  100, 100, 255 ) );
 
 		// TODO: create a source with multiple time points
-		FunctionRealRandomAccessible< ARGBType > rra = new FunctionRealRandomAccessible( 2, biConsumerSupplier, ARGBType::new );
+		FunctionRealRandomAccessible< ARGBType > rra = new FunctionRealRandomAccessible( 2, locationToDotSupplier, ARGBType::new );
 		final RealRandomAccessible< ARGBType > rra3D = RealViews.addDimension( rra );
 		final FinalVoxelDimensions voxelDimensions = new FinalVoxelDimensions( "", 1.0, 1.0, 1.0 );
 		final FinalInterval interval = FinalInterval.createMinMax( ( long ) min[ 0 ], ( long ) min[ 1 ], 0, ( long ) Math.ceil( max[ 0 ] ), ( long ) Math.ceil( max[ 1 ] ), 0 );
@@ -313,7 +314,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	{
 		final Double x = selection.getNumber( settings.selectedColumns[ 0 ] );
 		final Double y = selection.getNumber( settings.selectedColumns[ 1 ] );
-		IJ.log( selection.uuid() + ": " + x + ", " + y );
+		IJ.log( "ScatterPlot: id = " + selection.uuid() + ", x = " + x + ", y = " + y );
 	}
 
 	private synchronized void focusClosestPoint()
@@ -366,11 +367,6 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 
 		final AffineTransform3D transform = TransformHelper.getScatterPlotViewerTransform( bdvHandle, min, max, aspectRatio, settings.invertY );
 		bdvHandle.getViewerPanel().state().setViewerTransform( transform );
-	}
-
-	private static String createPlotName( String[] selectedColumns )
-	{
-		return "x: " + selectedColumns[ 0 ] + ", y: " + selectedColumns[ 1 ];
 	}
 
 	public ScatterPlotSettings getSettings()
