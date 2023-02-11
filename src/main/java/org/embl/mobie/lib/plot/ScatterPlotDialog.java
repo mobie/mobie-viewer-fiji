@@ -32,10 +32,12 @@ import ij.gui.GenericDialog;
 
 public class ScatterPlotDialog
 {
+	private final String[] columns;
 	private final ScatterPlotSettings settings;
 
-	public ScatterPlotDialog( ScatterPlotSettings settings )
+	public ScatterPlotDialog( String[] columns, ScatterPlotSettings settings )
 	{
+		this.columns = columns;
 		this.settings = settings;
 	}
 
@@ -51,10 +53,10 @@ public class ScatterPlotDialog
 
 		for ( int d = 0; d < 2; d++ )
 		{
-			gd.addChoice( "Column " + xy[ d ], settings.selectedColumns, settings.selectedColumns[ d ] );
+			gd.addChoice( "Column " + xy[ d ], columns, settings.selectedColumns[ d ] );
 		}
 
-		gd.addNumericField( "Aspect Ratio (-1 = Auto)", settings.aspectRatio );
+		gd.addNumericField( "Aspect Ratio (0 = Auto)", settings.aspectRatio );
 		gd.addNumericField( "Dot Size", settings.dotSize );
 		gd.showDialog();
 

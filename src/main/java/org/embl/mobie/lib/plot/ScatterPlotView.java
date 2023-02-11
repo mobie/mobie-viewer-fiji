@@ -82,6 +82,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	private double[] min;
 	private double[] max;
 	private ScatterPlotSettings settings;
+	private double aspectRatio;
 
 	public enum PointSelectionModes
 	{
@@ -161,8 +162,15 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		nearestNeighborSearchOnKDTree = new NearestNeighborSearchOnKDTree<>( kdTree );
 		radiusNeighborSearchOnKDTree = new RadiusNeighborSearchOnKDTree<>( kdTree );
 
-		if ( settings.aspectRatio == -1 )
-			settings.aspectRatio = ( max[ 1 ] - min[ 1 ] ) / ( max[ 0 ] - min[ 0 ] );
+		if ( settings.aspectRatio == 0 )
+		{
+			aspectRatio = ( max[ 1 ] - min[ 1 ] ) / ( max[ 0 ] - min[ 0 ] );
+			IJ.log("ScatterPlot: Aspect Ratio = " + settings.aspectRatio );
+		}
+		else
+		{
+			aspectRatio = settings.aspectRatio;
+		}
 
 		Supplier< BiConsumer< RealPoint, ARGBType > > biConsumerSupplier = new RealPointARGBTypeBiConsumerSupplier( kdTree, coloringModel, settings.dotSize * ( min[ 0 ] - max[ 0 ] ) / 100.0, ARGBType.rgba( 100,  100, 100, 255 ) );
 
@@ -242,7 +250,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 
 	private void configureViaDialog()
 	{
-		ScatterPlotDialog dialog = new ScatterPlotDialog( settings );
+		ScatterPlotDialog dialog = new ScatterPlotDialog( tableModel.columnNames().toArray( new String[0] ), settings );
 
 		if ( dialog.show() )
 		{
@@ -356,7 +364,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 
 		// Set viewer transform to see all points.
 
-		final AffineTransform3D transform = TransformHelper.getScatterPlotViewerTransform( bdvHandle, min, max, settings.aspectRatio, settings.invertY );
+		final AffineTransform3D transform = TransformHelper.getScatterPlotViewerTransform( bdvHandle, min, max, aspectRatio, settings.invertY );
 		bdvHandle.getViewerPanel().state().setViewerTransform( transform );
 	}
 

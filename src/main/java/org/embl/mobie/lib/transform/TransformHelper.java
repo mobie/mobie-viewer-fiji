@@ -214,19 +214,13 @@ public class TransformHelper
 
 		int[] bdvWindowDimensions = getWindowDimensions( bdv );
 
-		double scale = Double.MAX_VALUE;
-		for ( int d = 0; d < 2; d++ )
-		{
-			final double size = max[ d ] - min[ d ];
-			scale = Math.min( scale, 1.0 * bdvWindowDimensions[ d ] / size );
-		}
-		scale *= 0.9;
-		double scaleX = scale;
-		double scaleY = aspectRatio *  scale;
-		if ( invertY )
-			scaleY *= -1;
+		final int windowMinSize = Math.min( bdvWindowDimensions[ 0 ], bdvWindowDimensions[ 1 ] );
+		final double[] scales = new double[ 2 ];
+		scales[ 0 ] = 0.9 * windowMinSize / (max[ 0 ] - min[ 0 ]);
+		scales[ 1 ] = scales[ 0 ] / aspectRatio;
 
-		affineTransform3D.scale( scaleX, scaleY, 1.0 );
+		scales[ 1 ] = invertY ? -scales[ 1 ] : scales[ 1 ];
+		affineTransform3D.scale( scales[ 0 ], scales[ 1 ], 1.0 );
 
 		double[] shiftToBdvWindowCenter = new double[ 3 ];
 		for( int d = 0; d < 2; ++d )

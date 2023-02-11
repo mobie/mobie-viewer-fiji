@@ -199,8 +199,8 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				SwingUtilities.invokeLater( () ->
 				{
 					String[] columnNames = tableModel.columnNames().stream().toArray( String[]::new );
-					final ScatterPlotSettings settings = new ScatterPlotSettings( new String[]{ columnNames[ 0 ], columnNames[ 1 ] }, display.getAnnData().getTable().columnNames() );
-					ScatterPlotDialog dialog = new ScatterPlotDialog( settings );
+					final ScatterPlotSettings settings = new ScatterPlotSettings( new String[]{ columnNames[ 0 ], columnNames[ 1 ] } );
+					ScatterPlotDialog dialog = new ScatterPlotDialog( columnNames, settings );
 					if ( dialog.show() )
 					{
 						ScatterPlotView< A > scatterPlot = new ScatterPlotView<>( tableModel, selectionModel, coloringModel, dialog.getSettings() );

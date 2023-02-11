@@ -142,7 +142,7 @@ public class ViewManager
 
 	private void initScatterPlotView( AbstractAnnotationDisplay< ? > display )
 	{
-		final ScatterPlotSettings settings = new ScatterPlotSettings( display.getScatterPlotAxes(), display.getAnnData().getTable().columnNames() );
+		final ScatterPlotSettings settings = new ScatterPlotSettings( display.getScatterPlotAxes() );
 		display.scatterPlotView = new ScatterPlotView( display.getAnnData().getTable(), display.selectionModel, display.coloringModel, settings );
 		display.selectionModel.listeners().add( display.scatterPlotView );
 		display.coloringModel.listeners().add( display.scatterPlotView );
