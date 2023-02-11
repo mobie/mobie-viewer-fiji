@@ -199,7 +199,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				SwingUtilities.invokeLater( () ->
 				{
 					String[] columnNames = tableModel.columnNames().stream().toArray( String[]::new );
-					final ScatterPlotSettings settings = new ScatterPlotSettings( new String[]{ columnNames[ 0 ], columnNames[ 1 ] } );
+					final ScatterPlotSettings settings = new ScatterPlotSettings( new String[]{ columnNames[ 0 ], columnNames[ 1 ] }, display.getAnnData().getTable().columnNames() );
 					ScatterPlotDialog dialog = new ScatterPlotDialog( settings );
 					if ( dialog.show() )
 					{

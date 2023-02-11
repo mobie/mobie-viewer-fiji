@@ -37,7 +37,6 @@ import ij.IJ;
 import ij.gui.GenericDialog;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imglib2.FinalInterval;
-import net.imglib2.FinalRealInterval;
 import net.imglib2.KDTree;
 import net.imglib2.RealPoint;
 import net.imglib2.RealRandomAccessible;
@@ -117,8 +116,8 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		this.coloringModel = coloringModel;
 		this.selectionModel = selectionModel;
 		this.settings = settings;
-		if ( settings.columns == null )
-			settings.columns = new String[]{
+		if ( settings.selectedColumns == null )
+			settings.selectedColumns = new String[]{
 					tableModel.columnNames().get( 0 ),
 					tableModel.columnNames().get( 1 ) };
 
@@ -154,7 +153,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 			bdvStackSource.removeFromBdv();
 
 		Collection< A > annotations = getAnnotationsForCurrentTimePoint( );
-		AnnotationKDTreeSupplier< A > kdTreeSupplier = new AnnotationKDTreeSupplier<>( annotations, settings.columns );
+		AnnotationKDTreeSupplier< A > kdTreeSupplier = new AnnotationKDTreeSupplier<>( annotations, settings.selectedColumns );
 		KDTree< A > kdTree = kdTreeSupplier.get();
 		min = kdTreeSupplier.getMin();
 		max = kdTreeSupplier.getMax();
@@ -180,7 +179,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 						rra3D,
 						interval,
 						new ARGBType(),
-						"x: " + settings.columns[ 0 ] + ", y: " + settings.columns[ 1 ],
+						"x: " + settings.selectedColumns[ 0 ] + ", y: " + settings.selectedColumns[ 1 ],
 						voxelDimensions );
 
 		showInBdv( scatterPlotSource );
@@ -216,7 +215,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	private void installBdvBehaviours( )
 	{
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
-		behaviours.install( bdvHandle.getTriggerbindings(), "scatterplot" + settings.columns[ 0 ] + settings.columns[ 1 ] );
+		behaviours.install( bdvHandle.getTriggerbindings(), "scatterplot" + settings.selectedColumns[ 0 ] + settings.selectedColumns[ 1 ] );
 		behaviours.getBehaviourMap().clear();
 
 		BdvPopupMenus.addAction( bdvHandle,"Configure Plot...",
@@ -304,8 +303,8 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 
 	private void logCoordinates( A selection )
 	{
-		final Double x = selection.getNumber( settings.columns[ 0 ] );
-		final Double y = selection.getNumber( settings.columns[ 1 ] );
+		final Double x = selection.getNumber( settings.selectedColumns[ 0 ] );
+		final Double y = selection.getNumber( settings.selectedColumns[ 1 ] );
 		IJ.log( selection.uuid() + ": " + x + ", " + y );
 	}
 
@@ -356,16 +355,8 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		bdvHandle = bdvStackSource.getBdvHandle();
 
 		// Set viewer transform to see all points.
-		final double[] min3D = new double[ 3 ];
-		final double[] max3D = new double[ 3 ];
-		for ( int d = 0; d < 2; d++ )
-		{
-			min3D[ d ] = min[ d ];
-			max3D[ d ] = max[ d ];
-		}
-		final FinalRealInterval bounds = new FinalRealInterval( min3D, max3D );
-		// TODO: add scaling!
-		final AffineTransform3D transform = TransformHelper.getScatterPlotViewerTransform( bdvHandle, bounds, settings.aspectRatio, settings.invertY );
+
+		final AffineTransform3D transform = TransformHelper.getScatterPlotViewerTransform( bdvHandle, min, max, settings.aspectRatio, settings.invertY );
 		bdvHandle.getViewerPanel().state().setViewerTransform( transform );
 	}
 

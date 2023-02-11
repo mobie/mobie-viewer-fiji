@@ -58,6 +58,7 @@ import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.image.StitchedAnnotatedLabelImage;
 import org.embl.mobie.lib.image.StitchedImage;
+import org.embl.mobie.lib.plot.ScatterPlotSettings;
 import org.embl.mobie.lib.plot.ScatterPlotView;
 import org.embl.mobie.lib.select.MoBIESelectionModel;
 import org.embl.mobie.lib.serialize.DataSource;
@@ -141,8 +142,8 @@ public class ViewManager
 
 	private void initScatterPlotView( AbstractAnnotationDisplay< ? > display )
 	{
-		String[] scatterPlotAxes = display.getScatterPlotAxes();
-		display.scatterPlotView = new ScatterPlotView( display.getAnnData().getTable(), display.selectionModel, display.coloringModel, scatterPlotAxes, true, 1.0, 1.0 );
+		final ScatterPlotSettings settings = new ScatterPlotSettings( display.getScatterPlotAxes(), display.getAnnData().getTable().columnNames() );
+		display.scatterPlotView = new ScatterPlotView( display.getAnnData().getTable(), display.selectionModel, display.coloringModel, settings );
 		display.selectionModel.listeners().add( display.scatterPlotView );
 		display.coloringModel.listeners().add( display.scatterPlotView );
 		display.sliceViewer.getBdvHandle().getViewerPanel().timePointListeners().add( display.scatterPlotView );

@@ -51,7 +51,7 @@ public class ScatterPlotDialog
 
 		for ( int d = 0; d < 2; d++ )
 		{
-			gd.addChoice( "Column " + xy[ d ], settings.columns, settings.columns[ d ] );
+			gd.addChoice( "Column " + xy[ d ], settings.selectedColumns, settings.selectedColumns[ d ] );
 		}
 
 		gd.addNumericField( "Aspect Ratio (-1 = Auto)", settings.aspectRatio );
@@ -61,7 +61,7 @@ public class ScatterPlotDialog
 		if ( gd.wasCanceled() ) return false;
 
 		for ( int d = 0; d < xy.length; d++ )
-			settings.columns[ d ] = gd.getNextChoice();
+			settings.selectedColumns[ d ] = gd.getNextChoice();
 		settings.aspectRatio = gd.getNextNumber();
 		settings.showAllTimepoints = gd.getNextBoolean();
 		settings.dotSize = gd.getNextNumber();

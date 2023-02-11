@@ -200,14 +200,14 @@ public class TransformHelper
 		return transform;
 	}
 
-	public static AffineTransform3D getScatterPlotViewerTransform( BdvHandle bdv, RealInterval interval, double aspectRatio, boolean invertY )
+	public static AffineTransform3D getScatterPlotViewerTransform( BdvHandle bdv, double[] min, double[] max, double aspectRatio, boolean invertY )
 	{
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 
 		double[] centerPosition = new double[ 3 ];
 		for( int d = 0; d < 2; ++d )
 		{
-			final double center = ( interval.realMin( d ) + interval.realMax( d ) ) / 2.0;
+			final double center = ( min[ d ] + max[ d ] ) / 2.0;
 			centerPosition[ d ] = - center;
 		}
 		affineTransform3D.translate( centerPosition );
@@ -217,7 +217,7 @@ public class TransformHelper
 		double scale = Double.MAX_VALUE;
 		for ( int d = 0; d < 2; d++ )
 		{
-			final double size = interval.realMax( d ) - interval.realMin( d );
+			final double size = max[ d ] - min[ d ];
 			scale = Math.min( scale, 1.0 * bdvWindowDimensions[ d ] / size );
 		}
 		scale *= 0.9;
