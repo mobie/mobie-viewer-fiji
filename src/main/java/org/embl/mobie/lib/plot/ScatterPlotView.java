@@ -172,10 +172,10 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 			aspectRatio = settings.aspectRatio;
 		}
 
-		final double[] radii = new double[ 2 ];
-		radii[ 0 ] = settings.dotSize * ( max[ 0 ] - min[ 0 ] ) / 100.0;
-		radii[ 1 ] = radii[ 0 ] * aspectRatio;
-		Supplier< BiConsumer< RealPoint, ARGBType > > locationToDotSupplier = new LocationToColorSupplier( kdTree, coloringModel, radii, ARGBType.rgba( 100,  100, 100, 255 ) );
+//		final double[] radii = new double[ 2 ];
+//		radii[ 0 ] = settings.dotSize * ( max[ 0 ] - min[ 0 ] ) / 100.0;
+//		radii[ 1 ] = radii[ 0 ] * aspectRatio;
+		Supplier< BiConsumer< RealPoint, ARGBType > > locationToDotSupplier = new LocationToColorSupplier( kdTree, coloringModel, settings.dotSize, aspectRatio, ARGBType.rgba( 100,  100, 100, 255 ), bdvHandle );
 
 		// TODO: create a source with multiple time points
 		FunctionRealRandomAccessible< ARGBType > rra = new FunctionRealRandomAccessible( 2, locationToDotSupplier, ARGBType::new );
@@ -365,7 +365,8 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 
 		// Set viewer transform to see all points.
 
-		final AffineTransform3D transform = TransformHelper.getScatterPlotViewerTransform( bdvHandle, min, max, aspectRatio, settings.invertY );
+		final double zoom = 1.0; // 0.9;
+		final AffineTransform3D transform = TransformHelper.getScatterPlotViewerTransform( bdvHandle, min, max, aspectRatio, settings.invertY, zoom );
 		bdvHandle.getViewerPanel().state().setViewerTransform( transform );
 	}
 

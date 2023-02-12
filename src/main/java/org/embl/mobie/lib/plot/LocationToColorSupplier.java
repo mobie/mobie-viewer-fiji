@@ -28,14 +28,14 @@
  */
 package org.embl.mobie.lib.plot;
 
-import net.imglib2.RealLocalizable;
-import org.embl.mobie.lib.color.ColoringModel;
+import bdv.util.Affine3DHelpers;
+import bdv.util.BdvHandle;
 import net.imglib2.KDTree;
 import net.imglib2.RealPoint;
-import net.imglib2.Sampler;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.lib.color.ColoringModel;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -43,16 +43,19 @@ public class LocationToColorSupplier< T > implements Supplier< BiConsumer< RealP
 {
 	private final KDTree< T > kdTree;
 	private final ColoringModel< T > coloringModel;
-	protected final double[] radii;
+	protected final double dotSize;
+	private final double aspectRatio;
 	private final int background;
+	private final BdvHandle bdvHandle;
 
-	// TODO take into account the aspect ratio!
-	public LocationToColorSupplier( KDTree kdTree, ColoringModel coloringModel, final double[] radii, int background )
+	public LocationToColorSupplier( KDTree kdTree, ColoringModel coloringModel, final double dotSize, double aspectRatio, int background, BdvHandle bdvHandle )
 	{
 		this.kdTree = kdTree;
 		this.coloringModel = coloringModel;
-		this.radii = radii;
+		this.dotSize = dotSize;
+		this.aspectRatio = aspectRatio;
 		this.background = background;
+		this.bdvHandle = bdvHandle;
 	}
 
 	@Override
@@ -64,16 +67,25 @@ public class LocationToColorSupplier< T > implements Supplier< BiConsumer< RealP
 	class LocationToColor implements BiConsumer< RealPoint, ARGBType >
 	{
 		private final WithinDistancesSearchOnKDTree< T > search;
+		private AffineTransform3D viewerTransform;
+		private double[] searchDistances;
 
 		public LocationToColor( )
 		{
 			search = new WithinDistancesSearchOnKDTree<>( kdTree );
+			viewerTransform = bdvHandle.getViewerPanel().state().getViewerTransform();
+			searchDistances = new double[ 2 ];
+			searchDistances[ 0 ] = Affine3DHelpers.extractScale( viewerTransform.inverse(), 0 );
+			searchDistances[ 0 ] *= dotSize;
+			searchDistances[ 1 ] = searchDistances[ 0 ] * aspectRatio;
+
+			// System.out.println( "" + searchDistances[ 0 ] + ", " + searchDistances[ 1 ]  );
 		}
 
 		@Override
 		public void accept( RealPoint realPoint, ARGBType argbType )
 		{
-			search.search( realPoint, radii, false );
+			search.search( realPoint, searchDistances, false );
 
 			if ( search.numNeighbors() > 0 )
 			{

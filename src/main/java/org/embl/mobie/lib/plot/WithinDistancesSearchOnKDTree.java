@@ -51,13 +51,14 @@ public class WithinDistancesSearchOnKDTree< T >
 		return n;
 	}
 
-	protected void searchNode( final KDTreeNode< T > current, final double[] radii )
+	protected void searchNode( final KDTreeNode< T > current, final double[] distances )
 	{
+		// for round spots:
+		// https://math.stackexchange.com/questions/76457/check-if-a-point-is-within-an-ellipse
 		boolean closeEnough = true;
-		double sum = 0;
 		for ( int d = 0; d < n; ++d )
 		{
-			if ( Math.abs( pos[ d ] - current.getFloatPosition( d ) ) > radii[ d ] )
+			if ( Math.abs( pos[ d ] - current.getFloatPosition( d ) ) > distances[ d ] )
 			{
 				closeEnough = false;
 				break;
@@ -79,11 +80,11 @@ public class WithinDistancesSearchOnKDTree< T >
 		final KDTreeNode< T > nearChild = leftIsNearBranch ? current.left : current.right;
 		final KDTreeNode< T > awayChild = leftIsNearBranch ? current.right : current.left;
 		if ( nearChild != null )
-			searchNode( nearChild, radii );
+			searchNode( nearChild, distances );
 
 		// search the away branch - maybe
-		if ( ( axisAbsDistance <= radii[ current.getSplitDimension() ] ) && ( awayChild != null ) )
-			searchNode( awayChild, radii );
+		if ( ( axisAbsDistance <= distances[ current.getSplitDimension() ] ) && ( awayChild != null ) )
+			searchNode( awayChild, distances );
 	}
 
 	public int numNeighbors()

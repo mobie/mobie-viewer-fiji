@@ -200,7 +200,7 @@ public class TransformHelper
 		return transform;
 	}
 
-	public static AffineTransform3D getScatterPlotViewerTransform( BdvHandle bdv, double[] min, double[] max, double aspectRatio, boolean invertY )
+	public static AffineTransform3D getScatterPlotViewerTransform( BdvHandle bdv, double[] min, double[] max, double aspectRatio, boolean invertY, double zoom )
 	{
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 
@@ -216,7 +216,7 @@ public class TransformHelper
 
 		final int windowMinSize = Math.min( bdvWindowDimensions[ 0 ], bdvWindowDimensions[ 1 ] );
 		final double[] scales = new double[ 2 ];
-		scales[ 0 ] = 0.9 * windowMinSize / (max[ 0 ] - min[ 0 ]);
+		scales[ 0 ] = zoom * windowMinSize / (max[ 0 ] - min[ 0 ]);
 		scales[ 1 ] = scales[ 0 ] / aspectRatio;
 
 		scales[ 1 ] = invertY ? -scales[ 1 ] : scales[ 1 ];
