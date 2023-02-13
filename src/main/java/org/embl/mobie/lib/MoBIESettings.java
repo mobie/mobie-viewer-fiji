@@ -98,12 +98,6 @@ public class MoBIESettings
 		return this;
 	}
 
-	public MoBIESettings publicationURL( String publicationURL )
-	{
-		this.values.publicationURL = publicationURL;
-		return this;
-	}
-
 	public MoBIESettings s3AccessAndSecretKey( String[] s3AccessAndSecretKey )
 	{
 		this.values.s3AccessAndSecretKey = s3AccessAndSecretKey;
@@ -113,7 +107,6 @@ public class MoBIESettings
 	public static class Values
 	{
 		private String[] s3AccessAndSecretKey;
-		private String publicationURL;
 		private String dataset;
 		private String projectBranch = "main"; // project and images
 		private String tableDataBranch;
@@ -159,11 +152,6 @@ public class MoBIESettings
 		public String getImageDataBranch()
 		{
 			return projectBranch;
-		}
-
-		public String getPublicationURL()
-		{
-			return publicationURL;
 		}
 
 		public String getProjectLocation()

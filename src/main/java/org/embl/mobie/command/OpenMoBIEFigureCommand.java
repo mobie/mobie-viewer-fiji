@@ -58,9 +58,7 @@ public class OpenMoBIEFigureCommand implements Command
 
 		final ArrayList< String > figureNames = new ArrayList<>();
 		for ( PublishedFigure figure : figures )
-		{
 			figureNames.add( figure.publicationAbbreviation + ": " + figure.name );
-		}
 
 		final GenericDialog gd = new GenericDialog( "Please select a view" );
 
@@ -74,7 +72,7 @@ public class OpenMoBIEFigureCommand implements Command
 
 		try
 		{
-			new MoBIE( figure.location, MoBIESettings.settings().publicationURL( figure.publicationURL ).view( figure.view ) );
+			new MoBIE( figure.location, MoBIESettings.settings().view( figure.view ) );
 		}
 		catch ( IOException e )
 		{

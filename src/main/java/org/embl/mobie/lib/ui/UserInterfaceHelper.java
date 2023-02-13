@@ -54,6 +54,7 @@ import org.embl.mobie.command.ConfigureImageRenderingCommand;
 import org.embl.mobie.command.ConfigureLabelRenderingCommand;
 import org.embl.mobie.command.ConfigureSpotRenderingCommand;
 import org.embl.mobie.lib.plot.ScatterPlotView;
+import org.embl.mobie.lib.serialize.Project;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.AbstractDisplay;
 import org.embl.mobie.lib.serialize.display.Display;
@@ -490,7 +491,7 @@ public class UserInterfaceHelper
 		final JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.Y_AXIS ) );
 
-		panel.add( createInfoPanel( moBIE.getSettings().values.getProjectLocation(), moBIE.getSettings().values.getPublicationURL() ) );
+		panel.add( createInfoPanel( moBIE.getSettings().values.getProjectLocation(), moBIE.getProject() ) );
 
 		if ( moBIE.getDatasets() != null && moBIE.getDatasets().size() > 1 )
 		{
@@ -808,13 +809,13 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	public JPanel createInfoPanel( String projectLocation, String publicationURL )
+	public JPanel createInfoPanel( String projectLocation, Project project )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
 		final JButton button = SwingHelper.createButton( HELP );
 
-		final MoBIEInfo moBIEInfo = new MoBIEInfo( projectLocation, publicationURL );
+		final MoBIEInfo moBIEInfo = new MoBIEInfo( projectLocation, project );
 
 		final JComboBox< String > comboBox = new JComboBox<>( moBIEInfo.getInfoChoices() );
 		SwingHelper.setComboBoxDimensions( comboBox );

@@ -31,13 +31,17 @@ package org.embl.mobie.lib.bdv.view;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
+import bdv.util.BdvStackSource;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.lib.bdv.SourcesAtMousePositionSupplier;
-import org.embl.mobie.command.ScreenShotMakerCommand;
-import org.embl.mobie.command.ShowRasterImagesCommand;
+import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.sequence.ViewSetup;
 import net.imglib2.Dimensions;
+import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.command.ScreenShotMakerCommand;
+import org.embl.mobie.command.ShowRasterImagesCommand;
+import org.embl.mobie.lib.bdv.SourcesAtMousePositionSupplier;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
@@ -45,6 +49,7 @@ import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -62,7 +67,28 @@ public class OMEZarrViewer
 
     public void show() {
 
-        BdvFunctions.show( spimData );
+        final List< BdvStackSource< ? > > stackSources = BdvFunctions.show( spimData );
+
+        for ( BdvStackSource< ? > stackSource : stackSources )
+        {
+            final List< ? extends SourceAndConverter< ? > > sacs = stackSource.getSources();
+
+            for ( SourceAndConverter< ? > sac : sacs )
+            {
+                final Source< ? > source = sac.getSpimSource();
+                IJ.log( "\nName: " + source.getName() );
+                final int numMipmapLevels = source.getNumMipmapLevels();
+                final String unit = source.getVoxelDimensions().unit();
+                for ( int scale = 0; scale < numMipmapLevels; scale++ )
+                {
+                    final AffineTransform3D affineTransform3D = new AffineTransform3D();
+                    source.getSourceTransform( 0, scale, affineTransform3D );
+                    IJ.log( "Scale " + scale + ": voxel space size = " + Arrays.toString( source.getSource( 0, scale ).dimensionsAsLongArray() ) );
+                    IJ.log( "Scale " + scale + ": voxel to " + unit + " space transform = " + affineTransform3D );
+
+                }
+            }
+        }
 
 //        final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
 //

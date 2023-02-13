@@ -52,7 +52,7 @@ public class PublishedProjects
 		final PublishedProject project = new PublishedProject();
 		project.name = "Lohoff et al. (2021) Spatial Transcripomics in Mouse Embryo, Nature Biotechnology";
 		project.location = "https://github.com/mobie/mouse-embryo-spatial-transcriptomics-project";
-		project.publicationURL = "https://doi.org/10.1038/s41587-021-01006-2";
+		//project.publicationURL = "https://doi.org/10.1038/s41587-021-01006-2";
 		publishedProjects.put( project.name, project );
 	}
 	
@@ -61,7 +61,7 @@ public class PublishedProjects
 		final PublishedProject project = new PublishedProject();
 		project.name = "Dittrich et al. (2022) Centriole Tomography, Cell Reports Methods";
 		project.location = "https://github.com/mobie/centriole-tomo-examples";
-		project.publicationURL = "https://doi.org/10.1016/j.crmeth.2022.100322";
+		//project.publicationURL = "https://doi.org/10.1016/j.crmeth.2022.100322";
 		publishedProjects.put( project.name, project );
 	}
 
@@ -70,7 +70,7 @@ public class PublishedProjects
 		final PublishedProject project = new PublishedProject();
 		project.name = "Musser et al. (2021) Sponge FIB-SEM, Science";
 		project.location = "https://github.com/mobie/sponge-fibsem-project";
-		project.publicationURL = "https://www.science.org/doi/abs/10.1126/science.abj2949";
+		//project.publicationURL = "https://www.science.org/doi/abs/10.1126/science.abj2949";
 		publishedProjects.put( project.name, project );
 	}
 
@@ -79,7 +79,7 @@ public class PublishedProjects
 		final PublishedProject project = new PublishedProject();
 		project.name = "Ayuso-Jimeno et al. (2022) PAG-dAPEX2 FIB-SEM, bioRxiv";
 		project.location = "https://github.com/mobie/pag-dapex2-fibsem";
-		project.publicationURL = "https://www.biorxiv.org/content/10.1101/2021.12.13.472405v1";
+		//project.publicationURL = "https://www.biorxiv.org/content/10.1101/2021.12.13.472405v1";
 		publishedProjects.put( project.name, project );
 	}
 
@@ -88,7 +88,7 @@ public class PublishedProjects
 		final PublishedProject project = new PublishedProject();
 		project.name = "Cortese et al. (2020) Covid FIB-SEM, Cell Host & Microbe";
 		project.location = "https://github.com/mobie/covid-em-project";
-		project.publicationURL = "https://onlinelibrary.wiley.com/doi/full/10.1002/bies.202000257";
+		//project.publicationURL = "https://onlinelibrary.wiley.com/doi/full/10.1002/bies.202000257";
 		publishedProjects.put( project.name, project );
 	}
 
@@ -97,7 +97,7 @@ public class PublishedProjects
 		final PublishedProject project = new PublishedProject();
 		project.name = "Cortese et al. (2020) Covid tomograms, Cell Host & Microbe";
 		project.location = "https://github.com/mobie/covid-tomo-datasets";
-		project.publicationURL = "https://www.sciencedirect.com/science/article/pii/S193131282030620X";
+		//project.publicationURL = "https://www.sciencedirect.com/science/article/pii/S193131282030620X";
 		publishedProjects.put( project.name, project );
 	}
 
@@ -106,7 +106,7 @@ public class PublishedProjects
 		final PublishedProject project = new PublishedProject();
 		project.name = "Vergara et al. (2021) PlatyBrowser, Cell";
 		project.location = "https://github.com/mobie/platybrowser-datasets";
-		project.publicationURL = "https://www.biorxiv.org/content/10.1101/2020.02.26.961037v1";
+		//project.publicationURL = "https://www.biorxiv.org/content/10.1101/2020.02.26.961037v1";
 		publishedProjects.put( project.name, project );
 	}
 
@@ -115,7 +115,7 @@ public class PublishedProjects
 		final PublishedProject project = new PublishedProject();
 		project.name = "Pape et al. (2020) Covid Immunofluorescence, BioEssays";
 		project.location = "https://github.com/mobie/covid-if-project";
-		project.publicationURL = "https://onlinelibrary.wiley.com/doi/full/10.1002/bies.202000257";
+		//project.publicationURL = "https://onlinelibrary.wiley.com/doi/full/10.1002/bies.202000257";
 		publishedProjects.put( project.name, project );
 	}
 

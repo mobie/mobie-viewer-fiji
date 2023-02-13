@@ -38,6 +38,7 @@ public class Project
 	private List< String > datasets = new ArrayList<>();
 	private String defaultDataset;
 	private String specVersion;
+	private List< String > references = new ArrayList<>();
 
 	public Project()
 	{
@@ -79,4 +80,8 @@ public class Project
 		this.name = name;
 	}
 
+	public List< String > getReferences()
+	{
+		return references;
+	}
 }

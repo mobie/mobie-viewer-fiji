@@ -29,9 +29,9 @@
 package org.embl.mobie.lib;
 
 import bdv.tools.HelpDialog;
-import de.embl.cba.tables.Help;
 import ij.IJ;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.lib.serialize.Project;
 
 public class MoBIEInfo
 {
@@ -42,21 +42,21 @@ public class MoBIEInfo
 	public static final String MOBIE_DOCUMENTATION = "MoBIE Documentation";
 	public static final String BIG_DATA_VIEWER = "BigDataViewer Help";
 	public static final String PROJECT_REPOSITORY = "Project Repository";
-	public static final String PROJECT_PUBLICATION = "Project Publication";
+	public static final String PROJECT_REFERENCES = "Project References";
 	private final String projectLocation;
-	private final String publicationURL;
+	private final Project project;
 
-	public MoBIEInfo( String projectLocation, String publicationURL )
+	public MoBIEInfo( String projectLocation, Project project )
 	{
 		this.projectLocation = projectLocation;
-		this.publicationURL = publicationURL;
+		this.project = project;
 	}
 
 	public String[] getInfoChoices()
 	{
 		return new String[]{
 				PROJECT_REPOSITORY,
-				PROJECT_PUBLICATION,
+				PROJECT_REFERENCES,
 				MOBIE_PUBLICATION,
 				MOBIE_GITHUB,
 				MOBIE_DOCUMENTATION,
@@ -79,11 +79,16 @@ public class MoBIEInfo
 			case PROJECT_REPOSITORY:
 				IOHelper.openURI( IOHelper.combinePath( projectLocation, "blob/master/README.md" ) );
 				break;
-			case PROJECT_PUBLICATION:
-				if ( publicationURL == null )
-					IJ.showMessage( "There is no publication yet registered with this project.");
+			case PROJECT_REFERENCES:
+				if ( project.getReferences() == null )
+					IJ.showMessage( "There are no references for this project.");
 				else
-					IOHelper.openURI( publicationURL );
+				{
+					for ( String reference : project.getReferences() )
+					{
+						IOHelper.openURI( reference );
+					}
+				}
 				break;
 			case BIG_DATA_VIEWER:
 				showBdvHelp();

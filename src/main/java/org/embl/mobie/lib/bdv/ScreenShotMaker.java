@@ -257,18 +257,18 @@ public class ScreenShotMaker
         }
     }
 
-    private List< SourceAndConverter<?> > getVisibleSacs( BdvHandle bdv )
+    private List< SourceAndConverter< ? > > getVisibleSacs( BdvHandle bdv )
     {
         final SourceAndConverterBdvDisplayService displayService = SourceAndConverterServices.getBdvDisplayService();
 
-        final List< SourceAndConverter<?> > sacs = displayService.getSourceAndConverterOf( bdvHandle );
-        List< SourceAndConverter<?> > visibleSacs = new ArrayList<>(  );
+        final List< SourceAndConverter< ? > > sacs = displayService.getSourceAndConverterOf( bdvHandle );
+        List< SourceAndConverter< ? > > visibleSacs = new ArrayList<>(  );
         for ( SourceAndConverter sac : sacs )
         {
             // TODO: this does not evaluate to true for all visible sources
             if ( displayService.isVisible( sac, bdv ) )
             {
-                if (sac.getSpimSource().getSource(0,0)!=null) // TODO improve this hack that allows to discard overlays source from screenshot
+                if ( sac.getSpimSource().getSource(0,0) != null ) // TODO improve this hack that allows to discard overlays source from screenshot
                     visibleSacs.add( sac );
             }
         }

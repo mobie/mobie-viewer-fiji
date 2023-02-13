@@ -48,8 +48,8 @@ public class OpenOMEZARRFromS3Command implements Command {
 
     protected static void openAndShow(String s3URL) throws IOException {
         s3URL = s3URL.replaceAll( "\\s", "" ); // TODO: Maybe add general function and/or put deeper into code: https://github.com/mobie/mobie-viewer-fiji/issues/654
-        SpimData spimData = OMEZarrS3Opener.readURL(s3URL.trim());
-        final OMEZarrViewer viewer = new OMEZarrViewer(spimData);
+        SpimData spimData = OMEZarrS3Opener.readURL( s3URL.trim() );
+        final OMEZarrViewer viewer = new OMEZarrViewer( spimData );
         viewer.show();
     }
 

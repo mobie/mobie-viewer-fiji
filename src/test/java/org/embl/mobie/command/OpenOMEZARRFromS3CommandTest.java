@@ -26,26 +26,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie.command;
 
 import net.imagej.ImageJ;
 
-import java.io.IOException;
-
-import org.embl.mobie.command.OpenOMEZARRFromS3Command;
-import org.embl.mobie.command.OpenOMEZARRFromS3CommandTest;
-
-public class OpenRemoteOMEZarr
+public class OpenOMEZARRFromS3CommandTest
 {
-    public static void main(String[] args) throws IOException
+    public static void main( String[] args )
     {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
         final OpenOMEZARRFromS3Command command = new OpenOMEZARRFromS3Command();
-        command.s3URL = "https://s3.embl.de/i2k-2020/ngff-example-data/v0.4/czyx.ome.zarr";
-        command.s3URL = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
+        command.s3URL = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr/";
+        command.logChunkLoading = true;
         command.run();
     }
 }
-
-//https://s3.embl.de/i2k-2020/project-ome-zarr

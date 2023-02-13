@@ -67,7 +67,7 @@ public class OpenPublishedMoBIEProjectCommand implements Command
 
 		try
 		{
-			new MoBIE( project.location, MoBIESettings.settings().publicationURL( project.publicationURL ) );
+			new MoBIE( project.location, MoBIESettings.settings() );
 		}
 		catch ( IOException e )
 		{
