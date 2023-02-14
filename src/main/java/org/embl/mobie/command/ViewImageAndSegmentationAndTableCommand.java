@@ -59,8 +59,8 @@ import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_X;
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Y;
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Z;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Explore>Explore Image and Segmentation and Table..."  )
-public class ExploreImageAndSegmentationAndTableCommand extends DynamicCommand implements Initializable
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "View>View Image and Segmentation and Table..."  )
+public class ViewImageAndSegmentationAndTableCommand extends DynamicCommand implements Initializable
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 

@@ -48,6 +48,8 @@ import static org.embl.mobie.command.ConfigureSegmentRenderingCommand.USE_BELOW_
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Image Rendering")
 public class ConfigureImageRenderingCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	protected static ISourceAndConverterService sourceAndConverterService = SourceAndConverterServices.getSourceAndConverterService();
 
 	@Parameter

@@ -7,7 +7,7 @@ import net.imagej.ImageJ;
 
 import java.io.IOException;
 
-class ExploreImageAndSegmentationAndTableTest
+class ViewImageAndSegmentationAndTableTest
 {
 	public static void main( String[] args ) throws IOException
 	{
@@ -32,7 +32,7 @@ class ExploreImageAndSegmentationAndTableTest
 		}
 		else
 		{
-			final ExploreImageAndSegmentationAndTableCommand command = new ExploreImageAndSegmentationAndTableCommand();
+			final ViewImageAndSegmentationAndTableCommand command = new ViewImageAndSegmentationAndTableCommand();
 			command.image = image;
 			command.segmentation = segmentation;
 			command.tableName = resultsTable.getTitle();

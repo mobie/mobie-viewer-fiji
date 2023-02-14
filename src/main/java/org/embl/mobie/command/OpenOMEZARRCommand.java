@@ -40,6 +40,9 @@ import java.io.IOException;
 
 @Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME-Zarr>Open OME-Zarr From File System...")
 public class OpenOMEZARRCommand implements Command {
+
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     @Parameter(label = "File path", style = "directory")
     public File directory;
 

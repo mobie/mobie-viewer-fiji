@@ -40,6 +40,8 @@ import java.io.IOException;
 @Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME-Zarr>Open OME-Zarr From S3...")
 public class OpenOMEZARRFromS3Command implements Command {
 
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     @Parameter(label = "S3 URL")
     public String s3URL = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
 

@@ -54,6 +54,8 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Label Rendering")
 public class ConfigureLabelRenderingCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	protected static ISourceAndConverterService sourceAndConverterService = SourceAndConverterServices.getSourceAndConverterService();
 
 	protected static final String SEGMENT_COLOR = "Keep current color";
