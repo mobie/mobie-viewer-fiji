@@ -39,6 +39,7 @@ import java.io.IOException;
         "Open OME-Zarr From S3 with Credentials...")
 public class OpenOMEZARRFromS3WithCredentialsCommand extends OpenOMEZARRFromS3Command
 {
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     @Parameter ( label = "S3 Access Key", persist = false )
     public String s3AccessKey = "";

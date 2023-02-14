@@ -37,6 +37,8 @@ import java.util.Set;
 
 public class MoBIESettings
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public final Values values = new Values();
 
 	public static MoBIESettings settings()

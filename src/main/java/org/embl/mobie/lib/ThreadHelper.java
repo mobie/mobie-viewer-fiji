@@ -43,6 +43,8 @@ import java.util.concurrent.TimeUnit;
 
 public class ThreadHelper
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	private static int N_IO_THREADS = Runtime.getRuntime().availableProcessors() - 1;
 
 	private static final int N_THREADS = Runtime.getRuntime().availableProcessors() - 1;

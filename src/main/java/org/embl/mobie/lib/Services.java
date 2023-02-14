@@ -10,6 +10,8 @@ import org.scijava.service.Service;
 @Plugin(type = Service.class, headless = true)
 public class Services extends AbstractService implements SciJavaService
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static CommandService commandService;
 
 	@Parameter

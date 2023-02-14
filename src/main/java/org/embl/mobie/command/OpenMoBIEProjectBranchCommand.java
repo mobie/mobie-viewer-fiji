@@ -41,6 +41,8 @@ import java.io.IOException;
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Advanced>Open MoBIE Project Branch..." )
 public class OpenMoBIEProjectBranchCommand implements Command
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	@Parameter ( label = "Project Location" )
 	public String projectLocation = "https://github.com/platybrowser/platybrowser";
 

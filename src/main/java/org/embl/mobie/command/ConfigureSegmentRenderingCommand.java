@@ -36,6 +36,8 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Segment Rendering")
 public class ConfigureSegmentRenderingCommand extends ConfigureLabelRenderingCommand
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static final String AUTO = "Automatic";
 	public static final String USE_BELOW_RESOLUTION = "Use below resolution";
 

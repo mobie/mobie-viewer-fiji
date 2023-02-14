@@ -13,6 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class DataStore
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	// Images of the current view
 	private static Map< String, Image< ? > > images = new ConcurrentHashMap<>();
 

@@ -11,7 +11,7 @@ import picocli.CommandLine.Option;
 import java.util.concurrent.Callable;
 
 @CommandLine.Command(name = "mobie", mixinStandardHelpOptions = true, version = "3.0.13", description = "Visualise multi-modal big image data, see https://mobie.github.io/")
-public class MoBIECmd implements Callable<Void> {
+public class MoBIECmd implements Callable< Void > {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 

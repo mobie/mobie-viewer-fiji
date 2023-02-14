@@ -2,6 +2,8 @@ package org.embl.mobie.cmd;
 
 class CommandLineWildcardDario
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static final String DIR = "/Volumes/cba/exchange/ARIF/Dario/output/";
 
 	public static void main( String[] args ) throws Exception

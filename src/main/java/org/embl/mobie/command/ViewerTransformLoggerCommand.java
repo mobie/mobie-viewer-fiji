@@ -47,6 +47,8 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 @Plugin( type = BdvPlaygroundActionCommand.class, name = ViewerTransformLoggerCommand.NAME, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + ViewerTransformLoggerCommand.NAME )
 public class ViewerTransformLoggerCommand implements BdvPlaygroundActionCommand
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static final String NAME = "Log Current Location";
 
 	@Parameter

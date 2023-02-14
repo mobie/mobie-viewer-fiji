@@ -4,6 +4,8 @@ import net.imagej.ImageJ;
 
 public class OpenImagesAndSegmentationsCommandTest {
 
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static void main( String[] args )
 	{
 		new ImageJ().ui().showUI(); // initialise SciJava Services

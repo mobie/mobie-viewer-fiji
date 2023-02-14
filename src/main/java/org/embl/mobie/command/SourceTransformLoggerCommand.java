@@ -50,6 +50,8 @@ import java.util.Set;
 @Plugin( type = BdvPlaygroundActionCommand.class, name = SourceTransformLoggerCommand.NAME, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + SourceTransformLoggerCommand.NAME )
 public class SourceTransformLoggerCommand implements BdvPlaygroundActionCommand
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static final String NAME = "Log Current Source Transforms";
 
 	@Parameter

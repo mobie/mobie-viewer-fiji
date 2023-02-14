@@ -38,6 +38,8 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Spot Rendering")
 public class ConfigureSpotRenderingCommand extends ConfigureLabelRenderingCommand
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	@Parameter( label = "Spot radius", style = "format:#.00", persist = false )
 	public Double spotRadius = 1.0;
 

@@ -36,6 +36,8 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Manual")
 public class ManualRegistrationCommand implements BdvPlaygroundActionCommand
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	private AffineTransform3D originalFixedTransform;
 
 	@Override

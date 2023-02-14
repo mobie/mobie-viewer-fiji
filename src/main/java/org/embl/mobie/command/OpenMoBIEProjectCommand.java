@@ -40,6 +40,8 @@ import java.io.IOException;
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Open MoBIE Project..." )
 public class OpenMoBIEProjectCommand implements Command
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	@Parameter ( label = "Project Location" )
 	public String projectLocation = "https://github.com/mobie/platybrowser-datasets";
 

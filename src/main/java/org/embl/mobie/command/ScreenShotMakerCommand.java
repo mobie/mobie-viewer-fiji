@@ -45,6 +45,8 @@ import java.util.Arrays;
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Take Screenshot")
 public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
 {
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     public static final String CAPTURE_SIZE_PIXELS = "Capture size [pixels]: ";
 
     @Parameter

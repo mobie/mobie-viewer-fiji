@@ -58,6 +58,8 @@ import java.util.stream.Collectors;
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - BigWarp")
 public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, TransformListener< InvertibleRealTransform >
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	@Parameter
 	BdvHandle bdvHandle;
 

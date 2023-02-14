@@ -30,6 +30,8 @@ package org.embl.mobie.command;
 
 public abstract class CommandConstants
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static final String MOBIE_PLUGIN_ROOT = "Plugins>MoBIE>";
 	public static final String CONTEXT_MENU_ITEMS_ROOT = "Plugins>Context Menu Items>Do not use>MoBIE>";
 }
