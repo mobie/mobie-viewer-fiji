@@ -185,7 +185,7 @@ public class MoBIE
 	}
 
 	// use this constructor from the command line
-	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths, String[] tablePaths ) throws SpimDataException, IOException
+	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths, String[] tablePaths, boolean createGridView ) throws SpimDataException, IOException
 	{
 		init();
 
@@ -194,13 +194,13 @@ public class MoBIE
 		if ( imagePaths != null && imagePaths[ 0 ].contains( "*" ) )
 			imagePaths = IOHelper.getPaths( imagePaths[ 0 ] );
 
-		if ( segmentationPaths[ 0 ].contains( "*" ) )
+		if ( segmentationPaths != null && segmentationPaths[ 0 ].contains( "*" ) )
 			segmentationPaths = IOHelper.getPaths( segmentationPaths[ 0 ] );
 
-		if ( tablePaths[ 0 ].contains( "*" ) )
+		if ( tablePaths != null && tablePaths[ 0 ].contains( "*" ) )
 			tablePaths = IOHelper.getPaths( tablePaths[ 0 ] );
 
-		// images
+		// load images
 		if ( imagePaths != null )
 		{
 			for ( String path : imagePaths )
@@ -211,26 +211,28 @@ public class MoBIE
 			}
 		}
 
-		// segmentations (with tables)
-		for ( int segmentationIndex = 0; segmentationIndex < segmentationPaths.length; segmentationIndex++ )
+		// load segmentations (with tables)
+		if ( segmentationPaths != null )
 		{
-			final String path = segmentationPaths[ segmentationIndex ];
-			final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
-			final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( path, imageDataFormat );
+			for ( int segmentationIndex = 0; segmentationIndex < segmentationPaths.length; segmentationIndex++ )
+			{
+				final String path = segmentationPaths[ segmentationIndex ];
+				final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
+				final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( path, imageDataFormat );
 
-			if ( tablePaths != null && tablePaths.length > segmentationIndex )
-			{
-				// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/936
-				final TableDataFormat tableDataFormat = TableDataFormat.fromPath( tablePaths[ segmentationIndex ] );
-				final StorageLocation tableStorageLocation = new StorageLocation();
-				final File tableFile = new File( tablePaths[ segmentationIndex ] );
-				tableStorageLocation.absolutePath = tableFile.getParent();
-				tableStorageLocation.defaultChunk = tableFile.getName();
-				addSpimDataImages( spimData, true, tableStorageLocation, tableDataFormat );
-			}
-			else
-			{
-				addSpimDataImages( spimData, true, null, null );
+				if ( tablePaths != null && tablePaths.length > segmentationIndex )
+				{
+					// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/936
+					final TableDataFormat tableDataFormat = TableDataFormat.fromPath( tablePaths[ segmentationIndex ] );
+					final StorageLocation tableStorageLocation = new StorageLocation();
+					final File tableFile = new File( tablePaths[ segmentationIndex ] );
+					tableStorageLocation.absolutePath = tableFile.getParent();
+					tableStorageLocation.defaultChunk = tableFile.getName();
+					addSpimDataImages( spimData, true, tableStorageLocation, tableDataFormat );
+				} else
+				{
+					addSpimDataImages( spimData, true, null, null );
+				}
 			}
 		}
 
@@ -238,7 +240,9 @@ public class MoBIE
 		// image views and segmentation views
 		// into segmented image views
 		// and create a grid view
-		if ( imagePaths != null ) // TODO Remove this constrain, it should also work for only segmentations
+
+		// TODO Remove some constrains, it should also work for only images
+		if ( createGridView && imagePaths != null && segmentationPaths != null )
 		{
 			final String[] views = dataset.views.keySet().toArray( new String[ 0 ] );
 			Arrays.sort( views );
@@ -269,9 +273,10 @@ public class MoBIE
 				{
 					imageDisplay = ( ImageDisplay< ? > ) displayB;
 					segmentationDisplay = ( SegmentationDisplay< ? > ) displayA;
-				} else
+				}
+				else
 				{
-					continue;
+					System.out.println("Could not match " + displayA.getName() + " and " + displayB.getName() );
 				}
 
 				final String name = imageDisplay.getName() + "-" + segmentationDisplay.getName();
@@ -289,14 +294,16 @@ public class MoBIE
 				segmentationGridTransformation.nestedSources.add( segmentationDisplay.getSources() );
 			}
 
-			// if possible also create a grid view
-			//
 			if ( imageGridSources.size() > 1 )
 			{
 				final ImageDisplay< ? > imageGridDisplay = new ImageDisplay<>( "images", imageGridSources, imageDisplay.getColor(), imageDisplay.getContrastLimits() );
 				final SegmentationDisplay< ? > segmentationGridDisplay = new SegmentationDisplay<>( "segmentations", segmentationGridSources );
 				final View gridView = new View( "segmented images", "grid", Arrays.asList( imageGridDisplay, segmentationGridDisplay ), Arrays.asList( imageGridTransformation, segmentationGridTransformation ), true );
 				dataset.views.put( gridView.getName(), gridView );
+			}
+			else
+			{
+				System.out.println( "Could not create a grid view." );
 			}
 		}
 

@@ -28,7 +28,7 @@ public class MoBIECmd implements Callable<Void> {
 	public String[] tables = null;
 
 	@Option(names = {"-g", "--grid"}, required = false, description = "create a grid view")
-	public Boolean grid = false;
+	public Boolean grid = true;
 
 	@Override
 	public Void call() throws Exception {
@@ -49,7 +49,7 @@ public class MoBIECmd implements Callable<Void> {
 		}
 		else
 		{
-			new MoBIE( "", images, segmentations, tables );
+			new MoBIE( "", images, segmentations, tables, grid );
 		}
 
 		return null;
