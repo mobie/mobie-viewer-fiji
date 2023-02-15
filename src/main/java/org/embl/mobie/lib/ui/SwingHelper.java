@@ -29,7 +29,6 @@
 package org.embl.mobie.lib.ui;
 
 import ij.gui.GenericDialog;
-import org.embl.mobie.lib.MoBIE;
 
 import javax.swing.*;
 import java.awt.*;
@@ -69,11 +68,11 @@ public class SwingHelper
 		return button;
 	}
 
-	public static void setComboBoxDimensions( JComboBox< String > comboBox )
+	public static void setComboBoxDimensions( JComboBox< String > comboBox, String prototypeDisplayValue )
 	{
-		comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE );
+		comboBox.setPrototypeDisplayValue( prototypeDisplayValue );
 		comboBox.setPreferredSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
-		comboBox.setMaximumSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
+		comboBox.setMaximumSize( new Dimension( Integer.MAX_VALUE, 20 ) );
 	}
 
 	public static String selectionDialog( String[] choices, String objectName ) {

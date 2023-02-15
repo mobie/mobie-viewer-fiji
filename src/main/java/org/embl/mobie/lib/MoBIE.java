@@ -340,7 +340,7 @@ public class MoBIE
 		if ( view == null )
 		{
 			// show all views
-			for ( String viewName : dataset.views.keySet() )
+			for ( String viewName : getViews().keySet() )
 				viewManager.show( getView( viewName, dataset ) );
 		}
 		else
@@ -766,7 +766,10 @@ public class MoBIE
 
     public Map< String, View > getViews()
     {
-        return dataset.views;
+		for ( String name : dataset.views.keySet() )
+			dataset.views.get( name ).setName( name );
+
+		return dataset.views;
     }
 
 	// equivalent to {@code getImageLocation}

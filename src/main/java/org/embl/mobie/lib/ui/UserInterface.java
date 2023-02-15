@@ -40,6 +40,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -54,6 +55,7 @@ public class UserInterface
 	private Map< Object, JPanel > displayToPanel;
 	private JSplitPane splitPane;
 	private boolean closedByUser = true;
+	private String longestComboBoxString = "";
 
 	public UserInterface( MoBIE moBIE )
 	{
@@ -64,7 +66,7 @@ public class UserInterface
 		displaySettingsScrollPane = userInterfaceHelper.createDisplaySettingsScrollPane( displaySettingsContainer );
 		JPanel displaySettingsPanel = userInterfaceHelper.createDisplaySettingsPanel( displaySettingsScrollPane );
 		displayToPanel = new HashMap<>();
-		frame = createAndShowFrame( selectionPanel, displaySettingsPanel, moBIE.getProjectName() + " " + moBIE.getCurrentDatasetName() );
+		frame = createAndShowFrame( selectionPanel, displaySettingsPanel, moBIE.getProjectName() + " " + moBIE.getCurrentDatasetName(), moBIE.getViews().values() );
 		MoBIELaf.MoBIELafOff();
 		configureWindowClosing( moBIE );
 	}
@@ -83,7 +85,7 @@ public class UserInterface
 			});
 	}
 
-	private JFrame createAndShowFrame( JPanel selectionPanel, JPanel displaySettingsPanel, String panelName )
+	private JFrame createAndShowFrame( JPanel selectionPanel, JPanel displaySettingsPanel, String panelName, Collection< View > views )
 	{
 		JFrame frame = new JFrame( "MoBIE " + panelName );
 
@@ -97,7 +99,16 @@ public class UserInterface
 		splitPane.setAutoscrolls( true );
 
 		// show frame
-		frame.setPreferredSize( new Dimension( 550, actionPanelHeight + 200 ) );
+		for ( View view : views )
+		{
+			final String text = view.getUiSelectionGroup() + ": " + view.getName();
+			if ( text.length() > longestComboBoxString.length() )
+				this.longestComboBoxString = text;
+		}
+
+		final int stringWidth = new JComboBox<>().getFontMetrics( new JComboBox<>().getFont() ).stringWidth( longestComboBoxString );
+		final int width = stringWidth + 200;
+		frame.setPreferredSize( new Dimension( width, actionPanelHeight + 200 ) );
 		frame.getContentPane().setLayout( new GridLayout() );
 		frame.getContentPane().add( splitPane );
 

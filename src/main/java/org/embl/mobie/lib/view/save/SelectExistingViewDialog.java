@@ -141,7 +141,7 @@ public class SelectExistingViewDialog {
     {
         comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE );
         comboBox.setPreferredSize( new Dimension( 200, 20 ) );
-        comboBox.setMaximumSize( new Dimension( 200, 20 ) );
+        comboBox.setMaximumSize( new Dimension( Integer.MAX_VALUE, 20 ) );
     }
 
     private class SyncGroupAndViewComboBox implements ItemListener {

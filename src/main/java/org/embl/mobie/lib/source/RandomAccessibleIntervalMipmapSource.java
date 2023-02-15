@@ -92,7 +92,7 @@ public class RandomAccessibleIntervalMipmapSource< T extends Type< T > > impleme
 		{
 			final T outOfBoundsVariable = type.createVariable();
 			final RandomAccessible ra = new ExtendedRandomAccessibleInterval<>( getSource( t, level ), new OutOfBoundsConstantValueFactory<>( outOfBoundsVariable ) );
-			return Views.interpolate( ra, new NearestNeighborInterpolatorFactory<>() );
+			return Views.interpolate( ra, new NearestNeighborInterpolatorFactory< T >() );
 		}
 	}
 

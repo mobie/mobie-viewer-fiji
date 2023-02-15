@@ -40,7 +40,7 @@ public class Dataset
 	public boolean is2D = false;
 	public ViewerTransform defaultLocation = new PositionViewerTransform( new double[]{0,0,0}, 0 );
 	public Map< String, DataSource > sources = new HashMap<>();
-	public Map< String, View > views = new HashMap<>();
+	public Map< String, View > views = new HashMap<>(); // TODO make this private and use getter
 
 	public Dataset() { }
 
@@ -50,5 +50,13 @@ public class Dataset
 		this.defaultLocation = defaultLocation;
 		this.sources = sources;
 		this.views = views;
+	}
+
+	public Map< String, View > getViews()
+	{
+		for ( String name : views.keySet() )
+			views.get( name ).setName( name );
+
+		return views;
 	}
 }

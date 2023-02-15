@@ -46,6 +46,7 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.MoBIE;
 import org.embl.mobie.lib.MoBIEHelper.FileLocation;
 import org.embl.mobie.lib.MoBIEInfo;
+//import org.embl.mobie.lib.Services;
 import org.embl.mobie.lib.Services;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.OpacityHelper;
@@ -64,7 +65,6 @@ import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.table.AnnData;
-import org.embl.mobie.lib.table.AnnotationTableModel;
 import org.embl.mobie.lib.transform.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.lib.transform.SliceViewLocationChanger;
 import org.embl.mobie.lib.transform.ViewerTransform;
@@ -74,7 +74,6 @@ import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
-import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
@@ -778,7 +777,7 @@ public class UserInterfaceHelper
 			} ).start();
 		} );
 
-		SwingHelper.setComboBoxDimensions( comboBox );
+		SwingHelper.setComboBoxDimensions( comboBox, MoBIE.PROTOTYPE_DISPLAY_VALUE );
 
 		horizontalLayoutPanel.add( SwingHelper.getJLabel( panelName ) );
 		horizontalLayoutPanel.add( comboBox );
@@ -818,7 +817,7 @@ public class UserInterfaceHelper
 		final MoBIEInfo moBIEInfo = new MoBIEInfo( projectLocation, project );
 
 		final JComboBox< String > comboBox = new JComboBox<>( moBIEInfo.getInfoChoices() );
-		SwingHelper.setComboBoxDimensions( comboBox );
+		SwingHelper.setComboBoxDimensions( comboBox, MoBIE.PROTOTYPE_DISPLAY_VALUE );
 
 		button.addActionListener( e -> {
 			moBIEInfo.showInfo( ( String ) comboBox.getSelectedItem() );
@@ -862,7 +861,7 @@ public class UserInterfaceHelper
 		} );
 
 		comboBox.setSelectedItem( moBIE.getCurrentDatasetName() );
-		SwingHelper.setComboBoxDimensions( comboBox );
+		SwingHelper.setComboBoxDimensions( comboBox, MoBIE.PROTOTYPE_DISPLAY_VALUE );
 
 		panel.add( SwingHelper.getJLabel( "dataset" ) );
 		panel.add( comboBox );

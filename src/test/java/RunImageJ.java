@@ -28,7 +28,6 @@
  */
 
 import net.imagej.ImageJ;
-import org.scijava.command.CommandService;
 
 public class RunImageJ
 {
