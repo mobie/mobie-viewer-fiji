@@ -279,7 +279,8 @@ public class MoBIE
 					System.out.println("Could not match " + displayA.getName() + " and " + displayB.getName() );
 				}
 
-				final String name = imageDisplay.getName() + "-" + segmentationDisplay.getName();
+				final String lcsubstr = MoBIEHelper.lcsubstring( imageDisplay.getName(), segmentationDisplay.getName() );
+				final String name = imageDisplay.getName() + "-" + segmentationDisplay.getName().replace( lcsubstr, "" );
 				final ArrayList< Display< ? > > displays = new ArrayList<>();
 				displays.add( imageDisplay );
 				displays.add( segmentationDisplay );

@@ -107,7 +107,7 @@ public class UserInterface
 		}
 
 		final int stringWidth = new JComboBox<>().getFontMetrics( new JComboBox<>().getFont() ).stringWidth( longestComboBoxString );
-		final int width = stringWidth + 200;
+		final int width = Math.min( stringWidth + 200, Toolkit.getDefaultToolkit().getScreenSize().width / 2 );
 		frame.setPreferredSize( new Dimension( width, actionPanelHeight + 200 ) );
 		frame.getContentPane().setLayout( new GridLayout() );
 		frame.getContentPane().add( splitPane );
