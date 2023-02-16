@@ -55,6 +55,9 @@ public class IOHelper
 
 		Arrays.sort( paths );
 
+		if ( paths.length == 0 )
+			System.err.println("Could not find any files matching " + regex );
+
 		return paths;
 	}
 }

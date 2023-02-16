@@ -205,6 +205,7 @@ public class MoBIE
 		{
 			for ( String path : imagePaths )
 			{
+				System.out.println( "Opening image: " + path );
 				final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
 				final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( path, imageDataFormat );
 				addSpimDataImages( spimData, false, null, null );
@@ -216,16 +217,18 @@ public class MoBIE
 		{
 			for ( int segmentationIndex = 0; segmentationIndex < segmentationPaths.length; segmentationIndex++ )
 			{
-				final String path = segmentationPaths[ segmentationIndex ];
-				final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
-				final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( path, imageDataFormat );
+				final String segmentationPath = segmentationPaths[ segmentationIndex ];
+				System.out.println( "Opening segmentation: " + segmentationPath );
+				final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( segmentationPath );
+				final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( segmentationPath, imageDataFormat );
 
 				if ( tablePaths != null && tablePaths.length > segmentationIndex )
 				{
-					// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/936
-					final TableDataFormat tableDataFormat = TableDataFormat.fromPath( tablePaths[ segmentationIndex ] );
+					final String tablePath = tablePaths[ segmentationIndex ];
+					System.out.println( "...with segments table: " + tablePath );
+					final TableDataFormat tableDataFormat = TableDataFormat.fromPath( tablePath );
 					final StorageLocation tableStorageLocation = new StorageLocation();
-					final File tableFile = new File( tablePaths[ segmentationIndex ] );
+					final File tableFile = new File( tablePath );
 					tableStorageLocation.absolutePath = tableFile.getParent();
 					tableStorageLocation.defaultChunk = tableFile.getName();
 					addSpimDataImages( spimData, true, tableStorageLocation, tableDataFormat );
@@ -241,7 +244,6 @@ public class MoBIE
 		// into segmented image views
 		// and create a grid view
 
-		// TODO Remove some constrains, it should also work for only images
 		if ( createGridView && imagePaths != null && segmentationPaths != null )
 		{
 			final String[] views = dataset.views.keySet().toArray( new String[ 0 ] );
@@ -254,6 +256,7 @@ public class MoBIE
 
 			final ArrayList< String > imageGridSources = new ArrayList<>();
 			final ArrayList< String > segmentationGridSources = new ArrayList<>();
+			final ArrayList< View > segmentedImageViews = new ArrayList<>();
 
 			ImageDisplay< ? > imageDisplay = null;
 			SegmentationDisplay< ? > segmentationDisplay = null;
@@ -276,7 +279,11 @@ public class MoBIE
 				}
 				else
 				{
-					System.out.println("Could not match " + displayA.getName() + " and " + displayB.getName() );
+					System.err.println("Could not match " + displayA.getName() + " and " + displayB.getName() );
+					System.err.println("To avoid errors no combined views will be generated.");
+					segmentedImageViews.clear();
+					imageGridSources.clear();
+					break;
 				}
 
 				final String lcsubstr = MoBIEHelper.lcsubstring( imageDisplay.getName(), segmentationDisplay.getName() );
@@ -284,8 +291,8 @@ public class MoBIE
 				final ArrayList< Display< ? > > displays = new ArrayList<>();
 				displays.add( imageDisplay );
 				displays.add( segmentationDisplay );
-				final View combinedView = new View( name, "segmented image", displays, null, true );
-				dataset.views.put( name, combinedView );
+				final View segmentedImage = new View( name, "segmented image", displays, null, true );
+				segmentedImageViews.add( segmentedImage );
 
 				//gridDisplays.add( displayB );
 				imageGridSources.addAll( imageDisplay.getSources() );
@@ -293,6 +300,14 @@ public class MoBIE
 				//gridSources.addAll( displayB.getSources() );
 				imageGridTransformation.nestedSources.add( imageDisplay.getSources() );
 				segmentationGridTransformation.nestedSources.add( segmentationDisplay.getSources() );
+			}
+
+			if ( segmentedImageViews.size() > 0 )
+			{
+				for ( View segmentedImageView : segmentedImageViews )
+				{
+					dataset.views.put( segmentedImageView.getName(), segmentedImageView );
+				}
 			}
 
 			if ( imageGridSources.size() > 1 )
