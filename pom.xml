@@ -171,7 +171,6 @@
         <dependency>
             <groupId>sc.fiji</groupId>
             <artifactId>3D_Viewer</artifactId>
-            <version>4.0.4</version>
         </dependency>
         <dependency>
             <groupId>org.scijava</groupId>
