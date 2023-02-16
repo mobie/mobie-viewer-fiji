@@ -65,6 +65,7 @@ public class SourceTransformLoggerCommand implements BdvPlaygroundActionCommand
 
 			final Set< SourceAndConverter< ? > > sourceAndConverters = bdvHandle.getViewerPanel().state().getVisibleAndPresentSources();
 
+			IJ.log("# Source transforms" );
 			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 			{
 				final AffineTransform3D affineTransform3D = new AffineTransform3D();
