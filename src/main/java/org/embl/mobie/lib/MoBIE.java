@@ -439,7 +439,10 @@ public class MoBIE
 
 		if ( displaysettings != null )
 		{
-			color = ColorHelper.getString( displaysettings.color );
+			// FIXME: Wrong color from Bio-Formats
+			//    https://forum.image.sc/t/bio-formats-color-wrong-for-imagej-images/76021/15
+			//    https://github.com/BIOP/bigdataviewer-image-loaders/issues/8
+			color = "White"; // ColorHelper.getString( displaysettings.color );
 			contrastLimits = new double[]{ displaysettings.min, displaysettings.max };
 		}
 

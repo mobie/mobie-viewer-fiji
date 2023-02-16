@@ -106,7 +106,7 @@ public class UserInterfaceHelper
 	private static final String MOVE = "move";
 	private static final String HELP = "show";
 	private static final String LEVEL = "level";
-	private static final String ADD = "view";
+	private static final String VIEW = "view";
 	public static final int SPACING = 10;
 	public static File lastSelectedDir;
 
@@ -766,7 +766,7 @@ public class UserInterfaceHelper
 
 		final JComboBox< String > comboBox = new JComboBox<>( views.keySet().toArray( new String[ 0 ] ) );
 
-		final JButton button = SwingHelper.createButton( ADD );
+		final JButton button = SwingHelper.createButton( VIEW );
 		button.addActionListener( e ->
 		{
 			new Thread( () -> {
@@ -850,7 +850,7 @@ public class UserInterfaceHelper
 
 		final JComboBox< String > comboBox = new JComboBox<>( moBIE.getDatasets().toArray( new String[ 0 ] ) );
 
-		final JButton button = SwingHelper.createButton( ADD );
+		final JButton button = SwingHelper.createButton( VIEW );
 		button.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
