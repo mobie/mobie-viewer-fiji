@@ -52,7 +52,7 @@ public class SourceTransformLoggerCommand implements BdvPlaygroundActionCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static final String NAME = "Log Current Source Transforms";
+	public static final String NAME = "Log Source Transforms";
 
 	@Parameter
 	BdvHandle bdvHandle;

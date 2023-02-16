@@ -6,7 +6,6 @@ import org.embl.mobie.lib.MoBIE;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import picocli.CommandLine.Option;
 
 import java.io.IOException;
 
@@ -15,17 +14,17 @@ public class OpenImagesAndSegmentationsCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter( label = "Image path (use * for multiple)" )
+	@Parameter( label = "Image Path" )
 	public String image = null;
 
-	@Parameter( label = "Label mask path (use * for multiple)" )
+	@Parameter( label = "Label Mask Path" )
 	public String segmentation = null;
 
-	@Parameter( label = "Label mask feature table path (use * for multiple)" )
+	@Parameter( label = "Label Mask Feature Table Path" )
 	public String table = null;
 
-	@Parameter( label = "Create a grid view" )
-	public Boolean grid = true;
+	@Parameter( label = "Auto Pair Images and Segmentations" )
+	public Boolean autoPair = true;
 
 	@Override
 	public void run()
@@ -38,7 +37,7 @@ public class OpenImagesAndSegmentationsCommand implements Command {
 
 		try
 		{
-			new MoBIE( "", new String[]{ image }, new String[]{ segmentation }, new String[]{ table }, grid );
+			new MoBIE( "", new String[]{ image }, new String[]{ segmentation }, new String[]{ table }, autoPair );
 		} catch ( SpimDataException e )
 		{
 			e.printStackTrace();

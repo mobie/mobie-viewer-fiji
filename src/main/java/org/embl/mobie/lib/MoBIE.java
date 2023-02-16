@@ -185,7 +185,7 @@ public class MoBIE
 	}
 
 	// use this constructor from the command line
-	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths, String[] tablePaths, boolean createGridView ) throws SpimDataException, IOException
+	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths, String[] tablePaths, boolean combine ) throws SpimDataException, IOException
 	{
 		init();
 
@@ -244,7 +244,7 @@ public class MoBIE
 		// into segmented image views
 		// and create a grid view
 
-		if ( createGridView && imagePaths != null && segmentationPaths != null )
+		if ( combine && imagePaths != null && segmentationPaths != null )
 		{
 			final String[] views = dataset.views.keySet().toArray( new String[ 0 ] );
 			Arrays.sort( views );
