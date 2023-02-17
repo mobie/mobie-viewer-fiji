@@ -40,6 +40,6 @@ public class OpenRemoteZebrafish
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE("https://github.com/mobie/zebrafish-lm-datasets", MoBIESettings.settings().gitProjectBranch( "mobie3" ).view( "small-grid-view" ) );
+		new MoBIE("https://github.com/mobie/zebrafish-lm-datasets" );
 	}
 }

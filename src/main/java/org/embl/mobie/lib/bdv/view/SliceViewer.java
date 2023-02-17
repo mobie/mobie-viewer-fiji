@@ -230,12 +230,13 @@ public class SliceViewer
 		// show in Bdv
 		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
 
-		// TODO: is that needed?
 		updateTimepointSlider();
 	}
 
-	public void updateTimepointSlider( )
+	public void updateTimepointSlider()
 	{
+		if ( bdvHandle == null ) return;
+
 		final List< SourceAndConverter< ? > > sources = bdvHandle.getViewerPanel().state().getSources();
 		if ( sources.size() == 0 ) return;
 
