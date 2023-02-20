@@ -51,7 +51,6 @@ import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.lib.annotation.LazyAnnotatedSegmentAdapter;
-import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.image.AnnotatedLabelImage;
 import org.embl.mobie.lib.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.lib.image.Image;
@@ -97,7 +96,6 @@ import javax.annotation.Nullable;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -192,13 +190,13 @@ public class MoBIE
 		initProject( projectName );
 
 		if ( imagePaths != null && imagePaths[ 0 ].contains( "*" ) )
-			imagePaths = IOHelper.getPaths( imagePaths[ 0 ] );
+			imagePaths = IOHelper.getPaths( imagePaths[ 0 ], 999 );
 
 		if ( segmentationPaths != null && segmentationPaths[ 0 ].contains( "*" ) )
-			segmentationPaths = IOHelper.getPaths( segmentationPaths[ 0 ] );
+			segmentationPaths = IOHelper.getPaths( segmentationPaths[ 0 ], 999 );
 
 		if ( tablePaths != null && tablePaths[ 0 ].contains( "*" ) )
-			tablePaths = IOHelper.getPaths( tablePaths[ 0 ] );
+			tablePaths = IOHelper.getPaths( tablePaths[ 0 ], 999 );
 
 		// load images
 		if ( imagePaths != null )

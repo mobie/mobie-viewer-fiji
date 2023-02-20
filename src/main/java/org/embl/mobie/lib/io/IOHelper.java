@@ -41,7 +41,7 @@ public class IOHelper
 		return(s.toString());
 	}
 
-	public static String[] getPaths( String imagePath ) throws IOException
+	public static String[] getPaths( String imagePath, int maxDepth ) throws IOException
 	{
 		final String regExPath = imagePath;
 
@@ -49,7 +49,7 @@ public class IOHelper
 		String name = new File( regExPath ).getName();
 		final String regex = wildcardToRegex( name );
 
-		final String[] paths = Files.find( Paths.get( dir ), 999,
+		final String[] paths = Files.find( Paths.get( dir ), maxDepth,
 				( path, basicFileAttribute ) -> basicFileAttribute.isRegularFile()
 						&& path.getFileName().toString().matches( regex ) ).map( path -> path.toString() ).collect( Collectors.toList() ).toArray( new String[ 0 ] );
 
