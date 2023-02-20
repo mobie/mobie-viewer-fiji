@@ -25,7 +25,7 @@ public enum HCSPattern
 	private final String PATTERN_NIKON_TI2_HDF5 = ".*Well([A-Z]{1}[0-9]{2})_Point[A-Z]{1}[0-9]{2}_([0-9]{4})_.*h5$";
 	private final String OPERETTA = ".*(?<"+WELL+">r[0-9]{2}c[0-9]{2})f(?<"+SITE+">[0-9]{2})p[0-9]{2}.*-ch(?<"+CHANNEL+">[0-9])sk.*.tiff$";
 
-	public static HCSPattern fromFileName( String fileName )
+	public static HCSPattern fromPath( String fileName )
 	{
 		for ( HCSPattern hcsPattern : HCSPattern.values() )
 		{
@@ -34,20 +34,20 @@ public enum HCSPattern
 				return hcsPattern;
 		}
 
-		throw new RuntimeException("Could not determine HCSPattern for " + fileName );
+		return null;
 	}
 
-	public Matcher getMatcher( String fileName )
+	public Matcher getMatcher( String path )
 	{
 		switch( this )
 		{
 			case Operetta:
-				return Pattern.compile( OPERETTA ).matcher( fileName );
+				return Pattern.compile( OPERETTA ).matcher( path );
 			case MolDevSites:
-				return Pattern.compile( MD_SITES ).matcher( fileName );
+				return Pattern.compile( MD_SITES ).matcher( path );
 			case MolDevSitesChannels:
 			default:
-				return Pattern.compile( MD_SITES_CHANNELS ).matcher( fileName );
+				return Pattern.compile( MD_SITES_CHANNELS ).matcher( path );
 		}
 	}
 }

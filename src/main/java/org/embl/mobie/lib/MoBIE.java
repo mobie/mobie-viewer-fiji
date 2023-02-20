@@ -41,6 +41,7 @@ import mpicbg.spim.data.sequence.ImgLoader;
 import net.imagej.ImageJ;
 import net.imglib2.Dimensions;
 import org.apache.commons.io.FilenameUtils;
+import org.embl.mobie.lib.hcs.HCSPlate;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
@@ -147,7 +148,8 @@ public class MoBIE
 	{
 		init();
 
-		settings.projectLocation( projectLocation );
+		this.settings = settings;
+		this.settings.projectLocation( projectLocation );
 
 		// Only allow one instance to avoid confusion
 		if ( moBIE != null )
@@ -157,29 +159,31 @@ public class MoBIE
 		}
 		moBIE = this;
 
-		this.settings = settings;
-
-		// Open project
+		// Open data
 		IJ.log("\n# MoBIE" );
-		IJ.log("Opening project: " + projectLocation );
+		IJ.log("Opening: " + projectLocation );
+
+		if ( settings.values.hcsProject() )
+		{
+			initHCSProject();
+		}
+		else
+		{
+			initMoBIEProject();
+		}
+	}
+
+	private void initMoBIEProject() throws IOException
+	{
 		setS3Credentials( settings );
 		setProjectImageAndTableRootLocations();
 		registerProjectPlugins( settings.values.getProjectLocation() );
-		project = new ProjectJsonParser().parseProject( org.embl.mobie.io.util.IOHelper.combinePath( projectRoot,  "project.json" ) );
+		project = new ProjectJsonParser().parseProject( org.embl.mobie.io.util.IOHelper.combinePath( projectRoot, "project.json" ) );
 		if ( project.getName() == null )
-			project.setName( org.embl.mobie.io.util.IOHelper.getFileName( projectLocation ) );
-		setImageDataFormats( projectLocation );
+			project.setName( org.embl.mobie.io.util.IOHelper.getFileName( settings.values.getProjectLocation() ) );
+		setImageDataFormats( settings.values.getProjectLocation() );
 		settings.addTableDataFormat( TableDataFormat.TSV );
-
 		openAndViewDataset();
-	}
-
-	private void init()
-	{
-		DebugTools.setRootLevel( "OFF" ); // Bio-Formats logging
-
-		if ( MoBIE.openedFromCLI )
-			imageJ = new ImageJ(); // Init SciJava Services
 	}
 
 	// use this constructor from the command line
@@ -345,6 +349,19 @@ public class MoBIE
 		addSpimDataImages( segmentation, true, tableStorageLocation, tableDataFormat );
 
 		initUIandShowViews( null );
+	}
+
+	private void init()
+	{
+		DebugTools.setRootLevel( "OFF" ); // Bio-Formats logging
+
+		if ( MoBIE.openedFromCLI )
+			imageJ = new ImageJ(); // Init SciJava Services
+	}
+
+	private void initHCSProject() throws IOException
+	{
+		final HCSPlate hcsPlate = new HCSPlate( settings.values.getProjectLocation() );
 	}
 
 	private void initUIandShowViews( @Nullable String view )

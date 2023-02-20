@@ -41,12 +41,10 @@ public class IOHelper
 		return(s.toString());
 	}
 
-	public static String[] getPaths( String imagePath, int maxDepth ) throws IOException
+	public static String[] getPaths( String pathWithWildCards, int maxDepth ) throws IOException
 	{
-		final String regExPath = imagePath;
-
-		final String dir = new File( regExPath ).getParent();
-		String name = new File( regExPath ).getName();
+		final String dir = new File( pathWithWildCards ).getParent();
+		String name = new File( pathWithWildCards ).getName();
 		final String regex = wildcardToRegex( name );
 
 		final String[] paths = Files.find( Paths.get( dir ), maxDepth,
@@ -56,7 +54,7 @@ public class IOHelper
 		Arrays.sort( paths );
 
 		if ( paths.length == 0 )
-			System.err.println("Could not find any files matching " + regex );
+			System.err.println("Could not find any files for " + regex );
 
 		return paths;
 	}
