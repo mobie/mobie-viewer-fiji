@@ -37,7 +37,7 @@ import ij.ImagePlus;
 import ij.measure.ResultsTable;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import org.embl.mobie.io.SpimDataOpener;
-import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.scijava.Initializable;

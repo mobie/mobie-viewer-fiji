@@ -30,6 +30,7 @@ package org.embl.mobie.lib;
 
 import bdv.tools.HelpDialog;
 import ij.IJ;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.serialize.Project;
 

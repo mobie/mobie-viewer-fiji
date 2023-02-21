@@ -38,7 +38,7 @@ import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.lib.DataStore;
-import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.annotation.Annotation;
@@ -53,7 +53,6 @@ import org.embl.mobie.lib.color.NumericAnnotationColoringModel;
 import org.embl.mobie.lib.color.lut.ColumnARGBLut;
 import org.embl.mobie.lib.color.lut.LUTs;
 import org.embl.mobie.lib.image.AnnotatedLabelImage;
-import org.embl.mobie.lib.image.AnnotationImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.image.StitchedAnnotatedLabelImage;
@@ -109,7 +108,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -315,7 +313,7 @@ public class ViewManager
 				}
 				else // no metadata source specified, use the first in the grid as metadata source
 				{
-					final String firstImageInGrid = mergedGridTransformation.targetImageNames().get( 0 );
+					final String firstImageInGrid = mergedGridTransformation.getSources().get( 0 );
 					if ( dataSource.getName().equals( firstImageInGrid ) )
 						dataSource.preInit( true );
 					else
@@ -346,7 +344,7 @@ public class ViewManager
 				{
 					final AffineTransformation< ? > affineTransformation = ( AffineTransformation< ? > ) transformation;
 
-					final Set< Image< ? > > images = DataStore.getImageSet( transformation.targetImageNames() );
+					final Set< Image< ? > > images = DataStore.getImageSet( transformation.getSources() );
 
 					for ( Image< ? > image : images )
 					{
@@ -361,7 +359,7 @@ public class ViewManager
 				else if ( transformation instanceof CropTransformation )
 				{
 					final CropTransformation< ? > cropTransformation = ( CropTransformation< ? > ) transformation;
-					final List< String > targetImageNames = transformation.targetImageNames();
+					final List< String > targetImageNames = transformation.getSources();
 					for ( String imageName : targetImageNames )
 					{
 						final CroppedImage< ? > croppedImage = new CroppedImage<>(
@@ -376,7 +374,7 @@ public class ViewManager
 				else if ( transformation instanceof MergedGridTransformation )
 				{
 					final MergedGridTransformation mergedGridTransformation = ( MergedGridTransformation ) transformation;
-					final List< String > targetImageNames = transformation.targetImageNames();
+					final List< String > targetImageNames = transformation.getSources();
 					final List< ? extends Image< ? > > gridImages = DataStore.getImageList( targetImageNames );
 
 					// Fetch grid metadata image
@@ -734,7 +732,7 @@ public class ViewManager
 
 		for ( Transformation imageTransformation : imageTransformersCopy )
 		{
-			if ( ! currentlyDisplayedSources.stream().anyMatch( s -> imageTransformation.targetImageNames().contains( s ) ) )
+			if ( ! currentlyDisplayedSources.stream().anyMatch( s -> imageTransformation.getSources().contains( s ) ) )
 				currentTransformations.remove( imageTransformation );
 		}
 	}

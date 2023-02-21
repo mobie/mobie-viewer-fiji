@@ -29,8 +29,8 @@
 package org.embl.mobie.command;
 
 import ij.gui.GenericDialog;
-import org.embl.mobie.lib.MoBIE;
-import org.embl.mobie.lib.MoBIESettings;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.lib.published.PublishedProject;
 import org.embl.mobie.lib.published.PublishedProjects;
 import org.scijava.command.Command;

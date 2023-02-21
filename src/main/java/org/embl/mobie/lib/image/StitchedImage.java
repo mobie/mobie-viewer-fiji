@@ -147,6 +147,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				System.out.println( "StitchedImage: Metadata dimensions: " + Arrays.toString( dimensions ) );
 				System.out.println( "StitchedImage: Metadata tile mask: " + TransformHelper.maskToString( referenceMask ) );
 			}
+
 			levelToSourceTransform.put( level, copy );
 			levelToSourceDimensions.put( level, dimensions );
 		}

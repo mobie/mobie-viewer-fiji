@@ -30,8 +30,8 @@ package projects;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.lib.MoBIE;
-import org.embl.mobie.lib.MoBIESettings;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 
 import java.io.IOException;
 

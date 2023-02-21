@@ -29,7 +29,7 @@
 package org.embl.mobie.lib.view.save;
 
 import de.embl.cba.tables.SwingUtils;
-import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.create.ProjectCreatorHelper;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.ui.MoBIELaf;

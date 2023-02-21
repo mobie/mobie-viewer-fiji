@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib;
+package org.embl.mobie;
 
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.lib.serialize.View;

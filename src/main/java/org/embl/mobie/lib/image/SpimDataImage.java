@@ -125,10 +125,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	{
 		try
 		{
-			if ( sharedQueue == null )
-				return new SpimDataOpener().openSpimData( path, imageDataFormat );
-
-			return new SpimDataOpener().openSpimData( path, imageDataFormat, sharedQueue );
+			return new SpimDataOpener().open( path, imageDataFormat, sharedQueue );
 		}
 		catch ( SpimDataException e )
 		{

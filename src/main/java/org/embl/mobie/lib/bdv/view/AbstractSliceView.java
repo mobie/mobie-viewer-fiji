@@ -29,7 +29,7 @@
 package org.embl.mobie.lib.bdv.view;
 
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.serialize.display.AbstractDisplay;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 

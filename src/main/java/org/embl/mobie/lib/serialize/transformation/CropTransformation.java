@@ -38,7 +38,7 @@ public class CropTransformation< T > extends AbstractImageTransformation< T, T >
 	public boolean centerAtOrigin = false;
 
 	@Override
-	public List< String > targetImageNames()
+	public List< String > getSources()
 	{
 		return sources;
 	}

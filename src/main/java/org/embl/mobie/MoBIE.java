@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib;
+package org.embl.mobie;
 
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
@@ -39,9 +39,11 @@ import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.ImgLoader;
 import net.imagej.ImageJ;
-import net.imglib2.Dimensions;
 import org.apache.commons.io.FilenameUtils;
-import org.embl.mobie.lib.hcs.HCSDatasetCreator;
+import org.embl.mobie.lib.DataStore;
+import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.ThreadHelper;
+import org.embl.mobie.lib.hcs.HCSDataSetter;
 import org.embl.mobie.lib.hcs.HCSPlate;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.io.ImageDataFormat;
@@ -141,12 +143,12 @@ public class MoBIE
 	private ArrayList< String > projectCommands = new ArrayList<>();
 	public static boolean initiallyShowSourceNames = false;
 
-	public MoBIE( String projectLocation ) throws IOException
+	public MoBIE( String projectLocation ) throws IOException, SpimDataException
 	{
 		this( projectLocation, new MoBIESettings() );
 	}
 
-	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
+	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException, SpimDataException
 	{
 		init();
 
@@ -209,8 +211,7 @@ public class MoBIE
 			for ( String path : imagePaths )
 			{
 				System.out.println( "Opening image: " + path );
-				final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
-				final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( path, imageDataFormat );
+				final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( path, ImageDataFormat.fromPath( path ) );
 				addSpimDataImages( spimData, false, null, null );
 			}
 		}
@@ -328,7 +329,7 @@ public class MoBIE
 
 		// show the last added view
 		final String[] viewNames = dataset.views.keySet().toArray( new String[ 0 ] );
-		initUIandShowViews( viewNames[ viewNames.length -1 ] );
+		initUIandShowView( viewNames[ viewNames.length -1 ] );
 	}
 
 	// use this constructor from the Fiji UI
@@ -349,7 +350,7 @@ public class MoBIE
 
 		addSpimDataImages( segmentation, true, tableStorageLocation, tableDataFormat );
 
-		initUIandShowViews( null );
+		initUIandShowView( null );
 	}
 
 	private void init()
@@ -360,15 +361,17 @@ public class MoBIE
 			imageJ = new ImageJ(); // Init SciJava Services
 	}
 
-	private void initHCSProject( String projectLocation ) throws IOException
+	private void initHCSProject( String projectLocation ) throws IOException, SpimDataException
 	{
 		final HCSPlate hcsPlate = new HCSPlate( projectLocation );
 		initProject( "HCS" );
-		new HCSDatasetCreator( hcsPlate, dataset );
-
+		settings.addImageDataFormat( ImageDataFormat.SpimData ); // TODO: why do we need to add this ?
+		dataset.is2D( true ); // TODO could be 3D...
+		new HCSDataSetter().addPlateToDataset( hcsPlate, dataset );
+		initUIandShowView( dataset.views.keySet().iterator().next() );
 	}
 
-	private void initUIandShowViews( @Nullable String view )
+	private void initUIandShowView( @Nullable String view )
 	{
 		initUI();
 
@@ -451,7 +454,8 @@ public class MoBIE
 			}
 
 			dataSource.preInit( true );
-			addDataSourceToDataset( spimData, setupIndex, dataSource );
+			dataset.addDataSource( dataSource );
+			dataset.is2D( MoBIEHelper.is2D( spimData, setupIndex ) );
 		}
 	}
 
@@ -494,17 +498,6 @@ public class MoBIE
 
 		final View view = new View( imageName, "segmentation", Arrays.asList( display ), null, false );
 		dataset.views.put( view.getName(), view );
-	}
-
-	private void addDataSourceToDataset( AbstractSpimData< ? > spimData, int setupId, DataSource dataSource )
-	{
-		dataset.sources.put( dataSource.getName(), dataSource );
-		if ( dataset.is2D )
-		{
-			final Dimensions dimensions = spimData.getSequenceDescription().getViewSetupsOrdered().get( setupId ).getSize();
-			if ( dimensions.dimension( 2 ) > 1 )
-				dataset.is2D = false;
-		}
 	}
 
 	private StorageLocation configureCommandLineImageLocation( String imagePath, int channel, ImageDataFormat imageDataFormat )
@@ -1059,8 +1052,8 @@ public class MoBIE
 				return new SpimDataImage<>( ( AbstractSpimData ) storageLocation.data, channel, name );
 			default:
 				// TODO https://github.com/mobie/mobie-viewer-fiji/issues/857
-				final String imagePath = getImageLocation( imageDataFormat, storageLocation );
-				return new SpimDataImage( imageDataFormat, imagePath, channel, name, ThreadHelper.sharedQueue );
+				final String imageLocation = getImageLocation( imageDataFormat, storageLocation );
+				return new SpimDataImage( imageDataFormat, imageLocation, channel, name, ThreadHelper.sharedQueue );
 		}
 	}
 

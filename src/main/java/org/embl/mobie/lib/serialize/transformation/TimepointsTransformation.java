@@ -111,7 +111,7 @@ public class TimepointsTransformation< T > extends AbstractImageTransformation< 
 	}
 
 	@Override
-	public List< String > targetImageNames()
+	public List< String > getSources()
 	{
 		return sources;
 	}

@@ -29,7 +29,7 @@
 package org.embl.mobie.lib.view;
 
 import ij.IJ;
-import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.lib.serialize.View;

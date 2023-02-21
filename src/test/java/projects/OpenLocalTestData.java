@@ -28,8 +28,8 @@
  */
 package projects;
 
-import org.embl.mobie.lib.MoBIE;
-import org.embl.mobie.lib.MoBIESettings;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 import net.imagej.ImageJ;
 
 import java.io.IOException;

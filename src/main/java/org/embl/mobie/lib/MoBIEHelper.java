@@ -32,6 +32,8 @@ import ij.ImagePlus;
 import loci.plugins.in.ImagePlusReader;
 import loci.plugins.in.ImportProcess;
 import loci.plugins.in.ImporterOptions;
+import mpicbg.spim.data.generic.AbstractSpimData;
+import net.imglib2.Dimensions;
 
 
 public abstract class MoBIEHelper
@@ -141,6 +143,12 @@ public abstract class MoBIEHelper
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	public static boolean is2D( AbstractSpimData< ? > spimData, int setupIndex )
+	{
+		final Dimensions size = spimData.getSequenceDescription().getViewSetupsOrdered().get( setupIndex ).getSize();
+		return size.dimension( 2 ) == 1;
 	}
 
 	public enum FileLocation

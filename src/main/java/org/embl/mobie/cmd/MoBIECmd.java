@@ -1,10 +1,7 @@
 package org.embl.mobie.cmd;
 
-import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.MoBIE;
-import org.embl.mobie.lib.MoBIESettings;
-import org.scijava.command.Command;
-import org.scijava.plugin.Plugin;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 

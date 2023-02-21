@@ -28,8 +28,8 @@
  */
 package org.embl.mobie.command;
 
-import org.embl.mobie.lib.MoBIE;
-import org.embl.mobie.lib.MoBIESettings;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
 import org.scijava.command.Command;

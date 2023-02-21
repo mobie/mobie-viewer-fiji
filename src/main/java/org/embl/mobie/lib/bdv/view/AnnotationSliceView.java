@@ -35,7 +35,7 @@ import bdv.viewer.SourceAndConverter;
 import bdv.viewer.SynchronizedViewerState;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.lib.color.AnnotationARGBConverter;
 import org.embl.mobie.lib.color.ColoringListener;

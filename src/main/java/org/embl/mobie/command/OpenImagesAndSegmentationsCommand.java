@@ -2,7 +2,7 @@ package org.embl.mobie.command;
 
 import ij.IJ;
 import mpicbg.spim.data.SpimDataException;
-import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.MoBIE;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;

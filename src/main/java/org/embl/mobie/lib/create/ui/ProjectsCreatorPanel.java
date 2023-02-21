@@ -32,7 +32,7 @@ import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
-import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.serialize.Project;
 import org.embl.mobie.command.OpenMoBIEProjectCommand;
 import org.embl.mobie.lib.create.ImagesCreator;

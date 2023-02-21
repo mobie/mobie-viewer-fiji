@@ -30,9 +30,9 @@ package org.embl.mobie.lib.view.save;
 
 import ij.IJ;
 import ij.gui.GenericDialog;
-import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.MoBIEHelper;
-import org.embl.mobie.lib.MoBIESettings;
+import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.lib.create.ProjectCreatorHelper;
 import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.lib.serialize.Dataset;

@@ -50,7 +50,7 @@ public class AffineTransformation< T > extends AbstractImageTransformation< T, T
 	}
 
 	@Override
-	public List< String > targetImageNames()
+	public List< String > getSources()
 	{
 		return sources;
 	}

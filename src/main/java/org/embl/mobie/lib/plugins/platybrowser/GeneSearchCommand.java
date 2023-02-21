@@ -33,7 +33,7 @@ import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.bdv.CircleOverlay;
 import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
 import org.embl.mobie.command.CommandConstants;

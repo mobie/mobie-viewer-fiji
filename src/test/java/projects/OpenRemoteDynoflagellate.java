@@ -29,7 +29,7 @@
 package projects;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.MoBIE;
 
 import java.io.IOException;
 

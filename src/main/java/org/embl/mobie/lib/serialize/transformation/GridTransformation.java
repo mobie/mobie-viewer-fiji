@@ -39,7 +39,7 @@ public class GridTransformation extends AbstractGridTransformation
 	public boolean centerAtOrigin = true;
 
 	@Override
-	public List< String > targetImageNames()
+	public List< String > getSources()
 	{
 		final ArrayList< String > allSources = new ArrayList<>();
 		for ( List< String > sourcesAtGridPosition : nestedSources )

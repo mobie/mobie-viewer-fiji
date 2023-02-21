@@ -59,4 +59,19 @@ public class Dataset
 
 		return views;
 	}
+
+	public void addDataSource( DataSource dataSource )
+	{
+		sources.put( dataSource.getName(), dataSource );
+	}
+
+	public boolean is2D()
+	{
+		return is2D;
+	}
+
+	public void is2D( boolean is2D )
+	{
+		this.is2D = is2D;
+	}
 }

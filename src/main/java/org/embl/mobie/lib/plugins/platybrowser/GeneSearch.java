@@ -32,7 +32,7 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.TableUIs;
 import ij.IJ;
 import org.embl.mobie.lib.DataStore;
-import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.serialize.DataSource;
 import org.embl.mobie.lib.serialize.Dataset;

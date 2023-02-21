@@ -37,7 +37,7 @@ import org.embl.mobie.command.ScreenShotMakerCommand;
 import org.embl.mobie.command.ShowRasterImagesCommand;
 import org.embl.mobie.command.SourceTransformLoggerCommand;
 import org.embl.mobie.command.ViewerTransformLoggerCommand;
-import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.lib.bdv.MobieBdvSupplier;
 import org.embl.mobie.lib.bdv.MobieSerializableBdvOptions;

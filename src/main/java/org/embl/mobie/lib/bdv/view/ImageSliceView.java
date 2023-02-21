@@ -32,7 +32,7 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import net.imglib2.converter.Converter;
-import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.opacity.AdjustableOpacityColorConverter;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;

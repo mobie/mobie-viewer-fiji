@@ -39,7 +39,7 @@ import net.imagej.ImageJ;
 import net.imagej.patcher.LegacyInjector;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.lib.MoBIE;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.create.DatasetsCreator;
 import org.embl.mobie.lib.create.ImagesCreator;
