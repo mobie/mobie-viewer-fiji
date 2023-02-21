@@ -29,6 +29,7 @@
 package org.embl.mobie.command;
 
 import ij.gui.GenericDialog;
+import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.lib.published.PublishedProject;

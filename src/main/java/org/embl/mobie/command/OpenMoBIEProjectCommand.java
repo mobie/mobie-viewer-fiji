@@ -50,13 +50,12 @@ public class OpenMoBIEProjectCommand implements Command
 	public void run()
 	{
 		MoBIESettings options = MoBIESettings.settings();
-		//options.gitProjectBranch( "mobie3" ); // <----
 
 		try
 		{
 			new MoBIE( projectLocation, options );
 		}
-		catch ( IOException | SpimDataException e )
+		catch ( IOException e )
 		{
 			e.printStackTrace();
 		}

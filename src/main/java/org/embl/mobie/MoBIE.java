@@ -47,7 +47,6 @@ import org.embl.mobie.lib.hcs.HCSDataSetter;
 import org.embl.mobie.lib.hcs.HCSPlate;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.S3Utils;
@@ -143,12 +142,12 @@ public class MoBIE
 	private ArrayList< String > projectCommands = new ArrayList<>();
 	public static boolean initiallyShowSourceNames = false;
 
-	public MoBIE( String projectLocation ) throws IOException, SpimDataException
+	public MoBIE( String projectLocation ) throws IOException
 	{
 		this( projectLocation, new MoBIESettings() );
 	}
 
-	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException, SpimDataException
+	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
 		init();
 
@@ -190,7 +189,7 @@ public class MoBIE
 		openAndViewDataset();
 	}
 
-	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths, String[] tablePaths, boolean combine ) throws SpimDataException, IOException
+	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths, String[] tablePaths, boolean combine ) throws IOException
 	{
 		init();
 
@@ -211,7 +210,7 @@ public class MoBIE
 			for ( String path : imagePaths )
 			{
 				System.out.println( "Opening image: " + path );
-				final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( path, ImageDataFormat.fromPath( path ) );
+				final AbstractSpimData< ? > spimData = IOHelper.tryOpenSpimData( path, ImageDataFormat.fromPath( path ) );
 				addSpimDataImages( spimData, false, null, null );
 			}
 		}
@@ -224,7 +223,7 @@ public class MoBIE
 				final String segmentationPath = segmentationPaths[ segmentationIndex ];
 				System.out.println( "Opening segmentation: " + segmentationPath );
 				final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( segmentationPath );
-				final AbstractSpimData< ? > spimData = new SpimDataOpener().openSpimData( segmentationPath, imageDataFormat );
+				final AbstractSpimData< ? > spimData = IOHelper.tryOpenSpimData( segmentationPath, imageDataFormat );
 
 				if ( tablePaths != null && tablePaths.length > segmentationIndex )
 				{
@@ -361,12 +360,12 @@ public class MoBIE
 			imageJ = new ImageJ(); // Init SciJava Services
 	}
 
-	private void initHCSProject( String projectLocation ) throws IOException, SpimDataException
+	private void initHCSProject( String projectLocation ) throws IOException
 	{
-		final HCSPlate hcsPlate = new HCSPlate( projectLocation );
 		initProject( "HCS" );
-		settings.addImageDataFormat( ImageDataFormat.SpimData ); // TODO: why do we need to add this ?
+		settings.addImageDataFormat( ImageDataFormat.BioFormats ); // TODO: why do we need to add this ?
 		dataset.is2D( true ); // TODO could be 3D...
+		final HCSPlate hcsPlate = new HCSPlate( projectLocation );
 		new HCSDataSetter().addPlateToDataset( hcsPlate, dataset );
 		initUIandShowView( dataset.views.keySet().iterator().next() );
 	}
@@ -916,14 +915,7 @@ public class MoBIE
 				ThreadHelper.ioExecutorService.submit( () ->
 					{
 						String log = getLog( sourceIndex, numImages, sourceLoggingModulo, lastLogMillis );
-						try
-						{
-							initDataSource( dataSource, log );
-						}
-						catch ( SpimDataException e )
-						{
-							e.printStackTrace();
-						}
+						initDataSource( dataSource, log );
 					}
 				) );
 		}
@@ -932,7 +924,7 @@ public class MoBIE
 		IJ.log( "Initialised " + dataSources.size() + " data source(s) in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + ThreadHelper.getNumIoThreads() + " thread(s).");
 	}
 
-	private void initDataSource( DataSource dataSource, String log ) throws SpimDataException
+	private void initDataSource( DataSource dataSource, String log )
 	{
 		if ( dataSource instanceof ImageDataSource )
 		{

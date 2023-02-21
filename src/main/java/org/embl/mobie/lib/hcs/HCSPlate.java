@@ -1,35 +1,32 @@
 package org.embl.mobie.lib.hcs;
 
-import edu.mines.jtk.mesh.TetMesh;
-import org.embl.mobie.lib.io.IOHelper;
-
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class HCSPlate
 {
 	private HCSPattern hcsPattern;
 	private HashMap< String, Map< String, Set< String > > > plateMap;
 	private HashMap< String, String > siteToPath;
-	private HashMap< String, int[] > siteToGridPosition;
-	private HashMap< String, Integer > channelToNumWells;
-	private HashMap< String, Integer > wellToNumSites;
 
 	public HCSPlate( String hcsDirectory ) throws IOException
 	{
-		final String[] paths = IOHelper.getPaths( hcsDirectory, 999 );
+		final List< String > paths = Files.walk( Paths.get( hcsDirectory ) ).map( p -> p.toString() ).collect( Collectors.toList() );
 
 		hcsPattern = determineHCSPattern( hcsDirectory, paths );
 
 		buildPlateMap( paths );
 	}
 
-	private void buildPlateMap( String[] paths )
+	private void buildPlateMap( List< String > paths )
 	{
 		plateMap = new HashMap<>();
 		siteToPath = new HashMap<>();
@@ -56,11 +53,16 @@ public class HCSPlate
 			final String site = matcher.group( HCSPattern.SITE );
 			plateMap.get( channel ).get( well ).add( site );
 
-			siteToPath.put( site, path );
+			siteToPath.put( getSiteKey( channel, well, site ), path );
 		}
 	}
 
-	private HCSPattern determineHCSPattern( String hcsDirectory, String[] paths )
+	public String getSiteKey( String channel, String well, String site )
+	{
+		return channel + "-" + well + "-" + site;
+	}
+
+	private HCSPattern determineHCSPattern( String hcsDirectory, List< String > paths )
 	{
 		for ( String path : paths )
 		{
@@ -87,9 +89,9 @@ public class HCSPlate
 		return plateMap.get( channel ).get( well );
 	}
 
-	public String getPath( String site )
+	public String getPath( String channel, String well, String site )
 	{
-		return siteToPath.get( site );
+		return siteToPath.get( getSiteKey( channel, well, site ) );
 	}
 
 //	private int[] getWellGridPosition( String well )
@@ -125,7 +127,7 @@ public class HCSPlate
 				sitePosition[ 0 ] = siteIndex % numSiteColumns; // column
 				sitePosition[ 1 ] = siteIndex / numSiteColumns; // row
 
-				System.out.println( "Site index = " + siteIndex + ", x = " + sitePosition[ 0 ] + ", y = " + sitePosition[ 1 ]);
+				System.out.println( "Site index = " + siteIndex + ", c = " + sitePosition[ 0 ] + ", r = " + sitePosition[ 1 ]);
 
 				return sitePosition;
 		}

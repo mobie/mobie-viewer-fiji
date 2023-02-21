@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.command;
 
+import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.scijava.command.Command;

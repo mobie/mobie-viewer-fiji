@@ -24,7 +24,7 @@ public class HCSDataSetter
 	 * @param dataset
 	 * 					the current MoBIE dataset
 	 */
-	public void addPlateToDataset( HCSPlate hcsPlate, Dataset dataset ) throws SpimDataException
+	public void addPlateToDataset( HCSPlate hcsPlate, Dataset dataset )
 	{
 		final Set< String > channels = hcsPlate.getChannels();
 
@@ -34,18 +34,21 @@ public class HCSDataSetter
 
 			for ( String well : wells )
 			{
+				final String channelWell = "c" + channel + "-" + well;
+
 				final MergedGridTransformation grid = new MergedGridTransformation();
 				grid.sources = new ArrayList<>();
 				grid.positions = new ArrayList<>();
+				grid.mergedGridSourceName = channelWell;
 
 				final Set< String > sites = hcsPlate.getSites( channel, well );
 				for ( String site : sites )
 				{
 					final StorageLocation storageLocation = new StorageLocation();
-					storageLocation.absolutePath = hcsPlate.getPath( site );
+					storageLocation.absolutePath = hcsPlate.getPath( channel, well, site );
 					storageLocation.channel = 0;
-					final ImageDataSource imageDataSource = new ImageDataSource( site, ImageDataFormat.BioFormats, storageLocation );
-					imageDataSource.preInit( false );
+					System.out.println( site + ":" + storageLocation.absolutePath );
+					final ImageDataSource imageDataSource = new ImageDataSource( hcsPlate.getSiteKey( channel, well, site ), ImageDataFormat.BioFormats, storageLocation );
 					dataset.addDataSource( imageDataSource );
 					grid.sources.add( imageDataSource.getName() );
 					grid.positions.add( hcsPlate.getSiteGridPosition( channel, well, site ) );
@@ -53,9 +56,9 @@ public class HCSDataSetter
 
 				// Add well view for testing
 				String color = "White";
-				double[] contrastLimits = null;
-				final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( well , grid.sources, color, contrastLimits );
-				final View view = new View( well, "well", Arrays.asList( imageDisplay ), null, false );
+				double[] contrastLimits = new double[]{0, 1000}; // TODO
+				final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( channelWell, Arrays.asList( channelWell ), color, contrastLimits );
+				final View view = new View( channelWell, "well", Arrays.asList( imageDisplay ), Arrays.asList( grid ), true );
 				dataset.views.put( view.getName(), view );
 			}
 		}

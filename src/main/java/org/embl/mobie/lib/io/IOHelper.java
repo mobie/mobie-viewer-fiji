@@ -1,5 +1,10 @@
 package org.embl.mobie.lib.io;
 
+import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.generic.AbstractSpimData;
+import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.SpimDataOpener;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -57,5 +62,17 @@ public class IOHelper
 			System.err.println("Could not find any files for " + regex );
 
 		return paths;
+	}
+
+	public static AbstractSpimData< ? > tryOpenSpimData( String segmentationPath, ImageDataFormat imageDataFormat )
+	{
+		try
+		{
+			return new SpimDataOpener().open( segmentationPath, imageDataFormat );
+		}
+		catch ( SpimDataException e )
+		{
+			throw new RuntimeException( e );
+		}
 	}
 }

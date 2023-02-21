@@ -1,6 +1,7 @@
 package org.embl.mobie;
 
 import mpicbg.spim.data.SpimDataException;
+import net.imagej.ImageJ;
 
 import java.io.IOException;
 
@@ -10,6 +11,8 @@ class MoBIEHCSTest
 {
 	public static void main( String[] args ) throws SpimDataException, IOException
 	{
+		// TODO: make BioFormats ignore the XML file! => Ask Nico and Josh and DGault how to do this
+		new ImageJ();
 		final MoBIESettings settings = new MoBIESettings();
 		settings.isHCSProject( true );
 		new MoBIE( "/Users/tischer/Downloads/OperettaHarmony4_1_dataexport", settings );

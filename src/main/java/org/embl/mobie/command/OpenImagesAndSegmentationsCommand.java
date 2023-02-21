@@ -38,10 +38,8 @@ public class OpenImagesAndSegmentationsCommand implements Command {
 		try
 		{
 			new MoBIE( "", new String[]{ image }, new String[]{ segmentation }, new String[]{ table }, autoPair );
-		} catch ( SpimDataException e )
-		{
-			e.printStackTrace();
-		} catch ( IOException e )
+		}
+		catch ( IOException e )
 		{
 			e.printStackTrace();
 		}
