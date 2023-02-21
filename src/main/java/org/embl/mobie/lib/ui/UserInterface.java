@@ -66,7 +66,7 @@ public class UserInterface
 		displaySettingsScrollPane = userInterfaceHelper.createDisplaySettingsScrollPane( displaySettingsContainer );
 		JPanel displaySettingsPanel = userInterfaceHelper.createDisplaySettingsPanel( displaySettingsScrollPane );
 		displayToPanel = new HashMap<>();
-		frame = createAndShowFrame( selectionPanel, displaySettingsPanel, moBIE.getProjectName() + " " + moBIE.getCurrentDatasetName(), moBIE.getViews().values() );
+		frame = createAndShowFrame( selectionPanel, displaySettingsPanel, moBIE.getProjectName() + " " + moBIE.getDatasetName(), moBIE.getViews().values() );
 		MoBIELaf.MoBIELafOff();
 		configureWindowClosing( moBIE );
 	}

@@ -490,7 +490,7 @@ public class UserInterfaceHelper
 		final JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.Y_AXIS ) );
 
-		panel.add( createInfoPanel( moBIE.getSettings().values.getProjectLocation(), moBIE.getProject() ) );
+		panel.add( createInfoPanel( moBIE.getProjectLocation(), moBIE.getProject() ) );
 
 		if ( moBIE.getDatasets() != null && moBIE.getDatasets().size() > 1 )
 		{
@@ -860,7 +860,7 @@ public class UserInterfaceHelper
 			} );
 		} );
 
-		comboBox.setSelectedItem( moBIE.getCurrentDatasetName() );
+		comboBox.setSelectedItem( moBIE.getDatasetName() );
 		SwingHelper.setComboBoxDimensions( comboBox, MoBIE.PROTOTYPE_DISPLAY_VALUE );
 
 		panel.add( SwingHelper.getJLabel( "dataset" ) );

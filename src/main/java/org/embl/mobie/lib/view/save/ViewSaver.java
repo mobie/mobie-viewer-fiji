@@ -224,10 +224,11 @@ public class ViewSaver
         }
     }
 
-    private void overwriteExistingViewInProject( View view, ProjectSaveLocation projectSaveLocation ) {
-        if ( isS3(settings.values.getProjectLocation()) ) {
+    private void overwriteExistingViewInProject( View view, ProjectSaveLocation projectSaveLocation )
+    {
+        if ( isS3( moBIE.getProjectLocation() ) ) {
             // TODO - support saving views to s3?
-            IJ.log("View saving aborted - saving directly to s3 is not yet supported!");
+            throw new UnsupportedOperationException("View saving aborted - saving directly to s3 is not yet supported!");
         } else {
 
             try {

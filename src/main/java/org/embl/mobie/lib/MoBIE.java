@@ -41,6 +41,7 @@ import mpicbg.spim.data.sequence.ImgLoader;
 import net.imagej.ImageJ;
 import net.imglib2.Dimensions;
 import org.apache.commons.io.FilenameUtils;
+import org.embl.mobie.lib.hcs.HCSDatasetCreator;
 import org.embl.mobie.lib.hcs.HCSPlate;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.io.ImageDataFormat;
@@ -126,8 +127,9 @@ public class MoBIE
 	public static boolean openedFromCLI = false;
 	public static ImageJ imageJ;
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
+	private String projectLocation;
 	private MoBIESettings settings;
-	private String currentDatasetName;
+	private String datasetName;
 	private Dataset dataset;
 	private ViewManager viewManager;
 	private Project project;
@@ -149,7 +151,7 @@ public class MoBIE
 		init();
 
 		this.settings = settings;
-		this.settings.projectLocation( projectLocation );
+		this.projectLocation = projectLocation;
 
 		// Only allow one instance to avoid confusion
 		if ( moBIE != null )
@@ -165,7 +167,7 @@ public class MoBIE
 
 		if ( settings.values.hcsProject() )
 		{
-			initHCSProject();
+			initHCSProject( projectLocation );
 		}
 		else
 		{
@@ -177,16 +179,15 @@ public class MoBIE
 	{
 		setS3Credentials( settings );
 		setProjectImageAndTableRootLocations();
-		registerProjectPlugins( settings.values.getProjectLocation() );
+		registerProjectPlugins( projectLocation );
 		project = new ProjectJsonParser().parseProject( org.embl.mobie.io.util.IOHelper.combinePath( projectRoot, "project.json" ) );
 		if ( project.getName() == null )
-			project.setName( org.embl.mobie.io.util.IOHelper.getFileName( settings.values.getProjectLocation() ) );
-		setImageDataFormats( settings.values.getProjectLocation() );
+			project.setName( org.embl.mobie.io.util.IOHelper.getFileName( projectLocation ) );
+		setImageDataFormats( projectLocation );
 		settings.addTableDataFormat( TableDataFormat.TSV );
 		openAndViewDataset();
 	}
 
-	// use this constructor from the command line
 	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths, String[] tablePaths, boolean combine ) throws SpimDataException, IOException
 	{
 		init();
@@ -359,9 +360,12 @@ public class MoBIE
 			imageJ = new ImageJ(); // Init SciJava Services
 	}
 
-	private void initHCSProject() throws IOException
+	private void initHCSProject( String projectLocation ) throws IOException
 	{
-		final HCSPlate hcsPlate = new HCSPlate( settings.values.getProjectLocation() );
+		final HCSPlate hcsPlate = new HCSPlate( projectLocation );
+		initProject( "HCS" );
+		new HCSDatasetCreator( hcsPlate, dataset );
+
 	}
 
 	private void initUIandShowViews( @Nullable String view )
@@ -388,17 +392,23 @@ public class MoBIE
 		WindowArrangementHelper.bottomAlignWindow( userInterfaceWindow, WindowManager.getWindow( "Log" ), true, true );
 	}
 
+	/*
+	Use this if there is no project.json
+	 */
 	private void initProject( String projectName )
 	{
-		// init settings, project and dataset
 		settings = new MoBIESettings();
 		project = new Project( projectName );
-		currentDatasetName = project.getName();
-		project.datasets().add( currentDatasetName );
-		project.setDefaultDataset( currentDatasetName );
-		// FIXME where is the link of a dataset to its name?
-		dataset = new Dataset();
-		dataset.is2D = true; // changed further down
+		datasetName = project.getName();
+		project.datasets().add( datasetName );
+		project.setDefaultDataset( datasetName );
+		dataset = new Dataset(); // FIXME where is the link of a dataset to its name?
+		dataset.is2D = true; // could be changed later-on
+	}
+
+	public String getProjectLocation()
+	{
+		return projectLocation;
 	}
 
 	public Project getProject()
@@ -570,9 +580,7 @@ public class MoBIE
 
 	private void setProjectImageAndTableRootLocations( )
 	{
-		projectRoot = createPath(
-				settings.values.getProjectLocation(),
-				settings.values.getProjectBranch() );
+		projectRoot = createPath( projectLocation, settings.values.getProjectBranch() );
 
 		if( ! org.embl.mobie.io.util.IOHelper.exists( org.embl.mobie.io.util.IOHelper.combinePath( projectRoot, "project.json" ) ) )
 		{
@@ -580,7 +588,7 @@ public class MoBIE
 		}
 
 		imageRoot = createPath(
-				settings.values.getImageDataLocation(),
+				settings.values.getImageDataLocation() != null ? settings.values.getImageDataLocation() : projectLocation ,
 				settings.values.getImageDataBranch() );
 
 		if( ! org.embl.mobie.io.util.IOHelper.exists( org.embl.mobie.io.util.IOHelper.combinePath( imageRoot, "project.json" ) ) )
@@ -589,7 +597,7 @@ public class MoBIE
 		}
 
 		tableRoot = createPath(
-				settings.values.getTableDataLocation(),
+				settings.values.getTableDataLocation() != null ? settings.values.getTableDataLocation() : projectLocation,
 				settings.values.getTableDataBranch() );
 
 		if( ! org.embl.mobie.io.util.IOHelper.exists( org.embl.mobie.io.util.IOHelper.combinePath( tableRoot, "project.json" ) ) )
@@ -627,7 +635,7 @@ public class MoBIE
 	{
 		// read dataset from file
 		IJ.log("Opening dataset: " + datasetName );
-		setCurrentDatasetName( datasetName );
+		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
 
 		// set data source names
@@ -662,9 +670,9 @@ public class MoBIE
 		return view;
 	}
 
-	private void setCurrentDatasetName( String datasetName )
+	private void setDatasetName( String datasetName )
 	{
-		this.currentDatasetName = datasetName;
+		this.datasetName = datasetName;
 	}
 
 	private String createPath( String rootLocation, String githubBranch, String... files )
@@ -702,9 +710,9 @@ public class MoBIE
 		return dataset;
 	}
 
-	public String getCurrentDatasetName()
+	public String getDatasetName()
 	{
-		return currentDatasetName;
+		return datasetName;
 	}
 
 	public List< String > getDatasets()
@@ -788,7 +796,7 @@ public class MoBIE
 
 	public void setDataset( String dataset )
     {
-        setCurrentDatasetName( dataset );
+        setDatasetName( dataset );
         viewManager.close();
 
         try {
@@ -815,7 +823,7 @@ public class MoBIE
 		if ( storageLocation.relativePath != null )
 		{
 			storageLocation.defaultChunk = TableDataFormat.MOBIE_DEFAULT_CHUNK;
-			storageLocation.absolutePath = org.embl.mobie.io.util.IOHelper.combinePath( tableRoot, currentDatasetName, storageLocation.relativePath );
+			storageLocation.absolutePath = org.embl.mobie.io.util.IOHelper.combinePath( tableRoot, datasetName, storageLocation.relativePath );
 			return storageLocation;
 		}
 
@@ -824,7 +832,7 @@ public class MoBIE
 
 	public String getDatasetPath( String... files )
 	{
-		final String datasetRoot = org.embl.mobie.io.util.IOHelper.combinePath( projectRoot, getCurrentDatasetName() );
+		final String datasetRoot = org.embl.mobie.io.util.IOHelper.combinePath( projectRoot, getDatasetName() );
 		return createPath( datasetRoot, files );
 	}
 
@@ -873,7 +881,7 @@ public class MoBIE
 			case OmeZarr:
             	if ( storageLocation.absolutePath != null  )
 					return storageLocation.absolutePath;
-                return org.embl.mobie.io.util.IOHelper.combinePath( imageRoot, getCurrentDatasetName(), storageLocation.relativePath );
+                return org.embl.mobie.io.util.IOHelper.combinePath( imageRoot, getDatasetName(), storageLocation.relativePath );
             case OpenOrganelleS3:
             case OmeZarrS3:
                 return storageLocation.s3Address;

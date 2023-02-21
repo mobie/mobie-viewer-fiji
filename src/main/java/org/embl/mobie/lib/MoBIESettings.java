@@ -46,12 +46,6 @@ public class MoBIESettings
 		return new MoBIESettings();
 	}
 
-	public MoBIESettings projectLocation( String projectLocation )
-	{
-		this.values.projectLocation = projectLocation;
-		return this;
-	}
-
 	public MoBIESettings dataset( String dataset )
 	{
 		this.values.dataset = dataset;
@@ -117,9 +111,8 @@ public class MoBIESettings
 	{
 		private String[] s3AccessAndSecretKey;
 		private String dataset;
-		private String projectBranch = "main"; // project and images
+		private String projectBranch = "main";
 		private String tableDataBranch;
-		private String projectLocation;
 		private Set< ImageDataFormat > imageDataFormats = new HashSet<>();
 		private String imageDataLocation;
 		private Set< TableDataFormat > tableDataFormats = new HashSet<>();
@@ -146,12 +139,12 @@ public class MoBIESettings
 
 		public String getImageDataLocation()
 		{
-			return imageDataLocation != null ? imageDataLocation : projectLocation;
+			return imageDataLocation;
 		}
 
 		public String getTableDataLocation()
 		{
-			return tableDataLocation != null ? tableDataLocation : projectLocation;
+			return tableDataLocation;
 		}
 
 		public String getTableDataBranch()
@@ -162,11 +155,6 @@ public class MoBIESettings
 		public String getImageDataBranch()
 		{
 			return projectBranch;
-		}
-
-		public String getProjectLocation()
-		{
-			return projectLocation;
 		}
 
 		public String getView()
