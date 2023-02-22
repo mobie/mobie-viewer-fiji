@@ -1,6 +1,5 @@
 package org.embl.mobie.lib.hcs;
 
-import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +16,7 @@ public enum HCSPattern
 	private final String MD_SITES_CHANNELS = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">.*)_w(?<"+CHANNEL+">[0-9]{1}).*";
 	private final String MD_SITES = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">[0-9]{1}).*";
 
+	public static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 	// TODO: add the ones below
 	private final String PATTERN_MD_A01_WAVELENGTH = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_(?<"+CHANNEL+">.*).tif";
@@ -50,4 +50,33 @@ public enum HCSPattern
 				return Pattern.compile( MD_SITES_CHANNELS ).matcher( path );
 		}
 	}
+
+	public int[] getWellGridPosition( String well )
+	{
+		switch ( this )
+		{
+			case Operetta:
+				return decodeOperettaWellPosition( well );
+			default:
+				return decodeA01WellPosition( well );
+		}
+	}
+
+	private int[] decodeOperettaWellPosition( String well )
+	{
+		final Matcher matcher = Pattern.compile( "r(?<row>[0-9]{2})c(?<col>[0-9]{2})" ).matcher( well );
+		matcher.matches();
+		final int row = Integer.parseInt( matcher.group( "row" ) ) - 1;
+		final int col = Integer.parseInt( matcher.group( "col" ) ) - 1;
+		return new int[]{ row, col };
+	}
+
+	public static int[] decodeA01WellPosition( String well )
+	{
+		int[] wellPosition = new int[ 2 ];
+		wellPosition[ 0 ] = Integer.parseInt( well.substring( 1, 3 ) ) - 1;
+		wellPosition[ 1 ] = ALPHABET.indexOf( well.substring( 0, 1 ).toUpperCase() );
+		return wellPosition;
+	}
+
 }

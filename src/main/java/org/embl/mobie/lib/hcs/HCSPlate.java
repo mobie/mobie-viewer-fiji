@@ -98,27 +98,8 @@ public class HCSPlate
 		return siteToPath.get( getSiteKey( channel, well, site ) );
 	}
 
-//	private int[] getWellGridPosition( String well )
-//	{
-//		if ( namingScheme.equals( NamingSchemes.PATTERN_OPERETTA ) )
-//		{
-//			final Matcher matcher = Pattern.compile( "r(?<row>[0-9]{2})c(?<col>[0-9]{2})" ).matcher( well );
-//			if ( ! matcher.matches() )
-//				throw new RuntimeException( "Could not decode well " + well );
-//
-//			final int row = Integer.parseInt( matcher.group( "row" ) ) - 1;
-//			final int col = Integer.parseInt( matcher.group( "col" ) ) - 1;
-//			return new int[]{ row, col };
-//		}
-//		else
-//		{
-//			return Utils.getWellPositionFromA01( well );
-//		}
-//	}
-
 	public int[] getSiteGridPosition( String channel, String well, String site )
 	{
-
 		switch ( hcsPattern )
 		{
 			default:
@@ -127,31 +108,76 @@ public class HCSPlate
 				int siteIndex = Integer.parseInt( site ) - 1;
 				int numSiteColumns = (int) Math.sqrt( numSites );
 
-				int[] sitePosition = new int[ 2 ];
-				sitePosition[ 0 ] = siteIndex % numSiteColumns; // column
-				sitePosition[ 1 ] = siteIndex / numSiteColumns; // row
+				int[] gridPosition = new int[ 2 ];
+				gridPosition[ 0 ] = siteIndex % numSiteColumns; // column
+				gridPosition[ 1 ] = siteIndex / numSiteColumns; // row
 
-				System.out.println( "Site index = " + siteIndex + ", c = " + sitePosition[ 0 ] + ", r = " + sitePosition[ 1 ]);
+				System.out.println( "Site  = " + site + ", c = " + gridPosition[ 0 ] + ", r = " + gridPosition[ 1 ]);
 
-				return sitePosition;
+				return gridPosition;
 		}
 	}
 
-	public double[] getContrastLimits( String channel, String well, String site )
+	public int[] getWellGridPosition( String well )
 	{
-		final String path = getPath( channel, well, site );
-		final ImagePlus imagePlus = IJ.openImage( path );
+		switch ( hcsPattern )
+		{
+			default:
+			case Operetta:
+				final int[] gridPosition = hcsPattern.getWellGridPosition( well );
+				System.out.println( "Well  = " + well + ", c = " + gridPosition[ 0 ] + ", r = " + gridPosition[ 1 ]);
+				return gridPosition;
+		}
+	}
 
+	public double[] getContrastLimits( String channel )
+	{
+		final String sitePath = getFirstSitePath( channel );
+		final ImagePlus imagePlus = IJ.openImage( sitePath );
 		final double[] contrastLimits = new double[ 2 ];
 		contrastLimits[ 0 ] = imagePlus.getDisplayRangeMin();
 		contrastLimits[ 1 ] = imagePlus.getDisplayRangeMax();
 		return contrastLimits;
 	}
 
-	public String getColor( String channel, String well, String site )
+	public String getColor( String channel )
 	{
-		final String path = getPath( channel, well, site );
+		final String path = getFirstSitePath( channel );
 		final ImagePlus imagePlus = IJ.openImage( path );
 		return ColorHelper.getString( imagePlus.getLuts()[ 0 ] );
+	}
+
+	private String getFirstSitePath( String channel )
+	{
+		final String firstWell = plateMap.get( channel ).keySet().iterator().next();
+		final String firstSite = plateMap.get( channel ).get( firstWell ).iterator().next();
+		return getPath( channel, firstWell, firstSite );
+	}
+
+	public static int[] getWellDimensions( int numWells )
+	{
+		int[] wellDimensions = new int[ 2 ];
+
+		if ( numWells <= 24 )
+		{
+			wellDimensions[ 0 ] = 6;
+			wellDimensions[ 1 ] = 4;
+		}
+		else if ( numWells <= 96  )
+		{
+			wellDimensions[ 0 ] = 12;
+			wellDimensions[ 1 ] = 8;
+		}
+		else if ( numWells <= 384  )
+		{
+			wellDimensions[ 0 ] = 24;
+			wellDimensions[ 1 ] = 16;
+		}
+		else
+		{
+			throw new RuntimeException( "Could not determine the well dimensions." );
+		}
+
+		return wellDimensions;
 	}
 }

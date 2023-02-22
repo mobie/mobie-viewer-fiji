@@ -33,8 +33,9 @@ import java.util.List;
 public class MergedGridTransformation extends AbstractGridTransformation
 {
 	// Serialization
+	// TODO: make fields private and add getter and setter methods
 	public List< String > sources; // required
-	public String mergedGridSourceName; // required
+	private String mergedGridSourceName; // required => name of corresponding StitchedImage
 	public String metadataSource; // optional
 	public boolean centerAtOrigin = false; // TODO: should actually be true, but: https://github.com/mobie/mobie-viewer-fiji/issues/685#issuecomment-1108179599
 
@@ -44,5 +45,13 @@ public class MergedGridTransformation extends AbstractGridTransformation
 		return sources;
 	}
 
+	public String getName()
+	{
+		return mergedGridSourceName;
+	}
 
+	public void setName( String name )
+	{
+		this.mergedGridSourceName = name;
+	}
 }

@@ -384,12 +384,12 @@ public class ViewManager
 					//
 					if ( gridImages.get( 0 ) instanceof AnnotatedLabelImage )
 					{
-						final StitchedAnnotatedLabelImage< ? extends Annotation> annotatedStitchedImage = new StitchedAnnotatedLabelImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN );
+						final StitchedAnnotatedLabelImage< ? extends Annotation> annotatedStitchedImage = new StitchedAnnotatedLabelImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.getName(), AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN );
 						DataStore.putImage( annotatedStitchedImage );
 					}
 					else
 					{
-						final StitchedImage stitchedImage = new StitchedImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN );
+						final StitchedImage stitchedImage = new StitchedImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.getName(), AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN );
 						DataStore.putImage( stitchedImage );
 					}
 				}
