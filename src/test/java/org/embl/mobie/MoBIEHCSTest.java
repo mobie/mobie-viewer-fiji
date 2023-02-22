@@ -11,11 +11,9 @@ class MoBIEHCSTest
 {
 	public static void main( String[] args ) throws SpimDataException, IOException
 	{
-		// TODO: make BioFormats ignore the XML file! => Ask Nico and Josh and DGault how to do this
-		// TODO: if files endwith TIFF just use ImageJ to open?
-		new ImageJ();
+		new ImageJ().ui().showUI();
 		final MoBIESettings settings = new MoBIESettings();
 		settings.isHCSProject( true );
-		new MoBIE( "/Users/tischer/Downloads/OperettaHarmony4_1_dataexport", settings );
+		new MoBIE( "/Users/tischer/Downloads/Operetta", settings );
 	}
 }

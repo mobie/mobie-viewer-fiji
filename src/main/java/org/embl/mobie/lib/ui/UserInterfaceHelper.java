@@ -607,9 +607,14 @@ public class UserInterfaceHelper
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 		button.addActionListener( e ->
 		{
-			final SourceAndConverter[] sacArray = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
-
-			Services.commandService.run( ConfigureImageRenderingCommand.class, true, "sourceAndConverters", sacArray, "volumeViewer", imageVolumeViewer );
+			SwingUtilities.invokeLater( () ->
+			{
+				new Thread( () ->
+				{
+					final SourceAndConverter[] sacArray = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
+					Services.commandService.run( ConfigureImageRenderingCommand.class, true, "sourceAndConverters", sacArray, "volumeViewer", imageVolumeViewer );
+				} ).start();
+			} );
 		} );
 		return button;
 	}

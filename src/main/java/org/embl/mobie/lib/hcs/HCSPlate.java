@@ -4,6 +4,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import org.embl.mobie.lib.color.ColorHelper;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -17,12 +18,15 @@ import java.util.stream.Collectors;
 
 public class HCSPlate
 {
+	private final String hcsDirectory;
 	private HCSPattern hcsPattern;
 	private HashMap< String, Map< String, Set< String > > > plateMap;
 	private HashMap< String, String > siteToPath;
 
 	public HCSPlate( String hcsDirectory ) throws IOException
 	{
+		this.hcsDirectory = hcsDirectory;
+
 		final List< String > paths = Files.walk( Paths.get( hcsDirectory ) ).map( p -> p.toString() ).collect( Collectors.toList() );
 
 		hcsPattern = determineHCSPattern( hcsDirectory, paths );
@@ -112,7 +116,7 @@ public class HCSPlate
 				gridPosition[ 0 ] = siteIndex % numSiteColumns; // column
 				gridPosition[ 1 ] = siteIndex / numSiteColumns; // row
 
-				System.out.println( "Site  = " + site + ", c = " + gridPosition[ 0 ] + ", r = " + gridPosition[ 1 ]);
+				// System.out.println( "Site  = " + site + ", c = " + gridPosition[ 0 ] + ", r = " + gridPosition[ 1 ]);
 
 				return gridPosition;
 		}
@@ -125,7 +129,7 @@ public class HCSPlate
 			default:
 			case Operetta:
 				final int[] gridPosition = hcsPattern.getWellGridPosition( well );
-				System.out.println( "Well  = " + well + ", c = " + gridPosition[ 0 ] + ", r = " + gridPosition[ 1 ]);
+				// System.out.println( "Well  = " + well + ", c = " + gridPosition[ 0 ] + ", r = " + gridPosition[ 1 ]);
 				return gridPosition;
 		}
 	}
@@ -179,5 +183,10 @@ public class HCSPlate
 		}
 
 		return wellDimensions;
+	}
+
+	public String getName()
+	{
+		return new File( hcsDirectory ).getName();
 	}
 }

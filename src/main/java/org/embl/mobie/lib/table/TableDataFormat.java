@@ -53,15 +53,9 @@ public enum TableDataFormat
 	@SerializedName( TableDataFormatNames.CSV )
 	CSV,  // CSV file
 	@SerializedName( TableDataFormatNames.RESULTS_TABLE )
-	ResultsTable;  // ResultsTable in memory
-
-//	// TODO: Remove the below?
-//	@SerializedName( SKIMAGE_TSV )
-//	SkimageTSV, // Skimage region props CSV FILE
-//	@SerializedName( MLJ_CSV )
-//	MorphoLibJCSV, // MorpholibJ CSV FILE
-//	@SerializedName( MLJ_RESULTS_TABLE )
-//	MorphoLibJResultsTable; // MorpholibJ ResultsTable in RAM
+	ResultsTable,  // ResultsTable in memory
+	@SerializedName( TableDataFormatNames.TABLE )
+	Table;  // tablesaw table in memory
 
 	public static final String MOBIE_DEFAULT_CHUNK = "default.tsv";
 
@@ -72,6 +66,8 @@ public enum TableDataFormat
 		{
 			case ResultsTable:
 				return RESULTS_TABLE;
+			case Table:
+				return TABLE;
 			case CSV:
 				return TableDataFormatNames.CSV;
 			case TSV:
@@ -86,6 +82,8 @@ public enum TableDataFormat
 		{
 			case RESULTS_TABLE:
 				return ResultsTable;
+			case TABLE:
+				return Table;
 			case TableDataFormatNames.CSV:
 				return CSV;
 			case TableDataFormatNames.TSV:

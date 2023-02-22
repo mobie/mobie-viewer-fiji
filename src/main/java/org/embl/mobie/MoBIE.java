@@ -364,6 +364,7 @@ public class MoBIE
 	{
 		initProject( "HCS" );
 		settings.addImageDataFormat( ImageDataFormat.ImageJ ); // TODO: why do we need to add this ?
+		settings.addTableDataFormat( TableDataFormat.Table ); // TODO: why do we need to add this ?
 		dataset.is2D( true ); // TODO could be 3D...
 		final HCSPlate hcsPlate = new HCSPlate( projectLocation );
 		new HCSDataSetter().addPlateToDataset( hcsPlate, dataset );
@@ -767,6 +768,10 @@ public class MoBIE
 	{
 		final Set< TableDataFormat > tableDataFormats = settings.values.getTableDataFormats();
 
+		if ( tableDataFormats.size() == 0 )
+			throw new RuntimeException( "The settings don't contain any table data formats." );
+
+
 		for ( TableDataFormat dataFormat : tableData.keySet() )
 		{
 			if ( tableDataFormats.contains( dataFormat ) )
@@ -783,7 +788,7 @@ public class MoBIE
 		for ( TableDataFormat dataFormat : tableDataFormats )
 			System.err.println("Settings support: " + dataFormat);
 
-		throw new RuntimeException();
+		throw new RuntimeException("Error while determining the table data format.");
 	}
 
 	public void setDataset( String dataset )
@@ -1014,9 +1019,7 @@ public class MoBIE
 			final RegionDataSource regionDataSource = ( RegionDataSource ) dataSource;
 			final StorageLocation tableLocation = getTableLocation( regionDataSource.tableData );
 			final TableDataFormat tableFormat = getTableFormat( regionDataSource.tableData );
-
 			regionDataSource.table = TableOpener.open( tableLocation, tableFormat );
-
 			DataStore.putRawData( regionDataSource );
 		}
 

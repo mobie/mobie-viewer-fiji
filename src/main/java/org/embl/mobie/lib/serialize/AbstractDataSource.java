@@ -17,4 +17,14 @@ public abstract class AbstractDataSource implements DataSource
 	public void preInit( boolean preInit ){ this.preInit = preInit; };
 
 	public boolean preInit(){ return preInit; };
+
+	public AbstractDataSource()
+	{
+		this.name = "dataSource";
+	}
+
+	public AbstractDataSource( String name )
+	{
+		this.name = name;
+	}
 }

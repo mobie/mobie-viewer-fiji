@@ -44,5 +44,11 @@ public class SpotDataSource extends AbstractDataSource
 	public double[] boundingBoxMax;
 
 	public String unit; // spatial
+
+
+	public SpotDataSource( String name )
+	{
+		super( name );
+	}
 }
 

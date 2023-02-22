@@ -276,7 +276,7 @@ public class ViewManager
 		// adapt time point
 		if ( view.getViewerTransform() != null )
 		{
-			// This needs to be done after adding all the sources,
+			// this needs to be done after adding all the sources,
 			// because otherwise the requested timepoint may not yet
 			// exist in BDV
 			SliceViewLocationChanger.adaptTimepoint( sliceViewer.getBdvHandle(), view.getViewerTransform() );
@@ -456,15 +456,12 @@ public class ViewManager
 				// that could be referred to here.
 
 				final RegionDisplay< ? > regionDisplay = ( RegionDisplay< ? > ) display;
+				final Map< String, List< String > > regionIdToImageNames = regionDisplay.sources;
 				final RegionDataSource regionDataSource = ( RegionDataSource ) DataStore.getRawData( regionDisplay.tableSource );
-
-				// Table has been loaded already during
-				// initialisation of that data source
 				Table table = regionDataSource.table;
 
 				// only keep the subset of rows (regions)
-				// that are actually needed
-				final Map< String, List< String > > regionIdToImageNames = regionDisplay.sources;
+				// that are actually referred to in regionIdToImageNames
 				final Set< String > regionIDs = regionIdToImageNames.keySet();
 				final ArrayList< Integer > dropRows = new ArrayList<>();
 				final int rowCount = table.rowCount();
@@ -477,6 +474,7 @@ public class ViewManager
 
 				if ( dropRows.size() > 0 )
 					table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
+
 
 				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( table, regionIdToImageNames );
 

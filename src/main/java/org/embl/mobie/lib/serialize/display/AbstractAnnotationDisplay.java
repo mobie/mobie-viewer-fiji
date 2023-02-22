@@ -102,6 +102,12 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 		opacity = 0.5;
 	}
 
+	public AbstractAnnotationDisplay( String name )
+	{
+		this();
+		this.name = name;
+	}
+
 	// Use this for serialization
 	public AbstractAnnotationDisplay( AbstractAnnotationDisplay< ? extends Annotation > annotationDisplay )
 	{
@@ -156,6 +162,11 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 	public float getBoundaryThickness()
 	{
 		return boundaryThickness;
+	}
+
+	public void setBoundaryThickness( float boundaryThickness )
+	{
+		this.boundaryThickness = boundaryThickness;
 	}
 
 	public int getRandomColorSeed()

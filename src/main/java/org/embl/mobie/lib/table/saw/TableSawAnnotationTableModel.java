@@ -45,8 +45,8 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	public TableSawAnnotationTableModel(
 			String name,
 			TableSawAnnotationCreator< A > annotationCreator,
-			StorageLocation storageLocation,
-			TableDataFormat tableDataFormat,
+			StorageLocation storageLocation, // needed to load additional table chunks
+			TableDataFormat tableDataFormat, // needed to load additional table chunks
 			@Nullable Table defaultTable )
 	{
 		this.dataSourceName = name;

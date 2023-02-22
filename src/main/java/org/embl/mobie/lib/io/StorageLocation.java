@@ -28,6 +28,9 @@
  */
 package org.embl.mobie.lib.io;
 
+
+// Note that this provides storage locations for both images and tables,
+// but some fields are not used by both.
 public class StorageLocation
 {
 	// for data on disk in a MoBIE project
@@ -40,20 +43,19 @@ public class StorageLocation
 	public String s3Address;
 	public String signingRegion;
 
-	// MoBIE is for big data,
-	// thus the above locations typically refer to
+	// The above locations typically refer to
 	// a container, which may contain multiple
 	// chunks of data that are lazy loaded.
 	// for images, those chunks are specified
 	// by the file format.
-	// for tables, we don't yet have such
+	// For tables, we don't yet have such
 	// a specification; to solve this
 	// the {@code defaultChunk} points to the chunk
 	// (typically a file in the {@code absolutePath} folder),
 	// that contains the default columns.
 	// additional available chunks may be discovered,
 	// e.g. by looking into {@code absolutePath}.
-	public String defaultChunk;
+	public String defaultChunk;  // only for tables
 
 	// for data in RAM
 	public Object data;
@@ -70,6 +72,6 @@ public class StorageLocation
 	// historically, we only had channels, and thus the name
 	// of the variable is "channel" and cannot readily be changed
 	// because we use in the MoBIE JSON spec
-	public Integer channel = 0;
+	public Integer channel = 0; // only for images
 
 }

@@ -44,8 +44,11 @@ public class RegionDataSource extends AbstractDataSource
 	// regionId, annotating one or multiple images
 	public Map< TableDataFormat, StorageLocation > tableData;
 
-
 	// Runtime
 	public Table table;
 
+	public RegionDataSource( String name )
+	{
+		super( name );
+	}
 }

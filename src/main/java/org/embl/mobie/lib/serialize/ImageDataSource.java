@@ -37,7 +37,6 @@ import java.util.Map;
 public class ImageDataSource extends AbstractDataSource
 {
 	// Serialization
-
 	public Map< ImageDataFormat, StorageLocation > imageData;
 
 	public ImageDataSource()
@@ -46,7 +45,7 @@ public class ImageDataSource extends AbstractDataSource
 
 	public ImageDataSource( String name, ImageDataFormat imageDataFormat, StorageLocation storageLocation )
 	{
-		setName( name );
+		super( name );
 		imageData = new HashMap<>();
 		imageData.put( imageDataFormat, storageLocation );
 	}

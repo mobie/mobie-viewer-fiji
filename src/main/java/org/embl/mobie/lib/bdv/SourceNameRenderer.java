@@ -88,7 +88,6 @@ public class SourceNameRenderer extends BdvOverlay implements TransformListener<
 		return isActive;
 	}
 
-
 	@Override
 	public void transformChanged( AffineTransform3D transform3D )
 	{
@@ -135,14 +134,15 @@ public class SourceNameRenderer extends BdvOverlay implements TransformListener<
 				sourceMin[ d ] = interval.realMin( d );
 				sourceMax[ d ] = interval.realMax( d );
 			}
-			final FinalRealInterval sourceInterval = sourceToGlobal.estimateBounds( new FinalRealInterval( sourceMin, sourceMax ) );
-			final FinalRealInterval intersect = Intervals.intersect( sourceInterval, viewerInterval );
+
+			final FinalRealInterval globalBounds = sourceToGlobal.estimateBounds( new FinalRealInterval( sourceMin, sourceMax ) );
+			final FinalRealInterval intersect = Intervals.intersect( globalBounds, viewerInterval );
 			if ( ! Intervals.isEmpty( intersect ) )
 			{
 				// If we want the name to be always visible
 				// we could use intersect:
 				// final FinalRealInterval boundsInViewer = viewerTransform.estimateBounds( intersect );
-				final FinalRealInterval boundsInViewer = viewerTransform.estimateBounds( sourceInterval );
+				final FinalRealInterval boundsInViewer = viewerTransform.estimateBounds( globalBounds );
 				sourceNameToBounds.put( spimSource.getName(), boundsInViewer );
 			}
 		}
@@ -153,12 +153,15 @@ public class SourceNameRenderer extends BdvOverlay implements TransformListener<
 	{
 		for ( Map.Entry< String, FinalRealInterval > entry : sourceNameToBounds.entrySet() )
 		{
-			final FinalRealInterval sourceBoundsInViewer = entry.getValue();
-			final double sourceWidth = sourceBoundsInViewer.realMax( 0 ) - sourceBoundsInViewer.realMin( 0 );
+			final FinalRealInterval bounds = entry.getValue();
+			final double sourceWidth = bounds.realMax( 0 ) - bounds.realMin( 0 );
 			final double relativeWidth = 1.0 * sourceWidth / bdvHandle.getViewerPanel().getWidth();
 			final int fontSize = Math.min( 20,  (int) ( 20 * 4 * relativeWidth ));
 			g.setFont( new Font( "TimesRoman", Font.PLAIN, fontSize ) );
-			g.drawString( entry.getKey(), (int) sourceBoundsInViewer.realMin( 0 ), (int) sourceBoundsInViewer.realMax( 1 ) + fontSize );
+
+			final int x = ( int ) ( ( bounds.realMax( 0 ) + bounds.realMin( 0 ) ) / 2.0 );
+			final int y = ( int ) bounds.realMax( 1 ) + fontSize;
+			g.drawString( entry.getKey(), x, y );
 		}
 	}
 }

@@ -52,10 +52,15 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotat
 
 	// Runtime
 
-	// Used by Gson deserialization
+	// Used by Gson
 	public RegionDisplay()
 	{
 		super();
+	}
+
+	public RegionDisplay( String name )
+	{
+		super( name );
 	}
 
 	// Project creator serialization (currently not used)
