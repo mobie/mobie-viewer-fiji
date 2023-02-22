@@ -1,5 +1,9 @@
 package org.embl.mobie.lib.hcs;
 
+import ij.IJ;
+import ij.ImagePlus;
+import org.embl.mobie.lib.color.ColorHelper;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -131,5 +135,23 @@ public class HCSPlate
 
 				return sitePosition;
 		}
+	}
+
+	public double[] getContrastLimits( String channel, String well, String site )
+	{
+		final String path = getPath( channel, well, site );
+		final ImagePlus imagePlus = IJ.openImage( path );
+
+		final double[] contrastLimits = new double[ 2 ];
+		contrastLimits[ 0 ] = imagePlus.getDisplayRangeMin();
+		contrastLimits[ 1 ] = imagePlus.getDisplayRangeMax();
+		return contrastLimits;
+	}
+
+	public String getColor( String channel, String well, String site )
+	{
+		final String path = getPath( channel, well, site );
+		final ImagePlus imagePlus = IJ.openImage( path );
+		return ColorHelper.getString( imagePlus.getLuts()[ 0 ] );
 	}
 }

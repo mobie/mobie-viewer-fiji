@@ -48,20 +48,19 @@ public class HCSDataSetter
 					storageLocation.absolutePath = hcsPlate.getPath( channel, well, site );
 					storageLocation.channel = 0;
 					System.out.println( site + ":" + storageLocation.absolutePath );
-					final ImageDataSource imageDataSource = new ImageDataSource( hcsPlate.getSiteKey( channel, well, site ), ImageDataFormat.BioFormats, storageLocation );
+					final ImageDataSource imageDataSource = new ImageDataSource( hcsPlate.getSiteKey( channel, well, site ), ImageDataFormat.ImageJ, storageLocation );
 					dataset.addDataSource( imageDataSource );
 					grid.sources.add( imageDataSource.getName() );
 					grid.positions.add( hcsPlate.getSiteGridPosition( channel, well, site ) );
 				}
 
 				// Add well view for testing
-				String color = "White";
-				double[] contrastLimits = new double[]{0, 1000}; // TODO
+				String color = hcsPlate.getColor( channel, well, sites.iterator().next() );
+				double[] contrastLimits = hcsPlate.getContrastLimits( channel, well, sites.iterator().next() );
 				final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( channelWell, Arrays.asList( channelWell ), color, contrastLimits );
 				final View view = new View( channelWell, "well", Arrays.asList( imageDisplay ), Arrays.asList( grid ), true );
 				dataset.views.put( view.getName(), view );
 			}
 		}
 	}
-
 }

@@ -363,7 +363,7 @@ public class MoBIE
 	private void initHCSProject( String projectLocation ) throws IOException
 	{
 		initProject( "HCS" );
-		settings.addImageDataFormat( ImageDataFormat.BioFormats ); // TODO: why do we need to add this ?
+		settings.addImageDataFormat( ImageDataFormat.ImageJ ); // TODO: why do we need to add this ?
 		dataset.is2D( true ); // TODO could be 3D...
 		final HCSPlate hcsPlate = new HCSPlate( projectLocation );
 		new HCSDataSetter().addPlateToDataset( hcsPlate, dataset );
@@ -861,9 +861,11 @@ public class MoBIE
 	}
 
 	// equivalent to {@code getTableLocation}
+	// TODO: move this to mobie-io?!
     public synchronized String getImageLocation( ImageDataFormat imageDataFormat, StorageLocation storageLocation )
 	{
 		switch (imageDataFormat) {
+			case ImageJ:
 			case BioFormats:
 			case BdvHDF5:
 			case BdvN5:
