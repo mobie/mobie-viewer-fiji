@@ -34,14 +34,14 @@ public class HCSDataSetter
 	 */
 	public void addPlateToDataset( HCSPlate hcsPlate, Dataset dataset )
 	{
+		final Set< String > channels = hcsPlate.getChannels();
+		final String firstChannel = channels.iterator().next();
+
 		// init a RegionDisplay for navigating the wells
 		final RegionDisplay< AnnotatedRegion > wellRegionDisplay = new RegionDisplay<>( "wells" );
 		wellRegionDisplay.sources = new HashMap<>();
-		wellRegionDisplay.setBoundaryThickness( 1000 ); // TODO: determine from well size
 		wellRegionDisplay.showAsBoundaries( true );
-
-		final Set< String > channels = hcsPlate.getChannels();
-		final String firstChannel = channels.iterator().next();
+		wellRegionDisplay.setBoundaryThickness( ( float ) (0.1 * hcsPlate.getSiteRealDimensions( firstChannel )[ 0 ]) );
 
 		final ArrayList< Transformation > transformations = new ArrayList<>();
 		final ArrayList< Display< ? > > displays = new ArrayList<>();
@@ -96,6 +96,7 @@ public class HCSDataSetter
 						// this channel for metadata
 						metadataSiteSource = imageDataSource.getName();
 					}
+
 					siteGrid.metadataSource = metadataSiteSource;
 				}
 

@@ -151,6 +151,16 @@ public class HCSPlate
 		return ColorHelper.getString( imagePlus.getLuts()[ 0 ] );
 	}
 
+	public double[] getSiteRealDimensions( String channel )
+	{
+		final String path = getFirstSitePath( channel );
+		final ImagePlus imagePlus = IJ.openImage( path );
+		final double[] realDimensions = new double[ 2 ];
+		realDimensions[ 0 ] = imagePlus.getWidth() * imagePlus.getCalibration().pixelWidth;
+		realDimensions[ 1 ] = imagePlus.getHeight() * imagePlus.getCalibration().pixelHeight;
+		return realDimensions;
+	}
+
 	private String getFirstSitePath( String channel )
 	{
 		final String firstWell = plateMap.get( channel ).keySet().iterator().next();
@@ -158,7 +168,7 @@ public class HCSPlate
 		return getPath( channel, firstWell, firstSite );
 	}
 
-	public static int[] getWellDimensions( int numWells )
+	public static int[] getWellLayout( int numWells )
 	{
 		int[] wellDimensions = new int[ 2 ];
 
