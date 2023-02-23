@@ -154,9 +154,14 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 		return showTable;
 	}
 
-	public boolean isShowAsBoundaries()
+	public boolean showAsBoundaries()
 	{
 		return showAsBoundaries;
+	}
+
+	public void showAsBoundaries( boolean showAsBoundaries )
+	{
+		this.showAsBoundaries = showAsBoundaries;
 	}
 
 	public float getBoundaryThickness()

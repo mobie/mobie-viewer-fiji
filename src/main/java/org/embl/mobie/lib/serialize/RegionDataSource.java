@@ -32,19 +32,23 @@ import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.TableDataFormat;
 import tech.tablesaw.api.Table;
 
+import java.util.HashMap;
 import java.util.Map;
 
-
-// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/818
 public class RegionDataSource extends AbstractDataSource
 {
 	// Serialization
 
-	// table with each row corresponding to one
-	// regionId, annotating one or multiple images
-	public Map< TableDataFormat, StorageLocation > tableData;
+	// storage locations for tables
+	// with each row corresponding to one
+	// regionId, annotating one or multiple images,
+	// where the mapping from regionId to images
+	// is specified in {@code RegionDisplay}
+	// see also: https://github.com/mobie/mobie-viewer-fiji/issues/818
+	public Map< TableDataFormat, StorageLocation > tableData = new HashMap<>();;
 
 	// Runtime
+
 	public Table table;
 
 	public RegionDataSource( String name )

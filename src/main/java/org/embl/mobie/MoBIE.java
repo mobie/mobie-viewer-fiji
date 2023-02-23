@@ -34,7 +34,6 @@ import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import ij.WindowManager;
 import loci.common.DebugTools;
-import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.ImgLoader;
@@ -363,8 +362,6 @@ public class MoBIE
 	private void initHCSProject( String projectLocation ) throws IOException
 	{
 		initProject( "HCS" );
-		settings.addImageDataFormat( ImageDataFormat.ImageJ ); // TODO: why do we need to add this ?
-		settings.addTableDataFormat( TableDataFormat.Table ); // TODO: why do we need to add this ?
 		dataset.is2D( true ); // TODO could be 3D...
 		final HCSPlate hcsPlate = new HCSPlate( projectLocation );
 		new HCSDataSetter().addPlateToDataset( hcsPlate, dataset );
@@ -745,6 +742,15 @@ public class MoBIE
 	{
 		final Set< ImageDataFormat > imageDataFormats = settings.values.getImageDataFormats();
 
+		if ( imageDataFormats.size() == 0 )
+		{
+			/*
+				there is no preferred image data format specified,
+				thus we simply use the first (and potentially only) one
+			 */
+			return imageSource.imageData.keySet().iterator().next();
+		}
+
 		for ( ImageDataFormat dataFormat : imageSource.imageData.keySet() )
 		{
 			if ( imageDataFormats.contains( dataFormat ) )
@@ -755,21 +761,26 @@ public class MoBIE
 			}
 		}
 
-		System.err.println("Error opening: " + imageSource.getName() );
 		for ( ImageDataFormat dataFormat : imageSource.imageData.keySet() )
 			System.err.println("Source supports: " + dataFormat);
 		for ( ImageDataFormat dataFormat : imageDataFormats )
 			System.err.println("Settings support: " + dataFormat);
 
-		throw new RuntimeException();
+		throw new RuntimeException( "Error identifying an image data format for: " + imageSource.getName() );
 	}
 
-	public TableDataFormat getTableFormat( Map< TableDataFormat, StorageLocation > tableData )
+	public TableDataFormat getTableDataFormat( Map< TableDataFormat, StorageLocation > tableData )
 	{
 		final Set< TableDataFormat > tableDataFormats = settings.values.getTableDataFormats();
 
 		if ( tableDataFormats.size() == 0 )
-			throw new RuntimeException( "The settings don't contain any table data formats." );
+		{
+			/*
+				there is no preferred table data format specified,
+				thus we simply use the first (and potentially only) one
+			 */
+			return tableData.keySet().iterator().next();
+		}
 
 
 		for ( TableDataFormat dataFormat : tableData.keySet() )
@@ -782,13 +793,12 @@ public class MoBIE
 			}
 		}
 
-		System.err.println("Error opening table.");
+		System.err.println( "Error opening table." );
 		for ( TableDataFormat dataFormat : tableData.keySet() )
-			System.err.println("Source supports: " + dataFormat);
+			System.err.println( "Source supports: " + dataFormat );
 		for ( TableDataFormat dataFormat : tableDataFormats )
-			System.err.println("Settings support: " + dataFormat);
-
-		throw new RuntimeException("Error while determining the table data format.");
+			System.err.println( "Settings support: " + dataFormat );
+		throw new RuntimeException( "Error determining the table data format." );
 	}
 
 	public void setDataset( String dataset )
@@ -814,7 +824,7 @@ public class MoBIE
 	// equivalent to {@code getImageLocation}
     public StorageLocation getTableLocation( Map< TableDataFormat, StorageLocation > tableData )
     {
-		final TableDataFormat tableDataFormat = getTableFormat( tableData );
+		final TableDataFormat tableDataFormat = getTableDataFormat( tableData );
 		final StorageLocation storageLocation = tableData.get( tableDataFormat );
 
 		if ( storageLocation.relativePath != null )
@@ -990,7 +1000,7 @@ public class MoBIE
 			//final long start = System.currentTimeMillis();
 			final SpotDataSource spotDataSource = ( SpotDataSource ) dataSource;
 			final StorageLocation tableLocation = getTableLocation( spotDataSource.tableData );
-			final TableDataFormat tableFormat = getTableFormat( spotDataSource.tableData );
+			final TableDataFormat tableFormat = getTableDataFormat( spotDataSource.tableData );
 
 			Table table = TableOpener.open( tableLocation, tableFormat );
 
@@ -1018,7 +1028,7 @@ public class MoBIE
 
 			final RegionDataSource regionDataSource = ( RegionDataSource ) dataSource;
 			final StorageLocation tableLocation = getTableLocation( regionDataSource.tableData );
-			final TableDataFormat tableFormat = getTableFormat( regionDataSource.tableData );
+			final TableDataFormat tableFormat = getTableDataFormat( regionDataSource.tableData );
 			regionDataSource.table = TableOpener.open( tableLocation, tableFormat );
 			DataStore.putRawData( regionDataSource );
 		}
@@ -1030,7 +1040,7 @@ public class MoBIE
 	private TableSawAnnotationTableModel< TableSawAnnotatedSegment > createTableModel( SegmentationDataSource dataSource )
 	{
 		final StorageLocation tableLocation = getTableLocation( dataSource.tableData );
-		final TableDataFormat tableFormat = getTableFormat( dataSource.tableData );
+		final TableDataFormat tableFormat = getTableDataFormat( dataSource.tableData );
 
 		Table table = dataSource.preInit() ? TableOpener.open( tableLocation, tableFormat ) : null;
 

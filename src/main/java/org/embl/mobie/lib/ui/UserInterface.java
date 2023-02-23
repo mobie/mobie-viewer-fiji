@@ -55,7 +55,7 @@ public class UserInterface
 	private Map< Object, JPanel > displayToPanel;
 	private JSplitPane splitPane;
 	private boolean closedByUser = true;
-	private String longestComboBoxString = "";
+	private String longestViewString = "";
 
 	public UserInterface( MoBIE moBIE )
 	{
@@ -102,12 +102,12 @@ public class UserInterface
 		for ( View view : views )
 		{
 			final String text = view.getUiSelectionGroup() + ": " + view.getName();
-			if ( text.length() > longestComboBoxString.length() )
-				this.longestComboBoxString = text;
+			if ( text.length() > longestViewString.length() )
+				this.longestViewString = text;
 		}
 
-		final int stringWidth = new JComboBox<>().getFontMetrics( new JComboBox<>().getFont() ).stringWidth( longestComboBoxString );
-		final int width = Math.min( stringWidth + 300, Toolkit.getDefaultToolkit().getScreenSize().width / 2 );
+		final int longestStringWidth = new JPanel().getFontMetrics( new JComboBox<>().getFont() ).stringWidth( longestViewString );
+		final int width = Math.min( longestStringWidth + 400, Toolkit.getDefaultToolkit().getScreenSize().width / 2 );
 		frame.setPreferredSize( new Dimension( width, actionPanelHeight + 200 ) );
 		frame.getContentPane().setLayout( new GridLayout() );
 		frame.getContentPane().add( splitPane );

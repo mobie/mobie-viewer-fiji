@@ -45,8 +45,8 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	public TableSawAnnotationTableModel(
 			String name,
 			TableSawAnnotationCreator< A > annotationCreator,
-			StorageLocation storageLocation, // needed to load additional table chunks
-			TableDataFormat tableDataFormat, // needed to load additional table chunks
+			@Nullable StorageLocation storageLocation, // needed to load additional table chunks
+			@Nullable TableDataFormat tableDataFormat, // needed to load additional table chunks
 			@Nullable Table defaultTable )
 	{
 		this.dataSourceName = name;
@@ -57,7 +57,6 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		if ( defaultTable != null )
 		{
 			initTable( defaultTable );
-			//chunkToStatus.put( storageLocation.defaultChunk, Status.Open );
 		}
 	}
 
@@ -69,7 +68,9 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	private synchronized void update()
 	{
 		if ( table == null )
+		{
 			initTable( openTableChunk( storageLocation.defaultChunk ) );
+		}
 
 		// load and join internal table chunks
 		//

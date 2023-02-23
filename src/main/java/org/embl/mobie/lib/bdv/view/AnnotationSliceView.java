@@ -136,7 +136,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 
 	private void configureAnnotationRendering( SourceAndConverter< ? > sourceAndConverter )
 	{
-		final boolean showAsBoundaries = display.isShowAsBoundaries();
+		final boolean showAsBoundaries = display.showAsBoundaries();
 		final float boundaryThickness = display.getBoundaryThickness();
 		final BoundarySource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
 		boundarySource.showAsBoundary( showAsBoundaries, boundaryThickness );

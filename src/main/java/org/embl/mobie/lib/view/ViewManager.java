@@ -57,6 +57,7 @@ import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.image.StitchedAnnotatedLabelImage;
 import org.embl.mobie.lib.image.StitchedImage;
+import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.plot.ScatterPlotSettings;
 import org.embl.mobie.lib.plot.ScatterPlotView;
 import org.embl.mobie.lib.select.MoBIESelectionModel;
@@ -81,6 +82,7 @@ import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.table.AnnotationTableModel;
 import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.table.DefaultAnnData;
+import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableView;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegion;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegionCreator;
@@ -99,6 +101,7 @@ import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.embl.mobie.lib.volume.UniverseManager;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 
 import javax.swing.*;
@@ -457,34 +460,52 @@ public class ViewManager
 
 				final RegionDisplay< ? > regionDisplay = ( RegionDisplay< ? > ) display;
 				final Map< String, List< String > > regionIdToImageNames = regionDisplay.sources;
-				final RegionDataSource regionDataSource = ( RegionDataSource ) DataStore.getRawData( regionDisplay.tableSource );
-				Table table = regionDataSource.table;
-
-				// only keep the subset of rows (regions)
-				// that are actually referred to in regionIdToImageNames
-				final Set< String > regionIDs = regionIdToImageNames.keySet();
-				final ArrayList< Integer > dropRows = new ArrayList<>();
-				final int rowCount = table.rowCount();
-				for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
+				Table table;
+				StorageLocation tableLocation;
+				TableDataFormat tableFormat;
+				if (  regionDisplay.tableSource != null )
 				{
-					final String regionId = table.row( rowIndex ).getObject( ColumnNames.REGION_ID ).toString();
-					if ( ! regionIDs.contains( regionId ) )
-						dropRows.add( rowIndex );
+					final RegionDataSource regionDataSource = ( RegionDataSource ) DataStore.getRawData( regionDisplay.tableSource );
+					table = regionDataSource.table;
+					tableLocation = moBIE.getTableLocation( regionDataSource.tableData );
+					tableFormat = moBIE.getTableDataFormat( regionDataSource.tableData );
+
+					// only keep the subset of rows (regions)
+					// that are actually referred to in regionIdToImageNames
+					final Set< String > regionIDs = regionIdToImageNames.keySet();
+					final ArrayList< Integer > dropRows = new ArrayList<>();
+					final int rowCount = table.rowCount();
+					for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
+					{
+						final String regionId = table.row( rowIndex ).getObject( ColumnNames.REGION_ID ).toString();
+						if ( !regionIDs.contains( regionId ) )
+							dropRows.add( rowIndex );
+					}
+
+					if ( dropRows.size() > 0 )
+						table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
 				}
-
-				if ( dropRows.size() > 0 )
-					table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
-
+				else
+				{
+					// TODO: discuss with Constantin and Martin about RegionDisplays
+					//   without tables, which is useful just for navigation
+					tableLocation = new StorageLocation();
+					tableFormat = TableDataFormat.Table;
+					final StringColumn regionIDs = StringColumn.create( ColumnNames.REGION_ID, regionIdToImageNames.keySet() );
+					table = Table.create( regionDisplay.getName() );
+					table.addColumns( regionIDs );
+				}
 
 				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( table, regionIdToImageNames );
 
-				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, moBIE.getTableLocation( regionDataSource.tableData ), moBIE.getTableFormat( regionDataSource.tableData ), table );
+				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, tableLocation, tableFormat, table );
 
 				final DefaultAnnData< AnnotatedRegion > annData = new DefaultAnnData<>( tableModel );
 
 				final RegionAnnotationImage< AnnotatedRegion > regionAnnotationImage = new RegionAnnotationImage( regionDisplay.getName(), annData );
 
 				DataStore.putImage( regionAnnotationImage );
+
 			}
 		}
 	}
