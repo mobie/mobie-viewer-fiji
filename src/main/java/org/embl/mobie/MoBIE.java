@@ -111,6 +111,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import static org.embl.mobie.io.util.IOHelper.combinePath;
 import static org.embl.mobie.io.util.IOHelper.getFileName;
 
 public class MoBIE
@@ -173,7 +174,7 @@ public class MoBIE
 		setS3Credentials( settings );
 		setProjectImageAndTableRootLocations();
 		registerProjectPlugins( projectLocation );
-		project = new ProjectJsonParser().parseProject( org.embl.mobie.io.util.IOHelper.combinePath( projectRoot, "project.json" ) );
+		project = new ProjectJsonParser().parseProject( combinePath( projectRoot, "project.json" ) );
 		if ( project.getName() == null ) project.setName( getFileName( projectLocation ) );
 		setDataFormats( projectLocation );
 		openAndViewDataset();
@@ -400,7 +401,7 @@ public class MoBIE
 		dataset = new Dataset( project.getName() );
 		project.datasets().add( dataset.getName() );
 		project.setDefaultDataset( dataset.getName() );
-		dataset.is2D()( true ); // 
+		dataset.is2D( true ); 
 	}
 
 	public String getProjectLocation()
@@ -449,7 +450,7 @@ public class MoBIE
 
 			dataSource.preInit( true );
 			dataset.addDataSource( dataSource );
-			dataset.is2D()( MoBIEHelper.is2D( spimData, setupIndex ) );
+			dataset.is2D( MoBIEHelper.is2D( spimData, setupIndex ) );
 		}
 	}
 
@@ -576,27 +577,27 @@ public class MoBIE
 	{
 		projectRoot = createPath( projectLocation, settings.values.getProjectBranch() );
 
-		if( ! org.embl.mobie.io.util.IOHelper.exists( org.embl.mobie.io.util.IOHelper.combinePath( projectRoot, "project.json" ) ) )
+		if( ! org.embl.mobie.io.util.IOHelper.exists( combinePath( projectRoot, "project.json" ) ) )
 		{
-			projectRoot = org.embl.mobie.io.util.IOHelper.combinePath( projectRoot, "data" );
+			projectRoot = combinePath( projectRoot, "data" );
 		}
 
 		imageRoot = createPath(
 				settings.values.getImageDataLocation() != null ? settings.values.getImageDataLocation() : projectLocation ,
 				settings.values.getImageDataBranch() );
 
-		if( ! org.embl.mobie.io.util.IOHelper.exists( org.embl.mobie.io.util.IOHelper.combinePath( imageRoot, "project.json" ) ) )
+		if( ! org.embl.mobie.io.util.IOHelper.exists( combinePath( imageRoot, "project.json" ) ) )
 		{
-			imageRoot = org.embl.mobie.io.util.IOHelper.combinePath( imageRoot, "data" );
+			imageRoot = combinePath( imageRoot, "data" );
 		}
 
 		tableRoot = createPath(
 				settings.values.getTableDataLocation() != null ? settings.values.getTableDataLocation() : projectLocation,
 				settings.values.getTableDataBranch() );
 
-		if( ! org.embl.mobie.io.util.IOHelper.exists( org.embl.mobie.io.util.IOHelper.combinePath( tableRoot, "project.json" ) ) )
+		if( ! org.embl.mobie.io.util.IOHelper.exists( combinePath( tableRoot, "project.json" ) ) )
 		{
-			tableRoot = org.embl.mobie.io.util.IOHelper.combinePath( tableRoot, "data" );
+			tableRoot = combinePath( tableRoot, "data" );
 		}
 	}
 
@@ -632,7 +633,7 @@ public class MoBIE
 		dataset.setName( datasetName );
 
 		// set data source names
-		for ( Map.Entry< String, DataSource > entry : dataset.sources()().entrySet() )
+		for ( Map.Entry< String, DataSource > entry : dataset.sources().entrySet() )
 			entry.getValue().setName( entry.getKey() );
 
 		// log views
@@ -651,7 +652,7 @@ public class MoBIE
 	{
 		sourceNameToImgLoader = new HashMap<>();
 		userInterface = new UserInterface( this );
-		viewManager = new ViewManager( this, userInterface, dataset.is2D()() );
+		viewManager = new ViewManager( this, userInterface, dataset.is2D() );
 	}
 
 	private View getView( String viewName, Dataset dataset )
@@ -673,7 +674,7 @@ public class MoBIE
 		final ArrayList< String > strings = new ArrayList<>();
 		strings.add( rootLocation );
 		Collections.addAll( strings, files );
-		final String path = org.embl.mobie.io.util.IOHelper.combinePath( strings.toArray( new String[0] ) );
+		final String path = combinePath( strings.toArray( new String[0] ) );
 
 		return path;
 	}
@@ -728,45 +729,48 @@ public class MoBIE
 
 	public synchronized DataSource getData( String sourceName )
 	{
-		return dataset.sources()().get( sourceName );
+		return dataset.sources().get( sourceName );
 	}
 
 	private ImageDataFormat getImageDataFormat( ImageDataSource imageSource )
 	{
-		final Set< ImageDataFormat > imageDataFormats = settings.values.getImageDataFormats();
+		final Set< ImageDataFormat > settingsFormats = settings.values.getImageDataFormats();
 
-		if ( imageDataFormats.size() == 0 )
+		if ( settingsFormats.size() == 0 )
 		{
 			/*
 				there is no preferred image data format specified,
-				thus we simply use the first (and potentially only) one
+				thus we simply return the first (and potentially only)
+				source format
 			 */
 			return imageSource.imageData.keySet().iterator().next();
 		}
 
-		for ( ImageDataFormat dataFormat : imageSource.imageData.keySet() )
+		for ( ImageDataFormat sourceFormat : imageSource.imageData.keySet() )
 		{
-			if ( imageDataFormats.contains( dataFormat ) )
+			if ( settingsFormats.contains( sourceFormat ) )
 			{
-				// TODO (discuss with Constantin)
-				//   it is weird that it just returns the first one...
-				return dataFormat;
+				/*
+					return the first source format that
+				    matches what is required by the settings
+				 */
+				return sourceFormat;
 			}
 		}
 
 		for ( ImageDataFormat dataFormat : imageSource.imageData.keySet() )
 			System.err.println("Source supports: " + dataFormat);
-		for ( ImageDataFormat dataFormat : imageDataFormats )
-			System.err.println("Settings support: " + dataFormat);
+		for ( ImageDataFormat dataFormat : settingsFormats )
+			System.err.println("Settings require: " + dataFormat);
 
 		throw new RuntimeException( "Error identifying an image data format for: " + imageSource.getName() );
 	}
 
 	public TableDataFormat getTableDataFormat( Map< TableDataFormat, StorageLocation > tableData )
 	{
-		final Set< TableDataFormat > tableDataFormats = settings.values.getTableDataFormats();
+		final Set< TableDataFormat > settingsFormats = settings.values.getTableDataFormats();
 
-		if ( tableDataFormats.size() == 0 )
+		if ( settingsFormats.size() == 0 )
 		{
 			/*
 				there is no preferred table data format specified,
@@ -776,20 +780,22 @@ public class MoBIE
 		}
 
 
-		for ( TableDataFormat dataFormat : tableData.keySet() )
+		for ( TableDataFormat sourceFormat : tableData.keySet() )
 		{
-			if ( tableDataFormats.contains( dataFormat ) )
+			if ( settingsFormats.contains( sourceFormat ) )
 			{
-				// TODO (discuss with Constantin)
-				//   it is weird that it just returns the first one...
-				return dataFormat;
+				/*
+					return the first source format that is
+					specified by the settings
+			 	*/
+				return sourceFormat;
 			}
 		}
 
 		System.err.println( "Error opening table." );
 		for ( TableDataFormat dataFormat : tableData.keySet() )
 			System.err.println( "Source supports: " + dataFormat );
-		for ( TableDataFormat dataFormat : tableDataFormats )
+		for ( TableDataFormat dataFormat : settingsFormats )
 			System.err.println( "Settings support: " + dataFormat );
 		throw new RuntimeException( "Error determining the table data format." );
 	}
@@ -822,7 +828,7 @@ public class MoBIE
 		if ( storageLocation.relativePath != null )
 		{
 			storageLocation.defaultChunk = TableDataFormat.MOBIE_DEFAULT_CHUNK;
-			storageLocation.absolutePath = org.embl.mobie.io.util.IOHelper.combinePath( tableRoot, dataset.getName(), storageLocation.relativePath );
+			storageLocation.absolutePath = combinePath( tableRoot, dataset.getName(), storageLocation.relativePath );
 			return storageLocation;
 		}
 
@@ -831,7 +837,7 @@ public class MoBIE
 
 	public String getDatasetPath( String... files )
 	{
-		final String datasetRoot = org.embl.mobie.io.util.IOHelper.combinePath( projectRoot, getDataset().getName() );
+		final String datasetRoot = combinePath( projectRoot, getDataset().getName() );
 		return createPath( datasetRoot, files );
 	}
 
@@ -839,12 +845,12 @@ public class MoBIE
 	{
 		String location = root;
 		for ( String file : files )
-			location = org.embl.mobie.io.util.IOHelper.combinePath( location, file );
+			location = combinePath( location, file );
 		return location;
 	}
 
 	@Deprecated
-	// delegate to BDV-PL
+	// TODO https://github.com/bigdataviewer/bigdataviewer-playground/issues/259#issuecomment-1279705489
 	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, boolean closeImgLoader )
 	{
 		SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
@@ -867,8 +873,6 @@ public class MoBIE
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
 	}
 
-	// equivalent to {@code getTableLocation}
-	// TODO: move this to mobie-io?!
     public synchronized String getImageLocation( ImageDataFormat imageDataFormat, StorageLocation storageLocation )
 	{
 		switch (imageDataFormat) {
@@ -881,8 +885,14 @@ public class MoBIE
 			case BdvN5S3: // assuming that the xml is not at storageLocation.s3Address
 			case OmeZarr:
             	if ( storageLocation.absolutePath != null  )
+				{
 					return storageLocation.absolutePath;
-                return org.embl.mobie.io.util.IOHelper.combinePath( imageRoot, dataset.getName(), storageLocation.relativePath );
+				}
+				else
+				{
+					// construct absolute from relative path
+					return combinePath( imageRoot, dataset.getName(), storageLocation.relativePath );
+				}
             case OpenOrganelleS3:
             case OmeZarrS3:
                 return storageLocation.s3Address;
@@ -1059,8 +1069,8 @@ public class MoBIE
 	public List< DataSource > getDataSources( Set< String > names )
 	{
 		return names.stream()
-				.filter( name -> ( dataset.sources()().containsKey( name ) ) )
-				.map( s -> dataset.sources()().get( s ) )
+				.filter( name -> ( dataset.sources().containsKey( name ) ) )
+				.map( s -> dataset.sources().get( s ) )
 				.collect( Collectors.toList() );
 	}
 }

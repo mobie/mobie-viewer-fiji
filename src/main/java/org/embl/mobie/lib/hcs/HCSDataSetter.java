@@ -29,7 +29,7 @@ public class HCSDataSetter
 	 */
 	public void addPlateToDataset( HCSPlate hcsPlate, Dataset dataset )
 	{
-		if ( dataset.is2D()() ) dataset.is2D()( hcsPlate.is2D() );
+		if ( dataset.is2D() ) dataset.is2D( hcsPlate.is2D() );
 
 		final Set< String > channels = hcsPlate.getChannels();
 		final String firstChannel = channels.iterator().next();

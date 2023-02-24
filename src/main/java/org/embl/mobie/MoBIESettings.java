@@ -58,14 +58,12 @@ public class MoBIESettings
 		return this;
 	}
 
-	// TODO: Is this still needed?
 	public MoBIESettings addImageDataFormat( ImageDataFormat imageDataFormat )
 	{
 		this.values.imageDataFormats.add( imageDataFormat );
 		return this;
 	}
 
-	// TODO: Is this still needed?
 	public MoBIESettings addTableDataFormat( TableDataFormat tableDataFormat )
 	{
 		this.values.tableDataFormats.add( tableDataFormat );

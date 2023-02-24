@@ -158,7 +158,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		KDTree< A > kdTree = kdTreeSupplier.get();
 		min = kdTreeSupplier.getMin();
 		max = kdTreeSupplier.getMax();
-		tableRowToRealPoint = kdTreeSupplier.getAnnotationToRealPoint();
+		tableRowToRealPoint = kdTreeSupplier.getAnnotationToCoordinate();
 		nearestNeighborSearchOnKDTree = new NearestNeighborSearchOnKDTree<>( kdTree );
 		radiusNeighborSearchOnKDTree = new RadiusNeighborSearchOnKDTree<>( kdTree );
 

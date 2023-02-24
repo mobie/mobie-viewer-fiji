@@ -48,9 +48,9 @@ public class OpenOMEZARRFromS3Command implements Command {
     @Parameter ( label = "Log chunk loading" )
     public boolean logChunkLoading = false;
 
-    protected static void openAndShow(String s3URL) throws IOException {
-        s3URL = s3URL.replaceAll( "\\s", "" ); // TODO: Maybe add general function and/or put deeper into code: https://github.com/mobie/mobie-viewer-fiji/issues/654
-        SpimData spimData = OMEZarrS3Opener.readURL( s3URL.trim() );
+    protected static void openAndShow(String s3URL) throws IOException
+    {
+        SpimData spimData = OMEZarrS3Opener.readURL( s3URL );
         final OMEZarrViewer viewer = new OMEZarrViewer( spimData );
         viewer.show();
     }
@@ -59,7 +59,7 @@ public class OpenOMEZARRFromS3Command implements Command {
     public void run() {
         try {
             OMEZarrS3Opener.setLogging( logChunkLoading );
-            openAndShow(s3URL);
+            openAndShow( s3URL );
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -199,8 +199,7 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		// TODO
-		//   Not sure this actually makes sense, because the regions
+		// TODO Not sure this actually makes sense, because the regions
 		//   are the entities that should be transformed.
 		throw new RuntimeException();
 	}

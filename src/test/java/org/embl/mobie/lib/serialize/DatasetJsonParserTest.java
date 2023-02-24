@@ -82,7 +82,7 @@ class DatasetJsonParserTest {
         storageLocation.relativePath = "an/example/path";
         imageSource.imageData = new HashMap<>();
         imageSource.imageData.put( ImageDataFormat.BdvN5, storageLocation);
-        dataset.sources()().put("testSource", imageSource );
+        dataset.sources().put("testSource", imageSource );
     }
 
     void validateJSON( String jsonPath ) throws IOException {

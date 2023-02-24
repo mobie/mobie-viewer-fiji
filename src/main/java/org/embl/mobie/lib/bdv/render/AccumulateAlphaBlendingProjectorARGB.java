@@ -57,9 +57,7 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 			final List< VolatileProjector > sourceProjectors,
 			final List< SourceAndConverter< ? > > sources,
 			final List< ? extends RandomAccessible< ? extends ARGBType > > sourceScreenImages,
-			final RandomAccessibleInterval< ARGBType > target,
-			final int numThreads, // TODO
-			final ExecutorService executorService )
+			final RandomAccessibleInterval< ARGBType > target )
 	{
 		super( sourceProjectors, sourceScreenImages, target );
 		alphaBlending = getAlphaBlending( sources );

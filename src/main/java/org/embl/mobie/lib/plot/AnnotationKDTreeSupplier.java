@@ -53,23 +53,23 @@ import java.util.stream.IntStream;
  */
 public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplier< KDTree< A > >
 {
-	final private int n = 2;
+	final private int numDimensions = 2; // for a 2-D scatter plot
 
-	private ArrayList< RealPoint > realPoints;
+	private ArrayList< RealPoint > locations;
 	private ArrayList< A > annotations;
-	private Map< A, RealPoint > annotationToRealPoint;
-	double[] min = new double[ n ];
-	double[] max = new double[ n ];
-	private HashMap< String, Double > string2num;
+	private Map< A, RealPoint > annotationToCoordinate;
+	double[] min = new double[ numDimensions ];
+	double[] max = new double[ numDimensions ];
+	private HashMap< String, Double > stringToNumber;
 
-	public AnnotationKDTreeSupplier( Collection< A > annotations, String[] columns )
+	public AnnotationKDTreeSupplier( Collection< A > inputData, String[] columns )
 	{
 		Arrays.fill( min, Double.MAX_VALUE );
 		Arrays.fill( max, -Double.MAX_VALUE );
 
-		initialiseDataPoints( annotations, columns );
+		initialiseDataPoints( inputData, columns );
 
-		annotationToRealPoint = IntStream.range( 0, realPoints.size() ).boxed().collect( Collectors.toMap( i -> this.annotations.get( i ), i -> realPoints.get( i ) ) );
+		annotationToCoordinate = IntStream.range( 0, locations.size() ).boxed().collect( Collectors.toMap( i -> annotations.get( i ), i -> locations.get( i ) ) );
 	}
 
 	/**
@@ -82,34 +82,33 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 	@Override
 	public KDTree< A > get()
 	{
-		final KDTree< A > kdTree = new KDTree<>( new ArrayList<>( annotations ), new ArrayList<>( realPoints ) );
+		final KDTree< A > kdTree = new KDTree<>( new ArrayList<>( annotations ), new ArrayList<>( locations ) );
 
 		return kdTree;
 	}
 
-	private void initialiseDataPoints( Collection< A > annotations, String[] columns )
+	private void initialiseDataPoints( Collection< A > inputData, String[] columns )
 	{
-		string2num = new HashMap<>(); // in case we need to plot categorical columns
-		realPoints = new ArrayList<>();
-		this.annotations = new ArrayList<>( );
+		stringToNumber = new HashMap<>(); // in case we need to plot categorical columns
+		locations = new ArrayList<>();
+		annotations = new ArrayList<>( );
 
-		// TODO: make dimensionality a variable
-		Double[] xy = new Double[ 2 ];
+		Double[] coordinate = new Double[ numDimensions ];
 		boolean isValidDataPoint;
 
-		final Iterator< A > iterator = annotations.iterator();
+		final Iterator< A > iterator = inputData.iterator();
 		while( iterator.hasNext() )
 		{
 			final A annotation = iterator.next();
 
 			isValidDataPoint = true;
 
-			for ( int d = 0; d < n; d++ )
+			for ( int d = 0; d < numDimensions; d++ )
 			{
-				// TODO With the new table model we don't have to
+				// TODO with the new table model we don't have to
 				//  do the conversion to Double via String anymore.
 
-				// FIXME: It would be convenient to be able to ask the annotation
+				// TODO it would be convenient to be able to ask the annotation
 				//   whether a feature is numeric or categorical
 
 				Object value = annotation.getValue( columns[ d ] );
@@ -124,36 +123,36 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 				String cell = value.toString();
 				try
 				{
-					xy[ d ] = Utils.parseDouble( cell );
+					coordinate[ d ] = Utils.parseDouble( cell );
 				}
 				catch ( Exception e )
 				{
-					if ( ! string2num.containsKey( cell ) )
+					if ( ! stringToNumber.containsKey( cell ) )
 					{
-						string2num.put( cell, Double.valueOf( string2num.size() ) );
+						stringToNumber.put( cell, Double.valueOf( stringToNumber.size() ) );
 					}
 
-					xy[ d ] =  string2num.get( cell );
+					coordinate[ d ] =  stringToNumber.get( cell );
 				}
 
-				if ( xy[ d ].isNaN() || xy[ d ].isInfinite() )
+				if ( coordinate[ d ].isNaN() || coordinate[ d ].isInfinite() )
 				{
 					isValidDataPoint = false;
 					break;
 				}
 
-				if ( xy[ d ] < min[ d ] ) min[ d ] = xy[ d ];
-				if ( xy[ d ] > max[ d ] ) max[ d ] = xy[ d ];
+				if ( coordinate[ d ] < min[ d ] ) min[ d ] = coordinate[ d ];
+				if ( coordinate[ d ] > max[ d ] ) max[ d ] = coordinate[ d ];
 			}
 
 			if ( isValidDataPoint )
 			{
-				realPoints.add( new RealPoint( xy[ 0 ], xy[ 1 ] ) );
+				this.locations.add( new RealPoint( coordinate[ 0 ], coordinate[ 1 ] ) );
 				this.annotations.add( annotation );
 			}
 		}
 
-		if ( realPoints.size() == 0 )
+		if ( this.locations.size() == 0 )
 			throw new UnsupportedOperationException( "Cannot create scatter plot, because there is no valid data point." );
 	}
 
@@ -167,8 +166,8 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 		return max;
 	}
 
-	public Map< A, RealPoint > getAnnotationToRealPoint()
+	public Map< A, RealPoint > getAnnotationToCoordinate()
 	{
-		return annotationToRealPoint;
+		return annotationToCoordinate;
 	}
 }

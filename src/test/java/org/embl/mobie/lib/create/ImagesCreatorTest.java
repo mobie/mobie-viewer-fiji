@@ -97,9 +97,9 @@ class ImagesCreatorTest {
     void assertionsForDataset( ImageDataFormat imageDataFormat ) throws IOException {
         assertTrue( new File(datasetJsonPath).exists() );
         Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
-        assertTrue( dataset.sources()().containsKey(imageName) );
+        assertTrue( dataset.sources().containsKey(imageName) );
         assertTrue( dataset.views().containsKey(imageName) );
-        assertTrue( (( ImageDataSource )dataset.sources()().get(imageName)).imageData.containsKey(imageDataFormat) );
+        assertTrue( (( ImageDataSource )dataset.sources().get(imageName)).imageData.containsKey(imageDataFormat) );
     }
 
     void assertionsForN5( boolean onlyXmls ) throws SpimDataException {
@@ -154,7 +154,7 @@ class ImagesCreatorTest {
         assertTrue( new File(tablePath).exists() );
 
         Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
-        SegmentationDataSource segmentationData = (( SegmentationDataSource ) dataset.sources()().get(imageName));
+        SegmentationDataSource segmentationData = (( SegmentationDataSource ) dataset.sources().get(imageName));
         assertTrue( segmentationData.tableData.containsKey(TableDataFormat.TSV ) );
     }
 

@@ -355,9 +355,9 @@ public class GeneSearch
 		public static void setProsprSourceNames( ImageDataFormat imageDataFormat, Dataset dataset )
 		{
 			GeneSearchUtils.prosprSourceNames = new ArrayList<>();
-			for ( String sourceName : dataset.sources()().keySet() )
+			for ( String sourceName : dataset.sources().keySet() )
 			{
-				final DataSource dataSource = dataset.sources()().get( sourceName );
+				final DataSource dataSource = dataset.sources().get( sourceName );
 				if ( ! ( dataSource instanceof ImageDataSource ) ) continue;
 				final ImageDataSource imageSource = ( ImageDataSource ) dataSource;
 				final String relativePath = imageSource.imageData.get( imageDataFormat ).relativePath;

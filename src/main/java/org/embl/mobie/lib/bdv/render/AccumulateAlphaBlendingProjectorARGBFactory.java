@@ -56,9 +56,8 @@ public class AccumulateAlphaBlendingProjectorARGBFactory implements AccumulatePr
 						sourceProjectors,
 						sources,
 						sourceScreenImages,
-						targetScreenImage,
-						numThreads,
-						executorService );
+						targetScreenImage
+		);
 	}
 
 

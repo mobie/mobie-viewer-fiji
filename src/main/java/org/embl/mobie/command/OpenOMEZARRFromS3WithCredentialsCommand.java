@@ -51,7 +51,7 @@ public class OpenOMEZARRFromS3WithCredentialsCommand extends OpenOMEZARRFromS3Co
     public void run() {
         try {
             S3Utils.setS3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } );
-            openAndShow(s3URL);
+            openAndShow( s3URL );
         } catch (IOException e) {
             e.printStackTrace();
         }

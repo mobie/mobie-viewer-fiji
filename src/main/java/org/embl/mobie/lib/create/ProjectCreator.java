@@ -230,8 +230,8 @@ public class ProjectCreator {
 
         for ( String datasetName: project.datasets() ) {
             Dataset dataset = getDataset( datasetName );
-            if ( dataset != null && dataset.sources()().size() > 0 ) {
-                for ( DataSource dataSource : dataset.sources()().values() ) {
+            if ( dataset != null && dataset.sources().size() > 0 ) {
+                for ( DataSource dataSource : dataset.sources().values() ) {
                     ImageDataSource imageSource = ( ImageDataSource ) dataSource;
                     // open one of the local images
                     for (ImageDataFormat format : imageSource.imageData.keySet()) {

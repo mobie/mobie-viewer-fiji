@@ -57,7 +57,7 @@ public abstract class AbstractSliceView implements SliceView
 		final List< ? extends SourceAndConverter< ? > > sourceAndConverters = display.sourceAndConverters();
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			// FIXME https://github.com/bigdataviewer/bigdataviewer-playground/issues/259#issuecomment-1279705489
+			// TODO https://github.com/bigdataviewer/bigdataviewer-playground/issues/259#issuecomment-1279705489
 			moBIE.closeSourceAndConverter( sourceAndConverter, closeImgLoader );
 		}
 		display.images().clear();
