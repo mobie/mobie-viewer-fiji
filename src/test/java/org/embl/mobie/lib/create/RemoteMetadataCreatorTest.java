@@ -93,8 +93,8 @@ class RemoteMetadataCreatorTest {
         remoteMetadataCreator.createRemoteMetadata( signingRegion, serviceEndpoint, bucketName, remoteFormat );
 
         Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
-        assertTrue( dataset.sources.containsKey(imageName) );
-        assertTrue( (( ImageDataSource ) dataset.sources.get(imageName)).imageData.containsKey(remoteFormat) );
+        assertTrue( dataset.sources()().containsKey(imageName) );
+        assertTrue( (( ImageDataSource ) dataset.sources()().get(imageName)).imageData.containsKey(remoteFormat) );
         if ( imageDataFormat.hasXml() ) {
             String remoteXmlPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                     datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName( remoteFormat ), imageName + ".xml" );

@@ -43,7 +43,7 @@ public class ViewSavingHelper
 {
     public static void writeDatasetJson( Dataset dataset, View view, String viewName, String datasetJsonPath ) throws IOException {
         if ( viewName != null ) {
-            dataset.views.put(viewName, view);
+            dataset.views().put(viewName, view);
 
             if ( isGithub(datasetJsonPath)) {
                 new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation(datasetJsonPath)).writeViewToDatasetJson(viewName, view);

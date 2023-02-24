@@ -69,7 +69,6 @@ public class PublishedFigures
 		figure.name = name;
 		figure.location = project;
 		figure.view = view;
-		figure.publicationURL = "TBD";
 		publishedFigures.add( figure );
 	}
 

@@ -161,6 +161,13 @@ public class HCSPlate
 		return realDimensions;
 	}
 
+	public boolean is2D()
+	{
+		final String path = getFirstSitePath( getChannels().iterator().next() );
+		final ImagePlus imagePlus = IJ.openImage( path );
+		return imagePlus.getDimensions()[ 3 ] == 1;
+	}
+
 	private String getFirstSitePath( String channel )
 	{
 		final String firstWell = plateMap.get( channel ).keySet().iterator().next();

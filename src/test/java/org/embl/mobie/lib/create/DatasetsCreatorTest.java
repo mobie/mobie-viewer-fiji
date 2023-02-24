@@ -107,10 +107,10 @@ class DatasetsCreatorTest {
         Dataset dataset;
         datasetsCreator.addDataset(datasetName, false);
         dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
-        assertFalse( dataset.is2D );
+        assertFalse( dataset.is2D() );
 
         datasetsCreator.makeDataset2D(datasetName, true);
         dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
-        assertTrue( dataset.is2D );
+        assertTrue( dataset.is2D() );
     }
 }

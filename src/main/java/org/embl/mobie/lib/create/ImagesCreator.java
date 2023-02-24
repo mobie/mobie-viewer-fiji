@@ -227,7 +227,7 @@ public class ImagesCreator {
             return;
         }
 
-        if ( imp.getNDimensions() > 2 && projectCreator.getDataset( datasetName ).is2D ) {
+        if ( imp.getNDimensions() > 2 && projectCreator.getDataset( datasetName ).is2D() ) {
             throw new UnsupportedOperationException("Can't add a " + imp.getNDimensions() + "D image to a 2D dataset" );
         }
 
@@ -430,7 +430,7 @@ public class ImagesCreator {
             return;
         }
 
-        if ( !isSpimData2D(spimData) && projectCreator.getDataset( datasetName ).is2D ) {
+        if ( !isSpimData2D(spimData) && projectCreator.getDataset( datasetName ).is2D() ) {
             throw new UnsupportedOperationException("Can't add a 3D image to a 2D dataset" );
         }
 

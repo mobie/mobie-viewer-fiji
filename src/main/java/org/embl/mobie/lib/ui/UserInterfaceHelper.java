@@ -105,7 +105,6 @@ public class UserInterfaceHelper
 	private static final Dimension PREFERRED_SPACE_SIZE = new Dimension( 10, 30 );
 	private static final String MOVE = "move";
 	private static final String HELP = "show";
-	private static final String LEVEL = "level";
 	private static final String VIEW = "view";
 	public static final int SPACING = 10;
 	public static File lastSelectedDir;
@@ -505,7 +504,7 @@ public class UserInterfaceHelper
 		}
 
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		panel.add( createMoveToLocationPanel( moBIE.getDataset().defaultLocation )  );
+		panel.add( createMoveToLocationPanel( moBIE.getDataset().getDefaultLocation() )  );
 		panel.add( createClearAndSourceNamesOverlayPanel( moBIE ) );
 
 		return panel;
@@ -865,7 +864,7 @@ public class UserInterfaceHelper
 			} );
 		} );
 
-		comboBox.setSelectedItem( moBIE.getDatasetName() );
+		comboBox.setSelectedItem( moBIE.getDataset().getName() );
 		SwingHelper.setComboBoxDimensions( comboBox, MoBIE.PROTOTYPE_DISPLAY_VALUE );
 
 		panel.add( SwingHelper.getJLabel( "dataset" ) );

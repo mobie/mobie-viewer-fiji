@@ -77,7 +77,7 @@ public class RemoteMetadataCreator {
         for ( String datasetName: projectCreator.getProject().datasets() ) {
             if ( !datasetName.equals("") ) {
                 Dataset dataset = projectCreator.getDataset( datasetName );
-                for ( String imageName: dataset.sources.keySet() ) {
+                for ( String imageName: dataset.sources().keySet() ) {
                     deleteRemoteMetadataForImage( datasetName, imageName );
                 }
                 projectCreator.getDatasetJsonCreator().writeDatasetJson( datasetName, dataset );
@@ -86,7 +86,7 @@ public class RemoteMetadataCreator {
     }
 
     private void deleteRemoteMetadataForImage( String datasetName, String imageName ) throws IOException {
-        ImageDataSource imageSource = ( ImageDataSource ) projectCreator.getDataset( datasetName ).sources.get( imageName );
+        ImageDataSource imageSource = ( ImageDataSource ) projectCreator.getDataset( datasetName ).sources().get( imageName );
         if ( imageSource.imageData.containsKey( remoteImageDataFormat ) ) {
 
             if ( remoteImageDataFormat.hasXml() ) {
@@ -161,7 +161,7 @@ public class RemoteMetadataCreator {
     }
 
     private void addRemoteMetadataForImage( String datasetName, String imageName ) throws SpimDataException, IOException {
-        ImageDataSource imageSource = ( ImageDataSource ) projectCreator.getDataset( datasetName ).sources.get( imageName );
+        ImageDataSource imageSource = ( ImageDataSource ) projectCreator.getDataset( datasetName ).sources().get( imageName );
         if ( !imageSource.imageData.containsKey( localImageDataFormat ) ) {
             IJ.log( "No images of format " + localImageDataFormat + " for " + imageName +
                     " in dataset:" + datasetName + ". Skipping this image." );
@@ -205,7 +205,7 @@ public class RemoteMetadataCreator {
 
     private void addRemoteMetadataForDataset( String datasetName ) throws SpimDataException, IOException {
         Dataset dataset = projectCreator.getDataset( datasetName );
-        for ( String imageName: dataset.sources.keySet() ) {
+        for ( String imageName: dataset.sources().keySet() ) {
             if ( !imageName.equals("") ) {
                 IJ.log("Adding metadata for image: " + imageName );
                 addRemoteMetadataForImage( datasetName, imageName );

@@ -111,6 +111,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import static org.embl.mobie.io.util.IOHelper.getFileName;
+
 public class MoBIE
 {
 	static
@@ -127,19 +129,19 @@ public class MoBIE
 	public static boolean openedFromCLI = false;
 	public static ImageJ imageJ;
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
+	public static boolean initiallyShowSourceNames = false;
+
 	private String projectLocation;
 	private MoBIESettings settings;
-	private String datasetName;
 	private Dataset dataset;
 	private ViewManager viewManager;
 	private Project project;
 	private UserInterface userInterface;
 	private String projectRoot = "";
-	private String imageRoot = ""; // see https://github.com/mobie/mobie-viewer-fiji/issues/933
-	private String tableRoot = ""; // see https://github.com/mobie/mobie-viewer-fiji/issues/933
+	private String imageRoot = "";
+	private String tableRoot = "";
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 	private ArrayList< String > projectCommands = new ArrayList<>();
-	public static boolean initiallyShowSourceNames = false;
 
 	public MoBIE( String projectLocation ) throws IOException
 	{
@@ -153,15 +155,6 @@ public class MoBIE
 		this.settings = settings;
 		this.projectLocation = projectLocation;
 
-		// Only allow one instance to avoid confusion
-		if ( moBIE != null )
-		{
-			IJ.log("Detected running MoBIE instance.");
-			moBIE.close();
-		}
-		moBIE = this;
-
-		// Open data
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening: " + projectLocation );
 
@@ -181,10 +174,8 @@ public class MoBIE
 		setProjectImageAndTableRootLocations();
 		registerProjectPlugins( projectLocation );
 		project = new ProjectJsonParser().parseProject( org.embl.mobie.io.util.IOHelper.combinePath( projectRoot, "project.json" ) );
-		if ( project.getName() == null )
-			project.setName( org.embl.mobie.io.util.IOHelper.getFileName( projectLocation ) );
-		setImageDataFormats( projectLocation );
-		settings.addTableDataFormat( TableDataFormat.TSV );
+		if ( project.getName() == null ) project.setName( getFileName( projectLocation ) );
+		setDataFormats( projectLocation );
 		openAndViewDataset();
 	}
 
@@ -248,7 +239,7 @@ public class MoBIE
 
 		if ( combine && imagePaths != null && segmentationPaths != null )
 		{
-			final String[] views = dataset.views.keySet().toArray( new String[ 0 ] );
+			final String[] views = dataset.views().keySet().toArray( new String[ 0 ] );
 			Arrays.sort( views );
 
 			final GridTransformation imageGridTransformation = new GridTransformation();
@@ -265,8 +256,8 @@ public class MoBIE
 
 			for ( int viewIndex = 0; viewIndex < views.length; )
 			{
-				final Display< ? > displayA = dataset.views.get( views[ viewIndex++ ] ).displays().get( 0 );
-				final Display< ? > displayB = dataset.views.get( views[ viewIndex++ ] ).displays().get( 0 );
+				final Display< ? > displayA = dataset.views().get( views[ viewIndex++ ] ).displays().get( 0 );
+				final Display< ? > displayB = dataset.views().get( views[ viewIndex++ ] ).displays().get( 0 );
 
 				if ( displayA instanceof ImageDisplay
 						&& displayB instanceof SegmentationDisplay )
@@ -308,7 +299,7 @@ public class MoBIE
 			{
 				for ( View segmentedImageView : segmentedImageViews )
 				{
-					dataset.views.put( segmentedImageView.getName(), segmentedImageView );
+					dataset.views().put( segmentedImageView.getName(), segmentedImageView );
 				}
 			}
 
@@ -317,7 +308,7 @@ public class MoBIE
 				final ImageDisplay< ? > imageGridDisplay = new ImageDisplay<>( "images", imageGridSources, imageDisplay.getColor(), imageDisplay.getContrastLimits() );
 				final SegmentationDisplay< ? > segmentationGridDisplay = new SegmentationDisplay<>( "segmentations", segmentationGridSources );
 				final View gridView = new View( "segmented images", "grid", Arrays.asList( imageGridDisplay, segmentationGridDisplay ), Arrays.asList( imageGridTransformation, segmentationGridTransformation ), true );
-				dataset.views.put( gridView.getName(), gridView );
+				dataset.views().put( gridView.getName(), gridView );
 			}
 			else
 			{
@@ -326,7 +317,7 @@ public class MoBIE
 		}
 
 		// show the last added view
-		final String[] viewNames = dataset.views.keySet().toArray( new String[ 0 ] );
+		final String[] viewNames = dataset.views().keySet().toArray( new String[ 0 ] );
 		initUIandShowView( viewNames[ viewNames.length -1 ] );
 	}
 
@@ -357,15 +348,22 @@ public class MoBIE
 
 		if ( MoBIE.openedFromCLI )
 			imageJ = new ImageJ(); // Init SciJava Services
+
+		if ( moBIE != null )
+		{
+			// only allow one instance to avoid confusion
+			IJ.log("Detected running MoBIE instance.");
+			moBIE.close();
+		}
+		moBIE = this;
 	}
 
 	private void initHCSProject( String projectLocation ) throws IOException
 	{
 		initProject( "HCS" );
-		dataset.is2D( true ); // TODO could be 3D...
 		final HCSPlate hcsPlate = new HCSPlate( projectLocation );
 		new HCSDataSetter().addPlateToDataset( hcsPlate, dataset );
-		initUIandShowView( dataset.views.keySet().iterator().next() );
+		initUIandShowView( dataset.views().keySet().iterator().next() );
 	}
 
 	private void initUIandShowView( @Nullable String view )
@@ -399,11 +397,10 @@ public class MoBIE
 	{
 		settings = new MoBIESettings();
 		project = new Project( projectName );
-		datasetName = project.getName();
-		project.datasets().add( datasetName );
-		project.setDefaultDataset( datasetName );
-		dataset = new Dataset(); // FIXME where is the link of a dataset to its name?
-		dataset.is2D = true; // could be changed later-on
+		dataset = new Dataset( project.getName() );
+		project.datasets().add( dataset.getName() );
+		project.setDefaultDataset( dataset.getName() );
+		dataset.is2D()( true ); // 
 	}
 
 	public String getProjectLocation()
@@ -452,7 +449,7 @@ public class MoBIE
 
 			dataSource.preInit( true );
 			dataset.addDataSource( dataSource );
-			dataset.is2D( MoBIEHelper.is2D( spimData, setupIndex ) );
+			dataset.is2D()( MoBIEHelper.is2D( spimData, setupIndex ) );
 		}
 	}
 
@@ -474,7 +471,7 @@ public class MoBIE
 
 		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, Arrays.asList( imageName ), color, contrastLimits );
 		final View view = new View( imageName, "image", Arrays.asList( imageDisplay ), null, false );
-		dataset.views.put( view.getName(), view );
+		dataset.views().put( view.getName(), view );
 	}
 
 	private String getImageName( String imagePath, int numImages, int imageIndex )
@@ -494,7 +491,7 @@ public class MoBIE
 		display.setResolution3dView( new Double[]{ pixelWidth, pixelWidth, pixelWidth } );
 
 		final View view = new View( imageName, "segmentation", Arrays.asList( display ), null, false );
-		dataset.views.put( view.getName(), view );
+		dataset.views().put( view.getName(), view );
 	}
 
 	private StorageLocation configureCommandLineImageLocation( String imagePath, int channel, ImageDataFormat imageDataFormat )
@@ -533,8 +530,11 @@ public class MoBIE
 		}
 	}
 
-	private void setImageDataFormats( String projectLocation )
+	// set whether to open data from local or remote
+	private void setDataFormats( String projectLocation )
 	{
+		// images
+		//
 		final Set< ImageDataFormat > imageDataFormat = settings.values.getImageDataFormats();
 
 		if ( imageDataFormat.size() == 0 )
@@ -554,6 +554,10 @@ public class MoBIE
 				settings.addImageDataFormat( ImageDataFormat.BdvHDF5 );
 			}
 		}
+
+		// tables
+		//
+		settings.addTableDataFormat( TableDataFormat.TSV );
 	}
 
 	private void openAndViewDataset() throws IOException
@@ -623,13 +627,12 @@ public class MoBIE
 
 	private void openAndViewDataset( String datasetName, String viewName ) throws IOException
 	{
-		// read dataset from file
 		IJ.log("Opening dataset: " + datasetName );
-		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
+		dataset.setName( datasetName );
 
 		// set data source names
-		for ( Map.Entry< String, DataSource > entry : dataset.sources.entrySet() )
+		for ( Map.Entry< String, DataSource > entry : dataset.sources()().entrySet() )
 			entry.getValue().setName( entry.getKey() );
 
 		// log views
@@ -648,21 +651,16 @@ public class MoBIE
 	{
 		sourceNameToImgLoader = new HashMap<>();
 		userInterface = new UserInterface( this );
-		viewManager = new ViewManager( this, userInterface, dataset.is2D );
+		viewManager = new ViewManager( this, userInterface, dataset.is2D()() );
 	}
 
 	private View getView( String viewName, Dataset dataset )
 	{
-		final View view = dataset.views.get( viewName );
+		final View view = dataset.views().get( viewName );
 		if ( view == null )
 			throw new UnsupportedOperationException("The view \"" + viewName + "\" does not exist in the current dataset." );
 		view.setName( viewName );
 		return view;
-	}
-
-	private void setDatasetName( String datasetName )
-	{
-		this.datasetName = datasetName;
 	}
 
 	private String createPath( String rootLocation, String githubBranch, String... files )
@@ -700,11 +698,6 @@ public class MoBIE
 		return dataset;
 	}
 
-	public String getDatasetName()
-	{
-		return datasetName;
-	}
-
 	public List< String > getDatasets()
 	{
 		if ( project == null ) return null;
@@ -735,7 +728,7 @@ public class MoBIE
 
 	public synchronized DataSource getData( String sourceName )
 	{
-		return dataset.sources.get( sourceName );
+		return dataset.sources()().get( sourceName );
 	}
 
 	private ImageDataFormat getImageDataFormat( ImageDataSource imageSource )
@@ -801,13 +794,12 @@ public class MoBIE
 		throw new RuntimeException( "Error determining the table data format." );
 	}
 
-	public void setDataset( String dataset )
+	public void setDataset( String datasetName )
     {
-        setDatasetName( dataset );
         viewManager.close();
 
         try {
-            openAndViewDataset( dataset, View.DEFAULT );
+            openAndViewDataset( datasetName, View.DEFAULT );
         } catch ( IOException e ) {
             e.printStackTrace();
         }
@@ -815,10 +807,10 @@ public class MoBIE
 
     public Map< String, View > getViews()
     {
-		for ( String name : dataset.views.keySet() )
-			dataset.views.get( name ).setName( name );
+		for ( String name : dataset.views().keySet() )
+			dataset.views().get( name ).setName( name );
 
-		return dataset.views;
+		return dataset.views();
     }
 
 	// equivalent to {@code getImageLocation}
@@ -830,7 +822,7 @@ public class MoBIE
 		if ( storageLocation.relativePath != null )
 		{
 			storageLocation.defaultChunk = TableDataFormat.MOBIE_DEFAULT_CHUNK;
-			storageLocation.absolutePath = org.embl.mobie.io.util.IOHelper.combinePath( tableRoot, datasetName, storageLocation.relativePath );
+			storageLocation.absolutePath = org.embl.mobie.io.util.IOHelper.combinePath( tableRoot, dataset.getName(), storageLocation.relativePath );
 			return storageLocation;
 		}
 
@@ -839,7 +831,7 @@ public class MoBIE
 
 	public String getDatasetPath( String... files )
 	{
-		final String datasetRoot = org.embl.mobie.io.util.IOHelper.combinePath( projectRoot, getDatasetName() );
+		final String datasetRoot = org.embl.mobie.io.util.IOHelper.combinePath( projectRoot, getDataset().getName() );
 		return createPath( datasetRoot, files );
 	}
 
@@ -890,7 +882,7 @@ public class MoBIE
 			case OmeZarr:
             	if ( storageLocation.absolutePath != null  )
 					return storageLocation.absolutePath;
-                return org.embl.mobie.io.util.IOHelper.combinePath( imageRoot, getDatasetName(), storageLocation.relativePath );
+                return org.embl.mobie.io.util.IOHelper.combinePath( imageRoot, dataset.getName(), storageLocation.relativePath );
             case OpenOrganelleS3:
             case OmeZarrS3:
                 return storageLocation.s3Address;
@@ -1067,8 +1059,8 @@ public class MoBIE
 	public List< DataSource > getDataSources( Set< String > names )
 	{
 		return names.stream()
-				.filter( name -> ( dataset.sources.containsKey( name ) ) )
-				.map( s -> dataset.sources.get( s ) )
+				.filter( name -> ( dataset.sources()().containsKey( name ) ) )
+				.map( s -> dataset.sources()().get( s ) )
 				.collect( Collectors.toList() );
 	}
 }

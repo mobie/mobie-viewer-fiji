@@ -334,8 +334,7 @@ public class ViewManager
 		// transform images
 		// this may create new images with new names
 
-		// TODO Factor this out int an image transformer class
-
+		// TODO factor this out int an image transformer class
 		final List< Transformation > transformations = view.getTransformations();
 		if ( transformations != null )
 		{
@@ -487,8 +486,7 @@ public class ViewManager
 				}
 				else
 				{
-					// TODO: discuss with Constantin and Martin about RegionDisplays
-					//   without tables, which is useful just for navigation
+					// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/970
 					tableLocation = new StorageLocation();
 					tableFormat = TableDataFormat.Table;
 					final StringColumn regionIDs = StringColumn.create( ColumnNames.REGION_ID, regionIdToImageNames.keySet() );

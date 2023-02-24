@@ -64,9 +64,7 @@ public class DatasetJsonCreator {
 
     public void addDataset( String datasetName, boolean is2D ) {
         Dataset dataset = new Dataset();
-        dataset.sources = new HashMap<>();
-        dataset.views = new HashMap<>();
-        dataset.is2D = is2D;
+        dataset.is2D( is2D );
         writeDatasetJson( datasetName, dataset );
     }
 
@@ -83,7 +81,7 @@ public class DatasetJsonCreator {
         }
 
         // if there is no default view, make one with this image and sensible defaults
-        if ( !dataset.views.containsKey(View.DEFAULT)) {
+        if ( !dataset.views().containsKey(View.DEFAULT)) {
             addNewDefaultImageView( dataset, imageName, contrastLimits, colour, sourceTransform );
         }
 
@@ -100,7 +98,7 @@ public class DatasetJsonCreator {
         }
 
         // if there is no default view, make one with this image and sensible defaults
-        if ( !dataset.views.containsKey(View.DEFAULT)) {
+        if ( !dataset.views().containsKey(View.DEFAULT)) {
             addNewDefaultSegmentationView( dataset, imageName, sourceTransform );
         }
 
@@ -109,7 +107,7 @@ public class DatasetJsonCreator {
 
     public void makeDataset2D( String datasetName, boolean is2D ) {
         Dataset dataset = projectCreator.getDataset( datasetName );
-        dataset.is2D = is2D;
+        dataset.is2D( is2D );
         writeDatasetJson( datasetName, dataset );
     }
 
@@ -124,7 +122,7 @@ public class DatasetJsonCreator {
         ImageDataSource imageSource = new ImageDataSource();
         imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
         imageSource.imageData = imageDataLocations;
-        dataset.sources.put( imageName, imageSource );
+        dataset.sources().put( imageName, imageSource );
     }
 
     private void addNewSegmentationSource( Dataset dataset, String imageName, ImageDataFormat imageDataFormat ) {
@@ -139,7 +137,7 @@ public class DatasetJsonCreator {
         imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
         annotatedLabelMaskSource.imageData = imageDataLocations;
 
-        dataset.sources.put( imageName, annotatedLabelMaskSource );
+        dataset.sources().put( imageName, annotatedLabelMaskSource );
     }
 
     private Map< ImageDataFormat, StorageLocation > makeImageDataLocations( ImageDataFormat imageDataFormat,
@@ -162,24 +160,24 @@ public class DatasetJsonCreator {
 								  double[] contrastLimits, String colour, boolean exclusive,
 								  AffineTransform3D sourceTransform ) {
         View view = createImageView( imageName, uiSelectionGroup, exclusive, contrastLimits, colour, sourceTransform );
-        dataset.views.put( imageName, view );
+        dataset.views().put( imageName, view );
     }
 
     private void addNewSegmentationView( Dataset dataset, String imageName, String uiSelectionGroup, boolean exclusive, AffineTransform3D sourceTransform ) {
         View view = createSegmentationView( imageName, uiSelectionGroup, exclusive, sourceTransform );
-        dataset.views.put( imageName, view );
+        dataset.views().put( imageName, view );
     }
 
     private void addNewDefaultImageView( Dataset dataset, String imageName, double[] contrastLimits, String colour,
 										 AffineTransform3D sourceTransform ) {
         View view = createImageView( imageName, "bookmark", true, contrastLimits, colour,
                 sourceTransform );
-        dataset.views.put( View.DEFAULT, view );
+        dataset.views().put( View.DEFAULT, view );
     }
 
     private void addNewDefaultSegmentationView( Dataset dataset, String imageName, AffineTransform3D sourceTransform ) {
         View view = createSegmentationView( imageName, "bookmark", true, sourceTransform );
-        dataset.views.put( View.DEFAULT, view );
+        dataset.views().put( View.DEFAULT, view );
     }
 
     private List< Transformation > createSourceTransformerList( AffineTransform3D sourceTransform, List<String> sources ) {

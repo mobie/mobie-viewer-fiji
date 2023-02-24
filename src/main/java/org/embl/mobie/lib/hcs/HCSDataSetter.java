@@ -5,17 +5,12 @@ import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.ImageDataSource;
-import org.embl.mobie.lib.serialize.RegionDataSource;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.Display;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.transformation.MergedGridTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
-import org.embl.mobie.lib.table.ColumnNames;
-import org.embl.mobie.lib.table.TableDataFormat;
-import tech.tablesaw.api.StringColumn;
-import tech.tablesaw.api.Table;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +29,8 @@ public class HCSDataSetter
 	 */
 	public void addPlateToDataset( HCSPlate hcsPlate, Dataset dataset )
 	{
+		if ( dataset.is2D()() ) dataset.is2D()( hcsPlate.is2D() );
+
 		final Set< String > channels = hcsPlate.getChannels();
 		final String firstChannel = channels.iterator().next();
 
@@ -122,7 +119,7 @@ public class HCSDataSetter
 
 		// create plate view
 		final View view = new View( hcsPlate.getName(), "plate", displays, transformations, true );
-		dataset.views.put( view.getName(), view );
+		dataset.views().put( view.getName(), view );
 	}
 
 	// method currently only used for testing, could be removed at some point
@@ -132,7 +129,7 @@ public class HCSDataSetter
 		double[] contrastLimits = hcsPlate.getContrastLimits( channel );
 		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( wellName, Arrays.asList( wellName ), color, contrastLimits );
 		final View view = new View( wellName, "well", Arrays.asList( imageDisplay ), Arrays.asList( siteGrid ), true );
-		dataset.views.put( view.getName(), view );
+		dataset.views().put( view.getName(), view );
 	}
 
 	private String getWellName( String channel, String well )

@@ -138,7 +138,7 @@ public class ViewsGithubWriter {
                     if (content != null) {
                         FilePathAndSha filePathAndSha = getFilePathAndSha(content);
                         dataset = new DatasetJsonParser().parseDataset(filePathAndSha.filePath);
-                        dataset.views.put(viewName, view);
+                        dataset.views().put(viewName, view);
 
                         final String datasetBase64String = writeDatasetToBase64String(dataset);
                         overwriteExistingFile(filePathAndSha, datasetBase64String);

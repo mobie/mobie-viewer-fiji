@@ -33,6 +33,4 @@ public class PublishedProject
 	public String publicationAbbreviation;
 	public String name;
 	public String location;
-	@Deprecated // https://github.com/mobie/mobie-viewer-fiji/issues/955
-	public String publicationURL;
 }

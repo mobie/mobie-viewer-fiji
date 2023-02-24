@@ -171,8 +171,8 @@ public class ProjectsCreatorPanel extends JFrame {
     private void createSoucesComboBox() {
         String selectedDataset = (String) datasetComboBox.getSelectedItem();
         Dataset dataset = projectsCreator.getDataset( selectedDataset );
-        if ( !selectedDataset.equals("") && dataset != null && dataset.sources.keySet().size() > 0 ) {
-            String[] imageNames = projectsCreator.getDataset( selectedDataset ).sources.keySet().toArray(new String[0]);
+        if ( !selectedDataset.equals("") && dataset != null && dataset.sources()().keySet().size() > 0 ) {
+            String[] imageNames = projectsCreator.getDataset( selectedDataset ).sources().keySet().toArray(new String[0]);
             sourcesComboBox = new JComboBox<>( imageNames );
             sourcesComboBox.setSelectedItem( imageNames[0] );
         } else {
@@ -492,7 +492,7 @@ public class ProjectsCreatorPanel extends JFrame {
                 return;
             }
 
-            if ( currentImage.getNDimensions() > 2 && projectsCreator.getDataset( datasetName ).is2D ) {
+            if ( currentImage.getNDimensions() > 2 && projectsCreator.getDataset( datasetName ).is2D() ) {
                 if ( !changeDatasetDimensionDialog(datasetName) ) {
                     return;
                 }
@@ -671,7 +671,7 @@ public class ProjectsCreatorPanel extends JFrame {
             return;
         }
 
-        if ( !isSpimData2D(spimData) && projectsCreator.getDataset( datasetName ).is2D ) {
+        if ( !isSpimData2D(spimData) && projectsCreator.getDataset( datasetName ).is2D() ) {
             if ( !changeDatasetDimensionDialog(datasetName) ) {
                 return;
             }
@@ -782,8 +782,8 @@ public class ProjectsCreatorPanel extends JFrame {
         if ( currentDataset != null && !currentDataset.equals("") ) {
             sourcesComboBox.removeAllItems();
             Dataset dataset = projectsCreator.getDataset( currentDataset );
-            if ( dataset != null && dataset.sources.keySet().size() > 0 ) {
-                for (String sourceName : dataset.sources.keySet() ) {
+            if ( dataset != null && dataset.sources()().keySet().size() > 0 ) {
+                for (String sourceName : dataset.sources()().keySet() ) {
                     sourcesComboBox.addItem( sourceName );
                 }
             } else {

@@ -37,12 +37,19 @@ import java.util.Map;
 public class Dataset
 {
 	// Serialisation
-	public boolean is2D = false;
-	public ViewerTransform defaultLocation = new PositionViewerTransform( new double[]{0,0,0}, 0 );
-	public Map< String, DataSource > sources = new HashMap<>();
-	public Map< String, View > views = new HashMap<>(); // TODO make this private and use getter
+	private boolean is2D = false;
+	private ViewerTransform defaultLocation = new PositionViewerTransform( new double[]{0,0,0}, 0 );
+	private Map< String, DataSource > sources = new HashMap<>();
+	private Map< String, View > views = new HashMap<>();
+
+	// Runtime
+	private String name;
 
 	public Dataset() { }
+
+	public Dataset( String name ) {
+		this.name = name;
+	}
 
 	public Dataset( boolean is2D, ViewerTransform defaultLocation, Map< String, DataSource > sources, Map< String, View > views )
 	{
@@ -52,12 +59,17 @@ public class Dataset
 		this.views = views;
 	}
 
-	public Map< String, View > getViews()
+	public Map< String, View > views()
 	{
 		for ( String name : views.keySet() )
 			views.get( name ).setName( name );
 
 		return views;
+	}
+
+	public Map< String, DataSource > sources()
+	{
+		return sources;
 	}
 
 	public void addDataSource( DataSource dataSource )
@@ -73,5 +85,20 @@ public class Dataset
 	public void is2D( boolean is2D )
 	{
 		this.is2D = is2D;
+	}
+
+	public ViewerTransform getDefaultLocation()
+	{
+		return defaultLocation;
+	}
+
+	public String getName()
+	{
+		return name;
+	}
+
+	public void setName( String name )
+	{
+		this.name = name;
 	}
 }

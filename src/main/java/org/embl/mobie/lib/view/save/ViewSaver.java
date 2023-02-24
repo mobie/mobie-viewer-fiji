@@ -226,11 +226,12 @@ public class ViewSaver
 
     private void overwriteExistingViewInProject( View view, ProjectSaveLocation projectSaveLocation )
     {
-        if ( isS3( moBIE.getProjectLocation() ) ) {
-            // TODO - support saving views to s3?
+        if ( isS3( moBIE.getProjectLocation() ) )
+        {
             throw new UnsupportedOperationException("View saving aborted - saving directly to s3 is not yet supported!");
-        } else {
-
+        }
+        else
+        {
             try {
                 if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
                     overwriteExistingViewInDatasetJson( view );
@@ -243,7 +244,6 @@ public class ViewSaver
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
     }
 
@@ -260,7 +260,7 @@ public class ViewSaver
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
 
         if ( ! overwrite )
-            if ( dataset.views.containsKey( viewName ) )
+            if ( dataset.views().containsKey( viewName ) )
                 throw new IOException( "View saving aborted - this view name already exists!" );
 
         writeDatasetJson( dataset, view, viewName, datasetJsonPath );
@@ -271,7 +271,7 @@ public class ViewSaver
         String datasetJsonPath = moBIE.getDatasetPath( "dataset.json");
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
 
-        if ( dataset.views.keySet().size() > 0 ) {
+        if ( dataset.views().keySet().size() > 0 ) {
             String selectedView = new SelectExistingViewDialog( dataset ).getSelectedView();
             if ( selectedView != null ) {
                 writeDatasetJson( dataset, view, selectedView, datasetJsonPath );

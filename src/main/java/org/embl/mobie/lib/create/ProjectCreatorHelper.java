@@ -160,8 +160,8 @@ public class ProjectCreatorHelper {
 
     public static Map<String, ArrayList<String>> getGroupToViewsMap( Dataset dataset ) {
         Map<String, ArrayList<String>> groupToViewsMap = new HashMap<>();
-        for ( String viewName: dataset.views.keySet() ) {
-            View view = dataset.views.get( viewName );
+        for ( String viewName: dataset.views().keySet() ) {
+            View view = dataset.views().get( viewName );
             String group = view.getUiSelectionGroup();
             if ( !groupToViewsMap.containsKey( group ) ) {
                 ArrayList<String> views = new ArrayList<>();

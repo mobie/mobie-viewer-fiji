@@ -75,14 +75,14 @@ class DatasetJsonParserTest {
         this.tempDir = tempDir.toFile();
         datasetJsonParser = new DatasetJsonParser();
         dataset = new Dataset();
-        dataset.sources = new HashMap<>();
+        dataset.sources() = new HashMap<>();
 
         ImageDataSource imageSource = new ImageDataSource();
         StorageLocation storageLocation = new StorageLocation();
         storageLocation.relativePath = "an/example/path";
         imageSource.imageData = new HashMap<>();
         imageSource.imageData.put( ImageDataFormat.BdvN5, storageLocation);
-        dataset.sources.put("testSource", imageSource );
+        dataset.sources()().put("testSource", imageSource );
     }
 
     void validateJSON( String jsonPath ) throws IOException {
@@ -117,7 +117,7 @@ class DatasetJsonParserTest {
         // grab the current view and save it
         View view  = moBIE.getViewManager().createViewFromCurrentState( uiSelectionGroup, isExclusive, true );
         dataset.views = new HashMap<>();
-        dataset.views.put( viewName, view );
+        dataset.views().put( viewName, view );
 
         String jsonPath = new File( tempDir, datasetJsonName ).getAbsolutePath();
         datasetJsonParser.saveDataset( dataset, jsonPath );
