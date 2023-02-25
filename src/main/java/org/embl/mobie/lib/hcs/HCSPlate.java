@@ -10,18 +10,18 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 public class HCSPlate
 {
 	private final String hcsDirectory;
 	private HCSPattern hcsPattern;
-	private HashMap< String, Map< String, Set< String > > > plateMap;
-	private HashMap< String, String > siteToPath;
+	private HashMap< String, Map< String, Set< String > > > channelWellSites;
+	private HashMap< String, Map< String, Map< String, String > > > siteTZPath;
 
 	public HCSPlate( String hcsDirectory ) throws IOException
 	{
@@ -36,32 +36,48 @@ public class HCSPlate
 
 	private void buildPlateMap( List< String > paths )
 	{
-		plateMap = new HashMap<>();
-		siteToPath = new HashMap<>();
+		channelWellSites = new HashMap<>();
+		siteTZPath = new HashMap<>();
 
 		for ( String path : paths )
 		{
-			final Matcher matcher = hcsPattern.getMatcher( path );
-			if ( ! matcher.matches() ) continue;
+			if ( ! hcsPattern.setPath( path ) )
+				continue;
 
-			final String channel = matcher.group( HCSPattern.CHANNEL );
-			if ( ! plateMap.containsKey( channel ) )
+			String channel = hcsPattern.getChannel();
+			if ( ! channelWellSites.containsKey( channel ) )
 			{
 				final HashMap< String, Set< String > > WELL_TO_SITES = new HashMap<>();
-				plateMap.put( channel, WELL_TO_SITES );
+				channelWellSites.put( channel, WELL_TO_SITES );
 			}
 
-			String well = matcher.group( HCSPattern.WELL );
-			if ( ! plateMap.get( channel ).containsKey( well ) )
+			String well = hcsPattern.getWell();
+			if ( ! channelWellSites.get( channel ).containsKey( well ) )
 			{
 				final HashSet< String > sites = new HashSet<>();
-				plateMap.get( channel ).put( well, sites );
+				channelWellSites.get( channel ).put( well, sites );
 			}
 
-			final String site = matcher.group( HCSPattern.SITE );
-			plateMap.get( channel ).get( well ).add( site );
+			final String site = hcsPattern.getSite();
+			channelWellSites.get( channel ).get( well ).add( site );
 
-			siteToPath.put( getSiteKey( channel, well, site ), path );
+			// add the path for the site's z-plane and timepoint
+			final String siteKey = getSiteKey( channel, well, site );
+			if ( ! siteTZPath.containsKey( siteKey ) )
+			{
+				final Map< String, Map< String, String > > tzp = new LinkedHashMap();
+				siteTZPath.put( siteKey, tzp );
+			}
+
+			final String t = hcsPattern.getT();
+			if ( ! siteTZPath.get( siteKey ).containsKey( t ) )
+			{
+				final Map< String, String > zp = new LinkedHashMap();
+				siteTZPath.get( siteKey ).put( t, zp );
+			}
+
+			final String z = hcsPattern.getZ();
+			siteTZPath.get( siteKey ).get( t ).put( z, path );
 		}
 	}
 
@@ -84,22 +100,27 @@ public class HCSPlate
 
 	public Set< String > getChannels()
 	{
-		return plateMap.keySet();
+		return channelWellSites.keySet();
 	}
 
 	public Set< String > getWells( String channel )
 	{
-		return plateMap.get( channel ).keySet();
+		return channelWellSites.get( channel ).keySet();
 	}
 
 	public Set< String > getSites( String channel, String well )
 	{
-		return plateMap.get( channel ).get( well );
+		return channelWellSites.get( channel ).get( well );
+	}
+
+	public Map< String, Map< String, String > > getTZPaths( String channel, String well, String site )
+	{
+		return siteTZPath.get( getSiteKey( channel, well, site ) );
 	}
 
 	public String getPath( String channel, String well, String site )
 	{
-		return siteToPath.get( getSiteKey( channel, well, site ) );
+		return getFirstPath( siteTZPath.get( getSiteKey( channel, well, site ) ) );
 	}
 
 	public int[] getSiteGridPosition( String channel, String well, String site )
@@ -108,7 +129,7 @@ public class HCSPlate
 		{
 			default:
 			case Operetta:
-				int numSites = plateMap.get( channel ).get( well ).size();
+				int numSites = channelWellSites.get( channel ).get( well ).size();
 				int siteIndex = Integer.parseInt( site ) - 1;
 				int numSiteColumns = (int) Math.sqrt( numSites );
 
@@ -170,9 +191,21 @@ public class HCSPlate
 
 	private String getFirstSitePath( String channel )
 	{
-		final String firstWell = plateMap.get( channel ).keySet().iterator().next();
-		final String firstSite = plateMap.get( channel ).get( firstWell ).iterator().next();
-		return getPath( channel, firstWell, firstSite );
+		final String firstWell = channelWellSites.get( channel ).keySet().iterator().next();
+		final String firstSite = channelWellSites.get( channel ).get( firstWell ).iterator().next();
+		final Map< String, Map< String, String > > tzPaths = getTZPaths( channel, firstWell, firstSite );
+
+		return getFirstPath( tzPaths );
+	}
+
+	public static String getFirstPath( Map< String, Map< String, String > > tzPaths )
+	{
+		// first timepoint
+		final Map< String, String > zPath = tzPaths.values().iterator().next();
+		// first z-plane
+		final String path = zPath.values().iterator().next();
+
+		return path;
 	}
 
 	public static int[] getWellLayout( int numWells )
@@ -205,5 +238,10 @@ public class HCSPlate
 	public String getName()
 	{
 		return new File( hcsDirectory ).getName();
+	}
+
+	public boolean hasZorT()
+	{
+		return hcsPattern.hasZ() || hcsPattern.hasT();
 	}
 }

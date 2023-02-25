@@ -8,10 +8,11 @@ public enum HCSPattern
 	Operetta,
 	IncuCyte;
 
-	public static final String WELL = "W";
-	public static final String SITE = "S";
-	public static final String CHANNEL = "C";
-	public static final String FRAME = "T";
+	private static final String WELL = "W";
+	private static final String SITE = "S";
+	private static final String CHANNEL = "C";
+	private static final String T = "T";
+	private static final String Z = "Z";
 
 	/*
 	r01c01f04p01-ch1sk1fk1fl1.tiff
@@ -23,7 +24,7 @@ public enum HCSPattern
 	MiaPaCa2-PhaseOriginal_A2_1_03d06h40m.tif
 	well = A2, site = 1, frame = 03d06h40m
 	 */
-	private static final String INCUCYTE = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{1,2})_(?<"+SITE+">[0-9]{1,2})_(?<"+FRAME+">[0-9]{2}d[0-9]{2}h[0-9]{2}m).tif$";
+	private static final String INCUCYTE = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{1,2})_(?<"+SITE+">[0-9]{1,2})_(?<"+ T +">[0-9]{2}d[0-9]{2}h[0-9]{2}m).tif$";
 
 	private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -35,6 +36,7 @@ public enum HCSPattern
 	private final String MD_SITES_CHANNELS = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">.*)_w(?<"+CHANNEL+">[0-9]{1}).*";
 	private final String MD_SITES = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">[0-9]{1}).*";
 
+	private Matcher matcher;
 
 	public static HCSPattern fromPath( String fileName )
 	{
@@ -58,6 +60,21 @@ public enum HCSPattern
 			case IncuCyte:
 				return Pattern.compile( INCUCYTE ).matcher( path );
 		}
+	}
+
+	public boolean setPath( String path )
+	{
+		switch( this )
+		{
+			case Operetta:
+				matcher = Pattern.compile( OPERETTA ).matcher( path );
+				break;
+			default:
+			case IncuCyte:
+				matcher = Pattern.compile( INCUCYTE ).matcher( path );
+		}
+
+		return matcher.matches();
 	}
 
 	public int[] getWellGridPosition( String well )
@@ -88,5 +105,77 @@ public enum HCSPattern
 		wellPosition[ 1 ] = ALPHABET.indexOf( well.substring( 0, 1 ).toUpperCase() );
 		return wellPosition;
 	}
+
+	private boolean hasChannels()
+	{
+		switch ( this )
+		{
+			case Operetta:
+				return true;
+			default:
+			case IncuCyte:
+				return false;
+		}
+	}
+
+	public boolean hasT()
+	{
+		switch ( this )
+		{
+			case Operetta:
+				return false;
+			default:
+			case IncuCyte:
+				return true;
+		}
+	}
+
+	public boolean hasZ()
+	{
+		switch ( this )
+		{
+			case Operetta:
+				return false;
+			default:
+			case IncuCyte:
+				return false;
+		}
+	}
+
+	public String getChannel()
+	{
+		if ( hasChannels() )
+			return matcher.group( HCSPattern.CHANNEL );
+		else
+			return "1";
+	}
+
+	public String getWell()
+	{
+		return matcher.group( HCSPattern.WELL );
+	}
+
+	public String getSite()
+	{
+		return matcher.group( HCSPattern.SITE );
+	}
+
+
+	public String getT()
+	{
+		if ( hasT() )
+			return matcher.group( HCSPattern.T );
+		else
+			return "1";
+	}
+
+	public String getZ()
+	{
+		if ( hasZ() )
+			return matcher.group( HCSPattern.T );
+		else
+			return "1";
+	}
+
 
 }

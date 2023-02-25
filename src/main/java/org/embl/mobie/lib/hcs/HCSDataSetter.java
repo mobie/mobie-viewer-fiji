@@ -15,6 +15,7 @@ import org.embl.mobie.lib.serialize.transformation.Transformation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class HCSDataSetter
@@ -76,11 +77,7 @@ public class HCSDataSetter
 				final Set< String > sites = hcsPlate.getSites( channel, well );
 				for ( String site : sites )
 				{
-					// create site image source
-					final StorageLocation storageLocation = new StorageLocation();
-					storageLocation.absolutePath = hcsPlate.getPath( channel, well, site );
-					storageLocation.channel = 0;
-					final ImageDataSource imageDataSource = new ImageDataSource( hcsPlate.getSiteKey( channel, well, site ), ImageDataFormat.ImageJ, storageLocation );
+					final ImageDataSource imageDataSource = createImageSiteSource( hcsPlate, channel, well, site );
 					dataset.addDataSource( imageDataSource );
 
 					// add site image source to site grid
@@ -121,6 +118,28 @@ public class HCSDataSetter
 		final View view = new View( hcsPlate.getName(), "plate", displays, transformations, true );
 		dataset.views().put( view.getName(), view );
 	}
+
+	private ImageDataSource createImageSiteSource( HCSPlate hcsPlate, String channel, String well, String site )
+	{
+		final StorageLocation storageLocation = new StorageLocation();
+
+		if ( hcsPlate.hasZorT() )
+		{
+			throw new RuntimeException( "HCS support for multiple timepoints or z-planes is under development." );
+		}
+		else
+		{
+			storageLocation.absolutePath = hcsPlate.getPath( channel, well, site );
+		}
+
+		storageLocation.channel = 0;
+
+		final ImageDataSource imageDataSource = new ImageDataSource( hcsPlate.getSiteKey( channel, well, site ), ImageDataFormat.ImageJ, storageLocation );
+
+		return imageDataSource;
+	}
+
+
 
 	// method currently only used for testing, could be removed at some point
 	private void addWellView( HCSPlate hcsPlate, Dataset dataset, String channel, String wellName, MergedGridTransformation siteGrid )
