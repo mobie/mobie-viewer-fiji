@@ -85,8 +85,7 @@ public class ScreenShotMaker
     private final ISourceAndConverterService sacService;
     private double samplingXY = 1;
     private String physicalUnit = "Pixels";
-    private boolean sourceInteractionWithViewerPlaneOnly2D = false; // TODO: maybe remove in the future
-    ImagePlus rgbImagePlus = null;
+    private ImagePlus rgbImagePlus = null;
     private CompositeImage compositeImagePlus = null;
     private long[] captureImageSizeInPixels = new long[2];
 
@@ -95,15 +94,10 @@ public class ScreenShotMaker
         this.sacService = SourceAndConverterServices.getSourceAndConverterService();
     }
 
-    public void setPhysicalPixelSpacingInXY(double spacing, String unit) {
+    public void setPhysicalPixelSpacingInXY( double spacing, String unit ) {
         this.rgbImagePlus = null;
         this.samplingXY = spacing;
         this.physicalUnit = unit;
-    }
-
-    public void setSourceInteractionWithViewerPlaneOnly2D(boolean sourceInteractionWithViewerPlaneOnly2D) {
-        this.rgbImagePlus = null;
-        this.sourceInteractionWithViewerPlaneOnly2D = sourceInteractionWithViewerPlaneOnly2D;
     }
 
     private void process() {
@@ -167,7 +161,9 @@ public class ScreenShotMaker
         List< SourceAndConverter< ? > > sacs = new ArrayList<>();
         for ( SourceAndConverter< ?  > sac : visibleSacs )
         {
-            if ( ! isSourceIntersectingCurrentView( bdvHandle, sac.getSpimSource(), sourceInteractionWithViewerPlaneOnly2D ) )
+            // TODO: can we determine from BDV whether a source is intersecting viewer plane?
+            //       why do we need is2D=false ?
+            if ( ! isSourceIntersectingCurrentView( bdvHandle, sac.getSpimSource(), false ) )
                 continue;
             sacs.add( sac );
         }

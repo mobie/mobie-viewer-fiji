@@ -64,7 +64,7 @@ public class MobieBdvSupplier implements IBdvSupplier {
 
         BdvOptions options = sOptions.getBdvOptions();
 
-        // create dummy image to instantiate the BDV
+        // create dummy image to instantiate a BDV
         ArrayImg< ByteType, ByteArray > dummyImg = ArrayImgs.bytes(2, 2, 2);
         options = options.sourceTransform( new AffineTransform3D() );
 
@@ -76,18 +76,13 @@ public class MobieBdvSupplier implements IBdvSupplier {
         // remove dummy image
         bdv.getViewerPanel().state().removeSource( bdv.getViewerPanel().state().getCurrentSource() );
 
-        // TODO: this constructions appears a bit brittle.
-        //  BDV does not seem to handle it very well if there
-        //  is no image shown...
-        //  Maybe there is a better way to initialise an empty BDV?
-
         setTimepointTextColor( bdv );
 
         return bdv;
     }
 
-    // This is a hack that could be removed once it is
-    // fixed in BDV (discussion on bdv-core gitter with tpietzsch).
+    // a hack that could be removed once it is
+    // fixed upstream (discussion on bdv-core gitter with tpietzsch).
     private void setTimepointTextColor( BdvHandle bdv )
     {
         ViewerPanel viewer = bdv.getViewerPanel();
