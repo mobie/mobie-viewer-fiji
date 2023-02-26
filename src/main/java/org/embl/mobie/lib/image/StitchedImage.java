@@ -108,8 +108,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	{
 		this.images = images;
 
-		// Fetch image dimensions, type and mask from metadataImage.
-		// The metadataImage does not need to be part of the StitchedImage;
+		// Fetch image dimensions, type and mask from {@code metadataImage}.
+		// The {@code metadataImage} does not need to be part of the StitchedImage;
 		// in fact, this is the whole point, as we can avoid loading
 		// any of the images of the StitchedImage at this point.
 		// This can make initialisation much faster.
@@ -128,8 +128,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		// Get the reference mask from the metadata image.
 		// We only need the spatial extent of the image.
 		// The absolute position will be computed based on the tile
-		// position. Thus, we remove current spatial offset that this
-		// image may have already.
+		// position and, thus, we remove any spatial offset.
 		this.referenceMask = GeomMasks.closedBox( metadataImage.getMask().minAsDoubleArray(), metadataImage.getMask().maxAsDoubleArray() );
 		final AffineTransform3D translateToZeroInXY = new AffineTransform3D();
 		final double[] translationVector = metadataImage.getMask().minAsDoubleArray();
@@ -172,8 +171,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			System.out.println( "StitchedImage: Tile real dimensions: " + Arrays.toString( tileRealDimensions ) );
 		}
 
-		// Transform the individual images that make up the tiles.
-		// And use those images as the basis for the stitched image.
+		// Transform the individual images that make up the tiles,
+		// and use those images as the basis for the stitched image.
 		// This is needed for a {@code RegionDisplay}
 		// to know the location of the annotated images.
 		// This also is needed because for annotated images
@@ -233,7 +232,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			{
 				// Also transform the image tiles that are contained
 				// in the stitched image.
-				// Here, we don't need to use metadataImage,
+				// Here, we don't need to use {@code metadataImage},
 				// because the images of those tiles
 				// are already initialised.
 				final List< String > tileNames = ( ( StitchedImage< ?, ? > ) image ).getImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
@@ -241,7 +240,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				for ( Image< ? > containedImage : stitchedImages )
 				{
 					if ( containedImage instanceof StitchedImage )
-						throw new UnsupportedOperationException("Nested stitching of MergedGridTransformation is currently not supported.");
+					{
+						throw new UnsupportedOperationException( "Nested stitching of MergedGridTransformation is currently not supported." );
+					}
 
 					imagesAtGridPosition.add( containedImage );
 					imagesNamesAtGridPosition.add( containedImage.getName() + "_" + name );
@@ -253,10 +254,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		}
 
 		nestedTransformedNames = null; // <- triggers in place transformations
-		// List< ? extends Image< ? > > translatedImages =
+
 		ImageTransformer.gridTransform( nestedImages, nestedTransformedNames, positions, tileRealDimensions, false, offset );
 
-		// return translatedImages;
 	}
 
 	public List< ? extends Image< ? > > getImages()
@@ -270,15 +270,19 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		for ( int level = 0; level < mipmapScales.length; ++level )
 		{
 			final AffineTransform3D mipmapTransform = new AffineTransform3D();
-			//final double[] offsets = Arrays.stream( levelToTileMarginVoxelTranslation.get( level ) ).map( d -> d - ( long ) d ).toArray();
+
 			final double[] translations = new double[ 3 ];
+
 			for ( int d = 0; d < 3; d++ )
-				translations[ d ] = 0.5 * ( mipmapScales[ level ][ d ] - 1 ); // + offsets[ d ];
+				translations[ d ] = 0.5 * ( mipmapScales[ level ][ d ] - 1 );
+
 			mipmapTransform.set(
 					mipmapScales[ level ][ 0 ], 0, 0, translations[ 0 ],
 					0, mipmapScales[ level ][ 1 ], 0, translations[ 1 ],
 					0, 0, mipmapScales[ level ][ 2 ], translations[ 2 ] );
+
 			mipmapTransform.preConcatenate( sourceTransform );
+
 			mipmapTransforms[ level ] = mipmapTransform;
 		}
 
@@ -286,7 +290,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		// non-volatile
 		//
-		final Map< Integer, List< RandomAccessibleInterval< T > > > stitched = createStitchedRAIs( tileSupplier );
+		final Map< Integer, List< RandomAccessibleInterval< T > > > stitched = stitchTiles( tileSupplier );
 
 		final StitchedSource< T > source = new StitchedSource<>(
 				stitched,
@@ -298,10 +302,10 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		// volatile
 		//
-		final Map< Integer, List< RandomAccessibleInterval< V > > > vStitched = createVolatileStitchedRAIs( tileSupplier );
+		final Map< Integer, List< RandomAccessibleInterval< V > > > volatileStitched = stitchVolatileTiles( tileSupplier );
 
 		final StitchedSource< V > volatileSource = new StitchedSource<>(
-				vStitched,
+				volatileStitched,
 				volatileType,
 				voxelDimensions,
 				name,
@@ -368,7 +372,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		@Override
 		public boolean isPresent( int t )
 		{
-			return t < mipmapSources.size();
+			return mipmapSources.containsKey( t );
 		}
 
 		@Override
@@ -406,7 +410,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		}
 	}
 
-	protected Map< Integer, List< RandomAccessibleInterval< V > > > createVolatileStitchedRAIs( TileSupplier tileSupplier )
+	protected Map< Integer, List< RandomAccessibleInterval< V > > > stitchVolatileTiles( TileSupplier tileSupplier )
 	{
 		final Map< Integer, List< RandomAccessibleInterval< V > > > stitched = new HashMap<>();
 
@@ -536,7 +540,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		}
 	}
 
-	protected Map< Integer, List< RandomAccessibleInterval< T > > > createStitchedRAIs( TileSupplier tileSupplier )
+	protected Map< Integer, List< RandomAccessibleInterval< T > > > stitchTiles( TileSupplier tileSupplier )
 	{
 		final Map< Integer, List< RandomAccessibleInterval< T > > > stitched = new HashMap<>();
 

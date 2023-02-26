@@ -35,7 +35,7 @@ public abstract class AbstractGridTransformation implements Transformation
 	// Serialization
 	public List< int[] > positions;
 
-	// Final
+	// Static
 	public static final double RELATIVE_GRID_CELL_MARGIN = 0.1; // 0.1;
 
 }

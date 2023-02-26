@@ -29,6 +29,7 @@
 package org.embl.mobie.lib.serialize.transformation;
 
 import bdv.viewer.SourceAndConverter;
+import mpicbg.spim.data.sequence.TimePoint;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.source.TransformedTimepointSource;
 import net.imglib2.Volatile;
