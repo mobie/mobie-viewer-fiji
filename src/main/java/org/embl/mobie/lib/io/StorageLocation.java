@@ -29,14 +29,22 @@
 package org.embl.mobie.lib.io;
 
 
-// Note that this provides storage locations for both images and tables,
-// but some fields are not used by both.
+/*
+ Note that this provides storage locations for both images and tables,
+ but some fields are only used for tables or images.
+
+ Images:
+ One {@code StorageLocation} contains data for
+ single channel volumetric time-lapse data,
+ such as an {@code Source} in BigDataViewer.
+
+
+ */
 public class StorageLocation
 {
-	// for data on disk in a MoBIE project
+	// for data on disk, either
 	public String relativePath;
-
-	// for other data on disk
+	// or
 	public String absolutePath;
 
 	// for data on s3

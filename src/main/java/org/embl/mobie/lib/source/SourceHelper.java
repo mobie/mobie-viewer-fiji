@@ -33,7 +33,6 @@ import bdv.tools.transformation.TransformedSource;
 import bdv.util.Affine3DHelpers;
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
@@ -87,13 +86,13 @@ public abstract class SourceHelper
 		}
 	}
 
-	public static int getNumTimepoints( SourceAndConverter< ? > source )
+	public static int getNumTimepoints( Source< ? > source )
 	{
 		int numSourceTimepoints = 0;
         final int maxNumTimePoints = 10000; // TODO
         for ( int t = 0; t < maxNumTimePoints; t++ )
 		{
-			if ( source.getSpimSource().isPresent( t ) )
+			if ( source.isPresent( t ) )
             {
                 numSourceTimepoints++;
             }
@@ -104,7 +103,9 @@ public abstract class SourceHelper
 		}
 
         if ( numSourceTimepoints == maxNumTimePoints )
-            System.err.println( source.getSpimSource().getName() + " has more than " + maxNumTimePoints + " time-points. Is this an error?!" );
+		{
+			System.err.println( source.getName() + " has more than " + maxNumTimePoints + " time-points. Is this an error?!" );
+		}
 
 		return numSourceTimepoints;
 	}

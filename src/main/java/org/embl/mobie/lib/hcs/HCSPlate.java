@@ -21,7 +21,12 @@ public class HCSPlate
 	private final String hcsDirectory;
 	private HCSPattern hcsPattern;
 	private HashMap< String, Map< String, Set< String > > > channelWellSites;
+
+	// TODO replace String with StorageLocation ?!
 	private HashMap< String, Map< String, Map< String, String > > > siteTZPath;
+
+	private boolean isTimelapse = false;
+	private boolean isVolume = false;
 
 	public HCSPlate( String hcsDirectory ) throws IOException
 	{
@@ -44,11 +49,22 @@ public class HCSPlate
 			if ( ! hcsPattern.setPath( path ) )
 				continue;
 
+			// store this file's channel, well, and site
+			//
+
 			String channel = hcsPattern.getChannel();
+			// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/972
+			//    WellH06_PointH06_0007_ChannelDAPI,WF_GFP,TRITC,WF_Cy5,DIA_Seq0502.tiff
+			//    Maybe change to hcsPattern.getChannels(); (plural) ?
+			//    and then loop through the channels
+			//    and add a suffix to the path "--c0" to indicate which channel to load?
+			//    Maybe I need something more complex than a String to represent the path?
+			//    In fact, could I use StorageLocation already here?
+
 			if ( ! channelWellSites.containsKey( channel ) )
 			{
-				final HashMap< String, Set< String > > WELL_TO_SITES = new HashMap<>();
-				channelWellSites.put( channel, WELL_TO_SITES );
+				final HashMap< String, Set< String > > wells = new HashMap<>();
+				channelWellSites.put( channel, wells );
 			}
 
 			String well = hcsPattern.getWell();
@@ -61,23 +77,35 @@ public class HCSPlate
 			final String site = hcsPattern.getSite();
 			channelWellSites.get( channel ).get( well ).add( site );
 
-			// add the path for the site's z-plane and timepoint
+			// store this site's timepoint, z-plane, and path
+			//
+
 			final String siteKey = getSiteKey( channel, well, site );
 			if ( ! siteTZPath.containsKey( siteKey ) )
 			{
-				final Map< String, Map< String, String > > tzp = new LinkedHashMap();
-				siteTZPath.put( siteKey, tzp );
+				final Map< String, Map< String, String > > tzpath = new LinkedHashMap();
+				siteTZPath.put( siteKey, tzpath );
 			}
 
 			final String t = hcsPattern.getT();
 			if ( ! siteTZPath.get( siteKey ).containsKey( t ) )
 			{
-				final Map< String, String > zp = new LinkedHashMap();
-				siteTZPath.get( siteKey ).put( t, zp );
+				final Map< String, String > zpath = new LinkedHashMap();
+				siteTZPath.get( siteKey ).put( t, zpath );
 			}
 
 			final String z = hcsPattern.getZ();
 			siteTZPath.get( siteKey ).get( t ).put( z, path );
+
+			if ( siteTZPath.get( siteKey).size() > 1 )
+			{
+				isTimelapse = true;
+			}
+
+			if ( siteTZPath.get( siteKey).get( t ).size() > 1 )
+			{
+				isVolume = true;
+			}
 		}
 	}
 
@@ -240,8 +268,18 @@ public class HCSPlate
 		return new File( hcsDirectory ).getName();
 	}
 
-	public boolean hasZorT()
+	public boolean isTimelapse()
 	{
-		return hcsPattern.hasZ() || hcsPattern.hasT();
+		return isTimelapse;
+	}
+
+	public boolean isVolume()
+	{
+		return isVolume;
+	}
+
+	public HCSPattern getHcsPattern()
+	{
+		return hcsPattern;
 	}
 }

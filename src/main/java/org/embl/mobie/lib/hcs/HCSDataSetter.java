@@ -15,7 +15,6 @@ import org.embl.mobie.lib.serialize.transformation.Transformation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 public class HCSDataSetter
@@ -30,6 +29,11 @@ public class HCSDataSetter
 	 */
 	public void addPlateToDataset( HCSPlate hcsPlate, Dataset dataset )
 	{
+		if ( hcsPlate.isTimelapse() || hcsPlate.isVolume() )
+		{
+			System.err.println( "HCS support for volumetric or timelapse data is under development; showing only first time point and first z-plane" );
+		}
+
 		if ( dataset.is2D() ) dataset.is2D( hcsPlate.is2D() );
 
 		final Set< String > channels = hcsPlate.getChannels();
@@ -123,9 +127,10 @@ public class HCSDataSetter
 	{
 		final StorageLocation storageLocation = new StorageLocation();
 
-		if ( hcsPlate.hasZorT() )
+		if ( hcsPlate.isTimelapse() || hcsPlate.isVolume() )
 		{
-			throw new RuntimeException( "HCS support for multiple timepoints or z-planes is under development." );
+			// TODO use hcsPlate.getTZPaths(  )
+			storageLocation.absolutePath = hcsPlate.getPath( channel, well, site );
 		}
 		else
 		{
@@ -139,9 +144,7 @@ public class HCSDataSetter
 		return imageDataSource;
 	}
 
-
-
-	// method currently only used for testing, could be removed at some point
+	// only used for testing, may be removed
 	private void addWellView( HCSPlate hcsPlate, Dataset dataset, String channel, String wellName, MergedGridTransformation siteGrid )
 	{
 		String color = hcsPlate.getColor( channel );

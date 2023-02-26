@@ -27,7 +27,7 @@ public class RandomAccessibleIntervalMipmapSource< T extends Type< T > > impleme
 	private final DefaultInterpolators< ? extends NumericType > interpolators;
 
 	public RandomAccessibleIntervalMipmapSource(
-			final List< RandomAccessibleInterval< T > > imgs,
+			final List< RandomAccessibleInterval< T > > rais,
 			final T type,
 			final VoxelDimensions voxelDimensions,
 			final String name,
@@ -35,9 +35,9 @@ public class RandomAccessibleIntervalMipmapSource< T extends Type< T > > impleme
 	{
 		this.type = type;
 		this.name = name;
-		assert imgs.size() == mipmapTransforms.length : "Number of mipmaps and scale factors do not match.";
+		assert rais.size() == mipmapTransforms.length : "Number of mipmaps and scale factors do not match.";
 
-		this.mipmapSources = imgs;
+		this.mipmapSources = rais;
 		this.mipmapTransforms = mipmapTransforms;
 		interpolators = new DefaultInterpolators<>();
 		this.voxelDimensions = voxelDimensions;
