@@ -29,6 +29,9 @@
 package org.embl.mobie.lib.io;
 
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /*
  Note that this provides storage locations for both images and tables,
  but some fields are only used for tables or images.
@@ -42,7 +45,9 @@ package org.embl.mobie.lib.io;
  */
 public class StorageLocation
 {
-	// for data on disk, either
+	// for data on disk:
+
+	// either
 	public String relativePath;
 	// or
 	public String absolutePath;

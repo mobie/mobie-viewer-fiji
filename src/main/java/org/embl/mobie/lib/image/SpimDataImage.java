@@ -104,6 +104,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 
 	private void open()
 	{
+
 		final AbstractSpimData spimData = tryOpenSpimData( path, imageDataFormat, sharedQueue );
 
 		createSourcePair( spimData, setupId, name );

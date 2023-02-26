@@ -30,6 +30,7 @@ package org.embl.mobie.lib.serialize.display;
 
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.Annotation;
+import org.embl.mobie.lib.hcs.Well;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,7 +44,7 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotat
 
 	// regionId to image sources
 	// one regionId can annotate several images
-	public Map< String, List< String > > sources;
+	public Map< Well, List< String > > sources;
 
 	// table data
 	public String tableSource;
@@ -87,7 +88,7 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotat
 
 		// set fields specific to RegionDisplay
 		//
-		this.sources = new HashMap<>();
+		this.sources = new HashMap< org.embl.mobie.lib.hcs.Well, List< String > >();
 		this.sources.putAll( regionDisplay.sources );
 		this.tableSource = regionDisplay.tableSource;
 	}

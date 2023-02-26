@@ -52,6 +52,7 @@ import org.embl.mobie.lib.color.MobieColoringModel;
 import org.embl.mobie.lib.color.NumericAnnotationColoringModel;
 import org.embl.mobie.lib.color.lut.ColumnARGBLut;
 import org.embl.mobie.lib.color.lut.LUTs;
+import org.embl.mobie.lib.hcs.Well;
 import org.embl.mobie.lib.image.AnnotatedLabelImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
@@ -458,7 +459,7 @@ public class ViewManager
 				// that could be referred to here.
 
 				final RegionDisplay< ? > regionDisplay = ( RegionDisplay< ? > ) display;
-				final Map< String, List< String > > regionIdToImageNames = regionDisplay.sources;
+				final Map< Well, List< String > > regionIdToImageNames = regionDisplay.sources;
 				Table table;
 				StorageLocation tableLocation;
 				TableDataFormat tableFormat;
@@ -471,7 +472,7 @@ public class ViewManager
 
 					// only keep the subset of rows (regions)
 					// that are actually referred to in regionIdToImageNames
-					final Set< String > regionIDs = regionIdToImageNames.keySet();
+					final Set< Well > regionIDs = regionIdToImageNames.keySet();
 					final ArrayList< Integer > dropRows = new ArrayList<>();
 					final int rowCount = table.rowCount();
 					for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )

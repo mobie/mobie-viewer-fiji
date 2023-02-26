@@ -1,8 +1,8 @@
 package org.embl.mobie.lib.hcs;
 
+import net.thisptr.jackson.jq.internal.misc.Strings;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
-import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.ImageDataSource;
 import org.embl.mobie.lib.serialize.View;
@@ -22,44 +22,39 @@ public class HCSDataSetter
 	/**
 	 * Adds the content of the {@code hcsPlate} to the {@code dataset}.
 	 *
-	 * @param hcsPlate
+	 * @param plate
 	 * 					a HCSPlate
 	 * @param dataset
 	 * 					the current MoBIE dataset
 	 */
-	public void addPlateToDataset( HCSPlate hcsPlate, Dataset dataset )
+	public void addPlateToDataset( Plate plate, Dataset dataset )
 	{
-		if ( hcsPlate.isTimelapse() || hcsPlate.isVolume() )
-		{
-			System.err.println( "HCS support for volumetric or timelapse data is under development; showing only first time point and first z-plane" );
-		}
+		if ( dataset.is2D() ) dataset.is2D( plate.is2D() );
 
-		if ( dataset.is2D() ) dataset.is2D( hcsPlate.is2D() );
-
-		final Set< String > channels = hcsPlate.getChannels();
-		final String firstChannel = channels.iterator().next();
+		final Set< Channel > channels = plate.getChannels();
+		final Channel firstChannel = channels.iterator().next();
 
 		// init a RegionDisplay for navigating the wells
 		final RegionDisplay< AnnotatedRegion > wellRegionDisplay = new RegionDisplay<>( "wells" );
-		wellRegionDisplay.sources = new HashMap<>();
+		wellRegionDisplay.sources = new HashMap< Well, java.util.List< String > >();
 		wellRegionDisplay.showAsBoundaries( true );
-		wellRegionDisplay.setBoundaryThickness( ( float ) (0.1 * hcsPlate.getSiteRealDimensions( firstChannel )[ 0 ]) );
+		wellRegionDisplay.setBoundaryThickness( ( float ) (0.1 * plate.getSiteRealDimensions()[ 0 ] ) );
 
 		final ArrayList< Transformation > transformations = new ArrayList<>();
 		final ArrayList< Display< ? > > displays = new ArrayList<>();
 
-		for ( String channel : channels )
+		for ( Channel channel : channels )
 		{
 			String metadataSiteSource = null;
 
-			final Set< String > wells = hcsPlate.getWells( channel );
+			final Set< Well > wells = plate.getWells( channel );
 
 			final MergedGridTransformation wellGrid = new MergedGridTransformation();
 			wellGrid.sources = new ArrayList<>();
 			wellGrid.positions = new ArrayList<>();
 			wellGrid.setName( getChannelName( channel ) );
 
-			for ( String well : wells )
+			for ( Well well : wells )
 			{
 				final String wellName = getWellName( channel, well );
 
@@ -78,15 +73,16 @@ public class HCSDataSetter
 				}
 
 				// for each site, create an image source and add it to the site grid
-				final Set< String > sites = hcsPlate.getSites( channel, well );
-				for ( String site : sites )
+				final Set< Site > sites = plate.getSites( channel, well );
+				for ( Site site : sites )
 				{
-					final ImageDataSource imageDataSource = createImageSiteSource( hcsPlate, channel, well, site );
+					String uuid = Strings.join( "-", Arrays.asList( plate.getName(), channel.getName(), well.getName(), site.getName() ) );
+					final ImageDataSource imageDataSource = new ImageDataSource( uuid, ImageDataFormat.ImageJ, site.storageLocation() );
 					dataset.addDataSource( imageDataSource );
 
 					// add site image source to site grid
 					siteGrid.sources.add( imageDataSource.getName() );
-					siteGrid.positions.add( hcsPlate.getSiteGridPosition( channel, well, site ) );
+					siteGrid.positions.add( plate.computeGridPosition( site ) );
 					if ( metadataSiteSource == null )
 					{
 						// all sites should be identical, thus
@@ -102,7 +98,7 @@ public class HCSDataSetter
 
 				// add the merged sites to the well grid
 				wellGrid.sources.add( wellName );
-				wellGrid.positions.add( hcsPlate.getWellGridPosition( well ) );
+				wellGrid.positions.add( plate.getWellGridPosition( well ) );
 
 				// add well view for testing
 				//addWellView( hcsPlate, dataset, channel, wellName, siteGrid );
@@ -110,56 +106,23 @@ public class HCSDataSetter
 
 			transformations.add( wellGrid );
 
-			String color = hcsPlate.getColor( channel );
-			double[] contrastLimits = hcsPlate.getContrastLimits( channel );
-			final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( wellGrid.getName(), Arrays.asList( wellGrid.getName() ), color, contrastLimits );
+			final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( wellGrid.getName(), Arrays.asList( wellGrid.getName() ), channel.getColor(), channel.getContrastLimits() );
 			displays.add( imageDisplay );
 		}
 
 		displays.add( wellRegionDisplay );
 
 		// create plate view
-		final View view = new View( hcsPlate.getName(), "plate", displays, transformations, true );
+		final View view = new View( plate.getName(), "plate", displays, transformations, true );
 		dataset.views().put( view.getName(), view );
 	}
 
-	private ImageDataSource createImageSiteSource( HCSPlate hcsPlate, String channel, String well, String site )
-	{
-		final StorageLocation storageLocation = new StorageLocation();
-
-		if ( hcsPlate.isTimelapse() || hcsPlate.isVolume() )
-		{
-			// TODO use hcsPlate.getTZPaths(  )
-			storageLocation.absolutePath = hcsPlate.getPath( channel, well, site );
-		}
-		else
-		{
-			storageLocation.absolutePath = hcsPlate.getPath( channel, well, site );
-		}
-
-		storageLocation.channel = 0;
-
-		final ImageDataSource imageDataSource = new ImageDataSource( hcsPlate.getSiteKey( channel, well, site ), ImageDataFormat.ImageJ, storageLocation );
-
-		return imageDataSource;
-	}
-
-	// only used for testing, may be removed
-	private void addWellView( HCSPlate hcsPlate, Dataset dataset, String channel, String wellName, MergedGridTransformation siteGrid )
-	{
-		String color = hcsPlate.getColor( channel );
-		double[] contrastLimits = hcsPlate.getContrastLimits( channel );
-		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( wellName, Arrays.asList( wellName ), color, contrastLimits );
-		final View view = new View( wellName, "well", Arrays.asList( imageDisplay ), Arrays.asList( siteGrid ), true );
-		dataset.views().put( view.getName(), view );
-	}
-
-	private String getWellName( String channel, String well )
+	private String getWellName( Channel channel, Well well )
 	{
 		return getChannelName( channel ) + "--w_" + well;
 	}
 
-	private String getChannelName( String channel )
+	private String getChannelName( Channel channel )
 	{
 		return "c_" + channel;
 	}

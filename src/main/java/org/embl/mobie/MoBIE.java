@@ -43,7 +43,7 @@ import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.hcs.HCSDataSetter;
-import org.embl.mobie.lib.hcs.HCSPlate;
+import org.embl.mobie.lib.hcs.Plate;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.github.GitHubUtils;
@@ -201,6 +201,7 @@ public class MoBIE
 			for ( String path : imagePaths )
 			{
 				System.out.println( "Opening image: " + path );
+				// TODO: Use ImageJ to open .tif or .tiff files in ImageDataFormat.fromPath() !
 				final AbstractSpimData< ? > spimData = IOHelper.tryOpenSpimData( path, ImageDataFormat.fromPath( path ) );
 				addSpimDataImages( spimData, false, null, null );
 			}
@@ -362,9 +363,9 @@ public class MoBIE
 	private void initHCSProject( String projectLocation ) throws IOException
 	{
 		initProject( "HCS" );
-		final HCSPlate hcsPlate = new HCSPlate( projectLocation );
-		IJ.log( "HCS Pattern: " + hcsPlate.getHcsPattern() );
-		new HCSDataSetter().addPlateToDataset( hcsPlate, dataset );
+		final Plate plate = new Plate( projectLocation );
+		IJ.log( "HCS Pattern: " + plate.getHcsPattern() );
+		new HCSDataSetter().addPlateToDataset( plate, dataset );
 		initUIandShowView( dataset.views().keySet().iterator().next() );
 	}
 
@@ -1062,8 +1063,8 @@ public class MoBIE
 				return new SpimDataImage<>( ( AbstractSpimData ) storageLocation.data, channel, name );
 			default:
 				// TODO https://github.com/mobie/mobie-viewer-fiji/issues/857
-				final String imageLocation = getImageLocation( imageDataFormat, storageLocation );
-				return new SpimDataImage( imageDataFormat, imageLocation, channel, name, ThreadHelper.sharedQueue );
+				final String imagePath = getImageLocation( imageDataFormat, storageLocation );
+				return new SpimDataImage( imageDataFormat, imagePath, channel, name, ThreadHelper.sharedQueue );
 		}
 	}
 

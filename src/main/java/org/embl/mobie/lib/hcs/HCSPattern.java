@@ -77,7 +77,7 @@ public enum HCSPattern
 		return matcher.matches();
 	}
 
-	public int[] getWellGridPosition( String well )
+	public int[] decodeWellGridPosition( String well )
 	{
 		switch ( this )
 		{
@@ -142,24 +142,23 @@ public enum HCSPattern
 		}
 	}
 
-	public String getChannel()
+	public Channel getChannel()
 	{
 		if ( hasChannels() )
-			return matcher.group( HCSPattern.CHANNEL );
+			return new Channel( matcher.group( HCSPattern.CHANNEL ) );
 		else
-			return "1";
+			return new Channel( "1" );
 	}
 
-	public String getWell()
+	public Well getWell()
 	{
-		return matcher.group( HCSPattern.WELL );
+		return new Well( matcher.group( HCSPattern.WELL ) );
 	}
 
-	public String getSite()
+	public Site getSite()
 	{
-		return matcher.group( HCSPattern.SITE );
+		return new Site( matcher.group( HCSPattern.SITE ) );
 	}
-
 
 	public String getT()
 	{
