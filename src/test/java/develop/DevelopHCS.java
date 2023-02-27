@@ -15,11 +15,8 @@ class DevelopHCS
 	{
 		new ImageJ().ui().showUI();
 
-		final MoBIESettings settings = new MoBIESettings();
-		settings.isHCSProject( true );
+		new MoBIE( "/Users/tischer/Downloads/Operetta", new MoBIESettings(), 0.1, 0.0  );
 
-		new MoBIE( "/Users/tischer/Downloads/Operetta", settings );
-
-		//new MoBIE( "/Users/tischer/Downloads/IncuCyte", settings );
+		//new MoBIE( "/Users/tischer/Downloads/IncuCyte", new MoBIESettings(), 0.1, 0.0 );
 	}
 }

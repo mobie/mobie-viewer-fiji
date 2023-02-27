@@ -207,24 +207,18 @@ public class Plate
 		return channelWellSites.get( channel ).get( well );
 	}
 
-
-	public int[] computeGridPosition( Site site )
+	public int[] getGridPosition( Site site )
 	{
 		switch ( hcsPattern )
 		{
-			default:
 			case Operetta:
-				int[] gridPosition = determineOperettaSitePosition( site );
-
-				// System.out.println( "Site  = " + site + ", c = " + gridPosition[ 0 ] + ", r = " + gridPosition[ 1 ]);
-
-				return gridPosition;
+				return getOperettaGridPosition( site );
+			default:
+				return getDefaultGridPosition( site );
 		}
 	}
 
-
-
-	private int[] determineOperettaSitePosition( Site site )
+	private int[] getOperettaGridPosition( Site site )
 	{
 		// TODO operetta site positions: https://github.com/embl-cba/plateviewer/issues/41
 		List< int[] > positions = new ArrayList<>();
@@ -241,24 +235,25 @@ public class Plate
 		positions.add( new int[]{1,4} ); // 11
 
 		int siteIndex = Integer.parseInt( site.getName() ) - 1;
+
+		return positions.get( siteIndex );
+	}
+
+	public int[] getDefaultGridPosition( Site site )
+	{
+		int siteIndex = Integer.parseInt( site.getName() ) - 1;
 		int numSiteColumns = (int) Math.sqrt( sitesPerWell );
 
-//		int[] gridPosition = new int[ 2 ];
-//		gridPosition[ 0 ] = siteIndex % numSiteColumns; // column
-//		gridPosition[ 1 ] = siteIndex / numSiteColumns; // row
-		return positions.get( siteIndex );
+		int[] gridPosition = new int[ 2 ];
+		gridPosition[ 0 ] = siteIndex % numSiteColumns; // column
+		gridPosition[ 1 ] = siteIndex / numSiteColumns; // row
+
+		return gridPosition;
 	}
 
 	public int[] getWellGridPosition( Well well )
 	{
-		switch ( hcsPattern )
-		{
-			default:
-			case Operetta:
-				final int[] gridPosition = hcsPattern.decodeWellGridPosition( well.getName() );
-				// System.out.println( "Well  = " + well + ", c = " + gridPosition[ 0 ] + ", r = " + gridPosition[ 1 ]);
-				return gridPosition;
-		}
+		return hcsPattern.decodeWellGridPosition( well.getName() );
 	}
 
 	public boolean is2D()

@@ -26,8 +26,10 @@ public class HCSDataSetter
 	 * 					a HCSPlate
 	 * @param dataset
 	 * 					the current MoBIE dataset
+	 * @param wellMargin
+	 * @param siteMargin
 	 */
-	public void addPlateToDataset( Plate plate, Dataset dataset )
+	public void addPlateToDataset( Plate plate, Dataset dataset, double wellMargin, double siteMargin )
 	{
 		if ( dataset.is2D() ) dataset.is2D( plate.is2D() );
 
@@ -53,6 +55,7 @@ public class HCSDataSetter
 			final MergedGridTransformation wellGrid = new MergedGridTransformation();
 			wellGrid.sources = new ArrayList<>();
 			wellGrid.positions = new ArrayList<>();
+			wellGrid.margin = wellMargin;
 			wellGrid.setName( channel.getName() );
 
 			for ( Well well : wells )
@@ -63,6 +66,7 @@ public class HCSDataSetter
 				final MergedGridTransformation siteGrid = new MergedGridTransformation();
 				siteGrid.sources = new ArrayList<>();
 				siteGrid.positions = new ArrayList<>();
+				siteGrid.margin = siteMargin;
 				siteGrid.setName( wellID );
 
 				if( channel.equals( firstChannel ) )
@@ -83,7 +87,7 @@ public class HCSDataSetter
 
 					// add site image source to site grid
 					siteGrid.sources.add( imageDataSource.getName() );
-					siteGrid.positions.add( plate.computeGridPosition( site ) );
+					siteGrid.positions.add( plate.getGridPosition( site ) );
 					if ( metadataSiteSource == null )
 					{
 						// all sites should be identical, thus

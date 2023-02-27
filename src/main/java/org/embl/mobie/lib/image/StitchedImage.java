@@ -100,7 +100,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private TransformedSource< T > transformedSource;
 	private RealMaskRealInterval referenceMask;
 
-	private boolean debug = false;
+	private final boolean debug = false;
 	private AffineTransform3D sourceTransform;
 	private int numTimepoints;
 
@@ -462,7 +462,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				final int xTileIndex = x / tileDimension[ 0 ];
 				final int yTileIndex = y / tileDimension[ 1 ];
 
-				if ( ! tileSupplier.exists( t, level, xTileIndex, yTileIndex ) )
+				if ( ! tileSupplier.contains( t, level, xTileIndex, yTileIndex ) )
 				{
 					volatileOutput.set( background.copy() );
 					volatileOutput.setValid( true );
@@ -560,12 +560,18 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 					x = x - xTileIndex * tileDimension[ 0 ];
 					y = y - yTileIndex * tileDimension[ 1 ];
 
-					if ( ! tileSupplier.exists( timepoint, level, xTileIndex, yTileIndex ) )
+					System.out.println( "" + x + " " + y );
+					if ( ! tileSupplier.contains( timepoint, level, xTileIndex, yTileIndex ) )
+					{
 						value.set( type.createVariable() ); // background
+						return;
+					}
 
 					// this is less efficient as the corresponding volatile
 					// implementation, but right now this mainly needed
 					// to fetch very few pixel values upon segment selections
+					//
+					//
 					tileSupplier.open( timepoint, level, xTileIndex, yTileIndex );
 					final T type = tileSupplier.getRandomAccessible( timepoint, level, xTileIndex, yTileIndex ).randomAccess().setPositionAndGet( x, y, location.getIntPosition( 2 ) );
 					value.set( type );
@@ -829,7 +835,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			return keyToStatus.get( getKey( t, level, xTileIndex, yTileIndex ) );
 		}
 
-		public boolean exists( int t, int level, int xTileIndex, int yTileIndex )
+		public boolean contains( int t, int level, int xTileIndex, int yTileIndex )
 		{
 			return keyToStatus.containsKey( getKey( t, level, xTileIndex, yTileIndex ) );
 		}
@@ -840,25 +846,29 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 			synchronized ( keyToStatus )
 			{
-				if ( keyToStatus.get( key ).equals( Status.Open ) )
+				if ( ! keyToStatus.get( key ).equals( Status.Closed ) )
 					return;
 
 				keyToStatus.put( key, Status.Opening );
 			}
 
-
-			// open the source
+			// open the image
 			//
 			final Image< T > image = tileToImage.get( getTileKey( xTileIndex, yTileIndex ) );
+
+			if ( debug )
+			{
+				System.out.println( "Opening tile image " + key + ": " + image.getName() );
+			}
+			// fetch the requested volume (t, level)
+			//
 			final RandomAccessibleInterval< T > rai = Views.zeroMin( image.getSourcePair().getSource().getSource( t, level ) );
 			final RandomAccessibleInterval< ? extends Volatile< T > > vRai = Views.zeroMin(  image.getSourcePair().getVolatileSource().getSource( t, level ) );
 
 			// extend bounds to be able to
 			// accommodate grid margin
 			//
-			final T outOfBoundsVariable = type.createVariable();
-			RandomAccessible< T > randomAccessible = new ExtendedRandomAccessibleInterval( rai, new OutOfBoundsConstantValueFactory<>( outOfBoundsVariable ) );
-
+			RandomAccessible< T > randomAccessible = new ExtendedRandomAccessibleInterval( rai, new OutOfBoundsConstantValueFactory<>( type.createVariable() ) );
 			RandomAccessible< V > vRandomAccessible = new ExtendedRandomAccessibleInterval( vRai, new OutOfBoundsConstantValueFactory<>( volatileType.createVariable() ) );
 
 			// shift to create a margin
@@ -867,18 +877,30 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			final RandomAccessible< T > translateRa = Views.translate( randomAccessible, translation );
 			final RandomAccessible< V > translateVRa = Views.translate( vRandomAccessible, translation );
 
-			// ensure that random access is really ready to go
+			// ensure that random access is ready to go
 			// (i.e. all metadata are fetched)
-			// this is important to avoid any blocking in BDV
+			// to avoid any blocking in BDV
 			//
-			translateRa.randomAccess().get();
-			translateVRa.randomAccess().get();
+			try
+			{
+				//translateRa.randomAccess().get(); (not needed for visualisation)
+				translateVRa.randomAccess().get();
+			}
+			catch ( Exception e )
+			{
+				e.printStackTrace();
+			}
 
 			// register
 			//
 			keyToRandomAccessible.put( key, translateRa );
 			keyToVolatileRandomAccessible.put( key, translateVRa );
 			keyToStatus.put( key, Status.Open );
+
+			if ( debug )
+			{
+				System.out.println( "Opened tile image " + key + ": " + image.getName() );
+			}
 		}
 	}
 }

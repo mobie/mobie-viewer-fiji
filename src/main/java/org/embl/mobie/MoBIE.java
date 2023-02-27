@@ -47,7 +47,6 @@ import org.embl.mobie.lib.hcs.Plate;
 import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
@@ -59,8 +58,6 @@ import org.embl.mobie.lib.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.SpimDataImage;
 import org.embl.mobie.lib.image.SpotAnnotationImage;
-import org.embl.mobie.lib.io.TPosition;
-import org.embl.mobie.lib.io.ZPosition;
 import org.embl.mobie.lib.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.lib.serialize.DataSource;
 import org.embl.mobie.lib.serialize.Dataset;
@@ -104,7 +101,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -162,14 +158,20 @@ public class MoBIE
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening: " + projectLocation );
 
-		if ( settings.values.hcsProject() )
-		{
-			initHCSProject( projectLocation );
-		}
-		else
-		{
-			initMoBIEProject();
-		}
+		initMoBIEProject();
+	}
+
+	public MoBIE( String hcsDataLocation, MoBIESettings settings, double relativeWellMargin, double relativeSiteMargin ) throws IOException
+	{
+		init();
+
+		this.settings = settings;
+		this.projectLocation = hcsDataLocation;
+
+		IJ.log("\n# MoBIE" );
+		IJ.log("Opening: " + hcsDataLocation );
+
+		initHCSProject( relativeWellMargin, relativeSiteMargin );
 	}
 
 	private void initMoBIEProject() throws IOException
@@ -363,12 +365,12 @@ public class MoBIE
 		moBIE = this;
 	}
 
-	private void initHCSProject( String projectLocation ) throws IOException
+	private void initHCSProject( double wellMargin, double siteMargin ) throws IOException
 	{
 		initProject( "HCS" );
 		final Plate plate = new Plate( projectLocation );
 		IJ.log( "HCS Pattern: " + plate.getHcsPattern() );
-		new HCSDataSetter().addPlateToDataset( plate, dataset );
+		new HCSDataSetter().addPlateToDataset( plate, dataset, wellMargin, siteMargin );
 		initUIandShowView( dataset.views().keySet().iterator().next() );
 	}
 
@@ -386,11 +388,9 @@ public class MoBIE
 		{
 			viewManager.show( getView( view, dataset ) );
 		}
-
-		adjustLogWindow();
 	}
 
-	private void adjustLogWindow()
+	private void adjustLogWindow( UserInterface userInterface )
 	{
 		final Window userInterfaceWindow = userInterface.getWindow();
 		WindowArrangementHelper.bottomAlignWindow( userInterfaceWindow, WindowManager.getWindow( "Log" ), true, true );
@@ -580,15 +580,15 @@ public class MoBIE
 
 	private void setProjectImageAndTableRootLocations( )
 	{
-		projectRoot = createPath( projectLocation, settings.values.getProjectBranch() );
+		projectRoot = IOHelper.createPath( projectLocation, settings.values.getProjectBranch() );
 
 		if( ! org.embl.mobie.io.util.IOHelper.exists( combinePath( projectRoot, "project.json" ) ) )
 		{
 			projectRoot = combinePath( projectRoot, "data" );
 		}
 
-		imageRoot = createPath(
-				settings.values.getImageDataLocation() != null ? settings.values.getImageDataLocation() : projectLocation ,
+		imageRoot = IOHelper.createPath(
+				settings.values.getImageDataLocation() != null ? settings.values.getImageDataLocation() : projectLocation,
 				settings.values.getImageDataBranch() );
 
 		if( ! org.embl.mobie.io.util.IOHelper.exists( combinePath( imageRoot, "project.json" ) ) )
@@ -596,7 +596,7 @@ public class MoBIE
 			imageRoot = combinePath( imageRoot, "data" );
 		}
 
-		tableRoot = createPath(
+		tableRoot = IOHelper.createPath(
 				settings.values.getTableDataLocation() != null ? settings.values.getTableDataLocation() : projectLocation,
 				settings.values.getTableDataBranch() );
 
@@ -634,7 +634,8 @@ public class MoBIE
 	private void openAndViewDataset( String datasetName, String viewName ) throws IOException
 	{
 		IJ.log("Opening dataset: " + datasetName );
-		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
+		final String datasetJsonPath = combinePath( projectRoot, datasetName, "dataset.json" );
+		dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
 		dataset.setName( datasetName );
 
 		// set data source names
@@ -645,18 +646,17 @@ public class MoBIE
 		System.out.println("# Available views");
 		for ( String s : getViews().keySet() )
 			System.out.println( s );
-		System.out.println("/n");
 
 		// build UI and show view
 		initUI();
 		viewManager.show( getView( viewName, dataset ) );
-		adjustLogWindow();
 	}
 
 	private void initUI()
 	{
 		sourceNameToImgLoader = new HashMap<>();
 		userInterface = new UserInterface( this );
+		adjustLogWindow( userInterface );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D() );
 	}
 
@@ -667,21 +667,6 @@ public class MoBIE
 			throw new UnsupportedOperationException("The view \"" + viewName + "\" does not exist in the current dataset." );
 		view.setName( viewName );
 		return view;
-	}
-
-	private String createPath( String rootLocation, String githubBranch, String... files )
-	{
-		if ( rootLocation.contains( "github.com" ) )
-		{
-			rootLocation = GitHubUtils.createRawUrl( rootLocation, githubBranch );
-		}
-
-		final ArrayList< String > strings = new ArrayList<>();
-		strings.add( rootLocation );
-		Collections.addAll( strings, files );
-		final String path = combinePath( strings.toArray( new String[0] ) );
-
-		return path;
 	}
 
 	public ViewManager getViewManager()
@@ -840,15 +825,10 @@ public class MoBIE
 		return storageLocation;
     }
 
-	public String getDatasetPath( String... files )
+	public String absolutePath( String... files )
 	{
 		final String datasetRoot = combinePath( projectRoot, getDataset().getName() );
-		return createPath( datasetRoot, files );
-	}
-
-	private String createPath( String root, String[] files )
-	{
-		String location = root;
+		String location = datasetRoot;
 		for ( String file : files )
 			location = combinePath( location, file );
 		return location;

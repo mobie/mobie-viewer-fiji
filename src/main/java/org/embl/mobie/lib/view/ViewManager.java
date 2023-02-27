@@ -52,7 +52,6 @@ import org.embl.mobie.lib.color.MobieColoringModel;
 import org.embl.mobie.lib.color.NumericAnnotationColoringModel;
 import org.embl.mobie.lib.color.lut.ColumnARGBLut;
 import org.embl.mobie.lib.color.lut.LUTs;
-import org.embl.mobie.lib.hcs.Well;
 import org.embl.mobie.lib.image.AnnotatedLabelImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
@@ -71,7 +70,6 @@ import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.display.SpotDisplay;
-import org.embl.mobie.lib.serialize.transformation.AbstractGridTransformation;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.CropTransformation;
 import org.embl.mobie.lib.serialize.transformation.GridTransformation;
@@ -387,12 +385,12 @@ public class ViewManager
 					//
 					if ( gridImages.get( 0 ) instanceof AnnotatedLabelImage )
 					{
-						final StitchedAnnotatedLabelImage< ? extends Annotation> annotatedStitchedImage = new StitchedAnnotatedLabelImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.getName(), AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN );
+						final StitchedAnnotatedLabelImage< ? extends Annotation> annotatedStitchedImage = new StitchedAnnotatedLabelImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.getName(), mergedGridTransformation.margin );
 						DataStore.putImage( annotatedStitchedImage );
 					}
 					else
 					{
-						final StitchedImage stitchedImage = new StitchedImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.getName(), AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN );
+						final StitchedImage stitchedImage = new StitchedImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.getName(), mergedGridTransformation.margin );
 						DataStore.putImage( stitchedImage );
 					}
 				}
@@ -422,13 +420,13 @@ public class ViewManager
 
 					// Add a margin to the tiles
 					for ( int d = 0; d < 2; d++ )
-						tileRealDimensions[ d ] = tileRealDimensions[ d ] * ( 1.0 + 2 * GridTransformation.RELATIVE_GRID_CELL_MARGIN );
+						tileRealDimensions[ d ] = tileRealDimensions[ d ] * ( 1.0 + 2 * gridTransformation.margin );
 
 					// Compute the corresponding offset of where to place
 					// the images within the tile
 					final double[] offset = new double[ 2 ];
 					for ( int d = 0; d < 2; d++ )
-						offset[ d ] = tileRealDimensions[ d ] * GridTransformation.RELATIVE_GRID_CELL_MARGIN;
+						offset[ d ] = tileRealDimensions[ d ] * gridTransformation.margin;
 
 					final List< int[] > gridPositions = gridTransformation.positions == null ? TransformHelper.createGridPositions( nestedSources.size() ) : gridTransformation.positions;
 

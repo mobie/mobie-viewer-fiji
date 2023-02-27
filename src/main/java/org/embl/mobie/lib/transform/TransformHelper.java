@@ -146,21 +146,6 @@ public class TransformHelper
 		return realDimensions;
 	}
 
-	@Deprecated
-	public static double[] getMaximalSourceUnionRealDimensions( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, Collection< List< String > > sourceNamesList )
-	{
-		double[] maximalDimensions = new double[ 2 ];
-		for ( List< String > sourceNames : sourceNamesList )
-		{
-			final List< SourceAndConverter< ? > > sourceAndConverters = sourceNames.stream().map( name -> sourceNameToSourceAndConverter.get( name ) ).collect( Collectors.toList() );
-			final double[] realDimensions = computeSourceUnionRealDimensions( sourceAndConverters, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, 0 );
-			for ( int d = 0; d < 2; d++ )
-				maximalDimensions[ d ] = realDimensions[ d ] > maximalDimensions[ d ] ? realDimensions[ d ] : maximalDimensions[ d ];
-		}
-
-		return maximalDimensions;
-	}
-
 	public static AffineTransform3D createNormalisedViewerTransform( ViewerPanel viewerPanel )
 	{
 		return createNormalisedViewerTransform( viewerPanel, BdvPlaygroundHelper.getWindowCentreInPixelUnits( viewerPanel ) );

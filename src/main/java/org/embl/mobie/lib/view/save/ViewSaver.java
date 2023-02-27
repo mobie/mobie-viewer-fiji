@@ -256,7 +256,7 @@ public class ViewSaver
 
     public void saveViewToDatasetJson( View view, String viewName, boolean overwrite ) throws IOException
     {
-        String datasetJsonPath = moBIE.getDatasetPath( "dataset.json");
+        String datasetJsonPath = moBIE.absolutePath( "dataset.json");
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
 
         if ( ! overwrite )
@@ -268,7 +268,7 @@ public class ViewSaver
     }
 
     private void overwriteExistingViewInDatasetJson( View view ) throws IOException {
-        String datasetJsonPath = moBIE.getDatasetPath( "dataset.json");
+        String datasetJsonPath = moBIE.absolutePath( "dataset.json");
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
 
         if ( dataset.views().keySet().size() > 0 ) {
@@ -327,7 +327,7 @@ public class ViewSaver
     }
 
     private String chooseAdditionalViewsJson( boolean includeOptionToMakeNewViewJson ) {
-        String additionalViewsDirectory = moBIE.getDatasetPath( "misc", "views");
+        String additionalViewsDirectory = moBIE.absolutePath( "misc", "views");
         String[] existingViewFiles = getFileNames(additionalViewsDirectory);
 
         String jsonFileName = null;
@@ -340,7 +340,7 @@ public class ViewSaver
         }
 
         if ( jsonFileName != null ) {
-            return moBIE.getDatasetPath( "misc", "views", jsonFileName);
+            return moBIE.absolutePath( "misc", "views", jsonFileName);
         } else {
             return null;
         }

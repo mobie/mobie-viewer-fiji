@@ -68,9 +68,7 @@ public class ThreadHelper
 		final int poolSize = ThreadHelper.getNumIoThreads();
 		final LinkedBlockingQueue< Runnable > workQueue = new LinkedBlockingQueue<>( 2 * poolSize );
 		stitchedImageExecutorService = new ThreadPoolExecutor(poolSize, poolSize,
-				0L, TimeUnit.MILLISECONDS,
-				workQueue,
-				handler );
+				0L, TimeUnit.MILLISECONDS, workQueue, handler );
 	}
 
 	public static void resetIOThreads()

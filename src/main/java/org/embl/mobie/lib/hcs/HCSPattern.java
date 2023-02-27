@@ -145,9 +145,9 @@ public enum HCSPattern
 	public String getChannelName()
 	{
 		if ( hasChannels() )
-			return matcher.group( HCSPattern.CHANNEL );
+			return "ch_" + matcher.group( HCSPattern.CHANNEL );
 		else
-			return  "1" ;
+			return "ch_1" ;
 	}
 
 	public String getWellName()

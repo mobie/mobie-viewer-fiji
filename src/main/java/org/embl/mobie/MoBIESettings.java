@@ -100,13 +100,6 @@ public class MoBIESettings
 		return this;
 	}
 
-	public MoBIESettings isHCSProject( Boolean isHCSProject )
-	{
-		this.values.isHCSProject = isHCSProject;
-		return this;
-	}
-
-
 	public static class Values
 	{
 		private String[] s3AccessAndSecretKey;
@@ -118,7 +111,6 @@ public class MoBIESettings
 		private Set< TableDataFormat > tableDataFormats = new HashSet<>();
 		private String tableDataLocation;
 		private String view = View.DEFAULT;
-		private Boolean isHCSProject = false;
 
 		public String getDataset()
 		{
@@ -165,11 +157,6 @@ public class MoBIESettings
 		public String[] getS3AccessAndSecretKey()
 		{
 			return s3AccessAndSecretKey;
-		}
-
-		public Boolean hcsProject()
-		{
-			return isHCSProject;
 		}
 	}
 }

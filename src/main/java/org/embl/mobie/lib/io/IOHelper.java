@@ -4,13 +4,18 @@ import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
+import org.embl.mobie.io.github.GitHubUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.stream.Collectors;
+
+import static org.embl.mobie.io.util.IOHelper.combinePath;
 
 public class IOHelper
 {
@@ -74,5 +79,20 @@ public class IOHelper
 		{
 			throw new RuntimeException( e );
 		}
+	}
+
+	public static String createPath( String rootLocation, String githubBranch, String... files )
+	{
+		if ( rootLocation.contains( "github.com" ) )
+		{
+			rootLocation = GitHubUtils.createRawUrl( rootLocation, githubBranch );
+		}
+
+		final ArrayList< String > strings = new ArrayList<>();
+		strings.add( rootLocation );
+		Collections.addAll( strings, files );
+		final String path = combinePath( strings.toArray( new String[0] ) );
+
+		return path;
 	}
 }

@@ -48,17 +48,21 @@ public class OpenHCSDatasetCommand implements Command
 	@Parameter ( label = "HCS Plate Directory", style = "directory" )
 	public File hcsDirectory;
 
+	@Parameter ( label = "Relative Well Margin" )
+	public double wellMargin = 0.1;
+
+	@Parameter ( label = "Relative Site Margin" )
+	public double siteMargin = 0.0;
+
 	@Parameter ( label = "Help", callback = "help")
 	public Button help;
 
 	@Override
 	public void run()
 	{
-		MoBIESettings settings = MoBIESettings.settings().isHCSProject( true );
-
 		try
 		{
-			new MoBIE( hcsDirectory.getAbsolutePath(), settings );
+			new MoBIE( hcsDirectory.getAbsolutePath(), new MoBIESettings(), wellMargin, siteMargin );
 		}
 		catch ( IOException e )
 		{
