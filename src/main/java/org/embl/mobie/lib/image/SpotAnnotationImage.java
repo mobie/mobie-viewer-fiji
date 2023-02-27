@@ -112,7 +112,7 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 		final AS annotatedSpot = annData.getTable().annotation( 0 );
 		final FunctionRealRandomAccessible< AnnotationType< AS > > realRandomAccessible = new FunctionRealRandomAccessible( 3, new LocationToAnnotatedSpotSupplier(), () -> new AnnotationType<>( annotatedSpot ) );
 		//final RealRandomAccessible interpolate = Views.interpolate( new NearestNeighborSearchOnKDTree( kdTree ), new NearestNeighborSearchInterpolatorFactory() );
-		source = new RealRandomAccessibleIntervalTimelapseSource<>( realRandomAccessible, interval, new AnnotationType<>( annotatedSpot ), new AffineTransform3D(), name, true, timePoints );
+		source = new RealRandomAccessibleIntervalTimelapseSource( realRandomAccessible, interval, new AnnotationType<>( annotatedSpot ), new AffineTransform3D(), name, true, null );
 	}
 
 	@Override

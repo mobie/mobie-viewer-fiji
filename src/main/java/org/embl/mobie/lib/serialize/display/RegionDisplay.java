@@ -51,6 +51,15 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotat
 
 	public Set< String > selectedRegionIds;
 
+	// Other
+
+	// use this, if no tableSource is given
+	// to specify for which timepoints the
+	// annotated regions should be created
+	// if this is not given only the first (0)
+	// timepoint will be annotated
+	public Set< Integer > timepoints;
+
 	// Runtime
 
 	// Used by Gson

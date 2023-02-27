@@ -21,22 +21,17 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	private final String uuid;
 	private String regionId;
 	private final int labelId;
-	private final int timePoint;
+	private final Integer timePoint;
 	private double[] position;
 	private String source;
 	private RealMaskRealInterval mask;
 	private Set< Image< ? > > images;
 
-	// TODO also here it is misleading that the model is
-	//  is given, one only needs something that can read the values from the correct table
-	//  Maybe a new class is needed?
-	//  Maybe simply the Annotation itself is given in the constructor?
-	//  Rather than extending it?
 	public TableSawAnnotatedRegion(
 			TableSawAnnotationTableModel< TableSawAnnotatedRegion > model,
 			int rowIndex,
 			List< String > imageNames,
-			int timePoint,
+			Integer timePoint,
 			String regionId,
 			int labelId,
 			String uuid )
@@ -61,7 +56,7 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	}
 
 	@Override
-	public int timePoint()
+	public Integer timePoint()
 	{
 		return timePoint;
 	}
@@ -120,7 +115,7 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 		{
 			// Compute the mask of the images
 			// that are annotated by this region
-			mask = TransformHelper.getUnionMask( images, timePoint() );
+			mask = TransformHelper.getUnionMask( images );
 		}
 
 		return mask;

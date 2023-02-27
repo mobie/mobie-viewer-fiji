@@ -197,9 +197,13 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	private Collection< A > getAnnotationsForCurrentTimePoint( )
 	{
 		if ( settings.showAllTimepoints )
+		{
 			return tableModel.annotations();
+		}
 		else
-			return tableModel.annotations().stream().filter( annotation -> annotation.timePoint() == currentTimePoint ).collect( Collectors.toList() );
+		{
+			return tableModel.annotations().stream().filter( annotation -> annotation.timePoint() == null || annotation.timePoint() == currentTimePoint ).collect( Collectors.toList() );
+		}
 	}
 
 	private void configureWindowClosing()
@@ -409,10 +413,13 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 
 		if ( ! settings.showAllTimepoints )
 		{
-			if ( selection.timePoint() != currentTimePoint )
+			if ( selection.timePoint() != null )
 			{
-				currentTimePoint = selection.timePoint();
-				updatePlot();
+				if ( selection.timePoint() != currentTimePoint )
+				{
+					currentTimePoint = selection.timePoint();
+					updatePlot();
+				}
 			}
 		}
 

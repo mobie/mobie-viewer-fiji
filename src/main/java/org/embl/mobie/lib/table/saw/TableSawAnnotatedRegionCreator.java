@@ -27,11 +27,9 @@ public class TableSawAnnotatedRegionCreator implements TableSawAnnotationCreator
 
 		final String regionId = table.getString( rowIndex, regionIdColumnIndex );
 
-		final int labelId = 1 + rowIndex; // 0 is the background label, thus we add 1
+		final int labelId = rowIndex + 1; // 0 is the background label, thus we add 1
 
-		int timePoint = 0;
-		if ( timePointColumnIndex > -1 )
-			timePoint = (int) table.get( rowIndex, timePointColumnIndex );
+		Integer timePoint = timePointColumnIndex > -1 ? ( int ) table.get( rowIndex, timePointColumnIndex ) : null;
 
 		final String uuid = timePoint + ";" + regionId;
 

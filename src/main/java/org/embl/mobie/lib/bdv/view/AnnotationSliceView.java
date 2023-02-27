@@ -167,7 +167,11 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 
 		final BdvHandle bdvHandle = getSliceViewer().getBdvHandle();
 		final SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
-		state.setCurrentTimepoint( selection.timePoint() );
+
+		final Integer timepoint = selection.timePoint();
+		if ( timepoint != null )
+			state.setCurrentTimepoint( timepoint );
+
 		final double[] position = selection.positionAsDoubleArray();
 		if ( position != null )
 			new ViewerTransformChanger(

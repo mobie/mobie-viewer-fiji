@@ -53,7 +53,7 @@ public class TableSawAnnotatedSegment extends AbstractTableSawAnnotation impleme
 	}
 
 	@Override
-	public int timePoint()
+	public Integer timePoint()
 	{
 		return timePoint;
 	}

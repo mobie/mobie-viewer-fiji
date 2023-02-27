@@ -412,7 +412,7 @@ public class ViewManager
 					double[] tileRealDimensions = new double[ 2 ];
 					for ( List< ? extends Image< ? > > images : nestedImages )
 					{
-						final RealMaskRealInterval unionMask = TransformHelper.getUnionMask( images, 0 );
+						final RealMaskRealInterval unionMask = TransformHelper.getUnionMask( images );
 						final double[] realDimensions = TransformHelper.getRealDimensions( unionMask );
 						for ( int d = 0; d < 2; d++ )
 							tileRealDimensions[ d ] = realDimensions[ d ] > tileRealDimensions[ d ] ? realDimensions[ d ] : tileRealDimensions[ d ];
@@ -470,7 +470,6 @@ public class ViewManager
 					final StringColumn regionIDs = StringColumn.create( ColumnNames.REGION_ID, regionToSources.keySet() );
 					table = Table.create( regionDisplay.getName() );
 					table.addColumns( regionIDs );
-					// TODO: timepoints:
 				}
 				else
 				{
@@ -495,14 +494,10 @@ public class ViewManager
 						table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
 				}
 
-
 				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( table, regionToSources );
-
 				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, tableLocation, tableFormat, table );
-
 				final DefaultAnnData< AnnotatedRegion > annData = new DefaultAnnData<>( tableModel );
-
-				final RegionAnnotationImage< AnnotatedRegion > regionAnnotationImage = new RegionAnnotationImage( regionDisplay.getName(), annData );
+				final RegionAnnotationImage< AnnotatedRegion > regionAnnotationImage = new RegionAnnotationImage( regionDisplay.getName(), annData, regionDisplay.timepoints );
 
 				DataStore.putImage( regionAnnotationImage );
 

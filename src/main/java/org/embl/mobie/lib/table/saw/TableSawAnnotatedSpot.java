@@ -14,17 +14,16 @@ public class TableSawAnnotatedSpot extends AbstractTableSawAnnotation implements
 
 	public TableSawAnnotatedSpot(
 			final TableSawAnnotationTableModel< TableSawAnnotatedSpot > model,
-			int rowIndex,
-			int labelId,
-			float[] position,
+			final int rowIndex,
+			final int labelId,
+			final float[] position,
 			final int timePoint,
-			String source )
+			final String source )
 	{
 		super( model, rowIndex );
 		this.labelId = labelId;
 		this.position = position;
 		this.timePoint = timePoint;
-
 		this.source = source;
 	}
 
@@ -35,7 +34,7 @@ public class TableSawAnnotatedSpot extends AbstractTableSawAnnotation implements
 	}
 
 	@Override
-	public int timePoint()
+	public Integer timePoint()
 	{
 		return timePoint;
 	}

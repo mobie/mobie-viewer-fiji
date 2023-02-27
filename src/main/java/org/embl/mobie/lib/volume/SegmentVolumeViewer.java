@@ -184,7 +184,7 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 
 		for ( S segment : selected )
 		{
-			if ( segment.timePoint() == currentTimePoint )
+			if ( segment.timePoint() == null || segment.timePoint() == currentTimePoint )
 			{
 				if ( recomputeMeshes ) removeSegment( segment );
 
@@ -474,7 +474,7 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 			return;
 		}
 
-		if ( selection.timePoint() != currentTimePoint )
+		if ( selection.timePoint() != null && selection.timePoint() != currentTimePoint )
 		{
 			currentTimePoint = selection.timePoint();
 			updateView( false );

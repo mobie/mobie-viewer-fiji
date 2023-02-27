@@ -53,7 +53,7 @@ public class DefaultAnnotatedSegment implements AnnotatedSegment
 	}
 
 	@Override
-	public int timePoint()
+	public Integer timePoint()
 	{
 		return timePoint;
 	}

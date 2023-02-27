@@ -32,7 +32,7 @@ public class AffineTransformedAnnotatedSegment< AS extends AnnotatedSegment > im
 	}
 
 	@Override
-	public int timePoint()
+	public Integer timePoint()
 	{
 		// TODO could be transformed
 		return annotatedSegment.timePoint();

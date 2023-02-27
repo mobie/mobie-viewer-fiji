@@ -15,6 +15,7 @@ import org.embl.mobie.lib.serialize.transformation.Transformation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 
 public class HCSDataSetter
@@ -36,13 +37,31 @@ public class HCSDataSetter
 		final Set< Channel > channels = plate.getChannels();
 		final Channel firstChannel = channels.iterator().next();
 
-		// init a RegionDisplay for navigating the wells
+		// build a RegionDisplay for outlining
+		// and navigating the wells
+		//
 		final RegionDisplay< AnnotatedRegion > wellRegionDisplay = new RegionDisplay<>( "wells" );
 		wellRegionDisplay.sources = new HashMap<>();
 		wellRegionDisplay.showAsBoundaries( true );
 		wellRegionDisplay.setBoundaryThickness( ( float ) (0.1 * plate.getSiteRealDimensions()[ 0 ] ) );
-		// TODO regionDisplay.timepoints ?
 
+		// if the plate is a time-lapse, of course,
+		// the wells should be displayed for all time-points.
+		// currently, the below code assumes that the time-points
+		// are sequential, starting at 0; if needed one could be
+		// more sophisticated here, because the Source
+		// data model of BDV allows for missing time-points and for
+		// time-sequences that do not (all) need to start at 0
+		final int numTimepoints = plate.getTPositions().size();
+		wellRegionDisplay.timepoints = new HashSet<>();
+		for ( int t = 0; t < numTimepoints; t++ )
+		{
+			wellRegionDisplay.timepoints.add( t );
+		}
+
+
+		// build nested grid views of the sites and wells for all channels
+		//
 		final ArrayList< Transformation > transformations = new ArrayList<>();
 		final ArrayList< Display< ? > > displays = new ArrayList<>();
 
@@ -72,12 +91,14 @@ public class HCSDataSetter
 				if( channel.equals( firstChannel ) )
 				{
 					// all channels should have the same wells,
-					// thus we simply use the first channel for the
+					// thus we simply and only use
+					// the first channel for the
 					// well region display
 					wellRegionDisplay.sources.put( wellID, Arrays.asList( wellID ) );
 				}
 
 				// for each site, create an image source and add it to the site grid
+				//
 				final Set< Site > sites = plate.getSites( channel, well );
 				for ( Site site : sites )
 				{
@@ -101,12 +122,11 @@ public class HCSDataSetter
 
 				transformations.add( siteGrid );
 
-				// add the merged sites to the well grid
+				// add the merged site grid,
+				// of name wellID,
+				// to the well grid
 				wellGrid.sources.add( wellID );
 				wellGrid.positions.add( plate.getWellGridPosition( well ) );
-
-				// add well view for testing
-				//addWellView( hcsPlate, dataset, channel, wellName, siteGrid );
 			}
 
 			transformations.add( wellGrid );

@@ -70,9 +70,10 @@ public class MeshCreator< S extends Segment >
 		Integer renderingLevel = getLevel( segment, source, targetVoxelSpacing );
 
 		final AffineTransform3D sourceTransform = new AffineTransform3D();
-		source.getSourceTransform( segment.timePoint(), renderingLevel, sourceTransform );
+		final Integer timePoint = segment.timePoint() == null ? 0 : segment.timePoint();
+		source.getSourceTransform( timePoint, renderingLevel, sourceTransform );
 
-		final RandomAccessibleInterval< AnnotationType< S > >  rai = source.getSource( segment.timePoint(), renderingLevel );
+		final RandomAccessibleInterval< AnnotationType< S > >  rai = source.getSource( timePoint, renderingLevel );
 
 		if ( segment.boundingBox() == null )
 		{
@@ -89,7 +90,7 @@ public class MeshCreator< S extends Segment >
 				throw new UnsupportedOperationException( "The location of segment " + segment.label() + " could not be determined and thus no mesh could be created;\npossibly the corresponding table has no anchor point entries for this segment" );
 			}
 
-			final long[] voxelPositionInSource = SourceAndConverterHelper.getVoxelPositionInSource( source, position, segment.timePoint(), renderingLevel );
+			final long[] voxelPositionInSource = SourceAndConverterHelper.getVoxelPositionInSource( source, position, timePoint, renderingLevel );
 
 			final FloodFill floodFill = new FloodFill(
 					rai,

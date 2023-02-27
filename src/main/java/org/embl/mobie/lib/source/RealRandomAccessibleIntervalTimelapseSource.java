@@ -7,14 +7,14 @@ import net.imglib2.RealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.Type;
 
-import java.util.ArrayList;
+import java.util.Set;
 
 public class RealRandomAccessibleIntervalTimelapseSource< T extends Type< T > > extends RealRandomAccessibleSource< T >
 {
 	private final Interval interval;
 
 	private final AffineTransform3D sourceTransform;
-	private final ArrayList< Integer > timePoints;
+	private final Set< Integer > timePoints;
 
 	public RealRandomAccessibleIntervalTimelapseSource(
 			final RealRandomAccessible< T > accessible,
@@ -23,7 +23,7 @@ public class RealRandomAccessibleIntervalTimelapseSource< T extends Type< T > > 
 			final AffineTransform3D sourceTransform,
 			final String name,
 			final boolean doBoundingBoxIntersectionCheck,
-			final ArrayList< Integer > timePoints )
+			final Set< Integer > timePoints )
 	{
 		super( accessible, type, name, new DefaultVoxelDimensions( -1 ), doBoundingBoxIntersectionCheck );
 		this.interval = interval;
@@ -44,8 +44,11 @@ public class RealRandomAccessibleIntervalTimelapseSource< T extends Type< T > > 
 	}
 
 	@Override
-	public boolean isPresent(final int t)
+	public boolean isPresent( final int t )
 	{
+		if ( timePoints == null )
+			return t == 0;
+
 		return timePoints.contains( t );
 	}
 }

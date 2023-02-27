@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -67,24 +68,18 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	// which is not nice because a {@code region} is defined in real space.
 	private Source< ? extends VolatileAnnotationType< AR > > volatileSource = null;
 
-	public RegionAnnotationImage( String name, AnnData< AR > annData )
+	public RegionAnnotationImage( String name, AnnData< AR > annData, Set< Integer > timepoints )
 	{
 		this.name = name;
 		this.annData = annData;
-		createImage();
-	}
 
-	private void createImage()
-	{
 		debug();
 
-		// TODO determine the number of timePoints from the table!
-		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( getMask() );
 		final AR annotatedRegion = annData.getTable().annotations().get( 0 );
 		final FunctionRealRandomAccessible< AnnotationType< AR > > realRandomAccessible = new FunctionRealRandomAccessible( 3, new LocationToAnnotatedRegionSupplier(), () -> new AnnotationType<>( annotatedRegion ) );
 		final AnnotationType< AR > annotationType = new AnnotationType<>( annotatedRegion );
-		source = new RealRandomAccessibleIntervalTimelapseSource<>( realRandomAccessible, interval, annotationType, new AffineTransform3D(), name, true, timePoints );
+		source = new RealRandomAccessibleIntervalTimelapseSource<>( realRandomAccessible, interval, annotationType, new AffineTransform3D(), name, true, timepoints );
 	}
 
 	private void debug()
@@ -179,15 +174,6 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 		}
 	}
 
-	private ArrayList< Integer > configureTimePoints()
-	{
-		final ArrayList< Integer > timePoints = new ArrayList<>();
-		timePoints.add( 0 );
-//		timePoints.add( 1 ); // TODO
-//		timePoints.add( 2 );
-		return timePoints;
-	}
-
 	@Override
 	public SourcePair< AnnotationType< AR > > getSourcePair()
 	{
@@ -210,7 +196,7 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	@Override
 	public RealMaskRealInterval getMask( )
 	{
-		return TransformHelper.getUnionMask( annData.getTable().annotations(), 0 );
+		return TransformHelper.getUnionMask( annData.getTable().annotations() );
 	}
 
 	@Override

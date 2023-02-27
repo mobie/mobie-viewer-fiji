@@ -16,12 +16,10 @@ public class DefaultAnnotatedSpot implements AnnotatedSpot
 	// We use {@code Supplier< Table > tableSupplier}
 	// because the table may change, e.g.
 	// due to merging of additional columns.
-	public DefaultAnnotatedSpot( double[] position, final int rowIndex )
+	public DefaultAnnotatedSpot( final double[] position, final int rowIndex )
 	{
 		this.rowIndex = rowIndex;
-
 		this.label = rowIndex;
-
 		this.position = position;
 	}
 
@@ -32,7 +30,7 @@ public class DefaultAnnotatedSpot implements AnnotatedSpot
 	}
 
 	@Override
-	public int timePoint()
+	public Integer timePoint()
 	{
 		return 0;
 	}
