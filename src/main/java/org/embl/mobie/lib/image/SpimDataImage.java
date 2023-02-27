@@ -13,6 +13,8 @@ import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
+import org.embl.mobie.lib.hcs.Site;
+import org.embl.mobie.lib.hcs.SpimDataFromSiteCreator;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.source.SourcePair;
 
@@ -20,12 +22,13 @@ import javax.annotation.Nullable;
 
 public class SpimDataImage< T extends NumericType< T > & RealType< T > > implements Image< T >
 {
-	private final ImageDataFormat imageDataFormat;
-	private final String path;
-	private final int setupId;
+	private ImageDataFormat imageDataFormat;
+	private String path;
+	private int setupId;
 	private SourcePair< T > sourcePair;
 	private String name;
-	private final SharedQueue sharedQueue; @Nullable
+	private final Site site;
+	private SharedQueue sharedQueue; @Nullable
 	private RealMaskRealInterval mask;
 	private TransformedSource transformedSource;
 	private AffineTransform3D affineTransform3D = new AffineTransform3D();
@@ -47,6 +50,13 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		this.setupId = setupId;
 		this.name = name;
 		this.sharedQueue = sharedQueue;
+	}
+
+	public SpimDataImage( Site site )
+	{
+		this.setupId = site.channel;
+		this.name = site.getName();
+		this.site = site;
 	}
 
 	@Override
@@ -105,7 +115,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	private void open()
 	{
 
-		final AbstractSpimData spimData = tryOpenSpimData( path, imageDataFormat, sharedQueue );
+		final AbstractSpimData spimData = tryOpenSpimData();
 
 		createSourcePair( spimData, setupId, name );
 	}
@@ -122,16 +132,21 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		sourcePair = new DefaultSourcePair( transformedSource, volatileTransformedSource );
 	}
 
-	public static AbstractSpimData tryOpenSpimData( String path, ImageDataFormat imageDataFormat, SharedQueue sharedQueue )
+	private AbstractSpimData tryOpenSpimData( )
 	{
 		try
 		{
+			if ( site != null )
+			{
+				return SpimDataFromSiteCreator.create( site );
+			}
+
 			return new SpimDataOpener().open( path, imageDataFormat, sharedQueue );
 		}
 		catch ( SpimDataException e )
 		{
-			e.printStackTrace();
 			throw new RuntimeException( e );
 		}
 	}
+
 }

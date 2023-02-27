@@ -142,22 +142,22 @@ public enum HCSPattern
 		}
 	}
 
-	public Channel getChannel()
+	public String getChannelName()
 	{
 		if ( hasChannels() )
-			return new Channel( matcher.group( HCSPattern.CHANNEL ) );
+			return matcher.group( HCSPattern.CHANNEL );
 		else
-			return new Channel( "1" );
+			return  "1" ;
 	}
 
-	public Well getWell()
+	public String getWellName()
 	{
-		return new Well( matcher.group( HCSPattern.WELL ) );
+		return matcher.group( HCSPattern.WELL );
 	}
 
-	public Site getSite()
+	public String getSiteName()
 	{
-		return new Site( matcher.group( HCSPattern.SITE ) );
+		return matcher.group( HCSPattern.SITE );
 	}
 
 	public String getT()

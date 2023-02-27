@@ -22,6 +22,7 @@ public class Plate
 	private HashMap< Channel, Map< Well, Set< Site > > > channelWellSites;
 	private double[] siteRealDimensions;
 	private int sitesPerWell;
+	private int[] sitePixelDimensions;
 
 	public Plate( String hcsDirectory ) throws IOException
 	{
@@ -54,9 +55,11 @@ public class Plate
 			//    Maybe I need something more complex than a String to represent the path?
 			//    In fact, could I use StorageLocation already here?
 
-			Channel channel = hcsPattern.getChannel();
-			if ( ! channelWellSites.containsKey( channel ) )
+			String channelName = hcsPattern.getChannelName();
+
+			if ( getChannel( channelWellSites, channelName ) == null )
 			{
+				final Channel channel = new Channel( channelName );
 				channelWellSites.put( channel, new HashMap<>() );
 				final ImagePlus imagePlus = IJ.openImage( path );
 				final String color = ColorHelper.getString( imagePlus.getLuts()[ 0 ] );
@@ -73,25 +76,55 @@ public class Plate
 					imagePlus.getWidth() * imagePlus.getCalibration().pixelWidth,
 					imagePlus.getHeight() * imagePlus.getCalibration().pixelHeight
 				};
+
+				sitePixelDimensions = new int[]
+				{
+					imagePlus.getWidth(),
+					imagePlus.getHeight()
+				};
 			}
 
-			Well well = hcsPattern.getWell();
-			if ( ! channelWellSites.get( channel ).containsKey( well ) )
+			final Channel channel = getChannel( channelWellSites, channelName );
+
+			String wellName = hcsPattern.getWellName();
+			if ( getWell( channelWellSites, channel, wellName ) == null )
 			{
+				final Well well = new Well( wellName );
 				channelWellSites.get( channel ).put( well, new HashSet<>() );
 			}
+			final Well well = getWell( channelWellSites, channel, wellName );
 
-			final Site site = hcsPattern.getSite();
-			channelWellSites.get( channel ).get( well ).add( site );
-			final int numSites = channelWellSites.get( channel ).get( well ).size();
-			if ( numSites > sitesPerWell )
-				sitesPerWell = numSites; // needed to compute the site position within a well
+			final String siteName = hcsPattern.getSiteName();
+			if ( getSite( channelWellSites, channel, well, siteName ) == null )
+			{
+				final Site site = new Site( siteName );
+				site.setPixelDimensions( sitePixelDimensions );
+				channelWellSites.get( channel ).get( well ).add( site );
+				final int numSites = channelWellSites.get( channelName ).get( wellName ).size();
+				if ( numSites > sitesPerWell )
+					sitesPerWell = numSites; // needed to compute the site position within a well
+			}
+			final Site site = getSite( channelWellSites, channel, well, siteName );
 
 			final String t = hcsPattern.getT();
 			final String z = hcsPattern.getZ();
-
-			site.storageLocation().addPath( t, z, path );
+			site.addPath( t, z, path );
 		}
+	}
+
+	private Channel getChannel( HashMap< Channel, Map< Well, Set< Site > > > channelWellSites, String channelName )
+	{
+		return channelWellSites.keySet().stream().filter( c -> c.getName().equals( channelName ) ).findFirst().get();
+	}
+
+	private Well getWell( HashMap< Channel, Map< Well, Set< Site > > > channelWellSites, Channel channel, String wellName )
+	{
+		return channelWellSites.get( channel ).keySet().stream().filter( w -> w.getName().equals( wellName ) ).findFirst().get();
+	}
+
+	private Site getSite( HashMap< Channel, Map< Well, Set< Site > > > channelWellSites, Channel channel, Well well, String siteName )
+	{
+		return channelWellSites.get( channel ).get( well ).stream().filter( s -> s.getName().equals( siteName ) ).findFirst().get();
 	}
 
 	private HCSPattern determineHCSPattern( String hcsDirectory, List< String > paths )
@@ -171,5 +204,10 @@ public class Plate
 	public double[] getSiteRealDimensions()
 	{
 		return siteRealDimensions;
+	}
+
+	public int[] getSitePixelDimensions()
+	{
+		return sitePixelDimensions;
 	}
 }

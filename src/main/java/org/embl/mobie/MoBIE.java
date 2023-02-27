@@ -44,6 +44,7 @@ import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.hcs.HCSDataSetter;
 import org.embl.mobie.lib.hcs.Plate;
+import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.github.GitHubUtils;
@@ -58,6 +59,8 @@ import org.embl.mobie.lib.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.SpimDataImage;
 import org.embl.mobie.lib.image.SpotAnnotationImage;
+import org.embl.mobie.lib.io.TPosition;
+import org.embl.mobie.lib.io.ZPosition;
 import org.embl.mobie.lib.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.lib.serialize.DataSource;
 import org.embl.mobie.lib.serialize.Dataset;
@@ -952,8 +955,7 @@ public class MoBIE
 			final ImageDataSource imageSource = ( ImageDataSource ) dataSource;
 			final ImageDataFormat imageDataFormat = getImageDataFormat( imageSource );
 			final StorageLocation storageLocation = imageSource.imageData.get( imageDataFormat );
-			final Integer channel = storageLocation.channel;
-			final Image< ? > image = initImage( imageDataFormat, channel, storageLocation, imageSource.getName() );
+			final Image< ? > image = initImage( imageDataFormat, storageLocation, imageSource.getName() );
 
 			if ( dataSource.preInit() )
 			{
@@ -1055,17 +1057,23 @@ public class MoBIE
 		return tableModel;
 	}
 
-	private SpimDataImage< ? > initImage( ImageDataFormat imageDataFormat, Integer channel, StorageLocation storageLocation, String name )
+	private SpimDataImage< ? > initImage( ImageDataFormat imageDataFormat, StorageLocation storageLocation, String name )
 	{
-		switch ( imageDataFormat )
+		if ( imageDataFormat.equals( ImageDataFormat.SpimData ) )
 		{
-			case SpimData:
-				return new SpimDataImage<>( ( AbstractSpimData ) storageLocation.data, channel, name );
-			default:
-				// TODO https://github.com/mobie/mobie-viewer-fiji/issues/857
-				final String imagePath = getImageLocation( imageDataFormat, storageLocation );
-				return new SpimDataImage( imageDataFormat, imagePath, channel, name, ThreadHelper.sharedQueue );
+			return new SpimDataImage<>( ( AbstractSpimData ) storageLocation.data, storageLocation.channel, name );
 		}
+
+		if ( storageLocation instanceof Site )
+		{
+			return new SpimDataImage( ( Site ) storageLocation );
+		}
+
+
+		// TODO improve caching: https://github.com/mobie/mobie-viewer-fiji/issues/857
+		final String imagePath = getImageLocation( imageDataFormat, storageLocation );
+		return new SpimDataImage( imageDataFormat, imagePath, storageLocation.channel, name, ThreadHelper.sharedQueue );
+
 	}
 
 	public List< DataSource > getDataSources( Set< String > names )
