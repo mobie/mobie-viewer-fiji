@@ -27,7 +27,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	private int setupId;
 	private SourcePair< T > sourcePair;
 	private String name;
-	private final Site site;
+	private Site site;
 	private SharedQueue sharedQueue; @Nullable
 	private RealMaskRealInterval mask;
 	private TransformedSource transformedSource;
@@ -52,10 +52,10 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		this.sharedQueue = sharedQueue;
 	}
 
-	public SpimDataImage( Site site )
+	public SpimDataImage( Site site, String name )
 	{
 		this.setupId = site.channel;
-		this.name = site.getName();
+		this.name = name;
 		this.site = site;
 	}
 

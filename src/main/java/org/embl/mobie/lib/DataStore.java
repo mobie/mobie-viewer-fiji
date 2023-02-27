@@ -42,7 +42,7 @@ public abstract class DataStore
 	public static Image< ? > getImage( String name )
 	{
 		if ( ! images.containsKey( name ) )
-			throw new RuntimeException( "Image " + name + " is not part of the current data.");
+			throw new RuntimeException( name + " is not part of the current image data.");
 
 		return images.get( name );
 	}

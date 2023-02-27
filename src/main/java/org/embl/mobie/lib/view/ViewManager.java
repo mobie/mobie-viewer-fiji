@@ -459,11 +459,22 @@ public class ViewManager
 				// that could be referred to here.
 
 				final RegionDisplay< ? > regionDisplay = ( RegionDisplay< ? > ) display;
-				final Map< Well, List< String > > regionIdToImageNames = regionDisplay.sources;
+				final Map< String, List< String > > regionToSources = regionDisplay.sources;
+
 				Table table;
 				StorageLocation tableLocation;
 				TableDataFormat tableFormat;
-				if (  regionDisplay.tableSource != null )
+				if (  regionDisplay.tableSource == null )
+				{
+					// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/970
+					tableLocation = new StorageLocation();
+					tableFormat = TableDataFormat.Table;
+					final StringColumn regionIDs = StringColumn.create( ColumnNames.REGION_ID, regionToSources.keySet() );
+					table = Table.create( regionDisplay.getName() );
+					table.addColumns( regionIDs );
+					// TODO: timepoints:
+				}
+				else
 				{
 					final RegionDataSource regionDataSource = ( RegionDataSource ) DataStore.getRawData( regionDisplay.tableSource );
 					table = regionDataSource.table;
@@ -472,7 +483,7 @@ public class ViewManager
 
 					// only keep the subset of rows (regions)
 					// that are actually referred to in regionIdToImageNames
-					final Set< Well > regionIDs = regionIdToImageNames.keySet();
+					final Set< String > regionIDs = regionToSources.keySet();
 					final ArrayList< Integer > dropRows = new ArrayList<>();
 					final int rowCount = table.rowCount();
 					for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
@@ -485,17 +496,9 @@ public class ViewManager
 					if ( dropRows.size() > 0 )
 						table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
 				}
-				else
-				{
-					// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/970
-					tableLocation = new StorageLocation();
-					tableFormat = TableDataFormat.Table;
-					final StringColumn regionIDs = StringColumn.create( ColumnNames.REGION_ID, regionIdToImageNames.keySet() );
-					table = Table.create( regionDisplay.getName() );
-					table.addColumns( regionIDs );
-				}
 
-				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( table, regionIdToImageNames );
+
+				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( table, regionToSources );
 
 				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, tableLocation, tableFormat, table );
 

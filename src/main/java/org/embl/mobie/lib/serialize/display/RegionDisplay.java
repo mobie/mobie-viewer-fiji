@@ -44,7 +44,7 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotat
 
 	// regionId to image sources
 	// one regionId can annotate several images
-	public Map< Well, List< String > > sources;
+	public Map< String, List< String > > sources;
 
 	// table data
 	public String tableSource;
@@ -88,7 +88,7 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotat
 
 		// set fields specific to RegionDisplay
 		//
-		this.sources = new HashMap< org.embl.mobie.lib.hcs.Well, List< String > >();
+		this.sources = new HashMap< String, List< String > >();
 		this.sources.putAll( regionDisplay.sources );
 		this.tableSource = regionDisplay.tableSource;
 	}

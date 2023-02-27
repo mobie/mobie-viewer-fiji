@@ -169,8 +169,10 @@
             <artifactId>n5-blosc</artifactId>
         </dependency>
         <dependency>
+            <!--  https://github.com/fiji/3D_Viewer/pull/33#event-8572718504  -->
             <groupId>sc.fiji</groupId>
             <artifactId>3D_Viewer</artifactId>
+            <version>4.0.5</version>
         </dependency>
         <dependency>
             <groupId>org.scijava</groupId>

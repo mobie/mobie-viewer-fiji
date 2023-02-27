@@ -1,5 +1,6 @@
 package org.embl.mobie.lib.hcs;
 
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.io.TPosition;
 import org.embl.mobie.lib.io.ZPosition;
@@ -12,6 +13,7 @@ public class Site extends StorageLocation
 	private final String name;
 	private int[] pixelDimensions;
 	private Map< TPosition, Map< ZPosition, String > > paths = new LinkedHashMap();
+	private VoxelDimensions voxelDimensions;
 
 	public Site( String name )
 	{
@@ -53,5 +55,15 @@ public class Site extends StorageLocation
 	public Map< TPosition, Map< ZPosition, String > > getPaths()
 	{
 		return paths;
+	}
+
+	public void setVoxelDimensions( VoxelDimensions voxelDimensions )
+	{
+		this.voxelDimensions = voxelDimensions;
+	}
+
+	public VoxelDimensions getVoxelDimensions()
+	{
+		return voxelDimensions;
 	}
 }

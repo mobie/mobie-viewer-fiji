@@ -340,7 +340,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 			this.mipmapSources = stitched;
 			this.mipmapTransforms = mipmapTransforms;
-			interpolators = new DefaultInterpolators<>();
+			this.interpolators = new DefaultInterpolators<>();
 			this.voxelDimensions = voxelDimensions;
 		}
 
@@ -365,9 +365,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		@Override
 		public int getNumMipmapLevels()
 		{
-			return mipmapSources.size();
+			return mipmapTransforms.length;
 		}
-
 
 		@Override
 		public boolean isPresent( int t )
@@ -455,7 +454,6 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		class StitchedLocationToValue implements BiConsumer< Localizable, V >
 		{
-
 			@Override
 			public void accept( Localizable localizable, V volatileOutput )
 			{

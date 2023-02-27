@@ -2,16 +2,21 @@ package org.embl.mobie.lib.hcs;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.measure.Calibration;
+import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import org.embl.mobie.lib.color.ColorHelper;
+import org.embl.mobie.lib.io.TPosition;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,6 +28,8 @@ public class Plate
 	private double[] siteRealDimensions;
 	private int sitesPerWell;
 	private int[] sitePixelDimensions;
+	private FinalVoxelDimensions voxelDimensions;
+	private Set< TPosition > tPositions;
 
 	public Plate( String hcsDirectory ) throws IOException
 	{
@@ -38,6 +45,7 @@ public class Plate
 	private void buildPlateMap( List< String > paths )
 	{
 		channelWellSites = new HashMap<>();
+		tPositions = new HashSet<>();
 
 		for ( String path : paths )
 		{
@@ -51,15 +59,17 @@ public class Plate
 			//    WellH06_PointH06_0007_ChannelDAPI,WF_GFP,TRITC,WF_Cy5,DIA_Seq0502.tiff
 			//    Maybe change to hcsPattern.getChannels(); (plural) ?
 			//    and then loop through the channels
-			//    and add a suffix to the path "--c0" to indicate which channel to load?
-			//    Maybe I need something more complex than a String to represent the path?
-			//    In fact, could I use StorageLocation already here?
 
+			// channel
+			//
 			String channelName = hcsPattern.getChannelName();
-
-			if ( getChannel( channelWellSites, channelName ) == null )
+			Channel channel = getChannel( channelWellSites, channelName );
+			if ( channel == null )
 			{
-				final Channel channel = new Channel( channelName );
+				// configure channel properties
+				//
+
+				channel = new Channel( channelName );
 				channelWellSites.put( channel, new HashMap<>() );
 				final ImagePlus imagePlus = IJ.openImage( path );
 				final String color = ColorHelper.getString( imagePlus.getLuts()[ 0 ] );
@@ -71,60 +81,103 @@ public class Plate
 				};
 				channel.setContrastLimits( contrastLimits );
 
-				siteRealDimensions = new double[]
+				if ( voxelDimensions == null )
 				{
-					imagePlus.getWidth() * imagePlus.getCalibration().pixelWidth,
-					imagePlus.getHeight() * imagePlus.getCalibration().pixelHeight
-				};
+					// set spatial calibrations for the whole plate
+					//
 
-				sitePixelDimensions = new int[]
-				{
-					imagePlus.getWidth(),
-					imagePlus.getHeight()
-				};
+					final Calibration calibration = imagePlus.getCalibration();
+
+					voxelDimensions = new FinalVoxelDimensions( calibration.getUnit(), calibration.pixelWidth, calibration.pixelHeight, calibration.pixelDepth );
+
+					siteRealDimensions = new double[]
+							{
+									imagePlus.getWidth() * calibration.pixelWidth,
+									imagePlus.getHeight() * calibration.pixelHeight
+							};
+
+					siteRealDimensions = new double[]
+							{
+									imagePlus.getWidth() * calibration.pixelWidth,
+									imagePlus.getHeight() * calibration.pixelHeight
+							};
+
+					sitePixelDimensions = new int[]
+							{
+									imagePlus.getWidth(),
+									imagePlus.getHeight()
+							};
+				}
 			}
 
-			final Channel channel = getChannel( channelWellSites, channelName );
-
+			// well
+			//
 			String wellName = hcsPattern.getWellName();
-			if ( getWell( channelWellSites, channel, wellName ) == null )
+			Well well = getWell( channelWellSites, channel, wellName );
+			if ( well == null )
 			{
-				final Well well = new Well( wellName );
+				well = new Well( wellName );
 				channelWellSites.get( channel ).put( well, new HashSet<>() );
 			}
-			final Well well = getWell( channelWellSites, channel, wellName );
 
+			// site
+			//
 			final String siteName = hcsPattern.getSiteName();
-			if ( getSite( channelWellSites, channel, well, siteName ) == null )
+			Site site = getSite( channelWellSites, channel, well, siteName );
+			if ( site == null )
 			{
-				final Site site = new Site( siteName );
+				site = new Site( siteName );
 				site.setPixelDimensions( sitePixelDimensions );
+				site.setVoxelDimensions( voxelDimensions );
 				channelWellSites.get( channel ).get( well ).add( site );
-				final int numSites = channelWellSites.get( channelName ).get( wellName ).size();
+				final int numSites = channelWellSites.get( channel ).get( well ).size();
 				if ( numSites > sitesPerWell )
 					sitesPerWell = numSites; // needed to compute the site position within a well
 			}
-			final Site site = getSite( channelWellSites, channel, well, siteName );
 
 			final String t = hcsPattern.getT();
 			final String z = hcsPattern.getZ();
 			site.addPath( t, z, path );
+
+			tPositions.add( new TPosition( t ) );
 		}
 	}
 
 	private Channel getChannel( HashMap< Channel, Map< Well, Set< Site > > > channelWellSites, String channelName )
 	{
-		return channelWellSites.keySet().stream().filter( c -> c.getName().equals( channelName ) ).findFirst().get();
+		try
+		{
+			return channelWellSites.keySet().stream().filter( c -> c.getName().equals( channelName ) ).findFirst().get();
+		}
+		catch ( NoSuchElementException e )
+		{
+			return null;
+		}
+
 	}
 
 	private Well getWell( HashMap< Channel, Map< Well, Set< Site > > > channelWellSites, Channel channel, String wellName )
 	{
-		return channelWellSites.get( channel ).keySet().stream().filter( w -> w.getName().equals( wellName ) ).findFirst().get();
+		try
+		{
+			return channelWellSites.get( channel ).keySet().stream().filter( w -> w.getName().equals( wellName ) ).findFirst().get();
+		}
+		catch ( NoSuchElementException e )
+		{
+			return null;
+		}
 	}
 
 	private Site getSite( HashMap< Channel, Map< Well, Set< Site > > > channelWellSites, Channel channel, Well well, String siteName )
 	{
-		return channelWellSites.get( channel ).get( well ).stream().filter( s -> s.getName().equals( siteName ) ).findFirst().get();
+		try
+		{
+			return channelWellSites.get( channel ).get( well ).stream().filter( s -> s.getName().equals( siteName ) ).findFirst().get();
+		}
+		catch ( NoSuchElementException e )
+		{
+			return null;
+		}
 	}
 
 	private HCSPattern determineHCSPattern( String hcsDirectory, List< String > paths )
@@ -161,17 +214,39 @@ public class Plate
 		{
 			default:
 			case Operetta:
-				int siteIndex = Integer.parseInt( site.getName() ) - 1;
-				int numSiteColumns = (int) Math.sqrt( sitesPerWell );
-
-				int[] gridPosition = new int[ 2 ];
-				gridPosition[ 0 ] = siteIndex % numSiteColumns; // column
-				gridPosition[ 1 ] = siteIndex / numSiteColumns; // row
+				int[] gridPosition = determineOperettaSitePosition( site );
 
 				// System.out.println( "Site  = " + site + ", c = " + gridPosition[ 0 ] + ", r = " + gridPosition[ 1 ]);
 
 				return gridPosition;
 		}
+	}
+
+
+
+	private int[] determineOperettaSitePosition( Site site )
+	{
+		// TODO operetta site positions: https://github.com/embl-cba/plateviewer/issues/41
+		List< int[] > positions = new ArrayList<>();
+		positions.add( new int[]{1,2} ); // 1
+		positions.add( new int[]{1,0} ); // 2
+		positions.add( new int[]{2,1} ); // 3
+		positions.add( new int[]{1,1} ); // 4
+		positions.add( new int[]{0,1} ); // 5
+		positions.add( new int[]{0,2} ); // 6
+		positions.add( new int[]{2,2} ); // 7
+		positions.add( new int[]{2,3} ); // 8
+		positions.add( new int[]{1,3} ); // 9
+		positions.add( new int[]{0,3} ); // 10
+		positions.add( new int[]{1,4} ); // 11
+
+		int siteIndex = Integer.parseInt( site.getName() ) - 1;
+		int numSiteColumns = (int) Math.sqrt( sitesPerWell );
+
+//		int[] gridPosition = new int[ 2 ];
+//		gridPosition[ 0 ] = siteIndex % numSiteColumns; // column
+//		gridPosition[ 1 ] = siteIndex / numSiteColumns; // row
+		return positions.get( siteIndex );
 	}
 
 	public int[] getWellGridPosition( Well well )
@@ -209,5 +284,10 @@ public class Plate
 	public int[] getSitePixelDimensions()
 	{
 		return sitePixelDimensions;
+	}
+
+	public Set< TPosition > getTPositions()
+	{
+		return tPositions;
 	}
 }

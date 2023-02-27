@@ -18,9 +18,8 @@ class DevelopHCS
 		final MoBIESettings settings = new MoBIESettings();
 		settings.isHCSProject( true );
 
-		// new MoBIE( "/Users/tischer/Downloads/Operetta", settings );
+		new MoBIE( "/Users/tischer/Downloads/Operetta", settings );
 
-		new MoBIE( "/Users/tischer/Downloads/IncuCyte", settings );
-
+		//new MoBIE( "/Users/tischer/Downloads/IncuCyte", settings );
 	}
 }

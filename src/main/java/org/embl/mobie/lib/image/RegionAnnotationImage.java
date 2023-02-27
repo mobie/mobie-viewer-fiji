@@ -76,8 +76,9 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 
 	private void createImage()
 	{
-		debugLogging();
+		debug();
 
+		// TODO determine the number of timePoints from the table!
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( getMask() );
 		final AR annotatedRegion = annData.getTable().annotations().get( 0 );
@@ -86,7 +87,7 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 		source = new RealRandomAccessibleIntervalTimelapseSource<>( realRandomAccessible, interval, annotationType, new AffineTransform3D(), name, true, timePoints );
 	}
 
-	private void debugLogging()
+	private void debug()
 	{
 		final ArrayList< AR > annotations = annData.getTable().annotations();
 		for ( AR annotatedRegion : annotations )
@@ -182,6 +183,8 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	{
 		final ArrayList< Integer > timePoints = new ArrayList<>();
 		timePoints.add( 0 );
+//		timePoints.add( 1 ); // TODO
+//		timePoints.add( 2 );
 		return timePoints;
 	}
 

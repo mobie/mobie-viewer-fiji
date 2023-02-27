@@ -36,9 +36,10 @@ public class HCSDataSetter
 
 		// init a RegionDisplay for navigating the wells
 		final RegionDisplay< AnnotatedRegion > wellRegionDisplay = new RegionDisplay<>( "wells" );
-		wellRegionDisplay.sources = new HashMap< Well, java.util.List< String > >();
+		wellRegionDisplay.sources = new HashMap<>();
 		wellRegionDisplay.showAsBoundaries( true );
 		wellRegionDisplay.setBoundaryThickness( ( float ) (0.1 * plate.getSiteRealDimensions()[ 0 ] ) );
+		// TODO regionDisplay.timepoints ?
 
 		final ArrayList< Transformation > transformations = new ArrayList<>();
 		final ArrayList< Display< ? > > displays = new ArrayList<>();
@@ -52,32 +53,32 @@ public class HCSDataSetter
 			final MergedGridTransformation wellGrid = new MergedGridTransformation();
 			wellGrid.sources = new ArrayList<>();
 			wellGrid.positions = new ArrayList<>();
-			wellGrid.setName( getChannelName( channel ) );
+			wellGrid.setName( channel.getName() );
 
 			for ( Well well : wells )
 			{
-				final String wellName = getWellName( channel, well );
+				String wellID = Strings.join( "-", Arrays.asList( plate.getName(), channel.getName(), well.getName() ) );
 
 				// init grid for merging sites within the well
 				final MergedGridTransformation siteGrid = new MergedGridTransformation();
 				siteGrid.sources = new ArrayList<>();
 				siteGrid.positions = new ArrayList<>();
-				siteGrid.setName( wellName );
+				siteGrid.setName( wellID );
 
 				if( channel.equals( firstChannel ) )
 				{
 					// all channels should have the same wells,
 					// thus we simply use the first channel for the
 					// well region display
-					wellRegionDisplay.sources.put( well, Arrays.asList( wellName ) );
+					wellRegionDisplay.sources.put( wellID, Arrays.asList( wellID ) );
 				}
 
 				// for each site, create an image source and add it to the site grid
 				final Set< Site > sites = plate.getSites( channel, well );
 				for ( Site site : sites )
 				{
-					String uuid = Strings.join( "-", Arrays.asList( plate.getName(), channel.getName(), well.getName(), site.getName() ) );
-					final ImageDataSource imageDataSource = new ImageDataSource( uuid, ImageDataFormat.ImageJ, site.storageLocation() );
+					String siteID = Strings.join( "-", Arrays.asList( plate.getName(), channel.getName(), well.getName(), site.getName() ) );
+					final ImageDataSource imageDataSource = new ImageDataSource( siteID, ImageDataFormat.ImageJ, site );
 					dataset.addDataSource( imageDataSource );
 
 					// add site image source to site grid
@@ -97,7 +98,7 @@ public class HCSDataSetter
 				transformations.add( siteGrid );
 
 				// add the merged sites to the well grid
-				wellGrid.sources.add( wellName );
+				wellGrid.sources.add( wellID );
 				wellGrid.positions.add( plate.getWellGridPosition( well ) );
 
 				// add well view for testing
@@ -115,15 +116,5 @@ public class HCSDataSetter
 		// create plate view
 		final View view = new View( plate.getName(), "plate", displays, transformations, true );
 		dataset.views().put( view.getName(), view );
-	}
-
-	private String getWellName( Channel channel, Well well )
-	{
-		return getChannelName( channel ) + "--w_" + well;
-	}
-
-	private String getChannelName( Channel channel )
-	{
-		return "c_" + channel;
 	}
 }

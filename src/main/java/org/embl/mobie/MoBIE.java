@@ -1066,7 +1066,7 @@ public class MoBIE
 
 		if ( storageLocation instanceof Site )
 		{
-			return new SpimDataImage( ( Site ) storageLocation );
+			return new SpimDataImage( ( Site ) storageLocation, name );
 		}
 
 
