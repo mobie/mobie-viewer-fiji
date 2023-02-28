@@ -15,6 +15,10 @@ class DevelopHCS
 
 		//new MoBIE( "/Users/tischer/Downloads/Operetta", new MoBIESettings(), 0.1, 0.0  );
 
-		new MoBIE( "/Users/tischer/Downloads/IncuCyte", new MoBIESettings(), 0.1, 0.0 );
+		//new MoBIE( "/Users/tischer/Downloads/IncuCyte", new MoBIESettings(), 0.1, 0.0 );
+
+		//new MoBIE( "/Users/tischer/Downloads/incu2/", new MoBIESettings(), 0.1, 0.0  );
+
+		new MoBIE( "/g/cba/exchange/mobie-data/incucyte-drug-screen/images", new MoBIESettings(), 0.1, 0.0  );
 	}
 }

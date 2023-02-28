@@ -30,6 +30,7 @@ public class Plate
 	private int[] sitePixelDimensions;
 	private FinalVoxelDimensions voxelDimensions;
 	private Set< TPosition > tPositions;
+	private int wellsPerPlate;
 
 	public Plate( String hcsDirectory ) throws IOException
 	{
@@ -118,6 +119,9 @@ public class Plate
 			{
 				well = new Well( wellName );
 				channelWellSites.get( channel ).put( well, new HashSet<>() );
+				final int numWells = channelWellSites.get( channel ).size();
+				if ( numWells > wellsPerPlate )
+					wellsPerPlate = numWells;
 			}
 
 			// site
@@ -141,6 +145,10 @@ public class Plate
 
 			tPositions.add( new TPosition( t ) );
 		}
+
+		IJ.log( "Initialised HCS plate: " + getName() );
+		IJ.log( "Wells per plate: " + wellsPerPlate );
+		IJ.log( "Sites per well: " + sitesPerWell );
 	}
 
 	private Channel getChannel( HashMap< Channel, Map< Well, Set< Site > > > channelWellSites, String channelName )
@@ -241,6 +249,9 @@ public class Plate
 
 	public int[] getDefaultGridPosition( Site site )
 	{
+		if ( sitesPerWell == 1 )
+			return new int[]{ 0, 0 };
+
 		int siteIndex = Integer.parseInt( site.getName() ) - 1;
 		int numSiteColumns = (int) Math.sqrt( sitesPerWell );
 

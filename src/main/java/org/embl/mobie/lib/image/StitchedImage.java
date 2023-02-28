@@ -99,10 +99,10 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private VoxelDimensions voxelDimensions;
 	private TransformedSource< T > transformedSource;
 	private RealMaskRealInterval referenceMask;
-
-	private final boolean debug = false;
 	private AffineTransform3D sourceTransform;
 	private int numTimepoints;
+
+	private final boolean debug = true;
 
 	public StitchedImage( List< ? extends Image< T > > images, Image< T > metadataImage, @Nullable List< int[] > positions, String name, double relativeTileMargin )
 	{
@@ -151,6 +151,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				System.out.println( "StitchedImage: Metadata transform: " + copy );
 				System.out.println( "StitchedImage: Metadata dimensions: " + Arrays.toString( dimensions ) );
 				System.out.println( "StitchedImage: Metadata tile mask: " + TransformHelper.maskToString( referenceMask ) );
+				System.out.println( "StitchedImage: Number of tiles: " + positions.size() );
+
 			}
 
 			levelToSourceTransform.put( level, copy );
@@ -255,7 +257,29 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		nestedTransformedNames = null; // <- triggers in place transformations
 
+		if ( debug )
+		{
+			for ( List< ? extends Image< ? > > nestedImage : nestedImages )
+			{
+				for ( Image< ? > image : nestedImage )
+				{
+					System.out.println( "Initial image: " + image.getName() + ": " + Arrays.toString( image.getMask().minAsDoubleArray() ) + " - " + Arrays.toString( image.getMask().maxAsDoubleArray() ));
+				}
+			}
+		}
+
 		ImageTransformer.gridTransform( nestedImages, nestedTransformedNames, positions, tileRealDimensions, false, offset );
+
+		if ( debug )
+		{
+			for ( List< ? extends Image< ? > > nestedImage : nestedImages )
+			{
+				for ( Image< ? > image : nestedImage )
+				{
+					System.out.println( "Transformed image: " + image.getName() + ": " + Arrays.toString( image.getMask().minAsDoubleArray() ) + " - " + Arrays.toString( image.getMask().maxAsDoubleArray() ));
+				}
+			}
+		}
 
 	}
 
@@ -286,7 +310,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			mipmapTransforms[ level ] = mipmapTransform;
 		}
 
-		final TileSupplier tileSupplier = new TileSupplier();
+		final TileSupplier tileSupplier = new TileSupplier( images );
 
 		// non-volatile
 		//
@@ -776,6 +800,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	public RealMaskRealInterval getMask()
 	{
 		final RealMaskRealInterval mask = SourceHelper.estimateMask( getSourcePair().getSource(), 0, false );
+		final String toString = TransformHelper.maskToString( mask );
 		return mask;
 	}
 
@@ -792,7 +817,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		protected Map< String, Status > keyToStatus;
 		protected Map< String, Image< T > > tileToImage;
 
-		public TileSupplier( )
+		public TileSupplier( List< ? extends Image< T > > images )
 		{
 			keyToRandomAccessible = new ConcurrentHashMap<>();
 			keyToVolatileRandomAccessible = new ConcurrentHashMap<>();
