@@ -46,6 +46,7 @@ import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegion;
 import org.embl.mobie.lib.transform.TransformHelper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,40 +61,61 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	private final AnnData< AR > annData;
 
 	private Source< AnnotationType< AR > > source;
-
-	// No volatile implementation, because the
-	// {@code source} should be fast enough,
+	// There is no volatile implementation (yet), because the
+	// {@code Source} should be fast enough,
 	// and probably a volatile version would need an {@code CachedCellImg},
 	// which would require deciding on a specific spatial sampling,
-	// which is not nice because a {@code region} is defined in real space.
+	// which is not nice because a {@code Region} is defined in real space.
 	private Source< ? extends VolatileAnnotationType< AR > > volatileSource = null;
+	private SourcePair< AnnotationType< AR > > sourcePair;
+	private RealMaskRealInterval mask;
 
+	private boolean debug = false;
+
+	/**
+	 * Builds an image that annotates all {@code AnnotatedRegion} in the
+	 * provided {@code AnnData}.
+	 *
+	 * Note that currently the timepoints of the regions in annData are ignored.
+	 * This could be changed (there are some comments in the code of this class
+	 * for where and which changes would be needed). Instead, all the provided
+	 * {@code timepoints} are annotated with all {@code AnnotatedRegion}.
+	 *
+	 * @param name
+	 * 				name of this image
+	 * @param annData
+	 * 				annData containing the regions that shall be annotated
+	 * @param timepoints
+	 * 				the timepoints that this image annotates
+	 */
 	public RegionAnnotationImage( String name, AnnData< AR > annData, Set< Integer > timepoints )
 	{
 		this.name = name;
 		this.annData = annData;
 
-		debug();
+		if( debug ) logRegions();
 
 		final Interval interval = Intervals.smallestContainingInterval( getMask() );
-		final AR annotatedRegion = annData.getTable().annotations().get( 0 );
-		final FunctionRealRandomAccessible< AnnotationType< AR > > realRandomAccessible = new FunctionRealRandomAccessible( 3, new LocationToAnnotatedRegionSupplier(), () -> new AnnotationType<>( annotatedRegion ) );
-		final AnnotationType< AR > annotationType = new AnnotationType<>( annotatedRegion );
-		source = new RealRandomAccessibleIntervalTimelapseSource<>( realRandomAccessible, interval, annotationType, new AffineTransform3D(), name, true, timepoints );
+
+		// one could add a time point parameter to LocationToAnnotatedRegionSupplier
+		// and then make a Map< Timepoint, regions > and modify RealRandomAccessibleIntervalTimelapseSource to consume this map
+		final FunctionRealRandomAccessible< AnnotationType< AR > > regions = new FunctionRealRandomAccessible( 3, new LocationToAnnotatedRegionSupplier(), () -> new AnnotationType<>( annData.getTable().annotations().get( 0 ) ) );
+
+		source = new RealRandomAccessibleIntervalTimelapseSource<>( regions, interval, new AnnotationType<>( annData.getTable().annotations().get( 0 ) ), new AffineTransform3D(), name, true, timepoints );
 	}
 
-	private void debug()
+	private void logRegions()
 	{
 		final ArrayList< AR > annotations = annData.getTable().annotations();
 		for ( AR annotatedRegion : annotations )
 		{
 			final TableSawAnnotatedRegion tableSawAnnotatedRegion = ( TableSawAnnotatedRegion ) annotatedRegion;
-			//System.out.println( "RegionLabelImage " + name + ": " + annotatedRegion.regionId() + " images = " + Arrays.toString( tableSawAnnotatedRegion.getRegionImageNames().toArray( new String[ 0 ] ) ) + "\n" + TransformHelper.maskToString( annotatedRegion.getMask() ) );
+			System.out.println( "RegionLabelImage " + name + ": " + annotatedRegion.regionId() + " images = " + Arrays.toString( tableSawAnnotatedRegion.getRegionImageNames().toArray( new String[ 0 ] ) ) + "\n" + TransformHelper.maskToString( annotatedRegion.getMask() ) );
 			final List< String > regionImageNames = tableSawAnnotatedRegion.getRegionImageNames();
 			for ( String regionImageName : regionImageNames )
 			{
 				final Image< ? > viewImage = DataStore.getImage( regionImageName );
-				//System.out.println( "Region: " + viewImage.getName() + ": " + Arrays.toString( viewImage.getMask().minAsDoubleArray() ) + " - " + Arrays.toString( viewImage.getMask().maxAsDoubleArray() ) );
+				System.out.println( "Region: " + viewImage.getName() + ": " + Arrays.toString( viewImage.getMask().minAsDoubleArray() ) + " - " + Arrays.toString( viewImage.getMask().maxAsDoubleArray() ) );
 			}
 		}
 	}
@@ -123,6 +145,12 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 				final ArrayList< AR > annotations = annData.getTable().annotations();
 				for ( AR annotatedRegion : annotations )
 				{
+					// one could filter here for the timepoint of the annotation
+					// if the constructor of LocationToAnnotatedRegionSupplier
+					// would have a time point parameter
+					// in fact, rather, an annotatedRegion
+					// could/should(?) annotate all timepoints of the
+					// source that is referred to in the annotatedRegion
 					final RealMaskRealInterval mask = annotatedRegion.getMask();
 					maskToAnnotatedRegion.put( mask, annotatedRegion );
 				}
@@ -177,7 +205,10 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	@Override
 	public SourcePair< AnnotationType< AR > > getSourcePair()
 	{
-		return new DefaultSourcePair<>( source, volatileSource );
+		if ( sourcePair == null )
+			sourcePair = new DefaultSourcePair<>( source, volatileSource );
+
+		return sourcePair;
 	}
 
 	public String getName()
@@ -196,7 +227,10 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	@Override
 	public RealMaskRealInterval getMask( )
 	{
-		return TransformHelper.getUnionMask( annData.getTable().annotations() );
+		if ( mask == null )
+			mask = TransformHelper.getUnionMask( annData.getTable().annotations() );
+
+		return mask;
 	}
 
 	@Override
