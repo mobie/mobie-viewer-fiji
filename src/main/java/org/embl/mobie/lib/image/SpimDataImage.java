@@ -14,7 +14,7 @@ import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.lib.hcs.Site;
-import org.embl.mobie.lib.hcs.SpimDataFromSiteCreator;
+import org.embl.mobie.lib.hcs.SiteSpimDataCreator;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.source.SourcePair;
 
@@ -138,7 +138,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		{
 			if ( site != null )
 			{
-				return SpimDataFromSiteCreator.create( site );
+				return SiteSpimDataCreator.create( site );
 			}
 
 			return new SpimDataOpener().open( path, imageDataFormat, sharedQueue );

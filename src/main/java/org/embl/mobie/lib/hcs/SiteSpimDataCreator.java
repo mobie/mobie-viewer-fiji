@@ -10,10 +10,12 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.lib.io.TPosition;
 import org.embl.mobie.lib.io.ZPosition;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-public class SpimDataFromSiteCreator
+public class SiteSpimDataCreator
 {
 	public static AbstractSpimData< ? > create( Site site )
 	{
@@ -21,7 +23,8 @@ public class SpimDataFromSiteCreator
 
 		final Map< TPosition, Map< ZPosition, String > > paths = site.getPaths();
 
-		final Set< TPosition > tPositions = paths.keySet();
+		final ArrayList< TPosition > tPositions = new ArrayList<>( paths.keySet() );
+		Collections.sort( tPositions );
 		int nT = tPositions.size();
 		int nZ = 1;
 		for ( TPosition t : tPositions )

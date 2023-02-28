@@ -1,8 +1,10 @@
 package org.embl.mobie.lib.io;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Objects;
 
-public class TPosition
+public class TPosition implements Comparable< TPosition >
 {
 	private final String timepoint;
 
@@ -36,5 +38,11 @@ public class TPosition
 	@Override
 	public int hashCode() {
 		return Objects.hash( timepoint );
+	}
+
+	@Override
+	public int compareTo( @NotNull TPosition o )
+	{
+		return this.toString().compareTo( o.toString() );
 	}
 }

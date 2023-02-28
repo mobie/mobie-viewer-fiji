@@ -80,6 +80,7 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	 * This could be changed (there are some comments in the code of this class
 	 * for where and which changes would be needed). Instead, all the provided
 	 * {@code timepoints} are annotated with all {@code AnnotatedRegion}.
+	 * See https://github.com/mobie/mobie-viewer-fiji/issues/975
 	 *
 	 * @param name
 	 * 				name of this image
