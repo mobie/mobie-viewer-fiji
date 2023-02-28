@@ -13,8 +13,6 @@
 
     <!--  ../scijava-scripts/release-version.sh - -skip-version-check - -skip-license-update -->
     <!-- mvn javadoc:javadoc -Denforcer.skip | grep error -->
-    <!-- mvn clean compile -Dmaven.test.skip=true -->
-    <!-- mvn clean install -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
     <!-- ../scijava-scripts/release-version.sh - -skip-version-check -->

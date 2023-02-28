@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.bdv;
 
+import bdv.TransformEventHandler2D;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
@@ -41,6 +42,8 @@ import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.img.basictypeaccess.array.ByteArray;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.integer.ByteType;
+import org.scijava.ui.behaviour.Behaviour;
+import org.scijava.ui.behaviour.BehaviourMap;
 import sc.fiji.bdvpg.bdv.supplier.IBdvSupplier;
 
 import java.awt.*;
@@ -69,16 +72,23 @@ public class MobieBdvSupplier implements IBdvSupplier {
         options = options.sourceTransform( new AffineTransform3D() );
 
         BdvStackSource< ByteType > bss = BdvFunctions.show( dummyImg, "dummy", options );
-        BdvHandle bdv = bss.getBdvHandle();
+        BdvHandle bdvHandle = bss.getBdvHandle();
 
-        if ( sOptions.interpolate ) bdv.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
+        if ( sOptions.interpolate ) bdvHandle.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
+
+        if ( sOptions.is2D )
+        {
+            final BehaviourMap behaviourMap = new BehaviourMap();
+            behaviourMap.put( TransformEventHandler2D.DRAG_ROTATE, new Behaviour() {} );
+            bdvHandle.getTriggerbindings().addBehaviourMap( "BLOCKMAP", behaviourMap );
+        }
 
         // remove dummy image
-        bdv.getViewerPanel().state().removeSource( bdv.getViewerPanel().state().getCurrentSource() );
+        bdvHandle.getViewerPanel().state().removeSource( bdvHandle.getViewerPanel().state().getCurrentSource() );
 
-        setTimepointTextColor( bdv );
+        setTimepointTextColor( bdvHandle );
 
-        return bdv;
+        return bdvHandle;
     }
 
     // a hack that could be removed once it is
