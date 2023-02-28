@@ -102,7 +102,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private AffineTransform3D sourceTransform;
 	private int numTimepoints;
 
-	private final boolean debug = true;
+	private final boolean debug = false;
 
 	public StitchedImage( List< ? extends Image< T > > images, Image< T > metadataImage, @Nullable List< int[] > positions, String name, double relativeTileMargin )
 	{

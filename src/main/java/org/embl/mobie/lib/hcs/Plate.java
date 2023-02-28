@@ -296,4 +296,9 @@ public class Plate
 	{
 		return tPositions;
 	}
+
+	public int getSitesPerWell()
+	{
+		return sitesPerWell;
+	}
 }

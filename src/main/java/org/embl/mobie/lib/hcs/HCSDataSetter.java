@@ -81,12 +81,16 @@ public class HCSDataSetter
 			{
 				String wellID = Strings.join( "-", Arrays.asList( plate.getName(), channel.getName(), well.getName() ) );
 
-				// init grid for merging sites within the well
-				final MergedGridTransformation siteGrid = new MergedGridTransformation();
-				siteGrid.sources = new ArrayList<>();
-				siteGrid.positions = new ArrayList<>();
-				siteGrid.margin = siteMargin;
-				siteGrid.setName( wellID );
+				MergedGridTransformation siteGrid = null;
+				if ( plate.getSitesPerWell() > 1 )
+				{
+					// init grid for merging sites within the well
+					siteGrid = new MergedGridTransformation();
+					siteGrid.sources = new ArrayList<>();
+					siteGrid.positions = new ArrayList<>();
+					siteGrid.margin = siteMargin;
+					siteGrid.setName( wellID );
+				}
 
 				if( channel.equals( firstChannel ) )
 				{
@@ -97,30 +101,45 @@ public class HCSDataSetter
 					wellRegionDisplay.sources.put( wellID, Arrays.asList( wellID ) );
 				}
 
-				// for each site, create an image source and add it to the site grid
+				// for each site, create an image source
+				// and add it to the site grid
 				//
 				final Set< Site > sites = plate.getSites( channel, well );
 				for ( Site site : sites )
 				{
-					String siteID = Strings.join( "-", Arrays.asList( plate.getName(), channel.getName(), well.getName(), site.getName() ) );
-					final ImageDataSource imageDataSource = new ImageDataSource( siteID, ImageDataFormat.ImageJ, site );
-					dataset.addDataSource( imageDataSource );
-
-					// add site image source to site grid
-					siteGrid.sources.add( imageDataSource.getName() );
-					siteGrid.positions.add( plate.getGridPosition( site ) );
-					if ( metadataSiteSource == null )
+					if ( plate.getSitesPerWell() > 1 )
 					{
-						// all sites should be identical, thus
-						// we simply use the first site of
-						// this channel for metadata
-						metadataSiteSource = imageDataSource.getName();
-					}
+						// create a site grid to form the well
+						//
+						String siteID = Strings.join( "-", Arrays.asList( plate.getName(), channel.getName(), well.getName(), site.getName() ) );
+						final ImageDataSource imageDataSource = new ImageDataSource( siteID, ImageDataFormat.ImageJ, site );
+						dataset.addDataSource( imageDataSource );
 
-					siteGrid.metadataSource = metadataSiteSource;
+						// add site image source to site grid
+						siteGrid.sources.add( imageDataSource.getName() );
+						siteGrid.positions.add( plate.getGridPosition( site ) );
+
+						if ( metadataSiteSource == null )
+						{
+							// all sites should be identical, thus
+							// we simply use the first site of
+							// this channel for metadata
+							metadataSiteSource = imageDataSource.getName();
+						}
+
+						siteGrid.metadataSource = metadataSiteSource;
+					}
+					else
+					{
+						// the one site is the well
+						//
+						final ImageDataSource imageDataSource = new ImageDataSource( wellID, ImageDataFormat.ImageJ, site );
+						dataset.addDataSource( imageDataSource );
+					}
 				}
 
-				transformations.add( siteGrid );
+				if ( siteGrid != null )
+					transformations.add( siteGrid );
 
 				// add the merged site grid,
 				// of name wellID,
