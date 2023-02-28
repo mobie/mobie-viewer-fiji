@@ -92,9 +92,9 @@ public enum HCSPattern
 	{
 		final Matcher matcher = Pattern.compile( "r(?<row>[0-9]{2})c(?<col>[0-9]{2})" ).matcher( well );
 		matcher.matches();
-		final int row = Integer.parseInt( matcher.group( "row" ) ) - 1;
-		final int col = Integer.parseInt( matcher.group( "col" ) ) - 1;
-		return new int[]{ row, col };
+		final int x = Integer.parseInt( matcher.group( "col" ) ) - 1;
+		final int y = Integer.parseInt( matcher.group( "row" ) ) - 1;
+		return new int[]{ x, y };
 	}
 
 	public static int[] decodeA01WellPosition( String well )
