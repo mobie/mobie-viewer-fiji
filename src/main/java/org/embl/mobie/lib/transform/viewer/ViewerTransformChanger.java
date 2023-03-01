@@ -26,9 +26,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.transform;
+package org.embl.mobie.lib.transform.viewer;
 
-import bdv.util.Bdv;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
@@ -38,10 +37,12 @@ import bdv.viewer.animate.SimilarityTransformAnimator;
 import org.embl.mobie.lib.bdv.CircleOverlay;
 import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.lib.transform.NormalizedAffineViewerTransform;
+import org.embl.mobie.lib.transform.TransformHelper;
 
 import java.util.Arrays;
 
-public abstract class SliceViewLocationChanger
+public abstract class ViewerTransformChanger
 {
 	public static int animationDurationMillis = 1500;
 
@@ -50,42 +51,42 @@ public abstract class SliceViewLocationChanger
 	private static boolean pointOverlaySourceIsActive;
 	private static boolean isPointOverlayEnabled;
 
-	public static void changeLocation( BdvHandle bdv, ViewerTransform viewerTransform )
+	public static void changeLocation( BdvHandle bdvHandle, ViewerTransform viewerTransform )
 	{
 		if ( viewerTransform instanceof PositionViewerTransform )
 		{
-			moveToPosition( bdv, viewerTransform.getParameters(), animationDurationMillis );
-			adaptTimepoint( bdv, viewerTransform );
+			moveToPosition( bdvHandle, viewerTransform.getParameters(), animationDurationMillis );
+			adaptTimepoint( bdvHandle, viewerTransform );
 			if ( isPointOverlayEnabled )
-				addPointOverlay( bdv, viewerTransform.getParameters() );
+				addPointOverlay( bdvHandle, viewerTransform.getParameters() );
 		}
 		else if ( viewerTransform instanceof TimepointViewerTransform )
 		{
-			adaptTimepoint( bdv, viewerTransform );
+			adaptTimepoint( bdvHandle, viewerTransform );
 		}
 		else if ( viewerTransform instanceof NormalVectorViewerTransform )
 		{
-			final AffineTransform3D transform = NormalVectorViewerTransform.createTransform( bdv, viewerTransform.getParameters() );
-			changeLocation( bdv, transform, animationDurationMillis );
-			adaptTimepoint( bdv, viewerTransform );
+			final AffineTransform3D transform = NormalVectorViewerTransform.createTransform( bdvHandle, viewerTransform.getParameters() );
+			changeLocation( bdvHandle, transform, animationDurationMillis );
+			adaptTimepoint( bdvHandle, viewerTransform );
 		}
 		else if ( viewerTransform instanceof AffineViewerTransform )
 		{
-			changeLocation( bdv, TransformHelper.asAffineTransform3D( viewerTransform.getParameters() ), animationDurationMillis );
-			adaptTimepoint( bdv, viewerTransform );
+			changeLocation( bdvHandle, TransformHelper.asAffineTransform3D( viewerTransform.getParameters() ), animationDurationMillis );
+			adaptTimepoint( bdvHandle, viewerTransform );
 		}
 		else if ( viewerTransform instanceof NormalizedAffineViewerTransform )
 		{
-			final AffineTransform3D transform = TransformHelper.createUnnormalizedViewerTransform( TransformHelper.asAffineTransform3D( viewerTransform.getParameters() ), bdv.getBdvHandle().getViewerPanel() );
-			changeLocation( bdv, transform, animationDurationMillis );
-			adaptTimepoint( bdv, viewerTransform );
+			final AffineTransform3D transform = TransformHelper.createUnnormalizedViewerTransform( TransformHelper.asAffineTransform3D( viewerTransform.getParameters() ), bdvHandle.getBdvHandle().getViewerPanel() );
+			changeLocation( bdvHandle, transform, animationDurationMillis );
+			adaptTimepoint( bdvHandle, viewerTransform );
 		}
 	}
 
-	public static void adaptTimepoint( BdvHandle bdv, ViewerTransform viewerTransform )
+	public static void adaptTimepoint( BdvHandle bdvHandle, ViewerTransform viewerTransform )
 	{
 		if ( viewerTransform.getTimepoint() != null )
-			bdv.getViewerPanel().setTimepoint( viewerTransform.getTimepoint() );
+			bdvHandle.getViewerPanel().setTimepoint( viewerTransform.getTimepoint() );
 	}
 
 	public static void togglePointOverlay()
@@ -96,7 +97,7 @@ public abstract class SliceViewLocationChanger
 		pointOverlaySource.setActive( pointOverlaySourceIsActive );
 	}
 
-	private static void addPointOverlay( Bdv bdv, double[] doubles )
+	private static void addPointOverlay( BdvHandle bdvHandle, double[] doubles )
 	{
 		if ( circleOverlay == null )
 		{
@@ -104,7 +105,7 @@ public abstract class SliceViewLocationChanger
 			pointOverlaySource = BdvFunctions.showOverlay(
 					circleOverlay,
 					"point-overlay-" + Arrays.toString( doubles ),
-					BdvOptions.options().addTo( bdv ) );
+					BdvOptions.options().addTo( bdvHandle ) );
 			pointOverlaySourceIsActive = true;
 		}
 		else
@@ -115,13 +116,13 @@ public abstract class SliceViewLocationChanger
 
 	public static void enablePointOverlay( boolean isPointOverlayEnabled )
 	{
-		SliceViewLocationChanger.isPointOverlayEnabled = isPointOverlayEnabled;
+		ViewerTransformChanger.isPointOverlayEnabled = isPointOverlayEnabled;
 	}
 
-	public static void moveToPosition( BdvHandle bdv, double[] xyz, long durationMillis )
+	public static void moveToPosition( BdvHandle bdvHandle, double[] xyz, long durationMillis )
 	{
 		final AffineTransform3D currentViewerTransform = new AffineTransform3D();
-		bdv.getBdvHandle().getViewerPanel().state().getViewerTransform( currentViewerTransform );
+		bdvHandle.getBdvHandle().getViewerPanel().state().getViewerTransform( currentViewerTransform );
 
 		AffineTransform3D newViewerTransform = currentViewerTransform.copy();
 
@@ -138,12 +139,12 @@ public abstract class SliceViewLocationChanger
 		}
 
 		newViewerTransform.translate( locationOfTargetCoordinatesInCurrentViewer );
-		final double[] bdvWindowCenter = BdvPlaygroundHelper.getWindowCentreInPixelUnits( bdv.getViewerPanel() );
+		final double[] bdvWindowCenter = BdvPlaygroundHelper.getWindowCentreInPixelUnits( bdvHandle.getViewerPanel() );
 		newViewerTransform.translate( bdvWindowCenter );
 
 		if ( durationMillis <= 0 )
 		{
-			bdv.getBdvHandle().getViewerPanel().state().setViewerTransform(  newViewerTransform );
+			bdvHandle.getBdvHandle().getViewerPanel().state().setViewerTransform(  newViewerTransform );
 		}
 		else
 		{
@@ -155,14 +156,14 @@ public abstract class SliceViewLocationChanger
 							0,
 							durationMillis );
 
-			bdv.getBdvHandle().getViewerPanel().setTransformAnimator( similarityTransformAnimator );
+			bdvHandle.getBdvHandle().getViewerPanel().setTransformAnimator( similarityTransformAnimator );
 		}
 	}
 
-	public static void changeLocation( Bdv bdv, AffineTransform3D newViewerTransform, long duration)
+	public static void changeLocation( BdvHandle bdvHandle, AffineTransform3D newViewerTransform, long duration)
 	{
 		AffineTransform3D currentViewerTransform = new AffineTransform3D();
-		bdv.getBdvHandle().getViewerPanel().state().getViewerTransform( currentViewerTransform );
+		bdvHandle.getBdvHandle().getViewerPanel().state().getViewerTransform( currentViewerTransform );
 
 		final SimilarityTransformAnimator similarityTransformAnimator =
 				new SimilarityTransformAnimator(
@@ -172,7 +173,7 @@ public abstract class SliceViewLocationChanger
 						0,
 						duration );
 
-		bdv.getBdvHandle().getViewerPanel().setTransformAnimator( similarityTransformAnimator );
+		bdvHandle.getBdvHandle().getViewerPanel().setTransformAnimator( similarityTransformAnimator );
 	}
 
 }

@@ -38,7 +38,7 @@ import org.embl.mobie.lib.serialize.display.Display;
 import org.embl.mobie.lib.serialize.display.DisplayListAdapter;
 import org.embl.mobie.lib.serialize.transformation.TransformationListAdapter;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
-import org.embl.mobie.lib.transform.ViewerTransform;
+import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 
 import java.util.List;
 import java.util.Map;

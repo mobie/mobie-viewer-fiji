@@ -26,23 +26,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package develop;
+package org.embl.mobie.lib.transform.viewer;
 
-import com.google.gson.Gson;
-import org.embl.mobie.lib.serialize.JsonHelper;
-import org.embl.mobie.lib.transform.NormalizedAffineViewerTransform;
-import org.embl.mobie.lib.transform.viewer.ViewerTransform;
-
-public class DevelopViewsLogging
+public class TimepointViewerTransform implements ViewerTransform
 {
-	public static void main( String[] args )
+	// Serialization
+	private Integer timepoint;
+
+	public TimepointViewerTransform( int timepoint )
 	{
-		final NormalizedAffineViewerTransform affineViewerTransform = new NormalizedAffineViewerTransform( new double[ 12 ], 0 );
+		this.timepoint = timepoint;
+	}
 
-		final Gson gson = JsonHelper.buildGson( false );
-		final String json = gson.toJson( affineViewerTransform );
-		System.out.printf( json );
+	@Override
+	public double[] getParameters()
+	{
+		return null;
+	}
 
-		final ViewerTransform viewerTransform = gson.fromJson( json, ViewerTransform.class );
+	@Override
+	public Integer getTimepoint()
+	{
+		return timepoint;
 	}
 }

@@ -55,7 +55,7 @@ import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.select.SelectionModel;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.table.AnnotationTableModel;
-import org.embl.mobie.lib.transform.SliceViewLocationChanger;
+import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
 import org.embl.mobie.lib.transform.TransformHelper;
 import org.embl.mobie.lib.ui.ColumnColoringModelDialog;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -432,7 +432,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 			recentFocus = selection;
 			double[] location = new double[ 3 ];
 			tableRowToRealPoint.get( selection ).localize( location );
-			SliceViewLocationChanger.moveToPosition( bdvHandle, location, SliceViewLocationChanger.animationDurationMillis );
+			ViewerTransformChanger.moveToPosition( bdvHandle, location, ViewerTransformChanger.animationDurationMillis );
 		}
 	}
 

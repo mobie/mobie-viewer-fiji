@@ -26,28 +26,41 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.transform;
+package org.embl.mobie.lib.transform.viewer;
 
-public class PositionViewerTransform implements ViewerTransform
+import com.google.gson.Gson;
+import org.embl.mobie.lib.serialize.JsonHelper;
+
+public interface ViewerTransform
 {
-	// Serialization
-	private double[] position;
-	private Integer timepoint;
+	double[] getParameters();
 
-	public PositionViewerTransform( double[] parameters, int timepoint )
+	Integer getTimepoint();
+
+	static String toString( ViewerTransform viewerTransform )
 	{
-		this.position = parameters;
-		this.timepoint = timepoint;
+		if ( viewerTransform != null )
+		{
+			final Gson gson = JsonHelper.buildGson( false );
+			return gson.toJson( viewerTransform );
+		}
+		else
+			return  "";
 	}
 
-	public double[] getParameters()
+	static ViewerTransform toViewerTransform( String s )
 	{
-		return position;
+		try
+		{
+			final Gson gson = JsonHelper.buildGson( false );
+			return gson.fromJson( s, ViewerTransform.class );
+
+		}
+		catch ( Exception gsonException )
+		{
+			// TODO: implement additional parsing: https://github.com/mobie/mobie-viewer-fiji/issues/731
+			throw gsonException;
+		}
 	}
 
-	@Override
-	public Integer getTimepoint()
-	{
-		return timepoint;
-	}
 }

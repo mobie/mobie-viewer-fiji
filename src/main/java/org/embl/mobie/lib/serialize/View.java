@@ -32,7 +32,7 @@ import org.embl.mobie.lib.serialize.display.Display;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
-import org.embl.mobie.lib.transform.ViewerTransform;
+import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 
 import java.util.ArrayList;
 import java.util.HashMap;

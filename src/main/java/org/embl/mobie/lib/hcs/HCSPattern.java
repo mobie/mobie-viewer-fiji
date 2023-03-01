@@ -6,7 +6,8 @@ import java.util.regex.Pattern;
 public enum HCSPattern
 {
 	Operetta,
-	IncuCyte;
+	IncuCyte,
+	MolecularDevices;
 
 	private static final String WELL = "W";
 	private static final String SITE = "S";
@@ -15,16 +16,26 @@ public enum HCSPattern
 	private static final String Z = "Z";
 
 	/*
+	example:
 	r01c01f04p01-ch1sk1fk1fl1.tiff
 	well = r01c01, site = 04, channel = 1
 	 */
 	private static final String OPERETTA = ".*(?<"+WELL+">r[0-9]{2}c[0-9]{2})f(?<"+SITE+">[0-9]{2})p[0-9]{2}.*-ch(?<"+CHANNEL+">[0-9])sk.*.tiff$";
 
 	/*
+	example:
 	MiaPaCa2-PhaseOriginal_A2_1_03d06h40m.tif
 	well = A2, site = 1, frame = 03d06h40m
 	 */
 	private static final String INCUCYTE = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{1,2})_(?<"+SITE+">[0-9]{1,2})_(?<"+ T +">[0-9]{2}d[0-9]{2}h[0-9]{2}m).tif$";
+
+	/*
+	example:
+	MIP-2P-2sub_C05_s1_w146C9B2CD-0BB3-4B8A-9187-2805F4C90506.tif
+	well = C05, site = 1, channel = 1
+	 */
+	private final String MOLDEV_WELL_SITE_CHANNEL = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">.*)_w(?<"+CHANNEL+">[0-9])[^_thumb].*";
+
 
 	private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -33,7 +44,7 @@ public enum HCSPattern
 	private final String PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL = ".*--(.*)--(.*)--W(?<"+WELL+">[0-9]{4})--P(?<"+SITE+">[0-9]{3})--T[0-9]{4,5}--Z[0-9]{3}--(?<"+CHANNEL+">.*)";
 	private final String PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL = ".*--W(?<"+WELL+">[0-9]{5})--P(?<"+SITE+">[0-9]{5}).*--.*--(?<"+CHANNEL+">.*)\\..*";
 	private final String PATTERN_NIKON_TI2_HDF5 = ".*Well([A-Z]{1}[0-9]{2})_Point[A-Z]{1}[0-9]{2}_([0-9]{4})_.*h5$";
-	private final String MD_SITES_CHANNELS = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">.*)_w(?<"+CHANNEL+">[0-9]{1}).*";
+
 	private final String MD_SITES = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">[0-9]{1}).*";
 
 	private Matcher matcher;
@@ -50,12 +61,14 @@ public enum HCSPattern
 		return null;
 	}
 
-	public Matcher getMatcher( String path )
+	private Matcher getMatcher( String path )
 	{
 		switch( this )
 		{
 			case Operetta:
 				return Pattern.compile( OPERETTA ).matcher( path );
+			case MolecularDevices:
+				return Pattern.compile( MOLDEV_WELL_SITE_CHANNEL ).matcher( path );
 			default:
 			case IncuCyte:
 				return Pattern.compile( INCUCYTE ).matcher( path );
@@ -68,6 +81,9 @@ public enum HCSPattern
 		{
 			case Operetta:
 				matcher = Pattern.compile( OPERETTA ).matcher( path );
+				break;
+			case MolecularDevices:
+				matcher = Pattern.compile( MOLDEV_WELL_SITE_CHANNEL ).matcher( path );
 				break;
 			default:
 			case IncuCyte:
@@ -111,6 +127,7 @@ public enum HCSPattern
 		switch ( this )
 		{
 			case Operetta:
+			case MolecularDevices:
 				return true;
 			default:
 			case IncuCyte:
@@ -123,6 +140,7 @@ public enum HCSPattern
 		switch ( this )
 		{
 			case Operetta:
+			case MolecularDevices:
 				return false;
 			default:
 			case IncuCyte:
@@ -134,10 +152,7 @@ public enum HCSPattern
 	{
 		switch ( this )
 		{
-			case Operetta:
-				return false;
 			default:
-			case IncuCyte:
 				return false;
 		}
 	}
@@ -145,9 +160,9 @@ public enum HCSPattern
 	public String getChannelName()
 	{
 		if ( hasChannels() )
-			return "ch_" + matcher.group( HCSPattern.CHANNEL );
+			return matcher.group( HCSPattern.CHANNEL );
 		else
-			return "ch_1" ;
+			return "1" ;
 	}
 
 	public String getWellName()

@@ -26,22 +26,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.transform;
+package org.embl.mobie.lib.transform.viewer;
 
-public class TimepointViewerTransform implements ViewerTransform
+public class AffineViewerTransform implements ViewerTransform
 {
-	// Serialization
-	private Integer timepoint;
+	private double[] affineTransform;
+	private final Integer timepoint;
 
-	public TimepointViewerTransform( int timepoint )
+	public AffineViewerTransform( double[] parameters, int timepoint )
 	{
+		this.affineTransform = parameters;
 		this.timepoint = timepoint;
 	}
 
 	@Override
 	public double[] getParameters()
 	{
-		return null;
+		return affineTransform;
 	}
 
 	@Override

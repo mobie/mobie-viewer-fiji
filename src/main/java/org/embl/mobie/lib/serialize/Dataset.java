@@ -28,8 +28,8 @@
  */
 package org.embl.mobie.lib.serialize;
 
-import org.embl.mobie.lib.transform.PositionViewerTransform;
-import org.embl.mobie.lib.transform.ViewerTransform;
+import org.embl.mobie.lib.transform.viewer.PositionViewerTransform;
+import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 
 import java.util.HashMap;
 import java.util.Map;

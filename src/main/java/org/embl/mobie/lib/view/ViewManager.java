@@ -87,9 +87,11 @@ import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegion;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegionCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationTableModel;
-import org.embl.mobie.lib.transform.MoBIEViewerTransformAdjuster;
+import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
+import org.embl.mobie.lib.transform.viewer.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.lib.transform.NormalizedAffineViewerTransform;
-import org.embl.mobie.lib.transform.SliceViewLocationChanger;
+import org.embl.mobie.lib.transform.viewer.ViewerTransform;
+import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
 import org.embl.mobie.lib.transform.TransformHelper;
 import org.embl.mobie.lib.transform.image.ImageTransformer;
 import org.embl.mobie.lib.ui.UserInterface;
@@ -246,17 +248,34 @@ public class ViewManager
 			DataStore.clearImages();
 		}
 
-		if ( view.getViewerTransform() != null )
-		{
-			SliceViewLocationChanger.changeLocation( sliceViewer.getBdvHandle(), view.getViewerTransform() );
-		}
-
 		// init and transform the data of this view
 		// currently, data is reloaded every time a view is shown
 		// this is a bit expensive, but simpler and has the
 		// advantage that one could change the data on disk
 		// and use MoBIE to interactively view changes
 		initData( view );
+
+		// set the viewer transform *after* initialising the data
+		// as the data may be needed to know where to
+		// focus to; but do this *before* adding the data
+		// to BDV to avoid premature loading of too much data
+		//
+		if ( view.getViewerTransform() != null )
+		{
+			final BdvHandle bdvHandle = getSliceViewer().getBdvHandle();
+			final ViewerTransform viewerTransform = view.getViewerTransform();
+			if ( viewerTransform instanceof ImageZoomViewerTransform )
+			{
+				final String imageName = ( ( ImageZoomViewerTransform ) viewerTransform ).getImageName();
+				final RealMaskRealInterval mask = DataStore.getImage( imageName ).getMask();
+				final AffineTransform3D transform = TransformHelper.getIntervalViewerTransform( bdvHandle, mask );
+				ViewerTransformChanger.changeLocation( bdvHandle, transform, 0 );
+			}
+			else
+			{
+				ViewerTransformChanger.changeLocation( bdvHandle, viewerTransform );
+			}
+		}
 
 		// display the data
 		final List< Display< ? > > displays = view.displays();
@@ -281,7 +300,7 @@ public class ViewManager
 			// this needs to be done after adding all the sources,
 			// because otherwise the requested timepoint may not yet
 			// exist in BDV
-			SliceViewLocationChanger.adaptTimepoint( sliceViewer.getBdvHandle(), view.getViewerTransform() );
+			ViewerTransformChanger.adaptTimepoint( sliceViewer.getBdvHandle(), view.getViewerTransform() );
 		}
 
 		IJ.log("Opened view: " + view.getName() + " in " + (System.currentTimeMillis() - startTime) + " ms." );

@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.transform;
+package org.embl.mobie.lib.transform.viewer;
 
 import bdv.util.Affine3DHelpers;
 import bdv.util.Bdv;

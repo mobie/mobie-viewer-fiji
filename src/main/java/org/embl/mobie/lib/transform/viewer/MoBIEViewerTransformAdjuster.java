@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.transform;
+package org.embl.mobie.lib.transform.viewer;
 
 import bdv.util.Affine3DHelpers;
 import bdv.util.BdvHandle;
@@ -37,6 +37,7 @@ import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.LinAlgHelpers;
 import org.embl.mobie.lib.serialize.display.Display;
+import org.embl.mobie.lib.transform.TransformHelper;
 
 import java.util.List;
 import java.util.stream.Collectors;

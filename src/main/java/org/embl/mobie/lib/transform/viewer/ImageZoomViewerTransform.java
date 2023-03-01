@@ -26,41 +26,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.transform;
+package org.embl.mobie.lib.transform.viewer;
 
-import com.google.gson.Gson;
-import org.embl.mobie.lib.serialize.JsonHelper;
-
-public interface ViewerTransform
+// TODO: Create issue to discuss
+//   whether this is useful for the spec
+public class ImageZoomViewerTransform implements ViewerTransform
 {
-	double[] getParameters();
+	// Serialization
+	private Integer timepoint;
 
-	Integer getTimepoint();
+	// TODO
+	private final String imageName;
 
-	static String toString( ViewerTransform viewerTransform )
+	public ImageZoomViewerTransform( String imageName, int timepoint )
 	{
-		if ( viewerTransform != null )
-		{
-			final Gson gson = JsonHelper.buildGson( false );
-			return gson.toJson( viewerTransform );
-		}
-		else
-			return  "";
+		this.imageName = imageName;
+		this.timepoint = timepoint;
 	}
 
-	static ViewerTransform toViewerTransform( String s )
+	@Override
+	public double[] getParameters()
 	{
-		try
-		{
-			final Gson gson = JsonHelper.buildGson( false );
-			return gson.fromJson( s, ViewerTransform.class );
-
-		}
-		catch ( Exception gsonException )
-		{
-			// TODO: implement additional parsing: https://github.com/mobie/mobie-viewer-fiji/issues/731
-			throw gsonException;
-		}
+		return null;
 	}
 
+	@Override
+	public Integer getTimepoint()
+	{
+		return timepoint;
+	}
+
+	public String getImageName()
+	{
+		return imageName;
+	}
 }

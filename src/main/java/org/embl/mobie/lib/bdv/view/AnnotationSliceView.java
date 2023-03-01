@@ -52,10 +52,9 @@ import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.source.VolatileBoundarySource;
 import org.embl.mobie.lib.annotation.Annotation;
-import org.embl.mobie.lib.transform.SliceViewLocationChanger;
+import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import net.imglib2.Volatile;
-import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
@@ -174,11 +173,11 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 
 		final double[] position = selection.positionAsDoubleArray();
 		if ( position != null )
-			new ViewerTransformChanger(
+			new sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger(
 				bdvHandle,
 				BdvPlaygroundHelper.getViewerTransformWithNewCenter( bdvHandle, position ),
 				false,
-				SliceViewLocationChanger.animationDurationMillis ).run();
+				ViewerTransformChanger.animationDurationMillis ).run();
 	}
 
 	public Window getWindow()

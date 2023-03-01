@@ -47,11 +47,15 @@ public class Plate
 	{
 		channelWellSites = new HashMap<>();
 		tPositions = new HashSet<>();
+		int numImages = 0;
 
 		for ( String path : paths )
 		{
 			if ( ! hcsPattern.setPath( path ) )
 				continue;
+
+			numImages++;
+			//System.out.println( path );
 
 			// store this file's channel, well, and site
 			//
@@ -147,7 +151,9 @@ public class Plate
 		}
 
 		IJ.log( "Initialised HCS plate: " + getName() );
-		IJ.log( "Wells per plate: " + wellsPerPlate );
+		IJ.log( "Images: " + numImages );
+		IJ.log( "Channels: " + channelWellSites.keySet().size() );
+		IJ.log( "Wells: " + wellsPerPlate );
 		IJ.log( "Sites per well: " + sitesPerWell );
 	}
 
@@ -221,9 +227,26 @@ public class Plate
 		{
 			case Operetta:
 				return getOperettaGridPosition( site );
+			case MolecularDevices:
+				return getMolecularDevicesGridPosition( site );
 			default:
 				return getDefaultGridPosition( site );
 		}
+	}
+
+	public int[] getMolecularDevicesGridPosition( Site site )
+	{
+		if ( sitesPerWell == 1 )
+			return new int[]{ 0, 0 };
+
+		int siteIndex = Integer.parseInt( site.getName() ) - 1;
+		int numColumns = (int) Math.ceil( Math.sqrt( sitesPerWell ) );
+
+		int[] gridPosition = new int[ 2 ];
+		gridPosition[ 0 ] = siteIndex % numColumns; // column
+		gridPosition[ 1 ] = siteIndex / numColumns; // row
+
+		return gridPosition;
 	}
 
 	private int[] getOperettaGridPosition( Site site )

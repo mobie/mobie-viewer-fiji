@@ -65,12 +65,11 @@ import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.table.AnnData;
-import org.embl.mobie.lib.transform.MoBIEViewerTransformAdjuster;
-import org.embl.mobie.lib.transform.SliceViewLocationChanger;
-import org.embl.mobie.lib.transform.ViewerTransform;
+import org.embl.mobie.lib.transform.viewer.MoBIEViewerTransformAdjuster;
+import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
+import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 import org.embl.mobie.lib.volume.ImageVolumeViewer;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
-import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
@@ -802,7 +801,7 @@ public class UserInterfaceHelper
 		button.addActionListener( e ->
 		{
 			ViewerTransform viewerTransform = ViewerTransform.toViewerTransform( jTextField.getText() );
-			SliceViewLocationChanger.changeLocation( this.moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
+			ViewerTransformChanger.changeLocation( this.moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
 		} );
 
 		panel.add( SwingHelper.getJLabel( "location" ) );
@@ -829,7 +828,7 @@ public class UserInterfaceHelper
 		comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE  );
 
 		horizontalLayoutPanel.setSize( 0, 80 );
-		final ImageIcon icon = createMobieIcon( 80 );
+		final ImageIcon icon = createIcon( 80 );
 		final JLabel moBIE = new JLabel( "                   " );
 		moBIE.setIcon( icon );
 
@@ -840,7 +839,7 @@ public class UserInterfaceHelper
 		return horizontalLayoutPanel;
 	}
 
-	public ImageIcon createMobieIcon( int size )
+	public ImageIcon createIcon( int size )
 	{
 		final URL resource = UserInterfaceHelper.class.getResource( "/mobie.png" );
 		final ImageIcon imageIcon = new ImageIcon( resource );
@@ -1032,7 +1031,7 @@ public class UserInterfaceHelper
 		button.addActionListener( e ->
 		{
 			final AffineTransform3D transform = new MoBIEViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sources ).getMultiSourceTransform();
-			new ViewerTransformChanger( bdvHandle, transform, false, SliceViewLocationChanger.animationDurationMillis ).run();
+			new sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger( bdvHandle, transform, false, ViewerTransformChanger.animationDurationMillis ).run();
 		} );
 
 		return button;

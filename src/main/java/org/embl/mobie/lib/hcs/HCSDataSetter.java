@@ -11,11 +11,14 @@ import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.transformation.MergedGridTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
+import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
+import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Set;
 
 public class HCSDataSetter
@@ -41,7 +44,7 @@ public class HCSDataSetter
 		// and navigating the wells
 		//
 		final RegionDisplay< AnnotatedRegion > wellRegionDisplay = new RegionDisplay<>( "wells" );
-		wellRegionDisplay.sources = new HashMap<>();
+		wellRegionDisplay.sources = new LinkedHashMap<>();
 		wellRegionDisplay.showAsBoundaries( true );
 		wellRegionDisplay.setBoundaryThickness( ( float ) (0.1 * plate.getSiteRealDimensions()[ 0 ] ) );
 
@@ -62,7 +65,7 @@ public class HCSDataSetter
 
 		// build nested grid views of the sites and wells for all channels
 		//
-		final ArrayList< Transformation > transformations = new ArrayList<>();
+		final ArrayList< Transformation > imageTransforms = new ArrayList<>();
 		final ArrayList< Display< ? > > displays = new ArrayList<>();
 
 		for ( Channel channel : channels )
@@ -79,7 +82,7 @@ public class HCSDataSetter
 
 			for ( Well well : wells )
 			{
-				String wellID = Strings.join( "-", Arrays.asList( plate.getName(), channel.getName(), well.getName() ) );
+				String wellID = getWellID( plate, channel, well );
 
 				MergedGridTransformation siteGrid = null;
 				if ( plate.getSitesPerWell() > 1 )
@@ -111,7 +114,7 @@ public class HCSDataSetter
 					{
 						// create a site grid to form the well
 						//
-						String siteID = Strings.join( "-", Arrays.asList( plate.getName(), channel.getName(), well.getName(), site.getName() ) );
+						String siteID = getSiteID( plate, channel, well, site );
 						final ImageDataSource imageDataSource = new ImageDataSource( siteID, ImageDataFormat.ImageJ, site );
 						dataset.addDataSource( imageDataSource );
 
@@ -139,7 +142,7 @@ public class HCSDataSetter
 				}
 
 				if ( siteGrid != null )
-					transformations.add( siteGrid );
+					imageTransforms.add( siteGrid );
 
 				// add the merged site grid,
 				// of name wellID,
@@ -148,7 +151,7 @@ public class HCSDataSetter
 				wellGrid.positions.add( plate.getWellGridPosition( well ) );
 			}
 
-			transformations.add( wellGrid );
+			imageTransforms.add( wellGrid );
 
 			final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( wellGrid.getName(), Arrays.asList( wellGrid.getName() ), channel.getColor(), channel.getContrastLimits() );
 			displays.add( imageDisplay );
@@ -157,7 +160,19 @@ public class HCSDataSetter
 		displays.add( wellRegionDisplay );
 
 		// create plate view
-		final View view = new View( plate.getName(), "plate", displays, transformations, true );
+		final String firstWell = wellRegionDisplay.sources.keySet().iterator().next();
+		final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( firstWell, 0 );
+		final View view = new View( plate.getName(), "plate", displays, imageTransforms, viewerTransform, true );
 		dataset.views().put( view.getName(), view );
+	}
+
+	private String getSiteID( Plate plate, Channel channel, Well well, Site site )
+	{
+		return getWellID( plate, channel, well ) + "-s" + site.getName();
+	}
+
+	private String getWellID( Plate plate, Channel channel, Well well )
+	{
+		return Strings.join( "-", Arrays.asList( plate.getName(), "ch" + channel.getName(), "w" + well.getName() ) );
 	}
 }

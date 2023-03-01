@@ -28,6 +28,8 @@
  */
 package org.embl.mobie.lib.transform;
 
+import org.embl.mobie.lib.transform.viewer.ViewerTransform;
+
 public class NormalizedAffineViewerTransform implements ViewerTransform
 {
 	// Serialization

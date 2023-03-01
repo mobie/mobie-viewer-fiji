@@ -34,12 +34,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import org.embl.mobie.lib.transform.AffineViewerTransform;
-import org.embl.mobie.lib.transform.NormalVectorViewerTransform;
+import org.embl.mobie.lib.transform.viewer.AffineViewerTransform;
+import org.embl.mobie.lib.transform.viewer.NormalVectorViewerTransform;
 import org.embl.mobie.lib.transform.NormalizedAffineViewerTransform;
-import org.embl.mobie.lib.transform.PositionViewerTransform;
-import org.embl.mobie.lib.transform.TimepointViewerTransform;
-import org.embl.mobie.lib.transform.ViewerTransform;
+import org.embl.mobie.lib.transform.viewer.PositionViewerTransform;
+import org.embl.mobie.lib.transform.viewer.TimepointViewerTransform;
+import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 
 import java.lang.reflect.Type;
 import java.util.Map;
