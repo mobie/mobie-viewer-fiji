@@ -1,5 +1,6 @@
 package org.embl.mobie.lib.hcs;
 
+import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,6 +78,9 @@ public enum HCSPattern
 
 	public boolean setPath( String path )
 	{
+		if ( new File( path ).getName().startsWith( "." ) )
+			return false;
+
 		switch( this )
 		{
 			case Operetta:

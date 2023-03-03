@@ -2,6 +2,7 @@ package org.embl.mobie.lib.hcs;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.io.Opener;
 import ij.measure.Calibration;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import org.embl.mobie.io.ImageDataFormat;
@@ -32,6 +33,7 @@ public class Plate
 	private FinalVoxelDimensions voxelDimensions;
 	private Set< TPosition > tPositions;
 	private int wellsPerPlate;
+	private ImageDataFormat imageDataFormat;
 
 	public Plate( String hcsDirectory ) throws IOException
 	{
@@ -49,6 +51,8 @@ public class Plate
 		channelWellSites = new HashMap<>();
 		tPositions = new HashSet<>();
 		int numImages = 0;
+
+		IJ.log("Files: " + paths.size() );
 
 		for ( String path : paths )
 		{
@@ -78,8 +82,22 @@ public class Plate
 				channel = new Channel( channelName );
 				channelWellSites.put( channel, new HashMap<>() );
 
-				// FIXME: use OpenTIff here as well
-				final ImagePlus imagePlus = IJ.openImage( path );
+				// TODO: implement this properly
+				if ( imageDataFormat == null )
+				{
+					imageDataFormat = ImageDataFormat.fromPath( path );
+					IJ.log( "Image data format: " + imageDataFormat.toString() );
+				}
+				ImagePlus imagePlus;
+				if ( imageDataFormat.equals( ImageDataFormat.Tiff ) )
+				{
+					final File file = new File( path );
+					imagePlus = ( new Opener() ).openTiff( file.getParent(), file.getName() );
+				}
+				else
+				{
+					imagePlus = IJ.openImage( path );
+				}
 				final String color = ColorHelper.getString( imagePlus.getLuts()[ 0 ] );
 				channel.setColor( color );
 				final double[] contrastLimits = new double[]
@@ -137,7 +155,6 @@ public class Plate
 			Site site = getSite( channelWellSites, channel, well, siteName );
 			if ( site == null )
 			{
-				final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
 				site = new Site( siteName, imageDataFormat );
 				site.setPixelDimensions( sitePixelDimensions );
 				site.setVoxelDimensions( voxelDimensions );
