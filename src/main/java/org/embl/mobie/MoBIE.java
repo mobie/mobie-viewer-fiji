@@ -158,7 +158,7 @@ public class MoBIE
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening: " + projectLocation );
 
-		initMoBIEProject();
+		openMoBIEProject();
 	}
 
 	public MoBIE( String hcsDataLocation, MoBIESettings settings, double relativeWellMargin, double relativeSiteMargin ) throws IOException
@@ -171,10 +171,10 @@ public class MoBIE
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening: " + hcsDataLocation );
 
-		initHCSProject( relativeWellMargin, relativeSiteMargin );
+		openHCSDataset( relativeWellMargin, relativeSiteMargin );
 	}
 
-	private void initMoBIEProject() throws IOException
+	private void openMoBIEProject() throws IOException
 	{
 		setS3Credentials( settings );
 		setProjectImageAndTableRootLocations();
@@ -365,7 +365,7 @@ public class MoBIE
 		moBIE = this;
 	}
 
-	private void initHCSProject( double wellMargin, double siteMargin ) throws IOException
+	private void openHCSDataset( double wellMargin, double siteMargin ) throws IOException
 	{
 		initProject( "HCS" );
 		final Plate plate = new Plate( projectLocation );

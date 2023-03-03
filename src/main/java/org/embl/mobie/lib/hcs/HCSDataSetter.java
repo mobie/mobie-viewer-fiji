@@ -16,6 +16,7 @@ import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -115,7 +116,7 @@ public class HCSDataSetter
 						// create a site grid to form the well
 						//
 						String siteID = getSiteID( plate, channel, well, site );
-						final ImageDataSource imageDataSource = new ImageDataSource( siteID, ImageDataFormat.ImageJ, site );
+						final ImageDataSource imageDataSource = new ImageDataSource( siteID, site.getImageDataFormat(), site );
 						dataset.addDataSource( imageDataSource );
 
 						// add site image source to site grid
@@ -136,7 +137,7 @@ public class HCSDataSetter
 					{
 						// the one site is the well
 						//
-						final ImageDataSource imageDataSource = new ImageDataSource( wellID, ImageDataFormat.ImageJ, site );
+						final ImageDataSource imageDataSource = new ImageDataSource( wellID, site.getImageDataFormat(), site );
 						dataset.addDataSource( imageDataSource );
 					}
 				}
@@ -160,8 +161,9 @@ public class HCSDataSetter
 		displays.add( wellRegionDisplay );
 
 		// create plate view
-		final String firstWell = wellRegionDisplay.sources.keySet().iterator().next();
-		final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( firstWell, 0 );
+		final ArrayList< String > wells = new ArrayList<>( wellRegionDisplay.sources.keySet() );
+		Collections.sort( wells );
+		final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( wells.get( 0 ), 0 );
 		final View view = new View( plate.getName(), "plate", displays, imageTransforms, viewerTransform, true );
 		dataset.views().put( view.getName(), view );
 	}

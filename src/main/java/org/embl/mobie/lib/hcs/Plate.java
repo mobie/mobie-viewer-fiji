@@ -4,6 +4,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.measure.Calibration;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.io.TPosition;
 
@@ -76,6 +77,8 @@ public class Plate
 
 				channel = new Channel( channelName );
 				channelWellSites.put( channel, new HashMap<>() );
+
+				// FIXME: use OpenTIff here as well
 				final ImagePlus imagePlus = IJ.openImage( path );
 				final String color = ColorHelper.getString( imagePlus.getLuts()[ 0 ] );
 				channel.setColor( color );
@@ -134,7 +137,8 @@ public class Plate
 			Site site = getSite( channelWellSites, channel, well, siteName );
 			if ( site == null )
 			{
-				site = new Site( siteName );
+				final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
+				site = new Site( siteName, imageDataFormat );
 				site.setPixelDimensions( sitePixelDimensions );
 				site.setVoxelDimensions( voxelDimensions );
 				channelWellSites.get( channel ).get( well ).add( site );

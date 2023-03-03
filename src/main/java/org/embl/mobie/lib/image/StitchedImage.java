@@ -89,7 +89,6 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private HashMap< Integer, AffineTransform3D > levelToSourceTransform;
 	private HashMap< Integer, long[] > levelToSourceDimensions;
 	private double[] tileRealDimensions;
-	private RealMaskRealInterval mask;
 	private int numMipmapLevels;
 	private DefaultSourcePair< T > sourcePair;
 	private V volatileType;
@@ -103,6 +102,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private int numTimepoints;
 
 	private final boolean debug = false;
+	private RealMaskRealInterval mask;
 
 	public StitchedImage( List< ? extends Image< T > > images, Image< T > metadataImage, @Nullable List< int[] > positions, String name, double relativeTileMargin )
 	{
@@ -737,21 +737,6 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		return new FinalInterval( min, max );
 	}
 
-	@Deprecated // no getting this from the sourcePair
-	protected void setRealMask( double[] tileRealDimensions )
-	{
-		final double[] min = new double[ 3 ];
-		final double[] max = new double[ 3 ];
-
-		for ( int d = 0; d < 2; d++ )
-		{
-			min[ d ] = minPos[ d ] * tileRealDimensions[ d ];
-			max[ d ] = ( maxPos[ d ] + 1 ) * tileRealDimensions[ d ];
-		}
-
-		mask = GeomMasks.closedBox( min, max );
-	}
-
 	private void setMinMaxPos()
 	{
 		minPos = new long[ 3 ];
@@ -799,7 +784,11 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	@Override
 	public RealMaskRealInterval getMask()
 	{
-		final RealMaskRealInterval mask = SourceHelper.estimateMask( getSourcePair().getSource(), 0, false );
+		// TODO: There seems to be some bug in the logic, because we seem to need
+		//       to overwrite what is been set by
+		//       setMask( RealMaskRealInterval mask )
+
+		mask = SourceHelper.estimateMask( getSourcePair().getSource(), 0, false );
 		final String toString = TransformHelper.maskToString( mask );
 		return mask;
 	}
@@ -812,16 +801,16 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 	class TileSupplier
 	{
-		protected Map< String, RandomAccessible< T > > keyToRandomAccessible;
-		protected Map< String, RandomAccessible< V > > keyToVolatileRandomAccessible;
-		protected Map< String, Status > keyToStatus;
+		protected Map< String, RandomAccessible< T > > timeLevelTileToRandomAccessible;
+		protected Map< String, RandomAccessible< V > > timeLevelTileToVolatileRandomAccessible;
 		protected Map< String, Image< T > > tileToImage;
+		protected Map< String, Status > timeLevelTileToStatus;
 
 		public TileSupplier( List< ? extends Image< T > > images )
 		{
-			keyToRandomAccessible = new ConcurrentHashMap<>();
-			keyToVolatileRandomAccessible = new ConcurrentHashMap<>();
-			keyToStatus = new ConcurrentHashMap<>();
+			timeLevelTileToRandomAccessible = new ConcurrentHashMap<>();
+			timeLevelTileToVolatileRandomAccessible = new ConcurrentHashMap<>();
+			timeLevelTileToStatus = new ConcurrentHashMap<>();
 			tileToImage = new ConcurrentHashMap<>();
 
 			for ( int gridIndex = 0; gridIndex < positions.size(); gridIndex++ )
@@ -831,18 +820,18 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 				for ( int t = 0; t < numTimepoints; t++ )
 					for ( int level = 0; level < numMipmapLevels; level++ )
-						keyToStatus.put( getKey( t, level, position[ 0 ], position[ 1 ] ), Status.Closed );
+						timeLevelTileToStatus.put( getKey( t, level, position[ 0 ], position[ 1 ] ), Status.Closed );
 			}
 		}
 
 		public RandomAccessible< T > getRandomAccessible( int t, int level, int xTileIndex, int yTileIndex )
 		{
-			return keyToRandomAccessible.get( getKey( t, level, xTileIndex, yTileIndex ) );
+			return timeLevelTileToRandomAccessible.get( getKey( t, level, xTileIndex, yTileIndex ) );
 		}
 
 		public RandomAccessible< V > getVolatileRandomAccessible( int t, int level, int xTileIndex, int yTileIndex )
 		{
-			return keyToVolatileRandomAccessible.get( getKey( t, level, xTileIndex, yTileIndex ) );
+			return timeLevelTileToVolatileRandomAccessible.get( getKey( t, level, xTileIndex, yTileIndex ) );
 		}
 
 		private String getTileKey( int xTileIndex, int yTileIndex )
@@ -857,24 +846,24 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		public Status getStatus( int t, int level, int xTileIndex, int yTileIndex )
 		{
-			return keyToStatus.get( getKey( t, level, xTileIndex, yTileIndex ) );
+			return timeLevelTileToStatus.get( getKey( t, level, xTileIndex, yTileIndex ) );
 		}
 
 		public boolean contains( int t, int level, int xTileIndex, int yTileIndex )
 		{
-			return keyToStatus.containsKey( getKey( t, level, xTileIndex, yTileIndex ) );
+			return timeLevelTileToStatus.containsKey( getKey( t, level, xTileIndex, yTileIndex ) );
 		}
 
 		public void open( int t, int level, int xTileIndex, int yTileIndex )
 		{
 			final String key = getKey( t, level, xTileIndex, yTileIndex );
 
-			synchronized ( keyToStatus )
+			synchronized ( timeLevelTileToStatus )
 			{
-				if ( ! keyToStatus.get( key ).equals( Status.Closed ) )
+				if ( ! timeLevelTileToStatus.get( key ).equals( Status.Closed ) )
 					return;
 
-				keyToStatus.put( key, Status.Opening );
+				timeLevelTileToStatus.put( key, Status.Opening );
 			}
 
 			// open the image
@@ -918,9 +907,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 			// register
 			//
-			keyToRandomAccessible.put( key, translateRa );
-			keyToVolatileRandomAccessible.put( key, translateVRa );
-			keyToStatus.put( key, Status.Open );
+			timeLevelTileToRandomAccessible.put( key, translateRa );
+			timeLevelTileToVolatileRandomAccessible.put( key, translateVRa );
+			timeLevelTileToStatus.put( key, Status.Open );
 
 			if ( debug )
 			{
