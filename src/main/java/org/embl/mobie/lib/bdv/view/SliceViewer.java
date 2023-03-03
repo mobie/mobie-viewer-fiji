@@ -236,6 +236,8 @@ public class SliceViewer
 	public void updateTimepointSlider()
 	{
 		if ( bdvHandle == null ) return;
+		if ( bdvHandle.getViewerPanel() == null ) return;
+		if ( bdvHandle.getViewerPanel().state()	 == null ) return;
 
 		final List< SourceAndConverter< ? > > sacs = bdvHandle.getViewerPanel().state().getSources();
 		if ( sacs.size() == 0 ) return;
