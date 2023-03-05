@@ -43,6 +43,12 @@ public class Plate
 
 		hcsPattern = determineHCSPattern( hcsDirectory, paths );
 
+		if ( hcsPattern == HCSPattern.Operetta )
+		{
+			final File xml = new File( hcsDirectory, "Index.idx.xml" );
+			new OperettaMetadata( xml );
+		}
+
 		buildPlateMap( paths );
 	}
 
