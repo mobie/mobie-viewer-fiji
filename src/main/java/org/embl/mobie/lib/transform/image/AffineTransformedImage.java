@@ -35,7 +35,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.lib.image.DefaultSourcePair;
 import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.source.SourcePair;
+import org.embl.mobie.lib.image.SourcePair;
 
 public class AffineTransformedImage< T > implements Image< T >
 {

@@ -45,7 +45,6 @@ import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.RealRandomAccessibleIntervalTimelapseSource;
-import org.embl.mobie.lib.source.SourcePair;
 import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.table.DefaultAnnData;
 

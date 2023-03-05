@@ -32,19 +32,23 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-@Plugin( type = BdvPlaygroundActionCommand.class, name = SourceTransformLoggerCommand.NAME, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + SourceTransformLoggerCommand.NAME )
-public class SourceTransformLoggerCommand implements BdvPlaygroundActionCommand
+@Plugin( type = BdvPlaygroundActionCommand.class, name = SourceInfoLoggerCommand.NAME, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + SourceInfoLoggerCommand.NAME )
+public class SourceInfoLoggerCommand implements BdvPlaygroundActionCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static final String NAME = "Log Source Transforms";
+	public static final String NAME = "Log Source(s) Info";
 
 	@Parameter
 	BdvHandle bdvHandle;
@@ -57,13 +61,20 @@ public class SourceTransformLoggerCommand implements BdvPlaygroundActionCommand
 
 			final Set< SourceAndConverter< ? > > sourceAndConverters = bdvHandle.getViewerPanel().state().getVisibleAndPresentSources();
 
-			IJ.log("# Source transforms" );
-			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+			final List< ? extends Source< ? > > sources = sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).sorted( Comparator.comparing(  s -> s.getName() ) ).collect( Collectors.toList() );
+
+			for ( Source< ? > source : sources )
 			{
+				IJ.log( "\n## " + source.getName()  );
 				final AffineTransform3D affineTransform3D = new AffineTransform3D();
-				final Source< ? > source = sourceAndConverter.getSpimSource();
 				source.getSourceTransform( t, 0, affineTransform3D );
-				IJ.log(  source.getName() + ": " + affineTransform3D );
+				final VoxelDimensions voxelDimensions = source.getVoxelDimensions();
+				if ( voxelDimensions.numDimensions() > 0 )
+					IJ.log( voxelDimensions.toString() );
+				IJ.log( "Resolution levels: " + source.getNumMipmapLevels() );
+				IJ.log( "Data type: " + source.getType().getClass() );
+				IJ.log( "Transform from array to global space: " + affineTransform3D );
+
 			}
 		} ).start();
 	}

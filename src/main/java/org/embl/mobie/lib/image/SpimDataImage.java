@@ -16,7 +16,6 @@ import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.hcs.SiteSpimDataCreator;
 import org.embl.mobie.lib.source.SourceHelper;
-import org.embl.mobie.lib.source.SourcePair;
 
 import javax.annotation.Nullable;
 

@@ -35,7 +35,7 @@ import org.embl.mobie.command.ConfigureLabelRenderingCommand;
 import org.embl.mobie.command.ManualRegistrationCommand;
 import org.embl.mobie.command.ScreenShotMakerCommand;
 import org.embl.mobie.command.ShowRasterImagesCommand;
-import org.embl.mobie.command.SourceTransformLoggerCommand;
+import org.embl.mobie.command.SourceInfoLoggerCommand;
 import org.embl.mobie.command.ViewerTransformLoggerCommand;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.SliceViewAnnotationSelector;
@@ -151,7 +151,7 @@ public class SliceViewer
 		actions.add( sacService.getCommandName( ScreenShotMakerCommand.class ) );
 		actions.add( sacService.getCommandName( ShowRasterImagesCommand.class ) );
 		actions.add( sacService.getCommandName( ViewerTransformLoggerCommand.class ) );
-		actions.add( sacService.getCommandName( SourceTransformLoggerCommand.class ) );
+		actions.add( sacService.getCommandName( SourceInfoLoggerCommand.class ) );
 		actions.add( sacService.getCommandName( BigWarpRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( ManualRegistrationCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );

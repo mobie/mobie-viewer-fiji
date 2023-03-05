@@ -8,7 +8,6 @@ import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import org.embl.mobie.lib.source.AnnotatedLabelSource;
 import org.embl.mobie.lib.source.AnnotationType;
-import org.embl.mobie.lib.source.SourcePair;
 import org.embl.mobie.lib.source.VolatileAnnotatedLabelSource;
 import org.embl.mobie.lib.table.AnnData;
 

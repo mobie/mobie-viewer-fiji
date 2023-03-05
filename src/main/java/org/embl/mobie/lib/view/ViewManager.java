@@ -76,7 +76,7 @@ import org.embl.mobie.lib.serialize.transformation.GridTransformation;
 import org.embl.mobie.lib.serialize.transformation.MergedGridTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.source.AnnotationType;
-import org.embl.mobie.lib.source.CroppedImage;
+import org.embl.mobie.lib.image.CroppedImage;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.table.AnnotationTableModel;
 import org.embl.mobie.lib.table.ColumnNames;

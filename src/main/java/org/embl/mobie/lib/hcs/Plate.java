@@ -72,14 +72,14 @@ public class Plate
 
 			// channel
 			//
-			String channelName = hcsPattern.getChannelName();
-			Channel channel = getChannel( channelWellSites, channelName );
+			String channelGroup = hcsPattern.getChannelGroup();
+			Channel channel = getChannel( channelWellSites, channelGroup );
 			if ( channel == null )
 			{
 				// configure channel properties
 				//
 
-				channel = new Channel( channelName );
+				channel = new Channel( channelGroup );
 				channelWellSites.put( channel, new HashMap<>() );
 
 				// TODO: implement this properly
@@ -138,11 +138,11 @@ public class Plate
 
 			// well
 			//
-			String wellName = hcsPattern.getWellName();
-			Well well = getWell( channelWellSites, channel, wellName );
+			String wellGroup = hcsPattern.getWellGroup();
+			Well well = getWell( channelWellSites, channel, wellGroup );
 			if ( well == null )
 			{
-				well = new Well( wellName );
+				well = new Well( wellGroup );
 				channelWellSites.get( channel ).put( well, new HashSet<>() );
 				final int numWells = channelWellSites.get( channel ).size();
 				if ( numWells > wellsPerPlate )
@@ -151,11 +151,11 @@ public class Plate
 
 			// site
 			//
-			final String siteName = hcsPattern.getSiteName();
-			Site site = getSite( channelWellSites, channel, well, siteName );
+			final String siteGroup = hcsPattern.getSiteGroup();
+			Site site = getSite( channelWellSites, channel, well, siteGroup );
 			if ( site == null )
 			{
-				site = new Site( siteName, imageDataFormat );
+				site = new Site( siteGroup, imageDataFormat );
 				site.setPixelDimensions( sitePixelDimensions );
 				site.setVoxelDimensions( voxelDimensions );
 				channelWellSites.get( channel ).get( well ).add( site );

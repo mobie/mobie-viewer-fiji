@@ -39,7 +39,6 @@ import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.RealRandomAccessibleIntervalTimelapseSource;
-import org.embl.mobie.lib.source.SourcePair;
 import org.embl.mobie.lib.source.VolatileAnnotationType;
 import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegion;
@@ -61,12 +60,6 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	private final AnnData< AR > annData;
 
 	private Source< AnnotationType< AR > > source;
-	// There is no volatile implementation (yet), because the
-	// {@code Source} should be fast enough,
-	// and probably a volatile version would need an {@code CachedCellImg},
-	// which would require deciding on a specific spatial sampling,
-	// which is not nice because a {@code Region} is defined in real space.
-	private Source< ? extends VolatileAnnotationType< AR > > volatileSource = null;
 	private SourcePair< AnnotationType< AR > > sourcePair;
 	private RealMaskRealInterval mask;
 
@@ -207,7 +200,14 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	public SourcePair< AnnotationType< AR > > getSourcePair()
 	{
 		if ( sourcePair == null )
-			sourcePair = new DefaultSourcePair<>( source, volatileSource );
+		{
+			// There is no volatile implementation (yet), because the
+			// {@code Source} should be fast enough,
+			// and probably a volatile version would need an {@code CachedCellImg},
+			// which would require deciding on a specific spatial sampling,
+			// which is not nice because a {@code Region} is defined in real space.
+			sourcePair = new DefaultSourcePair<>( source, null );
+		}
 
 		return sourcePair;
 	}

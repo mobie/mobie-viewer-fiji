@@ -1,4 +1,4 @@
-package org.embl.mobie.lib.source;
+package org.embl.mobie.lib.image;
 
 import bdv.viewer.Source;
 import net.imglib2.Volatile;

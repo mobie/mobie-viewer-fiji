@@ -161,7 +161,7 @@ public enum HCSPattern
 		}
 	}
 
-	public String getChannelName()
+	public String getChannelGroup()
 	{
 		if ( hasChannels() )
 			return matcher.group( HCSPattern.CHANNEL );
@@ -169,12 +169,12 @@ public enum HCSPattern
 			return "1" ;
 	}
 
-	public String getWellName()
+	public String getWellGroup()
 	{
 		return matcher.group( HCSPattern.WELL );
 	}
 
-	public String getSiteName()
+	public String getSiteGroup()
 	{
 		return matcher.group( HCSPattern.SITE );
 	}

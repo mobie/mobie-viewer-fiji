@@ -3,7 +3,6 @@ package org.embl.mobie.lib.image;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.select.Listeners;
 import org.embl.mobie.lib.source.Masked;
-import org.embl.mobie.lib.source.SourcePair;
 
 public interface Image< T > extends Masked
 {

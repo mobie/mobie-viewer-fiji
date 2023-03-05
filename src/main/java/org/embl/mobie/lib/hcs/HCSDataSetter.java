@@ -79,7 +79,7 @@ public class HCSDataSetter
 			wellGrid.sources = new ArrayList<>();
 			wellGrid.positions = new ArrayList<>();
 			wellGrid.margin = wellMargin;
-			wellGrid.setName( channel.getName() );
+			wellGrid.setName( "ch_" + channel.getName() );
 
 			for ( Well well : wells )
 			{

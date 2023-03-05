@@ -4,7 +4,6 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.source.AnnotationType;
-import org.embl.mobie.lib.source.SourcePair;
 import org.embl.mobie.lib.table.AnnData;
 
 public class DefaultAnnotationImage< A extends Annotation > implements AnnotationImage< A >

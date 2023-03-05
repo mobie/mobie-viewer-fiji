@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.source;
+package org.embl.mobie.lib.image;
 
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
@@ -38,8 +38,6 @@ import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
-import org.embl.mobie.lib.image.DefaultSourcePair;
-import org.embl.mobie.lib.image.Image;
 import sc.fiji.bdvpg.sourceandconverter.importer.EmptySourceAndConverterCreator;
 
 public class CroppedImage< T > implements Image< T >

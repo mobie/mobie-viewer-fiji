@@ -3,7 +3,6 @@ package org.embl.mobie.lib.image;
 import bdv.tools.transformation.TransformedSource;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
-import org.embl.mobie.lib.source.SourcePair;
 
 import javax.annotation.Nullable;
 

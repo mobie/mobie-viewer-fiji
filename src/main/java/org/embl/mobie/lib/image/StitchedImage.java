@@ -58,7 +58,6 @@ import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.io.Status;
 import org.embl.mobie.lib.source.MoBIEVolatileTypeMatcher;
 import org.embl.mobie.lib.source.SourceHelper;
-import org.embl.mobie.lib.source.SourcePair;
 import org.embl.mobie.lib.transform.TransformHelper;
 import org.embl.mobie.lib.transform.image.ImageTransformer;
 
