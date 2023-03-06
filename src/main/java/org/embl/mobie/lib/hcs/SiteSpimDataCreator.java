@@ -1,7 +1,6 @@
 package org.embl.mobie.lib.hcs;
 
 import ch.epfl.biop.bdv.img.imageplus.ImagePlusToSpimData;
-import ij.IJ;
 import ij.ImagePlus;
 import ij.VirtualStack;
 import ij.measure.Calibration;
@@ -35,8 +34,8 @@ public class SiteSpimDataCreator
 			{
 				if ( virtualStack == null )
 				{
-					final int[] pixelDimensions = site.getPixelDimensions();
-					virtualStack = new VirtualStack( pixelDimensions[ 0 ], pixelDimensions[ 1 ], null, "" );
+					final int[] dimensions = site.getDimensions();
+					virtualStack = new VirtualStack( dimensions[ 0 ], dimensions[ 1 ], null, "" );
 				}
 
 				virtualStack.addSlice( paths.get( t ).get( z ) );

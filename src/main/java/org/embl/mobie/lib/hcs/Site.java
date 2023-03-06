@@ -12,7 +12,7 @@ import java.util.Map;
 public class Site extends StorageLocation
 {
 	private final String name;
-	private int[] pixelDimensions;
+	private int[] dimensions;
 	private Map< TPosition, Map< ZPosition, String > > paths = new LinkedHashMap();
 	private VoxelDimensions voxelDimensions;
 	private ImageDataFormat imageDataFormat;
@@ -28,14 +28,14 @@ public class Site extends StorageLocation
 		return name;
 	}
 
-	public int[] getPixelDimensions()
+	public int[] getDimensions()
 	{
-		return pixelDimensions;
+		return dimensions;
 	}
 
-	public void setPixelDimensions( int[] pixelDimensions )
+	public void setDimensions( int[] dimensions )
 	{
-		this.pixelDimensions = pixelDimensions;
+		this.dimensions = dimensions;
 	}
 
 	public void addPath( TPosition t, ZPosition z, String path )

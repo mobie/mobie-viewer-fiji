@@ -5,6 +5,7 @@ import ij.ImagePlus;
 import ij.io.Opener;
 import ij.measure.Calibration;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.io.TPosition;
@@ -29,11 +30,12 @@ public class Plate
 	private HashMap< Channel, Map< Well, Set< Site > > > channelWellSites;
 	private double[] siteRealDimensions;
 	private int sitesPerWell;
-	private int[] sitePixelDimensions;
-	private FinalVoxelDimensions voxelDimensions;
+	private int[] siteDimensions;
+	private VoxelDimensions voxelDimensions;
 	private Set< TPosition > tPositions;
 	private int wellsPerPlate;
 	private ImageDataFormat imageDataFormat;
+	private OperettaMetadata metadata;
 
 	public Plate( String hcsDirectory ) throws IOException
 	{
@@ -46,7 +48,7 @@ public class Plate
 		if ( hcsPattern == HCSPattern.Operetta )
 		{
 			final File xml = new File( hcsDirectory, "Index.idx.xml" );
-			new OperettaMetadata( xml );
+			metadata = new OperettaMetadata( xml );
 		}
 
 		buildPlateMap( paths );
@@ -117,28 +119,33 @@ public class Plate
 				{
 					// set spatial calibrations for the whole plate
 					//
-
-					final Calibration calibration = imagePlus.getCalibration();
-
-					voxelDimensions = new FinalVoxelDimensions( calibration.getUnit(), calibration.pixelWidth, calibration.pixelHeight, calibration.pixelDepth );
+					if ( metadata == null )
+					{
+						final Calibration calibration = imagePlus.getCalibration();
+						voxelDimensions = new FinalVoxelDimensions( calibration.getUnit(), calibration.pixelWidth, calibration.pixelHeight, calibration.pixelDepth );
+					}
+					else
+					{
+						voxelDimensions = metadata.getVoxelDimensions( path );
+					}
 
 					siteRealDimensions = new double[]
-							{
-									imagePlus.getWidth() * calibration.pixelWidth,
-									imagePlus.getHeight() * calibration.pixelHeight
-							};
+					{
+							imagePlus.getWidth() * voxelDimensions.dimension( 0 ),
+							imagePlus.getHeight() * voxelDimensions.dimension( 1 )
+					};
 
 					siteRealDimensions = new double[]
-							{
-									imagePlus.getWidth() * calibration.pixelWidth,
-									imagePlus.getHeight() * calibration.pixelHeight
-							};
+					{
+							imagePlus.getWidth() * voxelDimensions.dimension( 0 ),
+							imagePlus.getHeight() * voxelDimensions.dimension( 1 )
+					};
 
-					sitePixelDimensions = new int[]
-							{
-									imagePlus.getWidth(),
-									imagePlus.getHeight()
-							};
+					siteDimensions = new int[]
+					{
+							imagePlus.getWidth(),
+							imagePlus.getHeight()
+					};
 				}
 			}
 
@@ -162,7 +169,7 @@ public class Plate
 			if ( site == null )
 			{
 				site = new Site( siteGroup, imageDataFormat );
-				site.setPixelDimensions( sitePixelDimensions );
+				site.setDimensions( siteDimensions );
 				site.setVoxelDimensions( voxelDimensions );
 				channelWellSites.get( channel ).get( well ).add( site );
 				final int numSites = channelWellSites.get( channel ).get( well ).size();
@@ -337,9 +344,9 @@ public class Plate
 		return siteRealDimensions;
 	}
 
-	public int[] getSitePixelDimensions()
+	public int[] getSiteDimensions()
 	{
-		return sitePixelDimensions;
+		return siteDimensions;
 	}
 
 	public Set< TPosition > getTPositions()
