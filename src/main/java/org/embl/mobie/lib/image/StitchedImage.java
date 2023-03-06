@@ -76,10 +76,11 @@ import java.util.stream.Collectors;
 
 public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type< V > > implements Image< T >
 {
+	public static final String SEP = ",";
 	private final T type;
 	private final String name;
 	private List< ? extends Image< T > > images;
-	private final List< int[] > positions;
+	private List< int[] > positions;
 	private final double relativeTileMargin;
 	private int[][] tileDimensions;
 	private double[][] downSamplingFactors;
@@ -159,7 +160,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		}
 
 		this.sourceTransform = levelToSourceTransform.get( 0 );
-		this.positions = positions == null ? TransformHelper.createGridPositions( images.size() ) : positions;
+		setPositions( images, positions );
 		this.relativeTileMargin = relativeTileMargin;
 		this.name = name;
 
@@ -183,6 +184,39 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		// Create the stitched image
 		stitch();
+	}
+
+	private void setPositions( List< ? extends Image< T > > images, List< int[] > positions )
+	{
+		if ( positions == null )
+		{
+			this.positions = TransformHelper.createGridPositions( images.size() );
+		}
+		else
+		{
+			// zero-min the positions, because,
+			// I don't know why but, when the positions
+			// have a non-zero offset the rendered tiles
+			// do not match the RegionImage annotation
+			// locations
+			final int[] min = new int[ 2 ];
+			for ( int d = 0; d < 2; d++ )
+			{
+				int finalD = d;
+				min[ d ] = positions.stream().mapToInt( pos -> pos[ finalD ] ).min().getAsInt();
+			}
+
+			this.positions = new ArrayList<>();
+			for ( int[] position : positions )
+			{
+				final int[] thisPosition = new int[ 2 ];
+				for ( int d = 0; d < 2; d++ )
+				{
+					thisPosition[ d ] = position[ d ] - min[ d ];
+				}
+				this.positions.add( thisPosition );
+			}
+		}
 	}
 
 	private double[] computeTileMarginOffset( double[] tileRealDimensions, RealInterval imageRealInterval )
@@ -753,7 +787,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		{
 			final double[] size = new double[ 2 ];
 			for ( int d = 0; d < 2; d++ )
+			{
 				size[ d ] = ( max[ d ] - min[ d ] ) * mipmapScales[ level ][ d ];
+			}
 			System.out.println("Level " + level + "; Size " + Arrays.toString( size ) );
 		}
 
@@ -853,12 +889,12 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		private String getTileKey( int xTileIndex, int yTileIndex )
 		{
-			return xTileIndex + "-" + yTileIndex;
+			return xTileIndex + SEP + yTileIndex;
 		}
 
 		private String getKey( int t, int level, int xTileIndex, int yTileIndex )
 		{
-			return t + "-" + level + "-" + xTileIndex + "-" + yTileIndex;
+			return t + SEP + level + SEP + xTileIndex + SEP + yTileIndex;
 		}
 
 		public Status getStatus( int t, int level, int xTileIndex, int yTileIndex )

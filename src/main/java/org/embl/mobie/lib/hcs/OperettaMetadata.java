@@ -63,12 +63,32 @@ public class OperettaMetadata
 
 	public VoxelDimensions getVoxelDimensions( String path )
 	{
-		final String filename = new File( path ).getName();
-		final Element element = filenameToMetadata.get( filename );
-		final double imageResolutionX = Double.parseDouble( element.getElementsByTagName( "ImageResolutionX" ).item( 0 ).getTextContent() );
-		final double imageResolutionY = Double.parseDouble( element.getElementsByTagName( "ImageResolutionY" ).item( 0 ).getTextContent() );
+		final Element element = getElement( path );
+		final double imageResolutionX = getDouble( element, "ImageResolutionX" );
+		final double imageResolutionY = getDouble( element, "ImageResolutionY" );
 		final String unit = element.getElementsByTagName( "ImageResolutionX" ).item( 0 ).getAttributes().item( 0 ).getTextContent();
 
 		return new FinalVoxelDimensions( unit, imageResolutionX, imageResolutionY, 1.0 );
+	}
+
+	private double getDouble( Element element, String tag )
+	{
+		return Double.parseDouble( element.getElementsByTagName( tag ).item( 0 ).getTextContent() );
+	}
+
+	private Element getElement( String path )
+	{
+		final String filename = new File( path ).getName();
+		final Element element = filenameToMetadata.get( filename );
+		return element;
+	}
+
+	public double[] getRealPosition( String path )
+	{
+		final Element element = getElement( path );
+		return new double[]{
+				getDouble( element, "PositionX" ),
+				-getDouble( element, "PositionY" )
+		  };
 	}
 }

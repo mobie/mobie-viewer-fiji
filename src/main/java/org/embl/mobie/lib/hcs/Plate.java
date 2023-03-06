@@ -285,23 +285,16 @@ public class Plate
 
 	private int[] getOperettaGridPosition( Site site )
 	{
-		// TODO operetta site positions: https://github.com/embl-cba/plateviewer/issues/41
-		List< int[] > positions = new ArrayList<>();
-		positions.add( new int[]{1,2} ); // 1
-		positions.add( new int[]{1,0} ); // 2
-		positions.add( new int[]{2,1} ); // 3
-		positions.add( new int[]{1,1} ); // 4
-		positions.add( new int[]{0,1} ); // 5
-		positions.add( new int[]{0,2} ); // 6
-		positions.add( new int[]{2,2} ); // 7
-		positions.add( new int[]{2,3} ); // 8
-		positions.add( new int[]{1,3} ); // 9
-		positions.add( new int[]{0,3} ); // 10
-		positions.add( new int[]{1,4} ); // 11
+		final String path = site.getPaths().values().iterator().next().values().iterator().next();
+		final double[] realPosition = metadata.getRealPosition( path );
 
-		int siteIndex = Integer.parseInt( site.getName() ) - 1;
+		final int[] position = new int[ 2 ];
+		for ( int d = 0; d < 2; d++ )
+		{
+			position[ d ] = (int) ( realPosition[ d ] / siteRealDimensions [ d ] );
+		}
 
-		return positions.get( siteIndex );
+		return position;
 	}
 
 	public int[] getDefaultGridPosition( Site site )
