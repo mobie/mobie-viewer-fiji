@@ -31,6 +31,7 @@ package org.embl.mobie;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import ch.epfl.biop.bdv.img.imageplus.ImagePlusToSpimData;
 import ij.IJ;
 import ij.WindowManager;
 import loci.common.DebugTools;
@@ -206,8 +207,8 @@ public class MoBIE
 			for ( String path : imagePaths )
 			{
 				System.out.println( "Opening image: " + path );
-				// TODO: Use ImageJ to open .tif or .tiff files in ImageDataFormat.fromPath() !
-				final AbstractSpimData< ? > spimData = IOHelper.tryOpenSpimData( path, ImageDataFormat.fromPath( path ) );
+				ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
+				final AbstractSpimData< ? > spimData = IOHelper.tryOpenSpimData( path, imageDataFormat );
 				addSpimDataImages( spimData, false, null, null );
 			}
 		}
@@ -286,8 +287,10 @@ public class MoBIE
 					break;
 				}
 
-				final String lcsubstr = MoBIEHelper.lcsubstring( imageDisplay.getName(), segmentationDisplay.getName() );
-				final String name = imageDisplay.getName() + "-" + segmentationDisplay.getName().replace( lcsubstr, "" );
+				String longestCommonSubstring = MoBIEHelper.longestCommonSubstring( imageDisplay.getName(), segmentationDisplay.getName() );
+				if ( longestCommonSubstring.length() < 5 )
+					longestCommonSubstring = "";
+				final String name = imageDisplay.getName() + "-" + segmentationDisplay.getName().replace( longestCommonSubstring, "" );
 				final ArrayList< Display< ? > > displays = new ArrayList<>();
 				displays.add( imageDisplay );
 				displays.add( segmentationDisplay );
@@ -392,6 +395,7 @@ public class MoBIE
 
 	private void adjustLogWindow( UserInterface userInterface )
 	{
+		IJ.log( " " ); // to make sure the Log Window exists
 		final Window userInterfaceWindow = userInterface.getWindow();
 		WindowArrangementHelper.bottomAlignWindow( userInterfaceWindow, WindowManager.getWindow( "Log" ), true, true );
 	}
@@ -473,6 +477,7 @@ public class MoBIE
 			//    https://github.com/BIOP/bigdataviewer-image-loaders/issues/8
 			color = "White"; // ColorHelper.getString( displaysettings.color );
 			contrastLimits = new double[]{ displaysettings.min, displaysettings.max };
+			//System.out.println( imageName + ": contrast limits = " + Arrays.toString( contrastLimits ) );
 		}
 
 		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, Arrays.asList( imageName ), color, contrastLimits );

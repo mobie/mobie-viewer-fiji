@@ -59,7 +59,7 @@ public abstract class MoBIEHelper
 	}
 
 	// from https://www.geeksforgeeks.org/print-longest-common-substring/
-	public static String lcsubstring( String s1, String s2 )
+	public static String longestCommonSubstring( String s1, String s2 )
 	{
 		int m = s1.length();
 		int n = s2.length();

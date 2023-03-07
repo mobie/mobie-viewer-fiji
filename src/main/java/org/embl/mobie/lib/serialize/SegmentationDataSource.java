@@ -52,7 +52,10 @@ public class SegmentationDataSource extends ImageDataSource
 	public SegmentationDataSource( String name, ImageDataFormat imageDataFormat, StorageLocation imageLocation, TableDataFormat tableDataFormat, StorageLocation tableLocation )
 	{
 		super( name, imageDataFormat, imageLocation );
-		this.tableData = new HashMap<>();
-		this.tableData.put( tableDataFormat, tableLocation );
+		if ( tableDataFormat != null && tableLocation != null)
+		{
+			this.tableData = new HashMap<>();
+			this.tableData.put( tableDataFormat, tableLocation );
+		}
 	}
 }
