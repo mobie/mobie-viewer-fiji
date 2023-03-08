@@ -248,6 +248,8 @@ public class ViewManager
 			DataStore.clearImages();
 		}
 
+		final boolean viewerWasEmpty = currentDisplays.size() == 0;
+
 		// init and transform the data of this view
 		// currently, data is reloaded every time a view is shown
 		// this is a bit expensive, but simpler and has the
@@ -283,12 +285,13 @@ public class ViewManager
 			show( display );
 
 		// adjust viewer transform to accommodate the displayed sources.
-		// Note that if {@code view.getViewerTransform() != null}
+		// note that if {@code view.getViewerTransform() != null}
 		// the viewer transform has already been adjusted above.
-		if ( view.getViewerTransform() == null && currentDisplays.size() > 0 && ( view.isExclusive() || currentDisplays.size() == 1 ) )
+		if ( view.getViewerTransform() == null && currentDisplays.size() > 0 && viewerWasEmpty )
 		{
-			final Display< ? > display = currentDisplays.get( currentDisplays.size() - 1);
-			new MoBIEViewerTransformAdjuster( sliceViewer.getBdvHandle(), display ).applyMultiSourceTransform();
+			new MoBIEViewerTransformAdjuster(
+					sliceViewer.getBdvHandle(),
+					currentDisplays.get( 0 ) ).applyMultiSourceTransform();
 		}
 
 		// trigger rendering of source name overlay

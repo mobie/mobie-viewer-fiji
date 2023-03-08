@@ -85,6 +85,7 @@ import org.embl.mobie.lib.table.saw.TableSawAnnotatedSpotCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.lib.table.saw.TableOpener;
+import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
 import org.embl.mobie.lib.ui.UserInterface;
 import org.embl.mobie.lib.ui.WindowArrangementHelper;
 import org.embl.mobie.lib.view.ViewManager;
@@ -330,9 +331,13 @@ public class MoBIE
 //			}
 //		}
 
+		View initialView = null;
+
 		if ( grids != null )
 		{
-			// if gridPattern=="*" then build two grids, one for all images and one for all segmentations
+			// TODO
+			//   if gridPattern=="*" then build two grids,
+			//   one for all images and one for all segmentations
 			for ( String gridPattern : grids )
 			{
 				IJ.log( "Creating grid view for: " + gridPattern );
@@ -360,7 +365,9 @@ public class MoBIE
 						{
 							final String group = matcher.group( 1 );
 							if ( channelToSources.get( group ) == null )
+							{
 								channelToSources.put( group, new ArrayList<>() );
+							}
 							channelToSources.get( group ).add( gridSource );
 						}
 						else
@@ -407,7 +414,7 @@ public class MoBIE
 					}
 					else if ( referenceDisplay instanceof SegmentationDisplay )
 					{
-						// TODO: maybe this should not be in the channel loop?
+						// TODO: remove this from the channel loop!
 						display = new SegmentationDisplay<>( gridPattern, channelSources );
 					}
 					else
@@ -415,19 +422,25 @@ public class MoBIE
 						throw new UnsupportedOperationException( "Cannot build a display for " + referenceDisplay.getClass().getName() );
 
 					}
+
 					channelDisplays.add( display );
 				}
-
 
 				final View gridView = new View( gridPattern, "grids", channelDisplays, Arrays.asList( grid ), false );
 				gridView.overlayNames( true );
 				dataset.views().put( gridView.getName(), gridView );
+				if ( initialView == null ) initialView = gridView;
 			}
 		}
 
-		// show the last added view
-		final String[] viewNames = dataset.views().keySet().toArray( new String[ 0 ] );
-		initUIandShowView( viewNames[ viewNames.length -1 ] );
+		if ( initialView == null )
+		{
+			initUIandShowView( dataset.views().keySet().iterator().next() );
+		}
+		else
+		{
+			initUIandShowView( initialView.getName() );
+		}
 	}
 
 	// use this constructor from the Fiji UI
