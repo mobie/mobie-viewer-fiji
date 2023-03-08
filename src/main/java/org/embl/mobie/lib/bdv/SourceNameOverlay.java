@@ -49,15 +49,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SourceNameRenderer extends BdvOverlay implements TransformListener< AffineTransform3D >
+public class SourceNameOverlay extends BdvOverlay implements TransformListener< AffineTransform3D >
 {
 	private final BdvHandle bdvHandle;
 	private Map< String, FinalRealInterval > sourceNameToBounds = new ConcurrentHashMap< String, FinalRealInterval >();
 	private FinalRealInterval viewerInterval;
-	private BdvOverlaySource< SourceNameRenderer > overlaySource;
+	private BdvOverlaySource< SourceNameOverlay > overlaySource;
 	private boolean isActive;
+	private static final Font font = new Font( "Monospaced", Font.PLAIN, 20 );;
 
-	public SourceNameRenderer( BdvHandle bdvHandle, boolean isActive )
+	public SourceNameOverlay( BdvHandle bdvHandle, boolean isActive )
 	{
 		this.bdvHandle = bdvHandle;
 		bdvHandle.getViewerPanel().transformListeners().add( this );
@@ -140,7 +141,7 @@ public class SourceNameRenderer extends BdvOverlay implements TransformListener<
 			if ( ! Intervals.isEmpty( intersect ) )
 			{
 				// If we want the name to be always visible
-				// we could use intersect:
+				// we could do:
 				// final FinalRealInterval boundsInViewer = viewerTransform.estimateBounds( intersect );
 				final FinalRealInterval boundsInViewer = viewerTransform.estimateBounds( globalBounds );
 				sourceNameToBounds.put( spimSource.getName(), boundsInViewer );
@@ -153,15 +154,24 @@ public class SourceNameRenderer extends BdvOverlay implements TransformListener<
 	{
 		for ( Map.Entry< String, FinalRealInterval > entry : sourceNameToBounds.entrySet() )
 		{
+			// determine the size of the annotated source
+			// in the viewer
 			final FinalRealInterval bounds = entry.getValue();
 			final double sourceWidth = bounds.realMax( 0 ) - bounds.realMin( 0 );
-			final double relativeWidth = 1.0 * sourceWidth / bdvHandle.getViewerPanel().getWidth();
-			final int fontSize = Math.min( 20,  (int) ( 20 * 4 * relativeWidth ));
-			g.setFont( new Font( "TimesRoman", Font.PLAIN, fontSize ) );
+			final double sourceCenter = ( bounds.realMax( 0 ) + bounds.realMin( 0 ) ) / 2.0;
 
-			final int x = ( int ) ( ( bounds.realMax( 0 ) + bounds.realMin( 0 ) ) / 2.0 );
-			final int y = ( int ) bounds.realMax( 1 ) + fontSize;
-			g.drawString( entry.getKey(), x, y );
+			// determine font of appropriate size
+			final String name = entry.getKey();
+			g.setFont( font );
+			g.setColor( Color.WHITE );
+			final float finalFontSize = Math.min ( font.getSize(), ( float ) ( 1.0F * font.getSize() * sourceWidth / ( 1.0F * g.getFontMetrics().stringWidth( name ) ) ) );
+			Font finalFont = font.deriveFont( finalFontSize );
+			g.setFont( finalFont );
+
+			// draw the name below the source
+			final float x = (float) ( sourceCenter - g.getFontMetrics().stringWidth( name ) / 2.0 );
+			final float y = (float) bounds.realMax( 1 ) + 1.1F * finalFont.getSize();
+			g.drawString( name, x, y );
 		}
 	}
 }

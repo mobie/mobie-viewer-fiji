@@ -303,6 +303,9 @@ public class ViewManager
 			ViewerTransformChanger.adaptTimepoint( sliceViewer.getBdvHandle(), view.getViewerTransform() );
 		}
 
+		// overlay names
+		getSliceViewer().getSourceNameRenderer().setActive( view.overlayNames() );
+
 		IJ.log("Opened view: " + view.getName() + " in " + (System.currentTimeMillis() - startTime) + " ms." );
 	}
 

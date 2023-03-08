@@ -41,7 +41,7 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.lib.bdv.MobieBdvSupplier;
 import org.embl.mobie.lib.bdv.MobieSerializableBdvOptions;
-import org.embl.mobie.lib.bdv.SourceNameRenderer;
+import org.embl.mobie.lib.bdv.SourceNameOverlay;
 import org.embl.mobie.lib.bdv.SourcesAtMousePositionSupplier;
 import org.embl.mobie.lib.bdv.render.AccumulateAlphaBlendingProjectorARGB;
 import org.embl.mobie.lib.bdv.render.BlendingMode;
@@ -80,7 +80,7 @@ public class SliceViewer
 
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 	private final SourceAndConverterService sacService;
-	private SourceNameRenderer sourceNameRenderer;
+	private SourceNameOverlay sourceNameOverlay;
 
 	public SliceViewer( MoBIE moBIE, boolean is2D )
 	{
@@ -101,7 +101,7 @@ public class SliceViewer
 
 		sacDisplayService.registerBdvHandle( bdvHandle );
 
-		sourceNameRenderer = new SourceNameRenderer( bdvHandle, moBIE.initiallyShowSourceNames );
+		sourceNameOverlay = new SourceNameOverlay( bdvHandle, false );
 
 		installContextMenuAndKeyboardShortCuts();
 
@@ -109,9 +109,9 @@ public class SliceViewer
 
 	}
 
-	public SourceNameRenderer getSourceNameRenderer()
+	public SourceNameOverlay getSourceNameRenderer()
 	{
-		return sourceNameRenderer;
+		return sourceNameOverlay;
 	}
 
 	public synchronized BdvHandle getBdvHandle()

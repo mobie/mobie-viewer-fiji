@@ -52,6 +52,9 @@ public class View
 	private ViewerTransform viewerTransform;
 	private boolean isExclusive = false;
 	private String name;
+
+	// Other
+	private boolean overlayNames = false; // TODO add to JSON spec?
 	
 	public View( String name, String uiSelectionGroup, List< Display< ? > > sourceDisplays, List< Transformation > sourceTransforms, ViewerTransform viewerTransform, boolean isExclusive ) {
 		this.name = name;
@@ -159,5 +162,15 @@ public class View
 	public String toString()
 	{
 		return name;
+	}
+
+	public boolean overlayNames()
+	{
+		return overlayNames;
+	}
+
+	public void overlayNames( boolean overlayNames )
+	{
+		this.overlayNames = overlayNames;
 	}
 }

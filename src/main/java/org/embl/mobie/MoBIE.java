@@ -134,7 +134,6 @@ public class MoBIE
 	public static boolean openedFromCLI = false;
 	public static ImageJ imageJ;
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
-	public static boolean initiallyShowSourceNames = false;
 
 	private String projectLocation;
 	private MoBIESettings settings;
@@ -377,8 +376,6 @@ public class MoBIE
 					channelToSources.put("ch0", gridSources);
 				}
 
-
-
 				final GridTransformation grid = new GridTransformation();
 				grid.nestedSources = new ArrayList<>();
 
@@ -422,8 +419,9 @@ public class MoBIE
 				}
 
 
-				final View imageGridView = new View( gridPattern, "grids", channelDisplays, Arrays.asList( grid ), false );
-				dataset.views().put( imageGridView.getName(), imageGridView );
+				final View gridView = new View( gridPattern, "grids", channelDisplays, Arrays.asList( grid ), false );
+				gridView.overlayNames( true );
+				dataset.views().put( gridView.getName(), gridView );
 			}
 		}
 

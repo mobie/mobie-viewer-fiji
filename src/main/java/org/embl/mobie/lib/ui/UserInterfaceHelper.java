@@ -750,7 +750,7 @@ public class UserInterfaceHelper
 		} );
 
 		JCheckBox checkBox = new JCheckBox( "overlay names" );
-		checkBox.setSelected( moBIE.initiallyShowSourceNames );
+		checkBox.setSelected( false );
 		checkBox.addActionListener( e -> new Thread( () ->
 		{
 			moBIE.getViewManager().getSliceViewer().getSourceNameRenderer().setActive( checkBox.isSelected() );

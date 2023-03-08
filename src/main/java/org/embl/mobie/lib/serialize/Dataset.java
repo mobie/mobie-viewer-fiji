@@ -32,6 +32,7 @@ import org.embl.mobie.lib.transform.viewer.PositionViewerTransform;
 import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Dataset
@@ -40,7 +41,7 @@ public class Dataset
 	private boolean is2D = false;
 	private ViewerTransform defaultLocation = new PositionViewerTransform( new double[]{0,0,0}, 0 );
 	private Map< String, DataSource > sources = new HashMap<>();
-	private Map< String, View > views = new HashMap<>();
+	private Map< String, View > views = new LinkedHashMap<>();
 
 	// Runtime
 	private String name;
