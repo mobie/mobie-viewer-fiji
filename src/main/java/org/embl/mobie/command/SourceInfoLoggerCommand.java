@@ -38,6 +38,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -73,6 +74,7 @@ public class SourceInfoLoggerCommand implements BdvPlaygroundActionCommand
 					IJ.log( voxelDimensions.toString() );
 				IJ.log( "Resolution levels: " + source.getNumMipmapLevels() );
 				IJ.log( "Data type: " + source.getType().getClass() );
+				IJ.log( "Shape: " + Arrays.toString( source.getSource( 0,0 ).dimensionsAsLongArray() ) );
 				IJ.log( "Transform from array to global space: " + affineTransform3D );
 
 			}

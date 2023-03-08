@@ -1,8 +1,10 @@
-package org.embl.mobie.cmd;
+package projects.govendir;
+
+import org.embl.mobie.cmd.MoBIECmd;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class MoBIECmdTestMatt
+class MoBIECmdMattLocal
 {
 	public static void main( String[] args ) throws Exception
 	{

@@ -377,6 +377,8 @@ public class MoBIE
 					channelToSources.put("ch0", gridSources);
 				}
 
+
+
 				final GridTransformation grid = new GridTransformation();
 				grid.nestedSources = new ArrayList<>();
 
@@ -398,17 +400,18 @@ public class MoBIE
 				final ArrayList< Display< ? > > channelDisplays = new ArrayList<>();
 				for ( String channel : channelToSources.keySet() )
 				{
-					final Display< ? > referenceDisplay = dataset.views().get( channelToSources.get( channel ).get( 0 ) ).displays().get( 0 );
+					final List< String > channelSources = channelToSources.get( channel );
+					final Display< ? > referenceDisplay = dataset.views().get( channelSources.get( 0 ) ).displays().get( 0 );
 					Display< ? > display;
 					if ( referenceDisplay instanceof ImageDisplay )
 					{
 						String postFix = channelToSources.keySet().size() > 1 ? "_ch" + channel : "";
-						display = new ImageDisplay<>( gridPattern + postFix, gridSources, ( ( ImageDisplay ) referenceDisplay ).getColor(), ( ( ImageDisplay ) referenceDisplay ).getContrastLimits() );
+						display = new ImageDisplay<>( gridPattern + postFix, channelSources, ( ( ImageDisplay ) referenceDisplay ).getColor(), ( ( ImageDisplay ) referenceDisplay ).getContrastLimits() );
 					}
 					else if ( referenceDisplay instanceof SegmentationDisplay )
 					{
 						// TODO: maybe this should not be in the channel loop?
-						display = new SegmentationDisplay<>( gridPattern, gridSources );
+						display = new SegmentationDisplay<>( gridPattern, channelSources );
 					}
 					else
 					{
@@ -452,10 +455,13 @@ public class MoBIE
 
 	private void init()
 	{
-		DebugTools.setRootLevel( "OFF" ); // Bio-Formats logging
+		DebugTools.setRootLevel( "OFF" ); // Disable Bio-Formats logging
 
 		if ( MoBIE.openedFromCLI )
+		{
 			imageJ = new ImageJ(); // Init SciJava Services
+			imageJ.ui().showUI(); // Enable SciJava Command rendering
+		}
 
 		if ( moBIE != null )
 		{

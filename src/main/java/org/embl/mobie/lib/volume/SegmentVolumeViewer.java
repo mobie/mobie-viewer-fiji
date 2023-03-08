@@ -156,6 +156,9 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 
 	public synchronized void updateView( boolean recomputeMeshes )
 	{
+		if ( universe == null )
+			return;
+
 		new Thread( () ->
 		{
 			universe.setAutoAdjustView( true );

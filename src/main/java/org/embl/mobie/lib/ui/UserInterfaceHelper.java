@@ -46,7 +46,6 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.MoBIEHelper.FileLocation;
 import org.embl.mobie.lib.MoBIEInfo;
-//import org.embl.mobie.lib.Services;
 import org.embl.mobie.lib.Services;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.OpacityHelper;
