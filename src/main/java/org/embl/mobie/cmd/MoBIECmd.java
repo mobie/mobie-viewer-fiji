@@ -29,8 +29,8 @@ public class MoBIECmd implements Callable< Void > {
 	@Option(names = {"-t", "--table"}, required = false, description = "opens a segment feature table from a path, e.g. -t \"/home/features.csv\"; wild cards are supported (see --image)")
 	public String[] tables = null;
 
-	@Option(names = {"-g", "--grid"}, required = false, description = "create a grid view")
-	public Boolean grid = true;
+	@Option(names = {"-g", "--grid"}, required = false, description = "create a grid view from a subset of the images, e.g., \"/home/*_labels.tif\" ")
+	public String[] grids = null;
 
 	@Override
 	public Void call() throws Exception {
@@ -51,7 +51,7 @@ public class MoBIECmd implements Callable< Void > {
 		}
 		else
 		{
-			new MoBIE( "", images, segmentations, tables, grid );
+			new MoBIE( "", images, segmentations, tables, grids );
 		}
 
 		return null;

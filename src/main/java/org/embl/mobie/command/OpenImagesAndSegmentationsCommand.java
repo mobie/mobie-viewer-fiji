@@ -23,8 +23,8 @@ public class OpenImagesAndSegmentationsCommand implements Command {
 	@Parameter( label = "Label Mask Feature Table Path" )
 	public String table = null;
 
-	@Parameter( label = "Auto Pair Images and Segmentations" )
-	public Boolean autoPair = true;
+	//@Parameter( label = "Auto Pair Images and Segmentations" )
+	//public Boolean autoPair = true;
 
 	@Override
 	public void run()
@@ -37,7 +37,7 @@ public class OpenImagesAndSegmentationsCommand implements Command {
 
 		try
 		{
-			new MoBIE( "", new String[]{ image }, new String[]{ segmentation }, new String[]{ table }, autoPair );
+			new MoBIE( "", new String[]{ image }, new String[]{ segmentation }, new String[]{ table }, null );
 		}
 		catch ( IOException e )
 		{
