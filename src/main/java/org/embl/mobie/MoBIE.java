@@ -104,12 +104,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -235,7 +237,8 @@ public class MoBIE
 					tableStorageLocation.absolutePath = tableFile.getParent();
 					tableStorageLocation.defaultChunk = tableFile.getName();
 					addSpimDataImages( spimData, true, tableStorageLocation, tableDataFormat );
-				} else
+				}
+				else
 				{
 					addSpimDataImages( spimData, true, null, null );
 				}
@@ -330,37 +333,94 @@ public class MoBIE
 
 		if ( grids != null )
 		{
+			// if gridPattern=="*" then build two grids, one for all images and one for all segmentations
 			for ( String gridPattern : grids )
 			{
 				IJ.log( "Creating grid view for: " + gridPattern );
 				final String regex = IOHelper.wildcardToRegex( gridPattern );
 				final Pattern pattern = Pattern.compile( regex );
 				final Set< String > sourceNames = dataset.sources().keySet();
-				final List< String > gridSources = sourceNames.stream().filter( name -> pattern.matcher( name ).matches() ).collect( Collectors.toList() );
+				final List< String > gridSources = sourceNames.stream().filter( name -> pattern.matcher( name ).matches() ).sorted().collect( Collectors.toList() );
+
 				if ( gridSources.size() == 0 )
 				{
 					IJ.log( "[ERROR] Could not find any sources matching: " + gridPattern );
 					continue;
 				}
 
-				final GridTransformation grid = new GridTransformation();
-				grid.nestedSources = new ArrayList<>();
-				for ( String gridSource : gridSources )
+				final HashMap< String, List< String > > channelToSources = new LinkedHashMap<>();
+				final Pattern channelPattern = Pattern.compile( ".*_ch(.+)$" );
+				if ( gridSources.stream().filter( name -> channelPattern.matcher( name ).matches() ).findFirst().isPresent() )
 				{
-					grid.nestedSources.add( Collections.singletonList( gridSource ) );
+					// the pattern contains multiple channels
+					// we need to create displays for all of them
+					for ( String gridSource : gridSources )
+					{
+						final Matcher matcher = channelPattern.matcher( gridSource );
+						if ( matcher.matches() )
+						{
+							final String group = matcher.group( 1 );
+							if ( channelToSources.get( group ) == null )
+								channelToSources.put( group, new ArrayList<>() );
+							channelToSources.get( group ).add( gridSource );
+						}
+						else
+						{
+							// should not happen:
+							throw new UnsupportedOperationException( "Could not extract channel ID of " + gridSource );
+						}
+					}
+				}
+				else
+				{
+					// just one channel
+					channelToSources.put("ch0", gridSources);
 				}
 
-				final View referenceView = dataset.views().get( gridSources.get( 0 ) );
-				final Display< ? > referenceDisplay = referenceView.displays().get( 0 );
-				if ( referenceDisplay instanceof ImageDisplay )
+				final GridTransformation grid = new GridTransformation();
+				grid.nestedSources = new ArrayList<>();
+
+				final int numberOfGridPositions = channelToSources.values().iterator().next().size();
+				for ( int gridPosition = 0; gridPosition < numberOfGridPositions; gridPosition++ )
 				{
-					final ImageDisplay< ? > imageGridDisplay = new ImageDisplay<>( gridPattern, gridSources, ( ( ImageDisplay ) referenceDisplay ).getColor(), ( ( ImageDisplay ) referenceDisplay ).getContrastLimits() );
-					final View imageGridView = new View( gridPattern, "grids", Arrays.asList( imageGridDisplay ), Arrays.asList( grid ), true );
-					dataset.views().put( imageGridView.getName(), imageGridView );
-				} else
-				{
-					throw new UnsupportedOperationException( "sfsfsd" );
+					grid.nestedSources.add( new ArrayList<>() );
 				}
+
+				for ( String channel : channelToSources.keySet() )
+				{
+					final List< String > sources = channelToSources.get( channel );
+					for ( int gridPosition = 0; gridPosition < numberOfGridPositions; gridPosition++ )
+					{
+						grid.nestedSources.get( gridPosition ).add( sources.get( gridPosition ) );
+					}
+				}
+
+				final ArrayList< Display< ? > > channelDisplays = new ArrayList<>();
+				for ( String channel : channelToSources.keySet() )
+				{
+					final Display< ? > referenceDisplay = dataset.views().get( channelToSources.get( channel ).get( 0 ) ).displays().get( 0 );
+					Display< ? > display;
+					if ( referenceDisplay instanceof ImageDisplay )
+					{
+						String postFix = channelToSources.keySet().size() > 1 ? "_ch" + channel : "";
+						display = new ImageDisplay<>( gridPattern + postFix, gridSources, ( ( ImageDisplay ) referenceDisplay ).getColor(), ( ( ImageDisplay ) referenceDisplay ).getContrastLimits() );
+					}
+					else if ( referenceDisplay instanceof SegmentationDisplay )
+					{
+						// TODO: maybe this should not be in the channel loop?
+						display = new SegmentationDisplay<>( gridPattern, gridSources );
+					}
+					else
+					{
+						throw new UnsupportedOperationException( "Cannot build a display for " + referenceDisplay.getClass().getName() );
+
+					}
+					channelDisplays.add( display );
+				}
+
+
+				final View imageGridView = new View( gridPattern, "grids", channelDisplays, Arrays.asList( grid ), false );
+				dataset.views().put( imageGridView.getName(), imageGridView );
 			}
 		}
 
@@ -527,7 +587,7 @@ public class MoBIE
 	{
 		String imageName = FilenameUtils.removeExtension( new File( imagePath ).getName() );
 		if ( numImages > 1 )
-			imageName += "_" + imageIndex;
+			imageName += "_ch" + imageIndex;
 		return imageName;
 	}
 

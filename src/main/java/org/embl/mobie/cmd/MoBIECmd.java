@@ -14,6 +14,8 @@ public class MoBIECmd implements Callable< Void > {
 
 	// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/926
 
+	// TODO add --hcs
+
 	@Option(names = {"-p", "--project"}, required = false, description = "open a MoBIE project, e.g. -p \"https://github.com/mobie/platybrowser-datasets\"")
 	public String project = null;
 
