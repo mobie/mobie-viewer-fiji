@@ -1,5 +1,7 @@
 package org.embl.mobie.lib.hcs;
 
+import ij.gui.PointRoi;
+import ij.gui.Roi;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.w3c.dom.Document;
@@ -73,14 +75,33 @@ public class OperettaMetadata
 
 	private double getDouble( Element element, String tag )
 	{
-		return Double.parseDouble( element.getElementsByTagName( tag ).item( 0 ).getTextContent() );
+		try
+		{
+			return Double.parseDouble( element.getElementsByTagName( tag ).item( 0 ).getTextContent() );
+		}
+		catch ( Exception e )
+		{
+			e.printStackTrace();
+			throw new RuntimeException( e );
+		}
 	}
 
 	private Element getElement( String path )
 	{
 		final String filename = new File( path ).getName();
 		final Element element = filenameToMetadata.get( filename );
+		if ( element == null )
+		{
+			System.err.println("Could not find operetta metadata for " + filename );
+			throw new RuntimeException();
+		}
 		return element;
+	}
+
+	public boolean contains( String path )
+	{
+		final String filename = new File( path ).getName();
+		return filenameToMetadata.containsKey( filename );
 	}
 
 	public double[] getRealPosition( String path )

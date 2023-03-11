@@ -67,6 +67,15 @@ public class Plate
 			if ( ! hcsPattern.setPath( path ) )
 				continue;
 
+			if ( metadata != null )
+			{
+				if ( ! metadata.contains( path ) )
+				{
+					IJ.log( "[WARNING] No metadata found for " + path );
+					continue;
+				}
+			}
+
 			numImages++;
 			//System.out.println( path );
 

@@ -109,7 +109,7 @@ public class SliceViewer
 
 	}
 
-	public SourceNameOverlay getSourceNameRenderer()
+	public SourceNameOverlay getSourceNameOverlay()
 	{
 		return sourceNameOverlay;
 	}

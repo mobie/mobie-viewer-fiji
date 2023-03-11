@@ -31,7 +31,6 @@ package org.embl.mobie;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import ch.epfl.biop.bdv.img.imageplus.ImagePlusToSpimData;
 import ij.IJ;
 import ij.WindowManager;
 import loci.common.DebugTools;
@@ -43,6 +42,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.ThreadHelper;
+import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.hcs.HCSDataSetter;
 import org.embl.mobie.lib.hcs.Plate;
 import org.embl.mobie.lib.hcs.Site;
@@ -72,6 +72,7 @@ import org.embl.mobie.lib.serialize.SpotDataSource;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.Display;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
+import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.transformation.GridTransformation;
@@ -85,7 +86,6 @@ import org.embl.mobie.lib.table.saw.TableSawAnnotatedSpotCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.lib.table.saw.TableOpener;
-import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
 import org.embl.mobie.lib.ui.UserInterface;
 import org.embl.mobie.lib.ui.WindowArrangementHelper;
 import org.embl.mobie.lib.view.ViewManager;
@@ -103,7 +103,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -340,24 +339,38 @@ public class MoBIE
 			//   one for all images and one for all segmentations
 			for ( String gridPattern : grids )
 			{
-				IJ.log( "Creating grid view for: " + gridPattern );
 				final String regex = IOHelper.wildcardToRegex( gridPattern );
+				IJ.log( "Creating grid view for: " + regex );
 				final Pattern pattern = Pattern.compile( regex );
-				final Set< String > sourceNames = dataset.sources().keySet();
-				final List< String > gridSources = sourceNames.stream().filter( name -> pattern.matcher( name ).matches() ).sorted().collect( Collectors.toList() );
+				final List< String > gridSources = dataset.sources().keySet()
+						.stream()
+						.filter( name -> pattern.matcher( name ).matches() )
+						.sorted()
+						.collect( Collectors.toList() );
 
 				if ( gridSources.size() == 0 )
 				{
-					IJ.log( "[ERROR] Could not find any sources matching: " + gridPattern );
+					IJ.log( "[ERROR] Could not find any sources matching: " + regex );
 					continue;
 				}
 
+				// prepare a RegionDisplay for outlining
+				// and the grid positions
+				//
+				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( gridPattern + "_annotation" );
+				regionDisplay.sources = new LinkedHashMap<>();
+				regionDisplay.sourceNamesRegex = regex;
+
 				final HashMap< String, List< String > > channelToSources = new LinkedHashMap<>();
 				final Pattern channelPattern = Pattern.compile( ".*_ch(.+)$" );
-				if ( gridSources.stream().filter( name -> channelPattern.matcher( name ).matches() ).findFirst().isPresent() )
+				final boolean containsChannelPattern = gridSources.stream().filter( name -> channelPattern.matcher( name ).matches() ).findFirst().isPresent();
+				// TODO: FIXME: this is a bug
+				//  as breaks if the gridPattern matches both sources
+				//  that contain and don't contain multiple channels
+				if ( containsChannelPattern )
 				{
-					// the pattern contains multiple channels
-					// we need to create displays for all of them
+					// the grid sources contain multiple channels
+					// so need to create displays for all of them
 					for ( String gridSource : gridSources )
 					{
 						final Matcher matcher = channelPattern.matcher( gridSource );
@@ -390,6 +403,7 @@ public class MoBIE
 				for ( int gridPosition = 0; gridPosition < numberOfGridPositions; gridPosition++ )
 				{
 					grid.nestedSources.add( new ArrayList<>() );
+					regionDisplay.sources.put( "grid_" + gridPosition, new ArrayList<>() );
 				}
 
 				for ( String channel : channelToSources.keySet() )
@@ -397,11 +411,22 @@ public class MoBIE
 					final List< String > sources = channelToSources.get( channel );
 					for ( int gridPosition = 0; gridPosition < numberOfGridPositions; gridPosition++ )
 					{
-						grid.nestedSources.get( gridPosition ).add( sources.get( gridPosition ) );
+						try
+						{
+							final String sourceName = sources.get( gridPosition );
+							grid.nestedSources.get( gridPosition ).add( sourceName );
+							regionDisplay.sources.get( "grid_" + gridPosition ).add( sourceName );
+						}
+						catch ( Exception e )
+						{
+							e.printStackTrace();
+						}
 					}
 				}
 
-				final ArrayList< Display< ? > > channelDisplays = new ArrayList<>();
+				final ArrayList< Display< ? > > displays = new ArrayList<>();
+				displays.add( regionDisplay );
+
 				for ( String channel : channelToSources.keySet() )
 				{
 					final List< String > channelSources = channelToSources.get( channel );
@@ -414,19 +439,20 @@ public class MoBIE
 					}
 					else if ( referenceDisplay instanceof SegmentationDisplay )
 					{
-						// TODO: remove this from the channel loop!
 						display = new SegmentationDisplay<>( gridPattern, channelSources );
 					}
 					else
 					{
 						throw new UnsupportedOperationException( "Cannot build a display for " + referenceDisplay.getClass().getName() );
-
 					}
 
-					channelDisplays.add( display );
+					displays.add( display );
 				}
 
-				final View gridView = new View( gridPattern, "grids", channelDisplays, Arrays.asList( grid ), false );
+
+				// create a view for this gridPattern
+				//
+				final View gridView = new View( gridPattern, "grids", displays, Arrays.asList( grid ), false );
 				gridView.overlayNames( true );
 				dataset.views().put( gridView.getName(), gridView );
 				if ( initialView == null ) initialView = gridView;

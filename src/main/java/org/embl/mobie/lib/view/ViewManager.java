@@ -57,12 +57,10 @@ import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.image.StitchedAnnotatedLabelImage;
 import org.embl.mobie.lib.image.StitchedImage;
-import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.plot.ScatterPlotSettings;
 import org.embl.mobie.lib.plot.ScatterPlotView;
 import org.embl.mobie.lib.select.MoBIESelectionModel;
 import org.embl.mobie.lib.serialize.DataSource;
-import org.embl.mobie.lib.serialize.RegionDataSource;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.AbstractAnnotationDisplay;
 import org.embl.mobie.lib.serialize.display.Display;
@@ -78,15 +76,10 @@ import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.image.CroppedImage;
 import org.embl.mobie.lib.source.SourceHelper;
+import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.table.AnnotationTableModel;
-import org.embl.mobie.lib.table.ColumnNames;
-import org.embl.mobie.lib.table.DefaultAnnData;
-import org.embl.mobie.lib.table.TableDataFormat;
+import org.embl.mobie.lib.table.RegionDisplayAnnDataCreator;
 import org.embl.mobie.lib.table.TableView;
-import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegion;
-import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegionCreator;
-import org.embl.mobie.lib.table.saw.TableSawAnnotationCreator;
-import org.embl.mobie.lib.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
 import org.embl.mobie.lib.transform.viewer.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.lib.transform.NormalizedAffineViewerTransform;
@@ -102,8 +95,6 @@ import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.embl.mobie.lib.volume.UniverseManager;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
-import tech.tablesaw.api.StringColumn;
-import tech.tablesaw.api.Table;
 
 import javax.swing.*;
 import java.awt.*;
@@ -294,8 +285,8 @@ public class ViewManager
 					currentDisplays.get( 0 ) ).applyMultiSourceTransform();
 		}
 
-		// trigger rendering of source name overlay
-		getSliceViewer().getSourceNameRenderer().transformChanged( sliceViewer.getBdvHandle().getViewerPanel().state().getViewerTransform() );
+		// set rendering of source name overlay
+		getSliceViewer().getSourceNameOverlay().transformChanged( sliceViewer.getBdvHandle().getViewerPanel().state().getViewerTransform() );
 
 		// adapt time point
 		if ( view.getViewerTransform() != null )
@@ -307,7 +298,7 @@ public class ViewManager
 		}
 
 		// overlay names
-		getSliceViewer().getSourceNameRenderer().setActive( view.overlayNames() );
+		getSliceViewer().getSourceNameOverlay().setActive( view.overlayNames() );
 
 		IJ.log("Opened view: " + view.getName() + " in " + (System.currentTimeMillis() - startTime) + " ms." );
 	}
@@ -482,46 +473,9 @@ public class ViewManager
 				// that could be referred to here.
 
 				final RegionDisplay< ? > regionDisplay = ( RegionDisplay< ? > ) display;
-				final Map< String, List< String > > regionToSources = regionDisplay.sources;
 
-				Table table;
-				StorageLocation tableLocation;
-				TableDataFormat tableFormat;
-				if (  regionDisplay.tableSource == null )
-				{
-					// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/970
-					tableLocation = new StorageLocation();
-					tableFormat = TableDataFormat.Table;
-					final StringColumn regionIDs = StringColumn.create( ColumnNames.REGION_ID, regionToSources.keySet() );
-					table = Table.create( regionDisplay.getName() );
-					table.addColumns( regionIDs );
-				}
-				else
-				{
-					final RegionDataSource regionDataSource = ( RegionDataSource ) DataStore.getRawData( regionDisplay.tableSource );
-					table = regionDataSource.table;
-					tableLocation = moBIE.getTableLocation( regionDataSource.tableData );
-					tableFormat = moBIE.getTableDataFormat( regionDataSource.tableData );
-
-					// only keep the subset of rows (regions)
-					// that are actually referred to in regionIdToImageNames
-					final Set< String > regionIDs = regionToSources.keySet();
-					final ArrayList< Integer > dropRows = new ArrayList<>();
-					final int rowCount = table.rowCount();
-					for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
-					{
-						final String regionId = table.row( rowIndex ).getObject( ColumnNames.REGION_ID ).toString();
-						if ( !regionIDs.contains( regionId ) )
-							dropRows.add( rowIndex );
-					}
-
-					if ( dropRows.size() > 0 )
-						table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
-				}
-
-				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( table, regionToSources );
-				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, tableLocation, tableFormat, table );
-				final DefaultAnnData< AnnotatedRegion > annData = new DefaultAnnData<>( tableModel );
+				final RegionDisplayAnnDataCreator annDataCreator = new RegionDisplayAnnDataCreator( moBIE, regionDisplay );
+				AnnData< AnnotatedRegion > annData = annDataCreator.getAnnData();
 				final RegionAnnotationImage< AnnotatedRegion > regionAnnotationImage = new RegionAnnotationImage( regionDisplay.getName(), annData, regionDisplay.timepoints );
 
 				DataStore.putImage( regionAnnotationImage );

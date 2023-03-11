@@ -34,6 +34,7 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Tables;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.gui.Overlay;
 import ij.process.LUT;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
@@ -152,13 +153,9 @@ public class ImagesCreator {
      *
      * @see #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D, String, boolean, int[][], int[][], Compression)
      */
-    public void addImage ( ImagePlus imp, String imageName, String datasetName,
-                           ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
-                           AffineTransform3D sourceTransform, String uiSelectionGroup,
-                           boolean exclusive ) throws SpimDataException, IOException {
-        addImage( imp, imageName, datasetName, imageDataFormat, imageType, sourceTransform, uiSelectionGroup,
-                exclusive, null, null, null );
-
+    public void addImage ( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, AffineTransform3D sourceTransform, String uiSelectionGroup, boolean exclusive ) throws SpimDataException, IOException
+    {
+        addImage( imp, imageName, datasetName, imageDataFormat, imageType, sourceTransform, uiSelectionGroup, exclusive, null, null, null );
     }
 
     /**
@@ -214,28 +211,30 @@ public class ImagesCreator {
      * @throws SpimDataException
      * @throws IOException
      */
-    public void addImage ( ImagePlus imp, String imageName, String datasetName,
-                           ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
-                           AffineTransform3D sourceTransform, String uiSelectionGroup, boolean exclusive,
-                           int[][] resolutions, int[][] subdivisions, Compression compression ) throws IOException, SpimDataException {
+    public void addImage ( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, AffineTransform3D sourceTransform, String uiSelectionGroup, boolean exclusive, int[][] resolutions, int[][] subdivisions, Compression compression ) throws IOException, SpimDataException
+    {
         // either xml file path or zarr file path depending on imageDataFormat
         String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
         File imageFile = new File(filePath);
 
         if ( !isImageValid( imp.getNChannels(), imp.getCalibration().getUnit(),
-                projectCreator.getVoxelUnit(), false ) ) {
+                projectCreator.getVoxelUnit(), false ) )
+        {
             return;
         }
 
-        if ( imp.getNDimensions() > 2 && projectCreator.getDataset( datasetName ).is2D() ) {
+        if ( imp.getNDimensions() > 2 && projectCreator.getDataset( datasetName ).is2D() )
+        {
             throw new UnsupportedOperationException("Can't add a " + imp.getNDimensions() + "D image to a 2D dataset" );
         }
 
-        if ( projectCreator.getVoxelUnit() == null ) {
+        if ( projectCreator.getVoxelUnit() == null )
+        {
             projectCreator.setVoxelUnit( imp.getCalibration().getUnit() );
         }
 
-        if ( imageFile.exists() ) {
+        if ( imageFile.exists() )
+        {
             IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
             deleteImageFiles( datasetName, imageName, imageDataFormat );
         }
@@ -247,9 +246,12 @@ public class ImagesCreator {
             imageDir.mkdirs();
         }
 
-        if ( resolutions == null || subdivisions == null || compression == null ) {
+        if ( resolutions == null || subdivisions == null || compression == null )
+        {
             writeDefaultImage( imp, filePath, downsamplingMethod, imageName, imageDataFormat );
-        } else {
+        }
+        else
+        {
             writeDefaultImage( imp, filePath, downsamplingMethod, imageName, imageDataFormat,
                     resolutions, subdivisions, compression );
         }
@@ -297,8 +299,7 @@ public class ImagesCreator {
                 break;
 
             case OmeZarr:
-                new WriteImagePlusToN5OmeZarr().export(imp, filePath, sourceTransform, downsamplingMethod,
-                        new GzipCompression() );
+                new WriteImagePlusToN5OmeZarr().export(imp, filePath, sourceTransform, downsamplingMethod, new GzipCompression() );
                 break;
 
             default:
@@ -311,6 +312,7 @@ public class ImagesCreator {
                              DownsampleBlock.DownsamplingMethod downsamplingMethod,
                              String imageName, ImageDataFormat imageDataFormat,
                              int[][] resolutions, int[][] subdivisions, Compression compression ) {
+
 
         // transform only including scaling from image
         AffineTransform3D sourceTransform = ProjectCreatorHelper.generateDefaultAffine( imp );
@@ -387,13 +389,11 @@ public class ImagesCreator {
      * @throws IOException
      */
     public void addBdvFormatImage ( File fileLocation, String imageName, String datasetName,
-									ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod,
-									String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
+									ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod, String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
 
         if ( fileLocation.exists() ) {
             SpimData spimData = ( SpimData ) new SpimDataOpener().openSpimData( fileLocation.getAbsolutePath(), imageDataFormat );
-            addBdvFormatImage( spimData, imageName, datasetName, imageType, addMethod, uiSelectionGroup,
-                    imageDataFormat, exclusive );
+            addBdvFormatImage( spimData, imageName, datasetName, imageType, addMethod, uiSelectionGroup, imageDataFormat, exclusive );
         } else {
             throw new FileNotFoundException(
                     "Adding image to project failed - " + fileLocation.getAbsolutePath() + " does not exist" );
@@ -418,8 +418,7 @@ public class ImagesCreator {
      * @throws IOException
      */
     public void addBdvFormatImage ( SpimData spimData, String imageName, String datasetName,
-									ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod,
-									String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
+									ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod, String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
 
         File imageDirectory = new File( getDefaultLocalImageDirPath( datasetName, imageDataFormat ));
 
@@ -445,7 +444,6 @@ public class ImagesCreator {
                 // The view setup name must be the same as the image name
                 spimData = fixSetupName( spimData, imageName );
                 break;
-
             case OmeZarr:
                 newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
                 break;
@@ -708,8 +706,7 @@ public class ImagesCreator {
         }
     }
 
-    private void writeNewBdvXml ( SpimData spimData, File imageFile, File saveDirectory, String imageName,
-                                  ImageDataFormat imageFormat ) throws SpimDataException {
+    private void writeNewBdvXml ( SpimData spimData, File imageFile, File saveDirectory, String imageName, ImageDataFormat imageFormat ) throws SpimDataException {
 
         ImgLoader imgLoader = null;
         if (imageFormat == ImageDataFormat.BdvN5) {

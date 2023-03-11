@@ -29,19 +29,19 @@ public class IOHelper
 				case '*':
 					s.append(".*");
 					break;
-				case '?':
-					s.append(".");
-					break;
-				case '^': // escape character in cmd.exe
-					s.append("\\");
-					break;
+//				case '?':
+//					s.append(".");
+//					break;
+//				case '^': // escape character in cmd.exe
+//					s.append("\\");
+//					break;
 				// escape special regexp-characters
-				case '(': case ')': case '[': case ']': case '$':
-				case '.': case '{': case '}': case '|':
-				case '\\':
-					s.append("\\");
-					s.append(c);
-					break;
+//				case '(': case ')': case '[': case ']': case '$':
+//				case '.': case '{': case '}': case '|':
+//				case '\\':
+//					s.append("\\");
+//					s.append(c);
+//					break;
 				default:
 					s.append(c);
 					break;

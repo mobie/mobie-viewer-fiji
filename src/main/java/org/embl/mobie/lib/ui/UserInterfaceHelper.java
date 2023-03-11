@@ -753,7 +753,7 @@ public class UserInterfaceHelper
 		checkBox.setSelected( false );
 		checkBox.addActionListener( e -> new Thread( () ->
 		{
-			moBIE.getViewManager().getSliceViewer().getSourceNameRenderer().setActive( checkBox.isSelected() );
+			moBIE.getViewManager().getSliceViewer().getSourceNameOverlay().setActive( checkBox.isSelected() );
 		}).start() );
 
 		panel.add( checkBox );

@@ -49,8 +49,7 @@ public class HCSDataSetter
 		wellRegionDisplay.showAsBoundaries( true );
 		wellRegionDisplay.setBoundaryThickness( ( float ) (0.1 * plate.getSiteRealDimensions()[ 0 ] ) );
 
-		// if the plate is a time-lapse, of course,
-		// the wells should be displayed for all time-points.
+		// wells should be displayed for all time-points.
 		// currently, the below code assumes that the time-points
 		// are sequential, starting at 0; if needed one could be
 		// more sophisticated here, because the Source

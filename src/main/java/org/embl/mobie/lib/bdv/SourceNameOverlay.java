@@ -76,7 +76,7 @@ public class SourceNameOverlay extends BdvOverlay implements TransformListener< 
 			// with the scale bar overlay of BDV
 			overlaySource = BdvFunctions.showOverlay(
 					this,
-					"sourceNameRenderer",
+					"sourceNameOverlay",
 					BdvOptions.options().addTo( bdvHandle ) );
 		}
 

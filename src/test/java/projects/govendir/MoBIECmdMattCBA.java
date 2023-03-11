@@ -12,7 +12,7 @@ class MoBIECmdMattCBA
 		cmd.images = new String[]{ "/Volumes/cba/exchange/matt-govendir/data/preprocessed/*.tif" };
 		cmd.segmentations = new String[]{ "/Volumes/cba/exchange/matt-govendir/data/analysed/*seg.tif" };
 		cmd.tables = new String[]{ "/Volumes/cba/exchange/matt-govendir/data/analysed/*_seg.csv" };
-		cmd.grids = new String[]{ "*_1_ch*", "*_seg"};
+		cmd.grids = new String[]{ "*_seg"};
 		cmd.call();
 	}
 }

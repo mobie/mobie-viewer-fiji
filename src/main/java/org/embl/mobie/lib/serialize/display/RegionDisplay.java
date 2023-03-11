@@ -42,25 +42,17 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotat
 {
 	// Serialization
 
-	// regionId to image sources
-	// one regionId can annotate several images
-	public Map< String, List< String > > sources;
+	public Map< String, List< String > > sources; // one region annotating several images
 
-	// table data
 	public String tableSource;
 
 	public Set< String > selectedRegionIds;
 
 	// Other
 
-	// use this, if no tableSource is given
-	// to specify for which timepoints the
-	// annotated regions should be created
-	// if this is not given only the first (0)
-	// timepoint will be annotated
-	public Set< Integer > timepoints;
+	public Set< Integer > timepoints; // which timepoints to annotate
 
-	// Runtime
+	public String sourceNamesRegex; // optionally parse the source names to create annotations
 
 	// Used by Gson
 	public RegionDisplay()
