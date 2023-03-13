@@ -32,7 +32,7 @@ import bdv.viewer.SourceAndConverter;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
-import org.embl.mobie.lib.bdv.render.BlendingMode;
+import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.bdv.view.AnnotationSliceView;
 import org.embl.mobie.lib.color.AbstractAnnotationColoringModel;
 import org.embl.mobie.lib.color.CategoricalAnnotationColoringModel;
@@ -79,7 +79,7 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 	protected List< String > additionalTables;
 	protected boolean showTable = true;
 	protected boolean showAsBoundaries = false;
-	protected float boundaryThickness = 1.0F;
+	private double boundaryThickness = 1.0F;
 	protected int randomColorSeed = 42;
 	protected String selectionColor = null;
 	protected double opacityNotSelected = 0.15;
@@ -164,12 +164,12 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 		this.showAsBoundaries = showAsBoundaries;
 	}
 
-	public float getBoundaryThickness()
+	public double getBoundaryThickness()
 	{
 		return boundaryThickness;
 	}
 
-	public void setBoundaryThickness( float boundaryThickness )
+	public void setBoundaryThickness( double boundaryThickness )
 	{
 		this.boundaryThickness = boundaryThickness;
 	}
@@ -253,8 +253,8 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 		this.showTable = annotationDisplay.tableView.getWindow().isVisible();
 
 		final BoundarySource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
-		this.showAsBoundaries = boundarySource.isShowAsBoundaries();
-		this.boundaryThickness = boundarySource.getCalibratedBoundaryWidth();
+		this.showAsBoundaries = boundarySource.showAsBoundaries();
+		this.boundaryThickness = boundarySource.getBoundaryWidth();
 
 		final Set< ? extends Annotation > selectedAnnotations = annotationDisplay.selectionModel.getSelected();
 		if (selectedAnnotations != null)

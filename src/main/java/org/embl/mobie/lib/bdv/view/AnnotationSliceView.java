@@ -34,8 +34,10 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.SynchronizedViewerState;
 import net.imglib2.converter.Converter;
+import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.lib.color.AnnotationARGBConverter;
 import org.embl.mobie.lib.color.ColoringListener;
@@ -43,6 +45,7 @@ import org.embl.mobie.lib.color.VolatileAnnotationARGBConverter;
 import org.embl.mobie.lib.image.SpotAnnotationImage;
 import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
 import org.embl.mobie.lib.serialize.display.AbstractAnnotationDisplay;
+import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.serialize.display.SpotDisplay;
@@ -98,7 +101,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 	{
 		// create non-volatile sac
 		//
-		//System.out.println( "AnnotationSliceView: Creating SAC for " + image.getName() );
+		// System.out.println( "AnnotationSliceView: Creating SAC for " + image.getName() );
 
 		final Source< AnnotationType< A > > source = image.getSourcePair().getSource();
 		final BoundarySource boundarySource = new BoundarySource( source, false, 0.0F, image.getMask() );
@@ -129,15 +132,33 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 
 	private void show( SourceAndConverter< ? > sourceAndConverter )
 	{
-		configureAnnotationRendering( sourceAndConverter );
+		configureRendering( sourceAndConverter );
 		display.sliceViewer.show( sourceAndConverter, display );
 	}
 
-	private void configureAnnotationRendering( SourceAndConverter< ? > sourceAndConverter )
+	private void configureRendering( SourceAndConverter< ? > sourceAndConverter )
 	{
 		final boolean showAsBoundaries = display.showAsBoundaries();
-		final float boundaryThickness = display.getBoundaryThickness();
-		final BoundarySource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
+
+		double boundaryThickness = display.getBoundaryThickness();
+
+		if ( showAsBoundaries )
+		{
+			if ( display instanceof RegionDisplay )
+			{
+				final RegionDisplay< ? > display = ( RegionDisplay ) this.display;
+				if ( display.boundaryThicknessIsRelative() )
+				{
+					final String someRegion = display.sources.keySet().iterator().next();
+					final String someSource = display.sources.get( someRegion ).get( 0 );
+					final RealMaskRealInterval mask = DataStore.getImage( someSource ).getMask();
+					final double width = mask.realMax( 0 ) - mask.realMin( 0 );
+					boundaryThickness = width * boundaryThickness;
+				}
+			}
+		}
+
+		final BoundarySource< ? > boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
 		boundarySource.showAsBoundary( showAsBoundaries, boundaryThickness );
 		if ( sourceAndConverter.asVolatile() != null )
 		{

@@ -1,7 +1,6 @@
 package org.embl.mobie.lib.hcs;
 
 import net.thisptr.jackson.jq.internal.misc.Strings;
-import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.ImageDataSource;
@@ -12,13 +11,10 @@ import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.transformation.MergedGridTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
-import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
@@ -44,10 +40,11 @@ public class HCSDataSetter
 		// build a RegionDisplay for outlining
 		// and navigating the wells
 		//
-		final RegionDisplay< AnnotatedRegion > wellRegionDisplay = new RegionDisplay<>( "wells" );
-		wellRegionDisplay.sources = new LinkedHashMap<>();
-		wellRegionDisplay.showAsBoundaries( true );
-		wellRegionDisplay.setBoundaryThickness( ( float ) (0.1 * plate.getSiteRealDimensions()[ 0 ] ) );
+		final RegionDisplay< AnnotatedRegion > wellDisplay = new RegionDisplay<>( "wells" );
+		wellDisplay.sources = new LinkedHashMap<>();
+		wellDisplay.showAsBoundaries( true );
+		wellDisplay.setBoundaryThickness( 0.1 );
+		wellDisplay.boundaryThicknessIsRelative( true);
 
 		// wells should be displayed for all time-points.
 		// currently, the below code assumes that the time-points
@@ -56,10 +53,9 @@ public class HCSDataSetter
 		// data model of BDV allows for missing time-points and for
 		// time-sequences that do not (all) need to start at 0
 		final int numTimepoints = plate.getTPositions().size();
-		wellRegionDisplay.timepoints = new HashSet<>();
 		for ( int t = 0; t < numTimepoints; t++ )
 		{
-			wellRegionDisplay.timepoints.add( t );
+			wellDisplay.timepoints().add( t );
 		}
 
 
@@ -101,7 +97,7 @@ public class HCSDataSetter
 					// thus we simply and only use
 					// the first channel for the
 					// well region display
-					wellRegionDisplay.sources.put( wellID, Arrays.asList( wellID ) );
+					wellDisplay.sources.put( wellID, Arrays.asList( wellID ) );
 				}
 
 				// for each site, create an image source
@@ -157,10 +153,10 @@ public class HCSDataSetter
 			displays.add( imageDisplay );
 		}
 
-		displays.add( wellRegionDisplay );
+		displays.add( wellDisplay );
 
 		// create plate view
-		final ArrayList< String > wells = new ArrayList<>( wellRegionDisplay.sources.keySet() );
+		final ArrayList< String > wells = new ArrayList<>( wellDisplay.sources.keySet() );
 		Collections.sort( wells );
 		final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( wells.get( 0 ), 0 );
 		final View view = new View( plate.getName(), "plate", displays, imageTransforms, viewerTransform, true );

@@ -47,7 +47,7 @@ public class BoundarySource< T extends Type< T > > extends AbstractBoundarySourc
         super( source, showAsBoundaries, boundaryWidth, bounds );
     }
 
-    protected RealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] pixelUnitsBoundaryWidth )
+    protected RealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, double[] pixelUnitsBoundaryWidth )
     {
         BiConsumer< RealLocalizable, T > biConsumer = ( l, output ) ->
         {
@@ -56,7 +56,7 @@ public class BoundarySource< T extends Type< T > > extends AbstractBoundarySourc
             // assumes that the default variable is the background value
             final T background = input.createVariable();
 
-            // by default set to background...
+            // set to background...
             output.set( background );
 
             if ( input.valueEquals( background ) )

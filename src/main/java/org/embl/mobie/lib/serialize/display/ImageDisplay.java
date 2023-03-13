@@ -30,7 +30,7 @@ package org.embl.mobie.lib.serialize.display;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.lib.bdv.render.BlendingMode;
+import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.bdv.view.ImageSliceView;
 import org.embl.mobie.lib.color.OpacityHelper;
 import org.embl.mobie.lib.volume.ImageVolumeViewer;

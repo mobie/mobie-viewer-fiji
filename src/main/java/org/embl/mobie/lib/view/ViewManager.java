@@ -458,8 +458,8 @@ public class ViewManager
 		}
 
 		// instantiate {@code RegionDisplay}
-		// note that this could not be done already in MoBIE.initData()
-		// because we needed to wait until all images are present
+		// note that this cannot be done already in MoBIE.initData()
+		// because we need to wait until all images are initialised
 		for ( Display< ? > display : view.displays() )
 		{
 			// https://github.com/mobie/mobie-viewer-fiji/issues/818
@@ -471,15 +471,12 @@ public class ViewManager
 				// *after* the above transformations,
 				// which may create new images
 				// that could be referred to here.
-
 				final RegionDisplay< ? > regionDisplay = ( RegionDisplay< ? > ) display;
-
 				final RegionDisplayAnnDataCreator annDataCreator = new RegionDisplayAnnDataCreator( moBIE, regionDisplay );
 				AnnData< AnnotatedRegion > annData = annDataCreator.getAnnData();
-				final RegionAnnotationImage< AnnotatedRegion > regionAnnotationImage = new RegionAnnotationImage( regionDisplay.getName(), annData, regionDisplay.timepoints );
+				final RegionAnnotationImage< AnnotatedRegion > regionAnnotationImage = new RegionAnnotationImage( regionDisplay.getName(), annData, regionDisplay.timepoints() );
 
 				DataStore.putImage( regionAnnotationImage );
-
 			}
 		}
 	}

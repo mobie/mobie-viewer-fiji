@@ -359,14 +359,19 @@ public class MoBIE
 				//
 				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( gridPattern + "_annotation" );
 				regionDisplay.sources = new LinkedHashMap<>();
-				regionDisplay.sourceNamesRegex = regex;
+				regionDisplay.setSourceNamesRegex( regex );
+				regionDisplay.showAsBoundaries( true );
+				regionDisplay.setBoundaryThickness( 0.05 );
+				regionDisplay.boundaryThicknessIsRelative( true );
+				// TODO: render boundaries outside!
 
+				// TODO: FIXME: this breaks if the gridPattern matches both sources
+				//  that contain and don't contain multiple channels
+				//  maybe a "SourceGrouper" class would be good to do this job
+				//  properly.
 				final HashMap< String, List< String > > channelToSources = new LinkedHashMap<>();
 				final Pattern channelPattern = Pattern.compile( ".*_ch(.+)$" );
 				final boolean containsChannelPattern = gridSources.stream().filter( name -> channelPattern.matcher( name ).matches() ).findFirst().isPresent();
-				// TODO: FIXME: this is a bug
-				//  as breaks if the gridPattern matches both sources
-				//  that contain and don't contain multiple channels
 				if ( containsChannelPattern )
 				{
 					// the grid sources contain multiple channels
@@ -399,17 +404,17 @@ public class MoBIE
 				final GridTransformation grid = new GridTransformation();
 				grid.nestedSources = new ArrayList<>();
 
-				final int numberOfGridPositions = channelToSources.values().iterator().next().size();
-				for ( int gridPosition = 0; gridPosition < numberOfGridPositions; gridPosition++ )
+				final int numPositions = channelToSources.values().iterator().next().size();
+				for ( int gridIndex = 0; gridIndex < numPositions; gridIndex++ )
 				{
 					grid.nestedSources.add( new ArrayList<>() );
-					regionDisplay.sources.put( "grid_" + gridPosition, new ArrayList<>() );
+					regionDisplay.sources.put( "grid_" + gridIndex, new ArrayList<>() );
 				}
 
 				for ( String channel : channelToSources.keySet() )
 				{
 					final List< String > sources = channelToSources.get( channel );
-					for ( int gridPosition = 0; gridPosition < numberOfGridPositions; gridPosition++ )
+					for ( int gridPosition = 0; gridPosition < numPositions; gridPosition++ )
 					{
 						try
 						{
@@ -430,7 +435,8 @@ public class MoBIE
 				for ( String channel : channelToSources.keySet() )
 				{
 					final List< String > channelSources = channelToSources.get( channel );
-					final Display< ? > referenceDisplay = dataset.views().get( channelSources.get( 0 ) ).displays().get( 0 );
+					final String referenceSource = channelSources.get( 0 );
+					final Display< ? > referenceDisplay = dataset.views().get( referenceSource ).displays().get( 0 );
 					Display< ? > display;
 					if ( referenceDisplay instanceof ImageDisplay )
 					{
@@ -477,7 +483,7 @@ public class MoBIE
 	//
 	// tables: provide the {@code StorageLocation}
 	// and the {@code TableDataFormat}.
-	public MoBIE( String projectName, AbstractSpimData< ? > image, AbstractSpimData< ? > segmentation, StorageLocation tableStorageLocation, TableDataFormat tableDataFormat )
+	public MoBIE( String projectName, AbstractSpimData< ? > image, @Nullable AbstractSpimData< ? > segmentation, @Nullable StorageLocation tableStorageLocation, @Nullable TableDataFormat tableDataFormat )
 	{
 		init();
 
@@ -485,7 +491,8 @@ public class MoBIE
 
 		addSpimDataImages( image, false, null, null );
 
-		addSpimDataImages( segmentation, true, tableStorageLocation, tableDataFormat );
+		if ( segmentation != null )
+			addSpimDataImages( segmentation, true, tableStorageLocation, tableDataFormat );
 
 		initUIandShowView( null );
 	}

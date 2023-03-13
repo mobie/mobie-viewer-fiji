@@ -96,7 +96,7 @@ public class RegionDisplayAnnDataCreator
 
 		table.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) );
 
-		if ( regionDisplay.sourceNamesRegex != null )
+		if ( regionDisplay.getSourceNamesRegex() != null )
 		{
 			addSourceNameParsingColumns( regions );
 		}
@@ -104,9 +104,9 @@ public class RegionDisplayAnnDataCreator
 
 	private void addSourceNameParsingColumns( List< String > regions )
 	{
-		final Pattern pattern = Pattern.compile( regionDisplay.sourceNamesRegex );
+		final Pattern pattern = Pattern.compile( regionDisplay.getSourceNamesRegex() );
 		final HashMap< String, List< String > > columnToValues = new HashMap<>();
-		final List< String > groupNames = getGroupNames( regionDisplay.sourceNamesRegex );
+		final List< String > groupNames = getGroupNames( regionDisplay.getSourceNamesRegex() );
 
 		for ( String region : regions )
 		{
@@ -134,11 +134,11 @@ public class RegionDisplayAnnDataCreator
 
 				columnToValues.get( column ).add( value );
 			}
+		}
 
-			for ( String column : columnToValues.keySet() )
-			{
-				table.addColumns( StringColumn.create( column, columnToValues.get( column ) ) );
-			}
+		for ( String column : columnToValues.keySet() )
+		{
+			table.addColumns( StringColumn.create( column, columnToValues.get( column ) ) );
 		}
 	}
 

@@ -26,38 +26,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.serialize.display;
+package org.embl.mobie.lib.bdv.blend;
 
-import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.lib.bdv.blend.BlendingMode;
-import org.embl.mobie.lib.image.Image;
+import bdv.viewer.render.AccumulateProjectorFactory;
+import org.scijava.plugin.Plugin;
+import sc.fiji.persist.IClassRuntimeAdapter;
 
-import java.util.List;
-
-
-/**
- * A display is a collection of images
- * with shared display settings.
+/*
+ * For serialization of {@link AccumulateOccludingProjectorARGBFactoryAdapter} objects
  *
- * Currently, everything that we display in MoBIE
- * is a display. This implies that it must be
- * modelled as an Image, which essentially is a Source.
- * This is in line with BDV, which internally also
- * models everything as a Source.
- *
- * Practically, for adding a Display to BDV,
- * all images, using the display settings, will be
- * converted to SourceAndConverters.
- *
- * @param <T> the data type of the images
+ * Used in {@link sc.fiji.bdvpg.bdv.supplier.mobie.MobieSerializableBdvOptions}
  */
-public interface Display< T >
-{
-	String getName();
-	List< String > getSources();
-	BlendingMode getBlendingMode();
-	double getOpacity();
-	boolean isVisible();
-	List< Image< T > > images();
-	List< SourceAndConverter< T > > sourceAndConverters();
+@Plugin(type = IClassRuntimeAdapter.class)
+public class AccumulateAlphaBlendingProjectorARGBFactoryAdapter implements IClassRuntimeAdapter<AccumulateProjectorFactory, AccumulateAlphaBlendingProjectorARGBFactory > {
+    @Override
+    public Class<? extends AccumulateProjectorFactory> getBaseClass() {
+        return AccumulateProjectorFactory.class;
+    }
+
+    @Override
+    public Class<? extends AccumulateAlphaBlendingProjectorARGBFactory > getRunTimeClass() {
+        return AccumulateAlphaBlendingProjectorARGBFactory.class;
+    }
+
+    public boolean useCustomAdapter() {return false;}
 }

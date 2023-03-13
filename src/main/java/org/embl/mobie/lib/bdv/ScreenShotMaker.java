@@ -40,7 +40,7 @@ import ij.process.LUT;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.real.FloatType;
 import org.embl.mobie.lib.annotation.Annotation;
-import org.embl.mobie.lib.bdv.render.AccumulateAlphaBlendingProjectorARGB;
+import org.embl.mobie.lib.bdv.blend.AccumulateAlphaBlendingProjectorARGB;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;

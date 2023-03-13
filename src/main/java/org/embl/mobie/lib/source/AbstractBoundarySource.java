@@ -45,23 +45,23 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
 {
     protected final Source< T > source;
     protected boolean showAsBoundaries;
-    protected float calibratedBoundaryWidth;
+    protected double boundaryWidth;
     protected ArrayList< Integer > boundaryDimensions;
     protected RealInterval bounds;
 
-    public AbstractBoundarySource( final Source< T > source, boolean showAsBoundaries, float calibratedBoundaryWidth, @Nullable RealInterval bounds )
+    public AbstractBoundarySource( final Source< T > source, boolean showAsBoundaries, float boundaryWidth, @Nullable RealInterval bounds )
     {
         this.source = source;
         this.showAsBoundaries = showAsBoundaries;
-        this.calibratedBoundaryWidth = calibratedBoundaryWidth;
+        this.boundaryWidth = boundaryWidth;
         this.bounds = bounds;
         this.boundaryDimensions = boundaryDimensions();
     }
 
-    public void showAsBoundary( boolean showAsBoundaries, float boundaryWidth )
+    public void showAsBoundary( boolean showAsBoundaries, double boundaryWidth )
     {
         this.showAsBoundaries = showAsBoundaries;
-        this.calibratedBoundaryWidth = boundaryWidth;
+        this.boundaryWidth = boundaryWidth; // in calibrated units
         this.boundaryDimensions = boundaryDimensions();
     }
 
@@ -100,8 +100,8 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
             // which is in pixel units.
             // However, it feels like we could stay longer
             // in physical units here to make this less confusing.
-            final float[] pixelBoundaryWidth = pixelBoundaryWidth( t, level );
-            return createBoundaryImage( rra, boundaryDimensions, pixelBoundaryWidth );
+            final double[] pixelUnitsBoundaryWidth = pixelBoundaryWidth( t, level );
+            return createBoundaryImage( rra, boundaryDimensions, pixelUnitsBoundaryWidth );
         }
         else
         {
@@ -116,7 +116,7 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
     // the values could be directly created in real space without
     // any backing of a voxel grid. This is in fact the case for the
     // ImageAnnotationLabelImage, which is one use-case of the BoundarySource.
-    protected abstract RealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] pixelUnitsBoundaryWidth );
+    protected abstract RealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, double[] pixelUnitsBoundaryWidth );
 
     protected ArrayList< Integer > boundaryDimensions()
     {
@@ -129,7 +129,7 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
             for ( int d = 0; d < 3; d++ )
             {
                 final double sourceWidth = Math.abs( bounds.realMax( d ) - bounds.realMin( d ) );
-                if ( sourceWidth > 3 * calibratedBoundaryWidth )
+                if ( sourceWidth > 3 * boundaryWidth )
                     dimensions.add( d );
             }
         }
@@ -150,10 +150,10 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
         return dimensions;
     }
 
-    protected float[] pixelBoundaryWidth( int t, int level )
+    protected double[] pixelBoundaryWidth( int t, int level )
     {
-        final float[] boundaries = new float[ 3 ];
-        Arrays.fill( boundaries, calibratedBoundaryWidth );
+        final double[] boundaries = new double[ 3 ];
+        Arrays.fill( boundaries, boundaryWidth );
         final AffineTransform3D sourceTransform = new AffineTransform3D();
         getSourceTransform( t, level, sourceTransform );
         for ( int d = 0; d < 3; d++ )
@@ -189,14 +189,14 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
         return source;
     }
 
-    public boolean isShowAsBoundaries()
+    public boolean showAsBoundaries()
     {
         return showAsBoundaries;
     }
 
-    public float getCalibratedBoundaryWidth()
+    public double getBoundaryWidth()
     {
-        return calibratedBoundaryWidth;
+        return boundaryWidth;
     }
 
 }

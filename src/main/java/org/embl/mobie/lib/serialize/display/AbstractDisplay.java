@@ -29,7 +29,7 @@
 package org.embl.mobie.lib.serialize.display;
 
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.lib.bdv.render.BlendingMode;
+import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
 import org.embl.mobie.lib.image.Image;
 

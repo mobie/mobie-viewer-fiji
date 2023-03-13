@@ -64,17 +64,10 @@ public class ViewImageAndSegmentationAndTableCommand extends DynamicCommand impl
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static final String LABEL = "Label";
-	public static final String COLUMN_NAME_LABEL_IMAGE_ID = "LabelImage";
-	public static final String CENTROID_X = "Centroid.X";
-	public static final String CENTROID_Y = "Centroid.Y";
-	public static final String CENTROID_Z = "Centroid.Z";
-	public static final String MEAN_BREADTH = "MeanBreadth";
-
-	@Parameter ( label = "Intensity image", required = false )
+	@Parameter ( label = "Intensity Image", required = false )
 	public ImagePlus image;
 
-	@Parameter ( label = "Label mask image" )
+	@Parameter ( label = "Label Mask Image" )
 	public ImagePlus segmentation;
 
 	@Parameter ( label = "Table" )

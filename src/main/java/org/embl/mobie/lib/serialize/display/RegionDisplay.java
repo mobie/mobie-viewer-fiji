@@ -33,7 +33,10 @@ import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.hcs.Well;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,9 +53,21 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotat
 
 	// Other
 
-	public Set< Integer > timepoints; // which timepoints to annotate
+	private Set< Integer > timepoints = new HashSet<>( Arrays.asList( 0 ) ); // which timepoints to annotate
 
-	public String sourceNamesRegex; // optionally parse the source names to create annotations
+	private String sourceNamesRegex; // optionally parse the source names to create annotations
+
+	private boolean boundaryThicknessIsRelative = false;
+
+	public boolean boundaryThicknessIsRelative()
+	{
+		return boundaryThicknessIsRelative;
+	}
+
+	public void boundaryThicknessIsRelative( boolean boundaryThicknessIsRelative )
+	{
+		this.boundaryThicknessIsRelative = boundaryThicknessIsRelative;
+	}
 
 	// Used by Gson
 	public RegionDisplay()
@@ -114,5 +129,20 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotat
 		final ArrayList< String > sources = new ArrayList<>();
 		sources.add( getName() );
 		return sources;
+	}
+
+	public Set< Integer > timepoints()
+	{
+		return timepoints;
+	}
+
+	public String getSourceNamesRegex()
+	{
+		return sourceNamesRegex;
+	}
+
+	public void setSourceNamesRegex( String sourceNamesRegex )
+	{
+		this.sourceNamesRegex = sourceNamesRegex;
 	}
 }

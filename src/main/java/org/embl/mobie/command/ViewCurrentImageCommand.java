@@ -1,8 +1,8 @@
 /*-
  * #%L
- * Fiji viewer for MoBIE projects
+ * Various Java code for ImageJ
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2021 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -26,28 +26,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.bdv.render;
+package org.embl.mobie.command;
 
-import bdv.viewer.render.AccumulateProjectorFactory;
+import de.embl.cba.tables.results.ResultsTableFetcher;
+import ij.ImagePlus;
+import ij.measure.ResultsTable;
+import mpicbg.spim.data.generic.AbstractSpimData;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.io.SpimDataOpener;
+import org.embl.mobie.lib.io.StorageLocation;
+import org.embl.mobie.lib.table.TableDataFormat;
+import org.scijava.Initializable;
+import org.scijava.command.Command;
+import org.scijava.command.DynamicCommand;
+import org.scijava.module.MutableModuleItem;
+import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import sc.fiji.persist.IClassRuntimeAdapter;
 
-/*
- * For serialization of {@link AccumulateOccludingProjectorARGBFactoryAdapter} objects
- *
- * Used in {@link sc.fiji.bdvpg.bdv.supplier.mobie.MobieSerializableBdvOptions}
- */
-@Plugin(type = IClassRuntimeAdapter.class)
-public class AccumulateAlphaBlendingProjectorARGBFactoryAdapter implements IClassRuntimeAdapter<AccumulateProjectorFactory, AccumulateAlphaBlendingProjectorARGBFactory > {
-    @Override
-    public Class<? extends AccumulateProjectorFactory> getBaseClass() {
-        return AccumulateProjectorFactory.class;
-    }
+import java.util.ArrayList;
+import java.util.HashMap;
 
-    @Override
-    public Class<? extends AccumulateAlphaBlendingProjectorARGBFactory > getRunTimeClass() {
-        return AccumulateAlphaBlendingProjectorARGBFactory.class;
-    }
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "View>View Current Image..."  )
+public class ViewCurrentImageCommand implements Command
+{
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    public boolean useCustomAdapter() {return false;}
+	@Parameter ( label = "Current Image", required = true )
+	public ImagePlus image;
+
+	@Override
+	public void run()
+	{
+		final AbstractSpimData< ? > imageData = new SpimDataOpener().open( image );
+		new MoBIE( "ImageJ", imageData, null, null, null );
+	}
 }

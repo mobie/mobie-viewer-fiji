@@ -40,7 +40,6 @@ import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.source.VolatileBoundarySource;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
@@ -71,7 +70,7 @@ public class ConfigureLabelRenderingCommand extends DynamicCommand implements Bd
 	public boolean showAsBoundary;
 
 	@Parameter( label = "Boundary thickness", callback = "logBoundaryThickness", style = "format:#.00" )
-	public float boundaryThickness = 1.0F;
+	public double boundaryThickness = 1.0F;
 
 	@Parameter( label = "Label coloring", choices = { SEGMENT_COLOR, SELECTION_COLOR } )
 	public String coloringMode = SEGMENT_COLOR;
@@ -92,6 +91,7 @@ public class ConfigureLabelRenderingCommand extends DynamicCommand implements Bd
 	public void initialize()
 	{
 		initRandomColorSeedItem();
+		initBoundaryRenderingItem();
 	}
 
 	protected void initRandomColorSeedItem()
@@ -116,6 +116,28 @@ public class ConfigureLabelRenderingCommand extends DynamicCommand implements Bd
 			}
 		}
 	}
+
+	protected void initBoundaryRenderingItem()
+	{
+		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
+		{
+			final BoundarySource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
+
+			if ( boundarySource != null )
+			{
+				final MutableModuleItem< Boolean > showAsBoundaryItem = getInfo().getMutableInput( "showAsBoundary", Boolean.class );
+
+				showAsBoundaryItem.setValue( this, boundarySource.showAsBoundaries() );
+
+				final MutableModuleItem< Double > boundaryThicknessItem = getInfo().getMutableInput( "boundaryThickness", Double.class );
+
+				boundaryThicknessItem.setValue( this, boundarySource.getBoundaryWidth() );
+
+				return;
+			}
+		}
+	}
+
 
 	@Override
 	public void run()

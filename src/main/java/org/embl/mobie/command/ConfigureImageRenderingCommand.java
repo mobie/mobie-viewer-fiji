@@ -30,9 +30,8 @@ package org.embl.mobie.command;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.lib.bdv.render.BlendingMode;
+import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.volume.ImageVolumeViewer;
-import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
