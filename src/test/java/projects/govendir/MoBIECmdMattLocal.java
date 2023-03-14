@@ -25,7 +25,7 @@ class MoBIECmdMattLocal
 		//cmd.tables = new String[]{ "/Users/tischer/Desktop/matt/analysed/*_seg.csv" };
 		// if it is like this "*_1*" one would expect 4 grids.
 		// XYZ__EGM_8hr_1--jun.tif
-		cmd.grids = new String[]{ "(?<date>*)__(?<treat>*_*)_*--jun" };
+		cmd.grids = new String[]{ "(?<date>*)__(?<rowtreat>*_*)_*--jun" };
 		cmd.call();
 	}
 }

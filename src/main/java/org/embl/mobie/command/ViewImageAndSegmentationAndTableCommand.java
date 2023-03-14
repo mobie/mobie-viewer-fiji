@@ -64,7 +64,7 @@ public class ViewImageAndSegmentationAndTableCommand extends DynamicCommand impl
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter ( label = "Intensity Image", required = false )
+	@Parameter ( label = "Intensity Image" )
 	public ImagePlus image;
 
 	@Parameter ( label = "Label Mask Image" )

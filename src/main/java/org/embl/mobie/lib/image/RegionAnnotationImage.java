@@ -95,6 +95,9 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 		// and then make a Map< Timepoint, regions > and modify RealRandomAccessibleIntervalTimelapseSource to consume this map
 		final FunctionRealRandomAccessible< AnnotationType< AR > > regions = new FunctionRealRandomAccessible( 3, new LocationToAnnotatedRegionSupplier(), () -> new AnnotationType<>( annData.getTable().annotations().get( 0 ) ) );
 
+		// TODO it would be nice if this Source had the same voxel unit
+		//   as the other sources, but that would mean touching one of the
+		//   annotated images which could be expensive.
 		source = new RealRandomAccessibleIntervalTimelapseSource<>( regions, interval, new AnnotationType<>( annData.getTable().annotations().get( 0 ) ), new AffineTransform3D(), name, true, timepoints );
 	}
 

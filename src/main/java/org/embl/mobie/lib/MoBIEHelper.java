@@ -35,6 +35,11 @@ import loci.plugins.in.ImporterOptions;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.Dimensions;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 public abstract class MoBIEHelper
 {
@@ -149,6 +154,19 @@ public abstract class MoBIEHelper
 	{
 		final Dimensions size = spimData.getSequenceDescription().getViewSetupsOrdered().get( setupIndex ).getSize();
 		return size.dimension( 2 ) == 1;
+	}
+
+	public static List< String > getGroupNames( String regex )
+	{
+		List< String > namedGroups = new ArrayList<>();
+
+		Matcher m = Pattern.compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>").matcher(regex);
+
+		while ( m.find() ) {
+			namedGroups.add(m.group(1));
+		}
+
+		return namedGroups;
 	}
 
 	public enum FileLocation

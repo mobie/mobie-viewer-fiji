@@ -2,6 +2,7 @@ package org.embl.mobie.lib.source;
 
 import bdv.util.RealRandomAccessibleSource;
 import mpicbg.spim.data.sequence.DefaultVoxelDimensions;
+import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imglib2.Interval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -25,7 +26,7 @@ public class RealRandomAccessibleIntervalTimelapseSource< T extends Type< T > > 
 			final boolean doBoundingBoxIntersectionCheck,
 			final Set< Integer > timePoints )
 	{
-		super( accessible, type, name, new DefaultVoxelDimensions( -1 ), doBoundingBoxIntersectionCheck );
+		super( accessible, type, name, new FinalVoxelDimensions( "", 1, 1, 1 ), doBoundingBoxIntersectionCheck );
 		this.interval = interval;
 		this.sourceTransform = sourceTransform;
 		this.timePoints = timePoints;

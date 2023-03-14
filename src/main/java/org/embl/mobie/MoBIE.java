@@ -104,9 +104,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -189,7 +191,15 @@ public class MoBIE
 		openAndViewDataset();
 	}
 
-	public MoBIE( String projectName, String[] imagePaths, String[] segmentationPaths, String[] tablePaths, String[] grids ) throws IOException
+	public MoBIE( String projectName, File imagePath, File segmentationPath, File tablePath ) throws IOException
+	{
+		this( projectName,
+				imagePath == null ? null : new String[]{ imagePath.getAbsolutePath() },
+				segmentationPath == null ? null : new String[]{ segmentationPath.getAbsolutePath() },
+				tablePath == null ? null : new String[]{ tablePath.getAbsolutePath() },
+				null );
+	}
+	public MoBIE( String projectName, @Nullable String[] imagePaths, @Nullable String[] segmentationPaths, @Nullable String[] tablePaths, @Nullable String[] grids ) throws IOException
 	{
 		init();
 
@@ -357,13 +367,12 @@ public class MoBIE
 				// prepare a RegionDisplay for outlining
 				// and the grid positions
 				//
-				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( gridPattern + "_annotation" );
+				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( gridPattern + " table" );
 				regionDisplay.sources = new LinkedHashMap<>();
 				regionDisplay.setSourceNamesRegex( regex );
 				regionDisplay.showAsBoundaries( true );
 				regionDisplay.setBoundaryThickness( 0.05 );
 				regionDisplay.boundaryThicknessIsRelative( true );
-				// TODO: render boundaries outside!
 
 				// TODO: FIXME: this breaks if the gridPattern matches both sources
 				//  that contain and don't contain multiple channels
@@ -390,7 +399,7 @@ public class MoBIE
 						}
 						else
 						{
-							// should not happen:
+							// this should not happen:
 							throw new UnsupportedOperationException( "Could not extract channel ID of " + gridSource );
 						}
 					}
@@ -398,7 +407,7 @@ public class MoBIE
 				else
 				{
 					// just one channel
-					channelToSources.put("ch0", gridSources);
+					channelToSources.put( "ch0", gridSources );
 				}
 
 				final GridTransformation grid = new GridTransformation();
@@ -411,9 +420,37 @@ public class MoBIE
 					regionDisplay.sources.put( "grid_" + gridIndex, new ArrayList<>() );
 				}
 
+				final List< String > groupNames = MoBIEHelper.getGroupNames( regex );
+				final Optional< String > sortingGroup = groupNames.stream().filter( name -> name.startsWith( "row" ) ).findFirst();
+
+				if ( sortingGroup.isPresent() )
+				{
+					final List< String > sources = channelToSources.values().iterator().next();
+					final HashSet< String > categorySet = new HashSet<>();
+					for ( String source : sources )
+					{
+						final Matcher matcher = pattern.matcher( source );
+						matcher.matches();
+						categorySet.add( matcher.group( sortingGroup.get() ) );
+					}
+
+					final ArrayList< String > categories = new ArrayList<>( categorySet );
+					final int[] numSources = new int[ categories.size() ];
+					grid.positions = new ArrayList<>();
+					for ( String source : sources )
+					{
+						final Matcher matcher = pattern.matcher( source );
+						matcher.matches();
+						final int row = categories.indexOf( matcher.group( sortingGroup.get() ) );
+						final int column = numSources[ row ];
+						grid.positions.add( new int[]{ column, row } );
+					}
+				}
+
 				for ( String channel : channelToSources.keySet() )
 				{
 					final List< String > sources = channelToSources.get( channel );
+
 					for ( int gridPosition = 0; gridPosition < numPositions; gridPosition++ )
 					{
 						try
@@ -430,7 +467,6 @@ public class MoBIE
 				}
 
 				final ArrayList< Display< ? > > displays = new ArrayList<>();
-				displays.add( regionDisplay );
 
 				for ( String channel : channelToSources.keySet() )
 				{
@@ -458,6 +494,7 @@ public class MoBIE
 
 				// create a view for this gridPattern
 				//
+				displays.add( regionDisplay );
 				final View gridView = new View( gridPattern, "grids", displays, Arrays.asList( grid ), false );
 				gridView.overlayNames( true );
 				dataset.views().put( gridView.getName(), gridView );
@@ -543,7 +580,6 @@ public class MoBIE
 
 	private void adjustLogWindow( UserInterface userInterface )
 	{
-		IJ.log( " " ); // to make sure the Log Window exists
 		final Window userInterfaceWindow = userInterface.getWindow();
 		WindowArrangementHelper.bottomAlignWindow( userInterfaceWindow, WindowManager.getWindow( "Log" ), true, true );
 	}
@@ -807,6 +843,7 @@ public class MoBIE
 
 	private void initUI()
 	{
+		IJ.log( "# MoBIE" );
 		sourceNameToImgLoader = new HashMap<>();
 		userInterface = new UserInterface( this );
 		adjustLogWindow( userInterface );

@@ -475,7 +475,6 @@ public class ViewManager
 				final RegionDisplayAnnDataCreator annDataCreator = new RegionDisplayAnnDataCreator( moBIE, regionDisplay );
 				AnnData< AnnotatedRegion > annData = annDataCreator.getAnnData();
 				final RegionAnnotationImage< AnnotatedRegion > regionAnnotationImage = new RegionAnnotationImage( regionDisplay.getName(), annData, regionDisplay.timepoints() );
-
 				DataStore.putImage( regionAnnotationImage );
 			}
 		}

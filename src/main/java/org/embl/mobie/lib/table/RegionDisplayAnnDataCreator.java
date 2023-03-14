@@ -2,6 +2,7 @@ package org.embl.mobie.lib.table;
 
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.DataStore;
+import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.RegionDataSource;
@@ -15,10 +16,8 @@ import tech.tablesaw.api.Table;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -106,7 +105,7 @@ public class RegionDisplayAnnDataCreator
 	{
 		final Pattern pattern = Pattern.compile( regionDisplay.getSourceNamesRegex() );
 		final HashMap< String, List< String > > columnToValues = new HashMap<>();
-		final List< String > groupNames = getGroupNames( regionDisplay.getSourceNamesRegex() );
+		final List< String > groupNames = MoBIEHelper.getGroupNames( regionDisplay.getSourceNamesRegex() );
 
 		for ( String region : regions )
 		{
@@ -140,19 +139,6 @@ public class RegionDisplayAnnDataCreator
 		{
 			table.addColumns( StringColumn.create( column, columnToValues.get( column ) ) );
 		}
-	}
-
-	private static List< String > getGroupNames( String regex )
-	{
-		List< String > namedGroups = new ArrayList<>();
-
-		Matcher m = Pattern.compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>").matcher(regex);
-
-		while ( m.find() ) {
-			namedGroups.add(m.group(1));
-		}
-
-		return namedGroups;
 	}
 
 }
