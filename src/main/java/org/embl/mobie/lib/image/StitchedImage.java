@@ -103,6 +103,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 	private final boolean debug = false;
 	private RealMaskRealInterval mask;
+	private Source< T > metadataSource;
 
 	public StitchedImage( List< ? extends Image< T > > images, Image< T > metadataImage, @Nullable List< int[] > positions, String name, double relativeTileMargin )
 	{
@@ -115,7 +116,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		// This can make initialisation much faster.
 		// This is useful if there are many StitchedImages to be initialised
 		// such as the wells of an HTM screen.
-		Source< T > metadataSource = metadataImage.getSourcePair().getSource();
+		this.metadataSource = metadataImage.getSourcePair().getSource();
 		this.type = metadataSource.getType().createVariable();
 		this.volatileType = ( V ) MoBIEVolatileTypeMatcher.getVolatileTypeForType( type );
 		this.numTimepoints = SourceHelper.getNumTimepoints( metadataSource );
@@ -347,10 +348,10 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		// non-volatile
 		//
-		final Map< Integer, List< RandomAccessibleInterval< T > > > stitched = stitchTiles( tileStore );
+		final Map< Integer, List< RandomAccessibleInterval< T > > > timepointToRAI = stitchTiles( tileStore );
 
 		final StitchedSource< T > source = new StitchedSource<>(
-				stitched,
+				timepointToRAI,
 				type,
 				voxelDimensions,
 				name,
@@ -777,16 +778,22 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	{
 		final long[] min = new long[ 3 ];
 		final long[] max = new long[ 3 ];
+
+		// for x and y this is the size of the stitched tiles
 		for ( int d = 0; d < 2; d++ )
 		{
 			min[ d ] = minPos[ d ] * tileDimensions[ level ][ d ];
 			max[ d ] = ( maxPos[ d ] + 1 ) * tileDimensions[ level ][ d ];
 		}
 
+		// along the z-dimension it simply is the size of the reference source
+		min[ 2 ] = metadataSource.getSource( 0, level ).min( 2 );
+		max[ 2 ] = metadataSource.getSource( 0, level ).max( 2 );
+
 		if ( debug )
 		{
-			final double[] size = new double[ 2 ];
-			for ( int d = 0; d < 2; d++ )
+			final double[] size = new double[ 3 ];
+			for ( int d = 0; d < 3; d++ )
 			{
 				size[ d ] = ( max[ d ] - min[ d ] ) * mipmapScales[ level ][ d ];
 			}

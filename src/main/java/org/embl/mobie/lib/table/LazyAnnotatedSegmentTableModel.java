@@ -119,7 +119,8 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	@Override
 	public synchronized void transform( AffineTransform3D affineTransform3D )
 	{
-		throw new RuntimeException( this.getClass().getName() + " cannot be transformed yet. Please report on https://github.com/mobie/mobie-viewer-fiji/issues" );
+		System.err.println( this.getClass().getName() + " cannot be transformed yet. Please report on https://github.com/mobie/mobie-viewer-fiji/issues" );
+		//throw new RuntimeException( this.getClass().getName() + " cannot be transformed yet. Please report on https://github.com/mobie/mobie-viewer-fiji/issues" );
 	}
 
 	@Override

@@ -349,7 +349,20 @@ public class MoBIE
 			//   one for all images and one for all segmentations
 			for ( String gridPattern : grids )
 			{
-				final String regex = IOHelper.wildcardToRegex( gridPattern );
+
+				String regex;
+				String rowGroup = null;
+				if( gridPattern.contains( ";" ) )
+				{
+					final String[] split = gridPattern.split( ";" );
+					regex = IOHelper.wildcardToRegex( split[ 0 ] );
+					rowGroup = split[ 1 ];
+				}
+				else
+				{
+					regex = IOHelper.wildcardToRegex( gridPattern );
+				}
+
 				IJ.log( "Creating grid view for: " + regex );
 				final Pattern pattern = Pattern.compile( regex );
 				final List< String > gridSources = dataset.sources().keySet()
@@ -421,9 +434,8 @@ public class MoBIE
 				}
 
 				final List< String > groupNames = MoBIEHelper.getGroupNames( regex );
-				final Optional< String > sortingGroup = groupNames.stream().filter( name -> name.startsWith( "row" ) ).findFirst();
 
-				if ( sortingGroup.isPresent() )
+				if ( rowGroup != null )
 				{
 					final List< String > sources = channelToSources.values().iterator().next();
 					final HashSet< String > categorySet = new HashSet<>();
@@ -431,7 +443,7 @@ public class MoBIE
 					{
 						final Matcher matcher = pattern.matcher( source );
 						matcher.matches();
-						categorySet.add( matcher.group( sortingGroup.get() ) );
+						categorySet.add( matcher.group( rowGroup ) );
 					}
 
 					final ArrayList< String > categories = new ArrayList<>( categorySet );
@@ -441,8 +453,9 @@ public class MoBIE
 					{
 						final Matcher matcher = pattern.matcher( source );
 						matcher.matches();
-						final int row = categories.indexOf( matcher.group( sortingGroup.get() ) );
+						final int row = categories.indexOf( matcher.group( rowGroup ) );
 						final int column = numSources[ row ];
+						numSources[ row ]++;
 						grid.positions.add( new int[]{ column, row } );
 					}
 				}
