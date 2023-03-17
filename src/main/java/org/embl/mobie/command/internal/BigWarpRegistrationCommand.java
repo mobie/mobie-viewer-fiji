@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.internal;
 
 import bdv.gui.TransformTypeSelectDialog;
 import bdv.tools.brightness.ConverterSetup;
@@ -38,6 +38,7 @@ import bdv.viewer.TransformListener;
 import bigwarp.BigWarp;
 import bigwarp.transforms.BigWarpTransform;
 import ij.gui.NonBlockingGenericDialog;
+import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.transform.TransformHelper;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.InvertibleRealTransform;

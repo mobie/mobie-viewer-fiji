@@ -26,35 +26,54 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.open;
 
-import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.io.util.IOHelper;
 import org.scijava.command.Command;
+import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.widget.Button;
 
+import java.io.File;
 import java.io.IOException;
 
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Open PlatyBrowser")
-public class OpenPlatyBrowserCommand implements Command
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open HCS Dataset..." )
+public class OpenHCSDatasetCommand implements Command
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
+	@Parameter ( label = "HCS Plate Directory", style = "directory" )
+	public File hcsDirectory;
+
+	@Parameter ( label = "Relative Well Margin" )
+	public double wellMargin = 0.1;
+
+	@Parameter ( label = "Relative Site Margin" )
+	public double siteMargin = 0.0;
+
+	@Parameter ( label = "Help", callback = "help")
+	public Button help;
 
 	@Override
 	public void run()
 	{
-		MoBIESettings options = MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5S3 );
-
 		try
 		{
-			new MoBIE( "https://github.com/mobie/platybrowser-datasets", options );
+			new MoBIE( hcsDirectory.getAbsolutePath(), new MoBIESettings(), wellMargin, siteMargin );
 		}
 		catch ( IOException e )
 		{
 			e.printStackTrace();
 		}
 	}
+
+	private void help()
+	{
+		IOHelper.openURI( "https://mobie.github.io/tutorials/hcs.html" );
+	}
+
 }

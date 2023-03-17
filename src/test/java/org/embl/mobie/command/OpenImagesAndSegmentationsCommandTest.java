@@ -1,6 +1,7 @@
 package org.embl.mobie.command;
 
 import net.imagej.ImageJ;
+import org.embl.mobie.command.open.OpenImageAndSegmentationCommand;
 
 import java.io.File;
 

@@ -29,7 +29,7 @@
 package develop;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.OpenOMEZARRFromS3WithCredentialsCommand;
+import org.embl.mobie.command.open.OpenOMEZARRFromS3WithCredentialsCommand;
 
 public class DemoOpenOMEZARRFromS3MultiChannel
 {

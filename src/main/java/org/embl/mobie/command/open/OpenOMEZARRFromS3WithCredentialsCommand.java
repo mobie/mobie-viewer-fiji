@@ -26,38 +26,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.open;
 
-import mpicbg.spim.data.SpimDataException;
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.io.util.S3Utils;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
-
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Open MoBIE Project..." )
-public class OpenMoBIEProjectCommand implements Command
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open OME-Zarr From S3 with Credentials...")
+public class OpenOMEZARRFromS3WithCredentialsCommand extends OpenOMEZARRFromS3Command
 {
-	static { net.imagej.patcher.LegacyInjector.preinit(); }
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter ( label = "Project Location" )
-	public String projectLocation = "https://github.com/mobie/platybrowser-datasets";
+    @Parameter ( label = "S3 Access Key", persist = false )
+    public String s3AccessKey = "";
 
-	@Override
-	public void run()
-	{
-		MoBIESettings options = MoBIESettings.settings();
+    @Parameter ( label = "S3 Secret Key", persist = false )
+    public String s3SecretKey = "";
 
-		try
-		{
-			new MoBIE( projectLocation, options );
-		}
-		catch ( IOException e )
-		{
-			e.printStackTrace();
-		}
-	}
+    @Override
+    public void run() {
+        try {
+            S3Utils.setS3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } );
+            openAndShow( s3URL );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

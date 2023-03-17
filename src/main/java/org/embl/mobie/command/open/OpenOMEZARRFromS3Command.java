@@ -26,31 +26,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.open;
 
-import org.embl.mobie.io.util.S3Utils;
+import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.bdv.view.OMEZarrViewer;
+import mpicbg.spim.data.SpimData;
+import org.embl.mobie.io.ome.zarr.openers.OMEZarrS3Opener;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME-Zarr>" +
-        "Open OME-Zarr From S3 with Credentials...")
-public class OpenOMEZARRFromS3WithCredentialsCommand extends OpenOMEZARRFromS3Command
-{
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open OME-Zarr From S3...")
+public class OpenOMEZARRFromS3Command implements Command {
+
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    @Parameter ( label = "S3 Access Key", persist = false )
-    public String s3AccessKey = "";
+    @Parameter(label = "S3 URL")
+    public String s3URL = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
 
-    @Parameter ( label = "S3 Secret Key", persist = false )
-    public String s3SecretKey = "";
+    @Parameter ( label = "Log chunk loading" )
+    public boolean logChunkLoading = false;
+
+    protected static void openAndShow(String s3URL) throws IOException
+    {
+        SpimData spimData = OMEZarrS3Opener.readURL( s3URL );
+        final OMEZarrViewer viewer = new OMEZarrViewer( spimData );
+        viewer.show();
+    }
 
     @Override
     public void run() {
         try {
-            S3Utils.setS3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } );
+            OMEZarrS3Opener.setLogging( logChunkLoading );
             openAndShow( s3URL );
         } catch (IOException e) {
             e.printStackTrace();

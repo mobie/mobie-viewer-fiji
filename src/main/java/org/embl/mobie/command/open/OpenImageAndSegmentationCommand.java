@@ -1,8 +1,9 @@
-package org.embl.mobie.command;
+package org.embl.mobie.command.open;
 
 import ij.IJ;
 import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.command.CommandConstants;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -11,7 +12,7 @@ import org.scijava.widget.Button;
 import java.io.File;
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Open Image and Segmentation..." )
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Image and Segmentation..." )
 public class OpenImageAndSegmentationCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }

@@ -1,4 +1,4 @@
-package org.embl.mobie.command.util;
+package org.embl.mobie.command;
 
 import ij.IJ;
 import ij.WindowManager;

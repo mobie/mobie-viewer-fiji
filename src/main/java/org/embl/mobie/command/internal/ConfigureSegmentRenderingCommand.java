@@ -26,45 +26,51 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.internal;
 
-import mpicbg.spim.data.SpimDataException;
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.MoBIESettings;
-import org.scijava.command.Command;
+import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-import java.io.IOException;
-
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Advanced>Open MoBIE Project With S3 Credentials..." )
-public class OpenMoBIEProjectWithS3CredentialsCommand implements Command
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Segment Rendering")
+public class ConfigureSegmentRenderingCommand extends ConfigureLabelRenderingCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter ( label = "S3 Project Location" )
-	public String projectLocation = "https://s3.embl.de/comulis";
+	public static final String AUTO = "Automatic";
+	public static final String USE_BELOW_RESOLUTION = "Use below resolution";
 
-	@Parameter ( label = "S3 Access Key" )
-	public String s3AccessKey = "";
+	@Parameter
+	protected SegmentVolumeViewer< ? > volumeViewer;
 
-	@Parameter ( label = "S3 Secret Key", persist = false )
-	public String s3SecretKey = "";
+	@Parameter ( label = "Volume rendering", choices = { AUTO, USE_BELOW_RESOLUTION } )
+	public String volumeRenderingMode = AUTO;
+
+	@Parameter ( label = "Volume rendering resolution", style="format:#0.000" )
+	public double voxelSpacing = 1.0;
 
 	@Override
 	public void run()
 	{
-		try
-		{
-			new MoBIE(
-					projectLocation,
-					MoBIESettings.settings()
-							.s3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } )
-			);
-		}
-		catch ( IOException e )
-		{
-			e.printStackTrace();
-		}
+		super.run();
+
+		updateVolumeRendering();
+	}
+
+	private void updateVolumeRendering()
+	{
+		if ( volumeViewer == null ) return;
+
+		boolean updateVolumeRendering = false;
+
+		if ( volumeRenderingMode.equals( AUTO ) )
+			updateVolumeRendering = volumeViewer.setVoxelSpacing( null );
+		else if ( volumeRenderingMode.equals( USE_BELOW_RESOLUTION ) )
+			updateVolumeRendering = volumeViewer.setVoxelSpacing( new double[]{ voxelSpacing, voxelSpacing, voxelSpacing } );
+
+		if ( updateVolumeRendering )
+			volumeViewer.updateView( updateVolumeRendering );
 	}
 }

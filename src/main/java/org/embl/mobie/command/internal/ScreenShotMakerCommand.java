@@ -26,11 +26,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.internal;
 
 import bdv.util.BdvHandle;
 import ij.IJ;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;

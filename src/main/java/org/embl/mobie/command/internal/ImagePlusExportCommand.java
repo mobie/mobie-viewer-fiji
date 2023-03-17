@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.internal;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.Affine3DHelpers;
@@ -34,6 +34,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import ij.ImagePlus;
+import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.source.SourceHelper;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.display.imagej.ImageJFunctions;

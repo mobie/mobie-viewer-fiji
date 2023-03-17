@@ -34,9 +34,13 @@ public class MergedGridTransformation extends AbstractGridTransformation
 {
 	// Serialization
 	// TODO: make fields private and add getter and setter methods
+
 	public List< String > sources; // required
+
 	private String mergedGridSourceName; // required => name of corresponding StitchedImage
-	public String metadataSource; // optional
+
+	public String metadataSource; // optional, this improves performance (a lot)
+
 	public boolean centerAtOrigin = false; // TODO: should actually be true, but: https://github.com/mobie/mobie-viewer-fiji/issues/685#issuecomment-1108179599
 
 	@Override

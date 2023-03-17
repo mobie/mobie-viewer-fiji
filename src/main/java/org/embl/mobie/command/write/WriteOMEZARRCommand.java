@@ -26,9 +26,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.write;
 
 import ij.ImagePlus;
+import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.create.ui.ManualExportPanel;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.io.ImageDataFormat;
@@ -45,7 +46,7 @@ import java.io.File;
 
 import static org.embl.mobie.lib.ui.UserInterfaceHelper.tidyString;
 
-@Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME-Zarr>Export Current Image To OME-ZARR...")
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Create>Save Current Image as OME-ZARR...")
 public class WriteOMEZARRCommand implements Command {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
@@ -54,7 +55,7 @@ public class WriteOMEZARRCommand implements Command {
     public ImagePlus currentImage;
 
     @Parameter (visibility = ItemVisibility.MESSAGE, required = false)
-    public String message = "Make sure your voxel size, and unit,\n are set properly under Image > Properties...";
+    public String message = "Make sure your voxel calibration\n is set properly under [ Image > Properties... ]";
 
     @Parameter(label="Image name:")
     public String imageName;
@@ -67,7 +68,6 @@ public class WriteOMEZARRCommand implements Command {
 
     @Parameter(label="Use default export parameters?")
     public boolean useDefaults = true;
-
 
     @Override
     public void run() {

@@ -26,51 +26,50 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.open;
 
-import ij.IJ;
-import org.embl.mobie.lib.create.ui.ProjectsCreatorPanel;
+import mpicbg.spim.data.SpimDataException;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.ThreadHelper;
+import org.embl.mobie.lib.bdv.view.SliceViewer;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import java.io.File;
 import java.io.IOException;
 
-import static org.embl.mobie.lib.ui.UserInterfaceHelper.tidyString;
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open MoBIE Project Branch..." )
+public class OpenMoBIEProjectBranchCommand implements Command
+{
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Create>Create New MoBIE Project..." )
-public class CreateNewMoBIEProjectCommand implements Command {
+	@Parameter ( label = "Project Location" )
+	public String projectLocation = "https://github.com/platybrowser/platybrowser";
 
-    static { net.imagej.patcher.LegacyInjector.preinit(); }
+	@Parameter ( label = "Project Branch" )
+	public String projectBranch = "master";
 
-    @Parameter( label= "Choose a project name:")
-    public String projectName;
+	@Parameter ( label = "Number of threads" )
+	public int numThreads = 4;
+	@Parameter ( label = "Tile render debug overlay" )
+	public boolean tileRenderOverlay = false;
 
-    @Parameter( label = "Choose a folder to save your project in:", style="directory" )
-    public File folderLocation;
+	@Override
+	public void run()
+	{
+		try
+		{
+			SliceViewer.tileRenderOverlay = tileRenderOverlay;
+			ThreadHelper.setNumIoThreads( numThreads );
+			final MoBIE moBIE = new MoBIE( projectLocation, MoBIESettings.settings().gitProjectBranch( projectBranch ) );
 
-
-    @Override
-    public void run()
-    {
-        String tidyProjectName = tidyString( projectName );
-        if ( tidyProjectName != null ) {
-            File projectLocation = new File(folderLocation, tidyProjectName);
-
-            if ( projectLocation.exists() ) {
-                IJ.log("Project creation failed - this project already exists!");
-            } else {
-                File dataDirectory = new File(projectLocation, "data");
-                dataDirectory.mkdirs();
-
-                try {
-                    ProjectsCreatorPanel panel = new ProjectsCreatorPanel( projectLocation );
-                    panel.showProjectsCreatorPanel();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+		}
+	}
 }
+

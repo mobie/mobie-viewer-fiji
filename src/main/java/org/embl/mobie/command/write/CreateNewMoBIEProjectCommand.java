@@ -26,42 +26,52 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.write;
 
-import org.embl.mobie.lib.bdv.view.OMEZarrViewer;
-import mpicbg.spim.data.SpimData;
-import org.embl.mobie.io.ome.zarr.openers.OMEZarrS3Opener;
+import ij.IJ;
+import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.create.ui.ProjectsCreatorPanel;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
+import java.io.File;
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME-Zarr>Open OME-Zarr From S3...")
-public class OpenOMEZARRFromS3Command implements Command {
+import static org.embl.mobie.lib.ui.UserInterfaceHelper.tidyString;
+
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Create>Create New MoBIE Project..." )
+public class CreateNewMoBIEProjectCommand implements Command {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    @Parameter(label = "S3 URL")
-    public String s3URL = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
+    @Parameter( label= "Choose a project name:")
+    public String projectName;
 
-    @Parameter ( label = "Log chunk loading" )
-    public boolean logChunkLoading = false;
+    @Parameter( label = "Choose a folder to save your project in:", style="directory" )
+    public File folderLocation;
 
-    protected static void openAndShow(String s3URL) throws IOException
-    {
-        SpimData spimData = OMEZarrS3Opener.readURL( s3URL );
-        final OMEZarrViewer viewer = new OMEZarrViewer( spimData );
-        viewer.show();
-    }
 
     @Override
-    public void run() {
-        try {
-            OMEZarrS3Opener.setLogging( logChunkLoading );
-            openAndShow( s3URL );
-        } catch (IOException e) {
-            e.printStackTrace();
+    public void run()
+    {
+        String tidyProjectName = tidyString( projectName );
+        if ( tidyProjectName != null ) {
+            File projectLocation = new File(folderLocation, tidyProjectName);
+
+            if ( projectLocation.exists() ) {
+                IJ.log("Project creation failed - this project already exists!");
+            } else {
+                File dataDirectory = new File(projectLocation, "data");
+                dataDirectory.mkdirs();
+
+                try {
+                    ProjectsCreatorPanel panel = new ProjectsCreatorPanel( projectLocation );
+                    panel.showProjectsCreatorPanel();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }

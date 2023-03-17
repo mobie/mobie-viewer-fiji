@@ -1,8 +1,8 @@
 /*-
  * #%L
- * Various Java code for ImageJ
+ * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2021 EMBL
+ * Copyright (C) 2018 - 2022 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -26,38 +26,44 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.write;
 
-import de.embl.cba.tables.results.ResultsTableFetcher;
-import ij.ImagePlus;
-import ij.measure.ResultsTable;
-import mpicbg.spim.data.generic.AbstractSpimData;
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.io.SpimDataOpener;
-import org.embl.mobie.lib.io.StorageLocation;
-import org.embl.mobie.lib.table.TableDataFormat;
-import org.scijava.Initializable;
+import ij.IJ;
+import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.create.ui.ProjectsCreatorPanel;
 import org.scijava.command.Command;
-import org.scijava.command.DynamicCommand;
-import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.io.File;
+import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "View>View Current Image..."  )
-public class ViewCurrentImageCommand implements Command
+import static org.scijava.ItemVisibility.MESSAGE;
+
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Create>Edit MoBIE Project..." )
+public class EditMoBIEProjectCommand implements Command
 {
-	static { net.imagej.patcher.LegacyInjector.preinit(); }
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter ( label = "Current Image", required = true )
-	public ImagePlus image;
+    @Parameter( visibility=MESSAGE, required=false )
+    String message = "Choose a MoBIE project folder...";
 
-	@Override
-	public void run()
-	{
-		final AbstractSpimData< ? > imageData = new SpimDataOpener().open( image );
-		new MoBIE( "ImageJ", imageData, null, null, null );
-	}
+    @Parameter ( label="MoBIE folder:", style="directory" )
+    public File projectLocation;
+
+    @Override
+    public void run()
+    {
+
+        if ( !projectLocation.exists() ) {
+            IJ.log( "Edit project failed - MoBIE project does not exist!" );
+        } else {
+            try {
+                ProjectsCreatorPanel panel = new ProjectsCreatorPanel( projectLocation );
+                panel.showProjectsCreatorPanel();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

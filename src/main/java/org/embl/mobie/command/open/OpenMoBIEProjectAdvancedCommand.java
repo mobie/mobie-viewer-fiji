@@ -26,9 +26,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.open;
 
 import mpicbg.spim.data.SpimDataException;
+import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.io.ImageDataFormatNames;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
@@ -39,7 +40,7 @@ import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Advanced>Open MoBIE Project Expert Mode..." )
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open MoBIE Project Expert Mode..." )
 public class OpenMoBIEProjectAdvancedCommand implements Command
 {
 	@Parameter ( label = "Project Location" )

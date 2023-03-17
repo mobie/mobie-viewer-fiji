@@ -32,8 +32,7 @@ import net.imagej.ImageJ;
 
 import java.io.IOException;
 
-import org.embl.mobie.command.OpenOMEZARRFromS3Command;
-import org.embl.mobie.command.OpenOMEZARRFromS3CommandTest;
+import org.embl.mobie.command.open.OpenOMEZARRFromS3Command;
 
 public class OpenRemoteOMEZarr
 {

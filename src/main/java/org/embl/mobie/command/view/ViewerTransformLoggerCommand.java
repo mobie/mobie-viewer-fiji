@@ -26,12 +26,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.view;
 
 import bdv.util.BdvHandle;
 import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
+import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
 import org.embl.mobie.lib.serialize.JsonHelper;
 import org.embl.mobie.lib.transform.viewer.AffineViewerTransform;

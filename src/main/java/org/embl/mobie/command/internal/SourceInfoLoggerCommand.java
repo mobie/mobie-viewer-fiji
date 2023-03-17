@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.internal;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
@@ -34,6 +34,7 @@ import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.command.CommandConstants;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;

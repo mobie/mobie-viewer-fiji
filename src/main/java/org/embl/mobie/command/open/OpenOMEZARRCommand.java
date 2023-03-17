@@ -26,10 +26,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.open;
 
-import ij.IJ;
-import org.embl.mobie.lib.create.ui.ProjectsCreatorPanel;
+import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.bdv.view.OMEZarrViewer;
+import mpicbg.spim.data.SpimData;
+import org.embl.mobie.io.ome.zarr.openers.OMEZarrOpener;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -37,32 +39,27 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 
-import static org.scijava.ItemVisibility.MESSAGE;
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open OME-Zarr From File System...")
+public class OpenOMEZARRCommand implements Command {
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Create>Edit MoBIE Project..." )
-public class EditMoBIEProjectCommand implements Command
-{
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    @Parameter( visibility=MESSAGE, required=false )
-    String message = "Choose a MoBIE project folder...";
+    @Parameter(label = "File path", style = "directory")
+    public File directory;
 
-    @Parameter ( label="MoBIE folder:", style="directory" )
-    public File projectLocation;
+    protected static void openAndShow(String filePath) throws IOException {
+        SpimData spimData = OMEZarrOpener.openFile(filePath);
+        final OMEZarrViewer viewer = new OMEZarrViewer(spimData);
+        viewer.show();
+    }
 
     @Override
-    public void run()
-    {
-
-        if ( !projectLocation.exists() ) {
-            IJ.log( "Edit project failed - MoBIE project does not exist!" );
-        } else {
-            try {
-                ProjectsCreatorPanel panel = new ProjectsCreatorPanel( projectLocation );
-                panel.showProjectsCreatorPanel();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    public void run() {
+        try {
+            openAndShow( directory.toString() );
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
+

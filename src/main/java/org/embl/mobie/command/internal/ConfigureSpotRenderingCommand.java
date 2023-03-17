@@ -26,50 +26,64 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.internal;
 
-import org.embl.mobie.lib.volume.SegmentVolumeViewer;
+import bdv.viewer.SourceAndConverter;
+import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.image.SpotAnnotationImage;
+import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Segment Rendering")
-public class ConfigureSegmentRenderingCommand extends ConfigureLabelRenderingCommand
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Spot Rendering")
+public class ConfigureSpotRenderingCommand extends ConfigureLabelRenderingCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static final String AUTO = "Automatic";
-	public static final String USE_BELOW_RESOLUTION = "Use below resolution";
+	@Parameter( label = "Spot radius", style = "format:#.00", persist = false )
+	public Double spotRadius = 1.0;
 
-	@Parameter
-	protected SegmentVolumeViewer< ? > volumeViewer;
-
-	@Parameter ( label = "Volume rendering", choices = { AUTO, USE_BELOW_RESOLUTION } )
-	public String volumeRenderingMode = AUTO;
-
-	@Parameter ( label = "Volume rendering resolution", style="format:#0.000" )
-	public double voxelSpacing = 1.0;
+	@Override
+	public void initialize()
+	{
+		super.initialize();
+		initSpotRadiusItem();
+	}
 
 	@Override
 	public void run()
 	{
-		super.run();
+		configureBoundaryRendering();
 
-		updateVolumeRendering();
+		configureSelectionColoring();
+
+		configureRandomColorSeed();
+
+		configureSpotRadius();
+
+		bdvh.getViewerPanel().requestRepaint();
 	}
 
-	private void updateVolumeRendering()
+	private void initSpotRadiusItem()
 	{
-		if ( volumeViewer == null ) return;
+		final MutableModuleItem< Double > spotRadiusItem = getInfo().getMutableInput("spotRadius", Double.class );
 
-		boolean updateVolumeRendering = false;
-
-		if ( volumeRenderingMode.equals( AUTO ) )
-			updateVolumeRendering = volumeViewer.setVoxelSpacing( null );
-		else if ( volumeRenderingMode.equals( USE_BELOW_RESOLUTION ) )
-			updateVolumeRendering = volumeViewer.setVoxelSpacing( new double[]{ voxelSpacing, voxelSpacing, voxelSpacing } );
-
-		if ( updateVolumeRendering )
-			volumeViewer.updateView( updateVolumeRendering );
+		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
+		{
+			final SpotAnnotationImage spotAnnotationImage = ( SpotAnnotationImage ) sourceAndConverterService.getMetadata( sourceAndConverter, SpotAnnotationImage.class.getName() );
+			spotRadiusItem.setValue( this, spotAnnotationImage.getRadius() );
+			return;
+		}
 	}
+
+	private void configureSpotRadius()
+	{
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		{
+			final SpotAnnotationImage spotAnnotationImage = ( SpotAnnotationImage ) sourceAndConverterService.getMetadata( sourceAndConverter, SpotAnnotationImage.class.getName() );
+			spotAnnotationImage.setRadius( spotRadius );
+		}
+	}
+
 }

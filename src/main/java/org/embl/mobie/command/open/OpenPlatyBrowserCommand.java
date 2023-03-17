@@ -26,49 +26,32 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.open;
 
-import ij.gui.GenericDialog;
 import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.lib.published.PublishedProject;
-import org.embl.mobie.lib.published.PublishedProjects;
+import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.io.ImageDataFormat;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Open Published MoBIE Project..." )
-public class OpenPublishedMoBIEProjectCommand implements Command
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open PlatyBrowser")
+public class OpenPlatyBrowserCommand implements Command
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	@Override
 	public void run()
 	{
-		selectProject();
-	}
-
-	private void selectProject()
-	{
-		final HashMap< String, PublishedProject > projects = new PublishedProjects().getPublishedProjects();
-
-		final GenericDialog gd = new GenericDialog( "Please select a project" );
-
-		final String[] items = ( String[] ) projects.keySet().toArray( new String[ projects.size() ]);
-		gd.addChoice( "Project", items, items[ 0 ] );
-		gd.showDialog();
-		if ( gd.wasCanceled() ) return;
-		final String choice = gd.getNextChoice();
-
-		final PublishedProject project = projects.get( choice );
+		MoBIESettings options = MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5S3 );
 
 		try
 		{
-			new MoBIE( project.location, MoBIESettings.settings() );
+			new MoBIE( "https://github.com/mobie/platybrowser-datasets", options );
 		}
 		catch ( IOException e )
 		{

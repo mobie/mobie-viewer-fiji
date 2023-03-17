@@ -26,13 +26,46 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.open;
 
-public abstract class CommandConstants
+import mpicbg.spim.data.SpimDataException;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.command.CommandConstants;
+import org.scijava.command.Command;
+import org.scijava.plugin.Parameter;
+import org.scijava.plugin.Plugin;
+
+import java.io.IOException;
+
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open MoBIE Project With S3 Credentials..." )
+public class OpenMoBIEProjectWithS3CredentialsCommand implements Command
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static final String MOBIE_PLUGIN_ROOT = "Plugins>MoBIE>";
-	public static final String CONTEXT_MENU_ITEMS_ROOT = "Plugins>MoBIE>XXX>Internal only (do not use)>";
-	public static final String MOBIE_PLUGIN_OPEN = "Plugins>MoBIE>Open>";
+	@Parameter ( label = "S3 Project Location" )
+	public String projectLocation = "https://s3.embl.de/comulis";
+
+	@Parameter ( label = "S3 Access Key" )
+	public String s3AccessKey = "";
+
+	@Parameter ( label = "S3 Secret Key", persist = false )
+	public String s3SecretKey = "";
+
+	@Override
+	public void run()
+	{
+		try
+		{
+			new MoBIE(
+					projectLocation,
+					MoBIESettings.settings()
+							.s3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } )
+			);
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+		}
+	}
 }

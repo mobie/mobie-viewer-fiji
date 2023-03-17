@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.view;
 
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
@@ -36,6 +36,7 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.ImagePlus;
 import ij.measure.ResultsTable;
 import mpicbg.spim.data.generic.AbstractSpimData;
+import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.io.StorageLocation;

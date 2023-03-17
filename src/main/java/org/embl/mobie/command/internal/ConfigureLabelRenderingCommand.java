@@ -26,11 +26,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.internal;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.color.CategoricalAnnotationColoringModel;
 import org.embl.mobie.lib.color.ColoringModel;
 import org.embl.mobie.lib.color.MobieColoringModel;
