@@ -1,9 +1,5 @@
 package org.embl.mobie.cmd;
 
-import mpicbg.spim.data.SpimDataException;
-
-import java.io.IOException;
-
 class CommandLineSkimage2DTZarr
 {
 	public static final String ROOT = "/Users/tischer/Documents/mobie/";
@@ -13,7 +9,7 @@ class CommandLineSkimage2DTZarr
 	{
 		final MoBIECmd cmd = new MoBIECmd();
 		cmd.images = new String[]{ ROOT + DIR + "image.ome.zarr" };
-		cmd.segmentations = new String[]{ ROOT + DIR + "segmentation.ome.zarr" };
+		cmd.labels = new String[]{ ROOT + DIR + "segmentation.ome.zarr" };
 		cmd.tables = new String[]{ ROOT + DIR + "table.tsv" };
 		cmd.call();
 	}

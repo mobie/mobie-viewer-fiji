@@ -40,6 +40,7 @@ import mpicbg.spim.data.sequence.ImgLoader;
 import net.imagej.ImageJ;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.lib.DataStore;
+import org.embl.mobie.lib.ImageSources;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
@@ -86,6 +87,7 @@ import org.embl.mobie.lib.table.saw.TableSawAnnotatedSpotCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.lib.table.saw.TableOpener;
+import org.embl.mobie.lib.transform.GridType;
 import org.embl.mobie.lib.ui.UserInterface;
 import org.embl.mobie.lib.ui.WindowArrangementHelper;
 import org.embl.mobie.lib.view.ViewManager;
@@ -108,7 +110,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -149,6 +150,11 @@ public class MoBIE
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 	private ArrayList< String > projectCommands = new ArrayList<>();
 
+	public MoBIE( Data data,  )
+	{
+
+	}
+
 	public MoBIE( String projectLocation ) throws IOException
 	{
 		this( projectLocation, new MoBIESettings() );
@@ -180,6 +186,28 @@ public class MoBIE
 		openHCSDataset( relativeWellMargin, relativeSiteMargin );
 	}
 
+	public MoBIE( Data data, String tablePath, String[] images, String[] labels, String root, GridType grid )
+	{
+		if ( data.equals( Data.Table ) )
+		{
+			openTable( tablePath, images, labels, root, grid );
+		}
+	}
+
+	private void openTable( String tablePath, String[] imageColumns, String[] labelColumns, String root, GridType gridType )
+	{
+		final Table table = Table.read().file( new File( tablePath ) );
+
+		final List< ImageSources > imageSources = new ArrayList<>();
+		for ( String column : imageColumns )
+		{
+			final String[] nameAndColumn = column.split( "=" );
+			imageSources.add( new ImageSources( nameAndColumn[ 0 ], table, nameAndColumn[ 1 ], root,  gridType ) );
+		}
+
+
+	}
+
 	private void openMoBIEProject() throws IOException
 	{
 		setS3Credentials( settings );
@@ -199,8 +227,20 @@ public class MoBIE
 				tablePath == null ? null : new String[]{ tablePath.getAbsolutePath() },
 				null );
 	}
+
+	/* TODO: better may be
+	 *   Map< Name, ImageSources >
+	 *   Map< Name, LabelSources >
+	 *   LabelSources extends ImageSources
+	 *   ImageSources
+	 *     List< Path >
+	 *     String gridPattern // null => no grid
+	 */
 	public MoBIE( String projectName, @Nullable String[] imagePaths, @Nullable String[] segmentationPaths, @Nullable String[] tablePaths, @Nullable String[] grids ) throws IOException
 	{
+
+		// TODO this is wrong as it only opens the first entry
+		//   in the imagePaths and segmentationPaths
 		init();
 
 		initProject( projectName );
@@ -220,13 +260,15 @@ public class MoBIE
 			for ( String path : imagePaths )
 			{
 				System.out.println( "Opening image: " + path );
+				// TODO do I really need to open them here?
+				//   What about doing it the same way as in the HCS data?
 				ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
 				final AbstractSpimData< ? > spimData = IOHelper.tryOpenSpimData( path, imageDataFormat );
 				addSpimDataImages( spimData, false, null, null );
 			}
 		}
 
-		// load segmentations (with tables)
+		// open segmentations (with tables)
 		if ( segmentationPaths != null )
 		{
 			for ( int segmentationIndex = 0; segmentationIndex < segmentationPaths.length; segmentationIndex++ )
@@ -254,92 +296,6 @@ public class MoBIE
 			}
 		}
 
-
-		// if possible, combine
-		// image views and segmentation views
-		// into segmented image views
-		// and create a grid view
-//		if ( segmentationPaths != null )
-//		{
-//			final String[] views = dataset.views().keySet().toArray( new String[ 0 ] );
-//			Arrays.sort( views );
-//
-//			final GridTransformation imageGridTransformation = new GridTransformation();
-//			imageGridTransformation.nestedSources = new ArrayList<>();
-//			final GridTransformation segmentationGridTransformation = new GridTransformation();
-//			segmentationGridTransformation.nestedSources = new ArrayList<>();
-//
-//			final ArrayList< String > imageGridSources = new ArrayList<>();
-//			final ArrayList< String > segmentationGridSources = new ArrayList<>();
-//			final ArrayList< View > segmentedImageViews = new ArrayList<>();
-//
-//			ImageDisplay< ? > imageDisplay = null;
-//			SegmentationDisplay< ? > segmentationDisplay = null;
-//
-//			for ( int viewIndex = 0; viewIndex < views.length; )
-//			{
-//				final Display< ? > displayA = dataset.views().get( views[ viewIndex++ ] ).displays().get( 0 );
-//				final Display< ? > displayB = dataset.views().get( views[ viewIndex++ ] ).displays().get( 0 );
-//
-//				if ( displayA instanceof ImageDisplay
-//						&& displayB instanceof SegmentationDisplay )
-//				{
-//					imageDisplay = ( ImageDisplay< ? > ) displayA;
-//					segmentationDisplay = ( SegmentationDisplay< ? > ) displayB;
-//				} else if ( displayB instanceof ImageDisplay
-//						&& displayA instanceof SegmentationDisplay )
-//				{
-//					imageDisplay = ( ImageDisplay< ? > ) displayB;
-//					segmentationDisplay = ( SegmentationDisplay< ? > ) displayA;
-//				}
-//				else
-//				{
-//					System.err.println("Could not match " + displayA.getName() + " and " + displayB.getName() );
-//					System.err.println("To avoid errors no combined views will be generated.");
-//					segmentedImageViews.clear();
-//					imageGridSources.clear();
-//					break;
-//				}
-//
-//				String longestCommonSubstring = MoBIEHelper.longestCommonSubstring( imageDisplay.getName(), segmentationDisplay.getName() );
-//				if ( longestCommonSubstring.length() < 5 )
-//					longestCommonSubstring = "";
-//				final String name = imageDisplay.getName() + "-" + segmentationDisplay.getName().replace( longestCommonSubstring, "" );
-//				final ArrayList< Display< ? > > displays = new ArrayList<>();
-//				displays.add( imageDisplay );
-//				displays.add( segmentationDisplay );
-//				final View segmentedImage = new View( name, "segmented image", displays, null, true );
-//				segmentedImageViews.add( segmentedImage );
-//
-//				//gridDisplays.add( displayB );
-//				imageGridSources.addAll( imageDisplay.getSources() );
-//				segmentationGridSources.addAll( segmentationDisplay.getSources() );
-//				//gridSources.addAll( displayB.getSources() );
-//				imageGridTransformation.nestedSources.add( imageDisplay.getSources() );
-//				segmentationGridTransformation.nestedSources.add( segmentationDisplay.getSources() );
-//			}
-//
-//			if ( segmentedImageViews.size() > 0 )
-//			{
-//				for ( View segmentedImageView : segmentedImageViews )
-//				{
-//					dataset.views().put( segmentedImageView.getName(), segmentedImageView );
-//				}
-//			}
-//
-//			if ( imageGridSources.size() > 1 )
-//			{
-//				final ImageDisplay< ? > imageGridDisplay = new ImageDisplay<>( "images", imageGridSources, imageDisplay.getColor(), imageDisplay.getContrastLimits() );
-//				final SegmentationDisplay< ? > segmentationGridDisplay = new SegmentationDisplay<>( "segmentations", segmentationGridSources );
-//				final View gridView = new View( "segmented images", "grid", Arrays.asList( imageGridDisplay, segmentationGridDisplay ), Arrays.asList( imageGridTransformation, segmentationGridTransformation ), true );
-//				dataset.views().put( gridView.getName(), gridView );
-//			}
-//			else
-//			{
-//				System.out.println( "Could not create a grid view." );
-//			}
-//		}
-
 		View initialView = null;
 
 		if ( grids != null )
@@ -347,6 +303,7 @@ public class MoBIE
 			// TODO
 			//   if gridPattern=="*" then build two grids,
 			//   one for all images and one for all segmentations
+			//   Nah, they should come separate anyway
 			for ( String gridPattern : grids )
 			{
 
@@ -1143,6 +1100,7 @@ public class MoBIE
 			if ( dataSource.preInit() )
 			{
 				// force initialization here to save time later
+				// (i.e. help smooth rendering in BDV)
 				final Source source = image.getSourcePair().getSource();
 				final int levels = source.getNumMipmapLevels();
 				for ( int level = 0; level < levels; level++ )

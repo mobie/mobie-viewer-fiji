@@ -8,7 +8,7 @@ class CommandLineWildcardMovies
 	{
 		final MoBIECmd cmd = new MoBIECmd();
 		cmd.images = new String[]{ DIR + "*-pro.tif" };
-		cmd.segmentations = new String[]{ DIR + "*-seg.tif" };
+		cmd.labels = new String[]{ DIR + "*-seg.tif" };
 		cmd.tables = new String[]{ DIR + "*.csv" };
 		cmd.call();
 	}

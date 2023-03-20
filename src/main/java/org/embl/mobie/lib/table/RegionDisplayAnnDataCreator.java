@@ -29,8 +29,6 @@ public class RegionDisplayAnnDataCreator
 	private Table table;
 	private StorageLocation tableLocation;
 	private TableDataFormat tableFormat;
-	private Integer groupCount;
-	private Boolean useNames;
 
 	public RegionDisplayAnnDataCreator( MoBIE moBIE, RegionDisplay< ? > regionDisplay )
 	{
@@ -40,6 +38,7 @@ public class RegionDisplayAnnDataCreator
 
 	public AnnData< AnnotatedRegion > getAnnData()
 	{
+		// TODO: it may have the table already!
 		if (  regionDisplay.tableSource == null )
 		{
 			createTable();
@@ -81,12 +80,10 @@ public class RegionDisplayAnnDataCreator
 			table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
 	}
 
-	private void createTable(  )
+	private void createTable( )
 	{
-
 		tableLocation = new StorageLocation();
 		tableFormat = TableDataFormat.Table;
-
 		table = Table.create( regionDisplay.getName() );
 
 		// copy the regions into a list to
@@ -101,13 +98,16 @@ public class RegionDisplayAnnDataCreator
 		}
 	}
 
-	private void addSourceNameParsingColumns( List< String > regions )
+	private void addSourceNameParsingColumns( List< String > regionNames )
 	{
 		final Pattern pattern = Pattern.compile( regionDisplay.getSourceNamesRegex() );
 		final HashMap< String, List< String > > columnToValues = new HashMap<>();
 		final List< String > groupNames = MoBIEHelper.getGroupNames( regionDisplay.getSourceNamesRegex() );
 
-		for ( String region : regions )
+		Integer groupCount = null;
+		Boolean useNames = null;
+
+		for ( String region : regionNames )
 		{
 			final String source = regionDisplay.sources.get( region ).get( 0 );
 			final Matcher matcher = pattern.matcher( source );

@@ -63,7 +63,7 @@ import java.util.stream.Collectors;
 
 //
 // This class holds all the information that is
-// needed to both view it and serialise the display.
+// needed to both view and serialise the display.
 //
 // Note: This could still be compatible with Spots visualisation
 //

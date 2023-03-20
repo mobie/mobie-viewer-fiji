@@ -9,7 +9,7 @@ class CommandLineMorphoLibJ2DTIFF
 	{
 		final MoBIECmd cmd = new MoBIECmd();
 		cmd.images = new String[]{ ROOT + DIR + "image.tif" };
-		cmd.segmentations = new String[]{ ROOT + DIR + "segmentation.tif" };
+		cmd.labels = new String[]{ ROOT + DIR + "segmentation.tif" };
 		cmd.tables = new String[]{ ROOT + DIR + "table-mlj.csv" };
 		cmd.call();
 	}

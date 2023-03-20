@@ -1,7 +1,9 @@
 package org.embl.mobie.cmd;
 
+import org.embl.mobie.Data;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.lib.transform.GridType;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
@@ -22,22 +24,25 @@ public class MoBIECmd implements Callable< Void > {
 	@Option(names = {"-v", "--view"}, required = false, description = "open a specific view within the above MoBIE project, e.g. -v \"cells")
 	public String view = null;
 
+	@Option(names = {"-r", "--root"}, required = false, description = "")
+	public String root = null;
+
+	@Option(names = {"-t", "--table"}, required = false, description = "create a MoBIE project from a table with image and segmentation paths")
+	public String table = null;
+
 	@Option(names = {"-i", "--image"}, required = false, description = "open an intensity image from a path, e.g., -i \"/home/image.tif\"; you can use wild-cards to open several images, e.g., -i \"/home/*-image.tif\"")
 	public String[] images = null;
 
-	@Option(names = {"-s", "--segmentation"}, required = false, description = "opens a segmentation label mask image from a path, e.g. -s \"/home/labels.tif\"; wild cards are supported (see --image)")
-	public String[] segmentations = null;
+	@Option(names = {"-l", "--labels"}, required = false, description = "opens a segmentation label mask image from a path, e.g. -s \"/home/labels.tif\"; wild cards are supported (see --image)")
+	public String[] labels = null;
 
-	@Option(names = {"-t", "--table"}, required = false, description = "opens a segment feature table from a path, e.g. -t \"/home/features.csv\"; wild cards are supported (see --image)")
-	public String[] tables = null;
-
-	@Option(names = {"-g", "--grid"}, required = false, description = "create a grid view from a subset of the images, e.g., \"/home/*_labels.tif\" ")
-	public String[] grids = null;
+	@Option(names = {"-g", "--grid"}, required = false, description = "grid type: none, merge, transform")
+	public String grid = null;
 
 	@Override
 	public Void call() throws Exception {
 
-		if ( project == null && images == null && segmentations == null )
+		if ( project == null && images == null && labels == null )
 		{
 			System.out.println( "Please either provide a project (-p), or an image (-i) and/or a segmentation (-s).");
 			System.exit( 1 );
@@ -51,9 +56,13 @@ public class MoBIECmd implements Callable< Void > {
 			if ( view != null ) settings.view( view );
 			new MoBIE( project, settings );
 		}
+		else if ( table != null )
+		{
+			new MoBIE( Data.Table, table, images, labels, root, GridType.fromString( grid ) );
+		}
 		else
 		{
-			new MoBIE( "", images, segmentations, tables, grids );
+			//new MoBIE( "", images, labels, tables, grids );
 		}
 
 		return null;

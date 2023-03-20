@@ -10,7 +10,7 @@ class CommandLineWildcardDario
 	{
 		final MoBIECmd cmd = new MoBIECmd();
 		//cmd.images = new String[]{ DIR + "*-pro.tif" };
-		cmd.segmentations = new String[]{ DIR + "20221004_ibidi_Beas2B_series_3-25xy_cells_preprocess_cp_masks_postprocess.tif" };
+		cmd.labels = new String[]{ DIR + "20221004_ibidi_Beas2B_series_3-25xy_cells_preprocess_cp_masks_postprocess.tif" };
 		cmd.tables = new String[]{ DIR + "20221004_ibidi_Beas2B_series_3-25xy_cells_preprocess_cp_masks_postprocess.csv" };
 		cmd.call();
 	}
