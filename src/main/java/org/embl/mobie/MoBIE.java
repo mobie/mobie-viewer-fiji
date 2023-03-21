@@ -330,7 +330,7 @@ public class MoBIE
 				dataset.sources().get( referenceImage );
 				if ( sources instanceof ImageSources )
 				{
-					displays.add( new ImageDisplay<>( sources.getName(), sourceNames, settings.color, settings.contrastLimits ) );
+					displays.add( new ImageDisplay<>( grid.getName(), Collections.singletonList( grid.getName() ), settings.color, settings.contrastLimits ) );
 				}
 				else if ( sources instanceof LabelSources )
 				{
@@ -347,7 +347,7 @@ public class MoBIE
 
 				// create the view
 				final View gridView = new View( sources.getName(), "grids", displays, Arrays.asList( grid ), false );
-				gridView.overlayNames( true );
+				//gridView.overlayNames( true ); // Timepoint bug
 				dataset.views().put( gridView.getName(), gridView );
 			}
 			else

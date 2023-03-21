@@ -249,7 +249,11 @@ public class SliceViewer
 			if ( numSourceTimepoints > numTimepoints )
 				numTimepoints = numSourceTimepoints;
 		}
+		final int timepointsBefore = bdvHandle.getViewerPanel().state().getNumTimepoints();
 		bdvHandle.getViewerPanel().state().setNumTimepoints( numTimepoints );
+		final int timepointsAfter = bdvHandle.getViewerPanel().state().getNumTimepoints();
+		//bdvHandle.getViewerPanel().requestRepaint();
+		int a = 1;
 	}
 
 }
