@@ -39,27 +39,29 @@ import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.ImgLoader;
 import net.imagej.ImageJ;
 import org.apache.commons.io.FilenameUtils;
+import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
+import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.ImageSources;
+import org.embl.mobie.lib.LabelSources;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
-import org.embl.mobie.lib.hcs.HCSDataSetter;
-import org.embl.mobie.lib.hcs.Plate;
-import org.embl.mobie.lib.hcs.Site;
-import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
-import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.lib.annotation.LazyAnnotatedSegmentAdapter;
+import org.embl.mobie.lib.display.DisplaySettings;
+import org.embl.mobie.lib.hcs.HCSDataSetter;
+import org.embl.mobie.lib.hcs.Plate;
+import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.image.AnnotatedLabelImage;
 import org.embl.mobie.lib.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.SpimDataImage;
 import org.embl.mobie.lib.image.SpotAnnotationImage;
+import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.lib.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.lib.serialize.DataSource;
 import org.embl.mobie.lib.serialize.Dataset;
@@ -76,17 +78,18 @@ import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.io.StorageLocation;
-import org.embl.mobie.lib.serialize.transformation.GridTransformation;
+import org.embl.mobie.lib.serialize.transformation.MergedGridTransformation;
 import org.embl.mobie.lib.table.DefaultAnnData;
 import org.embl.mobie.lib.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.lib.table.TableDataFormat;
+import org.embl.mobie.lib.table.TableSource;
+import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedSegment;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedSegmentCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedSpot;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedSpotCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationTableModel;
-import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.transform.GridType;
 import org.embl.mobie.lib.ui.UserInterface;
 import org.embl.mobie.lib.ui.WindowArrangementHelper;
@@ -105,8 +108,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -114,8 +117,6 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.embl.mobie.io.util.IOHelper.combinePath;
@@ -150,11 +151,6 @@ public class MoBIE
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 	private ArrayList< String > projectCommands = new ArrayList<>();
 
-	public MoBIE( Data data,  )
-	{
-
-	}
-
 	public MoBIE( String projectLocation ) throws IOException
 	{
 		this( projectLocation, new MoBIESettings() );
@@ -162,7 +158,7 @@ public class MoBIE
 
 	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
-		init();
+		initImageJAndMoBIE();
 
 		this.settings = settings;
 		this.projectLocation = projectLocation;
@@ -175,7 +171,7 @@ public class MoBIE
 
 	public MoBIE( String hcsDataLocation, MoBIESettings settings, double relativeWellMargin, double relativeSiteMargin ) throws IOException
 	{
-		init();
+		initImageJAndMoBIE();
 
 		this.settings = settings;
 		this.projectLocation = hcsDataLocation;
@@ -186,26 +182,48 @@ public class MoBIE
 		openHCSDataset( relativeWellMargin, relativeSiteMargin );
 	}
 
-	public MoBIE( Data data, String tablePath, String[] images, String[] labels, String root, GridType grid )
+	public MoBIE( Data data, String tablePath, String[] images, String[] labels, String root, GridType grid ) throws IOException
 	{
 		if ( data.equals( Data.Table ) )
 		{
 			openTable( tablePath, images, labels, root, grid );
 		}
+		else if ( data.equals( Data.Files ) )
+		{
+			openFiles();
+		}
 	}
 
-	private void openTable( String tablePath, String[] imageColumns, String[] labelColumns, String root, GridType gridType )
+	private void openTable( String tablePath, String[] images, String[] labels, String root, GridType gridType )
 	{
 		final Table table = Table.read().file( new File( tablePath ) );
 
 		final List< ImageSources > imageSources = new ArrayList<>();
-		for ( String column : imageColumns )
+		for ( String image : images )
 		{
-			final String[] nameAndColumn = column.split( "=" );
+			final String[] nameAndColumn = getNameAndColumn( image );
 			imageSources.add( new ImageSources( nameAndColumn[ 0 ], table, nameAndColumn[ 1 ], root,  gridType ) );
 		}
 
+		final List< LabelSources > labelSources = new ArrayList<>();
+		for ( String label : labels )
+		{
+			final String[] nameAndColumn = getNameAndColumn( label );
+			labelSources.add( new LabelSources( nameAndColumn[ 0 ], table, nameAndColumn[ 1 ], root,  gridType ) );
+		}
 
+		openImagesAndLabels( imageSources, labelSources );
+	}
+
+	private String[] getNameAndColumn( String string )
+	{
+		final String[] split = string.split( "=" );
+		if ( split.length == 2 )
+			return split;
+		else if ( split.length == 1 )
+			return new String[]{ string, string };
+		else
+			throw new UnsupportedOperationException( "Too many \"=\" signs found!" );
 	}
 
 	private void openMoBIEProject() throws IOException
@@ -219,267 +237,127 @@ public class MoBIE
 		openAndViewDataset();
 	}
 
-	public MoBIE( String projectName, File imagePath, File segmentationPath, File tablePath ) throws IOException
+	private void openFiles()
 	{
-		this( projectName,
-				imagePath == null ? null : new String[]{ imagePath.getAbsolutePath() },
-				segmentationPath == null ? null : new String[]{ segmentationPath.getAbsolutePath() },
-				tablePath == null ? null : new String[]{ tablePath.getAbsolutePath() },
-				null );
+//		if ( imagePaths != null && imagePaths[ 0 ].contains( "*" ) )
+//			imagePaths = IOHelper.getPaths( imagePaths[ 0 ], 999 );
+//
+//		if ( segmentationPaths != null && segmentationPaths[ 0 ].contains( "*" ) )
+//			segmentationPaths = IOHelper.getPaths( segmentationPaths[ 0 ], 999 );
+//
+//		if ( tablePaths != null && tablePaths[ 0 ].contains( "*" ) )
+//			tablePaths = IOHelper.getPaths( tablePaths[ 0 ], 999 );
 	}
 
-	/* TODO: better may be
-	 *   Map< Name, ImageSources >
-	 *   Map< Name, LabelSources >
-	 *   LabelSources extends ImageSources
-	 *   ImageSources
-	 *     List< Path >
-	 *     String gridPattern // null => no grid
-	 */
-	public MoBIE( String projectName, @Nullable String[] imagePaths, @Nullable String[] segmentationPaths, @Nullable String[] tablePaths, @Nullable String[] grids ) throws IOException
+	// TODO 2D or 3D?
+	private void openImagesAndLabels( List< ImageSources > images, List< LabelSources > labels )
 	{
+		initImageJAndMoBIE();
 
-		// TODO this is wrong as it only opens the first entry
-		//   in the imagePaths and segmentationPaths
-		init();
+		initProject( "Project" );
 
-		initProject( projectName );
+		final ArrayList< ImageSources > allSources = new ArrayList<>();
+		allSources.addAll( images );
+		allSources.addAll( labels );
 
-		if ( imagePaths != null && imagePaths[ 0 ].contains( "*" ) )
-			imagePaths = IOHelper.getPaths( imagePaths[ 0 ], 999 );
-
-		if ( segmentationPaths != null && segmentationPaths[ 0 ].contains( "*" ) )
-			segmentationPaths = IOHelper.getPaths( segmentationPaths[ 0 ], 999 );
-
-		if ( tablePaths != null && tablePaths[ 0 ].contains( "*" ) )
-			tablePaths = IOHelper.getPaths( tablePaths[ 0 ], 999 );
-
-		// load images
-		if ( imagePaths != null )
+		// create and add data sources to the dataset
+		for ( ImageSources sources : allSources )
 		{
-			for ( String path : imagePaths )
+			for ( String name : sources.getSources() )
 			{
-				System.out.println( "Opening image: " + path );
-				// TODO do I really need to open them here?
-				//   What about doing it the same way as in the HCS data?
+				final String path = sources.getPath( name );
 				ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
-				final AbstractSpimData< ? > spimData = IOHelper.tryOpenSpimData( path, imageDataFormat );
-				addSpimDataImages( spimData, false, null, null );
-			}
-		}
-
-		// open segmentations (with tables)
-		if ( segmentationPaths != null )
-		{
-			for ( int segmentationIndex = 0; segmentationIndex < segmentationPaths.length; segmentationIndex++ )
-			{
-				final String segmentationPath = segmentationPaths[ segmentationIndex ];
-				System.out.println( "Opening segmentation: " + segmentationPath );
-				final ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( segmentationPath );
-				final AbstractSpimData< ? > spimData = IOHelper.tryOpenSpimData( segmentationPath, imageDataFormat );
-
-				if ( tablePaths != null && tablePaths.length > segmentationIndex )
+				final StorageLocation storageLocation = new StorageLocation();
+				storageLocation.absolutePath = path;
+				storageLocation.channel = sources.getChannel();
+				if ( sources instanceof ImageSources )
 				{
-					final String tablePath = tablePaths[ segmentationIndex ];
-					System.out.println( "...with segments table: " + tablePath );
-					final TableDataFormat tableDataFormat = TableDataFormat.fromPath( tablePath );
-					final StorageLocation tableStorageLocation = new StorageLocation();
-					final File tableFile = new File( tablePath );
-					tableStorageLocation.absolutePath = tableFile.getParent();
-					tableStorageLocation.defaultChunk = tableFile.getName();
-					addSpimDataImages( spimData, true, tableStorageLocation, tableDataFormat );
+					final ImageDataSource imageDataSource = new ImageDataSource( name, imageDataFormat, storageLocation );
+					imageDataSource.preInit( false );
+					dataset.addDataSource( imageDataSource );
 				}
-				else
+				else if ( sources instanceof LabelSources )
 				{
-					addSpimDataImages( spimData, true, null, null );
+					final TableSource tableSource = (( LabelSources ) sources).nameToTableSource().get( name );
+					final SegmentationDataSource segmentationDataSource = new SegmentationDataSource( name, imageDataFormat, storageLocation, tableSource.getFormat(), tableSource.getLocation() );
+					segmentationDataSource.preInit( false );
+					dataset.addDataSource( segmentationDataSource );
 				}
 			}
 		}
 
-		View initialView = null;
-
-		if ( grids != null )
+		for ( ImageSources sources : allSources )
 		{
-			// TODO
-			//   if gridPattern=="*" then build two grids,
-			//   one for all images and one for all segmentations
-			//   Nah, they should come separate anyway
-			for ( String gridPattern : grids )
+			if ( sources.getGridType().equals( GridType.Merged ) )
 			{
+				// init table for the RegionDisplay
+				final StorageLocation storageLocation = new StorageLocation();
+				storageLocation.data = sources.getImageTable();
+				final RegionDataSource regionDataSource = new RegionDataSource( sources.getName() );
+				regionDataSource.addTable( TableDataFormat.Table, storageLocation );
+				DataStore.putRawData( regionDataSource );
 
-				String regex;
-				String rowGroup = null;
-				if( gridPattern.contains( ";" ) )
-				{
-					final String[] split = gridPattern.split( ";" );
-					regex = IOHelper.wildcardToRegex( split[ 0 ] );
-					rowGroup = split[ 1 ];
-				}
-				else
-				{
-					regex = IOHelper.wildcardToRegex( gridPattern );
-				}
-
-				IJ.log( "Creating grid view for: " + regex );
-				final Pattern pattern = Pattern.compile( regex );
-				final List< String > gridSources = dataset.sources().keySet()
-						.stream()
-						.filter( name -> pattern.matcher( name ).matches() )
-						.sorted()
-						.collect( Collectors.toList() );
-
-				if ( gridSources.size() == 0 )
-				{
-					IJ.log( "[ERROR] Could not find any sources matching: " + regex );
-					continue;
-				}
-
-				// prepare a RegionDisplay for outlining
-				// and the grid positions
-				//
-				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( gridPattern + " table" );
+				// init RegionDisplay
+				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( sources.getName() + " table" );
 				regionDisplay.sources = new LinkedHashMap<>();
-				regionDisplay.setSourceNamesRegex( regex );
+				regionDisplay.tableSource = regionDataSource.getName();
 				regionDisplay.showAsBoundaries( true );
 				regionDisplay.setBoundaryThickness( 0.05 );
 				regionDisplay.boundaryThicknessIsRelative( true );
-
-				// TODO: FIXME: this breaks if the gridPattern matches both sources
-				//  that contain and don't contain multiple channels
-				//  maybe a "SourceGrouper" class would be good to do this job
-				//  properly.
-				final HashMap< String, List< String > > channelToSources = new LinkedHashMap<>();
-				final Pattern channelPattern = Pattern.compile( ".*_ch(.+)$" );
-				final boolean containsChannelPattern = gridSources.stream().filter( name -> channelPattern.matcher( name ).matches() ).findFirst().isPresent();
-				if ( containsChannelPattern )
+				final List< String > sourceNames = sources.getSources();
+				final int numRegions = images.size();
+				for ( int regionIndex = 0; regionIndex < numRegions; regionIndex++ )
 				{
-					// the grid sources contain multiple channels
-					// so need to create displays for all of them
-					for ( String gridSource : gridSources )
-					{
-						final Matcher matcher = channelPattern.matcher( gridSource );
-						if ( matcher.matches() )
-						{
-							final String group = matcher.group( 1 );
-							if ( channelToSources.get( group ) == null )
-							{
-								channelToSources.put( group, new ArrayList<>() );
-							}
-							channelToSources.get( group ).add( gridSource );
-						}
-						else
-						{
-							// this should not happen:
-							throw new UnsupportedOperationException( "Could not extract channel ID of " + gridSource );
-						}
-					}
-				}
-				else
-				{
-					// just one channel
-					channelToSources.put( "ch0", gridSources );
+					regionDisplay.sources.put( "region_" + regionIndex, Collections.singletonList( sourceNames.get( regionIndex ) ) );
 				}
 
-				final GridTransformation grid = new GridTransformation();
-				grid.nestedSources = new ArrayList<>();
+				// create grid transformation
+				final MergedGridTransformation grid = new MergedGridTransformation();
+				grid.sources = sources.getSources();
 
-				final int numPositions = channelToSources.values().iterator().next().size();
-				for ( int gridIndex = 0; gridIndex < numPositions; gridIndex++ )
-				{
-					grid.nestedSources.add( new ArrayList<>() );
-					regionDisplay.sources.put( "grid_" + gridIndex, new ArrayList<>() );
-				}
-
-				final List< String > groupNames = MoBIEHelper.getGroupNames( regex );
-
-				if ( rowGroup != null )
-				{
-					final List< String > sources = channelToSources.values().iterator().next();
-					final HashSet< String > categorySet = new HashSet<>();
-					for ( String source : sources )
-					{
-						final Matcher matcher = pattern.matcher( source );
-						matcher.matches();
-						categorySet.add( matcher.group( rowGroup ) );
-					}
-
-					final ArrayList< String > categories = new ArrayList<>( categorySet );
-					final int[] numSources = new int[ categories.size() ];
-					grid.positions = new ArrayList<>();
-					for ( String source : sources )
-					{
-						final Matcher matcher = pattern.matcher( source );
-						matcher.matches();
-						final int row = categories.indexOf( matcher.group( rowGroup ) );
-						final int column = numSources[ row ];
-						numSources[ row ]++;
-						grid.positions.add( new int[]{ column, row } );
-					}
-				}
-
-				for ( String channel : channelToSources.keySet() )
-				{
-					final List< String > sources = channelToSources.get( channel );
-
-					for ( int gridPosition = 0; gridPosition < numPositions; gridPosition++ )
-					{
-						try
-						{
-							final String sourceName = sources.get( gridPosition );
-							grid.nestedSources.get( gridPosition ).add( sourceName );
-							regionDisplay.sources.get( "grid_" + gridPosition ).add( sourceName );
-						}
-						catch ( Exception e )
-						{
-							e.printStackTrace();
-						}
-					}
-				}
-
+				// create display
 				final ArrayList< Display< ? > > displays = new ArrayList<>();
-
-				for ( String channel : channelToSources.keySet() )
+				final String referenceImage = sourceNames.get( 0 );
+				final DisplaySettings settings = MoBIEHelper.getDisplaySettingsFromSource( ( ImageDataSource ) dataset.sources().get( referenceImage ) );
+				dataset.sources().get( referenceImage );
+				if ( sources instanceof ImageSources )
 				{
-					final List< String > channelSources = channelToSources.get( channel );
-					final String referenceSource = channelSources.get( 0 );
-					final Display< ? > referenceDisplay = dataset.views().get( referenceSource ).displays().get( 0 );
-					Display< ? > display;
-					if ( referenceDisplay instanceof ImageDisplay )
-					{
-						String postFix = channelToSources.keySet().size() > 1 ? "_ch" + channel : "";
-						display = new ImageDisplay<>( gridPattern + postFix, channelSources, ( ( ImageDisplay ) referenceDisplay ).getColor(), ( ( ImageDisplay ) referenceDisplay ).getContrastLimits() );
-					}
-					else if ( referenceDisplay instanceof SegmentationDisplay )
-					{
-						display = new SegmentationDisplay<>( gridPattern, channelSources );
-					}
-					else
-					{
-						throw new UnsupportedOperationException( "Cannot build a display for " + referenceDisplay.getClass().getName() );
-					}
-
-					displays.add( display );
+					displays.add( new ImageDisplay<>( sources.getName(), sourceNames, settings.color, settings.contrastLimits ) );
+				}
+				else if ( sources instanceof LabelSources )
+				{
+					displays.add( new SegmentationDisplay<>( sources.getName(), sourceNames ) );
 				}
 
-
-				// create a view for this gridPattern
-				//
 				displays.add( regionDisplay );
-				final View gridView = new View( gridPattern, "grids", displays, Arrays.asList( grid ), false );
+
+				// create the view
+				final View gridView = new View( sources.getName(), "grids", displays, Arrays.asList( grid ), false );
 				gridView.overlayNames( true );
 				dataset.views().put( gridView.getName(), gridView );
-				if ( initialView == null ) initialView = gridView;
+			}
+			else
+			{
+				//					for ( int gridPosition = 0; gridPosition < numRegions; gridPosition++ )
+//					{
+//						try
+//						{
+//							final String sourceName = sources.get( gridPosition );
+//							grid.nestedSources.get( gridPosition ).add( sourceName );
+//							regionDisplay.sources.get( "grid_" + gridPosition ).add( sourceName );
+//						}
+//						catch ( Exception e )
+//						{
+//							e.printStackTrace();
+//						}
+//					}
+//				}
+
+				throw new UnsupportedOperationException( "Grid type currently not supported.");
 			}
 		}
 
-		if ( initialView == null )
-		{
-			initUIandShowView( dataset.views().keySet().iterator().next() );
-		}
-		else
-		{
-			initUIandShowView( initialView.getName() );
-		}
+		initUIandShowView( dataset.views().keySet().iterator().next() );
 	}
 
 	// use this constructor from the Fiji UI
@@ -492,7 +370,7 @@ public class MoBIE
 	// and the {@code TableDataFormat}.
 	public MoBIE( String projectName, AbstractSpimData< ? > image, @Nullable AbstractSpimData< ? > segmentation, @Nullable StorageLocation tableStorageLocation, @Nullable TableDataFormat tableDataFormat )
 	{
-		init();
+		initImageJAndMoBIE();
 
 		initProject( projectName );
 
@@ -504,7 +382,7 @@ public class MoBIE
 		initUIandShowView( null );
 	}
 
-	private void init()
+	private void initImageJAndMoBIE()
 	{
 		DebugTools.setRootLevel( "OFF" ); // Disable Bio-Formats logging
 

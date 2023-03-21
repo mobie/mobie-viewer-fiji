@@ -5,6 +5,10 @@ import mpicbg.spim.data.generic.AbstractSpimData;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
+import org.embl.mobie.lib.ImageSources;
+import org.embl.mobie.lib.display.DisplaySettings;
+import org.embl.mobie.lib.serialize.ImageDataSource;
+import spimdata.util.Displaysettings;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,11 +73,11 @@ public class IOHelper
 		return paths;
 	}
 
-	public static AbstractSpimData< ? > tryOpenSpimData( String segmentationPath, ImageDataFormat imageDataFormat )
+	public static AbstractSpimData< ? > tryOpenSpimData( String path, ImageDataFormat imageDataFormat )
 	{
 		try
 		{
-			return new SpimDataOpener().open( segmentationPath, imageDataFormat );
+			return new SpimDataOpener().open( path, imageDataFormat );
 		}
 		catch ( SpimDataException e )
 		{
@@ -95,4 +99,5 @@ public class IOHelper
 
 		return path;
 	}
+
 }

@@ -8,9 +8,9 @@ class CommandLineSkimage3DN5
 	public static void main( String[] args ) throws Exception
 	{
 		final MoBIECmd cmd = new MoBIECmd();
-		cmd.images = new String[]{ ROOT + DIR + "image.xml" };
-		cmd.labels = new String[]{ ROOT + DIR + "segmentation.xml" };
-		cmd.tables = new String[]{ ROOT + DIR + "table.tsv" };
+		cmd.root = ROOT + DIR;
+		cmd.images = new String[]{ "image.xml" };
+		cmd.labels = new String[]{ "segmentation.xml,table.csv" };
 		cmd.call();
 	}
 }

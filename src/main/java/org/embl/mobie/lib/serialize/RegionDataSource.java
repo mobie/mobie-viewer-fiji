@@ -45,14 +45,18 @@ public class RegionDataSource extends AbstractDataSource
 	// where the mapping from regionId to images
 	// is specified in {@code RegionDisplay}
 	// see also: https://github.com/mobie/mobie-viewer-fiji/issues/818
-	public Map< TableDataFormat, StorageLocation > tableData = new HashMap<>();;
+	public Map< TableDataFormat, StorageLocation > tableData = new HashMap<>();
 
 	// Runtime
-
 	public Table table;
 
 	public RegionDataSource( String name )
 	{
 		super( name );
+	}
+
+	public void addTable( TableDataFormat format, StorageLocation storageLocation )
+	{
+		this.tableData.put( format, storageLocation );
 	}
 }

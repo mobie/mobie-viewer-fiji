@@ -38,15 +38,10 @@ public class RegionDisplayAnnDataCreator
 
 	public AnnData< AnnotatedRegion > getAnnData()
 	{
-		// TODO: it may have the table already!
 		if (  regionDisplay.tableSource == null )
-		{
 			createTable();
-		}
 		else
-		{
-			loadTable();
-		}
+			fetchTable();
 
 		final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( table, regionDisplay.sources );
 
@@ -57,8 +52,10 @@ public class RegionDisplayAnnDataCreator
 		return annData;
 	}
 
-	private void loadTable()
+	private void fetchTable()
 	{
+		// TODO: Does this work?? It should load it shouldn't it?
+		//       E.g. for the CLEM project?
 		final RegionDataSource regionDataSource = ( RegionDataSource ) DataStore.getRawData( regionDisplay.tableSource );
 		table = regionDataSource.table;
 		tableLocation = moBIE.getTableLocation( regionDataSource.tableData );
@@ -80,7 +77,7 @@ public class RegionDisplayAnnDataCreator
 			table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
 	}
 
-	private void createTable( )
+	private void createTable()
 	{
 		tableLocation = new StorageLocation();
 		tableFormat = TableDataFormat.Table;

@@ -47,7 +47,7 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotat
 
 	public Map< String, List< String > > sources; // one region annotating several images
 
-	public String tableSource;
+	public String tableSource; // region data source
 
 	public Set< String > selectedRegionIds;
 

@@ -34,6 +34,12 @@ import loci.plugins.in.ImportProcess;
 import loci.plugins.in.ImporterOptions;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.Dimensions;
+import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.lib.display.DisplaySettings;
+import org.embl.mobie.lib.io.IOHelper;
+import org.embl.mobie.lib.io.StorageLocation;
+import org.embl.mobie.lib.serialize.ImageDataSource;
+import spimdata.util.Displaysettings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -167,6 +173,32 @@ public abstract class MoBIEHelper
 		}
 
 		return namedGroups;
+	}
+
+	// Note that this opens the image and thus may be slow!
+	public static DisplaySettings getDisplaySettingsFromSource( ImageDataSource imageDataSource )
+	{
+		final ImageDataFormat format = imageDataSource.imageData.keySet().iterator().next();
+		final StorageLocation location = imageDataSource.imageData.get( format );
+
+		final AbstractSpimData< ? > spimData = IOHelper.tryOpenSpimData( location.absolutePath, format );
+		final DisplaySettings displaySettings = new DisplaySettings();
+		displaySettings.color = "White";
+		displaySettings.contrastLimits = null;
+
+		final Displaysettings settingsFromFile = spimData.getSequenceDescription().getViewSetupsOrdered().get( location.channel ).getAttribute( Displaysettings.class );
+
+		if ( settingsFromFile != null )
+		{
+			// FIXME: Wrong color from Bio-Formats
+			//    https://forum.image.sc/t/bio-formats-color-wrong-for-imagej-images/76021/15
+			//    https://github.com/BIOP/bigdataviewer-image-loaders/issues/8
+			displaySettings.color = "White"; // ColorHelper.getString( displaysettings.color );
+			displaySettings.contrastLimits = new double[]{ settingsFromFile.min, settingsFromFile.max };
+			//System.out.println( imageName + ": contrast limits = " + Arrays.toString( contrastLimits ) );
+		}
+
+		return displaySettings;
 	}
 
 	public enum FileLocation

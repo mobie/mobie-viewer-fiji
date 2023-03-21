@@ -8,9 +8,9 @@ class CommandLineSkimage2DTZarr
 	public static void main( String[] args ) throws Exception
 	{
 		final MoBIECmd cmd = new MoBIECmd();
-		cmd.images = new String[]{ ROOT + DIR + "image.ome.zarr" };
-		cmd.labels = new String[]{ ROOT + DIR + "segmentation.ome.zarr" };
-		cmd.tables = new String[]{ ROOT + DIR + "table.tsv" };
+		cmd.root = ROOT + DIR;
+		cmd.images = new String[]{ "image.ome.zarr" };
+		cmd.labels = new String[]{ "segmentation.ome.zarr,table.tsv" };
 		cmd.call();
 	}
 }

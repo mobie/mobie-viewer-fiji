@@ -42,9 +42,9 @@ public class MoBIECmd implements Callable< Void > {
 	@Override
 	public Void call() throws Exception {
 
-		if ( project == null && images == null && labels == null )
+		if ( table == null && project == null && images == null && labels == null )
 		{
-			System.out.println( "Please either provide a project (-p), or an image (-i) and/or a segmentation (-s).");
+			System.out.println( "Please either provide a project (-p), or table (-t), or an image (-i) and/or labels (-l).");
 			System.exit( 1 );
 		}
 
@@ -58,7 +58,8 @@ public class MoBIECmd implements Callable< Void > {
 		}
 		else if ( table != null )
 		{
-			new MoBIE( Data.Table, table, images, labels, root, GridType.fromString( grid ) );
+			final GridType gridType = grid == null ? GridType.Merged : GridType.fromString( grid );
+			new MoBIE( Data.Table, table, images, labels, root, gridType );
 		}
 		else
 		{

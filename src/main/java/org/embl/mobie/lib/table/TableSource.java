@@ -12,4 +12,14 @@ public class TableSource
 		this.format = format;
 		this.location = location;
 	}
+
+	public TableDataFormat getFormat()
+	{
+		return format;
+	}
+
+	public StorageLocation getLocation()
+	{
+		return location;
+	}
 }

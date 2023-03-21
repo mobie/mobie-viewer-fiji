@@ -1,4 +1,4 @@
-package users.kristina;
+package projects.mirkes;
 
 import org.embl.mobie.cmd.MoBIECmd;
 
@@ -9,9 +9,9 @@ class CommandLineFlatwormKristina
 	public static void main( String[] args ) throws Exception
 	{
 		final MoBIECmd cmd = new MoBIECmd();
-		cmd.images = new String[]{ DIR + "*-pro.tif" };
-		cmd.labels = new String[]{ DIR + "*-seg.tif" };
-		cmd.tables = new String[]{ DIR + "*.csv" };
+		cmd.root = DIR;
+		cmd.images = new String[]{ "*-pro.tif" };
+		cmd.labels = new String[]{ "*-seg.tif,*.csv" };
 		cmd.call();
 	}
 }
