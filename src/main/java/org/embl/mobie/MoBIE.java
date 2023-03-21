@@ -272,18 +272,18 @@ public class MoBIE
 				final StorageLocation storageLocation = new StorageLocation();
 				storageLocation.absolutePath = path;
 				storageLocation.channel = sources.getChannel();
-				if ( sources instanceof ImageSources )
+				if ( sources instanceof LabelSources )
+				{
+					final TableSource tableSource = ( ( LabelSources ) sources ).nameToTableSource().get( name );
+					final SegmentationDataSource segmentationDataSource = new SegmentationDataSource( name, imageDataFormat, storageLocation, tableSource.getFormat(), tableSource.getLocation() );
+					segmentationDataSource.preInit( false );
+					dataset.addDataSource( segmentationDataSource );
+				}
+				else
 				{
 					final ImageDataSource imageDataSource = new ImageDataSource( name, imageDataFormat, storageLocation );
 					imageDataSource.preInit( false );
 					dataset.addDataSource( imageDataSource );
-				}
-				else if ( sources instanceof LabelSources )
-				{
-					final TableSource tableSource = (( LabelSources ) sources).nameToTableSource().get( name );
-					final SegmentationDataSource segmentationDataSource = new SegmentationDataSource( name, imageDataFormat, storageLocation, tableSource.getFormat(), tableSource.getLocation() );
-					segmentationDataSource.preInit( false );
-					dataset.addDataSource( segmentationDataSource );
 				}
 			}
 		}
@@ -300,7 +300,7 @@ public class MoBIE
 				DataStore.putRawData( regionDataSource );
 
 				// init RegionDisplay
-				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( sources.getName() + " table" );
+				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( sources.getName() + " images" );
 				regionDisplay.sources = new LinkedHashMap<>();
 				regionDisplay.tableSource = regionDataSource.getName();
 				regionDisplay.showAsBoundaries( true );
@@ -323,31 +323,29 @@ public class MoBIE
 				grid.sources = sources.getSources();
 				grid.metadataSource = sources.getMetadataSource();
 
-				// create display
+				// create displays
+				//
 				final ArrayList< Display< ? > > displays = new ArrayList<>();
-				final String referenceImage = sourceNames.get( 0 );
-				final Metadata settings = MoBIEHelper.getMetadataFromSource( ( ImageDataSource ) dataset.sources().get( referenceImage ) );
-				dataset.sources().get( referenceImage );
-				if ( sources instanceof ImageSources )
+
+				if ( sources instanceof LabelSources )
 				{
+					// SegmentationDisplay
+					displays.add( new SegmentationDisplay<>( grid.getName(), Collections.singletonList( grid.getName() ) ) );
+				}
+				else
+				{
+					// ImageDisplay
+					final String referenceImage = sourceNames.get( 0 );
+					final Metadata settings = MoBIEHelper.getMetadataFromSource( ( ImageDataSource ) dataset.sources().get( referenceImage ) );
 					displays.add( new ImageDisplay<>( grid.getName(), Collections.singletonList( grid.getName() ), settings.color, settings.contrastLimits ) );
 				}
-				else if ( sources instanceof LabelSources )
-				{
-					displays.add( new SegmentationDisplay<>( sources.getName(), sourceNames ) );
-				}
-
-//				final int numTimepoints = plate.getTPositions().size();
-//				for ( int t = 0; t < numTimepoints; t++ )
-//				{
-//					wellDisplay.timepoints().add( t );
-//				}
 
 				displays.add( regionDisplay );
 
-				// create the view
+				// create view
+				//
 				final View gridView = new View( sources.getName(), "grids", displays, Arrays.asList( grid ), false );
-				//gridView.overlayNames( true ); // Timepoint bug
+				//gridView.overlayNames( true ); // Timepoint bug:
 				dataset.views().put( gridView.getName(), gridView );
 			}
 			else

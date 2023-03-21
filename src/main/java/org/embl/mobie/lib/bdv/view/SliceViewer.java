@@ -242,18 +242,13 @@ public class SliceViewer
 		final List< SourceAndConverter< ? > > sacs = bdvHandle.getViewerPanel().state().getSources();
 		if ( sacs.size() == 0 ) return;
 
-		int numTimepoints = 1;
+		int maxNumTimePoints = 1;
 		for ( SourceAndConverter< ? > sac : sacs )
 		{
-			int numSourceTimepoints = SourceHelper.getNumTimepoints( sac.getSpimSource() );
-			if ( numSourceTimepoints > numTimepoints )
-				numTimepoints = numSourceTimepoints;
+			int numTimepoints = SourceHelper.getNumTimepoints( sac.getSpimSource() );
+			if ( numTimepoints > maxNumTimePoints ) maxNumTimePoints = numTimepoints;
 		}
-		final int timepointsBefore = bdvHandle.getViewerPanel().state().getNumTimepoints();
-		bdvHandle.getViewerPanel().state().setNumTimepoints( numTimepoints );
-		final int timepointsAfter = bdvHandle.getViewerPanel().state().getNumTimepoints();
-		//bdvHandle.getViewerPanel().requestRepaint();
-		int a = 1;
+		bdvHandle.getViewerPanel().state().setNumTimepoints( maxNumTimePoints );
 	}
 
 }

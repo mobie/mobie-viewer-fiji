@@ -500,22 +500,16 @@ public class ViewManager
 		{
 			final AbstractAnnotationDisplay< A > annotationDisplay = ( AbstractAnnotationDisplay ) display;
 
-			// Register all images that are shown by this display.
-			// This is needed for the annotationDisplay to create the annData,
-			// combining the annData from all the annotated images.
+			// create combined AnnData from all images
+			// that are shown
 			for ( String name : display.getSources() )
 			{
 				final Image< ? > image = DataStore.getImage( name );
 				annotationDisplay.images().add( ( Image< AnnotationType< A > > ) image );
 			}
-
-			// Now that all images are added to the display,
-			// create an annData object,
-			// potentially combining the annData from
-			// several images.
 			annotationDisplay.initAnnData();
 
-			// Load additional tables (to be merged)
+			// load additional tables (to be merged)
 			final List< String > requestedTableChunks = annotationDisplay.getRequestedTableChunks();
 			if ( requestedTableChunks != null )
 				for ( String tableChunk : requestedTableChunks )
