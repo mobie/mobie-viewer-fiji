@@ -1,12 +1,14 @@
 package org.embl.mobie.lib;
 
 import org.apache.commons.io.FilenameUtils;
+import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.transform.GridType;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.NumberColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.columns.Column;
+import tech.tablesaw.columns.numbers.DoubleColumnType;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,8 +31,6 @@ public class ImageSources
 	{
 		this.name = name;
 		this.gridType = gridType;
-
-		createImageTable( table, pathColumn );
 
 		final StringColumn paths = table.stringColumn( pathColumn );
 		for ( String path : paths )
@@ -71,25 +71,26 @@ public class ImageSources
 
 		}
 
-
+		createImageTable( table, pathColumn );
 	}
 
 	private void createImageTable( Table table, String pathColumn )
 	{
 		// create image table
-		// TODO add more columns here
-		final List< ColumnType > types = table.types();
+		// TODO add more columns
 		final List< Column< ? > > columns = table.columns();
-		final int numColumns = types.size();
-		imageTable = null;
+		final int numColumns = columns.size();
 		for ( int columnIndex = 0; columnIndex < numColumns; columnIndex++ )
 		{
-			if ( types.get( columnIndex ) instanceof NumberColumn )
+			if ( columns.get( columnIndex ) instanceof NumberColumn )
 			{
 				imageTable = table.summarize( columns.get( columnIndex ), mean ).by( pathColumn );
 				break;
 			}
 		}
+		
+		final StringColumn regions = StringColumn.create( ColumnNames.REGION_ID, getSources() );
+		imageTable.addColumns( regions );
 	}
 
 	public GridType getGridType()

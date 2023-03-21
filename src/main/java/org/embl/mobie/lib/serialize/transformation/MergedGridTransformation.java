@@ -37,11 +37,16 @@ public class MergedGridTransformation extends AbstractGridTransformation
 
 	public List< String > sources; // required
 
-	private String mergedGridSourceName; // required => name of corresponding StitchedImage
+	private String mergedGridSourceName = "merged image"; // required => name of corresponding StitchedImage
 
 	public String metadataSource; // optional, this improves performance (a lot)
 
 	public boolean centerAtOrigin = false; // TODO: should actually be true, but: https://github.com/mobie/mobie-viewer-fiji/issues/685#issuecomment-1108179599
+
+	public MergedGridTransformation( String mergedGridSourceName )
+	{
+		this.mergedGridSourceName = mergedGridSourceName;
+	}
 
 	@Override
 	public List< String > getSources()
@@ -54,8 +59,4 @@ public class MergedGridTransformation extends AbstractGridTransformation
 		return mergedGridSourceName;
 	}
 
-	public void setName( String name )
-	{
-		this.mergedGridSourceName = name;
-	}
 }

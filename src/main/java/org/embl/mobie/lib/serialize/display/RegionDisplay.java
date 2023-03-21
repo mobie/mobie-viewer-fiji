@@ -125,7 +125,7 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotat
 	public List< String > getSources()
 	{
 		// there is only one image source that can be displayed,
-		// namely the AnnotatedLabelImage that was
+		// namely the AnnotatedLabelImage that was created.
 		final ArrayList< String > sources = new ArrayList<>();
 		sources.add( getName() );
 		return sources;

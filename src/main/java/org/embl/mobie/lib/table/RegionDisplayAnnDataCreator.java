@@ -7,6 +7,7 @@ import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.RegionDataSource;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
+import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegion;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegionCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationCreator;
@@ -54,22 +55,20 @@ public class RegionDisplayAnnDataCreator
 
 	private void fetchTable()
 	{
-		// TODO: Does this work?? It should load it shouldn't it?
-		//       E.g. for the CLEM project?
 		final RegionDataSource regionDataSource = ( RegionDataSource ) DataStore.getRawData( regionDisplay.tableSource );
-		table = regionDataSource.table;
 		tableLocation = moBIE.getTableLocation( regionDataSource.tableData );
 		tableFormat = moBIE.getTableDataFormat( regionDataSource.tableData );
+		table = TableOpener.open( tableLocation, tableFormat );
 
 		// only keep the subset of rows (regions)
-		// that are actually referred to in regionIdToImageNames
+		// that are actually referred to in regionDisplay
 		final Set< String > regionIDs = regionDisplay.sources.keySet();
 		final ArrayList< Integer > dropRows = new ArrayList<>();
 		final int rowCount = table.rowCount();
 		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
 		{
 			final String regionId = table.row( rowIndex ).getObject( ColumnNames.REGION_ID ).toString();
-			if ( !regionIDs.contains( regionId ) )
+			if ( ! regionIDs.contains( regionId ) )
 				dropRows.add( rowIndex );
 		}
 

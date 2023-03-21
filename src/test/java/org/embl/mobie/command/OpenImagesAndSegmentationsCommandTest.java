@@ -15,7 +15,7 @@ public class OpenImagesAndSegmentationsCommandTest {
 
 		final OpenImageAndSegmentationCommand command = new OpenImageAndSegmentationCommand();
 		command.image = new File( "/Users/tischer/Desktop/matt/preprocessed/XYZ__EGM_8hr_1--act.tif" );
-		command.segmentation = null;
+		command.labels = null;
 		command.table = null;
 		command.run();
 	}

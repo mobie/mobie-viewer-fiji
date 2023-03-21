@@ -67,6 +67,9 @@ public abstract class DataStore
 
 	public static void putImage( Image< ? > image )
 	{
+		if ( image.getName() == null )
+			throw new UnsupportedOperationException( "The image " + image.getClass().getSimpleName() + " does not have a name." );
+
 		images.put( image.getName(), image );
 	}
 

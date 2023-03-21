@@ -70,11 +70,10 @@ public class HCSDataSetter
 
 			final Set< Well > wells = plate.getWells( channel );
 
-			final MergedGridTransformation wellGrid = new MergedGridTransformation();
+			final MergedGridTransformation wellGrid = new MergedGridTransformation( "ch_" + channel.getName() );
 			wellGrid.sources = new ArrayList<>();
 			wellGrid.positions = new ArrayList<>();
 			wellGrid.margin = wellMargin;
-			wellGrid.setName( "ch_" + channel.getName() );
 
 			for ( Well well : wells )
 			{
@@ -84,11 +83,10 @@ public class HCSDataSetter
 				if ( plate.getSitesPerWell() > 1 )
 				{
 					// init grid for merging sites within the well
-					siteGrid = new MergedGridTransformation();
+					siteGrid = new MergedGridTransformation( wellID );
 					siteGrid.sources = new ArrayList<>();
 					siteGrid.positions = new ArrayList<>();
 					siteGrid.margin = siteMargin;
-					siteGrid.setName( wellID );
 				}
 
 				if( channel.equals( firstChannel ) )

@@ -182,16 +182,18 @@ public class MoBIE
 		openHCSDataset( relativeWellMargin, relativeSiteMargin );
 	}
 
+	public MoBIE( Data data, String[] images, String[] labels, String root, GridType grid ) throws IOException
+	{
+		assert data.equals( Data.Files );
+
+		openFiles();
+	}
+
 	public MoBIE( Data data, String tablePath, String[] images, String[] labels, String root, GridType grid ) throws IOException
 	{
-		if ( data.equals( Data.Table ) )
-		{
-			openTable( tablePath, images, labels, root, grid );
-		}
-		else if ( data.equals( Data.Files ) )
-		{
-			openFiles();
-		}
+		assert data.equals( Data.Table );
+
+		openTable( tablePath, images, labels, root, grid );
 	}
 
 	private void openTable( String tablePath, String[] images, String[] labels, String root, GridType gridType )
@@ -305,14 +307,14 @@ public class MoBIE
 				regionDisplay.setBoundaryThickness( 0.05 );
 				regionDisplay.boundaryThicknessIsRelative( true );
 				final List< String > sourceNames = sources.getSources();
-				final int numRegions = images.size();
+				final int numRegions = sourceNames.size();
 				for ( int regionIndex = 0; regionIndex < numRegions; regionIndex++ )
 				{
-					regionDisplay.sources.put( "region_" + regionIndex, Collections.singletonList( sourceNames.get( regionIndex ) ) );
+					regionDisplay.sources.put( sourceNames.get( regionIndex ), Collections.singletonList( sourceNames.get( regionIndex ) ) );
 				}
 
 				// create grid transformation
-				final MergedGridTransformation grid = new MergedGridTransformation();
+				final MergedGridTransformation grid = new MergedGridTransformation( sources.getName() );
 				grid.sources = sources.getSources();
 
 				// create display
@@ -899,6 +901,7 @@ public class MoBIE
     public synchronized String getImageLocation( ImageDataFormat imageDataFormat, StorageLocation storageLocation )
 	{
 		switch (imageDataFormat) {
+			case Tiff:
 			case ImageJ:
 			case BioFormats:
 			case BdvHDF5:
