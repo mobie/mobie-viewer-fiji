@@ -52,7 +52,7 @@ import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.lib.annotation.LazyAnnotatedSegmentAdapter;
-import org.embl.mobie.lib.display.DisplaySettings;
+import org.embl.mobie.lib.display.Metadata;
 import org.embl.mobie.lib.hcs.HCSDataSetter;
 import org.embl.mobie.lib.hcs.Plate;
 import org.embl.mobie.lib.hcs.Site;
@@ -306,6 +306,11 @@ public class MoBIE
 				regionDisplay.showAsBoundaries( true );
 				regionDisplay.setBoundaryThickness( 0.05 );
 				regionDisplay.boundaryThicknessIsRelative( true );
+				regionDisplay.setOpacity( 1.0 );
+				for ( int t = 0; t < sources.numTimePoints(); t++ )
+				{
+					regionDisplay.timepoints().add( t );
+				}
 				final List< String > sourceNames = sources.getSources();
 				final int numRegions = sourceNames.size();
 				for ( int regionIndex = 0; regionIndex < numRegions; regionIndex++ )
@@ -316,11 +321,12 @@ public class MoBIE
 				// create grid transformation
 				final MergedGridTransformation grid = new MergedGridTransformation( sources.getName() );
 				grid.sources = sources.getSources();
+				grid.metadataSource = sources.getMetadataSource();
 
 				// create display
 				final ArrayList< Display< ? > > displays = new ArrayList<>();
 				final String referenceImage = sourceNames.get( 0 );
-				final DisplaySettings settings = MoBIEHelper.getDisplaySettingsFromSource( ( ImageDataSource ) dataset.sources().get( referenceImage ) );
+				final Metadata settings = MoBIEHelper.getMetadataFromSource( ( ImageDataSource ) dataset.sources().get( referenceImage ) );
 				dataset.sources().get( referenceImage );
 				if ( sources instanceof ImageSources )
 				{
@@ -330,6 +336,12 @@ public class MoBIE
 				{
 					displays.add( new SegmentationDisplay<>( sources.getName(), sourceNames ) );
 				}
+
+//				final int numTimepoints = plate.getTPositions().size();
+//				for ( int t = 0; t < numTimepoints; t++ )
+//				{
+//					wellDisplay.timepoints().add( t );
+//				}
 
 				displays.add( regionDisplay );
 

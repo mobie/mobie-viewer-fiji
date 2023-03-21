@@ -360,10 +360,10 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		// volatile
 		//
-		final Map< Integer, List< RandomAccessibleInterval< V > > > volatileStitched = stitchVolatileTiles( tileStore );
+		final Map< Integer, List< RandomAccessibleInterval< V > > > timepointToVolatileRAI = stitchVolatileTiles( tileStore );
 
 		final StitchedSource< V > volatileSource = new StitchedSource<>(
-				volatileStitched,
+				timepointToVolatileRAI,
 				volatileType,
 				voxelDimensions,
 				name,

@@ -81,4 +81,9 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	{
 		return sourceAndConverters;
 	}
+
+	public void setOpacity( double opacity )
+	{
+		this.opacity = opacity;
+	}
 }

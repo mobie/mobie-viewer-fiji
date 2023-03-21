@@ -1,7 +1,10 @@
 package org.embl.mobie.lib;
 
+import ij.IJ;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.lib.table.ColumnNames;
+import org.embl.mobie.lib.table.TableDataFormat;
+import org.embl.mobie.lib.table.columns.SegmentColumnNames;
 import org.embl.mobie.lib.transform.GridType;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.NumberColumn;
@@ -26,6 +29,9 @@ public class ImageSources
 	protected GridType gridType;
 	protected Table imageTable;
 	protected int channel = 0;
+	protected int numTimePoints = 1;
+	private String metadataSource;
+	// TODO: load the display settings here?!
 
 	public ImageSources( String name, Table table, String pathColumn, String root, GridType gridType )
 	{
@@ -71,6 +77,20 @@ public class ImageSources
 
 		}
 
+		final List< String > columnNames = table.columnNames();
+		final SegmentColumnNames segmentColumnNames = TableDataFormat.getSegmentColumnNames( columnNames );
+		if ( segmentColumnNames != null )
+		{
+			final NumberColumn timepointColumn = ( NumberColumn ) table.column( segmentColumnNames.timePointColumn() );
+			final double min = timepointColumn.min();
+			final double max = timepointColumn.max();
+			numTimePoints = ( int ) ( max - min + 1 );
+			IJ.log("Detected " + numTimePoints + " timepoints for " + name );
+
+			final Table where = table.where( timepointColumn.isEqualTo( max ) );
+			final String path = where.stringColumn( pathColumn ).get( 0 );
+			metadataSource = nameToTableCell.entrySet().stream().filter( e -> e.getValue().equals( path ) ).findFirst().get().getKey();
+		}
 		createImageTable( table, pathColumn );
 	}
 
@@ -88,7 +108,7 @@ public class ImageSources
 				break;
 			}
 		}
-		
+
 		final StringColumn regions = StringColumn.create( ColumnNames.REGION_ID, getSources() );
 		imageTable.addColumns( regions );
 	}
@@ -123,6 +143,14 @@ public class ImageSources
 		return nameToPath.get( source );
 	}
 
+	public int numTimePoints()
+	{
+		return numTimePoints;
+	}
 
+	public String getMetadataSource()
+	{
+		return metadataSource;
+	}
 }
 

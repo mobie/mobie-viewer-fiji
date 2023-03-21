@@ -10,7 +10,7 @@ public class OpenFromTable
 		cmd.table = "/Users/tischer/Desktop/Kristina/big-table-merge/table.csv";
 		cmd.root = "/Users/tischer/Desktop/Kristina/big-table";
 		cmd.images = new String[]{"worms=ImagePath_ProcessedMovie"};
-		cmd.labels = new String[]{"segmentation=ImagePath_LabelMask"};
+		cmd.labels = new String[]{"worms_seg=ImagePath_LabelMask"};
 		cmd.call();
 	}
 }

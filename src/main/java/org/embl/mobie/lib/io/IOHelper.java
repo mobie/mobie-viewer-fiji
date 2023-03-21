@@ -5,10 +5,6 @@ import mpicbg.spim.data.generic.AbstractSpimData;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
-import org.embl.mobie.lib.ImageSources;
-import org.embl.mobie.lib.display.DisplaySettings;
-import org.embl.mobie.lib.serialize.ImageDataSource;
-import spimdata.util.Displaysettings;
 
 import java.io.File;
 import java.io.IOException;
