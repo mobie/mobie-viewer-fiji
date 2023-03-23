@@ -12,18 +12,18 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Image and Segmentation..." )
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Image(s) and Segmentation(s)..." )
 public class OpenImageAndSegmentationCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter( label = "Image Path", required = false )
+	@Parameter( label = "Image Path (supports *)", required = false )
 	public File image;
 
-	@Parameter( label = "Label Mask Path", required = false )
+	@Parameter( label = "Label Mask Path (supports *)", required = false )
 	public File labels;
 
-	@Parameter( label = "Label Mask Table Path", required = false )
+	@Parameter( label = "Label Mask Table Path (supports *)", required = false )
 	public File table;
 
 	// TODO: link to documentation! explain the wildcards are OK, and that
@@ -32,6 +32,9 @@ public class OpenImageAndSegmentationCommand implements Command {
 	@Override
 	public void run()
 	{
+
+		final GridType gridType = GridType.Merged; // TODO: fetch from UI
+
 		if ( image == null && labels == null )
 		{
 			IJ.showMessage( "Please either provide a path to images or labels." );
@@ -40,7 +43,7 @@ public class OpenImageAndSegmentationCommand implements Command {
 
 		try
 		{
-			new MoBIE( Data.Files, new String[]{ image.getAbsolutePath() }, new String[]{  labels.getAbsolutePath() }, null, GridType.None );
+			new MoBIE( Data.Files, new String[]{ image.getAbsolutePath() }, new String[]{ labels.getAbsolutePath() }, null, gridType );
 		}
 		catch ( IOException e )
 		{

@@ -58,11 +58,14 @@ public class MoBIECmd implements Callable< Void > {
 		}
 		else if ( table != null )
 		{
-			final GridType gridType = grid == null ? GridType.Merged : GridType.fromString( grid );
+			final GridType gridType = grid == null ?
+					GridType.Merged : GridType.fromString( grid );
 			new MoBIE( Data.Table, table, images, labels, root, gridType );
 		}
 		else
 		{
+			final GridType gridType = grid == null ?
+					GridType.Merged : GridType.fromString( grid );
 			//new MoBIE( "", images, labels, tables, grids );
 		}
 

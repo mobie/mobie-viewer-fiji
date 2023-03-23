@@ -51,22 +51,30 @@ public class IOHelper
 		return(s.toString());
 	}
 
-	public static String[] getPaths( String pathWithWildCards, int maxDepth ) throws IOException
+	public static String[] getPaths( String pathWithWildCards, int maxDepth )
 	{
 		final String dir = new File( pathWithWildCards ).getParent();
 		String name = new File( pathWithWildCards ).getName();
 		final String regex = wildcardToRegex( name );
 
-		final String[] paths = Files.find( Paths.get( dir ), maxDepth,
-				( path, basicFileAttribute ) -> basicFileAttribute.isRegularFile()
-						&& path.getFileName().toString().matches( regex ) ).map( path -> path.toString() ).collect( Collectors.toList() ).toArray( new String[ 0 ] );
+		final String[] paths;
+		try
+		{
+			paths = Files.find( Paths.get( dir ), maxDepth,
+					( path, basicFileAttribute ) -> basicFileAttribute.isRegularFile()
+							&& path.getFileName().toString().matches( regex ) ).map( path -> path.toString() ).collect( Collectors.toList() ).toArray( new String[ 0 ] );
+			Arrays.sort( paths );
 
-		Arrays.sort( paths );
+			if ( paths.length == 0 )
+				System.err.println("Could not find any files for " + regex );
 
-		if ( paths.length == 0 )
-			System.err.println("Could not find any files for " + regex );
+			return paths;
 
-		return paths;
+		} catch ( IOException e )
+		{
+			e.printStackTrace();
+			throw new RuntimeException( e );
+		}
 	}
 
 	public static AbstractSpimData< ? > tryOpenSpimData( String path, ImageDataFormat imageDataFormat )

@@ -17,7 +17,7 @@ public class LabelSources extends ImageSources
 	{
 		super( name, table, columnName, root, gridType);
 
-		for ( Map.Entry< String, String > entry : nameToTableCell.entrySet() )
+		for ( Map.Entry< String, String > entry : nameToPath.entrySet() )
 		{
 			Table rowSubset = table.where( table.stringColumn( columnName ).isEqualTo( entry.getValue() ) );
 			final StorageLocation storageLocation = new StorageLocation();
@@ -26,6 +26,11 @@ public class LabelSources extends ImageSources
 			nameToTableSource.put( entry.getKey(), tableSource );
 
 		}
+	}
+
+	public LabelSources( String name, String labelsPath, String root, GridType grid )
+	{
+		super( name, labelsPath, root, grid );
 	}
 
 	public Map< String, TableSource > nameToTableSource()

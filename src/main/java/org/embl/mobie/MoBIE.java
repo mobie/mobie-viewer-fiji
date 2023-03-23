@@ -182,11 +182,12 @@ public class MoBIE
 		openHCSDataset( relativeWellMargin, relativeSiteMargin );
 	}
 
+	// TODO: how to add label tables?
 	public MoBIE( Data data, String[] images, String[] labels, String root, GridType grid ) throws IOException
 	{
 		assert data.equals( Data.Files );
 
-		openFiles();
+		openFiles( images, labels, root, grid );
 	}
 
 	public MoBIE( Data data, String tablePath, String[] images, String[] labels, String root, GridType grid ) throws IOException
@@ -239,16 +240,25 @@ public class MoBIE
 		openAndViewDataset();
 	}
 
-	private void openFiles()
+	// TODO: how to add label tables?
+	private void openFiles( String[] imagePaths, String[] labelsPaths, String root, GridType grid )
 	{
-//		if ( imagePaths != null && imagePaths[ 0 ].contains( "*" ) )
-//			imagePaths = IOHelper.getPaths( imagePaths[ 0 ], 999 );
-//
-//		if ( segmentationPaths != null && segmentationPaths[ 0 ].contains( "*" ) )
-//			segmentationPaths = IOHelper.getPaths( segmentationPaths[ 0 ], 999 );
-//
-//		if ( tablePaths != null && tablePaths[ 0 ].contains( "*" ) )
-//			tablePaths = IOHelper.getPaths( tablePaths[ 0 ], 999 );
+		//		if ( tablePaths != null && tablePaths[ 0 ].contains( "*" ) )
+		//			tablePaths = IOHelper.getPaths( tablePaths[ 0 ], 999 );
+
+		final List< ImageSources > imageSources = new ArrayList<>();
+		for ( String imagePath : imagePaths )
+		{
+			imageSources.add( new ImageSources( null, imagePath, root, grid ) );
+		}
+
+		final List< LabelSources > labelSources = new ArrayList<>();
+		for ( String labelsPath : labelsPaths )
+		{
+			labelSources.add( new LabelSources( null, labelsPath, root, grid )  );
+		}
+
+		openImagesAndLabels( imageSources, labelSources );
 	}
 
 	// TODO 2D or 3D?
@@ -294,7 +304,7 @@ public class MoBIE
 			{
 				// init table for the RegionDisplay
 				final StorageLocation storageLocation = new StorageLocation();
-				storageLocation.data = sources.getImageTable();
+				storageLocation.data = sources.getRegionTable();
 				final RegionDataSource regionDataSource = new RegionDataSource( sources.getName() );
 				regionDataSource.addTable( TableDataFormat.Table, storageLocation );
 				DataStore.putRawData( regionDataSource );
