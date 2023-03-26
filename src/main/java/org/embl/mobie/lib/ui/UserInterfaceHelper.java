@@ -98,6 +98,7 @@ import static org.embl.mobie.lib.ui.SwingHelper.selectionDialog;
 
 public class UserInterfaceHelper
 {
+	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 	private static final Dimension PREFERRED_BUTTON_SIZE = new Dimension( 30, 30 );
 	private static final Dimension PREFERRED_CHECKBOX_SIZE = new Dimension( 40, 30 );
 	private static final Dimension PREFERRED_SPACE_SIZE = new Dimension( 10, 30 );
@@ -779,7 +780,7 @@ public class UserInterfaceHelper
 			} ).start();
 		} );
 
-		SwingHelper.setComboBoxDimensions( comboBox, MoBIE.PROTOTYPE_DISPLAY_VALUE );
+		SwingHelper.setComboBoxDimensions( comboBox, PROTOTYPE_DISPLAY_VALUE );
 
 		horizontalLayoutPanel.add( SwingHelper.getJLabel( panelName ) );
 		horizontalLayoutPanel.add( comboBox );
@@ -819,12 +820,12 @@ public class UserInterfaceHelper
 		final MoBIEInfo moBIEInfo = new MoBIEInfo( projectLocation, project );
 
 		final JComboBox< String > comboBox = new JComboBox<>( moBIEInfo.getInfoChoices() );
-		SwingHelper.setComboBoxDimensions( comboBox, MoBIE.PROTOTYPE_DISPLAY_VALUE );
+		SwingHelper.setComboBoxDimensions( comboBox, PROTOTYPE_DISPLAY_VALUE );
 
 		button.addActionListener( e -> {
 			moBIEInfo.showInfo( ( String ) comboBox.getSelectedItem() );
 		} );
-		comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE  );
+		comboBox.setPrototypeDisplayValue( PROTOTYPE_DISPLAY_VALUE  );
 
 		horizontalLayoutPanel.setSize( 0, 80 );
 		final ImageIcon icon = createIcon( 80 );
@@ -863,7 +864,7 @@ public class UserInterfaceHelper
 		} );
 
 		comboBox.setSelectedItem( moBIE.getDataset().getName() );
-		SwingHelper.setComboBoxDimensions( comboBox, MoBIE.PROTOTYPE_DISPLAY_VALUE );
+		SwingHelper.setComboBoxDimensions( comboBox, PROTOTYPE_DISPLAY_VALUE );
 
 		panel.add( SwingHelper.getJLabel( "dataset" ) );
 		panel.add( comboBox );

@@ -18,7 +18,7 @@ public class DefaultAnnotatedLabelImage< A extends Annotation > implements Annot
 	protected SourcePair< AnnotationType< A > > sourcePair;
 	private AnnotationAdapter< A > annotationAdapter;
 
-	// FIXME This should probably also expose the annotationAdapter in a getter
+	// TODO This should probably also expose the annotationAdapter in a getter
 	//   already in the interface
 	public DefaultAnnotatedLabelImage( Image< ? extends IntegerType< ? > > labelImage, AnnData< A > annData, AnnotationAdapter< A > annotationAdapter )
 	{

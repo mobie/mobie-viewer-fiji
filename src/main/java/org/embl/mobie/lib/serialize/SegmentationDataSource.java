@@ -29,9 +29,12 @@
 package org.embl.mobie.lib.serialize;
 
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.lib.LabelSources;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.TableDataFormat;
+import org.embl.mobie.lib.table.TableSource;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,4 +61,17 @@ public class SegmentationDataSource extends ImageDataSource
 			this.tableData.put( tableDataFormat, tableLocation );
 		}
 	}
+
+	public static SegmentationDataSource create( String name, ImageDataFormat imageDataFormat, StorageLocation storageLocation, TableSource tableSource )
+	{
+		if ( tableSource != null )
+		{
+			return new SegmentationDataSource( name, imageDataFormat, storageLocation, tableSource.getFormat(), tableSource.getLocation() );
+		}
+		else
+		{
+			return new SegmentationDataSource( name, imageDataFormat, storageLocation, null, null );
+		}
+	}
+
 }

@@ -268,7 +268,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		return menuItem;
 	}
 
-	private void updateJTable()
+	private synchronized void updateJTable()
 	{
 		if ( jTable == null ) return;
 		jTable.tableChanged( null );

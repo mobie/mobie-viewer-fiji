@@ -105,7 +105,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private RealMaskRealInterval mask;
 	private Source< T > metadataSource;
 
-	public StitchedImage( List< ? extends Image< T > > images, Image< T > metadataImage, @Nullable List< int[] > positions, String name, double relativeTileMargin )
+	public StitchedImage( List< ? extends Image< T > > images, Image< T > metadataImage, @Nullable List< int[] > gridPositions, String name, double relativeTileMargin )
 	{
 		this.images = images;
 
@@ -152,7 +152,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				System.out.println( "StitchedImage: Metadata transform: " + copy );
 				System.out.println( "StitchedImage: Metadata dimensions: " + Arrays.toString( dimensions ) );
 				System.out.println( "StitchedImage: Metadata tile mask: " + TransformHelper.maskToString( referenceMask ) );
-				System.out.println( "StitchedImage: Number of tiles: " + positions.size() );
+				System.out.println( "StitchedImage: Number of tiles: " + gridPositions.size() );
 
 			}
 
@@ -161,7 +161,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		}
 
 		this.sourceTransform = levelToSourceTransform.get( 0 );
-		setPositions( images, positions );
+		setPositions( images, gridPositions );
 		this.relativeTileMargin = relativeTileMargin;
 		this.name = name;
 

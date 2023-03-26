@@ -233,7 +233,7 @@ public class TransformHelper
 		for ( int d = 0; d < 2; d++ )
 		{
 			final double size = interval.realMax( d ) - interval.realMin( d );
-			scale = Math.min( scale, 1.0 * bdvWindowDimensions[ d ] / size );
+			scale = Math.min( scale, 1.0 * ( bdvWindowDimensions[ d ] - 40 ) / size );
 		}
 		affineTransform3D.scale( scale );
 

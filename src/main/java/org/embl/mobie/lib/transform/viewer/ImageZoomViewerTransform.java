@@ -28,8 +28,7 @@
  */
 package org.embl.mobie.lib.transform.viewer;
 
-// TODO: Create issue to discuss
-//   whether this is useful for the spec
+// TODO: Create issue to discuss whether this is useful for the spec
 public class ImageZoomViewerTransform implements ViewerTransform
 {
 	// Serialization

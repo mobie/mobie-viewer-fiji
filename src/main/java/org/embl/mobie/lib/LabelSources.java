@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class LabelSources extends ImageSources
 {
-	protected Map< String, TableSource > nameToTableSource = new LinkedHashMap<>();
+	protected Map< String, TableSource > nameToLabelTable = new LinkedHashMap<>();
 
 	public LabelSources( String name, Table table, String columnName, String root, GridType gridType )
 	{
@@ -23,7 +23,7 @@ public class LabelSources extends ImageSources
 			final StorageLocation storageLocation = new StorageLocation();
 			storageLocation.data = rowSubset;
 			final TableSource tableSource = new TableSource( TableDataFormat.Table, storageLocation );
-			nameToTableSource.put( entry.getKey(), tableSource );
+			nameToLabelTable.put( entry.getKey(), tableSource );
 
 		}
 	}
@@ -33,8 +33,10 @@ public class LabelSources extends ImageSources
 		super( name, labelsPath, root, grid );
 	}
 
-	public Map< String, TableSource > nameToTableSource()
+	public TableSource getLabelTable( String name )
 	{
-		return nameToTableSource;
+		// May return null if there are no tables
+		// for the label mask images
+		return nameToLabelTable.get( name );
 	}
 }

@@ -29,11 +29,11 @@
 package org.embl.mobie.lib.view.save;
 
 import de.embl.cba.tables.SwingUtils;
-import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.create.ProjectCreatorHelper;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.ui.MoBIELaf;
 import org.embl.mobie.lib.ui.SwingHelper;
+import org.embl.mobie.lib.ui.UserInterfaceHelper;
 import org.embl.mobie.lib.view.AdditionalViews;
 
 import javax.swing.*;
@@ -139,7 +139,7 @@ public class SelectExistingViewDialog {
 
     private void setComboBoxDimensions( JComboBox< String > comboBox )
     {
-        comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE );
+        comboBox.setPrototypeDisplayValue( UserInterfaceHelper.PROTOTYPE_DISPLAY_VALUE );
         comboBox.setPreferredSize( new Dimension( 200, 20 ) );
         comboBox.setMaximumSize( new Dimension( Integer.MAX_VALUE, 20 ) );
     }

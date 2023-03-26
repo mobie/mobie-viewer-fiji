@@ -91,6 +91,7 @@ import org.embl.mobie.lib.table.saw.TableSawAnnotatedSpotCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.lib.transform.GridType;
+import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
 import org.embl.mobie.lib.ui.UserInterface;
 import org.embl.mobie.lib.ui.WindowArrangementHelper;
 import org.embl.mobie.lib.view.ViewManager;
@@ -127,27 +128,23 @@ public class MoBIE
 	static
 	{
 		net.imagej.patcher.LegacyInjector.preinit();
-
-		// Force TableSaw class loading and compilation to save time during the actual loading
-		Table.read().usingOptions( CsvReadOptions.builderFromString( "aaa\tbbb" ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" ) );
-
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 	}
 
 	private static MoBIE moBIE;
 	public static boolean openedFromCLI = false;
 	public static ImageJ imageJ;
-	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 
 	private String projectLocation;
 	private MoBIESettings settings;
-	private Dataset dataset;
-	private ViewManager viewManager;
 	private Project project;
-	private UserInterface userInterface;
+	private Dataset dataset;
 	private String projectRoot = "";
 	private String imageRoot = "";
 	private String tableRoot = "";
+
+	private ViewManager viewManager;
+	private UserInterface userInterface;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 	private ArrayList< String > projectCommands = new ArrayList<>();
 
@@ -158,6 +155,8 @@ public class MoBIE
 
 	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
+		initTableSaw();
+
 		initImageJAndMoBIE();
 
 		this.settings = settings;
@@ -167,6 +166,14 @@ public class MoBIE
 		IJ.log("Opening: " + projectLocation );
 
 		openMoBIEProject();
+	}
+
+	private void initTableSaw()
+	{
+		// force TableSaw class loading
+		// to save time during the actual loading
+		// TOD: this makes no sense if we don't open a project with tables
+		Table.read().usingOptions( CsvReadOptions.builderFromString( "aaa\tbbb" ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" ) );
 	}
 
 	public MoBIE( String hcsDataLocation, MoBIESettings settings, double relativeWellMargin, double relativeSiteMargin ) throws IOException
@@ -284,8 +291,8 @@ public class MoBIE
 				storageLocation.channel = sources.getChannel();
 				if ( sources instanceof LabelSources )
 				{
-					final TableSource tableSource = ( ( LabelSources ) sources ).nameToTableSource().get( name );
-					final SegmentationDataSource segmentationDataSource = new SegmentationDataSource( name, imageDataFormat, storageLocation, tableSource.getFormat(), tableSource.getLocation() );
+					final TableSource tableSource = ( ( LabelSources ) sources ).getLabelTable( name );
+					SegmentationDataSource segmentationDataSource = SegmentationDataSource.create( name, imageDataFormat, storageLocation, tableSource );
 					segmentationDataSource.preInit( false );
 					dataset.addDataSource( segmentationDataSource );
 				}
@@ -352,9 +359,10 @@ public class MoBIE
 
 				displays.add( regionDisplay );
 
-				// create view
+				// create grid view
 				//
-				final View gridView = new View( sources.getName(), "grids", displays, Arrays.asList( grid ), false );
+				final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( grid.getSources().get( 0 ), 0 );
+				final View gridView = new View( sources.getName(), "grids", displays, Arrays.asList( grid ), viewerTransform, false );
 				//gridView.overlayNames( true ); // Timepoint bug:
 				dataset.views().put( gridView.getName(), gridView );
 			}
@@ -451,6 +459,7 @@ public class MoBIE
 	private void adjustLogWindow( UserInterface userInterface )
 	{
 		final Window userInterfaceWindow = userInterface.getWindow();
+		IJ.log( " " ); // ensure that the window exists
 		WindowArrangementHelper.bottomAlignWindow( userInterfaceWindow, WindowManager.getWindow( "Log" ), true, true );
 	}
 
@@ -1014,6 +1023,8 @@ public class MoBIE
 
 				if ( segmentationDataSource.tableData != null )
 				{
+					// label image representing annotated segments
+
 					TableSawAnnotationTableModel< TableSawAnnotatedSegment > tableModel = createTableModel( segmentationDataSource );
 
 					final DefaultAnnData< TableSawAnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
@@ -1022,17 +1033,16 @@ public class MoBIE
 
 					final AnnotatedLabelImage< TableSawAnnotatedSegment > annotatedLabelImage = new DefaultAnnotatedLabelImage( image, annData, annotationAdapter );
 
-					// label image representing annotated segments
 					DataStore.putImage( annotatedLabelImage );
 				}
 				else
 				{
-					// label image representing segments
-					// without annotation table
+					// label image representing segments without annotation table
+
 					final LazyAnnotatedSegmentTableModel tableModel = new LazyAnnotatedSegmentTableModel( image.getName() );
 					final DefaultAnnData< AnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
 					final LazyAnnotatedSegmentAdapter segmentAdapter = new LazyAnnotatedSegmentAdapter( image.getName(), tableModel );
-					final DefaultAnnotatedLabelImage annotatedLabelImage = new DefaultAnnotatedLabelImage( image, annData, segmentAdapter );
+					final DefaultAnnotatedLabelImage< ? > annotatedLabelImage = new DefaultAnnotatedLabelImage( image, annData, segmentAdapter );
 					DataStore.putImage( annotatedLabelImage );
 				}
 			}

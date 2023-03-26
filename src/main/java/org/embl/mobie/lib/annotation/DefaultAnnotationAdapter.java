@@ -90,15 +90,16 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 			return null ;
 		}
 
-		// FIXME The fact that the method is synchronized makes
+		// TODO I think the fact that this method currently is synchronized makes
 		//   rendering in BDV effectively single threaded!
-		//   Once itlToAnnotation is initialised this does
-		//   not need to be synchronised anymore.
+		//   In theory, once stlToAnnotation is initialised this does
+		//   not need to be synchronised anymore; but I did not figure out
+		//   yet how to fix concurrency issues.
 		if ( stlToAnnotation == null )
 			initMapping();
 
-		final String itl = stlKey( source, timePoint, label );
-		final A annotation = stlToAnnotation.get( itl );
+		final String stl = stlKey( source, timePoint, label );
+		final A annotation = stlToAnnotation.get( stl );
 
 		if ( annotation == null )
 		{

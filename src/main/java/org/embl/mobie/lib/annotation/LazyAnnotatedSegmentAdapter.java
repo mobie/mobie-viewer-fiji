@@ -80,13 +80,13 @@ public class LazyAnnotatedSegmentAdapter implements AnnotationAdapter< Annotated
 		//   rendering in BDV effectively single threaded!
 		//   Once itlToAnnotation is initialised this does
 		//   not need to be synchronised anymore.
-		final String itl = stlKey( source, timePoint, label );
-		if ( ! stlToAnnotation.containsKey( itl ) )
+		final String stl = stlKey( source, timePoint, label );
+		if ( ! stlToAnnotation.containsKey( stl ) )
 		{
 			final AnnotatedSegment annotatedSegment = tableModel.createAnnotation( source, timePoint, label );
-			stlToAnnotation.put( itl, annotatedSegment );
+			stlToAnnotation.put( stl, annotatedSegment );
 		}
-		return stlToAnnotation.get( itl );
+		return stlToAnnotation.get( stl );
 	}
 
 	private String stlKey( String source, int timePoint, int label )

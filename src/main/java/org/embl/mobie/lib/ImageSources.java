@@ -33,6 +33,32 @@ public class ImageSources
 	private String metadataSource;
 	// TODO: load the display settings here?!
 
+	public ImageSources( @Nullable String name, String imagePath, String root, GridType gridType )
+	{
+		this.gridType = gridType;
+
+		if ( name == null )
+			this.name = FilenameUtils.removeExtension( new File( imagePath ).getName() );
+		else
+			this.name = name;
+
+		String[] imagePaths;
+		if ( imagePath.contains( "*" ) )
+			imagePaths = IOHelper.getPaths( imagePath, 999 );
+		else
+			imagePaths = new String[]{ imagePath };
+
+		for ( String path : imagePaths )
+		{
+			addImage( root, path );
+		}
+
+		// TODO: how to deal with the inconsistent number of timepoints?
+		this.metadataSource = nameToFullPath.keySet().iterator().next();
+
+		createRegionTable();
+	}
+
 	public ImageSources( String name, Table table, String pathColumn, String root, GridType gridType )
 	{
 		this.name = name;
@@ -100,32 +126,8 @@ public class ImageSources
 		nameToPath.put( imageName, path );
 	}
 
-	public ImageSources( @Nullable String name, String imagePath, String root, GridType grid )
+	private void createRegionTable()
 	{
-		if ( name == null )
-			this.name = FilenameUtils.removeExtension( new File( imagePath ).getName() );
-		else
-			this.name = name;
-
-		String[] imagePaths;
-		if ( imagePath.contains( "*" ) )
-			imagePaths = IOHelper.getPaths( imagePath, 999 );
-		else
-			imagePaths = new String[]{ imagePath };
-
-		for ( String path : imagePaths )
-		{
-			addImage( root, path );
-		}
-
-		// TODO: how to deal with the inconsistent number of timepoints?
-		this.metadataSource = nameToFullPath.keySet().iterator().next();
-
-	}
-
-	private void createRegionTable( )
-	{
-		// create image table
 		regionTable = Table.create( name );
 		final List< String > regions = new ArrayList<>( nameToFullPath.keySet() );
 		regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) );

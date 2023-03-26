@@ -57,7 +57,7 @@ public class AnnotatedLabelSource< T extends IntegerType< T >, A extends Annotat
     public RandomAccessibleInterval< AnnotationType< A > > getSource( final int t, final int level )
     {
         return Converters.convert( source.getSource( t, level ), ( input, output ) -> {
-            set( input, t, output );
+            setOutput( input, t, output );
         }, new AnnotationType( annotationAdapter.createVariable() ) );
     }
 
@@ -68,14 +68,13 @@ public class AnnotatedLabelSource< T extends IntegerType< T >, A extends Annotat
 
         return Converters.convert( rra,
                 ( T input, AnnotationType< A > output ) ->
-                set( input, t, output ),
+                setOutput( input, t, output ),
                 new AnnotationType<>() );
     }
 
-    private void set( T input, int t, AnnotationType< A > output  )
+    private void setOutput( T input, int t, AnnotationType< A > output  )
     {
         final int label = input.getInteger();
-
         final A annotation = annotationAdapter.getAnnotation( getName(), t, label );
         output.setAnnotation( annotation );
     }

@@ -34,6 +34,7 @@ import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -56,20 +57,16 @@ public class View
 	// Other
 	private boolean overlayNames = false; // TODO add to JSON spec?
 	
-	public View( String name, String uiSelectionGroup, List< Display< ? > > sourceDisplays, List< Transformation > sourceTransforms, ViewerTransform viewerTransform, boolean isExclusive ) {
+	public View( String name, String uiSelectionGroup, List< Display< ? > > sourceDisplays, List< Transformation > sourceTransforms, boolean isExclusive ) {
+		this( name, uiSelectionGroup, sourceDisplays, sourceTransforms, null, isExclusive);
+	}
+
+	public View( String name, String uiSelectionGroup, List< Display< ? > > sourceDisplays, List< Transformation > sourceTransforms, @Nullable ViewerTransform viewerTransform, boolean isExclusive ) {
 		this.name = name;
 		this.uiSelectionGroup = uiSelectionGroup;
 		this.sourceDisplays = sourceDisplays;
 		this.sourceTransforms = sourceTransforms;
 		this.viewerTransform = viewerTransform;
-		this.isExclusive = isExclusive;
-	}
-
-	public View( String name, String uiSelectionGroup, List< Display< ? > > sourceDisplays, List< Transformation > sourceTransforms, boolean isExclusive ) {
-		this.name = name;
-		this.uiSelectionGroup = uiSelectionGroup;
-		this.sourceDisplays = sourceDisplays;
-		this.sourceTransforms = sourceTransforms;
 		this.isExclusive = isExclusive;
 	}
 
