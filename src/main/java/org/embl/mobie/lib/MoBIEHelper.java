@@ -166,7 +166,7 @@ public abstract class MoBIEHelper
 	{
 		List< String > namedGroups = new ArrayList<>();
 
-		Matcher m = Pattern.compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>").matcher(regex);
+		Matcher m = Pattern.compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>").matcher( regex );
 
 		while ( m.find() ) {
 			namedGroups.add(m.group(1));

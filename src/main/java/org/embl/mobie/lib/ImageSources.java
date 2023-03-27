@@ -12,9 +12,9 @@ import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.columns.Column;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,25 +33,14 @@ public class ImageSources
 	private String metadataSource;
 	// TODO: load the display settings here?!
 
-	public ImageSources( @Nullable String name, String imagePath, String root, GridType gridType )
+	public ImageSources( String name, String regex, String root, GridType gridType )
 	{
 		this.gridType = gridType;
+		this.name = name;
 
-		if ( name == null )
-			this.name = FilenameUtils.removeExtension( new File( imagePath ).getName() );
-		else
-			this.name = name;
-
-		String[] imagePaths;
-		if ( imagePath.contains( "*" ) )
-			imagePaths = IOHelper.getPaths( imagePath, 999 );
-		else
-			imagePaths = new String[]{ imagePath };
-
-		for ( String path : imagePaths )
-		{
+		List< String > paths = IOHelper.getPaths( regex, 999 );
+		for ( String path : paths )
 			addImage( root, path );
-		}
 
 		// TODO: how to deal with the inconsistent number of timepoints?
 		this.metadataSource = nameToFullPath.keySet().iterator().next();

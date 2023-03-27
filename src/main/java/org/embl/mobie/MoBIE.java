@@ -111,13 +111,17 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.embl.mobie.io.util.IOHelper.combinePath;
@@ -189,8 +193,8 @@ public class MoBIE
 		openHCSDataset( relativeWellMargin, relativeSiteMargin );
 	}
 
-	// TODO: how to add label tables?
-	public MoBIE( Data data, String[] images, String[] labels, String root, GridType grid ) throws IOException
+	// TODO: add label tables
+	public MoBIE( Data data, List< String > images, List< String > labels, String root, GridType grid ) throws IOException
 	{
 		assert data.equals( Data.Files );
 
@@ -247,22 +251,51 @@ public class MoBIE
 		openAndViewDataset();
 	}
 
-	// TODO: how to add label tables?
-	private void openFiles( String[] imagePaths, String[] labelsPaths, String root, GridType grid )
+	// TODO: add label tables
+	private void openFiles( List< String > imageRegex, List< String > labelsRegex, String root, GridType grid )
 	{
 		//		if ( tablePaths != null && tablePaths[ 0 ].contains( "*" ) )
 		//			tablePaths = IOHelper.getPaths( tablePaths[ 0 ], 999 );
 
 		final List< ImageSources > imageSources = new ArrayList<>();
-		for ( String imagePath : imagePaths )
+		for ( String regex : imageRegex )
 		{
-			imageSources.add( new ImageSources( null, imagePath, root, grid ) );
+			//			final List< String > groups = MoBIEHelper.getGroupNames( regex );
+			//			if ( groups.size() > 0 )
+			//			{
+			//				final Pattern pattern = Pattern.compile( regex );
+			//				final Set< String > set = new LinkedHashSet<>();
+			//				for ( String path : paths )
+			//				{
+			//					final Matcher matcher = pattern.matcher( path );
+			//					matcher.matches();
+			//					set.add( matcher.group( 1 ) );
+			//				}
+			//
+			//				final ArrayList< String > categories = new ArrayList<>( set );
+			//				final int[] numSources = new int[ categories.size() ];
+			//				grid.positions = new ArrayList<>();
+			//				for ( String source : sources )
+			//				{
+			//					final Matcher matcher = pattern.matcher( source );
+			//					matcher.matches();
+			//					final int row = categories.indexOf( matcher.group( rowGroup ) );
+			//					final int column = numSources[ row ];
+			//					numSources[ row ]++;
+			//					grid.positions.add( new int[]{ column, row } );
+			//				}
+			//			}
+			//			}
+			//			else
+			//			{
+			final String name = FilenameUtils.removeExtension( new File( regex ).getName() );
+			imageSources.add( new ImageSources( name, regex, root, grid ) );
 		}
 
-		final List< LabelSources > labelSources = new ArrayList<>();
-		for ( String labelsPath : labelsPaths )
+		List< LabelSources > labelSources = new ArrayList<>();
+		for ( String regex : labelsRegex )
 		{
-			labelSources.add( new LabelSources( null, labelsPath, root, grid )  );
+			labelSources.add( new LabelSources( null, regex, root, grid ) );
 		}
 
 		openImagesAndLabels( imageSources, labelSources );

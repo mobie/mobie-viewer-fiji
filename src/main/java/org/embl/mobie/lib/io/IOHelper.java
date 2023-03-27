@@ -11,8 +11,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.embl.mobie.io.util.IOHelper.combinePath;
@@ -51,26 +51,27 @@ public class IOHelper
 		return(s.toString());
 	}
 
-	public static String[] getPaths( String pathWithWildCards, int maxDepth )
+	public static List< String > getPaths( String regex, int maxDepth )
 	{
-		final String dir = new File( pathWithWildCards ).getParent();
-		String name = new File( pathWithWildCards ).getName();
-		final String regex = wildcardToRegex( name );
+		final String dir = new File( regex ).getParent();
+		String name = new File( regex ).getName();
 
-		final String[] paths;
 		try
 		{
-			paths = Files.find( Paths.get( dir ), maxDepth,
+			final List< String > paths = Files.find( Paths.get( dir ), maxDepth,
 					( path, basicFileAttribute ) -> basicFileAttribute.isRegularFile()
-							&& path.getFileName().toString().matches( regex ) ).map( path -> path.toString() ).collect( Collectors.toList() ).toArray( new String[ 0 ] );
-			Arrays.sort( paths );
+							&& path.getFileName().toString()
+							.matches( regex ) )
+							.map( path -> path.toString() ).collect( Collectors.toList() );
+			Collections.sort( paths );
 
-			if ( paths.length == 0 )
+			if ( paths.size() == 0 )
 				System.err.println("Could not find any files for " + regex );
 
 			return paths;
 
-		} catch ( IOException e )
+		}
+		catch ( IOException e )
 		{
 			e.printStackTrace();
 			throw new RuntimeException( e );
