@@ -83,6 +83,7 @@ import org.embl.mobie.lib.table.DefaultAnnData;
 import org.embl.mobie.lib.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
+import org.embl.mobie.lib.table.columns.SegmentColumnNames;
 import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedSegment;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedSegmentCreator;
@@ -1052,15 +1053,10 @@ public class MoBIE
 				if ( segmentationDataSource.tableData != null )
 				{
 					// label image representing annotated segments
-
 					TableSawAnnotationTableModel< TableSawAnnotatedSegment > tableModel = createTableModel( segmentationDataSource );
-
 					final DefaultAnnData< TableSawAnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
-
 					final DefaultAnnotationAdapter< TableSawAnnotatedSegment > annotationAdapter = new DefaultAnnotationAdapter( annData );
-
 					final AnnotatedLabelImage< TableSawAnnotatedSegment > annotatedLabelImage = new DefaultAnnotatedLabelImage( image, annData, annotationAdapter );
-
 					DataStore.putImage( annotatedLabelImage );
 				}
 				else
@@ -1129,8 +1125,8 @@ public class MoBIE
 		final TableDataFormat tableFormat = getTableDataFormat( dataSource.tableData );
 
 		Table table = dataSource.preInit() ? TableOpener.open( tableLocation, tableFormat ) : null;
-
-		final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( null, table );
+		final SegmentColumnNames segmentColumnNames = TableDataFormat.getSegmentColumnNames( table.columnNames() );
+		final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( segmentColumnNames, table );
 
 		final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, tableLocation, tableFormat, table );
 
