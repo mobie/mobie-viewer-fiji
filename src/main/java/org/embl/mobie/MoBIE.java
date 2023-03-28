@@ -52,7 +52,6 @@ import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.lib.annotation.LazyAnnotatedSegmentAdapter;
-import org.embl.mobie.lib.display.Metadata;
 import org.embl.mobie.lib.hcs.HCSDataSetter;
 import org.embl.mobie.lib.hcs.Plate;
 import org.embl.mobie.lib.hcs.Site;
@@ -79,6 +78,7 @@ import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.transformation.MergedGridTransformation;
+import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.table.DefaultAnnData;
 import org.embl.mobie.lib.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.lib.table.TableDataFormat;
@@ -111,17 +111,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.embl.mobie.io.util.IOHelper.combinePath;
@@ -350,17 +346,17 @@ public class MoBIE
 				DataStore.putRawData( regionDataSource );
 
 				// init RegionDisplay
-				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( sources.getName() + " images" );
+				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( sources.getName() + " table" );
 				regionDisplay.sources = new LinkedHashMap<>();
 				regionDisplay.tableSource = regionDataSource.getName();
 				regionDisplay.showAsBoundaries( true );
 				regionDisplay.setBoundaryThickness( 0.05 );
 				regionDisplay.boundaryThicknessIsRelative( true );
 				regionDisplay.setOpacity( 1.0 );
-				for ( int t = 0; t < sources.numTimePoints(); t++ )
-				{
+				final int numTimePoints = sources.getMetadata().numTimePoints;
+				for ( int t = 0; t < numTimePoints; t++ )
 					regionDisplay.timepoints().add( t );
-				}
+
 				final List< String > sourceNames = sources.getSources();
 				final int numRegions = sourceNames.size();
 				for ( int regionIndex = 0; regionIndex < numRegions; regionIndex++ )
@@ -385,9 +381,8 @@ public class MoBIE
 				else
 				{
 					// ImageDisplay
-					final String referenceImage = sourceNames.get( 0 );
-					final Metadata settings = MoBIEHelper.getMetadataFromSource( ( ImageDataSource ) dataset.sources().get( referenceImage ) );
-					displays.add( new ImageDisplay<>( grid.getName(), Collections.singletonList( grid.getName() ), settings.color, settings.contrastLimits ) );
+					final Metadata metadata = sources.getMetadata();
+					displays.add( new ImageDisplay<>( grid.getName(), Collections.singletonList( grid.getName() ), metadata.color, metadata.contrastLimits ) );
 				}
 
 				displays.add( regionDisplay );

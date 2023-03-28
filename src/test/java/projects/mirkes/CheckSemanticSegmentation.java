@@ -12,8 +12,8 @@ class CheckSemanticSegmentation
 	{
 		new ImageJ().ui().showUI();
 		final OpenImageAndSegmentationCommand command = new OpenImageAndSegmentationCommand();
-		command.image = new File("/Users/tischer/Desktop/Kristina/data/processed-test/rnai_exp--*--pro.tif");
-		command.labels = new File("/Users/tischer/Desktop/Kristina/data/processed-test/rnai_exp--*--pro_semseg.tif");
+		command.image = new File("/Users/tischer/Desktop/Kristina/data/processed-test/rnai_exp--.*--pro.tif");
+		command.labels = new File("/Users/tischer/Desktop/Kristina/data/processed-test/rnai_exp--.*--pro_semseg.tif");
 		command.run();
 	}
 }

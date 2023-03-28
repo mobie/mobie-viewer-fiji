@@ -10,8 +10,8 @@ class CommandLineFlatwormKristina
 	{
 		final MoBIECmd cmd = new MoBIECmd();
 		cmd.root = DIR;
-		cmd.images = new String[]{ "*-pro.tif" };
-		cmd.labels = new String[]{ "*-seg.tif,*.csv" };
+		cmd.images = new String[]{ ".*-pro.tif" };
+		cmd.labels = new String[]{ ".*-seg.tif,.*.csv" };
 		cmd.call();
 	}
 }

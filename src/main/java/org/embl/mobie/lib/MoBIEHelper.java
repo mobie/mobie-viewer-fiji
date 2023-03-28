@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib;
 
+import ij.IJ;
 import ij.ImagePlus;
 import loci.plugins.in.ImagePlusReader;
 import loci.plugins.in.ImportProcess;
@@ -35,7 +36,7 @@ import loci.plugins.in.ImporterOptions;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.Dimensions;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.lib.display.Metadata;
+import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.ImageDataSource;
@@ -175,6 +176,17 @@ public abstract class MoBIEHelper
 		return namedGroups;
 	}
 
+	public static Metadata getMetadataFromImageFile( String path )
+	{
+		final ImagePlus imagePlus = IJ.openVirtual( path );
+
+		final Metadata metadata = new Metadata();
+		metadata.color = "White";
+		metadata.contrastLimits = new double[]{ imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
+		metadata.numTimePoints = imagePlus.getNFrames();
+		return metadata;
+	}
+
 	// Note that this opens the image and thus may be slow!
 	public static Metadata getMetadataFromSource( ImageDataSource imageDataSource )
 	{
@@ -182,12 +194,12 @@ public abstract class MoBIEHelper
 		final StorageLocation location = imageDataSource.imageData.get( format );
 
 		final AbstractSpimData< ? > spimData = IOHelper.tryOpenSpimData( location.absolutePath, format );
+
+
 		final Metadata metadata = new Metadata();
 		metadata.color = "White";
 		metadata.contrastLimits = null;
-
 		final Displaysettings settingsFromFile = spimData.getSequenceDescription().getViewSetupsOrdered().get( location.channel ).getAttribute( Displaysettings.class );
-
 		if ( settingsFromFile != null )
 		{
 			// FIXME: Wrong color from Bio-Formats
@@ -197,6 +209,8 @@ public abstract class MoBIEHelper
 			metadata.contrastLimits = new double[]{ settingsFromFile.min, settingsFromFile.max };
 			//System.out.println( imageName + ": contrast limits = " + Arrays.toString( contrastLimits ) );
 		}
+
+		// TODO measure the number of time points
 
 		return metadata;
 	}

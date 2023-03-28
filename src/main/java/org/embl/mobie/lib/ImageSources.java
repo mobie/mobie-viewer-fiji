@@ -2,6 +2,7 @@ package org.embl.mobie.lib;
 
 import ij.IJ;
 import org.apache.commons.io.FilenameUtils;
+import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
@@ -10,16 +11,12 @@ import org.embl.mobie.lib.transform.GridType;
 import tech.tablesaw.api.NumberColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
-import tech.tablesaw.columns.Column;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import static tech.tablesaw.aggregate.AggregateFunctions.mean;
 
 public class ImageSources
 {
@@ -29,7 +26,7 @@ public class ImageSources
 	protected GridType gridType;
 	protected Table regionTable;
 	protected int channel = 0;
-	protected int numTimePoints = 1;
+	protected Metadata metadata = new Metadata();
 	private String metadataSource;
 	// TODO: load the display settings here?!
 
@@ -42,8 +39,9 @@ public class ImageSources
 		for ( String path : paths )
 			addImage( root, path );
 
-		// TODO: how to deal with the inconsistent number of timepoints?
+		// TODO: how to deal with the inconsistent metadata (e.g. number of timepoints)?
 		this.metadataSource = nameToFullPath.keySet().iterator().next();
+		this.metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ) );
 
 		createRegionTable();
 	}
@@ -57,36 +55,6 @@ public class ImageSources
 		for ( String path : paths )
 		{
 			addImage( root, path );
-
-//			// TODO also determine the grid position
-			//   add a function for this? arrange grid by TableColumn?
-//			final List< String > groupNames = MoBIEHelper.getGroupNames( regex );
-//
-//			if ( rowGroup != null )
-//			{
-//				final List< String > sources = channelToSources.values().iterator().next();
-//				final HashSet< String > categorySet = new HashSet<>();
-//				for ( String source : sources )
-//				{
-//					final Matcher matcher = pattern.matcher( source );
-//					matcher.matches();
-//					categorySet.add( matcher.group( rowGroup ) );
-//				}
-//
-//				final ArrayList< String > categories = new ArrayList<>( categorySet );
-//				final int[] numSources = new int[ categories.size() ];
-//				grid.positions = new ArrayList<>();
-//				for ( String source : sources )
-//				{
-//					final Matcher matcher = pattern.matcher( source );
-//					matcher.matches();
-//					final int row = categories.indexOf( matcher.group( rowGroup ) );
-//					final int column = numSources[ row ];
-//					numSources[ row ]++;
-//					grid.positions.add( new int[]{ column, row } );
-//				}
-//			}
-
 		}
 
 		final List< String > columnNames = table.columnNames();
@@ -96,8 +64,8 @@ public class ImageSources
 			final NumberColumn timepointColumn = ( NumberColumn ) table.column( segmentColumnNames.timePointColumn() );
 			final double min = timepointColumn.min();
 			final double max = timepointColumn.max();
-			numTimePoints = ( int ) ( max - min + 1 );
-			IJ.log("Detected " + numTimePoints + " timepoints for " + name );
+			metadata.numTimePoints = ( int ) ( max - min + 1 );
+			IJ.log("Detected " + metadata.numTimePoints  + " timepoints for " + name );
 
 			final Table where = table.where( timepointColumn.isEqualTo( max ) );
 			final String path = where.stringColumn( pathColumn ).get( 0 );
@@ -122,25 +90,6 @@ public class ImageSources
 		regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) );
 		final List< String > paths = new ArrayList<>( nameToFullPath.values() );
 		regionTable.addColumns( StringColumn.create( "path", paths ) );
-	}
-
-	private void createRegionTable( Table table, String pathColumn )
-	{
-		// create image table
-		// TODO add more columns
-		final List< Column< ? > > columns = table.columns();
-		final int numColumns = columns.size();
-		for ( int columnIndex = 0; columnIndex < numColumns; columnIndex++ )
-		{
-			if ( columns.get( columnIndex ) instanceof NumberColumn )
-			{
-				regionTable = table.summarize( columns.get( columnIndex ), mean ).by( pathColumn );
-				break;
-			}
-		}
-
-		final StringColumn regions = StringColumn.create( ColumnNames.REGION_ID, getSources() );
-		regionTable.addColumns( regions );
 	}
 
 	public GridType getGridType()
@@ -173,14 +122,63 @@ public class ImageSources
 		return nameToFullPath.get( source );
 	}
 
-	public int numTimePoints()
-	{
-		return numTimePoints;
-	}
-
 	public String getMetadataSource()
 	{
 		return metadataSource;
 	}
+
+	public Metadata getMetadata()
+	{
+		return metadata;
+	}
 }
 
+
+//			// TODO also determine the grid position
+//   add a function for this? arrange grid by TableColumn?
+//			final List< String > groupNames = MoBIEHelper.getGroupNames( regex );
+//
+//			if ( rowGroup != null )
+//			{
+//				final List< String > sources = channelToSources.values().iterator().next();
+//				final HashSet< String > categorySet = new HashSet<>();
+//				for ( String source : sources )
+//				{
+//					final Matcher matcher = pattern.matcher( source );
+//					matcher.matches();
+//					categorySet.add( matcher.group( rowGroup ) );
+//				}
+//
+//				final ArrayList< String > categories = new ArrayList<>( categorySet );
+//				final int[] numSources = new int[ categories.size() ];
+//				grid.positions = new ArrayList<>();
+//				for ( String source : sources )
+//				{
+//					final Matcher matcher = pattern.matcher( source );
+//					matcher.matches();
+//					final int row = categories.indexOf( matcher.group( rowGroup ) );
+//					final int column = numSources[ row ];
+//					numSources[ row ]++;
+//					grid.positions.add( new int[]{ column, row } );
+//				}
+//			}
+
+
+//	private void createRegionTable( Table table, String pathColumn )
+//	{
+//		// create image table
+//		// TODO add more columns
+//		final List< Column< ? > > columns = table.columns();
+//		final int numColumns = columns.size();
+//		for ( int columnIndex = 0; columnIndex < numColumns; columnIndex++ )
+//		{
+//			if ( columns.get( columnIndex ) instanceof NumberColumn )
+//			{
+//				regionTable = table.summarize( columns.get( columnIndex ), mean ).by( pathColumn );
+//				break;
+//			}
+//		}
+//
+//		final StringColumn regions = StringColumn.create( ColumnNames.REGION_ID, getSources() );
+//		regionTable.addColumns( regions );
+//	}

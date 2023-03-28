@@ -8,8 +8,8 @@ class MoBIECmdMattCBAAnalysed
 	{
 		final MoBIECmd cmd = new MoBIECmd();
 		cmd.root = "/Volumes/cba/exchange/matt-govendir/data";
-		cmd.images = new String[]{ "preprocessed/(?<date>*)__(?<treat>*_*)_(?<repl>*)--mem.tif" };
-		cmd.labels = new String[]{ "analysed/*.tif" };
+		cmd.images = new String[]{ "preprocessed/(?<date>.*)__(?<treat>.*_.*)_(?<repl>.*)--mem.tif" };
+		cmd.labels = new String[]{ "analysed/.*.tif" };
 		cmd.call();
 	}
 }
