@@ -47,7 +47,7 @@ public class SwingTableModel implements TableModel
 	@Override
 	public boolean isCellEditable( int rowIndex, int columnIndex )
 	{
-		return false;
+		return true;
 	}
 
 	@Override
@@ -68,7 +68,12 @@ public class SwingTableModel implements TableModel
 	@Override
 	public void setValueAt( Object aValue, int rowIndex, int columnIndex )
 	{
-		throw new UnsupportedOperationException("Setting of values not yet implemented!");
+		final Class< ? > columnClass = getColumnClass( columnIndex );
+		if ( columnClass.equals( String.class ) )
+		{
+			final String columnName = getColumnName( columnIndex );
+			tableModel.annotations().get( rowIndex ).setString( columnName, aValue.toString() );
+		}
 	}
 
 	@Override

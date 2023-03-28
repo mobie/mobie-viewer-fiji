@@ -41,6 +41,6 @@ public class OpenRemotePlatynereis
 		imageJ.ui().showUI();
 
 		final MoBIE moBIE = new MoBIE( "https://github.com/platybrowser/platybrowser");
-		//moBIE.getViewManager().show( "cells" );
+		moBIE.getViewManager().show( "cells" );
 	}
 }

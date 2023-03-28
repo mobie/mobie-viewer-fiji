@@ -77,8 +77,10 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private int recentlySelectedRowInView;
 	private RowSelectionMode selectionMode = RowSelectionMode.FocusOnly;
 	private JFrame frame;
-	private boolean controlKeyPressed;
 	private SwingTableModel swingTableModel;
+
+	private boolean controlKeyPressed;
+	private boolean doubleClick;
 
 	private enum RowSelectionMode
 	{
@@ -493,10 +495,12 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		jTable.addMouseListener( new MouseAdapter()
 		{
+
 			@Override
 			public void mouseClicked( MouseEvent e )
 			{
 				controlKeyPressed = e.isControlDown();
+				doubleClick = e.getClickCount() == 2;
 			}
 		} );
 
@@ -516,6 +520,11 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				setRecentlySelectedRowInView( selectedRowInView );
 
 				final int rowIndex = jTable.convertRowIndexToModel( recentlySelectedRowInView );
+
+				if ( doubleClick )
+				{
+					int a = 1;
+				}
 
 				final A object = tableModel.annotation( rowIndex );
 
