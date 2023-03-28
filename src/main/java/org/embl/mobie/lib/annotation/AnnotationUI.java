@@ -87,6 +87,12 @@ public class AnnotationUI< A extends Annotation > extends JFrame implements Sele
 		this.selectionModel = selectionModel;
 		this.rowSorter = rowSorter;
 		this.currentlySelectedRow = tableModel.annotation( rowSorter.convertRowIndexToModel( 0 ) );
+		if (  tableModel.annotation( 0 ) instanceof AnnotatedRegion )
+		{
+			// automatically select the first region
+			selectionModel.setSelected( currentlySelectedRow, true );
+		}
+
 		configureAnnotatedObjectType( tableModel );
 		selectionModel.listeners().add( this );
 
@@ -327,7 +333,8 @@ public class AnnotationUI< A extends Annotation > extends JFrame implements Sele
 					row = tableModel.annotation( rowSorter.convertRowIndexToModel( ++rowIndex ) );
 				}
 				selectRow( row );
-			} else
+			}
+			else
 			{
 				IJ.showMessage( NO_MORE_SEGMENTS );
 			}
