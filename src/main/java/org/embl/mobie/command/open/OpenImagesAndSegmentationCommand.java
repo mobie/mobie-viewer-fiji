@@ -3,6 +3,7 @@ package org.embl.mobie.command.open;
 import ij.IJ;
 import org.embl.mobie.Data;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.transform.GridType;
 import org.scijava.command.Command;
@@ -15,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Images and Segmentation..." )
-public class OpenImagesAndSegmentationsCommand implements Command {
+public class OpenImagesAndSegmentationCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -37,6 +38,9 @@ public class OpenImagesAndSegmentationsCommand implements Command {
 	@Parameter( label = "Label Mask Path Regex", required = false )
 	public File labels;
 
+	@Parameter( label = "Remove Spatial Calibration", required = false )
+	public Boolean removeSpatialCalibration = false;
+
 //	@Parameter( label = "Label Mask Table Path Regex", required = false )
 //	public File table;
 
@@ -55,9 +59,12 @@ public class OpenImagesAndSegmentationsCommand implements Command {
 		final ArrayList< String > labelsList = new ArrayList<>();
 		if ( labels != null ) labelsList.add( labels.getAbsolutePath() );
 
+		final MoBIESettings settings = new MoBIESettings();
+		settings.removeSpatialCalibration( removeSpatialCalibration );
+
 		try
 		{
-			new MoBIE( Data.Files, imageList, labelsList, null, gridType );
+			new MoBIE( Data.Files, imageList, labelsList, null, gridType, settings );
 		}
 		catch ( IOException e )
 		{

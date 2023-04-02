@@ -7,6 +7,8 @@ import org.embl.mobie.lib.transform.GridType;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 
 @CommandLine.Command(name = "mobie", mixinStandardHelpOptions = true, version = "3.0.13", description = "Visualise multi-modal big image data, see https://mobie.github.io/")
@@ -39,6 +41,9 @@ public class MoBIECmd implements Callable< Void > {
 	@Option(names = {"-g", "--grid"}, required = false, description = "grid type: none, merge, transform")
 	public String grid = null;
 
+	@Option(names = {"--remove-spatial-calibration"}, required = false, description = "grid type: none, merge, transform")
+	public Boolean removeSpatialCalibration = false;
+
 	@Override
 	public Void call() throws Exception {
 
@@ -50,20 +55,23 @@ public class MoBIECmd implements Callable< Void > {
 
 		MoBIE.openedFromCLI = true;
 
+		final MoBIESettings settings = new MoBIESettings();
+		settings.removeSpatialCalibration( removeSpatialCalibration );
+
 		if ( project != null )
 		{
-			final MoBIESettings settings = new MoBIESettings();
 			if ( view != null ) settings.view( view );
 			new MoBIE( project, settings );
 		}
 		else if ( table != null )
 		{
-			final GridType gridType = grid == null ?
-					GridType.Merged : GridType.fromString( grid );
-			new MoBIE( Data.Table, table, images, labels, root, gridType );
+			final GridType gridType = grid == null ? GridType.Merged : GridType.fromString( grid );
+
+			new MoBIE( Data.Table, table, Arrays.asList( images ), Arrays.asList( labels ), root, gridType, settings );
 		}
 		else
 		{
+			// TODO: implement opening of files
 			final GridType gridType = grid == null ?
 					GridType.Merged : GridType.fromString( grid );
 			//new MoBIE( "", images, labels, tables, grids );

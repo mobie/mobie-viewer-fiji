@@ -11,6 +11,7 @@ public class OpenFromTable
 		cmd.root = "/Users/tischer/Desktop/Kristina/big-table";
 		cmd.images = new String[]{"worms=ImagePath_ProcessedMovie"};
 		cmd.labels = new String[]{"worms_seg=ImagePath_LabelMask"};
+		cmd.removeSpatialCalibration = true;
 		cmd.call();
 	}
 }

@@ -28,11 +28,14 @@
  */
 package org.embl.mobie.lib.source;
 
+import bdv.AbstractSpimSource;
 import bdv.SpimSource;
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.Affine3DHelpers;
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
+import mpicbg.spim.data.sequence.FinalVoxelDimensions;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
@@ -42,6 +45,7 @@ import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.roi.geom.real.WritableBox;
 import org.embl.mobie.lib.image.StitchedImage;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -242,5 +246,22 @@ public abstract class SourceHelper
 		final double[] max = rai.maxAsDoubleArray();
 		final FinalRealInterval bounds = affineTransform3D.estimateBounds( rai );
 		return bounds;
+	}
+
+	public static void setVoxelDimensionsToPixels( AbstractSpimSource< ? > source )
+	{
+		try
+		{
+			final VoxelDimensions pixelDimensions = new FinalVoxelDimensions( "pixel", 1.0, 1.0, 1.0 );
+			Field voxelDimensions = AbstractSpimSource.class.getDeclaredField("voxelDimensions");
+			voxelDimensions.setAccessible(true);
+			voxelDimensions.set( source, pixelDimensions );
+		} catch ( NoSuchFieldException e )
+		{
+			e.printStackTrace();
+		} catch ( IllegalAccessException e )
+		{
+			e.printStackTrace();
+		}
 	}
 }

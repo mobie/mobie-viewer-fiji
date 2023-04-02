@@ -100,6 +100,12 @@ public class MoBIESettings
 		return this;
 	}
 
+	public MoBIESettings removeSpatialCalibration( Boolean removeSpatialCalibration )
+	{
+		this.values.removeSpatialCalibration = removeSpatialCalibration;
+		return this;
+	}
+
 	public static class Values
 	{
 		private String[] s3AccessAndSecretKey;
@@ -111,6 +117,12 @@ public class MoBIESettings
 		private Set< TableDataFormat > tableDataFormats = new HashSet<>();
 		private String tableDataLocation;
 		private String view = View.DEFAULT;
+		private Boolean removeSpatialCalibration = false;
+
+		public Boolean getRemoveSpatialCalibration()
+		{
+			return removeSpatialCalibration;
+		}
 
 		public String getDataset()
 		{

@@ -27,28 +27,32 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	private SourcePair< T > sourcePair;
 	private String name;
 	private Site site;
-	private SharedQueue sharedQueue; @Nullable
+	private SharedQueue sharedQueue;
+	private Boolean removeSpatialCalibration = false;
+	@Nullable
 	private RealMaskRealInterval mask;
 	private TransformedSource transformedSource;
 	private AffineTransform3D affineTransform3D = new AffineTransform3D();
 
-	public SpimDataImage( AbstractSpimData< ? > spimData, int channel, String name )
+	public SpimDataImage( AbstractSpimData< ? > spimData, int channel, String name, Boolean removeSpatialCalibration  )
 	{
 		this.imageDataFormat = null;
 		this.path = null;
 		this.sharedQueue = null;
 		this.setupId = channel;
 		this.name = name;
+		this.removeSpatialCalibration = removeSpatialCalibration;
 		createSourcePair( spimData, channel, name );
 	}
 
-	public SpimDataImage( ImageDataFormat imageDataFormat, String path, int setupId, String name, @Nullable SharedQueue sharedQueue )
+	public SpimDataImage( ImageDataFormat imageDataFormat, String path, int setupId, String name, @Nullable SharedQueue sharedQueue, Boolean removeSpatialCalibration )
 	{
 		this.imageDataFormat = imageDataFormat;
 		this.path = path;
 		this.setupId = setupId;
 		this.name = name;
 		this.sharedQueue = sharedQueue;
+		this.removeSpatialCalibration = removeSpatialCalibration;
 	}
 
 	public SpimDataImage( Site site, String name )
@@ -120,14 +124,21 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 
 	private void createSourcePair( AbstractSpimData spimData, int setupId, String name )
 	{
-		final SpimSource< T > s = new SpimSource<>( spimData, setupId, name );
-		transformedSource = new TransformedSource( s );
+		final SpimSource< T > source = new SpimSource<>( spimData, setupId, name );
+		final VolatileSpimSource< ? extends Volatile< T > > vSource = new VolatileSpimSource<>( spimData, setupId, name );
+
+		if ( removeSpatialCalibration )
+		{
+			source.getSourceTransform( 0, 0, affineTransform3D );
+			affineTransform3D = affineTransform3D.inverse();
+			SourceHelper.setVoxelDimensionsToPixels( source );
+			SourceHelper.setVoxelDimensionsToPixels( vSource );
+		}
+
+		transformedSource = new TransformedSource( source );
 		transformedSource.setFixedTransform( affineTransform3D );
 
-		final VolatileSpimSource< ? extends Volatile< T > > vs = new VolatileSpimSource<>( spimData, setupId, name );
-		final TransformedSource volatileTransformedSource = new TransformedSource( vs, transformedSource );
-
-		sourcePair = new DefaultSourcePair( transformedSource, volatileTransformedSource );
+		sourcePair = new DefaultSourcePair( transformedSource, new TransformedSource( vSource, transformedSource ) );
 	}
 
 	private AbstractSpimData tryOpenSpimData( )

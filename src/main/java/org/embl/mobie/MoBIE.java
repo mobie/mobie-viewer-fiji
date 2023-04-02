@@ -34,6 +34,7 @@ import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import ij.WindowManager;
 import loci.common.DebugTools;
+import lombok.val;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.ImgLoader;
@@ -191,21 +192,25 @@ public class MoBIE
 	}
 
 	// TODO: add label tables
-	public MoBIE( Data data, List< String > images, List< String > labels, String root, GridType grid ) throws IOException
+	public MoBIE( Data data, List< String > images, List< String > labels, String root, GridType grid, MoBIESettings settings ) throws IOException
 	{
 		assert data.equals( Data.Files );
+
+		this.settings = settings;
 
 		openFiles( images, labels, root, grid );
 	}
 
-	public MoBIE( Data data, String tablePath, String[] images, String[] labels, String root, GridType grid ) throws IOException
+	public MoBIE( Data data, String tablePath, List< String > images, List< String > labels, String root, GridType grid, MoBIESettings settings ) throws IOException
 	{
 		assert data.equals( Data.Table );
+
+		this.settings = settings;
 
 		openTable( tablePath, images, labels, root, grid );
 	}
 
-	private void openTable( String tablePath, String[] images, String[] labels, String root, GridType gridType )
+	private void openTable( String tablePath, List< String > images, List< String > labels, String root, GridType gridType )
 	{
 		final Table table = Table.read().file( new File( tablePath ) );
 
@@ -292,7 +297,8 @@ public class MoBIE
 		List< LabelSources > labelSources = new ArrayList<>();
 		for ( String regex : labelsRegex )
 		{
-			labelSources.add( new LabelSources( null, regex, root, grid ) );
+			final String name = FilenameUtils.removeExtension( new File( regex ).getName() );
+			labelSources.add( new LabelSources( name, regex, root, grid ) );
 		}
 
 		openImagesAndLabels( imageSources, labelSources );
@@ -497,7 +503,7 @@ public class MoBIE
 	 */
 	private void initProject( String projectName )
 	{
-		settings = new MoBIESettings();
+		if ( settings == null ) settings = new MoBIESettings();
 		project = new Project( projectName );
 		dataset = new Dataset( project.getName() );
 		project.datasets().add( dataset.getName() );
@@ -1142,7 +1148,7 @@ public class MoBIE
 	{
 		if ( imageDataFormat.equals( ImageDataFormat.SpimData ) )
 		{
-			return new SpimDataImage<>( ( AbstractSpimData ) storageLocation.data, storageLocation.channel, name );
+			return new SpimDataImage<>( ( AbstractSpimData ) storageLocation.data, storageLocation.channel, name, settings.values.getRemoveSpatialCalibration() );
 		}
 
 		if ( storageLocation instanceof Site )
@@ -1150,10 +1156,10 @@ public class MoBIE
 			return new SpimDataImage( ( Site ) storageLocation, name );
 		}
 
-
 		// TODO improve caching: https://github.com/mobie/mobie-viewer-fiji/issues/857
 		final String imagePath = getImageLocation( imageDataFormat, storageLocation );
-		return new SpimDataImage( imageDataFormat, imagePath, storageLocation.channel, name, ThreadHelper.sharedQueue );
+		final SpimDataImage spimDataImage = new SpimDataImage( imageDataFormat, imagePath, storageLocation.channel, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
+		return spimDataImage;
 
 	}
 
