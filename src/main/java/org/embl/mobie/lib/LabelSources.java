@@ -14,7 +14,7 @@ public class LabelSources extends ImageSources
 {
 	protected Map< String, TableSource > nameToLabelTable = new LinkedHashMap<>();
 
-	public LabelSources( String name, Table table, String columnName, int channelIndex, String root, GridType gridType )
+	public LabelSources( String name, Table table, String columnName, Integer channelIndex, String root, GridType gridType )
 	{
 		super( name, table, columnName, channelIndex, root, gridType);
 

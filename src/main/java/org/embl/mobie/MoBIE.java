@@ -341,7 +341,7 @@ public class MoBIE
 					//        for the HCS plate images this will not work,
 					//        thus we may need different logic there than here.
 					//        Maybe  ImageDataFormat.fromPath() should return BioFormats if it is
-					//        OME-TIFF
+					//        OME-TIFF; this is changed now in mobie-io
 					imageDataFormat = ImageDataFormat.BioFormats;
 				}
 

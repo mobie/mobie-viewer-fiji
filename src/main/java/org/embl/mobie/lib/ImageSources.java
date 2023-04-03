@@ -28,7 +28,7 @@ public class ImageSources
 	protected Map< String, String > nameToPath = new LinkedHashMap<>(); // TODO: can we get rid of this?
 	protected GridType gridType;
 	protected Table regionTable;
-	protected int channelIndex = 0;
+	protected Integer channelIndex = null;
 	protected Metadata metadata = new Metadata();
 	private String metadataSource;
 	// TODO: load the display settings here?!
@@ -49,7 +49,7 @@ public class ImageSources
 		createRegionTable();
 	}
 
-	public ImageSources( String name, Table table, String pathColumn, int channelIndex, String root, GridType gridType )
+	public ImageSources( String name, Table table, String pathColumn, Integer channelIndex, String root, GridType gridType )
 	{
 		this.name = name;
 		this.channelIndex = channelIndex;
@@ -107,7 +107,9 @@ public class ImageSources
 	private void addImage( String root, String path )
 	{
 		File file = root == null ? new File( path ) : new File( root, path );
-		final String imageName = FilenameUtils.removeExtension( file.getName() );
+		String imageName = FilenameUtils.removeExtension( file.getName() );
+		if ( channelIndex != null )
+			imageName += "_c" + channelIndex;
 		nameToFullPath.put( imageName, file.getAbsolutePath() );
 		nameToPath.put( imageName, path );
 	}
@@ -138,7 +140,7 @@ public class ImageSources
 
 	public int getChannelIndex()
 	{
-		return channelIndex;
+		return channelIndex == null ? 0 : channelIndex;
 	}
 
 	public List< String > getSources()
