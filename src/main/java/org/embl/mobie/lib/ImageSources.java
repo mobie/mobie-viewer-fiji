@@ -20,8 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 import static tech.tablesaw.aggregate.AggregateFunctions.mean;
-import static tech.tablesaw.aggregate.AggregateFunctions.min;
-import static tech.tablesaw.aggregate.AggregateFunctions.minInstant;
 
 public class ImageSources
 {
@@ -30,7 +28,7 @@ public class ImageSources
 	protected Map< String, String > nameToPath = new LinkedHashMap<>(); // TODO: can we get rid of this?
 	protected GridType gridType;
 	protected Table regionTable;
-	protected int channel = 0;
+	protected int channelIndex = 0;
 	protected Metadata metadata = new Metadata();
 	private String metadataSource;
 	// TODO: load the display settings here?!
@@ -48,12 +46,13 @@ public class ImageSources
 		this.metadataSource = nameToFullPath.keySet().iterator().next();
 		this.metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ) );
 
-		createRegionTable( "path" );
+		createRegionTable();
 	}
 
-	public ImageSources( String name, Table table, String pathColumn, String root, GridType gridType )
+	public ImageSources( String name, Table table, String pathColumn, int channelIndex, String root, GridType gridType )
 	{
 		this.name = name;
+		this.channelIndex = channelIndex;
 		this.gridType = gridType;
 
 		final StringColumn paths = table.stringColumn( pathColumn );
@@ -77,7 +76,10 @@ public class ImageSources
 			metadataSource = nameToPath.entrySet().stream().filter( e -> e.getValue().equals( path ) ).findFirst().get().getKey();
 		}
 
-		createRegionTable( pathColumn );
+		createRegionTable();
+
+		// add column for joining on
+		regionTable.addColumns( StringColumn.create( pathColumn, new ArrayList<>( nameToPath.values() )  ) );
 
 		// add table columns to region table
 		final List< Column< ? > > columns = table.columns();
@@ -90,15 +92,12 @@ public class ImageSources
 			{
 				final Table summary = table.summarize( column, mean ).by( pathColumn );
 				summary.numericColumns().get( 0 );
-				regionTable.addColumns( summary.numericColumns().get( 0 ) );
-				// FIXME: Why does the below not work?
-				//regionTable = regionTable.joinOn( pathColumn ).leftOuter( summary );
-				int a = 1;
+				regionTable = regionTable.joinOn( pathColumn ).leftOuter( summary );
 			}
 
 			if ( column instanceof StringColumn )
 			{
-				// TODO: https://github.com/jtablesaw/tablesaw/issues/1199
+				// FIXME: https://github.com/jtablesaw/tablesaw/issues/1199
 				//final Table column = table.summarize( columns.get( columnIndex ), minInstant ).by( pathColumn );
 				//int a = 1;
 			}
@@ -113,13 +112,13 @@ public class ImageSources
 		nameToPath.put( imageName, path );
 	}
 
-	private void createRegionTable( String pathColumn )
+	private void createRegionTable()
 	{
 		regionTable = Table.create( name );
 		final List< String > regions = new ArrayList<>( nameToFullPath.keySet() );
 		regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) );
 		final List< String > paths = new ArrayList<>( nameToFullPath.values() );
-		regionTable.addColumns( StringColumn.create( pathColumn, paths ) );
+		regionTable.addColumns( StringColumn.create( "source_path", paths ) );
 	}
 
 	public GridType getGridType()
@@ -137,9 +136,9 @@ public class ImageSources
 		return regionTable;
 	}
 
-	public int getChannel()
+	public int getChannelIndex()
 	{
-		return channel;
+		return channelIndex;
 	}
 
 	public List< String > getSources()

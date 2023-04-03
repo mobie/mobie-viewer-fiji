@@ -34,12 +34,12 @@ import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import ij.WindowManager;
 import loci.common.DebugTools;
-import lombok.val;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.ImgLoader;
 import net.imagej.ImageJ;
 import org.apache.commons.io.FilenameUtils;
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.lib.DataStore;
@@ -48,7 +48,6 @@ import org.embl.mobie.lib.LabelSources;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
-import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
@@ -62,6 +61,7 @@ import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.SpimDataImage;
 import org.embl.mobie.lib.image.SpotAnnotationImage;
 import org.embl.mobie.lib.io.IOHelper;
+import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.lib.serialize.DataSource;
 import org.embl.mobie.lib.serialize.Dataset;
@@ -77,12 +77,12 @@ import org.embl.mobie.lib.serialize.display.Display;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
-import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.transformation.MergedGridTransformation;
 import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.table.DefaultAnnData;
 import org.embl.mobie.lib.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.lib.table.TableDataFormat;
+import org.embl.mobie.lib.table.TableImage;
 import org.embl.mobie.lib.table.TableSource;
 import org.embl.mobie.lib.table.columns.SegmentColumnNames;
 import org.embl.mobie.lib.table.saw.TableOpener;
@@ -214,29 +214,44 @@ public class MoBIE
 		final List< ImageSources > imageSources = new ArrayList<>();
 		for ( String image : imageColumns )
 		{
-			final String[] nameAndColumn = getNameAndColumn( image );
-			imageSources.add( new ImageSources( nameAndColumn[ 0 ], table, nameAndColumn[ 1 ], root,  gridType ) );
+			final TableImage tableImage = parseTableImage( image );
+			imageSources.add( new ImageSources( tableImage.name, table, tableImage.columnName, tableImage.channelIndex, root,  gridType ) );
 		}
 
 		final List< LabelSources > labelSources = new ArrayList<>();
 		for ( String label : labelColumns )
 		{
-			final String[] nameAndColumn = getNameAndColumn( label );
-			labelSources.add( new LabelSources( nameAndColumn[ 0 ], table, nameAndColumn[ 1 ], root,  gridType ) );
+			final TableImage tableImage = parseTableImage( label );
+			labelSources.add( new LabelSources( tableImage.name, table, tableImage.columnName, tableImage.channelIndex, root,  gridType ) );
 		}
 
 		openImagesAndLabels( imageSources, labelSources );
 	}
 
-	private String[] getNameAndColumn( String string )
+	private TableImage parseTableImage( String string )
 	{
-		final String[] split = string.split( "=" );
-		if ( split.length == 2 )
-			return split;
-		else if ( split.length == 1 )
-			return new String[]{ string, string };
+		final TableImage tableImage = new TableImage();
+		String[] split = new String[]{ string };
+		if ( string.contains( ";" ) )
+		{
+			split = string.split( ";" );
+			tableImage.channelIndex = Integer.parseInt( split[ 1 ] );
+		}
+
+		if ( split[ 0 ].contains( "=" ) )
+		{
+			split = split[ 0 ].split( "=" );
+			tableImage.name = split[ 0 ];
+			tableImage.columnName = split[ 1 ];
+		}
 		else
-			throw new UnsupportedOperationException( "Too many \"=\" signs found!" );
+		{
+			tableImage.name = split[ 0 ];
+			tableImage.columnName = split[ 0 ];
+		}
+
+		return tableImage;
+
 	}
 
 	private void openMoBIEProject() throws IOException
@@ -287,6 +302,7 @@ public class MoBIE
 			//			}
 			//			else
 			//			{
+			// TODO add parsing of ',' to only load specific channels
 			final String name = FilenameUtils.removeExtension( new File( regex ).getName() );
 			imageSources.add( new ImageSources( name, regex, root, grid ) );
 		}
@@ -319,9 +335,19 @@ public class MoBIE
 			{
 				final String path = sources.getPath( name );
 				ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
+				if ( path.endsWith( "ome.tif" ) || path.endsWith( "ome.tiff" ) )
+				{
+					// FIXME: for multi-color ome-tiff this seems required, however,
+					//        for the HCS plate images this will not work,
+					//        thus we may need different logic there than here.
+					//        Maybe  ImageDataFormat.fromPath() should return BioFormats if it is
+					//        OME-TIFF
+					imageDataFormat = ImageDataFormat.BioFormats;
+				}
+
 				final StorageLocation storageLocation = new StorageLocation();
 				storageLocation.absolutePath = path;
-				storageLocation.channel = sources.getChannel();
+				storageLocation.channel = sources.getChannelIndex();
 				if ( sources instanceof LabelSources )
 				{
 					final TableSource tableSource = ( ( LabelSources ) sources ).getLabelTable( name );

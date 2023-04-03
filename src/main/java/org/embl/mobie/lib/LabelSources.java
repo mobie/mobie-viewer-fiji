@@ -3,6 +3,7 @@ package org.embl.mobie.lib;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
+import org.embl.mobie.lib.table.columns.SegmentColumnNames;
 import org.embl.mobie.lib.transform.GridType;
 import tech.tablesaw.api.Table;
 
@@ -13,18 +14,29 @@ public class LabelSources extends ImageSources
 {
 	protected Map< String, TableSource > nameToLabelTable = new LinkedHashMap<>();
 
-	public LabelSources( String name, Table table, String columnName, String root, GridType gridType )
+	public LabelSources( String name, Table table, String columnName, int channelIndex, String root, GridType gridType )
 	{
-		super( name, table, columnName, root, gridType);
+		super( name, table, columnName, channelIndex, root, gridType);
 
-		for ( Map.Entry< String, String > entry : nameToPath.entrySet() )
+		final SegmentColumnNames segmentColumnNames = TableDataFormat.getSegmentColumnNames( table.columnNames() );
+
+		if ( segmentColumnNames != null )
 		{
-			Table rowSubset = table.where( table.stringColumn( columnName ).isEqualTo( entry.getValue() ) );
-			final StorageLocation storageLocation = new StorageLocation();
-			storageLocation.data = rowSubset;
-			final TableSource tableSource = new TableSource( TableDataFormat.Table, storageLocation );
-			nameToLabelTable.put( entry.getKey(), tableSource );
+			for ( Map.Entry< String, String > entry : nameToPath.entrySet() )
+			{
+				Table rowSubset = table.where( table.stringColumn( columnName ).isEqualTo( entry.getValue() ) );
+				final StorageLocation storageLocation = new StorageLocation();
+				storageLocation.data = rowSubset;
+				final TableSource tableSource = new TableSource( TableDataFormat.Table, storageLocation );
+				nameToLabelTable.put( entry.getKey(), tableSource );
 
+			}
+		}
+		else
+		{
+			/*
+			The table does not contain any segment information that can be parsed.
+			 */
 		}
 	}
 

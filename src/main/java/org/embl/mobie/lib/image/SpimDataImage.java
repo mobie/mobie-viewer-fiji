@@ -34,15 +34,15 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	private TransformedSource transformedSource;
 	private AffineTransform3D affineTransform3D = new AffineTransform3D();
 
-	public SpimDataImage( AbstractSpimData< ? > spimData, int channel, String name, Boolean removeSpatialCalibration  )
+	public SpimDataImage( AbstractSpimData< ? > spimData, int setupId, String name, Boolean removeSpatialCalibration  )
 	{
 		this.imageDataFormat = null;
 		this.path = null;
 		this.sharedQueue = null;
-		this.setupId = channel;
+		this.setupId = setupId;
 		this.name = name;
 		this.removeSpatialCalibration = removeSpatialCalibration;
-		createSourcePair( spimData, channel, name );
+		createSourcePair( spimData, setupId, name );
 	}
 
 	public SpimDataImage( ImageDataFormat imageDataFormat, String path, int setupId, String name, @Nullable SharedQueue sharedQueue, Boolean removeSpatialCalibration )

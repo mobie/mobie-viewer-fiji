@@ -32,7 +32,6 @@ public class OpenImageTableCommand implements Command {
 	@Parameter( label = "Labels Column Names (Comma-Separated)", required = false )
 	public String labelsColumns;
 
-
 	@Parameter( label = "Remove Spatial Calibration", required = false )
 	public Boolean removeSpatialCalibration = false;
 

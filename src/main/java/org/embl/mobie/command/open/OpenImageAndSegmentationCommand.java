@@ -18,6 +18,10 @@ public class OpenImageAndSegmentationCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
+	/**
+	 *
+	 * For multi-channel files use add the channel index using a comma
+	 */
 	@Parameter( label = "Image Path Regex", required = false )
 	public File image;
 

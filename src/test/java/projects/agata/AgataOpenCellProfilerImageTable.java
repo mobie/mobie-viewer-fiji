@@ -6,16 +6,17 @@ import org.embl.mobie.command.open.OpenImagesAndSegmentationCommand;
 
 import java.io.File;
 
-class AgataOpenCellProfilerTable
+class AgataOpenCellProfilerImageTable
 {
 	public static void main( String[] args ) throws Exception
 	{
 		new ImageJ().ui().showUI();
 		final OpenImageTableCommand command = new OpenImageTableCommand();
-		command.table = new File("/Volumes/cba/exchange/agata-misiaszek/data/analysed/Image.txt");
-		command.rootFolder = new File("/Volumes/cba/exchange/agata-misiaszek/data/analysed");
-		command.imageColumns = "FileName_DNA";
+		command.table = new File("/Users/tischer/Desktop/Agata/analysed/Image.txt");
+		command.rootFolder = new File("/Users/tischer/Desktop/Agata/analysed");
+		command.imageColumns = "RPAC1=FileName_DNA;1";
 		command.labelsColumns = "FileName_CytoplasmLabels,ObjectsFileName_Nuclei";
+		command.removeSpatialCalibration = true;
 		command.run();
 	}
 }
