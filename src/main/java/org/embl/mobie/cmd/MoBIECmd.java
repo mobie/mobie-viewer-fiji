@@ -67,7 +67,7 @@ public class MoBIECmd implements Callable< Void > {
 		{
 			final GridType gridType = grid == null ? GridType.Merged : GridType.fromString( grid );
 
-			new MoBIE( Data.Table, table, Arrays.asList( images ), Arrays.asList( labels ), root, gridType, settings );
+			new MoBIE( table, Arrays.asList( images ), Arrays.asList( labels ), root, gridType, settings );
 		}
 		else
 		{

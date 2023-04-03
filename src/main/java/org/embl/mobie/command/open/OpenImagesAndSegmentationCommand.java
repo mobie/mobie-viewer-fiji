@@ -64,7 +64,7 @@ public class OpenImagesAndSegmentationCommand implements Command {
 
 		try
 		{
-			new MoBIE( Data.Files, imageList, labelsList, null, gridType, settings );
+			new MoBIE( imageList, labelsList, null, gridType, settings );
 		}
 		catch ( IOException e )
 		{

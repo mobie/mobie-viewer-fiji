@@ -13,3 +13,4 @@ target
 *.class
 *~
 *.orig
+hs_err_*.log

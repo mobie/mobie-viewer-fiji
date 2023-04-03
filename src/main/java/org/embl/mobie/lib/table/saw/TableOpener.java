@@ -124,4 +124,26 @@ public class TableOpener
 
 		return table;
 	}
+
+	public static Character guessDelimiter( String path )
+	{
+		if ( path.endsWith( ".txt" ) )
+			return '\t';
+
+		if ( path.endsWith( ".tsv" ) )
+			return '\t';
+
+		return ',';
+	}
+
+	public static Table openDelimitedTextFile( String path, char separator )
+	{
+		CsvReadOptions.Builder builder = CsvReadOptions.builder( path ).separator( separator ).missingValueIndicator( "na", "none", "nan" );
+		return Table.read().usingOptions( builder );
+	}
+
+	public static Table openDelimitedTextFile( String path )
+	{
+		return openDelimitedTextFile( path, guessDelimiter( path ) );
+	}
 }

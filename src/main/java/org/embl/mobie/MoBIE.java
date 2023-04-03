@@ -192,37 +192,34 @@ public class MoBIE
 	}
 
 	// TODO: add label tables
-	public MoBIE( Data data, List< String > images, List< String > labels, String root, GridType grid, MoBIESettings settings ) throws IOException
+	public MoBIE( List< String > images, List< String > labels, String root, GridType grid, MoBIESettings settings ) throws IOException
 	{
-		assert data.equals( Data.Files );
-
 		this.settings = settings;
 
 		openFiles( images, labels, root, grid );
 	}
 
-	public MoBIE( Data data, String tablePath, List< String > images, List< String > labels, String root, GridType grid, MoBIESettings settings ) throws IOException
+	// Open image table
+	public MoBIE( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, GridType grid, MoBIESettings settings ) throws IOException
 	{
-		assert data.equals( Data.Table );
-
 		this.settings = settings;
 
-		openTable( tablePath, images, labels, root, grid );
+		openTable( tablePath, imageColumns, labelColumns, root, grid );
 	}
 
-	private void openTable( String tablePath, List< String > images, List< String > labels, String root, GridType gridType )
+	private void openTable( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, GridType gridType )
 	{
-		final Table table = Table.read().file( new File( tablePath ) );
+		final Table table = TableOpener.openDelimitedTextFile( tablePath );
 
 		final List< ImageSources > imageSources = new ArrayList<>();
-		for ( String image : images )
+		for ( String image : imageColumns )
 		{
 			final String[] nameAndColumn = getNameAndColumn( image );
 			imageSources.add( new ImageSources( nameAndColumn[ 0 ], table, nameAndColumn[ 1 ], root,  gridType ) );
 		}
 
 		final List< LabelSources > labelSources = new ArrayList<>();
-		for ( String label : labels )
+		for ( String label : labelColumns )
 		{
 			final String[] nameAndColumn = getNameAndColumn( label );
 			labelSources.add( new LabelSources( nameAndColumn[ 0 ], table, nameAndColumn[ 1 ], root,  gridType ) );

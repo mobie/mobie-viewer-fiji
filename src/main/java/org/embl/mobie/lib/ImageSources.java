@@ -11,12 +11,17 @@ import org.embl.mobie.lib.transform.GridType;
 import tech.tablesaw.api.NumberColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
+import tech.tablesaw.columns.Column;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import static tech.tablesaw.aggregate.AggregateFunctions.mean;
+import static tech.tablesaw.aggregate.AggregateFunctions.min;
+import static tech.tablesaw.aggregate.AggregateFunctions.minInstant;
 
 public class ImageSources
 {
@@ -43,7 +48,7 @@ public class ImageSources
 		this.metadataSource = nameToFullPath.keySet().iterator().next();
 		this.metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ) );
 
-		createRegionTable();
+		createRegionTable( "path" );
 	}
 
 	public ImageSources( String name, Table table, String pathColumn, String root, GridType gridType )
@@ -72,7 +77,32 @@ public class ImageSources
 			metadataSource = nameToPath.entrySet().stream().filter( e -> e.getValue().equals( path ) ).findFirst().get().getKey();
 		}
 
-		createRegionTable();
+		createRegionTable( pathColumn );
+
+		// add table columns to region table
+		final List< Column< ? > > columns = table.columns();
+		final int numColumns = columns.size();
+		for ( int columnIndex = 0; columnIndex < numColumns; columnIndex++ )
+		{
+			final Column< ? > column = columns.get( columnIndex );
+
+			if ( column instanceof NumberColumn )
+			{
+				final Table summary = table.summarize( column, mean ).by( pathColumn );
+				summary.numericColumns().get( 0 );
+				regionTable.addColumns( summary.numericColumns().get( 0 ) );
+				// FIXME: Why does the below not work?
+				//regionTable = regionTable.joinOn( pathColumn ).leftOuter( summary );
+				int a = 1;
+			}
+
+			if ( column instanceof StringColumn )
+			{
+				// TODO: https://github.com/jtablesaw/tablesaw/issues/1199
+				//final Table column = table.summarize( columns.get( columnIndex ), minInstant ).by( pathColumn );
+				//int a = 1;
+			}
+		}
 	}
 
 	private void addImage( String root, String path )
@@ -83,13 +113,13 @@ public class ImageSources
 		nameToPath.put( imageName, path );
 	}
 
-	private void createRegionTable()
+	private void createRegionTable( String pathColumn )
 	{
 		regionTable = Table.create( name );
 		final List< String > regions = new ArrayList<>( nameToFullPath.keySet() );
 		regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) );
 		final List< String > paths = new ArrayList<>( nameToFullPath.values() );
-		regionTable.addColumns( StringColumn.create( "path", paths ) );
+		regionTable.addColumns( StringColumn.create( pathColumn, paths ) );
 	}
 
 	public GridType getGridType()
