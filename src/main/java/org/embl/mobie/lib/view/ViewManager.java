@@ -72,6 +72,7 @@ import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.CropTransformation;
 import org.embl.mobie.lib.serialize.transformation.GridTransformation;
 import org.embl.mobie.lib.serialize.transformation.MergedGridTransformation;
+import org.embl.mobie.lib.serialize.transformation.TimepointsTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.image.CroppedImage;
@@ -366,7 +367,7 @@ public class ViewManager
 					for ( Image< ? > image : images )
 					{
 						final Image< ? > transformedImage =
-							ImageTransformer.transform(
+							ImageTransformer.applyAffineTransform(
 									image,
 									affineTransformation.getAffineTransform3D(),
 									affineTransformation.getTransformedImageName( image.getName() ) );
@@ -449,6 +450,25 @@ public class ViewManager
 					final List< ? extends Image< ? > > transformedImages = ImageTransformer.gridTransform( nestedImages, gridTransformation.transformedNames, gridPositions, tileRealDimensions, gridTransformation.centerAtOrigin, offset );
 
 					DataStore.putImages( transformedImages );
+				}
+				else if ( transformation instanceof TimepointsTransformation )
+				{
+					final TimepointsTransformation< ? > timepointsTransformation = ( TimepointsTransformation ) transformation;
+
+					final Set< Image< ? > > images = DataStore.getImageSet( timepointsTransformation.getSources() );
+
+					for ( Image< ? > image : images )
+					{
+						final Image< ? > transformedImage =
+								ImageTransformer.applyTimepointsTransform(
+										image,
+										timepointsTransformation.getTimepointsMapping(),
+										timepointsTransformation.isKeep(),
+										timepointsTransformation.getTransformedImageName( image.getName() ) );
+						DataStore.putImage( transformedImage );
+					}
+
+					ImageTransformer.
 				}
 				else
 				{

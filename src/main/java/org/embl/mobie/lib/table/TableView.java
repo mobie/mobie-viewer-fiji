@@ -52,6 +52,7 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.ui.UserInterfaceHelper;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -273,7 +274,14 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private synchronized void updateJTable()
 	{
 		if ( jTable == null ) return;
-		jTable.tableChanged( null );
+		try
+		{
+			jTable.tableChanged( new TableModelEvent( swingTableModel ) );
+		}
+		catch ( Exception e )
+		{
+			// https://github.com/mobie/mobie-viewer-fiji/issues/1011
+		}
 	}
 
 	private JMenuItem createSaveTableAsMenuItem()

@@ -376,7 +376,7 @@ public class MoBIE
 				DataStore.putRawData( regionDataSource );
 
 				// init RegionDisplay
-				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( sources.getName() + " table" );
+				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( sources.getName() + " regions" );
 				regionDisplay.sources = new LinkedHashMap<>();
 				regionDisplay.tableSource = regionDataSource.getName();
 				regionDisplay.showAsBoundaries( true );

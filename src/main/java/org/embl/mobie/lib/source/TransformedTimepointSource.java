@@ -40,14 +40,14 @@ import net.imglib2.type.numeric.RealType;
 import javax.annotation.Nullable;
 import java.util.Map;
 
-public class TransformedTimepointSource<T extends NumericType<T> & RealType<T>> implements Source<T>, SourceWrapper<T>
+public class TransformedTimepointSource< T extends NumericType<T> & RealType<T> > implements Source<T>, SourceWrapper<T>
 {
     private final String name;
     private final Source<T> source;
     private Map< Integer, Integer > timepoints; // new to old
     private boolean keep;
 
-    public TransformedTimepointSource( @Nullable String name, final Source< T > source, Map< Integer, Integer > timepoints, boolean keep )
+    public TransformedTimepointSource( String name, final Source< T > source, Map< Integer, Integer > timepoints, boolean keep )
     {
         this.name = name;
         this.source = source;
