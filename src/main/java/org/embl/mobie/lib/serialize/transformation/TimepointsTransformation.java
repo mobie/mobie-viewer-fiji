@@ -42,10 +42,15 @@ import java.util.Map;
 public class TimepointsTransformation< T > extends AbstractImageTransformation< T, T >
 {
 	// Serialisation
+
+	/**
+	 * Outer list: list of timepoints that you want to map
+	 * Inner list: pairs of timepoints: "from", "to".
+	 * "from" must exist in the source
+	 * "to" will be added to the transformed source
+	 */
 	protected List< List< Integer > > parameters;
 	protected boolean keep = false; // default is false
-	protected List< String > sources;
-	protected List< String > sourceNamesAfterTransform;
 
 	public TimepointsTransformation( String name, List< List< Integer > > timepoints, boolean keep, List< String > sources ) {
 		this( name, timepoints, keep, sources, null );

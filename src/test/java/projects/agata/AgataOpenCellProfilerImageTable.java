@@ -12,10 +12,10 @@ class AgataOpenCellProfilerImageTable
 	{
 		new ImageJ().ui().showUI();
 		final OpenImageTableCommand command = new OpenImageTableCommand();
-		command.table = new File("/Users/tischer/Desktop/Agata/analysed/Image.txt");
-		command.rootFolder = new File("/Users/tischer/Desktop/Agata/analysed");
+		command.table = new File("/g/cba/exchange/agata-misiaszek/data/analysed/Image.txt");
+		command.rootFolder = new File("/g/cba/exchange/agata-misiaszek/data/analysed/");
 		command.imageColumns = "DAPI=FileName_DNA;0,RPAC1=FileName_DNA;1";
-		command.labelsColumns = "FileName_CytoplasmLabels,ObjectsFileName_Nuclei";
+		command.labelsColumns = "CytoSeg=FileName_CytoplasmLabels,NucleiSeg=ObjectsFileName_Nuclei";
 		command.removeSpatialCalibration = true;
 		command.run();
 	}

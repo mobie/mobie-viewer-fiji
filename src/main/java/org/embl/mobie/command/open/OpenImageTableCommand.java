@@ -26,10 +26,10 @@ public class OpenImageTableCommand implements Command {
 	@Parameter( label = "Root Folder", required = false )
 	public File rootFolder;
 
-	@Parameter( label = "Image Column Names (Comma-Separated)", required = true )
+	@Parameter( label = "Image Columns (Comma Separated)", required = true )
 	public String imageColumns;
 
-	@Parameter( label = "Labels Column Names (Comma-Separated)", required = false )
+	@Parameter( label = "Labels Columns (Comma Separated)", required = false )
 	public String labelsColumns;
 
 	@Parameter( label = "Remove Spatial Calibration", required = false )
