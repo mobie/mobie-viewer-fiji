@@ -642,7 +642,6 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 					x = x - xTileIndex * tileDimension[ 0 ];
 					y = y - yTileIndex * tileDimension[ 1 ];
 
-					System.out.println( "" + x + " " + y );
 					if ( ! tileStore.contains( timepoint, level, xTileIndex, yTileIndex ) )
 					{
 						value.set( type.createVariable() ); // background

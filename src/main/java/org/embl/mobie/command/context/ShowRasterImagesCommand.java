@@ -35,8 +35,13 @@ import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
+import net.imglib2.RealPoint;
+import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.util.Intervals;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
 import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.image.StitchedImage;
 import org.embl.mobie.lib.source.SourceHelper;
 import net.imglib2.RandomAccessibleInterval;
@@ -48,13 +53,13 @@ import net.imglib2.view.Views;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Show " + ShowRasterImagesCommand.RAW + " Image(s)" )
@@ -77,48 +82,88 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 
 		for ( SourceAndConverter< T > sourceAndConverter : sourceAndConverters )
 		{
-			final Image< ? > image = (Image< ? >) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, Image.class.getName() );
-			if ( image instanceof StitchedImage )
+			Image< ? > image = (Image< ? >) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, Image.class.getName() );
+
+			if ( image instanceof RegionAnnotationImage  )
 			{
-				int a = 1;
+				continue;
 			}
 
-			export( sourceAndConverter );
+			if ( image instanceof StitchedImage )
+			{
+				while ( image instanceof StitchedImage )
+				{
+					final Optional< ? extends Image< ? > > optionalTileImage = getTileImageAtCurrentMousePosition( ( StitchedImage< ?, ? > ) image );
+					if ( optionalTileImage.isPresent() )
+					{
+						image = optionalTileImage.get();
+					}
+					else
+					{
+						image = null;
+						break;
+					}
+				}
+
+				if ( image != null )
+					export( ( Source< T > ) image.getSourcePair().getSource() );
+			}
+			else
+			{
+				final Source< T > source = getRootSource( sourceAndConverter.getSpimSource() );
+				export( source );
+			}
 		}
 	}
 
-	private void export( SourceAndConverter< T > sourceAndConverter )
+	private Optional< ? extends Image< ? > > getTileImageAtCurrentMousePosition( StitchedImage< ?, ? > image )
 	{
-		final Source< T > source = getRootSource( sourceAndConverter.getSpimSource() );
-		final int levels = source.getNumMipmapLevels();
-		final String[] choices = new String[ levels ];
-		for ( int level = 0; level < levels; level++ )
-		{
-			long[] dimensions = source.getSource( 0, level ).dimensionsAsLongArray();
-			choices[ level ] = Arrays.toString( dimensions );
-		}
+		final List< ? extends Image< ? > > stitchedImages = image.getImages();
 
-		final GenericDialog dialog = new GenericDialog( source.getName() );
-		dialog.addChoice( "Resolution level", choices, choices[ 0 ] );
-		dialog.showDialog();
-		if ( dialog.wasCanceled() ) return;
-		final int level = dialog.getNextChoiceIndex();
-
-		showImagePlus( sourceAndConverter, level );
+		final GlobalMousePositionProvider positionProvider = new GlobalMousePositionProvider( bdvHandle );
+		final RealPoint position = positionProvider.getPositionAsRealPoint();
+		final int timePoint = positionProvider.getTimePoint();
+		final Optional< ? extends Image< ? > > optionalImage = stitchedImages.stream().filter( img -> isContained( position, img ) ).findFirst();
+		return optionalImage;
 	}
 
-	private void showImagePlus( SourceAndConverter< T > sourceAndConverter, int level )
+	private boolean isContained( RealPoint position, Image< ? > img )
 	{
-		final Source< T > source = sourceAndConverter.getSpimSource();
-		final Source< T > rootSource = getRootSource( source );
+		final RealMaskRealInterval mask = img.getMask();
+		return Intervals.contains( mask, position );
+	}
 
-		if ( rootSource == null )
+	private void export( Source< T > source )
+	{
+		final int numMipmapLevels = source.getNumMipmapLevels();
+
+		if ( numMipmapLevels > 1 )
 		{
-			IJ.log( source.getName() + ": Consists of multiple sources and export to ImagePlus is not yet supported.");
-			return;
-		}
+			final String[] choices = new String[ numMipmapLevels ];
+			for ( int level = 0; level < numMipmapLevels; level++ )
+			{
+				long[] dimensions = source.getSource( 0, level ).dimensionsAsLongArray();
+				choices[ level ] = Arrays.toString( dimensions );
+			}
 
-		IJ.log(source.getName() + ": " + RAW + " data = " + rootSource.getName() );
+			final GenericDialog dialog = new GenericDialog( source.getName() );
+			dialog.addChoice( "Resolution level", choices, choices[ 0 ] );
+			dialog.showDialog();
+
+			if ( dialog.wasCanceled() ) return;
+
+			final int level = dialog.getNextChoiceIndex();
+			showImagePlus( source, level );
+		}
+		else
+		{
+			showImagePlus( source, 0 );
+		}
+	}
+
+	private void showImagePlus( Source< T > source, int level )
+	{
+		IJ.log(source.getName() + ": " + RAW + " data = " + source.getName() );
 
 		long[] dimensions = source.getSource( 0, level ).dimensionsAsLongArray();
 
@@ -129,7 +174,7 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 		source.getSourceTransform( 0, level, sourceTransform );
 
 		final AffineTransform3D rootSourceTransform = new AffineTransform3D();
-		rootSource.getSourceTransform( 0, level, rootSourceTransform );
+		source.getSourceTransform( 0, level, rootSourceTransform );
 
 		double[] sourceScale = new double[ 3 ];
 		double[] rootSourceScale = new double[ 3 ];
@@ -145,8 +190,8 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 		IJ.log( source.getName() + ": " + RAW + " data scale = " + Arrays.toString( rootSourceScale ) );
 		IJ.log( source.getName() + ": " + RAW + " data transform = " + rootSourceTransform );
 
-		final ImagePlus imagePlus = getImagePlus( rootSource, level );
-		imagePlus.getCalibration().setUnit( rootSource.getVoxelDimensions().unit() );
+		final ImagePlus imagePlus = getImagePlus( source, level );
+		imagePlus.getCalibration().setUnit( source.getVoxelDimensions().unit() );
 		imagePlus.getCalibration().pixelWidth = rootSourceScale[ 0 ];
 		imagePlus.getCalibration().pixelHeight = rootSourceScale[ 1 ];
 		imagePlus.getCalibration().pixelDepth = rootSourceScale[ 2 ];
