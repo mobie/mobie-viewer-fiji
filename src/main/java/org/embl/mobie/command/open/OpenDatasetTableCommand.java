@@ -15,8 +15,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Image Table..." )
-public class OpenImageTableCommand implements Command {
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Dataset Table..." )
+public class OpenDatasetTableCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 

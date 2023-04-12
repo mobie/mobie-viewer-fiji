@@ -19,14 +19,14 @@ public class FilesCmd implements Callable< Void > {
 	@Option(names = {"-r", "--root"}, required = false, description = "root folder that will be prepended to all other arguments")
 	public String root;
 
-	@Option(names = {"-i", "--image"}, required = false, description = "open an intensity image from a path, e.g., -i \"/home/image.tif\"; use wild-cards to open several images, e.g., -i \"/home/*-image.tif\"; specify several images by repeating the -i flag.")
-	public String[] imageArray;
+	@Option(names = {"-i", "--image"}, required = false, description = "intensity image path, e.g., -i \"/home/image.tif\"; use wild-cards to open several images, e.g., -i \"/home/*-image.tif\"; specify several images by repeating the -i flag.")
+	public String[] images;
 
-	@Option(names = {"-l", "--labels"}, required = false, description = "open a segmentation label mask image from a path, e.g. -s \"/home/labels.tif\"; same options as for --image")
-	public String[] labelsArray;
+	@Option(names = {"-l", "--labels"}, required = false, description = "label mask image path, e.g. -s \"/home/labels.tif\"; same options as for --image")
+	public String[] labels;
 
-	@Option(names = {"-t", "--table"}, required = false, description = "open a segment feature table matching the label image")
-	public String[] tableArray;
+	@Option(names = {"-t", "--table"}, required = false, description = "segment feature table path, matching the label image")
+	public String[] tables;
 
 	@Option(names = {"-g", "--grid"}, required = false, description = "grid type: none, stitched (default), transform")
 	public GridType gridType = GridType.Stitched;
@@ -41,21 +41,21 @@ public class FilesCmd implements Callable< Void > {
 				.cli( true )
 				.removeSpatialCalibration( removeSpatialCalibration );
 
-		List< String > images = imageArray == null ?
-				Arrays.asList( imageArray ) : new ArrayList<>();
+		List< String > imageList = images == null ?
+				Arrays.asList( images ) : new ArrayList<>();
 
-		List< String > labels = labelsArray == null ?
-				Arrays.asList( labelsArray ) : new ArrayList<>();
+		List< String > labelsList = labels == null ?
+				Arrays.asList( labels ) : new ArrayList<>();
 
-		List< String > tables = tableArray == null ?
-				Arrays.asList( tableArray ) : new ArrayList<>();
+		List< String > tablesList = tables == null ?
+				Arrays.asList( tables ) : new ArrayList<>();
 
-		if ( tables.size() > 1 )
+		if ( tablesList.size() > 1 )
 		{
 			System.out.println("Sorry, opening label tables is not yet implemented....");
 		}
 
-		new MoBIE( images, labels, root, gridType, settings );
+		new MoBIE( imageList, labelsList, root, gridType, settings );
 
 		return null;
 	}

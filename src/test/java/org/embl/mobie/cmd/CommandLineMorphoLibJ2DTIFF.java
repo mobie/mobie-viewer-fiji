@@ -7,7 +7,7 @@ class CommandLineMorphoLibJ2DTIFF
 
 	public static void main( String[] args ) throws Exception
 	{
-		final MoBIECmd cmd = new MoBIECmd();
+		final ProjectCmd cmd = new ProjectCmd();
 		cmd.root = ROOT + DIR;
 		cmd.images = new String[]{ "image.tif" };
 		cmd.labels = new String[]{ "segmentation.tif,table-mlj.csv" };

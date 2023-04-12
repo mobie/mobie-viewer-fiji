@@ -1,4 +1,4 @@
-package projects.mirkes;
+package projects.mirkes.command;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.command.open.OpenImagesAndSegmentationCommand;
