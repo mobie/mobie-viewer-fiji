@@ -113,10 +113,16 @@ public class UserInterfaceHelper
 	private JPanel viewSelectionPanel;
 	private Map< String, Map< String, View > > groupingsToViews;
 	private Map< String, JComboBox > groupingsToComboBox;
+	private JCheckBox overlayNamesCheckbox;
 
 	public UserInterfaceHelper( MoBIE moBIE )
 	{
 		this.moBIE = moBIE;
+	}
+
+	public JCheckBox getOverlayNamesCheckbox()
+	{
+		return overlayNamesCheckbox;
 	}
 
 	public static FileLocation loadFromProjectOrFileSystemDialog() {
@@ -750,14 +756,11 @@ public class UserInterfaceHelper
 			} );
 		} );
 
-		JCheckBox checkBox = new JCheckBox( "overlay names" );
-		checkBox.setSelected( false );
-		checkBox.addActionListener( e -> new Thread( () ->
-		{
-			moBIE.getViewManager().getSliceViewer().getSourceNameOverlay().setActive( checkBox.isSelected() );
-		}).start() );
+		overlayNamesCheckbox =new JCheckBox( "overlay names" );
+		overlayNamesCheckbox.setSelected( false );
+		overlayNamesCheckbox.addActionListener( e -> new Thread( () -> moBIE.getViewManager().getSliceViewer().getImageNameOverlay().setActive( overlayNamesCheckbox.isSelected() ) ).start() );
 
-		panel.add( checkBox );
+		panel.add( overlayNamesCheckbox );
 		panel.add( space() );
 		panel.add( button );
 		return panel;
@@ -948,7 +951,6 @@ public class UserInterfaceHelper
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 		window.setVisible( isVisible );
 		checkBox.addActionListener( e -> SwingUtilities.invokeLater( () -> window.setVisible( checkBox.isSelected() ) ) );
-
 		window.addWindowListener(
 				new WindowAdapter() {
 					public void windowClosing( WindowEvent ev) {

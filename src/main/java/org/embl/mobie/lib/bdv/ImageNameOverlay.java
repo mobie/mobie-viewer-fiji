@@ -33,34 +33,46 @@ import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.util.BdvOverlay;
 import bdv.util.BdvOverlaySource;
-import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TransformListener;
 import bdv.viewer.ViewerState;
-import org.embl.mobie.lib.source.AnnotationType;
 import net.imglib2.FinalRealInterval;
-import net.imglib2.Interval;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.util.Intervals;
+import org.embl.mobie.lib.bdv.view.SliceViewer;
+import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.image.RegionAnnotationImage;
+import org.embl.mobie.lib.image.StitchedImage;
+import org.embl.mobie.lib.select.Listeners;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SourceNameOverlay extends BdvOverlay implements TransformListener< AffineTransform3D >
+public class ImageNameOverlay extends BdvOverlay implements TransformListener< AffineTransform3D >
 {
 	private final BdvHandle bdvHandle;
-	private Map< String, FinalRealInterval > sourceNameToBounds = new ConcurrentHashMap< String, FinalRealInterval >();
-	private FinalRealInterval viewerInterval;
-	private BdvOverlaySource< SourceNameOverlay > overlaySource;
+	private final SliceViewer sliceViewer;
+	private Map< String, FinalRealInterval > nameToBounds = new ConcurrentHashMap< String, FinalRealInterval >();
+	private BdvOverlaySource< ImageNameOverlay > overlaySource;
 	private boolean isActive;
-	private static final Font font = new Font( "Monospaced", Font.PLAIN, 20 );;
+	private static final Font font = new Font( "Monospaced", Font.PLAIN, 20 );
 
-	public SourceNameOverlay( BdvHandle bdvHandle, boolean isActive )
+	protected final Listeners.SynchronizedList< ActiveListener > listeners
+			= new Listeners.SynchronizedList< ActiveListener >(  );
+
+
+	public ImageNameOverlay( BdvHandle bdvHandle, boolean isActive, SliceViewer sliceViewer )
 	{
 		this.bdvHandle = bdvHandle;
+		this.sliceViewer = sliceViewer;
 		bdvHandle.getViewerPanel().transformListeners().add( this );
 		setActive( isActive );
 	}
@@ -78,10 +90,22 @@ public class SourceNameOverlay extends BdvOverlay implements TransformListener< 
 					this,
 					"sourceNameOverlay",
 					BdvOptions.options().addTo( bdvHandle ) );
+
+			// This is needed probably due a bug:
+			// https://imagesc.zulipchat.com/#narrow/stream/327326-BigDataViewer/topic/BdvOverlay.20and.20Timepoints
+			// https://github.com/mobie/mobie-viewer-fiji/issues/976
+			sliceViewer.updateTimepointSlider();
 		}
 
 		if ( overlaySource != null )
+		{
 			overlaySource.setActive( isActive );
+		}
+
+		for ( ActiveListener activeListener : listeners.list )
+		{
+			activeListener.isActive( isActive );
+		}
 	}
 
 	public boolean isActive()
@@ -92,67 +116,63 @@ public class SourceNameOverlay extends BdvOverlay implements TransformListener< 
 	@Override
 	public void transformChanged( AffineTransform3D transform3D )
 	{
-		adaptSourceNames();
+		if ( isActive )
+		{
+			adaptImageNames();
+		}
 	}
 
-	private synchronized void adaptSourceNames()
+	private synchronized void adaptImageNames()
 	{
-		sourceNameToBounds.clear();
+		nameToBounds.clear();
 
 		final ViewerState viewerState = bdvHandle.getViewerPanel().state().snapshot();
 
 		final AffineTransform3D viewerTransform = viewerState.getViewerTransform();
 
-		viewerInterval = BdvHandleHelper.getViewerGlobalBoundingInterval( bdvHandle );
+		FinalRealInterval viewerInterval = BdvHandleHelper.getViewerGlobalBoundingInterval( bdvHandle );
 
 		final Set< SourceAndConverter< ? > > sourceAndConverters = viewerState.getVisibleAndPresentSources();
 
-		final int t = viewerState.getCurrentTimepoint();
-
-		final AffineTransform3D sourceToGlobal = new AffineTransform3D();
-		final double[] sourceMin = new double[ 3 ];
-		final double[] sourceMax = new double[ 3 ];
-
 		for ( final SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			final Source< ? > spimSource = sourceAndConverter.getSpimSource();
-			final Object type = spimSource.getType();
-			if ( type instanceof AnnotationType )
+			Image< ? > image = ( Image< ? > ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, Image.class.getName() );
+
+			if ( image instanceof RegionAnnotationImage )
 			{
-				// don't render names of annotations
-				// TODO: this right now also includes segmentations
-				//   we could differentiate more by
-				//   type.get() instance of Region...
 				continue;
 			}
 
-			final int level = 0; // spimSource.getNumMipmapLevels() - 1;
-			spimSource.getSourceTransform( t, level, sourceToGlobal );
-
-			final Interval interval = spimSource.getSource( t, level );
-			for ( int d = 0; d < 3; d++ )
+			if ( image instanceof StitchedImage )
 			{
-				sourceMin[ d ] = interval.realMin( d );
-				sourceMax[ d ] = interval.realMax( d );
+				final List< ? extends Image< ? > > tileImages = ( ( StitchedImage< ?, ? > ) image ).getTileImages();
+
+				for ( Image< ? > tileImage : tileImages )
+				{
+					addImageToOverlay( viewerTransform, viewerInterval, tileImage );
+				}
+
+				continue;
 			}
 
-			final FinalRealInterval globalBounds = sourceToGlobal.estimateBounds( new FinalRealInterval( sourceMin, sourceMax ) );
-			final FinalRealInterval intersect = Intervals.intersect( globalBounds, viewerInterval );
-			if ( ! Intervals.isEmpty( intersect ) )
-			{
-				// If we want the name to be always visible
-				// we could do:
-				// final FinalRealInterval boundsInViewer = viewerTransform.estimateBounds( intersect );
-				final FinalRealInterval boundsInViewer = viewerTransform.estimateBounds( globalBounds );
-				sourceNameToBounds.put( spimSource.getName(), boundsInViewer );
-			}
+			addImageToOverlay( viewerTransform, viewerInterval, image );
+		}
+	}
+
+	private void addImageToOverlay( AffineTransform3D viewerTransform, FinalRealInterval viewerInterval, Image< ? > image )
+	{
+		final RealMaskRealInterval imageMask = image.getMask();
+		final FinalRealInterval intersect = Intervals.intersect( viewerInterval, imageMask );
+		if ( ! Intervals.isEmpty( intersect ) )
+		{
+			nameToBounds.put( image.getName(), viewerTransform.estimateBounds( imageMask ) );
 		}
 	}
 
 	@Override
 	protected void draw( Graphics2D g )
 	{
-		for ( Map.Entry< String, FinalRealInterval > entry : sourceNameToBounds.entrySet() )
+		for ( Map.Entry< String, FinalRealInterval > entry : nameToBounds.entrySet() )
 		{
 			// determine the size of the annotated source
 			// in the viewer
@@ -160,7 +180,7 @@ public class SourceNameOverlay extends BdvOverlay implements TransformListener< 
 			final double sourceWidth = bounds.realMax( 0 ) - bounds.realMin( 0 );
 			final double sourceCenter = ( bounds.realMax( 0 ) + bounds.realMin( 0 ) ) / 2.0;
 
-			// determine font of appropriate size
+			// determine appropriate font
 			final String name = entry.getKey();
 			g.setFont( font );
 			g.setColor( Color.WHITE );
@@ -168,10 +188,15 @@ public class SourceNameOverlay extends BdvOverlay implements TransformListener< 
 			Font finalFont = font.deriveFont( finalFontSize );
 			g.setFont( finalFont );
 
-			// draw the name below the source
+			// draw name below image
 			final float x = (float) ( sourceCenter - g.getFontMetrics().stringWidth( name ) / 2.0 );
 			final float y = (float) bounds.realMax( 1 ) + 1.1F * finalFont.getSize();
 			g.drawString( name, x, y );
 		}
+	}
+
+	public void addListener( ActiveListener activeListener )
+	{
+		listeners.add( activeListener );
 	}
 }

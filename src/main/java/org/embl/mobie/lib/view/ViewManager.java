@@ -42,6 +42,7 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.annotation.Annotation;
+import org.embl.mobie.lib.bdv.ImageNameOverlay;
 import org.embl.mobie.lib.bdv.view.AnnotationSliceView;
 import org.embl.mobie.lib.bdv.view.ImageSliceView;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
@@ -286,9 +287,6 @@ public class ViewManager
 					currentDisplays.get( 0 ) ).applyMultiSourceTransform();
 		}
 
-		// set rendering of source name overlay
-		getSliceViewer().getSourceNameOverlay().transformChanged( sliceViewer.getBdvHandle().getViewerPanel().state().getViewerTransform() );
-
 		// adapt time point
 		if ( view.getViewerTransform() != null )
 		{
@@ -299,7 +297,9 @@ public class ViewManager
 		}
 
 		// overlay names
-		getSliceViewer().getSourceNameOverlay().setActive( view.overlayNames() );
+		final ImageNameOverlay imageNameOverlay = getSliceViewer().getImageNameOverlay();
+		userInterface.setImageNameOverlay( imageNameOverlay );
+		imageNameOverlay.setActive( view.overlayNames() );
 
 		IJ.log("Opened view: " + view.getName() + " in " + (System.currentTimeMillis() - startTime) + " ms." );
 	}

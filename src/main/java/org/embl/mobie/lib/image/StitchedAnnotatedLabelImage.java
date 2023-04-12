@@ -46,7 +46,7 @@ public class StitchedAnnotatedLabelImage< A extends Annotation > extends Stitche
 	public StitchedAnnotatedLabelImage( List< ? extends AnnotatedLabelImage< A > > annotatedImages, Image< AnnotationType< A > > metadataImage, @Nullable List< int[] > positions, String imageName, double relativeCellMargin )
 	{
 		super( annotatedImages, metadataImage, positions, imageName, relativeCellMargin );
-		annData = AnnDataHelper.concatenate( ( List ) getImages() );
+		annData = AnnDataHelper.concatenate( ( List ) getTileImages() );
 	}
 
 	@Override

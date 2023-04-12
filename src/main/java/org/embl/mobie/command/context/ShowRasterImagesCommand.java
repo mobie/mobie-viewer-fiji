@@ -36,8 +36,6 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import net.imglib2.RealPoint;
-import net.imglib2.roi.RealMaskRealInterval;
-import net.imglib2.util.Intervals;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
 import org.embl.mobie.lib.image.Image;
@@ -91,9 +89,14 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 
 			if ( image instanceof StitchedImage )
 			{
+				final RealPoint position = new GlobalMousePositionProvider( bdvHandle ).getPositionAsRealPoint();
+
+				// traverse through the potentially several
+				// layers of stitching
 				while ( image instanceof StitchedImage )
 				{
-					final Optional< ? extends Image< ? > > optionalTileImage = getTileImageAtCurrentMousePosition( ( StitchedImage< ?, ? > ) image );
+					final Optional< ? extends Image< ? > > optionalTileImage = (( StitchedImage< ?, ? > ) image).getTileImageAtGlobalPosition( position );
+
 					if ( optionalTileImage.isPresent() )
 					{
 						image = optionalTileImage.get();
@@ -114,23 +117,6 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 				export( source );
 			}
 		}
-	}
-
-	private Optional< ? extends Image< ? > > getTileImageAtCurrentMousePosition( StitchedImage< ?, ? > image )
-	{
-		final List< ? extends Image< ? > > stitchedImages = image.getImages();
-
-		final GlobalMousePositionProvider positionProvider = new GlobalMousePositionProvider( bdvHandle );
-		final RealPoint position = positionProvider.getPositionAsRealPoint();
-		final int timePoint = positionProvider.getTimePoint();
-		final Optional< ? extends Image< ? > > optionalImage = stitchedImages.stream().filter( img -> isContained( position, img ) ).findFirst();
-		return optionalImage;
-	}
-
-	private boolean isContained( RealPoint position, Image< ? > img )
-	{
-		final RealMaskRealInterval mask = img.getMask();
-		return Intervals.contains( mask, position );
 	}
 
 	private void export( Source< T > source )

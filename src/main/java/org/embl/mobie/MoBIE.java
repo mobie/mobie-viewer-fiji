@@ -500,7 +500,7 @@ public class MoBIE
 
 	private void initUIandShowView( @Nullable String view )
 	{
-		initUI();
+		buildUI();
 
 		if ( view == null )
 		{
@@ -770,15 +770,15 @@ public class MoBIE
 
 		// log views
 		System.out.println("# Available views");
-		for ( String s : getViews().keySet() )
-			System.out.println( s );
+		for ( String view : getViews().keySet() )
+			System.out.println( view );
 
 		// build UI and show view
-		initUI();
+		buildUI();
 		viewManager.show( getView( viewName, dataset ) );
 	}
 
-	private void initUI()
+	private void buildUI()
 	{
 		sourceNameToImgLoader = new HashMap<>();
 		userInterface = new UserInterface( this );

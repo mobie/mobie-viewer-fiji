@@ -30,6 +30,7 @@ package org.embl.mobie.lib.image;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.Affine3DHelpers;
+import bdv.util.BdvHandle;
 import bdv.util.DefaultInterpolators;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
@@ -39,6 +40,7 @@ import net.imglib2.Localizable;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
+import net.imglib2.RealPoint;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
 import net.imglib2.interpolation.randomaccess.NearestNeighborInterpolatorFactory;
@@ -49,12 +51,14 @@ import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.NumericType;
+import net.imglib2.util.Intervals;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.ThreadHelper;
+import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
 import org.embl.mobie.lib.io.Status;
 import org.embl.mobie.lib.source.MoBIEVolatileTypeMatcher;
 import org.embl.mobie.lib.source.SourceHelper;
@@ -68,6 +72,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
@@ -187,6 +192,13 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		stitch();
 	}
 
+	public Optional< ? extends Image< ? > > getTileImageAtGlobalPosition( RealPoint position )
+	{
+		final Optional< ? extends Image< ? > > optionalImage = getTileImages().stream().filter( img -> Intervals.contains( img.getMask(), position ) ).findFirst();
+
+		return optionalImage;
+	}
+
 	private void setPositions( List< ? extends Image< T > > images, List< int[] > positions )
 	{
 		if ( positions == null )
@@ -271,7 +283,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				// Here, we don't need to use {@code metadataImage},
 				// because the images of those tiles
 				// are already initialised.
-				final List< String > tileNames = ( ( StitchedImage< ?, ? > ) image ).getImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
+				final List< String > tileNames = ( ( StitchedImage< ?, ? > ) image ).getTileImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
 				final Set< Image< ? > > stitchedImages = DataStore.getImageSet( tileNames );
 				for ( Image< ? > containedImage : stitchedImages )
 				{
@@ -317,7 +329,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 	}
 
-	public List< ? extends Image< ? > > getImages()
+	public List< ? extends Image< ? > > getTileImages()
 	{
 		return images;
 	}

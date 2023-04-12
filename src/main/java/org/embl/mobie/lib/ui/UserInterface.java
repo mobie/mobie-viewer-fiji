@@ -29,6 +29,8 @@
 package org.embl.mobie.lib.ui;
 
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.lib.bdv.ActiveListener;
+import org.embl.mobie.lib.bdv.ImageNameOverlay;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
@@ -56,12 +58,15 @@ public class UserInterface
 	private JSplitPane splitPane;
 	private boolean closedByUser = true;
 	private String longestViewString = "";
+	private JCheckBox overlayNamesCheckbox;
+	private ImageNameOverlay imageNameOverlay;
 
 	public UserInterface( MoBIE moBIE )
 	{
 		MoBIELaf.MoBIELafOn();
 		userInterfaceHelper = new UserInterfaceHelper( moBIE );
 		selectionPanel = userInterfaceHelper.createSelectionPanel();
+		overlayNamesCheckbox = userInterfaceHelper.getOverlayNamesCheckbox();
 		displaySettingsContainer = userInterfaceHelper.createDisplaySettingsContainer();
 		displaySettingsScrollPane = userInterfaceHelper.createDisplaySettingsScrollPane( displaySettingsContainer );
 		JPanel displaySettingsPanel = userInterfaceHelper.createDisplaySettingsPanel( displaySettingsScrollPane );
@@ -70,6 +75,8 @@ public class UserInterface
 		MoBIELaf.MoBIELafOff();
 		configureWindowClosing( moBIE );
 	}
+
+
 
 	private void configureWindowClosing( MoBIE moBIE )
 	{
@@ -230,5 +237,16 @@ public class UserInterface
 	public void close()
 	{
 		frame.dispose();
+	}
+
+	public void setImageNameOverlay( ImageNameOverlay imageNameOverlay )
+	{
+		if ( this.imageNameOverlay != null )
+		{
+			return;
+		}
+
+		this.imageNameOverlay = imageNameOverlay;
+		imageNameOverlay.addListener( isActive -> overlayNamesCheckbox.setSelected( isActive ) );
 	}
 }
