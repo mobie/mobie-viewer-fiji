@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.internal;
+package org.embl.mobie.command.context;
 
 import ij.gui.NonBlockingGenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;

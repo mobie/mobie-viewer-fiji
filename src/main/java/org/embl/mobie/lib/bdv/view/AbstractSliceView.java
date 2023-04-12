@@ -43,7 +43,7 @@ public abstract class AbstractSliceView implements SliceView
 
 	// TODO: get rid of MoBIE here, which is only needed to close the sacs...
 	//  in fact, using Nico's addition to the SACService will resolve this!
-	//  see the corresponding issue:
+	//  see the corresponding issue: https://github.com/bigdataviewer/bigdataviewer-playground/issues/259#issuecomment-1279705489
 	public AbstractSliceView( MoBIE moBIE, AbstractDisplay< ? > display )
 	{
 		this.moBIE = moBIE;

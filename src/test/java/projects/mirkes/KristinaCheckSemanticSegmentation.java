@@ -5,7 +5,7 @@ import org.embl.mobie.command.open.OpenImagesAndSegmentationCommand;
 
 import java.io.File;
 
-class CheckSemanticSegmentation
+class KristinaCheckSemanticSegmentation
 {
 	public static void main( String[] args ) throws Exception
 	{

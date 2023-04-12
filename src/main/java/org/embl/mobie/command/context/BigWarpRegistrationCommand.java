@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.internal;
+package org.embl.mobie.command.context;
 
 import bdv.gui.TransformTypeSelectDialog;
 import bdv.tools.brightness.ConverterSetup;

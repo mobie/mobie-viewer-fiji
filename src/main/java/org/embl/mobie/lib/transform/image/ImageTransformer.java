@@ -57,32 +57,10 @@ public class ImageTransformer
 	public static Image< ? > applyTimepointsTransform( Image< ? > image, HashMap< Integer, Integer > timepointsMap, boolean keep, @Nullable String transformedImageName )
 	{
 		String name = transformedImageName == null ? image.getName() : transformedImageName;
-		new TimepointsTransformedImage<>( image, name, timepointsMap, keep );
 
-	}
+		final TimepointsTransformedImage< ? > timepointsTransformedImage = new TimepointsTransformedImage<>( image, name, timepointsMap, keep );
 
-	private static < A extends Annotation, TA extends A > DefaultAnnotatedLabelImage< TA > createTransformedAnnotationImage( AnnotationImage< A > annotationImage, AffineTransform3D affineTransform3D, String transformedImageName )
-	{
-		// TODO (do we need this)?
-//		// Create transformed AnnData
-//		//
-//		final AnnData< A > annData = annotationImage.getAnnData();
-//
-//		final AnnotationAffineTransformer< A, TA > affineTransformer = new AnnotationAffineTransformer<>( affineTransform3D );
-//
-//		TransformedAnnData< A, TA > transformedAnnData = new TransformedAnnData<>( annData, affineTransformer );
-//
-//		// Create transformed image
-//		//
-//		final DefaultImage< AnnotationType< A > > transformedImage = new DefaultImage<>( transformedImageName, annotationImage.getSourcePair(), annotationImage.getMask() );
-//		transformedImage.transform( affineTransform3D );
-//
-//		// Join into transformed AnnotationImage
-//		// FIXME: This is an issue, because the transformed regions are different now.
-//		final DefaultAnnotationImage< TA > transformedAnnotationImage = new DefaultAnnotationImage< TA >( transformedImageName, transformedImage, transformedAnnData );
-//
-//		return transformedAnnotationImage;
-		return null;
+		return timepointsTransformedImage;
 	}
 
 	private static < A extends Annotation, TA extends A > DefaultAnnotatedLabelImage< TA > createTransformedAnnotatedLabelImage( AnnotatedLabelImage< A > annotatedLabelImage, AffineTransform3D affineTransform3D, String transformedImageName )

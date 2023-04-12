@@ -40,7 +40,7 @@ import net.imglib2.type.numeric.RealType;
 import javax.annotation.Nullable;
 import java.util.Map;
 
-public class TransformedTimepointSource< T extends NumericType<T> & RealType<T> > implements Source<T>, SourceWrapper<T>
+public class TransformedTimepointSource< T > implements Source<T>, SourceWrapper<T>
 {
     private final String name;
     private final Source<T> source;
@@ -130,9 +130,9 @@ public class TransformedTimepointSource< T extends NumericType<T> & RealType<T> 
         }
         else
         {
-            // missing t crashes: https://github.com/bigdataviewer/bigdataviewer-core/issues/140
-            System.err.println( "Access at non-existing timepoint: " + t + "; returning t = 0 instead.");
-            Thread.dumpStack();
+            // TODO missing t crashes: https://github.com/bigdataviewer/bigdataviewer-core/issues/140
+            // System.err.println( "Access at non-existing timepoint: " + t + "; returning t = 0 instead.");
+            //Thread.dumpStack();
             return 0;
         }
     }

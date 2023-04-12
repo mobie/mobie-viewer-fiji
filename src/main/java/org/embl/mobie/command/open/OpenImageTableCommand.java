@@ -11,6 +11,7 @@ import org.scijava.plugin.Plugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,10 +44,19 @@ public class OpenImageTableCommand implements Command {
 		final MoBIESettings settings = new MoBIESettings();
 		settings.removeSpatialCalibration( removeSpatialCalibration );
 
-		List< String > images = Arrays.asList( imageColumns.split( "," ) );
-		List< String > labels = Arrays.asList( labelsColumns.split( "," ) );
-		images = images.stream().map( s -> s.trim() ).collect( Collectors.toList());
-		labels = labels.stream().map( s -> s.trim() ).collect( Collectors.toList());
+		List< String > images = new ArrayList<>();
+		if ( imageColumns != null )
+		{
+			images = Arrays.asList( imageColumns.split( "," ) );
+			images = images.stream().map( s -> s.trim() ).collect( Collectors.toList() );
+		}
+
+		List< String > labels = new ArrayList<>();
+		if ( labelsColumns != null )
+		{
+			labels = Arrays.asList( labelsColumns.split( "," ) );
+			labels = labels.stream().map( s -> s.trim() ).collect( Collectors.toList() );
+		}
 
 		try
 		{

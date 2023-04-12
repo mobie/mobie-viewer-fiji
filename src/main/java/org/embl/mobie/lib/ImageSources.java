@@ -7,6 +7,7 @@ import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.columns.SegmentColumnNames;
+import org.embl.mobie.lib.table.saw.Aggregators;
 import org.embl.mobie.lib.transform.GridType;
 import tech.tablesaw.api.NumberColumn;
 import tech.tablesaw.api.StringColumn;
@@ -91,15 +92,13 @@ public class ImageSources
 			if ( column instanceof NumberColumn )
 			{
 				final Table summary = table.summarize( column, mean ).by( pathColumn );
-				summary.numericColumns().get( 0 );
 				regionTable = regionTable.joinOn( pathColumn ).leftOuter( summary );
 			}
 
 			if ( column instanceof StringColumn )
 			{
-				// FIXME: https://github.com/jtablesaw/tablesaw/issues/1199
-				//final Table column = table.summarize( columns.get( columnIndex ), minInstant ).by( pathColumn );
-				//int a = 1;
+				final Table summary = table.summarize( column, Aggregators.firstString ).by( pathColumn );
+				regionTable = regionTable.joinOn( pathColumn ).leftOuter( summary );
 			}
 		}
 	}

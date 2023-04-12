@@ -65,12 +65,14 @@ public class TimepointsTransformedImage< T > implements Image< T >
 		final SourcePair< T > sourcePair = image.getSourcePair();
 
 		// apply the time point transformation
-		createTimeTransformedSources( sourcePair.getSource(), sourcePair.getVolatileSource() );
+		final TransformedTimepointSource< T > transformedTimepointSource = new TransformedTimepointSource( transformedImageName, sourcePair.getSource(), timepointsMap, keep );
+		final TransformedTimepointSource< ? extends Volatile< T >> vTransformedTimepointSource = new TransformedTimepointSource( transformedImageName, sourcePair.getVolatileSource(), timepointsMap, keep );
 
-
-		final TransformedSource transformedSource = new TransformedSource( source, transformedImageName );
+		// wrap into TransformedSource for applying manual transforms in BDV
+		final TransformedSource transformedSource = new TransformedSource( transformedTimepointSource, transformedImageName );
 		transformedSource.setFixedTransform( affineTransform3D );
-		final TransformedSource volatileTransformedSource = new TransformedSource( volatileSource, transformedSource );
+		final TransformedSource volatileTransformedSource = new TransformedSource( vTransformedTimepointSource, transformedSource );
+
 		return new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
 	}
 
@@ -99,22 +101,6 @@ public class TimepointsTransformedImage< T > implements Image< T >
 	public void setMask( RealMaskRealInterval mask )
 	{
 		this.mask = mask;
-	}
-
-	public void createTimeTransformedSources( Source< T > source, Source< ? extends Volatile< T > >  volatileSource )
-	{
-		final TransformedTimepointSource< T > transformedSource = new TransformedTimepointSource( transformedImageName, source, timepointsMap, keep );
-
-
-			final SourceAndConverter< ? extends Volatile< ? > > vSac = sac.asVolatile();
-			TransformedTimepointSource vTransformedSource = new TransformedTimepointSource( sourceName, vSac.getSpimSource(), timepointMap, keep );
-			SourceAndConverter vTransformedSac = new SourceAndConverter<>( vTransformedSource, SourceAndConverterHelper.cloneConverter( vSac.getConverter(), vSac ) );
-			return new SourceAndConverter( transformedSource, SourceAndConverterHelper.cloneConverter( sac.getConverter(), sac ), vTransformedSac );
-		}
-		else
-		{
-			return new SourceAndConverter<>( transformedSource, SourceAndConverterHelper.cloneConverter( sac.getConverter(), sac ) );
-		}
 	}
 
 }

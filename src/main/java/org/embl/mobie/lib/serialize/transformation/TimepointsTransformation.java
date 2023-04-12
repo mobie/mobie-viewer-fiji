@@ -38,7 +38,9 @@ public class TimepointsTransformation< T > extends AbstractImageTransformation< 
 
 	/**
 	 * Outer list: list of timepoints that you want to map
-	 * Inner list: pairs of timepoints: "from", "to".
+	 * Inner list: pairs of timepoints: to be read as
+	 * Whether to find the timepoint in the new source in the old source,
+	 * so new -> old
 	 * "from" must exist in the source
 	 * "to" will be added to the transformed source
 	 */
@@ -65,9 +67,9 @@ public class TimepointsTransformation< T > extends AbstractImageTransformation< 
 	public HashMap< Integer, Integer > getTimepointsMapping()
 	{
 		final HashMap< Integer, Integer > timepointMap = new LinkedHashMap<>();
-		for ( List< Integer > fromTo : parameters )
+		for ( List< Integer > newOld : parameters )
 		{
-			timepointMap.put( fromTo.get( 0 ), fromTo.get( 1 ) );
+			timepointMap.put( newOld.get( 0 ), newOld.get( 1 ) );
 		}
 
 		return timepointMap;

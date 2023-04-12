@@ -147,7 +147,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		{
 			if ( site != null )
 			{
-				return SiteSpimDataCreator.create( site );
+				return SiteSpimDataCreator.create( site, sharedQueue );
 			}
 
 			return new SpimDataOpener().open( path, imageDataFormat, sharedQueue );

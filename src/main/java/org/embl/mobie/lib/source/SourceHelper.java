@@ -32,38 +32,40 @@ import bdv.AbstractSpimSource;
 import bdv.SpimSource;
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.Affine3DHelpers;
+import bdv.util.BdvHandle;
+import bdv.util.PlaceHolderSource;
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imglib2.FinalInterval;
 import net.imglib2.FinalRealInterval;
+import net.imglib2.Interval;
+import net.imglib2.Point;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
+import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.roi.geom.real.WritableBox;
+import net.imglib2.util.Intervals;
+import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
 import org.embl.mobie.lib.image.StitchedImage;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper.getVoxelPositionInSource;
+
 public abstract class SourceHelper
 {
-    // TODO: one could get rid of this if Sources could
-    //   return their mask directly with some other method!
-	//   Is this still used?
-	@Deprecated
-    public static double[][] getMinMax( Source< ? > source )
-    {
-        final double[][] minMax = new double[2][];
-		final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
-		minMax[ 0 ] = rai.minAsDoubleArray();
-		minMax[ 1 ] = rai.maxAsDoubleArray();
-        return minMax;
-    }
 
 	public static < T > T unwrapSource( Source source, Class< T > clazz )
 	{
@@ -131,7 +133,7 @@ public abstract class SourceHelper
 
 			fetchRootSources( wrappedSource, rootSources );
 		}
-		else if (  source instanceof SourceWrapper )
+		else if ( source instanceof SourceWrapper )
 		{
 			final Source< ? > wrappedSource = (( SourceWrapper ) source).getWrappedSource();
 
@@ -147,15 +149,15 @@ public abstract class SourceHelper
 //				fetchRootSources( gridSource.getSpimSource(), rootSources );
 //			}
 //		}
-		else if ( source instanceof StitchedImage )
-		{
-			final StitchedImage< ?, ? > stitchedImage = ( StitchedImage ) source;
-			final List< ? extends Source< ? > > gridSources = stitchedImage.getImages().stream().map( image -> image.getSourcePair().getSource() ).collect( Collectors.toList() );
-			for ( Source< ? > gridSource : gridSources )
-			{
-				fetchRootSources( gridSource, rootSources );
-			}
-		}
+//		else if ( source instanceof StitchedSource )
+//		{
+//			final StitchedImage< ?, ? > stitchedImage = ( StitchedImage ) source;
+//			final List< ? extends Source< ? > > gridSources = stitchedImage.getImages().stream().map( image -> image.getSourcePair().getSource() ).collect( Collectors.toList() );
+//			for ( Source< ? > gridSource : gridSources )
+//			{
+//				fetchRootSources( gridSource, rootSources );
+//			}
+//		}
 		else if (  source instanceof ResampledSource )
 		{
 			final ResampledSource resampledSource = ( ResampledSource ) source;
@@ -242,10 +244,20 @@ public abstract class SourceHelper
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 		source.getSourceTransform( 0, 0, affineTransform3D );
  		final RandomAccessibleInterval< ? > rai = source.getSource( t, 0 );
-		final double[] min = rai.minAsDoubleArray();
-		final double[] max = rai.maxAsDoubleArray();
 		final FinalRealInterval bounds = affineTransform3D.estimateBounds( rai );
 		return bounds;
+	}
+
+	public static List< Source< ? > > filterAtCurrentMousePosition( Collection< Source< ? > > sources, BdvHandle bdvHandle )
+	{
+		final GlobalMousePositionProvider positionProvider = new GlobalMousePositionProvider( bdvHandle );
+		final RealPoint position = positionProvider.getPositionAsRealPoint();
+		final int timePoint = positionProvider.getTimePoint();
+		final List< Source< ? > > sourcesAtCurrentPosition = sources.stream()
+				.filter( source -> isPositionWithinSourceInterval( source, position, timePoint ) )
+				.collect( Collectors.toList() );
+
+		return sourcesAtCurrentPosition;
 	}
 
 	public static void setVoxelDimensionsToPixels( AbstractSpimSource< ? > source )
@@ -263,5 +275,48 @@ public abstract class SourceHelper
 		{
 			e.printStackTrace();
 		}
+	}
+
+	public static int getLevel( Source< ? > source, long maxNumPixels )
+	{
+		final int numMipmapLevels = source.getNumMipmapLevels();
+
+		for ( int level = 0; level < numMipmapLevels; level++ )
+		{
+			long[] dimensions = source.getSource( 0, level ).dimensionsAsLongArray();
+
+			final boolean javaIndexingOK = dimensions[ 0 ] * dimensions[ 1 ] < Integer.MAX_VALUE - 1;
+
+			final boolean sizeOK = dimensions[ 0 ] * dimensions[ 1 ] * dimensions[ 2 ] < maxNumPixels;
+
+			if( javaIndexingOK && sizeOK )
+				return level;
+		}
+		return -1;
+	}
+
+	public static boolean isPositionWithinSourceInterval( Source< ? > source, RealPoint realPosition, int timepoint )
+	{
+		final long[] voxelPositionInSource = getVoxelPositionInSource( source, realPosition, timepoint, 0);
+		Interval sourceInterval = source.getSource( timepoint, 0 );
+		Point point3d = new Point( voxelPositionInSource );
+		return Intervals.contains( sourceInterval, point3d );
+
+//		if (sourceIs2d) {
+//			final long[] min = new long[2];
+//			final long[] max = new long[2];
+//			final long[] positionInSource2D = new long[2];
+//			for (int d = 0; d < 2; d++) {
+//				min[d] = sourceInterval.min(d);
+//				max[d] = sourceInterval.max(d);
+//				positionInSource2D[d] = voxelPositionInSource[d];
+//			}
+//
+//			Interval interval2d = new FinalInterval(min, max);
+//			Point point2d = new Point(positionInSource2D);
+//
+//			return Intervals.contains(interval2d, point2d);
+//		}
+//		else {
 	}
 }

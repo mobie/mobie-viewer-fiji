@@ -517,7 +517,7 @@ public class MoBIE
 	private void adjustLogWindow( UserInterface userInterface )
 	{
 		final Window userInterfaceWindow = userInterface.getWindow();
-		IJ.log( " " ); // ensure that the window exists
+		IJ.log( " " ); // ensures that the window exists
 		WindowArrangementHelper.bottomAlignWindow( userInterfaceWindow, WindowManager.getWindow( "Log" ), true, true );
 	}
 
@@ -780,7 +780,6 @@ public class MoBIE
 
 	private void initUI()
 	{
-		IJ.log( "# MoBIE" );
 		sourceNameToImgLoader = new HashMap<>();
 		userInterface = new UserInterface( this );
 		adjustLogWindow( userInterface );

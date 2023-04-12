@@ -392,7 +392,7 @@ public class ImagesCreator {
 									ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod, String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
 
         if ( fileLocation.exists() ) {
-            SpimData spimData = ( SpimData ) new SpimDataOpener().openSpimData( fileLocation.getAbsolutePath(), imageDataFormat );
+            SpimData spimData = ( SpimData ) new SpimDataOpener().open( fileLocation.getAbsolutePath(), imageDataFormat );
             addBdvFormatImage( spimData, imageName, datasetName, imageType, addMethod, uiSelectionGroup, imageDataFormat, exclusive );
         } else {
             throw new FileNotFoundException(
@@ -592,7 +592,7 @@ public class ImagesCreator {
     {
         try
         {
-            return ( SpimData ) new SpimDataOpener().openSpimData( filePath, imageDataFormat );
+            return ( SpimData ) new SpimDataOpener().open( filePath, imageDataFormat );
         } catch ( SpimDataException e )
         {
            throw new RuntimeException( e );

@@ -348,10 +348,10 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		// non-volatile
 		//
-		final Map< Integer, List< RandomAccessibleInterval< T > > > timepointToRAI = stitchTiles( tileStore );
+		final Map< Integer, List< RandomAccessibleInterval< T > > > timepointToRAIs = stitchTiles( tileStore );
 
 		final StitchedSource< T > source = new StitchedSource<>(
-				timepointToRAI,
+				timepointToRAIs,
 				type,
 				voxelDimensions,
 				name,
@@ -360,10 +360,10 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		// volatile
 		//
-		final Map< Integer, List< RandomAccessibleInterval< V > > > timepointToVolatileRAI = stitchVolatileTiles( tileStore );
+		final Map< Integer, List< RandomAccessibleInterval< V > > > timepointToVolatileRAIs = stitchVolatileTiles( tileStore );
 
 		final StitchedSource< V > volatileSource = new StitchedSource<>(
-				timepointToVolatileRAI,
+				timepointToVolatileRAIs,
 				volatileType,
 				voxelDimensions,
 				name,

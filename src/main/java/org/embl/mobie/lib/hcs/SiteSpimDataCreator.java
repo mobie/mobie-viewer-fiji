@@ -1,11 +1,13 @@
 package org.embl.mobie.lib.hcs;
 
+import bdv.cache.SharedQueue;
 import ch.epfl.biop.bdv.img.imageplus.ImagePlusToSpimData;
 import ij.ImagePlus;
 import ij.VirtualStack;
 import ij.measure.Calibration;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.lib.io.TPosition;
 import org.embl.mobie.lib.io.ZPosition;
 
@@ -16,7 +18,7 @@ import java.util.Set;
 
 public class SiteSpimDataCreator
 {
-	public static AbstractSpimData< ? > create( Site site )
+	public static AbstractSpimData< ? > create( Site site, SharedQueue sharedQueue )
 	{
 		VirtualStack virtualStack = null;
 
@@ -54,6 +56,10 @@ public class SiteSpimDataCreator
 
 		// TODO: is could be zSlices!
 		imagePlus.setDimensions( 1, nZ, nT );
-		return ImagePlusToSpimData.getSpimData( imagePlus );
+
+		final AbstractSpimData< ? > spimData = ImagePlusToSpimData.getSpimData( imagePlus );
+		SpimDataOpener.setSharedQueue( sharedQueue, spimData );
+
+		return spimData;
 	}
 }

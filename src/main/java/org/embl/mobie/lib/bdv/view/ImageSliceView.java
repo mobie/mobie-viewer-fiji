@@ -67,7 +67,7 @@ public class ImageSliceView< T extends NumericType< T > & RealType< T > > extend
 
 			// below command will configure opacity,
 			// blending mode and visibility
-			display.sliceViewer.show( sourceAndConverter, display );
+			display.sliceViewer.show( image, sourceAndConverter, display );
 
 			adaptContrastLimits( sourceAndConverter );
 		}
@@ -77,8 +77,8 @@ public class ImageSliceView< T extends NumericType< T > & RealType< T > > extend
 	{
 		final Converter< T, ARGBType > converter = createConverterToARGB( image.getSourcePair().getSource().getType() );
 		final SourceAndConverter volatileSac = new SourceAndConverter( image.getSourcePair().getVolatileSource(), converter );
-		final SourceAndConverter combinedSac = new SourceAndConverter( image.getSourcePair().getSource(), converter, volatileSac );
-		return combinedSac;
+		final SourceAndConverter sac = new SourceAndConverter( image.getSourcePair().getSource(), converter, volatileSac );
+		return sac;
 	}
 
 	private Converter< T, ARGBType > createConverterToARGB( final T t )

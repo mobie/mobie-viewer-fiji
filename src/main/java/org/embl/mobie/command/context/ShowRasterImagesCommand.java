@@ -26,15 +26,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.internal;
+package org.embl.mobie.command.context;
 
-import bdv.tools.transformation.TransformedSource;
 import bdv.util.Affine3DHelpers;
+import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.gui.GenericDialog;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.image.StitchedImage;
 import org.embl.mobie.lib.source.SourceHelper;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.display.imagej.ImageJFunctions;
@@ -45,26 +48,27 @@ import net.imglib2.view.Views;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
+import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Show " + ImagePlusExportCommand.RAW + " Images" )
-public class ImagePlusExportCommand< T extends NumericType< T > > implements BdvPlaygroundActionCommand
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Show " + ShowRasterImagesCommand.RAW + " Image(s)" )
+public class ShowRasterImagesCommand< T extends NumericType< T > > implements BdvPlaygroundActionCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static final String RAW = "Raster"; // aka "Array" or "Voxel Grid", ... (not sure yet...)
+	public static final String RAW = "Raw";
+
+	@Parameter( label = "BdvHandle" )
+	public BdvHandle bdvHandle;
 
 	@Parameter( label = "Source(s)" )
 	public SourceAndConverter[] sourceAndConverterArray;
-
-	@Parameter( label = "Maximum number of voxels [10^6]" )
-	public int maxNumMegaVoxels = 1;
 
 	@Override
 	public void run()
@@ -73,11 +77,37 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 
 		for ( SourceAndConverter< T > sourceAndConverter : sourceAndConverters )
 		{
-			exportAsImagePlus( sourceAndConverter, maxNumMegaVoxels * 1000000L );
+			final Image< ? > image = (Image< ? >) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, Image.class.getName() );
+			if ( image instanceof StitchedImage )
+			{
+				int a = 1;
+			}
+
+			export( sourceAndConverter );
 		}
 	}
 
-	private void exportAsImagePlus( SourceAndConverter< T > sourceAndConverter, long maxNumVoxels )
+	private void export( SourceAndConverter< T > sourceAndConverter )
+	{
+		final Source< T > source = getRootSource( sourceAndConverter.getSpimSource() );
+		final int levels = source.getNumMipmapLevels();
+		final String[] choices = new String[ levels ];
+		for ( int level = 0; level < levels; level++ )
+		{
+			long[] dimensions = source.getSource( 0, level ).dimensionsAsLongArray();
+			choices[ level ] = Arrays.toString( dimensions );
+		}
+
+		final GenericDialog dialog = new GenericDialog( source.getName() );
+		dialog.addChoice( "Resolution level", choices, choices[ 0 ] );
+		dialog.showDialog();
+		if ( dialog.wasCanceled() ) return;
+		final int level = dialog.getNextChoiceIndex();
+
+		showImagePlus( sourceAndConverter, level );
+	}
+
+	private void showImagePlus( SourceAndConverter< T > sourceAndConverter, int level )
 	{
 		final Source< T > source = sourceAndConverter.getSpimSource();
 		final Source< T > rootSource = getRootSource( source );
@@ -90,24 +120,16 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 
 		IJ.log(source.getName() + ": " + RAW + " data = " + rootSource.getName() );
 
-		int exportLevel = getExportLevel( source, maxNumVoxels );
+		long[] dimensions = source.getSource( 0, level ).dimensionsAsLongArray();
 
-		if ( exportLevel == -1 )
-		{
-			IJ.log(source.getName() + " is too big at all resolution levels and thus cannot be exported.");
-			return;
-		}
-
-		long[] dimensions = source.getSource( 0, exportLevel ).dimensionsAsLongArray();
-
-		IJ.log( source.getName() + ": Exporting at resolution level = " + exportLevel );
+		IJ.log( source.getName() + ": Exporting at resolution level = " + level );
 		IJ.log( source.getName() + ": [nx, yz, nz] = " + Arrays.toString( dimensions ) );
 
 		final AffineTransform3D sourceTransform = new AffineTransform3D();
-		source.getSourceTransform( 0, exportLevel, sourceTransform );
+		source.getSourceTransform( 0, level, sourceTransform );
 
 		final AffineTransform3D rootSourceTransform = new AffineTransform3D();
-		rootSource.getSourceTransform( 0, exportLevel, rootSourceTransform );
+		rootSource.getSourceTransform( 0, level, rootSourceTransform );
 
 		double[] sourceScale = new double[ 3 ];
 		double[] rootSourceScale = new double[ 3 ];
@@ -123,8 +145,7 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 		IJ.log( source.getName() + ": " + RAW + " data scale = " + Arrays.toString( rootSourceScale ) );
 		IJ.log( source.getName() + ": " + RAW + " data transform = " + rootSourceTransform );
 
-		final ImagePlus imagePlus = getImagePlus( rootSource, exportLevel );
-		imagePlus.setTitle( source.getName() );
+		final ImagePlus imagePlus = getImagePlus( rootSource, level );
 		imagePlus.getCalibration().setUnit( rootSource.getVoxelDimensions().unit() );
 		imagePlus.getCalibration().pixelWidth = rootSourceScale[ 0 ];
 		imagePlus.getCalibration().pixelHeight = rootSourceScale[ 1 ];
@@ -135,37 +156,23 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 		IJ.log(source.getName() + ": Export done!" );
 	}
 
-	private int getExportLevel( Source< T > source, long maxNumPixels )
-	{
-		final int numMipmapLevels = source.getNumMipmapLevels();
-
-		for ( int level = 0; level < numMipmapLevels; level++ )
-		{
-			long[] dimensions = source.getSource( 0, level ).dimensionsAsLongArray();
-
-			final boolean javaIndexingOK = dimensions[ 0 ] * dimensions[ 1 ] < Integer.MAX_VALUE - 1;
-
-			final boolean sizeOK = dimensions[ 0 ] * dimensions[ 1 ] * dimensions[ 2 ] < maxNumPixels;
-
-			if( javaIndexingOK && sizeOK )
-				return level;
-		}
-		return -1;
-	}
-
 	private Source< T > getRootSource( Source< T > source )
 	{
-		final Set< Source< ? > > rootSources = new HashSet<>();
+		Set< Source< ? > > rootSources = new HashSet<>();
 		SourceHelper.fetchRootSources( source, rootSources );
-		if ( rootSources.size() > 1 )
-			return null;
-		final Source< T > rootSource = ( Source< T > ) rootSources.iterator().next();
-		return rootSource;
+
+		if ( rootSources.size() == 1 )
+		{
+			return ( Source< T > ) rootSources.iterator().next();
+		}
+
+		final List< Source< ? > > atCurrentMousePosition = SourceHelper.filterAtCurrentMousePosition( rootSources, bdvHandle );
+		return ( Source< T > ) atCurrentMousePosition.iterator().next();
 	}
 
 	private ImagePlus getImagePlus( Source< T > source, int level )
 	{
-		final RandomAccessibleInterval< T > raiXYZT = getRAIXYZT( source, level );
+		final RandomAccessibleInterval< T > raiXYZT = asRAIXYZT( source, level );
 		final IntervalView< T > raiXYZTC = Views.addDimension( raiXYZT, 0, 0 );
 		final IntervalView< T > raiXYCZT = Views.permute( Views.permute( raiXYZTC, 4, 3 ), 3, 2);
 		final ImagePlus imagePlus = ImageJFunctions.wrap( raiXYCZT, source.getName() );
@@ -175,16 +182,19 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 	private List< SourceAndConverter< T > > getSacs()
 	{
 		final List< SourceAndConverter< T > > sourceAndConverters = new ArrayList<>();
+
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverterArray )
 		{
 			sourceAndConverters.add( ( SourceAndConverter< T > ) sourceAndConverter );
 		}
+
 		return sourceAndConverters;
 	}
 
-	private RandomAccessibleInterval< T > getRAIXYZT( Source< T > source, int level )
+	private RandomAccessibleInterval< T > asRAIXYZT( Source< T > source, int level )
 	{
 		int numTimepoints = 0;
+
 		while ( source.isPresent( numTimepoints ) )
 		{
 			numTimepoints++;
@@ -194,10 +204,10 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 			}
 		}
 
-		return getRAIXYZT( source, level, numTimepoints );
+		return asRAIXYZT( source, level, numTimepoints );
 	}
 
-	private RandomAccessibleInterval< T > getRAIXYZT( Source< T > source, int level, int numTimepoints )
+	private RandomAccessibleInterval< T > asRAIXYZT( Source< T > source, int level, int numTimepoints )
 	{
 		final ArrayList< RandomAccessibleInterval< T > > rais = new ArrayList<>();
 		for ( int t = 0; t < numTimepoints; t++ )
@@ -205,17 +215,5 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 			rais.add( source.getSource( t, level ) );
 		}
 		return Views.stack( rais );
-	}
-
-	private HashMap< SourceAndConverter< T >, AffineTransform3D > fetchTransforms( List< SourceAndConverter< T > > movingSacs )
-	{
-		final HashMap< SourceAndConverter< T >, AffineTransform3D > sacToTransform = new HashMap<>();
-		for ( SourceAndConverter movingSac : movingSacs )
-		{
-			final AffineTransform3D fixedTransform = new AffineTransform3D();
-			( ( TransformedSource ) movingSac.getSpimSource()).getFixedTransform( fixedTransform );
-			sacToTransform.put( movingSac, fixedTransform );
-		}
-		return sacToTransform;
 	}
 }

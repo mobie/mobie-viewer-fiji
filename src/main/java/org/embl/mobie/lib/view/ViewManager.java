@@ -467,8 +467,6 @@ public class ViewManager
 										timepointsTransformation.getTransformedImageName( image.getName() ) );
 						DataStore.putImage( transformedImage );
 					}
-
-					ImageTransformer.
 				}
 				else
 				{

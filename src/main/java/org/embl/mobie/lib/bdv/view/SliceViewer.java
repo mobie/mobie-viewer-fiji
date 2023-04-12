@@ -30,12 +30,12 @@ package org.embl.mobie.lib.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.command.internal.BigWarpRegistrationCommand;
-import org.embl.mobie.command.internal.ConfigureLabelRenderingCommand;
-import org.embl.mobie.command.internal.ManualRegistrationCommand;
-import org.embl.mobie.command.internal.ScreenShotMakerCommand;
-import org.embl.mobie.command.internal.ShowRasterImagesCommand;
-import org.embl.mobie.command.internal.SourceInfoLoggerCommand;
+import org.embl.mobie.command.context.BigWarpRegistrationCommand;
+import org.embl.mobie.command.context.ConfigureLabelRenderingCommand;
+import org.embl.mobie.command.context.ManualRegistrationCommand;
+import org.embl.mobie.command.context.ScreenShotMakerCommand;
+import org.embl.mobie.command.context.ShowRasterImagesCommand;
+import org.embl.mobie.command.context.SourceInfoLoggerCommand;
 import org.embl.mobie.command.view.ViewerTransformLoggerCommand;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.SliceViewAnnotationSelector;
@@ -46,6 +46,7 @@ import org.embl.mobie.lib.bdv.SourcesAtMousePositionSupplier;
 import org.embl.mobie.lib.bdv.blend.AccumulateAlphaBlendingProjectorARGB;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.color.OpacityHelper;
+import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.serialize.display.AbstractDisplay;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.ui.WindowArrangementHelper;
@@ -59,7 +60,7 @@ import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.Window;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -212,11 +213,14 @@ public class SliceViewer
 		return SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
 	}
 
-	public void show( SourceAndConverter< ? > sourceAndConverter, AbstractDisplay display )
+	public void show( Image< ? > image, SourceAndConverter< ? > sourceAndConverter, AbstractDisplay display )
 	{
 		// register
 		SourceAndConverterServices.getSourceAndConverterService().register( sourceAndConverter );
 		display.sourceAndConverters().add( sourceAndConverter );
+
+		// link to image
+		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, Image.class.getName(), image );
 
 		// blending mode
 		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.class.getName(), display.getBlendingMode() );

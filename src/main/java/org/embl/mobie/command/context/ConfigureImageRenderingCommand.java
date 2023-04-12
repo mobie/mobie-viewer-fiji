@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.internal;
+package org.embl.mobie.command.context;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
@@ -42,8 +42,8 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-import static org.embl.mobie.command.internal.ConfigureSegmentRenderingCommand.AUTO;
-import static org.embl.mobie.command.internal.ConfigureSegmentRenderingCommand.USE_BELOW_RESOLUTION;
+import static org.embl.mobie.command.context.ConfigureSegmentRenderingCommand.AUTO;
+import static org.embl.mobie.command.context.ConfigureSegmentRenderingCommand.USE_BELOW_RESOLUTION;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Image Rendering")
 public class ConfigureImageRenderingCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
