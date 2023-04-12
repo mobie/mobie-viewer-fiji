@@ -106,6 +106,12 @@ public class MoBIESettings
 		return this;
 	}
 
+	public MoBIESettings cli( Boolean cli )
+	{
+		this.values.cli = cli;
+		return this;
+	}
+
 	public static class Values
 	{
 		private String[] s3AccessAndSecretKey;
@@ -118,6 +124,7 @@ public class MoBIESettings
 		private String tableDataLocation;
 		private String view = View.DEFAULT;
 		private Boolean removeSpatialCalibration = false;
+		private Boolean cli = false;
 
 		public Boolean getRemoveSpatialCalibration()
 		{
@@ -169,6 +176,11 @@ public class MoBIESettings
 		public String[] getS3AccessAndSecretKey()
 		{
 			return s3AccessAndSecretKey;
+		}
+
+		public Boolean getCli()
+		{
+			return cli;
 		}
 	}
 }

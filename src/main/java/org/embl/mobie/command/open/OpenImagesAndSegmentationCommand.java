@@ -1,7 +1,5 @@
 package org.embl.mobie.command.open;
 
-import ij.IJ;
-import org.embl.mobie.Data;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
@@ -13,7 +11,6 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Images and Segmentation..." )
 public class OpenImagesAndSegmentationCommand implements Command {
@@ -47,7 +44,7 @@ public class OpenImagesAndSegmentationCommand implements Command {
 	@Override
 	public void run()
 	{
-		final GridType gridType = GridType.Merged; // TODO: fetch from UI
+		final GridType gridType = GridType.Stitched; // TODO: fetch from UI
 
 		final ArrayList< String > imageList = new ArrayList<>();
 		if ( image0 != null ) imageList.add( image0.getAbsolutePath() );

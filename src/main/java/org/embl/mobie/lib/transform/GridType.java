@@ -3,7 +3,7 @@ package org.embl.mobie.lib.transform;
 public enum GridType
 {
 	None,
-	Merged,
+	Stitched,
 	Transformed;
 
 	public static GridType fromString( String string ) {

@@ -1,13 +1,11 @@
 package org.embl.mobie.cmd;
 
-import org.embl.mobie.Data;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.lib.transform.GridType;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
@@ -65,7 +63,7 @@ public class MoBIECmd implements Callable< Void > {
 		}
 		else if ( table != null )
 		{
-			final GridType gridType = grid == null ? GridType.Merged : GridType.fromString( grid );
+			final GridType gridType = grid == null ? GridType.Stitched : GridType.fromString( grid );
 
 			new MoBIE( table, Arrays.asList( images ), Arrays.asList( labels ), root, gridType, settings );
 		}
@@ -73,7 +71,7 @@ public class MoBIECmd implements Callable< Void > {
 		{
 			// TODO: implement opening of files
 			final GridType gridType = grid == null ?
-					GridType.Merged : GridType.fromString( grid );
+					GridType.Stitched : GridType.fromString( grid );
 			//new MoBIE( "", images, labels, tables, grids );
 		}
 

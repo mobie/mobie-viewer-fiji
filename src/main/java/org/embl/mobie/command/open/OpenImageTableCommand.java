@@ -1,6 +1,5 @@
 package org.embl.mobie.command.open;
 
-import org.embl.mobie.Data;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
@@ -39,7 +38,7 @@ public class OpenImageTableCommand implements Command {
 	@Override
 	public void run()
 	{
-		final GridType gridType = GridType.Merged; // TODO: fetch from UI
+		final GridType gridType = GridType.Stitched; // TODO: fetch from UI
 
 		final MoBIESettings settings = new MoBIESettings();
 		settings.removeSpatialCalibration( removeSpatialCalibration );

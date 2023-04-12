@@ -366,7 +366,7 @@ public class MoBIE
 
 		for ( ImageSources sources : allSources )
 		{
-			if ( sources.getGridType().equals( GridType.Merged ) )
+			if ( sources.getGridType().equals( GridType.Stitched ) )
 			{
 				// init table for the RegionDisplay
 				final StorageLocation storageLocation = new StorageLocation();

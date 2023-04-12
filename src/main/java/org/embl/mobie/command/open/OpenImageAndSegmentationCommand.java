@@ -1,6 +1,5 @@
 package org.embl.mobie.command.open;
 
-import org.embl.mobie.Data;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
@@ -37,7 +36,7 @@ public class OpenImageAndSegmentationCommand implements Command {
 	@Override
 	public void run()
 	{
-		final GridType gridType = GridType.Merged; // TODO: fetch from UI
+		final GridType gridType = GridType.Stitched; // TODO: fetch from UI
 
 		final ArrayList< String > imageList = new ArrayList<>();
 		if ( image != null ) imageList.add( image.getAbsolutePath() );
