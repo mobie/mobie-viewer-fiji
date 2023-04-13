@@ -12,8 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Image and Segmentation..." )
-public class OpenImageAndSegmentationCommand implements Command {
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Image and Label Mask..." )
+public class OpenImageAndLabelsCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 

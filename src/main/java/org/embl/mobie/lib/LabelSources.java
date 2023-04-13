@@ -29,7 +29,6 @@ public class LabelSources extends ImageSources
 				storageLocation.data = rowSubset;
 				final TableSource tableSource = new TableSource( TableDataFormat.Table, storageLocation );
 				nameToLabelTable.put( entry.getKey(), tableSource );
-
 			}
 		}
 		else
@@ -40,9 +39,9 @@ public class LabelSources extends ImageSources
 		}
 	}
 
-	public LabelSources( String name, String labelsPath, String root, GridType grid )
+	public LabelSources( String name, String labelsPath, Integer channelIndex, String root, GridType grid )
 	{
-		super( name, labelsPath, root, grid );
+		super( name, labelsPath, channelIndex, root, grid );
 	}
 
 	public TableSource getLabelTable( String name )

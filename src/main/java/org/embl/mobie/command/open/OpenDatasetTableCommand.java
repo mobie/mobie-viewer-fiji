@@ -27,10 +27,10 @@ public class OpenDatasetTableCommand implements Command {
 	public File rootFolder;
 
 	@Parameter( label = "Image Columns (Comma Separated)", required = true )
-	public String imageColumns;
+	public String images;
 
 	@Parameter( label = "Labels Columns (Comma Separated)", required = false )
-	public String labelsColumns;
+	public String labels;
 
 	@Parameter( label = "Remove Spatial Calibration", required = false )
 	public Boolean removeSpatialCalibration = false;
@@ -43,23 +43,23 @@ public class OpenDatasetTableCommand implements Command {
 		final MoBIESettings settings = new MoBIESettings();
 		settings.removeSpatialCalibration( removeSpatialCalibration );
 
-		List< String > images = new ArrayList<>();
-		if ( imageColumns != null )
+		List< String > imageList = new ArrayList<>();
+		if ( images != null )
 		{
-			images = Arrays.asList( imageColumns.split( "," ) );
-			images = images.stream().map( s -> s.trim() ).collect( Collectors.toList() );
+			imageList = Arrays.asList( images.split( "," ) );
+			imageList = imageList.stream().map( s -> s.trim() ).collect( Collectors.toList() );
 		}
 
-		List< String > labels = new ArrayList<>();
-		if ( labelsColumns != null )
+		List< String > labelList = new ArrayList<>();
+		if ( labels != null )
 		{
-			labels = Arrays.asList( labelsColumns.split( "," ) );
-			labels = labels.stream().map( s -> s.trim() ).collect( Collectors.toList() );
+			labelList = Arrays.asList( labels.split( "," ) );
+			labelList = labelList.stream().map( s -> s.trim() ).collect( Collectors.toList() );
 		}
 
 		try
 		{
-			new MoBIE( table.getAbsolutePath(), images, labels, rootFolder.getAbsolutePath(), gridType, settings );
+			new MoBIE( table.getAbsolutePath(), imageList, labelList, rootFolder.getAbsolutePath(), gridType, settings );
 		}
 		catch ( IOException e )
 		{

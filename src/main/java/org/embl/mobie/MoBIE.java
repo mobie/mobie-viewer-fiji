@@ -60,6 +60,7 @@ import org.embl.mobie.lib.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.SpimDataImage;
 import org.embl.mobie.lib.image.SpotAnnotationImage;
+import org.embl.mobie.lib.io.FileImageSource;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.plugins.platybrowser.GeneSearchCommand;
@@ -82,7 +83,7 @@ import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.table.DefaultAnnData;
 import org.embl.mobie.lib.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.lib.table.TableDataFormat;
-import org.embl.mobie.lib.table.TableImage;
+import org.embl.mobie.lib.io.TableImageSource;
 import org.embl.mobie.lib.table.TableSource;
 import org.embl.mobie.lib.table.columns.SegmentColumnNames;
 import org.embl.mobie.lib.table.saw.TableOpener;
@@ -207,51 +208,25 @@ public class MoBIE
 		openTable( tablePath, imageColumns, labelColumns, root, grid );
 	}
 
-	private void openTable( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, GridType gridType )
+	private void openTable( String tablePath, List< String > images, List< String > labels, String root, GridType gridType )
 	{
 		final Table table = TableOpener.openDelimitedTextFile( tablePath );
 
 		final List< ImageSources > imageSources = new ArrayList<>();
-		for ( String image : imageColumns )
+		for ( String image : images )
 		{
-			final TableImage tableImage = parseTableImage( image );
-			imageSources.add( new ImageSources( tableImage.name, table, tableImage.columnName, tableImage.channelIndex, root,  gridType ) );
+			final TableImageSource tableImageSource = new TableImageSource( image );
+			imageSources.add( new ImageSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root,  gridType ) );
 		}
 
 		final List< LabelSources > labelSources = new ArrayList<>();
-		for ( String label : labelColumns )
+		for ( String label : labels )
 		{
-			final TableImage tableImage = parseTableImage( label );
-			labelSources.add( new LabelSources( tableImage.name, table, tableImage.columnName, tableImage.channelIndex, root,  gridType ) );
+			final TableImageSource tableImageSource = new TableImageSource( label );
+			labelSources.add( new LabelSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root,  gridType ) );
 		}
 
 		openImagesAndLabels( imageSources, labelSources );
-	}
-
-	private TableImage parseTableImage( String string )
-	{
-		final TableImage tableImage = new TableImage();
-		String[] split = new String[]{ string };
-		if ( string.contains( ";" ) )
-		{
-			split = string.split( ";" );
-			tableImage.channelIndex = Integer.parseInt( split[ 1 ] );
-		}
-
-		if ( split[ 0 ].contains( "=" ) )
-		{
-			split = split[ 0 ].split( "=" );
-			tableImage.name = split[ 0 ];
-			tableImage.columnName = split[ 1 ];
-		}
-		else
-		{
-			tableImage.name = split[ 0 ];
-			tableImage.columnName = split[ 0 ];
-		}
-
-		return tableImage;
-
 	}
 
 	private void openMoBIEProject() throws IOException
@@ -266,13 +241,13 @@ public class MoBIE
 	}
 
 	// TODO: add label tables
-	private void openFiles( List< String > imageRegex, List< String > labelsRegex, String root, GridType grid )
+	private void openFiles( List< String > images, List< String > labels, String root, GridType grid )
 	{
 		//		if ( tablePaths != null && tablePaths[ 0 ].contains( "*" ) )
 		//			tablePaths = IOHelper.getPaths( tablePaths[ 0 ], 999 );
 
 		final List< ImageSources > imageSources = new ArrayList<>();
-		for ( String regex : imageRegex )
+		for ( String image : images )
 		{
 			//			final List< String > groups = MoBIEHelper.getGroupNames( regex );
 			//			if ( groups.size() > 0 )
@@ -302,16 +277,16 @@ public class MoBIE
 			//			}
 			//			else
 			//			{
-			// TODO add parsing of ',' to only load specific channels
-			final String name = FilenameUtils.removeExtension( new File( regex ).getName() );
-			imageSources.add( new ImageSources( name, regex, root, grid ) );
+
+			final FileImageSource fileImageSource = new FileImageSource( image );
+			imageSources.add( new ImageSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
 		}
 
 		List< LabelSources > labelSources = new ArrayList<>();
-		for ( String regex : labelsRegex )
+		for ( String label : labels )
 		{
-			final String name = FilenameUtils.removeExtension( new File( regex ).getName() );
-			labelSources.add( new LabelSources( name, regex, root, grid ) );
+			final FileImageSource fileImageSource = new FileImageSource( label );
+			labelSources.add( new LabelSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
 		}
 
 		openImagesAndLabels( imageSources, labelSources );

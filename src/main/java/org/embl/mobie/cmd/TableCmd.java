@@ -1,5 +1,6 @@
 package org.embl.mobie.cmd;
 
+import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.lib.transform.GridType;
@@ -23,10 +24,10 @@ public class TableCmd implements Callable< Void > {
 	public String root;
 
 	@Option(names = {"-i", "--image"}, required = false, description = "intensity image column; to open multiple columns repeat the -i parameter; to replace the column name use, e.g., \"Nuclei=FilePath_DAPI\"; to only open one channel from a multi-channel file use, e.g., \"Nuclei=FilePath_Image;0\"")
-	public String[] imageArray;
+	public String[] images;
 
 	@Option(names = {"-l", "--labels"}, required = false, description = "label mask image column; see --images for further explanations")
-	public String[] labelsArray;
+	public String[] labels;
 
 	@Option(names = {"-g", "--grid"}, required = false, description = "grid type: none, stitched (default), transform; \"stitched\" should yield the best performance but requires that all images have the same dimensions")
 	public GridType gridType = GridType.Stitched;
@@ -41,13 +42,14 @@ public class TableCmd implements Callable< Void > {
 				.cli( true )
 				.removeSpatialCalibration( removeSpatialCalibration );
 
-		List< String > images = imageArray == null ?
-				Arrays.asList( imageArray ) : new ArrayList<>();
+		List< String > imageList = images != null ?
+				Arrays.asList( images ) : new ArrayList<>();
 
-		List< String > labels = labelsArray == null ?
-				Arrays.asList( labelsArray ) : new ArrayList<>();
+		List< String > labelsList = labels != null ?
+				Arrays.asList( labels ) : new ArrayList<>();
 
-		new MoBIE( table, images, labels, root, gridType, settings );
+		new ImageJ().ui().showUI();
+		new MoBIE( table, imageList, labelsList, root, gridType, settings );
 
 		return null;
 	}

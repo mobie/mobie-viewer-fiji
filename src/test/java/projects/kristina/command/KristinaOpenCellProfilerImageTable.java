@@ -1,4 +1,4 @@
-package projects.mirkes.command;
+package projects.kristina.command;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.command.open.OpenDatasetTableCommand;
@@ -13,7 +13,7 @@ class KristinaOpenCellProfilerImageTable
 		final OpenDatasetTableCommand command = new OpenDatasetTableCommand();
 		command.rootFolder = new File("/Volumes/cba/exchange/kristina-mirkes/data/processed");
 		command.table = new File("/Volumes/cba/exchange/kristina-mirkes/data/processed/Image.txt");
-		command.imageColumns = "RawData=FileName_RawData,WormProb=FileName_WormProb";
+		command.images = "RawData=FileName_RawData,WormProb=FileName_WormProb";
 		//command.labelsColumns = "Worm=FileName_Worm???";
 		command.removeSpatialCalibration = true;
 		command.run();

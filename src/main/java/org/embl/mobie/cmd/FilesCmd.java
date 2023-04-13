@@ -1,5 +1,6 @@
 package org.embl.mobie.cmd;
 
+import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.lib.transform.GridType;
@@ -41,13 +42,13 @@ public class FilesCmd implements Callable< Void > {
 				.cli( true )
 				.removeSpatialCalibration( removeSpatialCalibration );
 
-		List< String > imageList = images == null ?
+		List< String > imageList = images != null ?
 				Arrays.asList( images ) : new ArrayList<>();
 
-		List< String > labelsList = labels == null ?
+		List< String > labelsList = labels != null ?
 				Arrays.asList( labels ) : new ArrayList<>();
 
-		List< String > tablesList = tables == null ?
+		List< String > tablesList = tables != null ?
 				Arrays.asList( tables ) : new ArrayList<>();
 
 		if ( tablesList.size() > 1 )
@@ -55,6 +56,7 @@ public class FilesCmd implements Callable< Void > {
 			System.out.println("Sorry, opening label tables is not yet implemented....");
 		}
 
+		new ImageJ().ui().showUI();
 		new MoBIE( imageList, labelsList, root, gridType, settings );
 
 		return null;

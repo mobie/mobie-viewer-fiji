@@ -3,14 +3,14 @@ package org.embl.mobie.cmd;
 class CommandLineMorphoLibJ2DTIFF
 {
 	public static final String ROOT = "/Users/tischer/Documents/mobie/";
-	public static final String DIR = "src/test/resources/input/mlj-2d-tiff/";
 
 	public static void main( String[] args ) throws Exception
 	{
-		final ProjectCmd cmd = new ProjectCmd();
-		cmd.root = ROOT + DIR;
+		final FilesCmd cmd = new FilesCmd();
+		cmd.root = ROOT + "src/test/resources/input/mlj-2d-tiff/";
 		cmd.images = new String[]{ "image.tif" };
-		cmd.labels = new String[]{ "segmentation.tif,table-mlj.csv" };
+		cmd.labels = new String[]{ "segmentation.tif" };
+		cmd.tables = new String[]{ "table-mlj.csv" };
 		cmd.call();
 	}
 }

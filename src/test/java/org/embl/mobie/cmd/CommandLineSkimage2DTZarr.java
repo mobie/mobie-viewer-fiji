@@ -3,14 +3,14 @@ package org.embl.mobie.cmd;
 class CommandLineSkimage2DTZarr
 {
 	public static final String ROOT = "/Users/tischer/Documents/mobie/";
-	public static final String DIR = "src/test/resources/input/skimage-2dt-zarr/";
 
 	public static void main( String[] args ) throws Exception
 	{
-		final ProjectCmd cmd = new ProjectCmd();
-		cmd.root = ROOT + DIR;
+		final FilesCmd cmd = new FilesCmd();
+		cmd.root = ROOT + "src/test/resources/input/skimage-2dt-zarr/";
 		cmd.images = new String[]{ "image.ome.zarr" };
-		cmd.labels = new String[]{ "segmentation.ome.zarr,table.tsv" };
+		cmd.labels = new String[]{ "segmentation.ome.zarr" };
+		cmd.tables = new String[]{ "table.tsv" };
 		cmd.call();
 	}
 }

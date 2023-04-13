@@ -26,22 +26,31 @@ public class ImageSources
 {
 	protected final String name;
 	protected Map< String, String > nameToFullPath = new LinkedHashMap<>();
-	protected Map< String, String > nameToPath = new LinkedHashMap<>(); // TODO: can we get rid of this?
+	protected Map< String, String > nameToPath = new LinkedHashMap<>(); // for loading from tables
 	protected GridType gridType;
 	protected Table regionTable;
 	protected Integer channelIndex = null;
 	protected Metadata metadata = new Metadata();
 	private String metadataSource;
-	// TODO: load the display settings here?!
 
-	public ImageSources( String name, String regex, String root, GridType gridType )
+	public ImageSources( String name, String regex, Integer channelIndex, String root, GridType gridType )
 	{
 		this.gridType = gridType;
 		this.name = name;
+		this.channelIndex = channelIndex;
+
+		if ( root != null )
+		{
+			regex = new File( root, regex ).getAbsolutePath();
+		}
 
 		List< String > paths = IOHelper.getPaths( regex, 999 );
 		for ( String path : paths )
-			addImage( root, path );
+		{
+			final String fileName = new File( path ).getName();
+			String imageName = createImageName( channelIndex, fileName );
+			nameToFullPath.put( imageName, path );
+		}
 
 		// TODO: how to deal with the inconsistent metadata (e.g. number of timepoints)?
 		this.metadataSource = nameToFullPath.keySet().iterator().next();
@@ -57,9 +66,16 @@ public class ImageSources
 		this.gridType = gridType;
 
 		final StringColumn paths = table.stringColumn( pathColumn );
+
+		// for joining
+		nameToPath = new LinkedHashMap<>();
+
 		for ( String path : paths )
 		{
-			addImage( root, path );
+			File file = root == null ? new File( path ) : new File( root, path );
+			String imageName = createImageName( channelIndex, file.getName() );
+			nameToFullPath.put( imageName, file.getAbsolutePath() );
+			nameToPath.put( imageName, path );
 		}
 
 		final List< String > columnNames = table.columnNames();
@@ -103,14 +119,16 @@ public class ImageSources
 		}
 	}
 
-	private void addImage( String root, String path )
+	private String createImageName( Integer channelIndex, String fileName )
 	{
-		File file = root == null ? new File( path ) : new File( root, path );
-		String imageName = FilenameUtils.removeExtension( file.getName() );
+		String imageName = FilenameUtils.removeExtension( fileName );
+
 		if ( channelIndex != null )
+		{
 			imageName += "_c" + channelIndex;
-		nameToFullPath.put( imageName, file.getAbsolutePath() );
-		nameToPath.put( imageName, path );
+		}
+
+		return imageName;
 	}
 
 	private void createRegionTable()
