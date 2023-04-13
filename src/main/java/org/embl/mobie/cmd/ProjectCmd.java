@@ -1,5 +1,6 @@
 package org.embl.mobie.cmd;
 
+import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.lib.transform.GridType;
@@ -14,10 +15,10 @@ public class ProjectCmd implements Callable< Void > {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Option(names = {"-p", "--project"}, required = false, description = "MoBIE project e.g. -p \"https://github.com/mobie/platybrowser-datasets\"")
+	@Option(names = {"-p", "--project"}, required = false, description = "MoBIE project, e.g., \"https://github.com/mobie/platybrowser-datasets\"")
 	public String project = null;
 
-	@Option(names = {"-v", "--view"}, required = false, description = "view within the above MoBIE project, e.g. -v \"cells")
+	@Option(names = {"-v", "--view"}, required = false, description = "view within the above MoBIE project, e.g., \"Figure 2C: Muscle segmentation\"")
 	public String view = null;
 
 	@Override
@@ -28,6 +29,7 @@ public class ProjectCmd implements Callable< Void > {
 
 		if ( view != null ) settings.view( view );
 
+		new ImageJ().ui().showUI();
 		new MoBIE( project, settings );
 
 		return null;

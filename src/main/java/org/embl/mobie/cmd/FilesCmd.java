@@ -20,10 +20,10 @@ public class FilesCmd implements Callable< Void > {
 	@Option(names = {"-r", "--root"}, required = false, description = "root folder that will be prepended to all other arguments")
 	public String root;
 
-	@Option(names = {"-i", "--image"}, required = false, description = "intensity image path, e.g., -i \"/home/image.tif\"; use wild-cards to open several images, e.g., -i \"/home/*-image.tif\"; specify several images by repeating the -i flag.")
+	@Option(names = {"-i", "--image"}, required = false, description = "intensity image path, e.g., \"/home/image.tif\"; use Java regular expressions to open several images, e.g., \"/home/.*-image.tif\"; specify several images by repeating the -i flag; use \"=\" to specify a name for the image, e.g., \"nuclei=/home/image.tif\"; use \";\" to specify loading only one channel from a multichannel file, e.g., \"nuclei=/home/image.tif;0\" ")
 	public String[] images;
 
-	@Option(names = {"-l", "--labels"}, required = false, description = "label mask image path, e.g. -s \"/home/labels.tif\"; same options as for --image")
+	@Option(names = {"-l", "--labels"}, required = false, description = "label mask image path, e.g. -l \"/home/labels.tif\"; see --image for more details")
 	public String[] labels;
 
 	@Option(names = {"-t", "--table"}, required = false, description = "segment feature table path, matching the label image")
@@ -32,7 +32,7 @@ public class FilesCmd implements Callable< Void > {
 	@Option(names = {"-g", "--grid"}, required = false, description = "grid type: none, stitched (default), transform")
 	public GridType gridType = GridType.Stitched;
 
-	@Option(names = {"--remove-spatial-calibration"}, required = false, description = "removes spatial calibration from all images; this is useful if only some images have a spatial calibration and thus the overlay would fail.")
+	@Option(names = {"--remove-spatial-calibration"}, required = false, description = "flag to remove spatial calibration from all images; this can be useful if only some images have a spatial calibration metadata and thus overlaying several images would fail")
 	public Boolean removeSpatialCalibration = false;
 
 	@Override
