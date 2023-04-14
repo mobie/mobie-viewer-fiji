@@ -1,5 +1,6 @@
 package org.embl.mobie.lib.hcs;
 
+import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.lib.io.StorageLocation;
@@ -16,11 +17,21 @@ public class Site extends StorageLocation
 	private Map< TPosition, Map< ZPosition, String > > paths = new LinkedHashMap();
 	private VoxelDimensions voxelDimensions;
 	private ImageDataFormat imageDataFormat;
+	private AbstractSpimData< ? > spimData;
+	private int imageIndex;
 
 	public Site( String name, ImageDataFormat imageDataFormat )
 	{
 		this.name = name;
 		this.imageDataFormat = imageDataFormat;
+	}
+
+	public Site( String name, ImageDataFormat imageDataFormat, AbstractSpimData< ? > spimData, int imageIndex )
+	{
+		this.name = name;
+		this.imageDataFormat = imageDataFormat;
+		this.spimData = spimData;
+		this.imageIndex = imageIndex;
 	}
 
 	public String getName()
@@ -73,5 +84,15 @@ public class Site extends StorageLocation
 	public ImageDataFormat getImageDataFormat()
 	{
 		return imageDataFormat;
+	}
+
+	public AbstractSpimData< ? > getSpimData()
+	{
+		return spimData;
+	}
+
+	public int getImageIndex()
+	{
+		return imageIndex;
 	}
 }

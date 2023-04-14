@@ -1,25 +1,31 @@
 package org.embl.mobie.lib.hcs;
 
+import bdv.SpimSource;
+import bdv.viewer.Source;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.io.Opener;
 import ij.measure.Calibration;
+import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.SpimDataOpener;
+import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.io.TPosition;
+import org.embl.mobie.lib.source.SourceToImagePlusConverter;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,6 +42,7 @@ public class Plate
 	private int wellsPerPlate;
 	private ImageDataFormat imageDataFormat;
 	private OperettaMetadata metadata;
+	private AbstractSpimData< ? > spimData;
 
 	public Plate( String hcsDirectory ) throws IOException
 	{
@@ -47,9 +54,14 @@ public class Plate
 
 		if ( hcsPattern == HCSPattern.Operetta )
 		{
-			//final File xml = new File( hcsDirectory, "Index.idx.xml" );
-			final File xml = new File( hcsDirectory, "Index.xml" );
-			metadata = new OperettaMetadata( xml );
+			final Optional< String > xml = paths.stream().filter( path -> path.endsWith( ".xml" ) ).findFirst();
+			if ( ! xml.isPresent() )
+				throw new RuntimeException("XML file is missing; cannot open Operetta files without the XML.");
+			IJ.log( "Parsing XML: " + xml.get() + " ...");
+			imageDataFormat = ImageDataFormat.SpimData;
+			spimData = new SpimDataOpener().openWithBioFormats( xml.get(), ThreadHelper.sharedQueue );
+			metadata = new OperettaMetadata( new File( xml.get() ) );
+			IJ.log( "Images in XML: " + spimData.getSequenceDescription().getViewSetupsOrdered().size() );
 		}
 
 		buildPlateMap( paths );
@@ -92,31 +104,22 @@ public class Plate
 			//
 			String channelGroup = hcsPattern.getChannelGroup();
 			Channel channel = getChannel( channelWellSites, channelGroup );
+
 			if ( channel == null )
 			{
 				// configure channel properties
 				//
-
 				channel = new Channel( channelGroup );
 				channelWellSites.put( channel, new HashMap<>() );
 
-				// TODO: implement this properly
 				if ( imageDataFormat == null )
 				{
 					imageDataFormat = ImageDataFormat.fromPath( path );
 					IJ.log( "Image data format: " + imageDataFormat.toString() );
 				}
 
-				ImagePlus imagePlus;
-				if ( imageDataFormat.equals( ImageDataFormat.Tiff ) )
-				{
-					final File file = new File( path );
-					imagePlus = ( new Opener() ).openTiff( file.getParent(), file.getName() );
-				}
-				else
-				{
-					imagePlus = IJ.openImage( path );
-				}
+				ImagePlus imagePlus = getImagePlus( path );
+
 				final String color = ColorHelper.getString( imagePlus.getLuts()[ 0 ] );
 				channel.setColor( color );
 				final double[] contrastLimits = new double[]
@@ -179,7 +182,14 @@ public class Plate
 			Site site = getSite( channelWellSites, channel, well, siteGroup );
 			if ( site == null )
 			{
-				site = new Site( siteGroup, imageDataFormat );
+				if ( imageDataFormat.equals( ImageDataFormat.SpimData ) )
+				{
+					site = new Site( siteGroup, imageDataFormat, spimData, metadata.getImageIndex( path ) );
+				}
+				else
+				{
+					site = new Site( siteGroup, imageDataFormat );
+				}
 				site.setDimensions( siteDimensions );
 				site.setVoxelDimensions( voxelDimensions );
 				channelWellSites.get( channel ).get( well ).add( site );
@@ -200,6 +210,27 @@ public class Plate
 		IJ.log( "Channels: " + channelWellSites.keySet().size() );
 		IJ.log( "Wells: " + wellsPerPlate );
 		IJ.log( "Sites per well: " + sitesPerWell );
+	}
+
+	private ImagePlus getImagePlus( String path )
+	{
+		if ( spimData != null )
+		{
+			final int imageIndex = metadata.getImageIndex( path );
+			final Source< ? > source =  new SpimSource<>( spimData, imageIndex, "" );
+			final ImagePlus imagePlus = new SourceToImagePlusConverter( source ).getImagePlus( 0 );
+			return imagePlus;
+		}
+
+		if ( imageDataFormat.equals( ImageDataFormat.Tiff ) )
+		{
+			final File file = new File( path );
+			return ( new Opener() ).openTiff( file.getParent(), file.getName() );
+		}
+		else
+		{
+			return IJ.openImage( path );
+		}
 	}
 
 	private Channel getChannel( HashMap< Channel, Map< Well, Set< Site > > > channelWellSites, String channelName )
@@ -305,7 +336,7 @@ public class Plate
 		final int[] position = new int[ 2 ];
 		for ( int d = 0; d < 2; d++ )
 		{
-			position[ d ] = (int) ( realPosition[ d ] / siteRealDimensions [ d ] );
+			position[ d ] = (int) Math.round( realPosition[ d ] / siteRealDimensions [ d ]  );
 		}
 
 		return position;

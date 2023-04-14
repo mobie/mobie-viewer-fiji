@@ -16,6 +16,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 
 // one could extract an interface here for the
@@ -23,6 +24,10 @@ import java.util.HashMap;
 public class OperettaMetadata
 {
 	private HashMap< String, Element > filenameToMetadata;
+	private HashMap< String, Integer > filenameToIndex;
+	private double dx;
+	private double dy;
+	private String spatialUnit;
 
 	public OperettaMetadata( File xml )
 	{
@@ -48,29 +53,37 @@ public class OperettaMetadata
 		Document doc = builder.parse( xml );
 		doc.getDocumentElement().normalize();
 
-		final double dx = Double.parseDouble( doc.getElementsByTagName( "ImageResolutionX" ).item( 0 ).getTextContent() );
-		final double dy = Double.parseDouble( doc.getElementsByTagName( "ImageResolutionY" ).item( 0 ).getTextContent() );
-		final String unit = doc.getElementsByTagName( "ImageResolutionX" ).item( 0 ).getAttributes().item( 0 ).getTextContent();
+		dx = Double.parseDouble( doc.getElementsByTagName( "ImageResolutionX" ).item( 0 ).getTextContent() );
+		dy = Double.parseDouble( doc.getElementsByTagName( "ImageResolutionY" ).item( 0 ).getTextContent() );
+		spatialUnit = doc.getElementsByTagName( "ImageResolutionX" ).item( 0 ).getAttributes().item( 0 ).getTextContent();
 
-		filenameToMetadata = new HashMap<>();
-		final NodeList fileNames = doc.getElementsByTagName( "URL" );
-		final int numFiles = fileNames.getLength();
-		for ( int i = 0; i < numFiles; i++ )
+		filenameToMetadata = new LinkedHashMap<>();
+		filenameToIndex = new LinkedHashMap<>();
+
+		final NodeList imageFileNames = doc.getElementsByTagName( "URL" );
+		final int numImages = imageFileNames.getLength();
+		for ( int imageIndex = 0; imageIndex < numImages; imageIndex++ )
 		{
-			final Node item = fileNames.item( i );
+			final Node item = imageFileNames.item( imageIndex );
 			final Element parentNode = (Element) item.getParentNode();
 			filenameToMetadata.put( item.getTextContent(), parentNode );
+			filenameToIndex.put( item.getTextContent(), imageIndex );
 		}
 	}
 
 	public VoxelDimensions getVoxelDimensions( String path )
 	{
-		final Element element = getElement( path );
-		final double imageResolutionX = getDouble( element, "ImageResolutionX" );
-		final double imageResolutionY = getDouble( element, "ImageResolutionY" );
-		final String unit = element.getElementsByTagName( "ImageResolutionX" ).item( 0 ).getAttributes().item( 0 ).getTextContent();
+		// In Operetta 4 and 5 this is not consistently at the same position
+		// thus we just fetch it once globally. Hopefully it is the same for all
+		// images anyway.
 
-		return new FinalVoxelDimensions( unit, imageResolutionX, imageResolutionY, 1.0 );
+		// This only works in Operetta 4
+		//		final Element element = getElement( path );
+		//		final double imageResolutionX = getDouble( element, "ImageResolutionX" );
+		//		final double imageResolutionY = getDouble( element, "ImageResolutionY" );
+		//		final String unit = element.getElementsByTagName( "ImageResolutionX" ).item( 0 ).getAttributes().item( 0 ).getTextContent();
+
+		return new FinalVoxelDimensions( spatialUnit, dx, dy, 1.0 );
 	}
 
 	private double getDouble( Element element, String tag )
@@ -111,5 +124,10 @@ public class OperettaMetadata
 				getDouble( element, "PositionX" ),
 				-getDouble( element, "PositionY" )
 		  };
+	}
+
+	public int getImageIndex( String path )
+	{
+		return filenameToIndex.get( new File( path ).getName() );
 	}
 }
