@@ -1,7 +1,5 @@
 package org.embl.mobie.lib.hcs;
 
-import ij.gui.PointRoi;
-import ij.gui.Roi;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.w3c.dom.Document;
@@ -23,11 +21,15 @@ import java.util.LinkedHashMap;
 // getter methods if this is useful for other data
 public class OperettaMetadata
 {
-	private HashMap< String, Element > filenameToMetadata;
-	private HashMap< String, Integer > filenameToIndex;
+	private HashMap< String, Element > filenameToImageElement;
+	private HashMap< String, Element > channelIDToElement;
+	private HashMap< String, Integer > filenameToImageIndex;
 	private double dx;
 	private double dy;
 	private String spatialUnit;
+	private int imageSizeX;
+	private int imageSizeY;
+	private int maxIntensity;
 
 	public OperettaMetadata( File xml )
 	{
@@ -57,8 +59,19 @@ public class OperettaMetadata
 		dy = Double.parseDouble( doc.getElementsByTagName( "ImageResolutionY" ).item( 0 ).getTextContent() );
 		spatialUnit = doc.getElementsByTagName( "ImageResolutionX" ).item( 0 ).getAttributes().item( 0 ).getTextContent();
 
-		filenameToMetadata = new LinkedHashMap<>();
-		filenameToIndex = new LinkedHashMap<>();
+		// could be channel specific
+		//
+		imageSizeX = Integer.parseInt( doc.getElementsByTagName( "ImageSizeX" ).item( 0 ).getTextContent() );
+		imageSizeY = Integer.parseInt( doc.getElementsByTagName( "ImageSizeY" ).item( 0 ).getTextContent() );
+
+		// could be channel specific
+		//
+		maxIntensity = Integer.parseInt( doc.getElementsByTagName( "MaxIntensity" ).item( 0 ).getTextContent() );
+
+
+		filenameToImageElement = new LinkedHashMap<>();
+		filenameToImageIndex = new LinkedHashMap<>();
+		channelIDToElement = new LinkedHashMap<>();
 
 		final NodeList imageFileNames = doc.getElementsByTagName( "URL" );
 		final int numImages = imageFileNames.getLength();
@@ -66,8 +79,18 @@ public class OperettaMetadata
 		{
 			final Node item = imageFileNames.item( imageIndex );
 			final Element parentNode = (Element) item.getParentNode();
-			filenameToMetadata.put( item.getTextContent(), parentNode );
-			filenameToIndex.put( item.getTextContent(), imageIndex );
+			filenameToImageElement.put( item.getTextContent(), parentNode );
+			filenameToImageIndex.put( item.getTextContent(), imageIndex );
+		}
+
+		final NodeList channelIDs = doc.getElementsByTagName( "MaxIntensity" );
+		final int numChannels = channelIDs.getLength();
+		for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
+		{
+			final Node item = channelIDs.item( channelIndex );
+			final Element parentNode = (Element) item.getParentNode();
+			final String channelID = parentNode.getAttributes().item( 0 ).getTextContent();
+			channelIDToElement.put( channelID, parentNode );
 		}
 	}
 
@@ -99,10 +122,36 @@ public class OperettaMetadata
 		}
 	}
 
-	private Element getElement( String path )
+	private int getInteger( Element element, String tag )
+	{
+		try
+		{
+			return Integer.parseInt( element.getElementsByTagName( tag ).item( 0 ).getTextContent() );
+		}
+		catch ( Exception e )
+		{
+			e.printStackTrace();
+			throw new RuntimeException( e );
+		}
+	}
+
+	private String getString( Element element, String tag )
+	{
+		try
+		{
+			return element.getElementsByTagName( tag ).item( 0 ).getTextContent();
+		}
+		catch ( Exception e )
+		{
+			e.printStackTrace();
+			throw new RuntimeException( e );
+		}
+	}
+
+	private Element getImageElement( String path )
 	{
 		final String filename = new File( path ).getName();
-		final Element element = filenameToMetadata.get( filename );
+		final Element element = filenameToImageElement.get( filename );
 		if ( element == null )
 		{
 			System.err.println("Could not find operetta metadata for " + filename );
@@ -114,20 +163,47 @@ public class OperettaMetadata
 	public boolean contains( String path )
 	{
 		final String filename = new File( path ).getName();
-		return filenameToMetadata.containsKey( filename );
+		return filenameToImageElement.containsKey( filename );
 	}
 
 	public double[] getRealPosition( String path )
 	{
-		final Element element = getElement( path );
+		final Element imageElement = getImageElement( path );
 		return new double[]{
-				getDouble( element, "PositionX" ),
-				-getDouble( element, "PositionY" )
+				getDouble( imageElement, "PositionX" ),
+				-getDouble( imageElement, "PositionY" )
 		  };
+	}
+
+	public String getColor( String path )
+	{
+		final Element imageElement = getImageElement( path );
+		final String channelID = getString( imageElement, "ChannelID" );
+		final Element channelElement = channelIDToElement.get( channelID );
+		final int mainEmissionWavelength = getInteger( channelElement, "MainEmissionWavelength" );
+
+		if ( mainEmissionWavelength < 500 )
+			return "Cyan";
+		if ( mainEmissionWavelength < 600 )
+			return "Green";
+
+		return "Magenta";
 	}
 
 	public int getImageIndex( String path )
 	{
-		return filenameToIndex.get( new File( path ).getName() );
+		return filenameToImageIndex.get( new File( path ).getName() );
+	}
+
+	public double[] getContrastLimits( String path )
+	{
+		// TODO: fetch per channel via channelID of image
+		return new double[]{ 0, maxIntensity };
+	}
+
+	public int[] getSiteDimensions( String path )
+	{
+		// TODO: fetch per channel via channelID of image
+		return new int[]{ imageSizeX, imageSizeY };
 	}
 }

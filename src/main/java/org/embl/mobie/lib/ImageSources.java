@@ -105,6 +105,24 @@ public class ImageSources
 		{
 			final Column< ? > column = columns.get( columnIndex );
 
+			if ( regionTable.containsColumn( column.name() ) )
+			{
+				continue;
+			}
+
+			if( column.size() == regionTable.rowCount() )
+			{
+				// it is an image table, thus we can just append the columns.
+				// note: this check could be done just once outside the loop
+				// because all columns have the same size, but
+				// it also works here.
+				regionTable.addColumns( column );
+				continue;
+			}
+
+			// it is an object table, thus we need to summarise
+			// the columns such that we have only one row per image
+
 			if ( column instanceof NumberColumn )
 			{
 				final Table summary = table.summarize( column, mean ).by( pathColumn );

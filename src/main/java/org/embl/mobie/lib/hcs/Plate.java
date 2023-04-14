@@ -71,7 +71,7 @@ public class Plate
 	{
 		channelWellSites = new HashMap<>();
 		tPositions = new HashSet<>();
-		int numImages = 0;
+		int numValidImages = 0;
 
 		IJ.log("Files: " + paths.size() );
 
@@ -89,7 +89,15 @@ public class Plate
 				}
 			}
 
-			numImages++;
+			numValidImages++;
+
+			if ( imageDataFormat == null )
+			{
+				imageDataFormat = ImageDataFormat.fromPath( path );
+				IJ.log( "Image data format: " + imageDataFormat.toString() );
+			}
+
+
 			//System.out.println( path );
 
 			// store this file's channel, well, and site
@@ -112,53 +120,62 @@ public class Plate
 				channel = new Channel( channelGroup );
 				channelWellSites.put( channel, new HashMap<>() );
 
-				if ( imageDataFormat == null )
+				ImagePlus imagePlus = metadata == null ? openImagePlus( path ) : null;
+
+				// set channel metadata
+				//
+				if ( metadata != null )
 				{
-					imageDataFormat = ImageDataFormat.fromPath( path );
-					IJ.log( "Image data format: " + imageDataFormat.toString() );
+					final String color = metadata.getColor( path );
+					channel.setColor( color );
+
+					// TODO: There does not always seem to be enough metadata for the
+					//   contrast limits, thus opening one image may be worth it
+					final double[] contrastLimits = metadata.getContrastLimits( path );
+					channel.setContrastLimits( contrastLimits );
+				}
+				else // from image file
+				{
+					final String color = ColorHelper.getString( imagePlus.getLuts()[ 0 ] );
+					channel.setColor( color );
+
+					final double[] contrastLimits = new double[]
+					{
+							imagePlus.getDisplayRangeMin(),
+							imagePlus.getDisplayRangeMax()
+					};
+					channel.setContrastLimits( contrastLimits );
 				}
 
-				ImagePlus imagePlus = getImagePlus( path );
-
-				final String color = ColorHelper.getString( imagePlus.getLuts()[ 0 ] );
-				channel.setColor( color );
-				final double[] contrastLimits = new double[]
-				{
-					imagePlus.getDisplayRangeMin(),
-					imagePlus.getDisplayRangeMax()
-				};
-				channel.setContrastLimits( contrastLimits );
-
+				// determine spatial metadata (for all channels the same)
+				//
 				if ( voxelDimensions == null )
 				{
-					// set spatial calibrations for the whole plate
-					//
-					if ( metadata == null )
+					if ( metadata != null )
+					{
+						voxelDimensions = metadata.getVoxelDimensions( path );
+						siteDimensions = metadata.getSiteDimensions( path );
+					}
+					else // from image file
 					{
 						final Calibration calibration = imagePlus.getCalibration();
 						voxelDimensions = new FinalVoxelDimensions( calibration.getUnit(), calibration.pixelWidth, calibration.pixelHeight, calibration.pixelDepth );
-					}
-					else
-					{
-						voxelDimensions = metadata.getVoxelDimensions( path );
+
+						siteDimensions = new int[]{ imagePlus.getWidth(), imagePlus.getHeight() };
 					}
 
+					// compute derived spatial metadata
+					//
 					siteRealDimensions = new double[]
 					{
-							imagePlus.getWidth() * voxelDimensions.dimension( 0 ),
-							imagePlus.getHeight() * voxelDimensions.dimension( 1 )
+						siteDimensions[ 0 ] * voxelDimensions.dimension( 0 ),
+						siteDimensions[ 1 ] * voxelDimensions.dimension( 1 )
 					};
 
 					siteRealDimensions = new double[]
 					{
-							imagePlus.getWidth() * voxelDimensions.dimension( 0 ),
-							imagePlus.getHeight() * voxelDimensions.dimension( 1 )
-					};
-
-					siteDimensions = new int[]
-					{
-							imagePlus.getWidth(),
-							imagePlus.getHeight()
+						siteDimensions[ 0 ] * voxelDimensions.dimension( 0 ),
+						siteDimensions[ 1 ] * voxelDimensions.dimension( 1 )
 					};
 				}
 			}
@@ -206,13 +223,13 @@ public class Plate
 		}
 
 		IJ.log( "Initialised HCS plate: " + getName() );
-		IJ.log( "Images: " + numImages );
+		IJ.log( "Images: " + numValidImages );
 		IJ.log( "Channels: " + channelWellSites.keySet().size() );
 		IJ.log( "Wells: " + wellsPerPlate );
 		IJ.log( "Sites per well: " + sitesPerWell );
 	}
 
-	private ImagePlus getImagePlus( String path )
+	private ImagePlus openImagePlus( String path )
 	{
 		if ( spimData != null )
 		{
