@@ -68,7 +68,6 @@ public class OperettaMetadata
 		//
 		maxIntensity = Integer.parseInt( doc.getElementsByTagName( "MaxIntensity" ).item( 0 ).getTextContent() );
 
-
 		filenameToImageElement = new LinkedHashMap<>();
 		filenameToImageIndex = new LinkedHashMap<>();
 		channelIDToElement = new LinkedHashMap<>();

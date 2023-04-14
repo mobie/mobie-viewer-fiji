@@ -2,11 +2,14 @@ package org.embl.mobie.lib.hcs;
 
 import bdv.SpimSource;
 import bdv.viewer.Source;
+import ch.epfl.biop.bdv.img.bioformats.entity.SeriesIndex;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.io.Opener;
 import ij.measure.Calibration;
 import mpicbg.spim.data.generic.AbstractSpimData;
+import mpicbg.spim.data.generic.base.Entity;
+import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.io.ImageDataFormat;
@@ -201,7 +204,15 @@ public class Plate
 			{
 				if ( imageDataFormat.equals( ImageDataFormat.SpimData ) )
 				{
-					site = new Site( siteGroup, imageDataFormat, spimData, metadata.getImageIndex( path ) );
+					final int imageIndex = metadata.getImageIndex( path );
+//					final BasicViewSetup viewSetup = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex );
+//					IJ.log("");
+//					final Map< String, Entity > attributes = viewSetup.getAttributes();
+//					IJ.log( "Image index:" + imageIndex );
+//					IJ.log( "Series index: " + (( SeriesIndex ) attributes.get( "seriesindex" )).getId() );
+//					IJ.log( "Setup name: " + viewSetup.getName() );
+//					IJ.log( "File name: " + new File( path ).getName() );
+					site = new Site( siteGroup, imageDataFormat, spimData, imageIndex );
 				}
 				else
 				{
