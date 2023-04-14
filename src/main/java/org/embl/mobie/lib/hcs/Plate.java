@@ -47,7 +47,8 @@ public class Plate
 
 		if ( hcsPattern == HCSPattern.Operetta )
 		{
-			final File xml = new File( hcsDirectory, "Index.idx.xml" );
+			//final File xml = new File( hcsDirectory, "Index.idx.xml" );
+			final File xml = new File( hcsDirectory, "Index.xml" );
 			metadata = new OperettaMetadata( xml );
 		}
 
@@ -105,6 +106,7 @@ public class Plate
 					imageDataFormat = ImageDataFormat.fromPath( path );
 					IJ.log( "Image data format: " + imageDataFormat.toString() );
 				}
+
 				ImagePlus imagePlus;
 				if ( imageDataFormat.equals( ImageDataFormat.Tiff ) )
 				{
@@ -243,7 +245,10 @@ public class Plate
 		{
 			final HCSPattern hcsPattern = HCSPattern.fromPath( path );
 			if ( hcsPattern != null )
+			{
+				IJ.log( "HCS Pattern: " + hcsPattern );
 				return hcsPattern;
+			}
 		}
 
 		throw new RuntimeException( "Could not determine HCSPattern for " + hcsDirectory );

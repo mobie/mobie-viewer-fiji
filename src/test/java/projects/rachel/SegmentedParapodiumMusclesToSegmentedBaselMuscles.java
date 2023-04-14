@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package users.rachel;
+package projects.rachel;
 
 import bdv.util.Bdv;
 import bdv.util.BdvFunctions;

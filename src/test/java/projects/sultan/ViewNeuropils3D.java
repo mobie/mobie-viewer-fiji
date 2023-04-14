@@ -26,57 +26,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package users.sultan;
+package projects.sultan;
 
-import bdv.tools.transformation.TransformedSource;
-import bdv.util.BdvFunctions;
-import bdv.util.BdvOptions;
-import bdv.util.BdvStackSource;
-import bdv.viewer.Source;
+//import bvv.util.BvvFunctions;
+//import bvv.util.BvvOptions;
+//import bvv.util.BvvStackSource;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
-import net.imglib2.realtransform.AffineTransform3D;
-import org.scijava.ui.behaviour.ClickBehaviour;
-import org.scijava.ui.behaviour.io.InputTriggerConfig;
-import org.scijava.ui.behaviour.util.Behaviours;
 
-import java.util.List;
-
-public class ViewNeuropils
+public class ViewNeuropils3D
 {
+
 	public static void main( String[] args ) throws SpimDataException
 	{
 		SpimData platyBrowserNeuropil = new XmlIoSpimData().load( "/Volumes/cba/exchange/Sultan/prospr_neuropile_0.4um.xml" );
 		SpimData xRayNeuropil = new XmlIoSpimData().load( "/Volumes/cba/exchange/Sultan/platy_90_02_neuropile_1um.xml" );
+		SpimData xRayNeuropilAligned = new XmlIoSpimData().load( "/Volumes/cba/exchange/Sultan/platy_90_02_neuropile_1um-transform.xml-aligned.xml" );
 
 
-		final List< BdvStackSource< ? > > show = BdvFunctions.show( platyBrowserNeuropil );
-		final Source< ? > spimSource = show.get( 0 ).getSources().get( 0 ).getSpimSource();
-		BdvFunctions.show( xRayNeuropil, BdvOptions.options().addTo( show.get( 0 ) ) );
-
-		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
-		behaviours.install( show.get( 0 ).getBdvHandle().getTriggerbindings(), "behaviours" );
-
-		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-
-			(new Thread( () -> {
-				final TransformedSource transformedSource = ( TransformedSource ) spimSource;
-				final AffineTransform3D fixed = new AffineTransform3D();
-				transformedSource.getFixedTransform( fixed );
-				System.out.println( "Fixed: " + fixed.toString() );
-
-				final AffineTransform3D incr = new AffineTransform3D();
-				transformedSource.getIncrementalTransform( incr );
-				System.out.println( "Incr: " + incr.toString() );
-
-				final AffineTransform3D whole = new AffineTransform3D();
-				transformedSource.getSourceTransform( 0, 0, whole );
-				System.out.println( "Whole: " + whole.toString() );
-
-			} )).start();
-
-		}, "Print position and view", "P"  ) ;
+//		final List< BvvStackSource< ? > > show = BvvFunctions.show( xRayNeuropil );
+//		show.get( 0 ).setDisplayRange( 0, 65535 );
+//
+//		final List< BvvStackSource< ? > > show2 = BvvFunctions.show( platyBrowserNeuropil, BvvOptions.options().addTo( show.get( 0 ).getBvvHandle() ) );
+//		show2.get( 0 ).setDisplayRange( 0, 255 );
+//		show2.get( 0 ).setColor( new ARGBType( 0xff00ff00 ) );
+//
+//		final List< BvvStackSource< ? > > show3 = BvvFunctions.show( xRayNeuropilAligned, BvvOptions.options().addTo( show.get( 0 ).getBvvHandle() ) );
+//		show3.get( 0 ).setDisplayRange( 0, 255 );
+//		show3.get( 0 ).setColor( new ARGBType( 0xff00ffff ) );
 
 	}
 }

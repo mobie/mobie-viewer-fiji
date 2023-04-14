@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package users.rafael;
+package projects.rafael;
 
 import ij.IJ;
 import ij.ImagePlus;

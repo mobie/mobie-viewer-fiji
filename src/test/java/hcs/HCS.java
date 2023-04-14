@@ -1,4 +1,4 @@
-package develop;
+package hcs;
 
 import mpicbg.spim.data.SpimDataException;
 import net.imagej.ImageJ;

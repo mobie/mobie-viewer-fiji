@@ -26,11 +26,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package users.sultan;
+package projects.sultan;
 
 // import de.embl.cba.mobie.utils.BatchApplyAmiraTransformationsToBdvXml;
-
-import java.io.IOException;
 
 public class TransformXRayDataUsingAmiraEulerTransform
 {

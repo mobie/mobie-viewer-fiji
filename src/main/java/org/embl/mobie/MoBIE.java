@@ -1150,6 +1150,7 @@ public class MoBIE
 
 		if ( storageLocation instanceof Site )
 		{
+			// TODO: if the Site is based on one "parent SpimData" use the other constructor"
 			return new SpimDataImage( ( Site ) storageLocation, name );
 		}
 
