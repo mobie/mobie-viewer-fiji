@@ -205,13 +205,13 @@ public class Plate
 				if ( imageDataFormat.equals( ImageDataFormat.SpimData ) )
 				{
 					final int imageIndex = metadata.getImageIndex( path );
-//					final BasicViewSetup viewSetup = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex );
-//					IJ.log("");
-//					final Map< String, Entity > attributes = viewSetup.getAttributes();
-//					IJ.log( "Image index:" + imageIndex );
-//					IJ.log( "Series index: " + (( SeriesIndex ) attributes.get( "seriesindex" )).getId() );
-//					IJ.log( "Setup name: " + viewSetup.getName() );
-//					IJ.log( "File name: " + new File( path ).getName() );
+					final BasicViewSetup viewSetup = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex );
+					IJ.log("");
+					final Map< String, Entity > attributes = viewSetup.getAttributes();
+					IJ.log( "Image index:" + imageIndex );
+					IJ.log( "Series index: " + (( SeriesIndex ) attributes.get( "seriesindex" )).getId() );
+					IJ.log( "Setup name: " + viewSetup.getName() );
+					IJ.log( "File name: " + new File( path ).getName() );
 					site = new Site( siteGroup, imageDataFormat, spimData, imageIndex );
 				}
 				else
