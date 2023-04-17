@@ -34,6 +34,7 @@ import ij.ImagePlus;
 import loci.plugins.in.ImagePlusReader;
 import loci.plugins.in.ImportProcess;
 import loci.plugins.in.ImporterOptions;
+import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.Dimensions;
 import org.embl.mobie.io.ImageDataFormat;
@@ -42,6 +43,7 @@ import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.ImageDataSource;
+import org.embl.mobie.lib.source.SourceToImagePlusConverter;
 import spimdata.util.Displaysettings;
 
 import java.util.ArrayList;
@@ -182,9 +184,22 @@ public abstract class MoBIEHelper
 	{
 		if ( path.contains( ".zarr" ) )
 		{
-			final AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, ImageDataFormat.OmeZarr );
-			final SpimSource< ? > spimSource = new SpimSource( spimData, 0, "" );
-
+			try
+			{
+				AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, ImageDataFormat.OmeZarr );
+				final SpimSource< ? > spimSource = new SpimSource( spimData, 0, "" );
+				final ImagePlus imagePlus = new SourceToImagePlusConverter<>( spimSource ).getImagePlus( 0 );
+				final Metadata metadata = new Metadata();
+				metadata.color = "White";
+				metadata.contrastLimits = new double[]{ imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
+				metadata.numTimePoints = imagePlus.getNFrames();
+				return metadata;
+			}
+			catch ( SpimDataException e )
+			{
+				e.printStackTrace();
+				throw new RuntimeException( e );
+			}
 		}
 		else
 		{
