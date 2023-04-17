@@ -36,18 +36,15 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import net.imglib2.RealPoint;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.NumericType;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.image.StitchedImage;
 import org.embl.mobie.lib.source.SourceHelper;
-import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.img.display.imagej.ImageJFunctions;
-import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.numeric.NumericType;
-import net.imglib2.view.IntervalView;
-import net.imglib2.view.Views;
+import org.embl.mobie.lib.source.SourceToImagePlusConverter;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
@@ -156,35 +153,33 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 		IJ.log( source.getName() + ": Exporting at resolution level = " + level );
 		IJ.log( source.getName() + ": [nx, yz, nz] = " + Arrays.toString( dimensions ) );
 
-		final AffineTransform3D sourceTransform = new AffineTransform3D();
-		source.getSourceTransform( 0, level, sourceTransform );
-
-		final AffineTransform3D rootSourceTransform = new AffineTransform3D();
-		source.getSourceTransform( 0, level, rootSourceTransform );
-
-		double[] sourceScale = new double[ 3 ];
-		double[] rootSourceScale = new double[ 3 ];
-
-		for ( int d = 0; d < 3; d++ )
-		{
-			sourceScale[ d ] = Affine3DHelpers.extractScale( sourceTransform, d );
-			rootSourceScale[ d ] = Affine3DHelpers.extractScale( rootSourceTransform, d );
-		}
-
-		IJ.log( source.getName() + ": Scale = " + Arrays.toString( sourceScale ) );
-		IJ.log( source.getName() + ": Transform = " + sourceTransform );
-		IJ.log( source.getName() + ": " + RAW + " data scale = " + Arrays.toString( rootSourceScale ) );
-		IJ.log( source.getName() + ": " + RAW + " data transform = " + rootSourceTransform );
-
-		final ImagePlus imagePlus = getImagePlus( source, level );
-		imagePlus.getCalibration().setUnit( source.getVoxelDimensions().unit() );
-		imagePlus.getCalibration().pixelWidth = rootSourceScale[ 0 ];
-		imagePlus.getCalibration().pixelHeight = rootSourceScale[ 1 ];
-		imagePlus.getCalibration().pixelDepth = rootSourceScale[ 2 ];
+		final ImagePlus imagePlus = convertSourceToImagePlus( source, level );
 
 		imagePlus.show();
 
 		IJ.log(source.getName() + ": Export done!" );
+	}
+
+	public ImagePlus convertSourceToImagePlus( Source< T > source, int level )
+	{
+		final AffineTransform3D sourceTransform = new AffineTransform3D();
+		source.getSourceTransform( 0, level, sourceTransform );
+
+		double[] sourceScale = new double[ 3 ];
+		for ( int d = 0; d < 3; d++ )
+		{
+			sourceScale[ d ] = Affine3DHelpers.extractScale( sourceTransform, d );
+		}
+
+		IJ.log( source.getName() + ": Scale = " + Arrays.toString( sourceScale ) );
+		IJ.log( source.getName() + ": Transform = " + sourceTransform );
+
+		final ImagePlus imagePlus = new SourceToImagePlusConverter<>( source ).getImagePlus( level );
+		imagePlus.getCalibration().setUnit( source.getVoxelDimensions().unit() );
+		imagePlus.getCalibration().pixelWidth = sourceScale[ 0 ];
+		imagePlus.getCalibration().pixelHeight = sourceScale[ 1 ];
+		imagePlus.getCalibration().pixelDepth = sourceScale[ 2 ];
+		return imagePlus;
 	}
 
 	private Source< T > getRootSource( Source< T > source )
@@ -201,15 +196,6 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 		return ( Source< T > ) atCurrentMousePosition.iterator().next();
 	}
 
-	private ImagePlus getImagePlus( Source< T > source, int level )
-	{
-		final RandomAccessibleInterval< T > raiXYZT = asRAIXYZT( source, level );
-		final IntervalView< T > raiXYZTC = Views.addDimension( raiXYZT, 0, 0 );
-		final IntervalView< T > raiXYCZT = Views.permute( Views.permute( raiXYZTC, 4, 3 ), 3, 2);
-		final ImagePlus imagePlus = ImageJFunctions.wrap( raiXYCZT, source.getName() );
-		return imagePlus;
-	}
-
 	private List< SourceAndConverter< T > > getSacs()
 	{
 		final List< SourceAndConverter< T > > sourceAndConverters = new ArrayList<>();
@@ -220,31 +206,5 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 		}
 
 		return sourceAndConverters;
-	}
-
-	private RandomAccessibleInterval< T > asRAIXYZT( Source< T > source, int level )
-	{
-		int numTimepoints = 0;
-
-		while ( source.isPresent( numTimepoints ) )
-		{
-			numTimepoints++;
-			if ( numTimepoints >= Integer.MAX_VALUE )
-			{
-				throw new RuntimeException("The source " + source.getName() + " appears to contain more than " + Integer.MAX_VALUE + " time points; maybe something is wrong?");
-			}
-		}
-
-		return asRAIXYZT( source, level, numTimepoints );
-	}
-
-	private RandomAccessibleInterval< T > asRAIXYZT( Source< T > source, int level, int numTimepoints )
-	{
-		final ArrayList< RandomAccessibleInterval< T > > rais = new ArrayList<>();
-		for ( int t = 0; t < numTimepoints; t++ )
-		{
-			rais.add( source.getSource( t, level ) );
-		}
-		return Views.stack( rais );
 	}
 }

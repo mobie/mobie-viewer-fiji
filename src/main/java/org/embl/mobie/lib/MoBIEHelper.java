@@ -184,22 +184,13 @@ public abstract class MoBIEHelper
 	{
 		if ( path.contains( ".zarr" ) )
 		{
-			try
-			{
-				AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, ImageDataFormat.OmeZarr );
-				final SpimSource< ? > spimSource = new SpimSource( spimData, 0, "" );
-				final ImagePlus imagePlus = new SourceToImagePlusConverter<>( spimSource ).getImagePlus( 0 );
-				final Metadata metadata = new Metadata();
-				metadata.color = "White";
-				metadata.contrastLimits = new double[]{ imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
-				metadata.numTimePoints = imagePlus.getNFrames();
-				return metadata;
-			}
-			catch ( SpimDataException e )
-			{
-				e.printStackTrace();
-				throw new RuntimeException( e );
-			}
+			final int setupID = 0;
+			final ImagePlus imagePlus = openOMEZarrAsImagePLus( path, setupID );
+			final Metadata metadata = new Metadata();
+			metadata.color = "White";
+			metadata.contrastLimits = new double[]{ imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
+			metadata.numTimePoints = imagePlus.getNFrames();
+			return metadata;
 		}
 		else
 		{
@@ -212,32 +203,19 @@ public abstract class MoBIEHelper
 		}
 	}
 
-	// Note that this opens the image and thus may be slow!
-	public static Metadata getMetadataFromSource( ImageDataSource imageDataSource )
+	public static ImagePlus openOMEZarrAsImagePLus( String path, int setupID )
 	{
-		final ImageDataFormat format = imageDataSource.imageData.keySet().iterator().next();
-		final StorageLocation location = imageDataSource.imageData.get( format );
-
-		final AbstractSpimData< ? > spimData = IOHelper.tryOpenSpimData( location.absolutePath, format );
-
-
-		final Metadata metadata = new Metadata();
-		metadata.color = "White";
-		metadata.contrastLimits = null;
-		final Displaysettings settingsFromFile = spimData.getSequenceDescription().getViewSetupsOrdered().get( location.channel ).getAttribute( Displaysettings.class );
-		if ( settingsFromFile != null )
+		try
 		{
-			// FIXME: Wrong color from Bio-Formats
-			//    https://forum.image.sc/t/bio-formats-color-wrong-for-imagej-images/76021/15
-			//    https://github.com/BIOP/bigdataviewer-image-loaders/issues/8
-			metadata.color = "White"; // ColorHelper.getString( displaysettings.color );
-			metadata.contrastLimits = new double[]{ settingsFromFile.min, settingsFromFile.max };
-			//System.out.println( imageName + ": contrast limits = " + Arrays.toString( contrastLimits ) );
+			AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, ImageDataFormat.OmeZarr );
+			final SpimSource< ? > spimSource = new SpimSource( spimData, setupID, "" );
+			final ImagePlus imagePlus = new SourceToImagePlusConverter<>( spimSource ).getImagePlus( 0 );
+			return imagePlus;
+		} catch ( SpimDataException e )
+		{
+			e.printStackTrace();
+			throw new RuntimeException( e );
 		}
-
-		// TODO measure the number of time points
-
-		return metadata;
 	}
 
 	public enum FileLocation

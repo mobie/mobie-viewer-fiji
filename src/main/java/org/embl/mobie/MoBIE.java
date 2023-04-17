@@ -38,6 +38,7 @@ import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.ImgLoader;
 import net.imagej.ImageJ;
+import net.imglib2.type.numeric.NumericType;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
@@ -480,7 +481,6 @@ public class MoBIE
 	{
 		initProject( "HCS" );
 		final Plate plate = new Plate( projectLocation );
-		IJ.log( "HCS Pattern: " + plate.getHcsPattern() );
 		new HCSDataSetter().addPlateToDataset( plate, dataset, wellMargin, siteMargin );
 		initUIandShowView( dataset.views().keySet().iterator().next() );
 	}
@@ -1155,14 +1155,22 @@ public class MoBIE
 
 	private SpimDataImage< ? > initImage( ImageDataFormat imageDataFormat, StorageLocation storageLocation, String name )
 	{
+		if ( storageLocation instanceof Site )
+		{
+			final Site site = ( Site ) storageLocation;
+			if ( site.getImageDataFormat().equals( ImageDataFormat.SpimData ) )
+			{
+				return new SpimDataImage( site.getSpimData(), site.getImageIndex(), name, false );
+			}
+			else
+			{
+				return new SpimDataImage( site, name );
+			}
+		}
+
 		if ( imageDataFormat.equals( ImageDataFormat.SpimData ) )
 		{
 			return new SpimDataImage<>( ( AbstractSpimData ) storageLocation.data, storageLocation.channel, name, settings.values.getRemoveSpatialCalibration() );
-		}
-
-		if ( storageLocation instanceof Site )
-		{
-			return new SpimDataImage( ( Site ) storageLocation, name );
 		}
 
 		// TODO improve caching: https://github.com/mobie/mobie-viewer-fiji/issues/857
