@@ -1155,17 +1155,23 @@ public class MoBIE
 
 	private SpimDataImage< ? > initImage( ImageDataFormat imageDataFormat, StorageLocation storageLocation, String name )
 	{
-		if ( storageLocation instanceof Site )
+		if ( storageLocation instanceof Site ) // HCS data
 		{
 			final Site site = ( Site ) storageLocation;
+
 			if ( site.getImageDataFormat().equals( ImageDataFormat.SpimData ) )
 			{
-				return new SpimDataImage( site.getSpimData(), site.getImageIndex(), name, false );
+				// the whole plate is already initialised as one big SpimData
+				// note that channel <=> setupID
+				return new SpimDataImage( site.getSpimData(), site.channel, name, false );
 			}
-			else
+
+			if ( site.getImageDataFormat().equals( ImageDataFormat.OmeZarr ) )
 			{
-				return new SpimDataImage( site, name );
+				return new SpimDataImage( ImageDataFormat.OmeZarr, site.absolutePath, site.channel, site.getName(), ThreadHelper.sharedQueue, false );
 			}
+
+			return new SpimDataImage( site, name );
 		}
 
 		if ( imageDataFormat.equals( ImageDataFormat.SpimData ) )

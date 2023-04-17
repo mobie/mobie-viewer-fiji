@@ -18,7 +18,6 @@ public class Site extends StorageLocation
 	private VoxelDimensions voxelDimensions;
 	private ImageDataFormat imageDataFormat;
 	private AbstractSpimData< ? > spimData;
-	private int imageIndex;
 
 	public Site( String name, ImageDataFormat imageDataFormat )
 	{
@@ -31,7 +30,7 @@ public class Site extends StorageLocation
 		this.name = name;
 		this.imageDataFormat = imageDataFormat;
 		this.spimData = spimData;
-		this.imageIndex = imageIndex;
+		this.channel = imageIndex;
 	}
 
 	public String getName()
@@ -89,10 +88,5 @@ public class Site extends StorageLocation
 	public AbstractSpimData< ? > getSpimData()
 	{
 		return spimData;
-	}
-
-	public int getImageIndex()
-	{
-		return imageIndex;
 	}
 }

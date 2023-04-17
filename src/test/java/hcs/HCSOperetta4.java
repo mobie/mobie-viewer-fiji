@@ -12,10 +12,6 @@ class HCSOperetta4
 	public static void main( String[] args ) throws SpimDataException, IOException
 	{
 		new ImageJ().ui().showUI();
-<<<<<<< HEAD
-		new MoBIE( "/Volumes/cba/exchange/hcs-test/operetta4/Samples", new MoBIESettings(), 0.1, 0.0  );
-=======
 		new MoBIE( "/Volumes/cba/exchange/hcs-test/operetta4/Samples", new MoBIESettings(), 0.1, 0.05  );
->>>>>>> harmony5
 	}
 }

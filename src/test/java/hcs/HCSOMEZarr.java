@@ -13,6 +13,6 @@ class HCSOMEZarr
 	{
 		new ImageJ().ui().showUI();
 
-		new MoBIE( "/g/cba/exchange/hcs-test/Bugra/testdata.zarr", new MoBIESettings(), 0.1, 0.0  );
+		new MoBIE( "/Users/tischer/Desktop/hcs-ome.zarr", new MoBIESettings(), 0.1, 0.0  );
 	}
 }
