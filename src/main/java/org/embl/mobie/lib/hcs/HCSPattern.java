@@ -1,11 +1,16 @@
 package org.embl.mobie.lib.hcs;
 
+import ome.xml.model.OME;
+
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public enum HCSPattern
 {
+	OMEZarr,
 	Operetta,
 	IncuCyte,
 	MolecularDevices;
@@ -15,6 +20,13 @@ public enum HCSPattern
 	private static final String CHANNEL = "C";
 	private static final String T = "T";
 	private static final String Z = "Z";
+
+	/*
+	example:
+	/g/cba/exchange/hcs-test/hcs-test.zarr/A/1/0/
+	well = C05, site = 1, channel = 1
+ 	*/
+	private static final String OME_ZARR = ".*.zarr/(?<"+WELL+">[A-Z]{1}/[0-9]+)/(?<"+SITE+">[0-9]+)/.*";
 
 	/*
 	example:
@@ -66,6 +78,8 @@ public enum HCSPattern
 	{
 		switch( this )
 		{
+			case OMEZarr:
+				return Pattern.compile( OME_ZARR ).matcher( path );
 			case Operetta:
 				return Pattern.compile( OPERETTA ).matcher( path );
 			case MolecularDevices:
@@ -126,15 +140,16 @@ public enum HCSPattern
 		return wellPosition;
 	}
 
-	private boolean hasChannels()
+	private boolean hasChannelRegex()
 	{
 		switch ( this )
 		{
 			case Operetta:
 			case MolecularDevices:
 				return true;
-			default:
+			case OMEZarr:
 			case IncuCyte:
+			default:
 				return false;
 		}
 	}
@@ -161,20 +176,23 @@ public enum HCSPattern
 		}
 	}
 
-	public String getChannelGroup()
+	// one path can contain multiple channels
+	public List< String > getChannels()
 	{
-		if ( hasChannels() )
-			return matcher.group( HCSPattern.CHANNEL );
+		if ( hasChannelRegex() )
+			return Collections.singletonList( matcher.group( HCSPattern.CHANNEL ) );
+		else if ( this.equals( OME_ZARR ) )
+			return Collections.singletonList( "0" ); // TODO: find out initially how many channels
 		else
-			return "1" ;
+			return Collections.singletonList( "1" );
 	}
 
-	public String getWellGroup()
+	public String getWell()
 	{
 		return matcher.group( HCSPattern.WELL );
 	}
 
-	public String getSiteGroup()
+	public String getSite()
 	{
 		return matcher.group( HCSPattern.SITE );
 	}
