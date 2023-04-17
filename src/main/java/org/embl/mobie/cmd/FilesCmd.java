@@ -57,7 +57,7 @@ public class FilesCmd implements Callable< Void > {
 		}
 
 		new ImageJ().ui().showUI();
-		new MoBIE( imageList, labelsList, root, gridType, settings );
+		new MoBIE( imageList, labelsList, tablesList, root, gridType, settings );
 
 		return null;
 	}

@@ -192,12 +192,11 @@ public class MoBIE
 		openHCSDataset( relativeWellMargin, relativeSiteMargin );
 	}
 
-	// TODO: add label tables
-	public MoBIE( List< String > images, List< String > labels, String root, GridType grid, MoBIESettings settings ) throws IOException
+	public MoBIE( List< String > images, List< String > labels, List< String > labelTables, String root, GridType grid, MoBIESettings settings ) throws IOException
 	{
 		this.settings = settings;
 
-		openFiles( images, labels, root, grid );
+		openFiles( images, labels, labelTables, root, grid );
 	}
 
 	// Open image table
@@ -241,55 +240,68 @@ public class MoBIE
 	}
 
 	// TODO: add label tables
-	private void openFiles( List< String > images, List< String > labels, String root, GridType grid )
+	private void openFiles( List< String > images, List< String > labels, List< String > labelTables, String root, GridType grid )
 	{
-		//		if ( tablePaths != null && tablePaths[ 0 ].contains( "*" ) )
-		//			tablePaths = IOHelper.getPaths( tablePaths[ 0 ], 999 );
-
+		// images
+		//
 		final List< ImageSources > imageSources = new ArrayList<>();
 		for ( String image : images )
 		{
-			//			final List< String > groups = MoBIEHelper.getGroupNames( regex );
-			//			if ( groups.size() > 0 )
-			//			{
-			//				final Pattern pattern = Pattern.compile( regex );
-			//				final Set< String > set = new LinkedHashSet<>();
-			//				for ( String path : paths )
-			//				{
-			//					final Matcher matcher = pattern.matcher( path );
-			//					matcher.matches();
-			//					set.add( matcher.group( 1 ) );
-			//				}
-			//
-			//				final ArrayList< String > categories = new ArrayList<>( set );
-			//				final int[] numSources = new int[ categories.size() ];
-			//				grid.positions = new ArrayList<>();
-			//				for ( String source : sources )
-			//				{
-			//					final Matcher matcher = pattern.matcher( source );
-			//					matcher.matches();
-			//					final int row = categories.indexOf( matcher.group( rowGroup ) );
-			//					final int column = numSources[ row ];
-			//					numSources[ row ]++;
-			//					grid.positions.add( new int[]{ column, row } );
-			//				}
-			//			}
-			//			}
-			//			else
-			//			{
-
 			final FileImageSource fileImageSource = new FileImageSource( image );
 			imageSources.add( new ImageSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
 		}
 
+
+		// labels
+		//
 		List< LabelSources > labelSources = new ArrayList<>();
-		for ( String label : labels )
+		for ( int labelSourceIndex = 0; labelSourceIndex < labels.size(); labelSourceIndex++ )
 		{
-			final FileImageSource fileImageSource = new FileImageSource( label );
-			labelSources.add( new LabelSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
+			final FileImageSource fileImageSource = new FileImageSource( labels.get( labelSourceIndex ) );
+
+			if ( labelTables.size() > labelSourceIndex )
+			{
+				final String labelTable = labelTables.get( labelSourceIndex );
+				labelSources.add( new LabelSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, labelTable, root, grid ) );
+			}
+			else
+			{
+				labelSources.add( new LabelSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
+			}
 		}
 
 		openImagesAndLabels( imageSources, labelSources );
+
+		// TODO consider adding back the functionality of groups for sorting the grid
+		//			final List< String > groups = MoBIEHelper.getGroupNames( regex );
+		//			if ( groups.size() > 0 )
+		//			{
+		//				final Pattern pattern = Pattern.compile( regex );
+		//				final Set< String > set = new LinkedHashSet<>();
+		//				for ( String path : paths )
+		//				{
+		//					final Matcher matcher = pattern.matcher( path );
+		//					matcher.matches();
+		//					set.add( matcher.group( 1 ) );
+		//				}
+		//
+		//				final ArrayList< String > categories = new ArrayList<>( set );
+		//				final int[] numSources = new int[ categories.size() ];
+		//				grid.positions = new ArrayList<>();
+		//				for ( String source : sources )
+		//				{
+		//					final Matcher matcher = pattern.matcher( source );
+		//					matcher.matches();
+		//					final int row = categories.indexOf( matcher.group( rowGroup ) );
+		//					final int column = numSources[ row ];
+		//					numSources[ row ]++;
+		//					grid.positions.add( new int[]{ column, row } );
+		//				}
+		//			}
+		//			}
+		//			else
+		//			{
+
 	}
 
 	// TODO 2D or 3D?
@@ -1150,7 +1162,6 @@ public class MoBIE
 
 		if ( storageLocation instanceof Site )
 		{
-			// TODO: if the Site is based on one "parent SpimData" use the other constructor"
 			return new SpimDataImage( ( Site ) storageLocation, name );
 		}
 

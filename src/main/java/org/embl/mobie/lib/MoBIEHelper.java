@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib;
 
+import bdv.SpimSource;
 import ij.IJ;
 import ij.ImagePlus;
 import loci.plugins.in.ImagePlusReader;
@@ -36,6 +37,7 @@ import loci.plugins.in.ImporterOptions;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.Dimensions;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
@@ -178,13 +180,21 @@ public abstract class MoBIEHelper
 
 	public static Metadata getMetadataFromImageFile( String path )
 	{
-		final ImagePlus imagePlus = IJ.openVirtual( path );
+		if ( path.contains( ".zarr" ) )
+		{
+			final AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, ImageDataFormat.OmeZarr );
+			final SpimSource< ? > spimSource = new SpimSource( spimData, 0, "" );
 
-		final Metadata metadata = new Metadata();
-		metadata.color = "White";
-		metadata.contrastLimits = new double[]{ imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
-		metadata.numTimePoints = imagePlus.getNFrames();
-		return metadata;
+		}
+		else
+		{
+			final ImagePlus imagePlus = IJ.openVirtual( path );
+			final Metadata metadata = new Metadata();
+			metadata.color = "White";
+			metadata.contrastLimits = new double[]{ imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
+			metadata.numTimePoints = imagePlus.getNFrames();
+			return metadata;
+		}
 	}
 
 	// Note that this opens the image and thus may be slow!

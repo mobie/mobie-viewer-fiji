@@ -17,21 +17,17 @@ public class OpenImageAndLabelsCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	/**
-	 *
-	 * For multi-channel files use add the channel index using a comma
-	 */
-	@Parameter( label = "Image Path Regex", required = false )
+	@Parameter( label = "Image Path", required = false )
 	public File image;
 
-	@Parameter( label = "Label Mask Path Regex", required = false )
+	@Parameter( label = "Label Mask Path", required = false )
 	public File labels;
+
+	@Parameter( label = "Label Mask Table Path", required = false )
+	public File tables;
 
 	@Parameter( label = "Remove Spatial Calibration", required = false )
 	public Boolean removeSpatialCalibration = false;
-
-//	@Parameter( label = "Label Mask Table Path Regex", required = false )
-//	public File table;
 
 	@Override
 	public void run()
@@ -44,12 +40,15 @@ public class OpenImageAndLabelsCommand implements Command {
 		final ArrayList< String > labelsList = new ArrayList<>();
 		if ( labels != null ) labelsList.add( labels.getAbsolutePath() );
 
+		final ArrayList< String > tablesList = new ArrayList<>();
+		if ( tables != null ) labelsList.add( tables.getAbsolutePath() );
+
 		final MoBIESettings settings = new MoBIESettings();
 		settings.removeSpatialCalibration( removeSpatialCalibration );
 
 		try
 		{
-			new MoBIE( imageList, labelsList, null, gridType, settings );
+			new MoBIE( imageList, labelsList, tablesList, null, gridType, settings );
 		}
 		catch ( IOException e )
 		{

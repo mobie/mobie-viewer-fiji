@@ -59,7 +59,8 @@ public class IOHelper
 		try
 		{
 			final List< String > paths = Files.find( Paths.get( dir ), maxDepth,
-					( path, basicFileAttribute ) -> basicFileAttribute.isRegularFile()
+					( path, basicFileAttribute ) ->
+							( basicFileAttribute.isRegularFile() || basicFileAttribute.isDirectory() )
 							&& path.getFileName().toString()
 							.matches( name ) )
 							.map( path -> path.toString() ).collect( Collectors.toList() );

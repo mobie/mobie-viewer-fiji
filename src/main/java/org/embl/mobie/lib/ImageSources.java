@@ -39,12 +39,8 @@ public class ImageSources
 		this.name = name;
 		this.channelIndex = channelIndex;
 
-		if ( root != null )
-		{
-			regex = new File( root, regex ).getAbsolutePath();
-		}
+		List< String > paths = getFullPaths( regex, root );
 
-		List< String > paths = IOHelper.getPaths( regex, 999 );
 		for ( String path : paths )
 		{
 			final String fileName = new File( path ).getName();
@@ -57,6 +53,15 @@ public class ImageSources
 		this.metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ) );
 
 		createRegionTable();
+	}
+
+	protected static List< String > getFullPaths( String regex, String root )
+	{
+		if ( root != null )
+			regex = new File( root, regex ).getAbsolutePath();
+
+		List< String > paths = IOHelper.getPaths( regex, 999 );
+		return paths;
 	}
 
 	public ImageSources( String name, Table table, String pathColumn, Integer channelIndex, String root, GridType gridType )

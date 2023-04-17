@@ -77,22 +77,6 @@ public enum TableDataFormat
 		}
 	}
 
-	public static TableDataFormat fromString( String string )
-	{
-		switch ( string )
-		{
-			case RESULTS_TABLE:
-				return ResultsTable;
-			case TABLE:
-				return Table;
-			case TableDataFormatNames.CSV:
-				return CSV;
-			case TableDataFormatNames.TSV:
-			default:
-				return TableDataFormat.TSV;
-		}
-	}
-
 	public static TableDataFormat fromPath( String path )
 	{
 		if ( path.endsWith( ".csv" ) ) return CSV;
