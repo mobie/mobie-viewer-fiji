@@ -13,8 +13,10 @@ import org.embl.mobie.lib.io.TPosition;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -41,9 +43,25 @@ public class Plate
 	{
 		this.hcsDirectory = hcsDirectory;
 
-		final List< String > paths = Files.walk( Paths.get( hcsDirectory ) ).map( p -> p.toString() ).collect( Collectors.toList() );
+		final List< String > imageSitePaths;
+		if ( hcsDirectory.endsWith( ".zarr" ) )
+		{
+			final int minDepth = 3;
+			final int maxDepth = 3;
+			final Path rootPath = Paths.get(hcsDirectory);
+			final int rootPathDepth = rootPath.getNameCount();
+			imageSitePaths = Files.walk( rootPath, maxDepth )
+					.filter( e -> e.toFile().isDirectory() )
+					.filter( e -> e.getNameCount() - rootPathDepth >= minDepth )
+					.map( e -> e.toString() )
+					.collect( Collectors.toList() );
+		}
+		else
+		{
+			imageSitePaths = Files.walk( Paths.get( hcsDirectory ), 3 ).map( p -> p.toString() ).collect( Collectors.toList() );
+		}
 
-		hcsPattern = determineHCSPattern( hcsDirectory, paths );
+		hcsPattern = determineHCSPattern( hcsDirectory, imageSitePaths );
 
 		if ( hcsPattern == HCSPattern.Operetta )
 		{
@@ -52,7 +70,7 @@ public class Plate
 			metadata = new OperettaMetadata( xml );
 		}
 
-		buildPlateMap( paths );
+		buildPlateMap( imageSitePaths );
 	}
 
 	private void buildPlateMap( List< String > paths )
