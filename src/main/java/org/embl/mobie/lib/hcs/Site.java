@@ -12,30 +12,32 @@ import java.util.Map;
 
 public class Site extends StorageLocation
 {
-	private final String name;
+	// note that the ID is not the final name of the corresponding image,
+	// but the image name will be concatenated also using the channel and well name.
+	private final String id;
 	private int[] dimensions;
 	private Map< TPosition, Map< ZPosition, String > > paths = new LinkedHashMap();
 	private VoxelDimensions voxelDimensions;
 	private ImageDataFormat imageDataFormat;
 	private AbstractSpimData< ? > spimData;
 
-	public Site( String name, ImageDataFormat imageDataFormat )
+	public Site( String id, ImageDataFormat imageDataFormat )
 	{
-		this.name = name;
+		this.id = id;
 		this.imageDataFormat = imageDataFormat;
 	}
 
-	public Site( String name, ImageDataFormat imageDataFormat, AbstractSpimData< ? > spimData, int imageIndex )
+	public Site( String id, ImageDataFormat imageDataFormat, AbstractSpimData< ? > spimData, int imageIndex )
 	{
-		this.name = name;
+		this.id = id;
 		this.imageDataFormat = imageDataFormat;
 		this.spimData = spimData;
 		this.channel = imageIndex;
 	}
 
-	public String getName()
+	public String getID()
 	{
-		return name;
+		return id;
 	}
 
 	public int[] getDimensions()

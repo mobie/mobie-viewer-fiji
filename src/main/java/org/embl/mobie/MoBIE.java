@@ -1168,7 +1168,7 @@ public class MoBIE
 
 			if ( site.getImageDataFormat().equals( ImageDataFormat.OmeZarr ) )
 			{
-				return new SpimDataImage( ImageDataFormat.OmeZarr, site.absolutePath, site.channel, site.getName(), ThreadHelper.sharedQueue, false );
+				return new SpimDataImage( ImageDataFormat.OmeZarr, site.absolutePath, site.channel, name, ThreadHelper.sharedQueue, false );
 			}
 
 			return new SpimDataImage( site, name );

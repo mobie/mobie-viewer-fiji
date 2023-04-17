@@ -44,7 +44,7 @@ public class SiteSpimDataCreator
 			}
 		}
 
-		final ImagePlus imagePlus = new ImagePlus( site.getName(), virtualStack );
+		final ImagePlus imagePlus = new ImagePlus( site.getID(), virtualStack );
 
 		final Calibration calibration = new Calibration();
 		final VoxelDimensions voxelDimensions = site.getVoxelDimensions();

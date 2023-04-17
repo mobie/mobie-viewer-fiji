@@ -236,11 +236,18 @@ public class Plate
 						sitesPerWell = numSites; // needed to compute the site position within a well
 				}
 
-				final String t = hcsPattern.getT();
-				final String z = hcsPattern.getZ();
-				site.addPath( t, z, path );
-
-				tPositions.add( new TPosition( t ) );
+				if ( hcsPattern.equals( HCSPattern.OMEZarr ) )
+				{
+					site.absolutePath = path;
+					tPositions.add( new TPosition( "0" ) ); // TODO: add all time points
+				}
+				else
+				{
+					final String t = hcsPattern.getT();
+					final String z = hcsPattern.getZ();
+					site.addPath( t, z, path );
+					tPositions.add( new TPosition( t ) );
+				}
 			}
 		}
 
@@ -306,7 +313,7 @@ public class Plate
 	{
 		try
 		{
-			return channelWellSites.get( channel ).get( well ).stream().filter( s -> s.getName().equals( siteName ) ).findFirst().get();
+			return channelWellSites.get( channel ).get( well ).stream().filter( s -> s.getID().equals( siteName ) ).findFirst().get();
 		}
 		catch ( NoSuchElementException e )
 		{
@@ -362,7 +369,7 @@ public class Plate
 		if ( sitesPerWell == 1 )
 			return new int[]{ 0, 0 };
 
-		int siteIndex = Integer.parseInt( site.getName() ) - 1;
+		int siteIndex = Integer.parseInt( site.getID() ) - 1;
 		int numColumns = (int) Math.ceil( Math.sqrt( sitesPerWell ) );
 
 		int[] gridPosition = new int[ 2 ];
@@ -391,7 +398,7 @@ public class Plate
 		if ( sitesPerWell == 1 )
 			return new int[]{ 0, 0 };
 
-		int siteIndex = Integer.parseInt( site.getName() ) - 1;
+		int siteIndex = Integer.parseInt( site.getID() ) - 1;
 		int numSiteColumns = (int) Math.sqrt( sitesPerWell );
 
 		int[] gridPosition = new int[ 2 ];
