@@ -32,6 +32,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import edu.mines.jtk.util.AtomicDouble;
 import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
@@ -65,17 +66,11 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getLevel;
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getViewerVoxelSpacing;
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
-
-/**
- * BigDataViewer Playground Action --
- * ScreenShotMaker
- * Author: @haesleinhuepf, @tischi
- *         December 2019
- */
 
 public class ScreenShotMaker
 {
@@ -193,8 +188,14 @@ public class ScreenShotMaker
 
             boolean interpolate = ! ( source.getType() instanceof AnnotationType );
 
+            final long[] screenshotDimensions = Intervals.dimensionsAsLongArray( argbCapture );
+            final long numPixels = screenshotDimensions[ 0 ] * screenshotDimensions[ 1 ];
+
+            final AtomicInteger pixelCount = new AtomicInteger();
+            final AtomicDouble fractionDone = new AtomicDouble( 0.1 );
+
             Grids.collectAllContainedIntervals(
-                    Intervals.dimensionsAsLongArray( argbCapture ),
+                    screenshotDimensions,
                     new int[]{100, 100}).parallelStream().forEach( interval ->
             {
                 RealRandomAccess< ? extends Type< ? > > access = getRealRandomAccess( ( Source< Type< ? > > ) source, t, level, interpolate );
@@ -231,7 +232,15 @@ public class ScreenShotMaker
                     access.setPosition( sourceRealPosition );
                     setFloatPixelValue( access, floatCaptureAccess );
                     setArgbPixelValue( converter, access, argbCaptureAccess, argbType );
+                    pixelCount.incrementAndGet();
                 }
+
+                if ( ( 1.0 * pixelCount.get() / numPixels ) > fractionDone.get() )
+                {
+                    IJ.log( "Screenshot: " + sac.getSpimSource().getName() + ": " + ( Math.round( 100 * fractionDone.get() ) + "%" ) );
+                    fractionDone.addAndGet( 0.1 );
+                }
+
             });
 
             floatCaptures.add( rawCapture );
