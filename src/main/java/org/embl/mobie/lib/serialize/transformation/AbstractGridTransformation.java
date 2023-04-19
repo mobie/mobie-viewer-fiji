@@ -33,9 +33,9 @@ import java.util.List;
 public abstract class AbstractGridTransformation implements Transformation
 {
 	// Serialization
+
 	public List< int[] > positions;
 
-	// Other
 	public double margin = 0.1; // 0.1;
 
 }

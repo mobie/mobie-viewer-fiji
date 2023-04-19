@@ -45,6 +45,12 @@ public class MergedGridTransformation extends AbstractGridTransformation
 	// Runtime
 	public int timepoints = 1; // the number of timepoints that the sources span
 
+	// Needed for GSON to populate the default values
+	public MergedGridTransformation()
+	{
+		super();
+	}
+
 	public MergedGridTransformation( String mergedGridSourceName )
 	{
 		this.mergedGridSourceName = mergedGridSourceName;
