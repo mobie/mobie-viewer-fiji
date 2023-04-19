@@ -40,11 +40,7 @@ import net.imglib2.Dimensions;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.lib.source.Metadata;
-import org.embl.mobie.lib.io.IOHelper;
-import org.embl.mobie.lib.io.StorageLocation;
-import org.embl.mobie.lib.serialize.ImageDataSource;
 import org.embl.mobie.lib.source.SourceToImagePlusConverter;
-import spimdata.util.Displaysettings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -185,7 +181,7 @@ public abstract class MoBIEHelper
 		if ( path.contains( ".zarr" ) )
 		{
 			final int setupID = 0;
-			final ImagePlus imagePlus = openOMEZarrAsImagePLus( path, setupID );
+			final ImagePlus imagePlus = openOMEZarrAsImagePlus( path, setupID );
 			final Metadata metadata = new Metadata();
 			metadata.color = "White";
 			metadata.contrastLimits = new double[]{ imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
@@ -203,7 +199,7 @@ public abstract class MoBIEHelper
 		}
 	}
 
-	public static ImagePlus openOMEZarrAsImagePLus( String path, int setupID )
+	public static ImagePlus openOMEZarrAsImagePlus( String path, int setupID )
 	{
 		try
 		{
@@ -217,6 +213,8 @@ public abstract class MoBIEHelper
 			throw new RuntimeException( e );
 		}
 	}
+
+
 
 	public enum FileLocation
 	{

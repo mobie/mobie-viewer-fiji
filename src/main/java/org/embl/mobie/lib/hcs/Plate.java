@@ -7,6 +7,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.io.Opener;
 import ij.measure.Calibration;
+import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.generic.base.Entity;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
@@ -19,6 +20,7 @@ import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.io.TPosition;
 import org.embl.mobie.lib.source.SourceToImagePlusConverter;
+import spimdata.util.Displaysettings;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,11 +35,12 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Plate
 {
 	private final String hcsDirectory;
-	private HCSPattern hcsPattern;
+	private HCSScheme hcsScheme;
 	private HashMap< Channel, Map< Well, Set< Site > > > channelWellSites;
 	private double[] siteRealDimensions;
 	private int sitesPerWell;
@@ -64,16 +67,19 @@ public class Plate
 					.filter( e -> e.toFile().isDirectory() )
 					.filter( e -> e.getNameCount() - rootPathDepth >= minDepth )
 					.map( e -> e.toString() )
+					.filter( s -> ! s.contains("OME") )
 					.collect( Collectors.toList() );
+			hcsScheme = HCSScheme.OMEZarr;
+			imageDataFormat = ImageDataFormat.OmeZarr;
 		}
 		else
 		{
 			paths = Files.walk( Paths.get( hcsDirectory ), 3 ).map( p -> p.toString() ).collect( Collectors.toList() );
+			hcsScheme = determineHCSPattern( hcsDirectory, paths );
+
 		}
 
-		hcsPattern = determineHCSPattern( hcsDirectory, paths );
-
-		if ( hcsPattern == HCSPattern.Operetta )
+		if ( hcsScheme == HCSScheme.Operetta )
 		{
 			final Optional< String > xml = paths.stream().filter( path -> path.endsWith( ".xml" ) ).findFirst();
 			if ( ! xml.isPresent() )
@@ -83,6 +89,25 @@ public class Plate
 			spimDataPlate = new SpimDataOpener().openWithBioFormats( xml.get(), ThreadHelper.sharedQueue );
 			hcsMetadata = new OperettaMetadata( new File( xml.get() ) );
 			IJ.log( "Images in XML: " + spimDataPlate.getSequenceDescription().getViewSetupsOrdered().size() );
+		}
+
+		if ( hcsScheme == HCSScheme.OMEZarr )
+		{
+			try
+			{
+				final String firstImagePath = paths.get( 0 );
+				AbstractSpimData< ? > spimData = new SpimDataOpener().open( firstImagePath, ImageDataFormat.OmeZarr );
+				final int numChannels = spimData.getSequenceDescription().getViewSetupsOrdered().size();
+				final List< String > channels = IntStream.range( 0, numChannels )
+						.mapToObj( i -> ( ( Integer ) i ).toString() )
+						.collect( Collectors.toList() );
+				hcsScheme.setChannels( channels );
+			}
+			catch ( SpimDataException e )
+			{
+				e.printStackTrace();
+				throw new RuntimeException( e );
+			}
 		}
 
 		buildPlateMap( paths );
@@ -98,7 +123,7 @@ public class Plate
 
 		for ( String path : paths )
 		{
-			if ( ! hcsPattern.setPath( path ) )
+			if ( ! hcsScheme.setPath( path ) )
 				continue;
 
 			if ( hcsMetadata != null )
@@ -118,14 +143,9 @@ public class Plate
 				IJ.log( "Image data format: " + imageDataFormat.toString() );
 			}
 
-			// store this file's channel(s), well, and site
-			//
-
-			// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/972
-			// for some formats one file can contain multiple channels,
-			// thus a list is returned.
-			List< String > channelNames = hcsPattern.getChannels();
-			for ( String channelName : channelNames )
+			// some formats contain multiple channels in one file
+			List< String > channelIDs = hcsScheme.getChannels();
+			for ( String channelName : channelIDs )
 			{
 				Channel channel = getChannel( channelWellSites, channelName );
 
@@ -142,14 +162,18 @@ public class Plate
 					//
 					if ( hcsMetadata != null )
 					{
+
+
 						final String color = hcsMetadata.getColor( path );
 						channel.setColor( color );
 
 						// TODO: There does not always seem to be enough metadata for the
 						//   contrast limits, thus opening one image may be worth it
+						//   then convert to image plus and run once auto contrast on it
 						final double[] contrastLimits = hcsMetadata.getContrastLimits( path );
 						channel.setContrastLimits( contrastLimits );
-					} else // from image file
+					}
+					else // from image file
 					{
 						final String color = ColorHelper.getString( singleChannel.getLuts()[ 0 ] );
 						channel.setColor( color );
@@ -169,18 +193,13 @@ public class Plate
 						{
 							voxelDimensions = hcsMetadata.getVoxelDimensions( path );
 							siteDimensions = hcsMetadata.getSiteDimensions( path );
-						} else // from image file
+						}
+						else // from image file
 						{
 							final Calibration calibration = singleChannel.getCalibration();
 							voxelDimensions = new FinalVoxelDimensions( calibration.getUnit(), calibration.pixelWidth, calibration.pixelHeight, calibration.pixelDepth );
 							siteDimensions = new int[]{ singleChannel.getWidth(), singleChannel.getHeight() };
 						}
-						final String color = ColorHelper.getString( singleChannel.getLuts()[ 0 ] );
-						channel.setColor( color );
-						final double[] contrastLimits = new double[]{
-								singleChannel.getDisplayRangeMin(),
-								singleChannel.getDisplayRangeMax() };
-						channel.setContrastLimits( contrastLimits );
 
 						// compute derived spatial metadata
 						//
@@ -195,7 +214,7 @@ public class Plate
 				}
 				// well
 				//
-				String wellGroup = hcsPattern.getWell();
+				String wellGroup = hcsScheme.getWell();
 				Well well = getWell( channelWellSites, channel, wellGroup );
 				if ( well == null )
 				{
@@ -208,7 +227,7 @@ public class Plate
 
 				// site
 				//
-				final String siteGroup = hcsPattern.getSite();
+				final String siteGroup = hcsScheme.getSite();
 				Site site = getSite( channelWellSites, channel, well, siteGroup );
 				if ( site == null )
 				{
@@ -236,15 +255,15 @@ public class Plate
 						sitesPerWell = numSites; // needed to compute the site position within a well
 				}
 
-				if ( hcsPattern.equals( HCSPattern.OMEZarr ) )
+				if ( hcsScheme.equals( HCSScheme.OMEZarr ) )
 				{
 					site.absolutePath = path;
-					tPositions.add( new TPosition( "0" ) ); // TODO: add all time points
+					site.channel = Integer.parseInt( channelName );
 				}
 				else
 				{
-					final String t = hcsPattern.getT();
-					final String z = hcsPattern.getZ();
+					final String t = hcsScheme.getT();
+					final String z = hcsScheme.getZ();
 					site.addPath( t, z, path );
 					tPositions.add( new TPosition( t ) );
 				}
@@ -263,6 +282,7 @@ public class Plate
 		if ( spimDataPlate != null )
 		{
 			final int imageIndex = hcsMetadata.getImageIndex( path );
+
 			final Source< ? > source =  new SpimSource<>( spimDataPlate, imageIndex, "" );
 			final ImagePlus imagePlus = new SourceToImagePlusConverter( source ).getImagePlus( 0 );
 			return imagePlus;
@@ -277,7 +297,7 @@ public class Plate
 		if ( imageDataFormat.equals( ImageDataFormat.OmeZarr ) )
 		{
 			final int setupID = Integer.parseInt( channelName );
-			return MoBIEHelper.openOMEZarrAsImagePLus( path, setupID );
+			return MoBIEHelper.openOMEZarrAsImagePlus( path, setupID );
 		}
 
 		return IJ.openImage( path );
@@ -321,15 +341,15 @@ public class Plate
 		}
 	}
 
-	private HCSPattern determineHCSPattern( String hcsDirectory, List< String > paths )
+	private HCSScheme determineHCSPattern( String hcsDirectory, List< String > paths )
 	{
 		for ( String path : paths )
 		{
-			final HCSPattern hcsPattern = HCSPattern.fromPath( path );
-			if ( hcsPattern != null )
+			final HCSScheme hcsScheme = HCSScheme.fromPath( path );
+			if ( hcsScheme != null )
 			{
-				IJ.log( "HCS Pattern: " + hcsPattern );
-				return hcsPattern;
+				IJ.log( "HCS Pattern: " + hcsScheme );
+				return hcsScheme;
 			}
 		}
 
@@ -353,7 +373,7 @@ public class Plate
 
 	public int[] getGridPosition( Site site )
 	{
-		switch ( hcsPattern )
+		switch ( hcsScheme )
 		{
 			case Operetta:
 				return getOperettaGridPosition( site );
@@ -410,7 +430,7 @@ public class Plate
 
 	public int[] getWellGridPosition( Well well )
 	{
-		return hcsPattern.decodeWellGridPosition( well.getName() );
+		return hcsScheme.decodeWellGridPosition( well.getName() );
 	}
 
 	public boolean is2D()
@@ -423,9 +443,9 @@ public class Plate
 		return new File( hcsDirectory ).getName();
 	}
 
-	public HCSPattern getHcsPattern()
+	public HCSScheme getHcsPattern()
 	{
-		return hcsPattern;
+		return hcsScheme;
 	}
 
 	public double[] getSiteRealDimensions()

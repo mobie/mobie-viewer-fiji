@@ -68,8 +68,8 @@ public abstract class ColorHelper
 		if ( argbType == null ) return null;
 
 		final int colorIndex = argbType.get();
-		// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/924
-		final String string = "" + ARGBType.red( colorIndex ) + "-" + ARGBType.green( colorIndex ) + "-" + ARGBType.blue( colorIndex ) + "-" + ARGBType.alpha( colorIndex );
+		// https://github.com/mobie/mobie-viewer-fiji/issues/924
+		final String string = "r" + ARGBType.red( colorIndex ) + "-g" + ARGBType.green( colorIndex ) + "-b" + ARGBType.blue( colorIndex ) + "-a" + ARGBType.alpha( colorIndex );
 		return string;
 	}
 
@@ -89,12 +89,17 @@ public abstract class ColorHelper
 		if ( string == null ) return null;
 		if ( string.equals( "" ) ) return null;
 
-		Pattern pattern = Pattern.compile("(.+)-(.+)-(.+)-(.+)");
-		Matcher matcher = pattern.matcher(string);
+		Pattern pattern = Pattern.compile("([\\d]+)-([\\d]+)-([\\d]+)-([\\d]+)");
+		Matcher matcher = pattern.matcher( string );
 		if ( matcher.matches() )
 			return getArgbType( matcher );
 
-		pattern = Pattern.compile(".*r=(.+),g=(.+),b=(.+),a=(.+).*");
+		pattern = Pattern.compile("r([\\d]+)-g([\\d]+)-b([\\d]+)-a([\\d]+).*");
+		matcher = pattern.matcher( string );
+		if ( matcher.matches() )
+			return getArgbType( matcher );
+
+		pattern = Pattern.compile(".*r=([\\d]+),g=([\\d]+),b=([\\d]+),a=([\\d]+).*");
 		matcher = pattern.matcher(string);
 		if ( matcher.matches() )
 			return getArgbType( matcher );

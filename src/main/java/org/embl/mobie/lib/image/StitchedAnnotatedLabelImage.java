@@ -43,9 +43,9 @@ public class StitchedAnnotatedLabelImage< A extends Annotation > extends Stitche
 {
 	private AnnData< A > annData;
 
-	public StitchedAnnotatedLabelImage( List< ? extends AnnotatedLabelImage< A > > annotatedImages, Image< AnnotationType< A > > metadataImage, @Nullable List< int[] > positions, String imageName, double relativeCellMargin )
+	public StitchedAnnotatedLabelImage( List< ? extends AnnotatedLabelImage< A > > annotatedImages, Image< AnnotationType< A > > metadataImage, @Nullable List< int[] > positions, String imageName, double relativeTileMargin )
 	{
-		super( annotatedImages, metadataImage, positions, imageName, relativeCellMargin );
+		super( annotatedImages, metadataImage, positions, imageName, relativeTileMargin );
 		annData = AnnDataHelper.concatenate( ( List ) getTileImages() );
 	}
 

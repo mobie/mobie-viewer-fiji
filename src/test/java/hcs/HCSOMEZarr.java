@@ -13,6 +13,9 @@ class HCSOMEZarr
 	{
 		new ImageJ().ui().showUI();
 
-		new MoBIE( "/Users/tischer/Desktop/hcs-ome.zarr", new MoBIESettings(), 0.1, 0.0  );
+//		new MoBIE( "/Users/tischer/Desktop/hcs-ome.zarr", new MoBIESettings(), 0.1, 0.0  );
+
+		new MoBIE( "/Volumes/cba/exchange/hcs-test/hcs-ome.zarr", new MoBIESettings(), 0.1, 0.1 );
+
 	}
 }

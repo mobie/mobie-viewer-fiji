@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public enum HCSPattern
+public enum HCSScheme
 {
 	OMEZarr,
 	Operetta,
@@ -59,14 +59,15 @@ public enum HCSPattern
 	private final String MD_SITES = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">[0-9]{1}).*";
 
 	private Matcher matcher;
+	private List< String > channels;
 
-	public static HCSPattern fromPath( String fileName )
+	public static HCSScheme fromPath( String fileName )
 	{
-		for ( HCSPattern hcsPattern : HCSPattern.values() )
+		for ( HCSScheme hcsScheme : HCSScheme.values() )
 		{
-			final Matcher matcher = hcsPattern.getMatcher( fileName );
+			final Matcher matcher = hcsScheme.getMatcher( fileName );
 			if ( matcher.matches() )
-				return hcsPattern;
+				return hcsScheme;
 		}
 
 		return null;
@@ -189,31 +190,32 @@ public enum HCSPattern
 		}
 	}
 
-	// one path can contain multiple channels
+	// one path to an image can contain multiple channels
 	public List< String > getChannels()
 	{
+		if ( channels != null )
+			return channels;
+
 		if ( hasChannelRegex() )
-			return Collections.singletonList( matcher.group( HCSPattern.CHANNEL ) );
-		else if ( this.equals( OMEZarr ) )
-			return Collections.singletonList( "0" ); // TODO: find out initially how many channels
-		else
-			return Collections.singletonList( "1" );
+			return Collections.singletonList( matcher.group( HCSScheme.CHANNEL ) );
+
+		return Collections.singletonList( "1" );
 	}
 
 	public String getWell()
 	{
-		return matcher.group( HCSPattern.WELL );
+		return matcher.group( HCSScheme.WELL );
 	}
 
 	public String getSite()
 	{
-		return matcher.group( HCSPattern.SITE );
+		return matcher.group( HCSScheme.SITE );
 	}
 
 	public String getT()
 	{
 		if ( hasTimeRegex() )
-			return matcher.group( HCSPattern.T );
+			return matcher.group( HCSScheme.T );
 		else
 			return "1";
 	}
@@ -221,10 +223,14 @@ public enum HCSPattern
 	public String getZ()
 	{
 		if ( hasZ() )
-			return matcher.group( HCSPattern.T );
+			return matcher.group( HCSScheme.T );
 		else
 			return "1";
 	}
 
 
+	public void setChannels( List< String > channels )
+	{
+		this.channels = channels;
+	}
 }

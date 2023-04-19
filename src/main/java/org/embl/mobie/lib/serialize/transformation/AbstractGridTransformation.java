@@ -37,5 +37,4 @@ public abstract class AbstractGridTransformation implements Transformation
 
 	// Other
 	public double margin = 0.1; // 0.1;
-
 }
