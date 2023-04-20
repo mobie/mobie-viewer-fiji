@@ -180,19 +180,17 @@ public abstract class MoBIEHelper
 		return namedGroups;
 	}
 
-	public static Metadata getMetadataFromImageFile( String path )
+	public static Metadata getMetadataFromImageFile( String path, int channelIndex )
 	{
 		if ( path.contains( ".zarr" ) )
 		{
 			try
 			{
 				AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, ImageDataFormat.OmeZarr );
-				final SpimSource< ? > spimSource = new SpimSource( spimData, 0, "" );
-				final ImagePlus imagePlus = new SourceToImagePlusConverter<>( spimSource ).getImagePlus( 0 );
-				final Metadata metadata = new Metadata();
-				metadata.color = "White";
-				metadata.contrastLimits = new double[]{ imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
-				metadata.numTimePoints = imagePlus.getNFrames();
+				final SpimSource< ? > source = new SpimSource( spimData, channelIndex, "" );
+				final int levels = source.getNumMipmapLevels();
+				final ImagePlus imagePlus = new SourceToImagePlusConverter<>( source ).getImagePlus( levels - 1 );
+				final Metadata metadata = getMetadata( imagePlus );
 				return metadata;
 			}
 			catch ( SpimDataException e )
@@ -204,12 +202,22 @@ public abstract class MoBIEHelper
 		else
 		{
 			final ImagePlus imagePlus = IJ.openVirtual( path );
-			final Metadata metadata = new Metadata();
-			metadata.color = "White";
-			metadata.contrastLimits = new double[]{ imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
-			metadata.numTimePoints = imagePlus.getNFrames();
+			imagePlus.setC( channelIndex + 1 );
+			final Metadata metadata = getMetadata( imagePlus );
 			return metadata;
 		}
+	}
+
+	public static Metadata getMetadata( ImagePlus imagePlus )
+	{
+		final Metadata metadata = new Metadata();
+		metadata.color = "White"; // TODO: why not extract the color?
+		// we could use more direct methods:
+		// https://imagej.nih.gov/ij/developer/source/ij/plugin/ContrastEnhancer.java.html
+		IJ.run( imagePlus, "Enhance Contrast", "saturated=0.35" );
+		metadata.contrastLimits = new double[]{ imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
+		metadata.numTimePoints = imagePlus.getNFrames();
+		return metadata;
 	}
 
 	// Note that this opens the image and thus may be slow!

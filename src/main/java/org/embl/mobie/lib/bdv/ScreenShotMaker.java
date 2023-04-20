@@ -166,6 +166,9 @@ public class ScreenShotMaker
 
         final int t = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
 
+        IJ.log( "\nScreenshot: Fetching data from " + sacs.size() + " sources."  );
+        final long currentTimeMillis = System.currentTimeMillis();
+
         for ( SourceAndConverter< ?  > sac : sacs )
         {
             final RandomAccessibleInterval< FloatType > rawCapture
@@ -192,11 +195,11 @@ public class ScreenShotMaker
             final long numPixels = screenshotDimensions[ 0 ] * screenshotDimensions[ 1 ];
 
             final AtomicInteger pixelCount = new AtomicInteger();
-            final AtomicDouble fractionDone = new AtomicDouble( 0.1 );
+            final AtomicDouble fractionDone = new AtomicDouble( 0.2 );
 
             Grids.collectAllContainedIntervals(
                     screenshotDimensions,
-                    new int[]{100, 100}).parallelStream().forEach( interval ->
+                    new int[]{96, 96}).parallelStream().forEach( interval ->
             {
                 RealRandomAccess< ? extends Type< ? > > access = getRealRandomAccess( ( Source< Type< ? > > ) source, t, level, interpolate );
 
@@ -233,14 +236,22 @@ public class ScreenShotMaker
                     setFloatPixelValue( access, floatCaptureAccess );
                     setArgbPixelValue( converter, access, argbCaptureAccess, argbType );
                     pixelCount.incrementAndGet();
-                }
 
-                if ( ( 1.0 * pixelCount.get() / numPixels ) > fractionDone.get() )
-                {
-                    IJ.log( "Screenshot: " + sac.getSpimSource().getName() + ": " + ( Math.round( 100 * fractionDone.get() ) + "%" ) );
-                    fractionDone.addAndGet( 0.1 );
+                    final double currentFractionDone = 1.0 * pixelCount.get() / numPixels;
+                    if ( currentFractionDone >= fractionDone.get() )
+                    {
+                        synchronized ( fractionDone )
+                        {
+                            // check again, because meanwhile another thread might have
+                            // incremented fractionDone
+                            if ( currentFractionDone >= fractionDone.get() )
+                            {
+                                IJ.log(sac.getSpimSource().getName() + ": " + ( Math.round( 100 * fractionDone.get() ) + "%" ) );
+                                fractionDone.addAndGet( 0.2 );
+                            }
+                        }
+                    }
                 }
-
             });
 
             floatCaptures.add( rawCapture );
@@ -248,6 +259,8 @@ public class ScreenShotMaker
             // colors.add( getSourceColor( bdv, sourceIndex ) ); Not used, show GrayScale
             displayRanges.add( BdvHandleHelper.getDisplayRange( sacService.getConverterSetup( sac ) ) );
         }
+
+        IJ.log( "Screenshot: Fetched data in " + ( System.currentTimeMillis() - currentTimeMillis ) + " ms." );
 
         final double[] voxelSpacing = new double[ 3 ];
         for ( int d = 0; d < 2; d++ )
@@ -335,12 +348,12 @@ public class ScreenShotMaker
     {
         final RandomAccessibleInterval< ARGBType > argbTarget = ArrayImgs.argbs( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ]  );
 
-        project( argbSources, argbTarget, sacs );
+        createARGBprojection( argbSources, argbTarget, sacs );
 
         return asImagePlus( argbTarget, physicalUnit, voxelSpacing );
     }
 
-    private void project( ArrayList< RandomAccessibleInterval< ARGBType > > argbSources, RandomAccessibleInterval< ARGBType > argbTarget, List< SourceAndConverter< ? > > sacs )
+    private void createARGBprojection( ArrayList< RandomAccessibleInterval< ARGBType > > argbSources, RandomAccessibleInterval< ARGBType > argbTarget, List< SourceAndConverter< ? > > sacs )
     {
         final Cursor< ARGBType > argbCursor = Views.iterable( argbTarget ).localizingCursor();
         final int numVisibleSources = argbSources.size();

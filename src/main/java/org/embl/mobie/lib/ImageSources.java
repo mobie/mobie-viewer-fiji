@@ -50,7 +50,7 @@ public class ImageSources
 
 		// TODO: how to deal with the inconsistent metadata (e.g. number of timepoints)?
 		this.metadataSource = nameToFullPath.keySet().iterator().next();
-		this.metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ) );
+		this.metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ), channelIndex );
 
 		createRegionTable();
 	}
@@ -83,10 +83,15 @@ public class ImageSources
 			nameToPath.put( imageName, path );
 		}
 
+		metadataSource = nameToFullPath.keySet().iterator().next();
+		metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ), channelIndex );
+
 		final List< String > columnNames = table.columnNames();
 		final SegmentColumnNames segmentColumnNames = TableDataFormat.getSegmentColumnNames( columnNames );
 		if ( segmentColumnNames != null )
 		{
+			// it can be that not all sources have the same number of time points,
+			// thus we find out here which one has the most
 			final NumberColumn timepointColumn = ( NumberColumn ) table.column( segmentColumnNames.timePointColumn() );
 			final double min = timepointColumn.min();
 			final double max = timepointColumn.max();
@@ -97,6 +102,8 @@ public class ImageSources
 			final String path = where.stringColumn( pathColumn ).get( 0 );
 			metadataSource = nameToPath.entrySet().stream().filter( e -> e.getValue().equals( path ) ).findFirst().get().getKey();
 		}
+
+
 
 		createRegionTable();
 
