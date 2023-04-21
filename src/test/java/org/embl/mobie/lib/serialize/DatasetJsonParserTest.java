@@ -48,7 +48,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.embl.mobie.lib.create.JSONValidator.validate02;
+import static org.embl.mobie.lib.create.JSONValidator.validate;
 
 class DatasetJsonParserTest {
 
@@ -61,13 +61,6 @@ class DatasetJsonParserTest {
     private DatasetJsonParser datasetJsonParser;
     private String datasetJsonName = "dataset.json";
 
-    @BeforeAll
-    static void downloadSchema() throws IOException {
-        try( InputStream schemaInputStream = IOHelper.getInputStream(
-                "https://raw.githubusercontent.com/mobie/mobie.github.io/master/schema/dataset.schema.json") ) {
-            datasetSchema = new JSONObject(new JSONTokener(schemaInputStream));
-        }
-    }
 
     @BeforeEach
     void setUp( @TempDir Path tempDir ) throws IOException {
@@ -104,7 +97,7 @@ class DatasetJsonParserTest {
         String datasetJSONPath = new File( tempDir, datasetJsonName ).getAbsolutePath();
         datasetJsonParser.saveDataset( dataset, datasetJSONPath );
 
-        // FIXME
-        validate02(datasetJSONPath, JSONValidator.datasetSchemaURL);
+        // FIXME this needs assertTrue
+        validate(datasetJSONPath, JSONValidator.datasetSchemaURL);
     }
 }

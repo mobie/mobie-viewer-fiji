@@ -8,10 +8,6 @@ import java.io.InputStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import com.github.fge.jsonschema.core.report.ProcessingReport;
-import com.github.fge.jsonschema.main.JsonSchema;
-import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import org.embl.mobie.io.util.IOHelper;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
@@ -23,43 +19,9 @@ public class JSONValidator
 {
 	public static String datasetSchemaURL = "https://raw.githubusercontent.com/mobie/mobie.github.io/master/schema/dataset.schema.json";
 	public static String projectSchemaURL = "https://raw.githubusercontent.com/mobie/mobie.github.io/master/schema/project.schema.json";
+	public static String viewSchemaURL = "https://raw.githubusercontent.com/mobie/mobie.github.io/master/schema/view.schema.json";
 
-	public static boolean validate01( String jsonPath, String schemaURL )
-	{
-		// Load the JSON file to validate
-		File jsonFile = new File( jsonPath );
-		ObjectMapper objectMapper = new ObjectMapper();
-		JsonNode jsonNode;
-		try {
-			jsonNode = objectMapper.readTree(jsonFile);
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new RuntimeException("Failed to read JSON file: " + jsonFile.getAbsolutePath());
-		}
-
-		JsonSchemaFactory schemaFactory = JsonSchemaFactory.byDefault();
-		JsonSchema schema;
-		try {
-			schema = schemaFactory.getJsonSchema(schemaURL);
-		} catch (ProcessingException e) {
-			e.printStackTrace();
-			throw new RuntimeException("Failed to parse schema: " + schemaURL);
-		}
-
-		// Validate the JSON against the schema
-		try {
-			final ProcessingReport report = schema.validate( jsonNode );
-			final boolean success = report.isSuccess();
-			if (!success)
-				System.out.println(report);
-			return success;
-		} catch (ProcessingException e) {
-			System.out.println("JSON is invalid: " + e.getMessage());
-			return false;
-		}
-	}
-
-	public static boolean validate02( String jsonPath, String schemaURL )
+	public static boolean validate( String jsonPath, String schemaURL )
 	{
 		JSONObject datasetSchema;
 		try( InputStream schemaInputStream = IOHelper.getInputStream(
@@ -90,10 +52,12 @@ public class JSONValidator
 			}
 			catch ( ValidationException e )
 			{
+				System.out.println("Json Schema validation failed:");
 				System.out.println(e.getMessage());
 				e.getCausingExceptions().stream()
 						.map(ValidationException::getMessage)
 						.forEach(System.out::println);
+				System.out.println("End Json Schema Errors:");
 				return false;
 			}
 		} catch ( FileNotFoundException e )
