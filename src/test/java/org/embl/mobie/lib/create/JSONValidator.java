@@ -24,16 +24,7 @@ public class JSONValidator
 	public static String datasetSchemaURL = "https://raw.githubusercontent.com/mobie/mobie.github.io/master/schema/dataset.schema.json";
 	public static String projectSchemaURL = "https://raw.githubusercontent.com/mobie/mobie.github.io/master/schema/project.schema.json";
 
-	private final String jsonPath;
-	private final String schemaURL;
-
-	public JSONValidator( String jsonPath, String schemaURL )
-	{
-		this.jsonPath = jsonPath;
-		this.schemaURL = schemaURL;
-	}
-
-	public boolean validate()
+	public static boolean validate01( String jsonPath, String schemaURL )
 	{
 		// Load the JSON file to validate
 		File jsonFile = new File( jsonPath );
@@ -68,7 +59,7 @@ public class JSONValidator
 		}
 	}
 
-	public static boolean validateJSON( String jsonPath, String schemaURL )
+	public static boolean validate02( String jsonPath, String schemaURL )
 	{
 		JSONObject datasetSchema;
 		try( InputStream schemaInputStream = IOHelper.getInputStream(
@@ -84,7 +75,8 @@ public class JSONValidator
 		{
 			JSONObject jsonSubject = new JSONObject( new JSONTokener( jsonInputStream ) );
 
-			// library only supports up to draft 7 json schema - specify here, otherwise errors when reads 2020-12 in
+			// library only supports up to draft 7 json schema
+			// specify here, otherwise errors when reads 2020-12 in
 			// the schema file
 			SchemaLoader loader = SchemaLoader.builder()
 					.schemaJson( datasetSchema )

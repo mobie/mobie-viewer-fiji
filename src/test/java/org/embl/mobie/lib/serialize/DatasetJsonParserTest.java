@@ -48,7 +48,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.embl.mobie.lib.create.JSONValidator.validateJSON;
+import static org.embl.mobie.lib.create.JSONValidator.validate02;
 
 class DatasetJsonParserTest {
 
@@ -105,6 +105,6 @@ class DatasetJsonParserTest {
         datasetJsonParser.saveDataset( dataset, datasetJSONPath );
 
         // FIXME
-        validateJSON(datasetJSONPath, JSONValidator.datasetSchemaURL);
+        validate02(datasetJSONPath, JSONValidator.datasetSchemaURL);
     }
 }

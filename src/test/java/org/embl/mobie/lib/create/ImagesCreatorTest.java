@@ -53,7 +53,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import static org.embl.mobie.lib.create.JSONValidator.validateJSON;
+import static org.embl.mobie.lib.create.JSONValidator.validate02;
 import static org.embl.mobie.lib.create.ProjectCreatorTestHelper.makeImage;
 import static org.embl.mobie.lib.create.ProjectCreatorTestHelper.makeSegmentation;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -101,7 +101,7 @@ class ImagesCreatorTest {
         assertTrue( dataset.views().containsKey(imageName) );
         assertTrue( (( ImageDataSource )dataset.sources().get(imageName)).imageData.containsKey(imageDataFormat) );
         // FIXME: Constantin
-        validateJSON( datasetJsonPath, JSONValidator.datasetSchemaURL );
+        validate02( datasetJsonPath, JSONValidator.datasetSchemaURL );
 
         //assertTrue( new JSONValidator(datasetJsonPath, JSONValidator.datasetSchemaURL ).validate());
     }

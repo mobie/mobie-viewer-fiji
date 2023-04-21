@@ -91,15 +91,15 @@ class DatasetsCreatorTest {
         String projectJSONPath = projectCreator.getProjectJson().getAbsolutePath();
         Project project = new ProjectJsonParser().parseProject( projectJSONPath );
         assertEquals( project.getDefaultDataset(), dataset1Name );
-        assertTrue( JSONValidator.validateJSON( projectJSONPath, JSONValidator.projectSchemaURL ) );
-        assertTrue( new JSONValidator( projectJSONPath, JSONValidator.projectSchemaURL ).validate() );
+        assertTrue( JSONValidator.validate02( projectJSONPath, JSONValidator.projectSchemaURL ) );
+        assertTrue( JSONValidator.validate01( projectJSONPath, JSONValidator.projectSchemaURL ) );
 
         datasetsCreator.makeDefaultDataset( dataset2Name );
         projectJSONPath = projectCreator.getProjectJson().getAbsolutePath();
         project = new ProjectJsonParser().parseProject( projectJSONPath );
         assertEquals( project.getDefaultDataset(), dataset2Name );
 
-        assertTrue( new JSONValidator( projectJSONPath, JSONValidator.projectSchemaURL ).validate() );
+        assertTrue( JSONValidator.validate01( projectJSONPath, JSONValidator.projectSchemaURL ) );
 
     }
 
