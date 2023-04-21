@@ -84,7 +84,7 @@ class DatasetJsonParserTest {
     }
 
 
-    //@Test
+    //@Test // FIXME does that work on CI?
     public void savePlatyView() throws IOException
     {
         final ImageJ imageJ = new ImageJ();
@@ -92,7 +92,8 @@ class DatasetJsonParserTest {
 
         final MoBIE moBIE = new MoBIE("https://github.com/mobie/platybrowser-project", MoBIESettings.settings());
 
-        // show a view with a segmentation and selected cells that loads fast, to test saving
+        // show a view with a segmentation and
+        // selected cells that loads fast, to test saving
         final Map< String, View > views = moBIE.getViews();
         moBIE.getViewManager().show( views.get("Suppl. Fig. 2A: Neuron" ) );
 
