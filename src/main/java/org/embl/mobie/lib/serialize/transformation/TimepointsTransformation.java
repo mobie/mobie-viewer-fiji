@@ -51,6 +51,11 @@ public class TimepointsTransformation< T > extends AbstractImageTransformation< 
 	 */
 	protected boolean keep = false;
 
+	// For GSON
+	public TimepointsTransformation()
+	{
+	}
+
 	public TimepointsTransformation( String name, List< List< Integer > > timepoints, boolean keep, List< String > sources ) {
 		this( name, timepoints, keep, sources, null );
 	}

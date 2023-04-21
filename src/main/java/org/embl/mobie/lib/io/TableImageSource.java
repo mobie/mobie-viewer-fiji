@@ -8,6 +8,8 @@ public class TableImageSource
 
 	public TableImageSource( String string )
 	{
+		// "columnName=image;channelIndex"
+
 		String[] split = new String[]{ string };
 		if ( string.contains( ";" ) )
 		{
@@ -18,8 +20,8 @@ public class TableImageSource
 		if ( split[ 0 ].contains( "=" ) )
 		{
 			split = split[ 0 ].split( "=" );
-			name = split[ 0 ];
-			columnName = split[ 1 ];
+			columnName = split[ 0 ];
+			name = split[ 1 ];
 		}
 		else
 		{

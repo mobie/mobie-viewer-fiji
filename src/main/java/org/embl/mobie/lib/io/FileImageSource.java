@@ -12,6 +12,8 @@ public class FileImageSource
 
 	public FileImageSource( String string )
 	{
+		// "path=name;channelIndex"
+
 		String[] split = new String[]{ string };
 		if ( string.contains( ";" ) )
 		{
@@ -22,8 +24,8 @@ public class FileImageSource
 		if ( split[ 0 ].contains( "=" ) )
 		{
 			split = split[ 0 ].split( "=" );
-			name = split[ 0 ];
-			path = split[ 1 ];
+			path = split[ 0 ];
+			name = split[ 1 ];
 		}
 		else
 		{
