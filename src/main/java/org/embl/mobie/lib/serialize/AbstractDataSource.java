@@ -4,9 +4,9 @@ public abstract class AbstractDataSource implements DataSource
 {
 	// Serialisation
 
-	protected String name;
-
 	// Runtime
+
+	protected transient String name;
 
 	protected transient boolean preInit;
 

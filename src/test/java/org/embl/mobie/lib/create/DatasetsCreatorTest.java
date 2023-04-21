@@ -61,7 +61,7 @@ class DatasetsCreatorTest {
         String datasetName = "test";
         datasetsCreator.addDataset(datasetName, false);
 
-        Project project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
+        Project project = new ProjectJsonParser().parseProject(projectCreator.getProjectJson().getAbsolutePath() );
         assertEquals(project.datasets().size(), 1);
         assertEquals(project.datasets().get(0), datasetName);
         assertTrue(new File(projectCreator.getProjectLocation(), datasetName).exists());
@@ -74,7 +74,7 @@ class DatasetsCreatorTest {
         datasetsCreator.addDataset(oldDatasetName, false);
         datasetsCreator.renameDataset(oldDatasetName, newDatasetName);
 
-        Project project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
+        Project project = new ProjectJsonParser().parseProject(projectCreator.getProjectJson().getAbsolutePath() );
         assertEquals(project.datasets().size(), 1);
         assertEquals(project.datasets().get(0), newDatasetName);
         assertTrue(new File(projectCreator.getProjectLocation(), newDatasetName).exists());
@@ -88,29 +88,34 @@ class DatasetsCreatorTest {
         datasetsCreator.addDataset(dataset1Name, false);
         datasetsCreator.addDataset(dataset2Name, false);
 
-        Project project;
-        project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
+        String projectJSONPath = projectCreator.getProjectJson().getAbsolutePath();
+        Project project = new ProjectJsonParser().parseProject( projectJSONPath );
         assertEquals( project.getDefaultDataset(), dataset1Name );
+        assertTrue( new JSONValidator( projectJSONPath, JSONValidator.projectSchemaURL ).validate() );
 
         datasetsCreator.makeDefaultDataset( dataset2Name );
-
-        project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
+        projectJSONPath = projectCreator.getProjectJson().getAbsolutePath();
+        project = new ProjectJsonParser().parseProject( projectJSONPath );
         assertEquals( project.getDefaultDataset(), dataset2Name );
+        assertTrue( new JSONValidator( projectJSONPath, JSONValidator.projectSchemaURL ).validate() );
     }
 
     @Test
     void makeDataset2D() throws IOException {
         String datasetName = "test";
-        String datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
-                datasetName, "dataset.json" );
+        String datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "dataset.json" );
 
         Dataset dataset;
+
         datasetsCreator.addDataset(datasetName, false);
         dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
         assertFalse( dataset.is2D() );
+        assertTrue( new JSONValidator( datasetJsonPath, JSONValidator.datasetSchemaURL ).validate() );
 
         datasetsCreator.makeDataset2D(datasetName, true);
         dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
         assertTrue( dataset.is2D() );
+        assertTrue( new JSONValidator( datasetJsonPath, JSONValidator.datasetSchemaURL ).validate() );
+
     }
 }

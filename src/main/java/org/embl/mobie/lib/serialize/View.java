@@ -48,13 +48,19 @@ public class View
 	// Serialisation (do not change names of fields!)
 	//
 	private String uiSelectionGroup;
-	private List< Display< ? > > sourceDisplays;
-	private List< Transformation > sourceTransforms;
-	private ViewerTransform viewerTransform;
-	private boolean isExclusive = false;
-	private String name;
 
-	// Other
+	private List< Display< ? > > sourceDisplays;
+
+	private List< Transformation > sourceTransforms;
+
+	private ViewerTransform viewerTransform;
+
+	private boolean isExclusive = false;
+
+	// Runtime
+
+	private transient String name;
+
 	private boolean overlayNames = false; // TODO add to JSON spec?
 	
 	public View( String name, String uiSelectionGroup, List< Display< ? > > sourceDisplays, List< Transformation > sourceTransforms, boolean isExclusive ) {

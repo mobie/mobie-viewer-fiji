@@ -1,5 +1,6 @@
 package org.embl.mobie.lib.table.saw;
 
+import IceInternal.Ex;
 import ij.measure.ResultsTable;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
@@ -64,22 +65,28 @@ public class TableOpener
 
 		try
 		{
-			// Note that while it appears to be faster to
+			// while it appears to be faster to
 			// first load the whole table into one big string,
 			// it has the drawback that we temporarily need to
 			// allocate twice the memory and the GC has some
 			// work to do, which can become a bottleneck.
-			//System.out.println("Reading table " + path + "...");
 			final long start = System.currentTimeMillis();
 			final InputStream inputStream = IOHelper.getInputStream( path );
-			//final String string = IOHelper.read( path );
+			// final String string = IOHelper.read( path );
 			// https://jtablesaw.github.io/tablesaw/userguide/importing_data.html
-			CsvReadOptions.Builder builder = CsvReadOptions.builder( inputStream ).separator( separator ).missingValueIndicator( "na", "none", "nan" ).sample( numSamples > 0 ).sampleSize( numSamples ).columnTypesPartial( nameToType );
+			// Two header rows:
+			// https://github.com/jtablesaw/tablesaw/issues/1204
+			CsvReadOptions.Builder builder = CsvReadOptions.builder( inputStream )
+					.separator( separator )
+					.missingValueIndicator( "na", "none", "nan" )
+					.sample( numSamples > 0 )
+					.sampleSize( numSamples )
+					.columnTypesPartial( nameToType );
 			final Table rows = Table.read().usingOptions( builder );
 			//System.out.println("Read table " + path + " with " + rows.rowCount() + " rows in " + ( System.currentTimeMillis() - start ) + " ms." );
 			return rows;
 		}
-		catch ( IOException e )
+		catch ( Exception e )
 		{
 			e.printStackTrace();
 			throw new RuntimeException( e );
@@ -138,8 +145,23 @@ public class TableOpener
 
 	public static Table openDelimitedTextFile( String path, char separator )
 	{
-		CsvReadOptions.Builder builder = CsvReadOptions.builder( path ).separator( separator ).missingValueIndicator( "na", "none", "nan" );
-		return Table.read().usingOptions( builder );
+		try
+		{
+			CsvReadOptions.Builder builder =
+					CsvReadOptions.builder( path )
+							.separator( separator )
+							.missingValueIndicator( "na", "none", "nan" );
+			return Table.read().usingOptions( builder );
+		}
+		catch ( Exception e )
+		{
+			if ( e.toString().contains( "Cannot add column with duplicate name" ) )
+			{
+				int a = 1;
+			}
+			e.printStackTrace();
+			throw new RuntimeException( e );
+		}
 	}
 
 	public static Table openDelimitedTextFile( String path )
