@@ -68,8 +68,7 @@ public abstract class ColorHelper
 		if ( argbType == null ) return null;
 
 		final int colorIndex = argbType.get();
-		// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/924
-		final String string = "" + ARGBType.red( colorIndex ) + "-" + ARGBType.green( colorIndex ) + "-" + ARGBType.blue( colorIndex ) + "-" + ARGBType.alpha( colorIndex );
+		final String string = "r=" + ARGBType.red( colorIndex ) + ",g=" + ARGBType.green( colorIndex ) + ",b=" + ARGBType.blue( colorIndex ) + ",a=" + ARGBType.alpha( colorIndex );
 		return string;
 	}
 
