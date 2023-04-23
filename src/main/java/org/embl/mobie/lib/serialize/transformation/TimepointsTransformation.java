@@ -39,10 +39,12 @@ public class TimepointsTransformation< T > extends AbstractImageTransformation< 
 	/**
 	 * Outer list: list of timepoints that you want to map
 	 * Inner list: pairs of timepoints: to be read as
-	 * Whether to find the timepoint in the new source in the old source,
-	 * so new -> old
-	 * "from" must exist in the source
-	 * "to" will be added to the transformed source
+	 * mapping the timepoint of the new source to the old source, i.e.
+	 * new -> old
+	 * "old" must exist in the input source
+	 * "new" will exist in the transformed source
+	 * "new" timepoints must be unique
+	 * "old" may be referred to several times
 	 */
 	protected List< List< Integer > > parameters;
 
