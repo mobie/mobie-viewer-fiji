@@ -40,8 +40,6 @@ import java.util.Map;
  One {@code StorageLocation} contains data for
  single channel volumetric time-lapse data,
  such as an {@code Source} in BigDataViewer.
-
-
  */
 public class StorageLocation
 {
@@ -78,13 +76,16 @@ public class StorageLocation
 	// multi-channel image data source.
 	//
 	// as data is opened as {@code SpimData}
-	// the channel can also refer to a setup, which
-	// does not need to be a channel, but could be some
+	// the {@code channel} can also refer to a setup, which
+	// does not need to be a fluorescence channel, but could be some
 	// entirely other image, e.g. in CZI or LIF files
 	//
-	// historically, we only had channels, and thus the name
-	// of the variable is "channel" and cannot readily be changed
-	// because we use in the MoBIE JSON spec
-	public Integer channel = 0; // only for images
+	// also the BDV XML based files can contain multiple "setups"
+	// which can be chosen from via the {@code channel} field
+	//
+	// historically, we only had fluorescence channels,
+	// and thus the name of the variable is "channel" and cannot
+	// readily be changed because we use in the MoBIE JSON spec
+	public Integer channel; // only for images, will default to zero if not set
 
 }
