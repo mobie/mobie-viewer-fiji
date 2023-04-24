@@ -189,6 +189,13 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 		return opacityNotSelected;
 	}
 
+
+	@Override
+	public BlendingMode getBlendingMode()
+	{
+		return blendingMode != null ? blendingMode : BlendingMode.Alpha;
+	}
+
 	private void setSerializableFields( AbstractAnnotationDisplay< ? extends Annotation > annotationDisplay )
 	{
 		this.name = annotationDisplay.name;

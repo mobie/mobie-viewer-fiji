@@ -80,9 +80,10 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		return contrastLimits;
 	}
 
+	@Override
 	public BlendingMode getBlendingMode()
 	{
-		return blendingMode;
+		return blendingMode != null ? blendingMode : BlendingMode.Sum;
 	}
 
 	public Double[] getResolution3dView() { return resolution3dView; }

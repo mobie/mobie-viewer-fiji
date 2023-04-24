@@ -44,13 +44,12 @@ import java.util.Map;
 public class StorageLocation
 {
 	// for data on disk:
-
 	// either
 	public String relativePath;
 	// or
 	public String absolutePath;
 
-	// for data on s3
+	// for data on s3:
 	public String s3Address;
 	public String signingRegion;
 
