@@ -220,6 +220,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
         menu.add( createSaveTableAsMenuItem() );
 		menu.add( createSaveColumnsAsMenuItem() );
 		menu.add( createLoadColumnsMenuItem() );
+		menu.add( createAddStringColumnMenuItem() );
 		return menu;
     }
 
@@ -230,6 +231,17 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		{
 			((DefaultRowSorter) jTable.getRowSorter()).setSortable( i, sortable );
 		}
+	}
+
+	private JMenuItem createAddStringColumnMenuItem()
+	{
+		final JMenuItem menuItem = new JMenuItem( "Add Text Column..." );
+		menuItem.addActionListener( e ->
+				new Thread( () -> {
+					showAddStringColumnDialog();
+				}).start()
+		);
+		return menuItem;
 	}
 
 	private JMenuItem createLoadColumnsMenuItem()
@@ -259,7 +271,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 					storageLocation.absolutePath = IOHelper.getParentLocation( path );
 					storageLocation.defaultChunk = IOHelper.getFileName( path );
 					tableModel.loadExternalTableChunk( storageLocation );
-
 				}
 
 				IJ.log( "...done!" );
@@ -449,18 +460,25 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	public void showNewAnnotationDialog()
 	{
+		final String columnName = showAddStringColumnDialog();
+		if ( columnName == null ) return;
+		continueAnnotation( columnName );
+	}
+
+	private String showAddStringColumnDialog()
+	{
 		final GenericDialog gd = new GenericDialog( "" );
-		gd.addStringField( "Annotation column name", "", 30 );
+		gd.addStringField( "Column name", "", 30 );
 		gd.showDialog();
-		if( gd.wasCanceled() ) return;
+		if( gd.wasCanceled() ) return null;
 		final String columnName = gd.getNextString();
 		if ( tableModel.columnNames().contains( columnName ) )
 		{
 			Logger.error( "\"" +columnName + "\" exists already as a column name, please choose another one." );
-			return;
+			return null;
 		}
 		addStringColumn( columnName );
-		continueAnnotation( columnName );
+		return columnName;
 	}
 
 	public void continueAnnotation( String annotationColumnName )

@@ -12,8 +12,8 @@ class LautaroCheckIlastikTracking
 	{
 		new ImageJ().ui().showUI();
 		final OpenImageAndLabelsCommand command = new OpenImageAndLabelsCommand();
-		command.image = new File("/Volumes/crocker/Lautaro/Drugs_screen/Drosophila_data/analysis/A0001DF000000031/.*--mov.tif=worms");
-		command.labels = new File("/Volumes/crocker/Lautaro/Drugs_screen/Drosophila_data/analysis/A0001DF000000031/.*--tracking-oids.h5=labels");
+		command.image = new File("/Volumes/crocker/Lautaro/Drugs_screen/Drosophila_data/analysis/A0001DF000000039/.*--mov.tif=raw");
+		command.labels = new File("/Volumes/crocker/Lautaro/Drugs_screen/Drosophila_data/analysis/A0001DF000000039/.*--tracking-oids.h5=labels");
 		command.run();
 	}
 }
