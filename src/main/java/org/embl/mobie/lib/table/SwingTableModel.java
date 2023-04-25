@@ -3,12 +3,16 @@ package org.embl.mobie.lib.table;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.jetbrains.annotations.Nls;
 
+import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SwingTableModel implements TableModel
 {
 	private final AnnotationTableModel< ? extends Annotation > tableModel;
+	private final List< TableModelListener > tableModelListeners = new ArrayList<>();
 
 	public < A extends Annotation > SwingTableModel( AnnotationTableModel< A > tableModel )
 	{
@@ -79,12 +83,21 @@ public class SwingTableModel implements TableModel
 	@Override
 	public void addTableModelListener( TableModelListener l )
 	{
-
+		tableModelListeners.add( l );
 	}
 
 	@Override
 	public void removeTableModelListener( TableModelListener l )
 	{
+		tableModelListeners.remove( l );
+	}
 
+	public void tableChanged()
+	{
+		for ( TableModelListener listener : tableModelListeners )
+		{
+			final TableModelEvent tableModelEvent = new TableModelEvent( this, TableModelEvent.HEADER_ROW );
+			listener.tableChanged( tableModelEvent );
+		}
 	}
 }

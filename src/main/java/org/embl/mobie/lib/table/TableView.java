@@ -52,7 +52,6 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.ui.UserInterfaceHelper;
 
 import javax.swing.*;
-import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -264,22 +263,25 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				}
 
 				IJ.log( "...done!" );
-				updateJTable();
+				updateTable();
 
 			}).start()
 		);
 		return menuItem;
 	}
 
-	private synchronized void updateJTable()
+	private synchronized void updateTable()
 	{
 		if ( jTable == null ) return;
+
 		try
 		{
-			jTable.tableChanged( new TableModelEvent( swingTableModel ) );
+			swingTableModel.tableChanged();
+			repaintTable();
 		}
-		catch ( Exception e )
+		catch( Exception e )
 		{
+			// This seems to have no consequences:
 			// https://github.com/mobie/mobie-viewer-fiji/issues/1011
 		}
 	}
@@ -484,7 +486,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	public void addStringColumn( String column )
 	{
-		// TODO: update JTable?!
 		tableModel.addStringColumn( column );
 	}
 
@@ -798,19 +799,23 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	@Override
 	public void annotationsAdded( Collection< A > annotations )
 	{
-		updateJTable();
+		updateTable();
 	}
 
 	@Override
 	public void columnAdded( String columnName )
 	{
-		updateJTable();
-		final List< String > columnNames = tableModel.columnNames();
-		for ( int i = 0; i < columnNames.size(); i++ )
-		{
-			System.out.println( columnNames.get( i ) );
-			System.out.println( swingTableModel.getColumnName( i ) );
-			System.out.println( jTable.getColumnName( i ) );
-		}
+		updateTable();
+//		For debugging:
+//		final List< String > columnNames = tableModel.columnNames();
+//		final int columnCount1 = swingTableModel.getColumnCount();
+//		final TableColumnModel columnModel = jTable.getColumnModel();
+//		final int columnCount = columnModel.getColumnCount();
+//		for ( int i = 0; i < columnNames.size(); i++ )
+//		{
+//			System.out.println( columnNames.get( i ) );
+//			System.out.println( swingTableModel.getColumnName( i ) );
+//			System.out.println( jTable.getColumnName( i ) );
+//		}
 	}
 }
