@@ -36,6 +36,7 @@ public class CachedCellImage< T > implements Image< T >
 		this.name = name;
 		this.imageDataFormat = imageDataFormat;
 		this.sharedQueue = sharedQueue;
+		this.affineTransform3D = new AffineTransform3D();
 	}
 
 	@Override
@@ -48,8 +49,6 @@ public class CachedCellImage< T > implements Image< T >
 	private void open()
 	{
 		final CachedCellImgOpener< ? > opener = new CachedCellImgOpener<>( path, imageDataFormat, sharedQueue );
-
-		affineTransform3D = new AffineTransform3D();
 
 		Source< T > source = getSource( opener );
 		Source< ? extends Volatile< T > > volatileSource = getVolatileSource( opener );
@@ -91,6 +90,10 @@ public class CachedCellImage< T > implements Image< T >
 					affineTransform3D,
 					name );
 		}
+
+		// no spatial calibration
+		SourceHelper.setVoxelDimensionsToPixels( source );
+
 		return source;
 	}
 
@@ -112,7 +115,9 @@ public class CachedCellImage< T > implements Image< T >
 		}
 
 		this.affineTransform3D.preConcatenate( affineTransform3D );
-		transformedSource.setFixedTransform( this.affineTransform3D );
+
+		if ( transformedSource != null )
+			transformedSource.setFixedTransform( this.affineTransform3D );
 
 		for ( ImageListener listener : listeners.list )
 			listener.imageChanged();
