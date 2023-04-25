@@ -42,7 +42,7 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	protected String name;
 	protected double opacity = 1.0;
 	protected boolean visible = true;
-	protected BlendingMode blendingMode;
+	protected BlendingMode blendingMode; // Do not set default to avoid serialisation for AnnotationDisplays
 
 	// Runtime
 	private transient List< Image< T > > images = new ArrayList<>();
