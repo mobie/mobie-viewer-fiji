@@ -199,6 +199,10 @@ public abstract class MoBIEHelper
 				throw new RuntimeException( e );
 			}
 		}
+		else if ( path.endsWith( ".h5" ) )
+		{
+			return new Metadata();
+		}
 		else
 		{
 			final ImagePlus imagePlus = IJ.openVirtual( path );

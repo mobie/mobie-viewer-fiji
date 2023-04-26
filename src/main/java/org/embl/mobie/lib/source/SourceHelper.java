@@ -31,6 +31,7 @@ package org.embl.mobie.lib.source;
 import bdv.AbstractSpimSource;
 import bdv.SpimSource;
 import bdv.tools.transformation.TransformedSource;
+import bdv.util.AbstractSource;
 import bdv.util.Affine3DHelpers;
 import bdv.util.BdvHandle;
 import bdv.util.ResampledSource;
@@ -254,12 +255,21 @@ public abstract class SourceHelper
 		return sourcesAtCurrentPosition;
 	}
 
-	public static void setVoxelDimensionsToPixels( AbstractSpimSource< ? > source )
+	public static void setVoxelDimensionsToPixels( Source< ? > source )
 	{
 		try
 		{
 			final VoxelDimensions pixelDimensions = new FinalVoxelDimensions( "pixel", 1.0, 1.0, 1.0 );
-			Field voxelDimensions = AbstractSpimSource.class.getDeclaredField("voxelDimensions");
+			Field voxelDimensions;
+			if ( source instanceof AbstractSpimSource )
+				voxelDimensions = AbstractSpimSource.class.getDeclaredField("voxelDimensions");
+			else if ( source instanceof AbstractSource )
+				voxelDimensions = AbstractSource.class.getDeclaredField("voxelDimensions");
+			else
+			{
+				throw new RuntimeException("Cannot access field voxelDimensions in " + source.getClass().getName() );
+			}
+
 			voxelDimensions.setAccessible(true);
 			voxelDimensions.set( source, pixelDimensions );
 		} catch ( NoSuchFieldException e )

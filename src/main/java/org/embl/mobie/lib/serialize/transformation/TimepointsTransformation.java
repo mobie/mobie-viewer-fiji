@@ -39,10 +39,12 @@ public class TimepointsTransformation< T > extends AbstractImageTransformation< 
 	/**
 	 * Outer list: list of timepoints that you want to map
 	 * Inner list: pairs of timepoints: to be read as
-	 * Whether to find the timepoint in the new source in the old source,
-	 * so new -> old
-	 * "from" must exist in the source
-	 * "to" will be added to the transformed source
+	 * mapping the timepoint of the new source to the old source, i.e.
+	 * new -> old
+	 * "old" must exist in the input source
+	 * "new" will exist in the transformed source
+	 * "new" timepoints must be unique
+	 * "old" may be referred to several times
 	 */
 	protected List< List< Integer > > parameters;
 
@@ -50,6 +52,11 @@ public class TimepointsTransformation< T > extends AbstractImageTransformation< 
 	 * Whether to keep the timepoints that are present in the source
 	 */
 	protected boolean keep = false;
+
+	// For GSON
+	public TimepointsTransformation()
+	{
+	}
 
 	public TimepointsTransformation( String name, List< List< Integer > > timepoints, boolean keep, List< String > sources ) {
 		this( name, timepoints, keep, sources, null );

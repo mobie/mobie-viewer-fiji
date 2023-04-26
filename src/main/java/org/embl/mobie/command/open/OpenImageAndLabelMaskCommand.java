@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Image and Label Mask..." )
-public class OpenImageAndLabelsCommand implements Command {
+public class OpenImageAndLabelMaskCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -24,7 +24,7 @@ public class OpenImageAndLabelsCommand implements Command {
 	public File labels;
 
 	@Parameter( label = "Label Mask Table Path", required = false )
-	public File tables;
+	public File table;
 
 	@Parameter( label = "Remove Spatial Calibration", required = false )
 	public Boolean removeSpatialCalibration = false;
@@ -41,7 +41,7 @@ public class OpenImageAndLabelsCommand implements Command {
 		if ( labels != null ) labelsList.add( labels.getAbsolutePath() );
 
 		final ArrayList< String > tablesList = new ArrayList<>();
-		if ( tables != null ) labelsList.add( tables.getAbsolutePath() );
+		if ( table != null ) tablesList.add( table.getAbsolutePath() );
 
 		final MoBIESettings settings = new MoBIESettings();
 		settings.removeSpatialCalibration( removeSpatialCalibration );

@@ -31,6 +31,7 @@ package org.embl.mobie.lib.table;
 import com.google.gson.annotations.SerializedName;
 import ij.IJ;
 import org.apache.commons.lang3.StringUtils;
+import org.embl.mobie.lib.table.columns.IlastikSegmentColumnNames;
 import org.embl.mobie.lib.table.columns.MoBIESegmentColumnNames;
 import org.embl.mobie.lib.table.columns.MorpholibJSegmentColumnNames;
 import org.embl.mobie.lib.table.columns.SegmentColumnNames;
@@ -113,6 +114,9 @@ public enum TableDataFormat
 
 		if ( SkimageSegmentColumnNames.matches( columnNames ) )
 			return new SkimageSegmentColumnNames( columnNames );
+
+		if ( IlastikSegmentColumnNames.matches( columnNames ) )
+			return new IlastikSegmentColumnNames();
 
 		return null;
 	}

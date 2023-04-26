@@ -57,6 +57,7 @@ import org.embl.mobie.lib.hcs.Plate;
 import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.image.AnnotatedLabelImage;
 import org.embl.mobie.lib.image.DefaultAnnotatedLabelImage;
+import org.embl.mobie.lib.image.CachedCellImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.SpimDataImage;
 import org.embl.mobie.lib.image.SpotAnnotationImage;
@@ -250,7 +251,6 @@ public class MoBIE
 			final FileImageSource fileImageSource = new FileImageSource( image );
 			imageSources.add( new ImageSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
 		}
-
 
 		// labels
 		//
@@ -1153,11 +1153,17 @@ public class MoBIE
 		return tableModel;
 	}
 
-	private SpimDataImage< ? > initImage( ImageDataFormat imageDataFormat, StorageLocation storageLocation, String name )
+	private Image< ? > initImage( ImageDataFormat imageDataFormat, StorageLocation storageLocation, String name )
 	{
 		if ( imageDataFormat.equals( ImageDataFormat.SpimData ) )
 		{
 			return new SpimDataImage<>( ( AbstractSpimData ) storageLocation.data, storageLocation.channel, name, settings.values.getRemoveSpatialCalibration() );
+		}
+
+		if ( imageDataFormat.equals( ImageDataFormat.IlastikHDF5 ) )
+		{
+			final CachedCellImage< Object > image = new CachedCellImage<>( name, storageLocation.absolutePath, storageLocation.channel, imageDataFormat, ThreadHelper.sharedQueue );
+			return image;
 		}
 
 		if ( storageLocation instanceof Site )
