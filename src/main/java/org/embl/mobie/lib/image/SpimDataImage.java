@@ -23,7 +23,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 {
 	private ImageDataFormat imageDataFormat;
 	private String path;
-	private int setupId;
+	private int setupId = 0;
 	private SourcePair< T > sourcePair;
 	private String name;
 	private Site site;
@@ -34,12 +34,12 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	private TransformedSource transformedSource;
 	private AffineTransform3D affineTransform3D = new AffineTransform3D();
 
-	public SpimDataImage( AbstractSpimData< ? > spimData, int setupId, String name, Boolean removeSpatialCalibration  )
+	public SpimDataImage( AbstractSpimData< ? > spimData, Integer setupId, String name, Boolean removeSpatialCalibration  )
 	{
 		this.imageDataFormat = null;
 		this.path = null;
 		this.sharedQueue = null;
-		this.setupId = setupId;
+		this.setupId = setupId == null ? 0 : setupId;
 		this.name = name;
 		this.removeSpatialCalibration = removeSpatialCalibration;
 		createSourcePair( spimData, setupId, name );

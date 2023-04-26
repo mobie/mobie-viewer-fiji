@@ -70,8 +70,7 @@ public class DatasetJsonCreator {
 
     public void addImage(String imageName, String datasetName,
                          String uiSelectionGroup,
-                         ImageDataFormat imageDataFormat, double[] contrastLimits, String colour,
-                         boolean exclusive, AffineTransform3D sourceTransform ) {
+                         ImageDataFormat imageDataFormat, double[] contrastLimits, String colour, boolean exclusive, AffineTransform3D sourceTransform ) {
         Dataset dataset = fetchDataset( datasetName );
 
         addNewImageSource( dataset, imageName, imageDataFormat );

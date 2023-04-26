@@ -91,13 +91,13 @@ class DatasetsCreatorTest {
         String projectJSONPath = projectCreator.getProjectJson().getAbsolutePath();
         Project project = new ProjectJsonParser().parseProject( projectJSONPath );
         assertEquals( project.getDefaultDataset(), dataset1Name );
-        assertTrue( new JSONValidator( projectJSONPath, JSONValidator.projectSchemaURL ).validate() );
+        assertTrue( JSONValidator.validate( projectJSONPath, JSONValidator.projectSchemaURL ) );
 
         datasetsCreator.makeDefaultDataset( dataset2Name );
         projectJSONPath = projectCreator.getProjectJson().getAbsolutePath();
         project = new ProjectJsonParser().parseProject( projectJSONPath );
         assertEquals( project.getDefaultDataset(), dataset2Name );
-        assertTrue( new JSONValidator( projectJSONPath, JSONValidator.projectSchemaURL ).validate() );
+        assertTrue( JSONValidator.validate( projectJSONPath, JSONValidator.projectSchemaURL ) );
     }
 
     @Test
@@ -108,14 +108,11 @@ class DatasetsCreatorTest {
         Dataset dataset;
 
         datasetsCreator.addDataset(datasetName, false);
-        dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
+        dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
         assertFalse( dataset.is2D() );
-        assertTrue( new JSONValidator( datasetJsonPath, JSONValidator.datasetSchemaURL ).validate() );
 
         datasetsCreator.makeDataset2D(datasetName, true);
         dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
         assertTrue( dataset.is2D() );
-        assertTrue( new JSONValidator( datasetJsonPath, JSONValidator.datasetSchemaURL ).validate() );
-
     }
 }

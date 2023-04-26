@@ -53,6 +53,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static org.embl.mobie.lib.create.JSONValidator.validate;
 import static org.embl.mobie.lib.create.ProjectCreatorTestHelper.makeImage;
 import static org.embl.mobie.lib.create.ProjectCreatorTestHelper.makeSegmentation;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -85,8 +86,7 @@ class ImagesCreatorTest {
 
         projectCreator.getDatasetsCreator().addDataset(datasetName, false);
 
-        datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
-                datasetName, "dataset.json" );
+        datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "dataset.json" );
     }
 
     void assertionsForSpimData( SpimData spimData ) {
@@ -100,6 +100,8 @@ class ImagesCreatorTest {
         assertTrue( dataset.sources().containsKey(imageName) );
         assertTrue( dataset.views().containsKey(imageName) );
         assertTrue( (( ImageDataSource )dataset.sources().get(imageName)).imageData.containsKey(imageDataFormat) );
+        // Check that this follows JSON schema
+        assertTrue( validate( datasetJsonPath, JSONValidator.datasetSchemaURL ) );
     }
 
     void assertionsForN5( boolean onlyXmls ) throws SpimDataException {

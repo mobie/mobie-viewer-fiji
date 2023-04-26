@@ -61,7 +61,7 @@ public class View
 
 	private transient String name;
 
-	private boolean overlayNames = false; // TODO add to JSON spec?
+	private transient boolean overlayNames = false; // TODO add to JSON spec?
 	
 	public View( String name, String uiSelectionGroup, List< Display< ? > > sourceDisplays, List< Transformation > sourceTransforms, boolean isExclusive ) {
 		this( name, uiSelectionGroup, sourceDisplays, sourceTransforms, null, isExclusive);

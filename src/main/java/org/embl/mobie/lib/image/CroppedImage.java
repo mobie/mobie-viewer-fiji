@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.image;
 
+import bdv.img.hdf5.Hdf5ImageLoader;
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;

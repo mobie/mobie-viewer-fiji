@@ -95,7 +95,7 @@ public class ProjectCreator {
         } else {
             this.project = new Project();
             project.setDatasets( new ArrayList<>() );
-            project.setSpecVersion( "0.2.0" );
+            project.setSpecVersion( "0.3.0" );
         }
 
         this.datasetsCreator = new DatasetsCreator( this );

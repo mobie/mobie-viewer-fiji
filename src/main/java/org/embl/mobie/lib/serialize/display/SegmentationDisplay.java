@@ -29,6 +29,7 @@
 package org.embl.mobie.lib.serialize.display;
 
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
+import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.color.lut.LUTs;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 

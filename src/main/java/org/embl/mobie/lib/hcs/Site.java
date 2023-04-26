@@ -21,6 +21,7 @@ public class Site extends StorageLocation
 	{
 		this.name = name;
 		this.imageDataFormat = imageDataFormat;
+		this.channel = 0;
 	}
 
 	public String getName()
