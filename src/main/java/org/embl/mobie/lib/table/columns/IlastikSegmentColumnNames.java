@@ -7,51 +7,51 @@ import java.util.Collection;
 public class IlastikSegmentColumnNames implements SegmentColumnNames
 {
 	public static final String NONE = "None";
-	public static final String LABEL_ID = "Label";
-	public static final String[] ANCHOR = { "Centroid.X", "Centroid.Y", "Centroid.Z" };
-	public static final String[] BB_MIN = { "Box.X.Min", "Box.Y.Min", "Box.Z.Min" };
-	public static final String[] BB_MAX = { "Box.X.Max", "Box.Y.Max", "Box.Z.Max" };
-	public static final String TIMEPOINT = "Timepoint";
+	public static final String LABEL_ID = "labelimageId";
+	public static final String[] ANCHOR = { "Object_Center_0", "Object_Center_1", "Object_Center_2" };
+	public static final String[] BB_MIN = { "Bounding_Box_Minimum_0", "Bounding_Box_Minimum_1", "Bounding_Box_Minimum_2" };
+	public static final String[] BB_MAX = { "Bounding_Box_Maximum_0", "Bounding_Box_Maximum_1", "Bounding_Box_Maximum_2" };
+	public static final String TIMEPOINT = "frame";
 
 	@Override
 	public String labelImageColumn()
 	{
-		return ColumnNames.LABEL_IMAGE_ID;
+		return NONE;
 	}
 
 	@Override
 	public String labelIdColumn()
 	{
-		return ColumnNames.LABEL_ID;
+		return LABEL_ID;
 	}
 
 	@Override
 	public String timePointColumn()
 	{
-		return ColumnNames.TIMEPOINT;
+		return TIMEPOINT;
 	}
 
 	@Override
 	public String[] anchorColumns()
 	{
-		return new String[]{ ColumnNames.ANCHOR_X, ColumnNames.ANCHOR_Y, ColumnNames.ANCHOR_Z };
+		return ANCHOR;
 	}
 
 	@Override
 	public String[] bbMinColumns()
 	{
-		return new String[]{ ColumnNames.BB_MIN_X, ColumnNames.BB_MIN_Y, ColumnNames.BB_MIN_Z };
+		return BB_MIN;
 	}
 
 	@Override
 	public String[] bbMaxColumns()
 	{
-		return new String[]{ ColumnNames.BB_MAX_X, ColumnNames.BB_MAX_Y, ColumnNames.BB_MAX_Z };
+		return BB_MAX;
 	}
 
 	public static boolean matches( Collection< String > columns )
 	{
-		return columns.contains( ColumnNames.ANCHOR_X );
+		return columns.contains( LABEL_ID );
 	}
 
 }
