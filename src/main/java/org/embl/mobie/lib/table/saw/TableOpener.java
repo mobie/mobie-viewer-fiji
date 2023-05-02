@@ -188,14 +188,14 @@ public class TableOpener
 
 		if ( containsDuplicateColumnNames )
 		{
-			IJ.log("[WARNING] joining column names with second row to create unique columns (assuming that this may be a table with two header rows).");
+			IJ.log("[WARNING] assuming that this to be a table with two header rows.");
 
 			final String[] columns2 = lines[ 1 ].split( "" + separator );
 			final String[] combinedColumns = new String[ columns.length ];
 			for ( int i = 0; i < columns.length; i++ )
 			{
 				// for some reason the \r are not removed from the last column names
-				// when splitting the lines
+				// when splitting the lines, thus we need to replace them here
 				combinedColumns[ i ] = columns[ i ].replace( "\r", "" ) + "_" + columns2[ i ].replace( "\r", "" );
 			}
 

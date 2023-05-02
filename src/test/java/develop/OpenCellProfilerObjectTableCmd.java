@@ -9,8 +9,8 @@ class OpenCellProfilerObjectTableCmd
 		final TableCmd cmd = new TableCmd();
 		cmd.root = "/Users/tischer/Desktop/Agata/analysed";
 		cmd.table = "/Users/tischer/Desktop/Agata/analysed/Nuclei.txt";
-		cmd.images = new String[]{"DAPI=FileName_DNA;0","RPAC1=FileName_DNA;1"};
-		cmd.labels = new String[]{"CytoSeg=FileName_CytoplasmLabels","NucleiSeg=ObjectsFileName_Nuclei"};
+		cmd.images = new String[]{"Image_FileName_DNA=DAPI;0","Image_FileName_DNA=RPAC1;1"};
+		cmd.labels = new String[]{"Image_FileName_CytoplasmLabels=CytoSeg"};
 		cmd.removeSpatialCalibration = true;
 		cmd.call();
 	}
