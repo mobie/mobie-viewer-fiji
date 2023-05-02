@@ -1,7 +1,9 @@
 package org.embl.mobie.lib.table.saw;
 
 import IceInternal.Ex;
+import ij.IJ;
 import ij.measure.ResultsTable;
+import net.thisptr.jackson.jq.internal.misc.Strings;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.ColumnNames;
@@ -15,9 +17,13 @@ import tech.tablesaw.io.csv.CsvReadOptions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class TableOpener
 {
@@ -74,8 +80,6 @@ public class TableOpener
 			final InputStream inputStream = IOHelper.getInputStream( path );
 			// final String string = IOHelper.read( path );
 			// https://jtablesaw.github.io/tablesaw/userguide/importing_data.html
-			// Two header rows:
-			// https://github.com/jtablesaw/tablesaw/issues/1204
 			CsvReadOptions.Builder builder = CsvReadOptions.builder( inputStream )
 					.separator( separator )
 					.missingValueIndicator( "na", "none", "nan" )
@@ -145,23 +149,67 @@ public class TableOpener
 
 	public static Table openDelimitedTextFile( String path, char separator )
 	{
+		String content = null;
 		try
 		{
-			CsvReadOptions.Builder builder =
-					CsvReadOptions.builder( path )
-							.separator( separator )
-							.missingValueIndicator( "na", "none", "nan" );
-			return Table.read().usingOptions( builder );
+			content = IOHelper.read( path );
 		}
-		catch ( Exception e )
+		catch ( IOException e )
 		{
-			if ( e.toString().contains( "Cannot add column with duplicate name" ) )
-			{
-				int a = 1;
-			}
 			e.printStackTrace();
 			throw new RuntimeException( e );
 		}
+
+		content = fixMultipleHeaderRows( separator, content );
+
+		CsvReadOptions.Builder builder =
+				CsvReadOptions.builderFromString( content )
+						.separator( separator )
+						.missingValueIndicator( "na", "none", "nan" );
+
+		return Table.read().usingOptions( builder );
+	}
+
+	private static String fixMultipleHeaderRows( char separator, String content )
+	{
+		String[] lines = content.split( System.lineSeparator() );
+		final String[] columns = lines[ 0 ].split( "" + separator );
+		final Map< String, Long > collect = Arrays.stream( columns ).collect( Collectors.groupingBy( Function.identity(), Collectors.counting() ) );
+		boolean containsDuplicateColumnNames = false;
+		for ( String column : collect.keySet() )
+		{
+			if ( collect.get( column ) > 1 )
+			{
+				IJ.log("[WARNING] found duplicate column names: " + column );
+				containsDuplicateColumnNames = true;
+				break;
+			}
+		}
+
+		if ( containsDuplicateColumnNames )
+		{
+			IJ.log("[WARNING] joining column names with second row to create unique columns (assuming that this may be a table with two header rows).");
+
+			final String[] columns2 = lines[ 1 ].split( "" + separator );
+			final String[] combinedColumns = new String[ columns.length ];
+			for ( int i = 0; i < columns.length; i++ )
+			{
+				// for some reason the \r are not removed from the last column names
+				// when splitting the lines
+				combinedColumns[ i ] = columns[ i ].replace( "\r", "" ) + "_" + columns2[ i ].replace( "\r", "" );
+			}
+
+			final String header = Strings.join( "" + separator, Arrays.asList( combinedColumns ) );
+			final List< String > lineList = new ArrayList<>();
+			lineList.add( header );
+			for ( int i = 2; i < 3; i++ )
+			{
+				lineList.add( lines[ i ] );
+			}
+
+			content = Strings.join( System.lineSeparator(), lineList );
+		}
+		return content;
 	}
 
 	public static Table openDelimitedTextFile( String path )
