@@ -40,7 +40,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-@CommandLine.Command(name = "mobie-hcs", mixinStandardHelpOptions = true, version = "3.0.13", description = "Visualise high content screening image data, see https://mobie.github.io/tutorials/hcs.html")
+@CommandLine.Command(name = "mobie-hcs", mixinStandardHelpOptions = true, version = "4.0.1", description = "Visualise high content screening image data, see https://mobie.github.io/tutorials/hcs.html")
 public class HCSCmd implements Callable< Void > {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }

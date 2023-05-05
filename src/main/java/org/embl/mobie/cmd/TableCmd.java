@@ -40,7 +40,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-@CommandLine.Command(name = "mobie-table", mixinStandardHelpOptions = true, version = "3.0.13", description = "Visualise images and labels masks from a dataset table, see https://mobie.github.io/")
+@CommandLine.Command(name = "mobie-table", mixinStandardHelpOptions = true, version = "4.0.1", description = "Visualise images and labels masks from a dataset table, see https://mobie.github.io/")
 public class TableCmd implements Callable< Void > {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
