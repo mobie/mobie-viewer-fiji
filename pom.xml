@@ -9,7 +9,7 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>4.0.1-SNAPSHOT</version>
+    <version>4.0.2-SNAPSHOT</version>
 
     <!--  ../scijava-scripts/release-version.sh - -skip-version-check - -skip-license-update -->
     <!-- mvn javadoc:javadoc -Denforcer.skip | grep error -->
