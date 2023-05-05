@@ -1,6 +1,6 @@
 package org.embl.mobie.cmd;
 
-class CommandLineSkimage2DTIFF
+class FilesCmdSkimage2DTIFF
 {
 	public static final String ROOT = "/Users/tischer/Documents/mobie/";
 

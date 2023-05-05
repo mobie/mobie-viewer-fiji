@@ -197,6 +197,11 @@ public class MoBIE
 	{
 		this.settings = settings;
 
+		System.out.println( "root: " + root );
+		System.out.println( "images: " + Arrays.toString( images.toArray() ) );
+		System.out.println( "labels: " + Arrays.toString( labels.toArray() ) );
+		System.out.println( "tables: " + Arrays.toString( labelTables.toArray() ) );
+
 		openFiles( images, labels, labelTables, root, grid );
 	}
 
@@ -334,7 +339,7 @@ public class MoBIE
 
 				final StorageLocation storageLocation = new StorageLocation();
 				storageLocation.absolutePath = path;
-				storageLocation.channel = sources.getChannelIndex();
+				storageLocation.setChannel( sources.getChannelIndex() );
 				if ( sources instanceof LabelSources )
 				{
 					final TableSource tableSource = ( ( LabelSources ) sources ).getLabelTable( name );
@@ -549,7 +554,7 @@ public class MoBIE
 		{
 			final StorageLocation storageLocation = new StorageLocation();
 			storageLocation.data = spimData;
-			storageLocation.channel = setupIndex;
+			storageLocation.setChannel( setupIndex );
 			final String setupName = spimData.getSequenceDescription().getViewSetupsOrdered().get( setupIndex ).getName();
 			String imageName = getImageName( setupName, numSetups, setupIndex );
 
@@ -616,7 +621,7 @@ public class MoBIE
 	private StorageLocation configureCommandLineImageLocation( String imagePath, int channel, ImageDataFormat imageDataFormat )
 	{
 		final StorageLocation imageStorageLocation = new StorageLocation();
-		imageStorageLocation.channel = channel;
+		imageStorageLocation.setChannel( channel );
 
 		if ( imageDataFormat.isRemote() )
 		{
@@ -1157,12 +1162,12 @@ public class MoBIE
 	{
 		if ( imageDataFormat.equals( ImageDataFormat.SpimData ) )
 		{
-			return new SpimDataImage<>( ( AbstractSpimData ) storageLocation.data, storageLocation.channel, name, settings.values.getRemoveSpatialCalibration() );
+			return new SpimDataImage<>( ( AbstractSpimData ) storageLocation.data, storageLocation.getChannel(), name, settings.values.getRemoveSpatialCalibration() );
 		}
 
 		if ( imageDataFormat.equals( ImageDataFormat.IlastikHDF5 ) )
 		{
-			final CachedCellImage< Object > image = new CachedCellImage<>( name, storageLocation.absolutePath, storageLocation.channel, imageDataFormat, ThreadHelper.sharedQueue );
+			final CachedCellImage< Object > image = new CachedCellImage<>( name, storageLocation.absolutePath, storageLocation.getChannel(), imageDataFormat, ThreadHelper.sharedQueue );
 			return image;
 		}
 
@@ -1173,9 +1178,8 @@ public class MoBIE
 
 		// TODO improve caching: https://github.com/mobie/mobie-viewer-fiji/issues/857
 		final String imagePath = getImageLocation( imageDataFormat, storageLocation );
-		final SpimDataImage spimDataImage = new SpimDataImage( imageDataFormat, imagePath, storageLocation.channel, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
+		final SpimDataImage spimDataImage = new SpimDataImage( imageDataFormat, imagePath, storageLocation.getChannel(), name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
 		return spimDataImage;
-
 	}
 
 	public List< DataSource > getDataSources( Set< String > names )

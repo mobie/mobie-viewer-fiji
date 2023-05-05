@@ -87,4 +87,13 @@ public class StorageLocation
 	// readily be changed because we use in the MoBIE JSON spec
 	public Integer channel; // only for images, will default to zero if not set
 
+	public Integer getChannel()
+	{
+		return channel == null ? 0 : channel;
+	}
+
+	public void setChannel( Integer channel )
+	{
+		this.channel = channel;
+	}
 }

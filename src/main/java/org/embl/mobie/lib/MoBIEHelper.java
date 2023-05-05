@@ -232,11 +232,10 @@ public abstract class MoBIEHelper
 
 		final AbstractSpimData< ? > spimData = IOHelper.tryOpenSpimData( location.absolutePath, format );
 
-
 		final Metadata metadata = new Metadata();
 		metadata.color = "White";
 		metadata.contrastLimits = null;
-		final Displaysettings settingsFromFile = spimData.getSequenceDescription().getViewSetupsOrdered().get( location.channel ).getAttribute( Displaysettings.class );
+		final Displaysettings settingsFromFile = spimData.getSequenceDescription().getViewSetupsOrdered().get( location.getChannel() ).getAttribute( Displaysettings.class );
 		if ( settingsFromFile != null )
 		{
 			// FIXME: Wrong color from Bio-Formats

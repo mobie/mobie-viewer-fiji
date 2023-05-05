@@ -51,11 +51,6 @@ public class FilesCmd implements Callable< Void > {
 		List< String > tablesList = tables != null ?
 				Arrays.asList( tables ) : new ArrayList<>();
 
-		if ( tablesList.size() > 1 )
-		{
-			System.out.println("Sorry, opening label tables is not yet implemented....");
-		}
-
 		new ImageJ().ui().showUI();
 		new MoBIE( imageList, labelsList, tablesList, root, gridType, settings );
 

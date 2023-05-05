@@ -104,7 +104,7 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Abstract
 			boolean showSelectedSegmentsIn3d,
 			boolean showScatterPlot,
 			@Nullable String[] scatterPlotAxes,
-			@Nullable List< String > tables,
+			@Nullable List< String > additionalTables,
 			@Nullable Double[] resolution3dView )
 	{
 		this.name = name;
@@ -117,7 +117,7 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Abstract
 		this.showSelectedSegmentsIn3d = showSelectedSegmentsIn3d;
 		this.showScatterPlot = showScatterPlot;
 		this.scatterPlotAxes = scatterPlotAxes;
-		this.additionalTables = tables;
+		this.additionalTables = additionalTables;
 		this.resolution3dView = resolution3dView;
 	}
 

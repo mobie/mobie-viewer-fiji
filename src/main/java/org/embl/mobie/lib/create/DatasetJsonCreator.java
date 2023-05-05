@@ -211,9 +211,7 @@ public class DatasetJsonCreator {
         ArrayList<String> sources = new ArrayList<>();
         sources.add( imageName );
 
-        ArrayList<String> tables = new ArrayList<>();
-        tables.add( "default.tsv" );
-        SegmentationDisplay segmentationDisplay = new SegmentationDisplay( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ ColumnNames.ANCHOR_X, ColumnNames.ANCHOR_Y }, tables, null );
+        SegmentationDisplay segmentationDisplay = new SegmentationDisplay( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ ColumnNames.ANCHOR_X, ColumnNames.ANCHOR_Y }, null, null );
         displays.add( segmentationDisplay );
 
         if ( sourceTransform.isIdentity() ) {

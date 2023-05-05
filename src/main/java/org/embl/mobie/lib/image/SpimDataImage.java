@@ -57,7 +57,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 
 	public SpimDataImage( Site site, String name )
 	{
-		this.setupId = site.channel;
+		this.setupId = site.getChannel();
 		this.name = name;
 		this.site = site;
 	}
