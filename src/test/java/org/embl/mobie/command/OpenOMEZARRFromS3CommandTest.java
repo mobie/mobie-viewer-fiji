@@ -29,7 +29,7 @@
 package org.embl.mobie.command;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenOMEZARRFromS3Command;
+import org.embl.mobie.command.open.omezarr.OpenOMEZARRFromS3Command;
 
 public class OpenOMEZARRFromS3CommandTest
 {

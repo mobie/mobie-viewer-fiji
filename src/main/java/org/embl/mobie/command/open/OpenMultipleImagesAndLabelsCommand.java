@@ -12,8 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Images and Label Masks..." )
-public class OpenImagesAndLabelsCommand implements Command {
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Multiple Images and Labels..." )
+public class OpenMultipleImagesAndLabelsCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -29,14 +29,17 @@ public class OpenImagesAndLabelsCommand implements Command {
 	@Parameter( label = "Image Path", required = false )
 	public File image3;
 
-	@Parameter( label = "Image Path", required = false )
-	public File image4;
+	@Parameter( label = "Labels Path", required = false )
+	public File labels0;
 
-	@Parameter( label = "Label Mask Path", required = false )
-	public File labels;
+	@Parameter( label = "Labels Table Path", required = false )
+	public File table0;
 
-	@Parameter( label = "Label Mask Table Path", required = false )
-	public File tables;
+	@Parameter( label = "Labels Path", required = false )
+	public File labels1;
+
+	@Parameter( label = "Labels Table Path", required = false )
+	public File table1;
 
 	@Parameter( label = "Remove Spatial Calibration", required = false )
 	public Boolean removeSpatialCalibration = false;
@@ -51,13 +54,14 @@ public class OpenImagesAndLabelsCommand implements Command {
 		if ( image1 != null ) imageList.add( image1.getAbsolutePath() );
 		if ( image2 != null ) imageList.add( image2.getAbsolutePath() );
 		if ( image3 != null ) imageList.add( image3.getAbsolutePath() );
-		if ( image4 != null ) imageList.add( image4.getAbsolutePath() );
 
 		final ArrayList< String > labelsList = new ArrayList<>();
-		if ( labels != null ) labelsList.add( labels.getAbsolutePath() );
+		if ( labels0 != null ) labelsList.add( labels0.getAbsolutePath() );
+		if ( labels1 != null ) labelsList.add( labels1.getAbsolutePath() );
 
 		final ArrayList< String > tablesList = new ArrayList<>();
-		if ( tables != null ) labelsList.add( tables.getAbsolutePath() );
+		if ( table0 != null ) labelsList.add( table0.getAbsolutePath() );
+		if ( table1 != null ) labelsList.add( table1.getAbsolutePath() );
 
 		final MoBIESettings settings = new MoBIESettings();
 		settings.removeSpatialCalibration( removeSpatialCalibration );

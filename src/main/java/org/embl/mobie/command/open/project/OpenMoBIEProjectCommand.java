@@ -26,55 +26,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open;
+package org.embl.mobie.command.open.project;
 
-import ij.gui.GenericDialog;
 import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.published.PublishedFigure;
-import org.embl.mobie.lib.published.PublishedFigures;
 import org.scijava.command.Command;
+import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Published MoBIE View..." )
-public class OpenMoBIEFigureCommand implements Command
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open MoBIE Project..." )
+public class OpenMoBIEProjectCommand implements Command
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
+	@Parameter ( label = "Project Location" )
+	public String projectLocation = "https://github.com/mobie/platybrowser-datasets";
 
 	@Override
 	public void run()
 	{
-		select();
-	}
-
-	private void select()
-	{
-		final List< PublishedFigure > figures = new PublishedFigures().getPublishedFigures();
-
-		final ArrayList< String > figureNames = new ArrayList<>();
-		for ( PublishedFigure figure : figures )
-			figureNames.add( figure.publicationAbbreviation + ": " + figure.name );
-
-		final GenericDialog gd = new GenericDialog( "Please select a view" );
-
-		final String[] items = figureNames.toArray( new String[ figureNames.size() ]);
-		gd.addChoice( "Figure", items, items[ 0 ] );
-		gd.showDialog();
-		if ( gd.wasCanceled() ) return;
-		final int choice = gd.getNextChoiceIndex();
-
-		final PublishedFigure figure = figures.get( choice );
+		MoBIESettings options = MoBIESettings.settings();
 
 		try
 		{
-			new MoBIE( figure.location, MoBIESettings.settings().view( figure.view ) );
+			new MoBIE( projectLocation, options );
 		}
 		catch ( IOException e )
 		{

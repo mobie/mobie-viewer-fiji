@@ -26,34 +26,53 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open;
+package org.embl.mobie.command.open.project;
 
+import ij.gui.GenericDialog;
+import mpicbg.spim.data.SpimDataException;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.io.util.S3Utils;
+import org.embl.mobie.lib.published.PublishedProject;
+import org.embl.mobie.lib.published.PublishedProjects;
 import org.scijava.command.Command;
-import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
+import java.util.HashMap;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open OME-Zarr From S3 with Credentials...")
-public class OpenOMEZARRFromS3WithCredentialsCommand extends OpenOMEZARRFromS3Command
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open Published MoBIE Project..." )
+public class OpenPublishedMoBIEProjectCommand implements Command
 {
-    static { net.imagej.patcher.LegacyInjector.preinit(); }
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    @Parameter ( label = "S3 Access Key", persist = false )
-    public String s3AccessKey = "";
+	@Override
+	public void run()
+	{
+		selectProject();
+	}
 
-    @Parameter ( label = "S3 Secret Key", persist = false )
-    public String s3SecretKey = "";
+	private void selectProject()
+	{
+		final HashMap< String, PublishedProject > projects = new PublishedProjects().getPublishedProjects();
 
-    @Override
-    public void run() {
-        try {
-            S3Utils.setS3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } );
-            openAndShow( s3URL );
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+		final GenericDialog gd = new GenericDialog( "Please select a project" );
+
+		final String[] items = ( String[] ) projects.keySet().toArray( new String[ projects.size() ]);
+		gd.addChoice( "Project", items, items[ 0 ] );
+		gd.showDialog();
+		if ( gd.wasCanceled() ) return;
+		final String choice = gd.getNextChoice();
+
+		final PublishedProject project = projects.get( choice );
+
+		try
+		{
+			new MoBIE( project.location, MoBIESettings.settings() );
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+		}
+	}
 }

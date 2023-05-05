@@ -33,7 +33,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import org.embl.mobie.lib.serialize.Project;
-import org.embl.mobie.command.open.OpenMoBIEProjectCommand;
+import org.embl.mobie.command.open.project.OpenMoBIEProjectCommand;
 import org.embl.mobie.lib.create.ImagesCreator;
 import org.embl.mobie.lib.create.ProjectCreator;
 import org.embl.mobie.lib.create.ProjectCreatorHelper;

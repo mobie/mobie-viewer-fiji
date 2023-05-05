@@ -26,39 +26,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open;
+package org.embl.mobie.command.open.omezarr;
 
-import mpicbg.spim.data.SpimDataException;
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.bdv.view.OMEZarrViewer;
+import mpicbg.spim.data.SpimData;
+import org.embl.mobie.io.ome.zarr.openers.OMEZarrOpener;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
+import java.io.File;
 import java.io.IOException;
 
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_OMEZARR + "Open OME-Zarr From File System...")
+public class OpenOMEZARRCommand implements Command {
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open MoBIE Project..." )
-public class OpenMoBIEProjectCommand implements Command
-{
-	static { net.imagej.patcher.LegacyInjector.preinit(); }
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter ( label = "Project Location" )
-	public String projectLocation = "https://github.com/mobie/platybrowser-datasets";
+    @Parameter(label = "File path", style = "directory")
+    public File directory;
 
-	@Override
-	public void run()
-	{
-		MoBIESettings options = MoBIESettings.settings();
+    protected static void openAndShow(String filePath) throws IOException {
+        SpimData spimData = OMEZarrOpener.openFile(filePath);
+        final OMEZarrViewer viewer = new OMEZarrViewer(spimData);
+        viewer.show();
+    }
 
-		try
-		{
-			new MoBIE( projectLocation, options );
-		}
-		catch ( IOException e )
-		{
-			e.printStackTrace();
-		}
-	}
+    @Override
+    public void run() {
+        try {
+            openAndShow( directory.toString() );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
+

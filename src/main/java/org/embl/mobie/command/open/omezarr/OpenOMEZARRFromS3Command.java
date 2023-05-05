@@ -26,40 +26,43 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open;
+package org.embl.mobie.command.open.omezarr;
 
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.bdv.view.OMEZarrViewer;
 import mpicbg.spim.data.SpimData;
-import org.embl.mobie.io.ome.zarr.openers.OMEZarrOpener;
+import org.embl.mobie.io.ome.zarr.openers.OMEZarrS3Opener;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import java.io.File;
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open OME-Zarr From File System...")
-public class OpenOMEZARRCommand implements Command {
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_OMEZARR + "Open OME-Zarr From S3...")
+public class OpenOMEZARRFromS3Command implements Command {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    @Parameter(label = "File path", style = "directory")
-    public File directory;
+    @Parameter(label = "S3 URL")
+    public String s3URL = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
 
-    protected static void openAndShow(String filePath) throws IOException {
-        SpimData spimData = OMEZarrOpener.openFile(filePath);
-        final OMEZarrViewer viewer = new OMEZarrViewer(spimData);
+    @Parameter ( label = "Log chunk loading" )
+    public boolean logChunkLoading = false;
+
+    protected static void openAndShow(String s3URL) throws IOException
+    {
+        SpimData spimData = OMEZarrS3Opener.readURL( s3URL );
+        final OMEZarrViewer viewer = new OMEZarrViewer( spimData );
         viewer.show();
     }
 
     @Override
     public void run() {
         try {
-            openAndShow( directory.toString() );
+            OMEZarrS3Opener.setLogging( logChunkLoading );
+            openAndShow( s3URL );
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 }
-

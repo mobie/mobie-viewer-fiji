@@ -26,43 +26,50 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open;
+package org.embl.mobie.command.open.project;
 
+import mpicbg.spim.data.SpimDataException;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.bdv.view.OMEZarrViewer;
-import mpicbg.spim.data.SpimData;
-import org.embl.mobie.io.ome.zarr.openers.OMEZarrS3Opener;
+import org.embl.mobie.lib.ThreadHelper;
+import org.embl.mobie.lib.bdv.view.SliceViewer;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open OME-Zarr From S3...")
-public class OpenOMEZARRFromS3Command implements Command {
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open MoBIE Project Branch..." )
+public class OpenMoBIEProjectBranchCommand implements Command
+{
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    static { net.imagej.patcher.LegacyInjector.preinit(); }
+	@Parameter ( label = "Project Location" )
+	public String projectLocation = "https://github.com/platybrowser/platybrowser";
 
-    @Parameter(label = "S3 URL")
-    public String s3URL = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
+	@Parameter ( label = "Project Branch" )
+	public String projectBranch = "master";
 
-    @Parameter ( label = "Log chunk loading" )
-    public boolean logChunkLoading = false;
+	@Parameter ( label = "Number of threads" )
+	public int numThreads = 4;
+	@Parameter ( label = "Tile render debug overlay" )
+	public boolean tileRenderOverlay = false;
 
-    protected static void openAndShow(String s3URL) throws IOException
-    {
-        SpimData spimData = OMEZarrS3Opener.readURL( s3URL );
-        final OMEZarrViewer viewer = new OMEZarrViewer( spimData );
-        viewer.show();
-    }
+	@Override
+	public void run()
+	{
+		try
+		{
+			SliceViewer.tileRenderOverlay = tileRenderOverlay;
+			ThreadHelper.setNumIoThreads( numThreads );
+			final MoBIE moBIE = new MoBIE( projectLocation, MoBIESettings.settings().gitProjectBranch( projectBranch ) );
 
-    @Override
-    public void run() {
-        try {
-            OMEZarrS3Opener.setLogging( logChunkLoading );
-            openAndShow( s3URL );
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+		}
+	}
 }
+

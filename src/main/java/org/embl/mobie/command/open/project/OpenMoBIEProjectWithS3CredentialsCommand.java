@@ -26,40 +26,31 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open;
+package org.embl.mobie.command.open.project;
 
 import mpicbg.spim.data.SpimDataException;
-import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.io.ImageDataFormatNames;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.command.CommandConstants;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open MoBIE Project Expert Mode..." )
-public class OpenMoBIEProjectAdvancedCommand implements Command
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open MoBIE Project With S3 Credentials..." )
+public class OpenMoBIEProjectWithS3CredentialsCommand implements Command
 {
-	@Parameter ( label = "Project Location" )
-	public String projectLocation = "https://github.com/platybrowser/platybrowser";
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter ( label = "Project Branch" )
-	public String projectBranch = "master";
+	@Parameter ( label = "S3 Project Location" )
+	public String projectLocation = "https://s3.embl.de/comulis";
 
-	@Parameter ( label = "Image Data Storage Modality", choices = { ImageDataFormatNames.BDVN5, ImageDataFormatNames.BDVN5S3, ImageDataFormatNames.BDVOMEZARR, ImageDataFormatNames.BDVOMEZARRS3, ImageDataFormatNames.OMEZARR, ImageDataFormatNames.OMEZARRS3, ImageDataFormatNames.OPENORGANELLES3 } )
-	public String imageDataStorageModality = ImageDataFormatNames.OMEZARRS3;
+	@Parameter ( label = "S3 Access Key" )
+	public String s3AccessKey = "";
 
-	@Parameter ( label = "Image Data Location" )
-	public String imageDataLocation = "https://github.com/platybrowser/platybrowser";
-
-	@Parameter ( label = "Table Data Location" )
-	public String tableDataLocation = "https://github.com/platybrowser/platybrowser";
-
-	@Parameter ( label = "Table Data Branch" )
-	public String tableDataBranch = "master";
+	@Parameter ( label = "S3 Secret Key", persist = false )
+	public String s3SecretKey = "";
 
 	@Override
 	public void run()
@@ -69,17 +60,12 @@ public class OpenMoBIEProjectAdvancedCommand implements Command
 			new MoBIE(
 					projectLocation,
 					MoBIESettings.settings()
-							.gitProjectBranch( projectBranch )
-							.addImageDataFormat( ImageDataFormat.valueOf( imageDataStorageModality ) )
-							.imageDataLocation( imageDataLocation )
-							.tableDataLocation( tableDataLocation )
-							.gitTablesBranch( tableDataBranch ) );
+							.s3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } )
+			);
 		}
 		catch ( IOException e )
 		{
 			e.printStackTrace();
 		}
 	}
-
-
 }

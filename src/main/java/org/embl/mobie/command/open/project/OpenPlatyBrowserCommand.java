@@ -26,45 +26,32 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open;
+package org.embl.mobie.command.open.project;
 
 import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.ThreadHelper;
-import org.embl.mobie.lib.bdv.view.SliceViewer;
+import org.embl.mobie.io.ImageDataFormat;
 import org.scijava.command.Command;
-import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open MoBIE Project Branch..." )
-public class OpenMoBIEProjectBranchCommand implements Command
+
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open PlatyBrowser")
+public class OpenPlatyBrowserCommand implements Command
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
-
-	@Parameter ( label = "Project Location" )
-	public String projectLocation = "https://github.com/platybrowser/platybrowser";
-
-	@Parameter ( label = "Project Branch" )
-	public String projectBranch = "master";
-
-	@Parameter ( label = "Number of threads" )
-	public int numThreads = 4;
-	@Parameter ( label = "Tile render debug overlay" )
-	public boolean tileRenderOverlay = false;
 
 	@Override
 	public void run()
 	{
+		MoBIESettings options = MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5S3 );
+
 		try
 		{
-			SliceViewer.tileRenderOverlay = tileRenderOverlay;
-			ThreadHelper.setNumIoThreads( numThreads );
-			final MoBIE moBIE = new MoBIE( projectLocation, MoBIESettings.settings().gitProjectBranch( projectBranch ) );
-
+			new MoBIE( "https://github.com/mobie/platybrowser-datasets", options );
 		}
 		catch ( IOException e )
 		{
@@ -72,4 +59,3 @@ public class OpenMoBIEProjectBranchCommand implements Command
 		}
 	}
 }
-

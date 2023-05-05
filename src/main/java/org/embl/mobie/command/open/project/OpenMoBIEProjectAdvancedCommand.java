@@ -26,54 +26,60 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open;
+package org.embl.mobie.command.open.project;
 
-import ij.gui.GenericDialog;
 import mpicbg.spim.data.SpimDataException;
+import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.io.ImageDataFormatNames;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.published.PublishedProject;
-import org.embl.mobie.lib.published.PublishedProjects;
+import org.embl.mobie.io.ImageDataFormat;
 import org.scijava.command.Command;
+import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
-import java.util.HashMap;
 
-
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Published MoBIE Project..." )
-public class OpenPublishedMoBIEProjectCommand implements Command
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open MoBIE Project Expert Mode..." )
+public class OpenMoBIEProjectAdvancedCommand implements Command
 {
-	static { net.imagej.patcher.LegacyInjector.preinit(); }
+	@Parameter ( label = "Project Location" )
+	public String projectLocation = "https://github.com/platybrowser/platybrowser";
+
+	@Parameter ( label = "Project Branch" )
+	public String projectBranch = "master";
+
+	@Parameter ( label = "Image Data Storage Modality", choices = { ImageDataFormatNames.BDVN5, ImageDataFormatNames.BDVN5S3, ImageDataFormatNames.BDVOMEZARR, ImageDataFormatNames.BDVOMEZARRS3, ImageDataFormatNames.OMEZARR, ImageDataFormatNames.OMEZARRS3, ImageDataFormatNames.OPENORGANELLES3 } )
+	public String imageDataStorageModality = ImageDataFormatNames.OMEZARRS3;
+
+	@Parameter ( label = "Image Data Location" )
+	public String imageDataLocation = "https://github.com/platybrowser/platybrowser";
+
+	@Parameter ( label = "Table Data Location" )
+	public String tableDataLocation = "https://github.com/platybrowser/platybrowser";
+
+	@Parameter ( label = "Table Data Branch" )
+	public String tableDataBranch = "master";
 
 	@Override
 	public void run()
 	{
-		selectProject();
-	}
-
-	private void selectProject()
-	{
-		final HashMap< String, PublishedProject > projects = new PublishedProjects().getPublishedProjects();
-
-		final GenericDialog gd = new GenericDialog( "Please select a project" );
-
-		final String[] items = ( String[] ) projects.keySet().toArray( new String[ projects.size() ]);
-		gd.addChoice( "Project", items, items[ 0 ] );
-		gd.showDialog();
-		if ( gd.wasCanceled() ) return;
-		final String choice = gd.getNextChoice();
-
-		final PublishedProject project = projects.get( choice );
-
 		try
 		{
-			new MoBIE( project.location, MoBIESettings.settings() );
+			new MoBIE(
+					projectLocation,
+					MoBIESettings.settings()
+							.gitProjectBranch( projectBranch )
+							.addImageDataFormat( ImageDataFormat.valueOf( imageDataStorageModality ) )
+							.imageDataLocation( imageDataLocation )
+							.tableDataLocation( tableDataLocation )
+							.gitTablesBranch( tableDataBranch ) );
 		}
 		catch ( IOException e )
 		{
 			e.printStackTrace();
 		}
 	}
+
+
 }
