@@ -60,7 +60,6 @@ public interface SelectionModel< T >
 	 */
 	public void toggle( final T object );
 
-
 	/**
 	 * Focus on an object without changing its selection state.
 	 *
@@ -71,17 +70,18 @@ public interface SelectionModel< T >
 	 */
 	public void focus( final T object, final Object origin );
 
-
 	/**
 	 * Get the focus state of an object
 	 *
 	 * @param object
 	 *            a object.
+	 *
+	 * @return whether the object is selected
 	 */
 	public boolean isFocused( final T object );
 
 	/**
-	 * Sets the selected state of a collection of imagesegment.
+	 * Sets the selected state of a collection of segments.
 	 *
 	 * @param objects
 	 *            the object collection.
@@ -90,8 +90,6 @@ public interface SelectionModel< T >
 	 * @return {@code true} if the select was changed by this call.
 	 */
 	public boolean setSelected( final Collection< T > objects, final boolean select );
-
-
 
 	/**
 	 * Clears this select.
@@ -102,9 +100,9 @@ public interface SelectionModel< T >
 	public boolean clearSelection();
 
 	/**
-	 * Get the selected imagesegment.
+	 * Get the selected elements.
 	 **
-	 * @return a <b>new</b> {@link Set} containing all the selected imagesegment.
+	 * @return a <b>new</b> {@link Set} containing all the selected elements.
 	 */
 	public Set< T > getSelected();
 

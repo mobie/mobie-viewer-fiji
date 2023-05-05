@@ -88,10 +88,6 @@ public class ImagesCreator {
 
     ProjectCreator projectCreator;
 
-    /**
-     * Make an imagesCreator - includes all functions for adding images to a project
-     * @param projectCreator projectCreator
-     */
     public ImagesCreator( ProjectCreator projectCreator ) {
         this.projectCreator = projectCreator;
     }
@@ -105,23 +101,19 @@ public class ImagesCreator {
     }
 
     private String getDefaultLocalImageXmlPath( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
-        return IOHelper.combinePath(getDefaultLocalImageDirPath(datasetName, imageDataFormat),
-                imageName + ".xml");
+        return IOHelper.combinePath(getDefaultLocalImageDirPath(datasetName, imageDataFormat), imageName + ".xml");
     }
 
     private String getDefaultLocalImageZarrPath( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
-        return IOHelper.combinePath(getDefaultLocalImageDirPath(datasetName, imageDataFormat),
-                imageName + ".ome.zarr");
+        return IOHelper.combinePath(getDefaultLocalImageDirPath(datasetName, imageDataFormat), imageName + ".ome.zarr");
     }
 
     private String getDefaultLocalN5Path( String datasetName, String imageName ) {
-        return IOHelper.combinePath( getDefaultLocalImageDirPath( datasetName, ImageDataFormat.BdvN5),
-                imageName + ".n5" );
+        return IOHelper.combinePath( getDefaultLocalImageDirPath( datasetName, ImageDataFormat.BdvN5), imageName + ".n5" );
     }
 
     private String getDefaultLocalImageDirPath( String datasetName, ImageDataFormat imageDataFormat ) {
-        return IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(), datasetName,
-                "images", imageFormatToFolderName( imageDataFormat ) );
+        return IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "images", imageFormatToFolderName( imageDataFormat ) );
     }
 
     private String getDefaultTableDirPath( String datasetName, String imageName ) {
@@ -139,79 +131,27 @@ public class ImagesCreator {
         return new File (filePath).exists();
     }
 
-    // with exclusive=false
     public void addImage ( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, AffineTransform3D sourceTransform, String uiSelectionGroup ) throws SpimDataException, IOException
     {
         addImage( imp, imageName, datasetName, imageDataFormat, imageType, sourceTransform, uiSelectionGroup, false, null, null, null );
     }
 
-    /**
-     *  Same as
-     *  {@link #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D,
-     *  String, boolean, int[][], int[][], Compression) }, but calculates reasonable defaults for resolutions,
-     *  subdivisions and compression settings.
-     *
-     * @see #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D, String, boolean, int[][], int[][], Compression)
-     */
     public void addImage ( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, AffineTransform3D sourceTransform, String uiSelectionGroup, boolean exclusive ) throws SpimDataException, IOException
     {
         addImage( imp, imageName, datasetName, imageDataFormat, imageType, sourceTransform, uiSelectionGroup, exclusive, null, null, null );
     }
 
-    /**
-     *  Same as
-     *  {@link #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D,
-     *  String, boolean, int[][], int[][], Compression) }, but assumes identity sourceTransform, and calculates
-     *  reasonable defaults for resolutions, subdivisions and compression settings.
-     *
-     * @see #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D, String, boolean, int[][], int[][], Compression)
-     */
-    public void addImage ( ImagePlus imp, String imageName, String datasetName,
-                           ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
-                           String uiSelectionGroup, boolean exclusive ) throws SpimDataException, IOException {
-        addImage( imp, imageName, datasetName, imageDataFormat, imageType, new AffineTransform3D(), uiSelectionGroup,
-                exclusive, null, null, null );
-
+    public void addImage ( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, String uiSelectionGroup, boolean exclusive ) throws SpimDataException, IOException
+    {
+        addImage( imp, imageName, datasetName, imageDataFormat, imageType, new AffineTransform3D(), uiSelectionGroup, exclusive, null, null, null );
     }
 
-    /**
-     *  Same as
-     *  {@link #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D,
-     *  String, boolean, int[][], int[][], Compression) }, but assumes identity sourceTransform
-     *
-     * @see #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D, String, boolean, int[][], int[][], Compression)
-     */
-    public void addImage ( ImagePlus imp, String imageName, String datasetName,
-                           ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
-                           String uiSelectionGroup, boolean exclusive,
-                           int[][] resolutions, int[][] subdivisions, Compression compression ) throws SpimDataException, IOException {
-        addImage( imp, imageName, datasetName, imageDataFormat, imageType, new AffineTransform3D(), uiSelectionGroup,
-                exclusive, resolutions, subdivisions, compression );
+    public void addImage ( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, String uiSelectionGroup, boolean exclusive, int[][] resolutions, int[][] subdivisions, Compression compression ) throws SpimDataException, IOException
+    {
+        addImage( imp, imageName, datasetName, imageDataFormat, imageType, new AffineTransform3D(), uiSelectionGroup, exclusive, resolutions, subdivisions, compression );
     }
 
-    /**
-     * Add an image to a MoBIE project. Make sure the ImagePlus scale and unit is set properly, so that imp.getCalibration()
-     * returns the correct values. Note that multi-channel images are not supported - you will need to
-     * split these channels and add each as its own image.
-     * @param imp image to add
-     * @param imageName image name
-     * @param datasetName dataset name
-     * @param imageDataFormat image format
-     * @param imageType Image or Segmentation - segmentations will additionally generate a table.
-     * @param sourceTransform Affine transform - this will be added to the image view, and will be added on top
-     *                        of the normal scaling coming from imp.getCalibration()
-     * @param uiSelectionGroup Name of MoBIE drop-down menu to place view in
-     * @param exclusive Whether to make the view exclusive.
-     * @param resolutions Resolution/downsampling levels to write e.g. new int[][]{ {1,1,1}, {2,2,2}, {4,4,4} }
-     *                    will write one full resolution level, then one 2x downsampled, and one 4x downsampled.
-     *                    The order is {x, y, z}.
-     * @param subdivisions Chunk size. Must have the same number of entries as 'resolutions'. e.g.
-     *                     new int[][]{ {64,64,64}, {64,64,64}, {64,64,64} }. The order is {x, y, z}.
-     * @param compression type of compression to use
-     * @throws SpimDataException
-     * @throws IOException
-     */
-    public void addImage ( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, AffineTransform3D sourceTransform, String uiSelectionGroup, boolean exclusive, int[][] resolutions, int[][] subdivisions, Compression compression ) throws IOException, SpimDataException
+    public void addImage( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, AffineTransform3D sourceTransform, String uiSelectionGroup, boolean exclusive, int[][] resolutions, int[][] subdivisions, Compression compression ) throws IOException, SpimDataException
     {
         // either xml file path or zarr file path depending on imageDataFormat
         String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
@@ -370,26 +310,7 @@ public class ImagesCreator {
         }
     }
 
-    /**
-     * Add a bdv format image to a MoBIE project (e.g. N5 or OME-ZARR). Make sure the scale and unit is set properly
-     * in the file. Note that multi-channel images are not supported - you will need to split these channels and add
-     * each as its own image.
-     * @param fileLocation Location of image file to add - for n5, location of the xml,
-     *                     for ome-zarr, the location of the .ome.zarr directory.
-     * @param imageName image name
-     * @param datasetName dataset name
-     * @param imageType Image or Segmentation - segmentations will additionally generate a table.
-     * @param addMethod Add method - link (leave image as-is, and link to this location. Only supported for
-     *                  N5 and local projects), copy (copy image into project), or move (move image into project -
-     *                  be careful as this will delete the image from its original location!)
-     * @param uiSelectionGroup Name of MoBIE drop-down menu to place view in
-     * @param imageDataFormat image format
-     * @param exclusive Whether to make the view exclusive.
-     * @throws SpimDataException
-     * @throws IOException
-     */
-    public void addBdvFormatImage ( File fileLocation, String imageName, String datasetName,
-									ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod, String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
+    public void addBdvFormatImage ( File fileLocation, String imageName, String datasetName, ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod, String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
 
         if ( fileLocation.exists() ) {
             SpimData spimData = ( SpimData ) new SpimDataOpener().open( fileLocation.getAbsolutePath(), imageDataFormat );
@@ -400,23 +321,6 @@ public class ImagesCreator {
         }
     }
 
-    /**
-     * Add a bdv format image to a MoBIE project (e.g. N5 or OME-ZARR). Make sure the scale and unit is set properly
-     * in the file. Note that multi-channel images are not supported - you will need to split these channels and add
-     * each as its own image.
-     * @param spimData spimData of n5 or ome-zarr file
-     * @param imageName image name
-     * @param datasetName dataset name
-     * @param imageType Image or Segmentation - segmentations will additionally generate a table.
-     * @param addMethod Add method - link (leave image as-is, and link to this location. Only supported for
-     *                  N5 and local projects), copy (copy image into project), or move (move image into project -
-     *                  be careful as this will delete the image from its original location!)
-     * @param uiSelectionGroup Name of MoBIE drop-down menu to place view in
-     * @param imageDataFormat image format
-     * @param exclusive Whether to make the view exclusive.
-     * @throws SpimDataException
-     * @throws IOException
-     */
     public void addBdvFormatImage ( SpimData spimData, String imageName, String datasetName,
 									ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod, String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
 
@@ -717,5 +621,4 @@ public class ImagesCreator {
         spimData.getSequenceDescription().setImgLoader(imgLoader);
         new XmlIoSpimData().save(spimData, new File( saveDirectory, imageName + ".xml").getAbsolutePath() );
     }
-
 }

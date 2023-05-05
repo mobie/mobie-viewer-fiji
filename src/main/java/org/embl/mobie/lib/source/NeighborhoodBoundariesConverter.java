@@ -40,12 +40,10 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Util;
 import net.imglib2.view.Views;
 
-/**
+/*
  * This version of NeighborhoodNonZeroBoundariesConverter
  * might be faster, but one does need to know the RAI
  * on which to compute on upon time of construction.
- *
- * @param <R>
  */
 public class NeighborhoodBoundariesConverter< R extends RealType< R > >
 		implements Converter< Neighborhood< R >, R >

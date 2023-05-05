@@ -28,19 +28,12 @@
  */
 package org.embl.mobie.lib.select;
 
-/**
+/*
  * Interface for listeners of a {@link SelectionModel}.
- *
  */
 public interface SelectionListener< T >
 {
-	/**
-	 * Notifies when the select has changed.
-	 */
 	void selectionChanged();
 
-	/**
-	 * Notifies when a focus event happened.
-	 */
 	void focusEvent( T selection, Object initiator );
 }

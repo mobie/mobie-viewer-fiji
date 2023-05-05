@@ -41,11 +41,9 @@ import net.imglib2.type.numeric.NumericType;
 
 import java.util.function.DoubleUnaryOperator;
 
-/**
+/*
  * A radial basis function interpolator
  * @author John Bogovic
- *
- * @param <T>
  */
 public class RBFInterpolator< T extends NumericType<T> > extends RealPoint implements RealRandomAccess< T >
 {

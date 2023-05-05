@@ -56,7 +56,9 @@ public class HCSDataSetter
 	 * @param dataset
 	 * 					the current MoBIE dataset
 	 * @param wellMargin
+	 * 					well margin (relative)
 	 * @param siteMargin
+	 * 					site margin (relative)
 	 */
 	public void addPlateToDataset( Plate plate, Dataset dataset, double wellMargin, double siteMargin )
 	{

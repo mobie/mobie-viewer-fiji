@@ -37,7 +37,6 @@ import net.imglib2.roi.geom.GeomMasks;
 import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
 import org.embl.mobie.lib.playground.SourceAffineTransformer;
 import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.serialize.transformation.AbstractGridTransformation;
 import org.embl.mobie.lib.source.Masked;
 import org.embl.mobie.lib.source.SourceHelper;
 import net.imglib2.RealInterval;

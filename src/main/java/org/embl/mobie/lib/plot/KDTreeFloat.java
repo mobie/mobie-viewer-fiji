@@ -43,13 +43,13 @@ import net.imglib2.RealPositionable;
 import net.imglib2.Sampler;
 import net.imglib2.util.KthElement;
 
-/**
+/*
  * KDTree to access values at RealLocalizable positions.
  *
  * @param <T>
  *            type of values stored in the tree.
  *
- * @author Tobias Pietzsch, Christian Tischer
+ * @author Tobias Pietzsch (modified by Christian Tischer)
  */
 public class KDTreeFloat< T > implements EuclideanSpace, IterableRealInterval< T >
 {
@@ -77,6 +77,9 @@ public class KDTreeFloat< T > implements EuclideanSpace, IterableRealInterval< T
 
 	/**
 	 * A KDTreeNode that stores it's value as a reference.
+	 *
+	 *  @param <T>
+	 *             type of values stored in the tree.
 	 */
 	protected final static class ValueNode< T > extends KDTreeNode< T >
 	{
@@ -266,6 +269,11 @@ public class KDTreeFloat< T > implements EuclideanSpace, IterableRealInterval< T
 	/**
 	 * Check whether all positions in the positions list have dimension n.
 	 *
+	 * @param positions
+	 * 					the positions
+	 * @param n
+	 * 			dimensionality
+	 *
 	 * @return true, if all positions have dimension n.
 	 */
 	protected static < L extends RealLocalizable > boolean verifyDimensions( final List< L > positions, final int n )
@@ -410,6 +418,8 @@ public class KDTreeFloat< T > implements EuclideanSpace, IterableRealInterval< T
 	 *            end index of sublist to process
 	 * @param d
 	 *            dimension along which to split the sublist
+	 *
+	 * @return 	  a node
 	 */
 	@SuppressWarnings( "unchecked" )
 	protected < L extends RealLocalizable > ValueNode< T > makeNode( final List< L > elements, final int i, final int j, final int d )

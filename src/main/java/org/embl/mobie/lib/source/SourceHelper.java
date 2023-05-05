@@ -111,11 +111,6 @@ public abstract class SourceHelper
 		return numSourceTimepoints;
 	}
 
-	/**
-	 * Recursively fetch all root sources
-	 * @param source
-	 * @param rootSources
-	 */
 	public static void fetchRootSources( Source< ? > source, Set< Source< ? > > rootSources )
 	{
 		if ( source instanceof SpimSource )

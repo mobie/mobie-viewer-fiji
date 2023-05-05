@@ -11,8 +11,9 @@
     <artifactId>mobie-viewer-fiji</artifactId>
     <version>4.0.2-SNAPSHOT</version>
 
+    <!-- force javadoc generation to fetch errors:    -->
+    <!-- mvn javadoc:javadoc | grep error -->
     <!--  ../scijava-scripts/release-version.sh - -skip-version-check - -skip-license-update -->
-    <!-- mvn javadoc:javadoc -Denforcer.skip | grep error -->
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
     <!-- ../scijava-scripts/release-version.sh - -skip-version-check  - -skip-license-update -->

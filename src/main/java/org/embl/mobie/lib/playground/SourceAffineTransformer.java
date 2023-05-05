@@ -35,7 +35,7 @@ import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.util.function.Function;
 
-/**
+/*
  * This action applies an AffineTransform onto a SourceAndConverter
  * Both the non volatile and the volatile spimsource, if present, are wrapped
  * Another option could be to check whether the spimsource are already wrapped, and then concatenate the transforms
@@ -46,8 +46,6 @@ import java.util.function.Function;
  * Another option could have been to use the same converters
  * the transform is passed by value, not by reference, so it cannot be updated later on
  */
-
-
 public class SourceAffineTransformer implements Runnable, Function<SourceAndConverter, SourceAndConverter> {
 
     private SourceAndConverter sourceIn;
@@ -67,20 +65,11 @@ public class SourceAffineTransformer implements Runnable, Function<SourceAndConv
         this.at3D = at3D;
     }
 
-    /**
-     * Constructor without any source argument in order to use the functional interface only
-     * @param at3D affine transform 3d
-     */
     public SourceAffineTransformer( AffineTransform3D at3D )
     {
         this.at3D = at3D;
     }
 
-    /**
-     * Constructor without any source argument in order to use the functional interface only
-     * @param at3D
-     * @param name
-     */
     public SourceAffineTransformer( AffineTransform3D at3D, String name )
     {
         this.at3D = at3D;

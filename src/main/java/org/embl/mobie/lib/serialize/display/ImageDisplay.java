@@ -113,10 +113,8 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		this.showImagesIn3d = showImagesIn3d;
 	}
 
-	/**
+	/*
 	 * Create a serializable copy
-	 *
-	 * @param imageDisplay
 	 */
 	public ImageDisplay( ImageDisplay< ? > imageDisplay )
 	{

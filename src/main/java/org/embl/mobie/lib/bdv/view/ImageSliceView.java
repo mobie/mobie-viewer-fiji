@@ -29,21 +29,18 @@
 package org.embl.mobie.lib.bdv.view;
 
 import bdv.tools.brightness.ConverterSetup;
-import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import ij.ImagePlus;
 import net.imglib2.converter.Converter;
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.lib.color.ColorHelper;
-import org.embl.mobie.lib.color.opacity.AdjustableOpacityColorConverter;
-import org.embl.mobie.lib.serialize.display.ImageDisplay;
-import org.embl.mobie.lib.image.Image;
 import net.imglib2.display.RealARGBColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
-import org.embl.mobie.lib.source.SourceToImagePlusConverter;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.lib.color.ColorHelper;
+import org.embl.mobie.lib.color.opacity.AdjustableOpacityColorConverter;
+import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
