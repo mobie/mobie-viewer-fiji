@@ -1,4 +1,4 @@
-Copyright (c) 2018 - 2022, EMBL
+Copyright (c) 2018 - 2023, EMBL
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,

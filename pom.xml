@@ -15,7 +15,7 @@
     <!-- mvn javadoc:javadoc -Denforcer.skip | grep error -->
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
-    <!-- ../scijava-scripts/release-version.sh - -skip-version-check -->
+    <!-- ../scijava-scripts/release-version.sh - -skip-version-check  - -skip-license-update -->
 
     <url>https://github.com/mobie/mobie-viewer-fiji</url>
     <name>MoBIE Fiji Viewer</name>
