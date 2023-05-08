@@ -40,7 +40,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-@CommandLine.Command(name = "mobie-files", mixinStandardHelpOptions = true, version = "4.0.1", description = "Visualise multi-modal big image data files, see https://mobie.github.io/")
+@CommandLine.Command(name = "mobie-files", mixinStandardHelpOptions = true, version = "4.0.3", description = "Visualise multi-modal big image data files, see https://mobie.github.io/")
 public class FilesCmd implements Callable< Void > {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }

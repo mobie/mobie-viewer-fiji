@@ -38,7 +38,7 @@ import picocli.CommandLine.Option;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
-@CommandLine.Command(name = "mobie-project", mixinStandardHelpOptions = true, version = "4.0.1", description = "Visualise multi-modal big image data stored as a MoBIE project, see https://mobie.github.io/")
+@CommandLine.Command(name = "mobie-project", mixinStandardHelpOptions = true, version = "4.0.3", description = "Visualise multi-modal big image data stored as a MoBIE project, see https://mobie.github.io/")
 public class ProjectCmd implements Callable< Void > {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
