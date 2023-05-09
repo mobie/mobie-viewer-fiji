@@ -43,8 +43,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Dataset Table..." )
-public class OpenDatasetTableCommand implements Command {
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Table..." )
+public class OpenTableCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -52,7 +52,7 @@ public class OpenDatasetTableCommand implements Command {
 	public File table;
 
 	@Parameter( label = "Root Folder", required = false )
-	public File rootFolder;
+	public File root;
 
 	@Parameter( label = "Image Columns (Comma Separated)", required = true )
 	public String images;
@@ -87,7 +87,7 @@ public class OpenDatasetTableCommand implements Command {
 
 		try
 		{
-			new MoBIE( table.getAbsolutePath(), imageList, labelList, rootFolder.getAbsolutePath(), gridType, settings );
+			new MoBIE( table.getAbsolutePath(), imageList, labelList, root.getAbsolutePath(), gridType, settings );
 		}
 		catch ( IOException e )
 		{

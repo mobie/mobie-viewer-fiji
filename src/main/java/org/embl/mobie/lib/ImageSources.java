@@ -131,8 +131,6 @@ public class ImageSources
 			metadataSource = nameToPath.entrySet().stream().filter( e -> e.getValue().equals( path ) ).findFirst().get().getKey();
 		}
 
-
-
 		createRegionTable();
 
 		// add column for joining on

@@ -33,16 +33,16 @@ import org.embl.mobie.command.open.OpenTableCommand;
 
 import java.io.File;
 
-class AgataOpenCellProfilerImageTable
+class AgataOpenCellProfilerObjectTable
 {
 	public static void main( String[] args ) throws Exception
 	{
 		new ImageJ().ui().showUI();
 		final OpenTableCommand command = new OpenTableCommand();
-		command.table = new File("/g/cba/exchange/agata-misiaszek/data/analysed/Image.txt");
-		command.root = new File("/g/cba/exchange/agata-misiaszek/data/analysed/");
-		command.images = "FileName_DNA=DAPI;0,FileName_DNA=RPAC1;1";
-		command.labels = "FileName_CytoplasmLabels=CytoSeg,ObjectsFileName_Nuclei=NucleiSeg";
+		command.root = new File( "/g/cba/exchange/agata-misiaszek/data/analysed" );
+		command.table = new File( "/g/cba/exchange/agata-misiaszek/data/analysed/Nuclei.txt" );
+		command.images = "Image_FileName_DNA=DAPI;0,Image_FileName_DNA=RPAC1;1";
+		command.labels = "Image_FileName_CytoplasmLabels=CytoSeg,Image_FileName_NucleoliLabels=NucleoliSeg";
 		command.removeSpatialCalibration = true;
 		command.run();
 	}

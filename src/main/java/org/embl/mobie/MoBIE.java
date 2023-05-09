@@ -221,7 +221,7 @@ public class MoBIE
 		for ( String image : images )
 		{
 			final TableImageSource tableImageSource = new TableImageSource( image );
-			imageSources.add( new ImageSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root,  gridType ) );
+			imageSources.add( new ImageSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType ) );
 		}
 
 		final List< LabelSources > labelSources = new ArrayList<>();
@@ -368,7 +368,7 @@ public class MoBIE
 				DataStore.putRawData( regionDataSource );
 
 				// init RegionDisplay
-				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( sources.getName() + " regions" );
+				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( sources.getName() + " images" );
 				regionDisplay.sources = new LinkedHashMap<>();
 				regionDisplay.tableSource = regionDataSource.getName();
 				regionDisplay.showAsBoundaries( true );

@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.lib.table.saw;
 
-import IceInternal.Ex;
 import ij.IJ;
 import ij.measure.ResultsTable;
 import net.thisptr.jackson.jq.internal.misc.Strings;
@@ -188,7 +187,7 @@ public class TableOpener
 			throw new RuntimeException( e );
 		}
 
-		content = fixMultipleHeaderRows( separator, content );
+		content = dealWithTwoHeaderRowsIfNeeded( separator, content );
 
 		CsvReadOptions.Builder builder =
 				CsvReadOptions.builderFromString( content )
@@ -198,7 +197,7 @@ public class TableOpener
 		return Table.read().usingOptions( builder );
 	}
 
-	private static String fixMultipleHeaderRows( char separator, String content )
+	private static String dealWithTwoHeaderRowsIfNeeded( char separator, String content )
 	{
 		String[] lines = content.split( System.lineSeparator() );
 		final String[] columns = lines[ 0 ].split( "" + separator );
@@ -230,7 +229,7 @@ public class TableOpener
 			final String header = Strings.join( "" + separator, Arrays.asList( combinedColumns ) );
 			final List< String > lineList = new ArrayList<>();
 			lineList.add( header );
-			for ( int i = 2; i < 3; i++ )
+			for ( int i = 2; i < lines.length; i++ )
 			{
 				lineList.add( lines[ i ] );
 			}
