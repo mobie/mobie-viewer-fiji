@@ -124,7 +124,7 @@ public class MoBIESettings
 		private String tableDataLocation;
 		private String view = View.DEFAULT;
 		private Boolean removeSpatialCalibration = false;
-		private Boolean cli = false;
+		private Boolean cli = false; // started from CLI
 
 		public Boolean getRemoveSpatialCalibration()
 		{

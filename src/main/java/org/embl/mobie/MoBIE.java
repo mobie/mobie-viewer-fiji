@@ -829,15 +829,16 @@ public class MoBIE
 			ThreadHelper.resetIOThreads();
 			viewManager.close();
 			IJ.log( "MoBIE closed." );
-			IJ.log( "Closing MoBIE may have lead to errors due to processes that are interrupted." );
-			IJ.log( "Usually it is fine to ignore those errors." );
+			if ( settings.values.getCli() )
+				System.exit( 0 );
 		}
 		catch ( Exception e )
 		{
 			IJ.log( "[ERROR] Could not fully close MoBIE." );
 			e.printStackTrace();
+			if ( settings.values.getCli() )
+				System.exit( 1 );
 		}
-
 	}
 
 	public synchronized DataSource getData( String sourceName )
