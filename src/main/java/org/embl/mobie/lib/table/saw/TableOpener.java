@@ -207,7 +207,7 @@ public class TableOpener
 		{
 			if ( collect.get( column ) > 1 )
 			{
-				IJ.log("[WARNING] found duplicate column names: " + column );
+				IJ.log("[WARNING] Found duplicate column names, e.g.: " + column );
 				containsDuplicateColumnNames = true;
 				break;
 			}
@@ -215,7 +215,7 @@ public class TableOpener
 
 		if ( containsDuplicateColumnNames )
 		{
-			IJ.log("[WARNING] assuming that this to be a table with two header rows.");
+			IJ.log("[WARNING] Trying now to open the table assuming that there are two header rows...");
 
 			final String[] columns2 = lines[ 1 ].split( "" + separator );
 			final String[] combinedColumns = new String[ columns.length ];

@@ -34,12 +34,12 @@ import java.util.Collection;
 
 public class IlastikSegmentColumnNames implements SegmentColumnNames
 {
-	public static final String NONE = "None";
-	public static final String LABEL_ID = "labelimageId";
-	public static final String[] ANCHOR = { "Object_Center_0", "Object_Center_1", "Object_Center_2" };
-	public static final String[] BB_MIN = { "Bounding_Box_Minimum_0", "Bounding_Box_Minimum_1", "Bounding_Box_Minimum_2" };
-	public static final String[] BB_MAX = { "Bounding_Box_Maximum_0", "Bounding_Box_Maximum_1", "Bounding_Box_Maximum_2" };
-	public static final String TIMEPOINT = "frame";
+	private static final String NONE = "None";
+	private static final String LABEL_ID = "labelimageId";
+	private static final String[] ANCHOR = { "Object_Center_0", "Object_Center_1", "Object_Center_2" };
+	private static final String[] BB_MIN = { "Bounding_Box_Minimum_0", "Bounding_Box_Minimum_1", "Bounding_Box_Minimum_2" };
+	private static final String[] BB_MAX = { "Bounding_Box_Maximum_0", "Bounding_Box_Maximum_1", "Bounding_Box_Maximum_2" };
+	private static final String TIMEPOINT = "frame";
 
 	@Override
 	public String labelImageColumn()

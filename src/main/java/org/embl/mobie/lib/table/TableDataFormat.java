@@ -31,6 +31,7 @@ package org.embl.mobie.lib.table;
 import com.google.gson.annotations.SerializedName;
 import ij.IJ;
 import org.apache.commons.lang3.StringUtils;
+import org.embl.mobie.lib.table.columns.CellProfilerSegmentColumnNames;
 import org.embl.mobie.lib.table.columns.IlastikSegmentColumnNames;
 import org.embl.mobie.lib.table.columns.MoBIESegmentColumnNames;
 import org.embl.mobie.lib.table.columns.MorpholibJSegmentColumnNames;
@@ -116,7 +117,17 @@ public enum TableDataFormat
 			return new SkimageSegmentColumnNames( columnNames );
 
 		if ( IlastikSegmentColumnNames.matches( columnNames ) )
+		{
 			return new IlastikSegmentColumnNames();
+		}
+
+		if ( CellProfilerSegmentColumnNames.matches( columnNames ) )
+		{
+			final String objectName = CellProfilerSegmentColumnNames.getObjectName( columnNames );
+//			IJ.log( TableDataFormat.class.getSimpleName() +": Identified CellProfiler object table with object name: " + objectName );
+			return new CellProfilerSegmentColumnNames( objectName );
+		}
+
 
 		return null;
 	}

@@ -29,15 +29,34 @@
 package org.embl.mobie.lib.table.columns;
 
 import java.util.Collection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class MorpholibJSegmentColumnNames implements SegmentColumnNames
+public class CellProfilerSegmentColumnNames implements SegmentColumnNames
 {
 	private static final String NONE = "None";
-	private static final String LABEL_ID = "Label";
-	private static final String[] ANCHOR = { "Centroid.X", "Centroid.Y", "Centroid.Z" };
-	private static final String[] BB_MIN = { "Box.X.Min", "Box.Y.Min", "Box.Z.Min" };
-	private static final String[] BB_MAX = { "Box.X.Max", "Box.Y.Max", "Box.Z.Max" };
-	private static final String TIMEPOINT = "Timepoint";
+	private final String LABEL_ID = "ObjectNumber";
+	private static final String[] ANCHOR = { "AreaShape_Center_X", "AreaShape_Center_Y", "AreaShape_Center_z" };
+
+	public static final String OBJECT = "Object";
+	public static final Pattern LOCATION_X_PATTERN = Pattern.compile( "(?<" + OBJECT + ">.*)_AreaShape_Center_X" );
+
+	private final String objectName;
+	private final String[] anchor;
+	private final String labelId;
+
+	public CellProfilerSegmentColumnNames( String objectName )
+	{
+		this.objectName = objectName;
+
+		this.anchor = new String[3];
+		for ( int d = 0; d < 3; d++ )
+		{
+			anchor[ d ] = objectName + "_" + ANCHOR[ d ];
+		}
+
+		this.labelId = objectName + "_" + LABEL_ID;
+	}
 
 	@Override
 	public String labelImageColumn()
@@ -48,35 +67,55 @@ public class MorpholibJSegmentColumnNames implements SegmentColumnNames
 	@Override
 	public String labelIdColumn()
 	{
-		return LABEL_ID;
+		return labelId;
 	}
 
 	@Override
 	public String timePointColumn()
 	{
-		return TIMEPOINT;
+		return NONE;
 	}
 
 	@Override
 	public String[] anchorColumns()
 	{
-		return ANCHOR;
+		return anchor;
 	}
 
 	@Override
 	public String[] bbMinColumns()
 	{
-		return BB_MIN;
+		return new String[]{ NONE };
 	}
 
 	@Override
 	public String[] bbMaxColumns()
 	{
-		return BB_MAX;
+		return new String[]{ NONE };
 	}
 
 	public static boolean matches( Collection< String > columns )
 	{
-		return columns.contains( ANCHOR[ 0 ] );
+		for ( String column : columns )
+		{
+			final Matcher matcher = LOCATION_X_PATTERN.matcher( column );
+			if( matcher.matches() )
+				return true;
+		}
+
+		return false;
 	}
+
+	public static String getObjectName( Collection< String > columns )
+	{
+		for ( String column : columns )
+		{
+			final Matcher matcher = LOCATION_X_PATTERN.matcher( column );
+			if( matcher.matches() )
+				return matcher.group( OBJECT );
+		}
+
+		return null;
+	}
+
 }

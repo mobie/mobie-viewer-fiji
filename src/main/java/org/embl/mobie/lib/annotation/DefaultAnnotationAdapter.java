@@ -90,7 +90,7 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 			return null ;
 		}
 
-		// TODO I think the fact that this method currently is synchronized makes
+		// TODO the fact that this method currently is synchronized may cause
 		//   rendering in BDV effectively single threaded!
 		//   In theory, once stlToAnnotation is initialised this does
 		//   not need to be synchronised anymore; but I did not figure out

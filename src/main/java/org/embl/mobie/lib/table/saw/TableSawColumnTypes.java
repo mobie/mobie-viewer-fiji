@@ -38,6 +38,7 @@ public abstract class TableSawColumnTypes
 	public static Map< ColumnType, Class< ? > > typeToClass;
 	static {
 		typeToClass = new HashMap<>();
+		typeToClass.put( ColumnType.TEXT, String.class );
 		typeToClass.put( ColumnType.STRING, String.class );
 		typeToClass.put( ColumnType.DOUBLE, Double.class );
 		typeToClass.put( ColumnType.INTEGER, Integer.class );

@@ -115,22 +115,7 @@ public class ImageSources
 		metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ), channelIndex );
 
 		final List< String > columnNames = table.columnNames();
-		final SegmentColumnNames segmentColumnNames = TableDataFormat.getSegmentColumnNames( columnNames );
-		if ( segmentColumnNames != null )
-		{
-			// it can be that not all sources have the same number of time points,
-			// thus we find out here which one has the most
-			final NumberColumn timepointColumn = ( NumberColumn ) table.column( segmentColumnNames.timePointColumn() );
-			final double min = timepointColumn.min();
-			final double max = timepointColumn.max();
-			metadata.numTimePoints = ( int ) ( max - min + 1 );
-			IJ.log("Detected " + metadata.numTimePoints  + " timepoints for " + name );
-
-			final Table where = table.where( timepointColumn.isEqualTo( max ) );
-			final String path = where.stringColumn( pathColumn ).get( 0 );
-			metadataSource = nameToPath.entrySet().stream().filter( e -> e.getValue().equals( path ) ).findFirst().get().getKey();
-		}
-
+		dealWithObjectTableIfNeeded( name, table, pathColumn, columnNames );
 		createRegionTable();
 
 		// add column for joining on
@@ -154,6 +139,25 @@ public class ImageSources
 				final Table summary = table.summarize( column, Aggregators.firstString ).by( pathColumn );
 				regionTable = regionTable.joinOn( pathColumn ).leftOuter( summary );
 			}
+		}
+	}
+
+	private void dealWithObjectTableIfNeeded( String name, Table table, String pathColumn, List< String > columnNames )
+	{
+		final SegmentColumnNames segmentColumnNames = TableDataFormat.getSegmentColumnNames( columnNames );
+		if ( segmentColumnNames != null && table.containsColumn( segmentColumnNames.timePointColumn()) )
+		{
+			// it can be that not all sources have the same number of time points,
+			// thus we find out here which one has the most
+			final NumberColumn timepointColumn = ( NumberColumn ) table.column( segmentColumnNames.timePointColumn() );
+			final double min = timepointColumn.min();
+			final double max = timepointColumn.max();
+			metadata.numTimePoints = ( int ) ( max - min + 1 );
+			IJ.log("Detected " + metadata.numTimePoints  + " timepoints for " + name );
+
+			final Table where = table.where( timepointColumn.isEqualTo( max ) );
+			final String path = where.stringColumn( pathColumn ).get( 0 );
+			metadataSource = nameToPath.entrySet().stream().filter( e -> e.getValue().equals( path ) ).findFirst().get().getKey();
 		}
 	}
 
