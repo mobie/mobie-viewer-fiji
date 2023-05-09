@@ -356,44 +356,51 @@ public class MoBIE
 			}
 		}
 
+		final ImageSources firstImageSources = allSources.get( 0 );
+
 		for ( ImageSources sources : allSources )
 		{
 			if ( sources.getGridType().equals( GridType.Stitched ) )
 			{
-				// init table for the RegionDisplay
-				final StorageLocation storageLocation = new StorageLocation();
-				storageLocation.data = sources.getRegionTable();
-				final RegionDataSource regionDataSource = new RegionDataSource( sources.getName() );
-				regionDataSource.addTable( TableDataFormat.Table, storageLocation );
-				DataStore.putRawData( regionDataSource );
+				final ArrayList< Display< ? > > displays = new ArrayList<>();
 
-				// init RegionDisplay
-				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( sources.getName() + " images" );
-				regionDisplay.sources = new LinkedHashMap<>();
-				regionDisplay.tableSource = regionDataSource.getName();
-				regionDisplay.showAsBoundaries( true );
-				regionDisplay.setBoundaryThickness( 0.05 );
-				regionDisplay.boundaryThicknessIsRelative( true );
-				regionDisplay.setOpacity( 1.0 );
-				final int numTimePoints = sources.getMetadata().numTimePoints;
-				for ( int t = 0; t < numTimePoints; t++ )
-					regionDisplay.timepoints().add( t );
-
-				final List< String > sourceNames = sources.getSources();
-				final int numRegions = sourceNames.size();
-				for ( int regionIndex = 0; regionIndex < numRegions; regionIndex++ )
+				if ( sources.equals( firstImageSources ) )
 				{
-					regionDisplay.sources.put( sourceNames.get( regionIndex ), Collections.singletonList( sourceNames.get( regionIndex ) ) );
+					// create a RegionDisplay
+
+					// init table for the RegionDisplay
+					final StorageLocation storageLocation = new StorageLocation();
+					storageLocation.data = sources.getRegionTable();
+					final RegionDataSource regionDataSource = new RegionDataSource( sources.getName() );
+					regionDataSource.addTable( TableDataFormat.Table, storageLocation );
+					DataStore.putRawData( regionDataSource );
+
+					// init RegionDisplay
+					final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( "image table" );
+					regionDisplay.sources = new LinkedHashMap<>();
+					regionDisplay.tableSource = regionDataSource.getName();
+					regionDisplay.showAsBoundaries( true );
+					regionDisplay.setBoundaryThickness( 0.05 );
+					regionDisplay.boundaryThicknessIsRelative( true );
+					regionDisplay.setOpacity( 1.0 );
+					final int numTimePoints = sources.getMetadata().numTimePoints;
+					for ( int t = 0; t < numTimePoints; t++ )
+						regionDisplay.timepoints().add( t );
+
+					final List< String > sourceNames = sources.getSources();
+					final int numRegions = sourceNames.size();
+					for ( int regionIndex = 0; regionIndex < numRegions; regionIndex++ )
+						regionDisplay.sources.put( sourceNames.get( regionIndex ), Collections.singletonList( sourceNames.get( regionIndex ) ) );
+
+					displays.add( regionDisplay );
 				}
 
 				// create grid transformation
 				final MergedGridTransformation grid = new MergedGridTransformation( sources.getName() );
 				grid.sources = sources.getSources();
 				grid.metadataSource = sources.getMetadataSource();
-
-				// create displays
-				//
-				final ArrayList< Display< ? > > displays = new ArrayList<>();
+				// TODO https://github.com/mobie/mobie-viewer-fiji/issues/1035
+				grid.lazyLoadTables = false;
 
 				if ( sources instanceof LabelSources )
 				{
@@ -406,8 +413,6 @@ public class MoBIE
 					final Metadata metadata = sources.getMetadata();
 					displays.add( new ImageDisplay<>( grid.getName(), Collections.singletonList( grid.getName() ), metadata.color, metadata.contrastLimits ) );
 				}
-
-				displays.add( regionDisplay );
 
 				// create grid view
 				//

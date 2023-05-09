@@ -49,10 +49,12 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	{
 		this.tableModels = tableModels;
 
-		// Note that all loading of data from the {@code tableModels}
+		// note that all loading of data from the {@code tableModels}
 		// it handled by the listening.
 		for ( AnnotationTableModel< A > tableModel : tableModels )
+		{
 			tableModel.addAnnotationListener( this );
+		}
 
 		this.referenceTable = tableModels.iterator().next();
 	}
@@ -185,5 +187,10 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	{
 		for ( AnnotationListener< A > annotationListener : listeners.list )
 			annotationListener.columnAdded( columnName );
+	}
+
+	public Set< AnnotationTableModel< A > > getTableModels()
+	{
+		return tableModels;
 	}
 }

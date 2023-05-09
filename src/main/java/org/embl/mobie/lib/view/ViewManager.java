@@ -80,6 +80,7 @@ import org.embl.mobie.lib.image.CroppedImage;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.table.AnnotationTableModel;
+import org.embl.mobie.lib.table.ConcatenatedAnnotationTableModel;
 import org.embl.mobie.lib.table.RegionDisplayAnnDataCreator;
 import org.embl.mobie.lib.table.TableView;
 import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
@@ -402,7 +403,20 @@ public class ViewManager
 					//
 					if ( gridImages.get( 0 ) instanceof AnnotatedLabelImage )
 					{
-						final StitchedAnnotatedLabelImage< ? extends Annotation> annotatedStitchedImage = new StitchedAnnotatedLabelImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.getName(), mergedGridTransformation.margin );
+						final StitchedAnnotatedLabelImage< ? extends Annotation > annotatedStitchedImage = new StitchedAnnotatedLabelImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.getName(), mergedGridTransformation.margin );
+
+						if ( ! mergedGridTransformation.lazyLoadTables )
+						{
+							// force loading of all tables
+							//
+							final ConcatenatedAnnotationTableModel< ? extends Annotation > concatenatedTableModel = ( ConcatenatedAnnotationTableModel ) annotatedStitchedImage.getAnnData().getTable();
+							final Set< ? extends AnnotationTableModel< ? extends Annotation > > tableModels = concatenatedTableModel.getTableModels();
+							for ( AnnotationTableModel< ? extends Annotation > tableModel : tableModels )
+							{
+								tableModel.annotations();
+							}
+						}
+
 						DataStore.putImage( annotatedStitchedImage );
 					}
 					else
