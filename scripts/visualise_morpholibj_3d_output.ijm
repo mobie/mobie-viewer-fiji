@@ -11,14 +11,18 @@
 
 // Parameters
 //
-threshold = 107;
+threshold = 80;
+root = "/Users/tischer/Documents/training-resources/image_data/"
+//root = "https://github.com/NEUBIAS/training-resources/raw/master/image_data/"
 
 // Code
 //
 run("Close All");
 run("Options...", "iterations=1 count=1 black do=Nothing");
-analyseNuclei3D( "Nuclei3D", "/Users/tischer/Documents/training-resources/image_data/xyz_8bit__nuclei_autothresh.tif", threshold );
-run("View Image and Segmentation and Table...","image=INCENP_T1 labels=INCENP_T1_binary-lbl table=INCENP_T1_binary-lbl-Morphometry");
+analyseNuclei3D( "Nuclei3D", root + "xyz_8bit__nuclei_autothresh.tif", threshold );
+
+// View in MoBIE
+run("View Image and Labels and Table...", "image=Nuclei3D labels=Nuclei3D_binary-lbl table=Nuclei3D_binary-lbl-morpho");
 
 
 // Functions

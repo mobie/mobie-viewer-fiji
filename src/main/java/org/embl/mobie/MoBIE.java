@@ -314,7 +314,7 @@ public class MoBIE
 	{
 		initImageJAndMoBIE();
 
-		initProject( "Project" );
+		initProject( "" );
 
 		final ArrayList< ImageSources > allSources = new ArrayList<>();
 		allSources.addAll( images );

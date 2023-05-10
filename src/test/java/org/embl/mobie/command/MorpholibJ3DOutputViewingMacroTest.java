@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class MorpholibJ2DOutputViewingMacroTest
+public class MorpholibJ3DOutputViewingMacroTest
 {
 	public static void main( String[] args ) throws IOException
 	{
@@ -15,7 +15,7 @@ public class MorpholibJ2DOutputViewingMacroTest
 		imageJ.ui().showUI();
 
 		StringBuilder contentBuilder = new StringBuilder();
-		Files.lines( Paths.get( "/Users/tischer/Documents/mobie/scripts/visualise_morpholibj_2d_output.ijm" ) ).forEach( s -> contentBuilder.append(s).append("\n") );
+		Files.lines( Paths.get( "/Users/tischer/Documents/mobie/scripts/visualise_morpholibj_3d_output.ijm" ) ).forEach( s -> contentBuilder.append(s).append("\n") );
 		final String macro = contentBuilder.toString();
 		new Interpreter().run( macro );
 	}

@@ -12,16 +12,15 @@
 // Parameters
 //
 threshold = 25;
+root = "/Users/tischer/Documents/training-resources/image_data/"
+//root = "https://github.com/NEUBIAS/training-resources/raw/master/image_data/"
 
 // Code
 //
 run("Close All");
 run("Options...", "iterations=1 count=1 black do=Nothing");
-analyseNuclei( "INCENP_T1", "/Users/tischer/Documents/training-resources/image_data/xy_8bit__mitocheck_incenp_t1.tif", threshold );
-
-//analyseNuclei( "INCENP_T1", "https://github.com/NEUBIAS/training-resources/raw/master/image_data/xy_8bit__mitocheck_incenp_t1.tif", threshold );
-//analyseNuclei( "INCENP_T70", "https://github.com/NEUBIAS/training-resources/raw/master/image_data/xy_8bit__mitocheck_incenp_t70.tif", threshold );
-//run("Tile");
+analyseNuclei( "INCENP_T1", root+"xy_8bit__mitocheck_incenp_t1.tif", threshold );
+run("View Image and Labels and Table...", "image=INCENP_T1 labels=INCENP_T1_binary-lbl table=INCENP_T1_binary-lbl-Morphometry");
 
 // Functions
 //

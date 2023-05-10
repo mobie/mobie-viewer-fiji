@@ -86,7 +86,7 @@ public class ViewImageAndLabelsAndTableCommand extends DynamicCommand implements
 	{
 		final ResultsTableFetcher tableFetcher = new ResultsTableFetcher();
 		titleToTable = tableFetcher.fetchCurrentlyOpenResultsTables();
-		MutableModuleItem< String > input = getInfo().getMutableInput("tableName", String.class );
+		MutableModuleItem< String > input = getInfo().getMutableInput("table", String.class );
 		input.setChoices( new ArrayList<>( titleToTable.keySet() ));
 	}
 }

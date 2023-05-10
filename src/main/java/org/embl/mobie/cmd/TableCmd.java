@@ -40,6 +40,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import static org.embl.mobie.cmd.FilesCmd.R;
+import static org.embl.mobie.cmd.FilesCmd.RC;
+import static org.embl.mobie.cmd.FilesCmd.REMOVE_CALIBRATION;
+import static org.embl.mobie.cmd.FilesCmd.ROOT;
+
+// TODO: Derive this class from a base class (common with mobie-files and mobie-hcs)
 @CommandLine.Command(name = "mobie-table", mixinStandardHelpOptions = true, version = "4.0.3", description = "Visualise images and labels masks from a dataset table, see https://mobie.github.io/")
 public class TableCmd implements Callable< Void > {
 
@@ -48,7 +54,7 @@ public class TableCmd implements Callable< Void > {
 	@Option(names = {"-t", "--table"}, required = true, description = "dataset table, each row corresponding to one image or to one object in an image")
 	public String table;
 
-	@Option(names = {"-r", "--root"}, required = false, description = "root folder that will be prepended to all image and label column entries")
+	@Option(names = {R, ROOT}, required = false, description = "root folder that will be prepended to all image and label column entries")
 	public String root;
 
 	@Option(names = {"-i", "--image"}, required = false, description = "intensity image column; to open multiple columns repeat the -i parameter; to replace the column name use, e.g., \"Nuclei=FilePath_DAPI\"; to only open one channel from a multi-channel file use, e.g., \"Nuclei=FilePath_Image;0\"")
@@ -60,7 +66,7 @@ public class TableCmd implements Callable< Void > {
 	@Option(names = {"-g", "--grid"}, required = false, description = "grid type: none, stitched (default), transform; \"stitched\" should yield the best performance but requires that all images have the same dimensions")
 	public GridType gridType = GridType.Stitched;
 
-	@Option(names = {"--remove-spatial-calibration"}, required = false, description = "removes spatial calibration from all images; this is useful if only some images have a spatial calibration and thus the overlay would fail.")
+	@Option(names = {RC, REMOVE_CALIBRATION}, required = false, description = "removes spatial calibration from all images; this is useful if only some images have a spatial calibration and thus the overlay would fail.")
 	public Boolean removeSpatialCalibration = false;
 
 	@Override

@@ -200,37 +200,14 @@ public class ImageVolumeViewer
 
 		final ImagePlus unsignedByteImagePlus = createUnsignedByteImagePlus( source, contrastLimits, level, voxelSpacings );
 		final Content content = universe.addContent( unsignedByteImagePlus, displayType );
-		// locking the content in combination with displayType=SURFACE
-		// throws an error: J3dI18N: Error looking up: Transform3D1
-		// using displayType VOLUME does not throw this error.
-		// content.setLocked( true ); // don't do this to avoid the above error
+		// TODO: see zulip discussion
+		content.setLocked( true );
 		content.setColor( new Color3f( ColorHelper.getColor( argbType ) ) );
 		content.setTransparency( transparency );
 		universe.setAutoAdjustView( true );
 		IJ.log( VOLUME_VIEWER + "Added " + source.getName() + "." );
 		return content;
 	}
-
-//	public static < R extends RealType< R > > Content addSourceToUniverse1(
-//			Image3DUniverse universe,
-//			Source< ? > source,
-//			double[] spacing,
-//			double voxelSpacing,
-//			int displayType,
-//			ARGBType argbType,
-//			float transparency,
-//			double[] contrastLimits )
-//	{
-//		final Integer level = getLevel( source, voxelSpacing );
-//		System.out.println( "3D View: Fetching source " + source.getName() + " at resolution " + voxelSpacing + " micrometer..." );
-//		final ImagePlus wrap = createUnsignedByteImagePlus( source, contrastLimits, level );
-//		final Content content = universe.addContent( wrap, displayType );
-//		content.setTransparency( transparency );
-//		content.setLocked( true );
-//		content.setColor( new Color3f( ColorHelper.getColor( argbType ) ) );
-//		universe.setAutoAdjustView( false );
-//		return content;
-//	}
 
 	private static < R extends RealType< R > & NativeType< R > > ImagePlus createUnsignedByteImagePlus( Source< ? > source, double[] contrastLimits, Integer level, double[] voxelSpacings )
 	{
@@ -258,8 +235,6 @@ public class ImageVolumeViewer
 
 	private int[] getContrastLimits( SourceAndConverter< ? > sac )
 	{
-
-
 		final Object type = Util.getTypeFromInterval( sac.getSpimSource().getSource( 0, 0 ) );
 		final int[] contrastLimits = new int[ 2 ];
 		contrastLimits[ 0 ] = 0;
