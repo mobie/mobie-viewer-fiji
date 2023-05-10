@@ -405,7 +405,7 @@ public class ViewManager
 					{
 						final StitchedAnnotatedLabelImage< ? extends Annotation > annotatedStitchedImage = new StitchedAnnotatedLabelImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.getName(), mergedGridTransformation.margin );
 
-						if ( ! mergedGridTransformation.lazyLoadTables )
+						if ( ! mergedGridTransformation.lazyLoadTables && annotatedStitchedImage.getAnnData().getTable() instanceof ConcatenatedAnnotationTableModel )
 						{
 							// force loading of all tables
 							//

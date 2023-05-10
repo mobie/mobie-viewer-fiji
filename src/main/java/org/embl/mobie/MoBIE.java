@@ -356,6 +356,7 @@ public class MoBIE
 			}
 		}
 
+		// TODO don't create a grid view if there is only one image and label mask
 		final ImageSources firstImageSources = allSources.get( 0 );
 
 		for ( ImageSources sources : allSources )
@@ -417,28 +418,13 @@ public class MoBIE
 				// create grid view
 				//
 				final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( grid.getSources().get( 0 ), 0 );
-				final View gridView = new View( sources.getName(), "grids", displays, Arrays.asList( grid ), viewerTransform, false );
+				final View gridView = new View( sources.getName(), "data", displays, Arrays.asList( grid ), viewerTransform, false );
 				//gridView.overlayNames( true ); // Timepoint bug:
 				dataset.views().put( gridView.getName(), gridView );
 			}
 			else
 			{
-				//					for ( int gridPosition = 0; gridPosition < numRegions; gridPosition++ )
-//					{
-//						try
-//						{
-//							final String sourceName = sources.get( gridPosition );
-//							grid.nestedSources.get( gridPosition ).add( sourceName );
-//							regionDisplay.sources.get( "grid_" + gridPosition ).add( sourceName );
-//						}
-//						catch ( Exception e )
-//						{
-//							e.printStackTrace();
-//						}
-//					}
-//				}
-
-				throw new UnsupportedOperationException( "Grid type currently not supported.");
+				throw new UnsupportedOperationException( "Grid type not yet supported.");
 			}
 		}
 

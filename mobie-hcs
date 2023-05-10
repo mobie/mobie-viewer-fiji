@@ -1,6 +1,6 @@
 #!/bin/bash
 
-JAR=$HOME/.m2/repository/org/embl/mobie/mobie-viewer-fiji/4.0.4-SNAPSHOT/mobie-viewer-fiji-4.0.4-SNAPSHOT.jar
+JAR=$HOME/.m2/repository/org/embl/mobie/mobie-viewer-fiji/4.0.5-SNAPSHOT/mobie-viewer-fiji-4.0.5-SNAPSHOT.jar
 /Users/tischer/Library/Java/JavaVirtualMachines/corretto-1.8.0_312/Contents/Home/bin/java \
   -Xmx8g \
   -XX:+UseConcMarkSweepGC \

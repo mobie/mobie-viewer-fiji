@@ -3,7 +3,7 @@
 # thanks @axtimwalde & co!
 
 JAVA_HOME="/Users/tischer/Library/Java/JavaVirtualMachines/corretto-1.8.0_312/Contents/Home"
-VERSION="4.0.4-SNAPSHOT"
+VERSION="4.0.5-SNAPSHOT"
 MEM=8
 
 mvn clean install -Denforcer.skip -Dmaven.test.skip=true
