@@ -1,5 +1,6 @@
 package org.embl.mobie.command;
 
+import ij.ImagePlus;
 import ij.WindowManager;
 import ij.macro.Interpreter;
 import ij.measure.ResultsTable;
@@ -27,25 +28,12 @@ public class MorpholibJ2DOutputViewingMacroTest
 		final String macro = contentBuilder.toString();
 		new Interpreter().run( macro );
 
-		// Manually run the code within ViewImageAndLabelsAndTableCommand
-		// TODO: make this accessible as a method within the above command
-		final AbstractSpimData< ? > imageData = new SpimDataOpener().open( WindowManager.getImage( "INCENP_T1" ) );
-		final AbstractSpimData< ? > labelData = new SpimDataOpener().open( WindowManager.getImage( "INCENP_T1_binary-lbl" ) );
 		final ResultsTableFetcher tableFetcher = new ResultsTableFetcher();
 		final ResultsTable resultsTable = tableFetcher.fetch( "INCENP_T1_binary-lbl-Morphometry" );
-		final TableDataFormat tableDataFormat = TableDataFormat.ResultsTable;
-		final StorageLocation tableStorageLocation = new StorageLocation();
-		tableStorageLocation.data = resultsTable;
+		final ImagePlus image = WindowManager.getImage( "INCENP_T1" );
+		final ImagePlus labels = WindowManager.getImage( "INCENP_T1_binary-lbl" );
 
-		new MoBIE( "ImageJ", imageData, labelData, tableStorageLocation, tableDataFormat );
-
-		// continue from UI (I did not manage to make the below work yet)
-
-//		final ViewImageAndLabelsAndTableCommand command = new ViewImageAndLabelsAndTableCommand();
-//		command.image = WindowManager.getImage( "INCENP_T1" );
-//		command.labels = WindowManager.getImage( "INCENP_T1_binary-lbl" );
-//		command.tableName = "INCENP_T1_binary-lbl-Morphometry";
-//		command.initialize();
-//		command.run();
+		final ViewImageAndLabelsAndTableCommand command = new ViewImageAndLabelsAndTableCommand();
+		command.view( image, labels, resultsTable );
 	}
 }

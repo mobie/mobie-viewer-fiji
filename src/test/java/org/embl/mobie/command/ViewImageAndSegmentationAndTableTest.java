@@ -41,31 +41,25 @@ class ViewImageAndSegmentationAndTableTest
 	public static void main( String[] args ) throws IOException
 	{
 		String root = "/Users/tischer/Documents/mobie/";
+		final String folder = "src/test/resources/input/mlj-2d-tiff/";
 
 		ImageJ ij = new ImageJ();
 		ij.ui().showUI();
 
-		final ResultsTable resultsTable = ResultsTable.open( root + "src/test/resources/golgi-cell-features-mlj.csv" );
+		final ResultsTable resultsTable = ResultsTable.open( root + folder + "table-mlj.csv" );
 		resultsTable.show( "MLJ" );
-
-		final ImagePlus image = IJ.openImage( root + "src/test/resources/golgi-intensities.tif" );
-		final ImagePlus segmentation = IJ.openImage( root + "src/test/resources/golgi-cell-labels.tif" );
+		final ImagePlus image = IJ.openImage( root + folder + "image.tif" );
+		final ImagePlus segmentation = IJ.openImage( root + folder + "segmentation.tif" );
 
 		boolean interactive = false;
-
 		if ( interactive )
 		{
 			resultsTable.show( resultsTable.getTitle() );
 			image.show();
 			segmentation.show();
 		}
-		else
-		{
-			final ViewImageAndLabelsAndTableCommand command = new ViewImageAndLabelsAndTableCommand();
-			command.image = image;
-			command.labels = segmentation;
-			command.tableName = resultsTable.getTitle();
-			command.run();
-		}
+
+		final ViewImageAndLabelsAndTableCommand command = new ViewImageAndLabelsAndTableCommand();
+		command.view( image, segmentation, resultsTable );
 	}
 }

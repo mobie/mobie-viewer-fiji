@@ -67,14 +67,18 @@ public class ViewImageAndLabelsAndTableCommand extends DynamicCommand implements
 	@Override
 	public void run()
 	{
+		final ResultsTable resultsTable = titleToTable.get( table );
+		view( image, labels, resultsTable);
+	}
+
+	public void view( ImagePlus image, ImagePlus labels, ResultsTable resultsTable )
+	{
+		final AbstractSpimData< ? > imageData = new SpimDataOpener().open( image );
+		final AbstractSpimData< ? > labelData = new SpimDataOpener().open( labels );
 		final TableDataFormat tableDataFormat = TableDataFormat.ResultsTable;
 		final StorageLocation tableStorageLocation = new StorageLocation();
-		tableStorageLocation.data = titleToTable.get( table );
-
-		final AbstractSpimData< ? > imageData = new SpimDataOpener().open( image );
-		final AbstractSpimData< ? > segmentationData = new SpimDataOpener().open( labels );
-
-		new MoBIE( "ImageJ", imageData, segmentationData, tableStorageLocation, tableDataFormat );
+		tableStorageLocation.data = resultsTable;
+		new MoBIE( "ImageJ", imageData, labelData, tableStorageLocation, tableDataFormat );
 	}
 
 	@Override

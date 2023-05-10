@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.table.saw;
 
+import IceInternal.Ex;
 import ij.IJ;
 import ij.measure.ResultsTable;
 import net.thisptr.jackson.jq.internal.misc.Strings;
@@ -151,18 +152,20 @@ public class TableOpener
 		{
 			if ( columnName.equals( segmentColumnNames.labelIdColumn() ) )
 			{
-				final int[] labels;
-				if ( segmentColumnNames instanceof MorpholibJSegmentColumnNames ||
-						segmentColumnNames instanceof ParticleAnalyzerSegmentColumnNames )
+				int[] labels;
+				try
 				{
+					labels = Arrays.stream( resultsTable.getColumn( columnName ) ).mapToInt( x -> ( int ) x ).toArray();
+				}
+				catch ( Exception e )
+				{
+					// "Labels" can be a special column that cannot be accessed
+					// as a normal column
 					final int size = resultsTable.size();
 					labels = new int[ size ];
 					for ( int i = 0; i < size; i++ )
 						labels[ i ] = Integer.parseInt( resultsTable.getLabel( i ) );
-				}
-				else
-				{
-					labels = Arrays.stream( resultsTable.getColumn( columnName ) ).mapToInt( x -> ( int ) x ).toArray();
+
 				}
 				final IntColumn intColumn = IntColumn.create( columnName, labels );
 				table.addColumns( intColumn );
