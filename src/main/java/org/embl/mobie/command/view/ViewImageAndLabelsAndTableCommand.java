@@ -28,11 +28,7 @@
  */
 package org.embl.mobie.command.view;
 
-import de.embl.cba.tables.TableColumns;
-import de.embl.cba.tables.imagesegment.SegmentProperty;
-import de.embl.cba.tables.imagesegment.SegmentUtils;
 import de.embl.cba.tables.results.ResultsTableFetcher;
-import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.ImagePlus;
 import ij.measure.ResultsTable;
 import mpicbg.spim.data.generic.AbstractSpimData;
@@ -50,29 +46,20 @@ import org.scijava.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MAX_X;
-import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MAX_Y;
-import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MAX_Z;
-import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_X;
-import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Y;
-import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Z;
-
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "View>View Image and Segmentation and Table..."  )
-public class ViewImageAndSegmentationAndTableCommand extends DynamicCommand implements Initializable
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "View>View Image and Labels and Table..."  )
+public class ViewImageAndLabelsAndTableCommand extends DynamicCommand implements Initializable
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	@Parameter ( label = "Intensity Image" )
 	public ImagePlus image;
 
-	@Parameter ( label = "Label Mask Image" )
-	public ImagePlus segmentation;
+	@Parameter ( label = "Label Image" )
+	public ImagePlus labels;
 
-	@Parameter ( label = "Table" )
-	public String tableName;
+	@Parameter ( label = "Label Table" )
+	public String table;
 
 	// see {@code initialize()}
 	private HashMap< String, ResultsTable > titleToTable;
@@ -82,10 +69,10 @@ public class ViewImageAndSegmentationAndTableCommand extends DynamicCommand impl
 	{
 		final TableDataFormat tableDataFormat = TableDataFormat.ResultsTable;
 		final StorageLocation tableStorageLocation = new StorageLocation();
-		tableStorageLocation.data = titleToTable.get( tableName );
+		tableStorageLocation.data = titleToTable.get( table );
 
 		final AbstractSpimData< ? > imageData = new SpimDataOpener().open( image );
-		final AbstractSpimData< ? > segmentationData = new SpimDataOpener().open( segmentation );
+		final AbstractSpimData< ? > segmentationData = new SpimDataOpener().open( labels );
 
 		new MoBIE( "ImageJ", imageData, segmentationData, tableStorageLocation, tableDataFormat );
 	}

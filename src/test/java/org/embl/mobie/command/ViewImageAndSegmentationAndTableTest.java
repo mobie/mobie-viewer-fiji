@@ -32,7 +32,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.measure.ResultsTable;
 import net.imagej.ImageJ;
-import org.embl.mobie.command.view.ViewImageAndSegmentationAndTableCommand;
+import org.embl.mobie.command.view.ViewImageAndLabelsAndTableCommand;
 
 import java.io.IOException;
 
@@ -61,9 +61,9 @@ class ViewImageAndSegmentationAndTableTest
 		}
 		else
 		{
-			final ViewImageAndSegmentationAndTableCommand command = new ViewImageAndSegmentationAndTableCommand();
+			final ViewImageAndLabelsAndTableCommand command = new ViewImageAndLabelsAndTableCommand();
 			command.image = image;
-			command.segmentation = segmentation;
+			command.labels = segmentation;
 			command.tableName = resultsTable.getTitle();
 			command.run();
 		}

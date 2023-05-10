@@ -35,6 +35,8 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
+import org.embl.mobie.lib.table.columns.MorpholibJSegmentColumnNames;
+import org.embl.mobie.lib.table.columns.ParticleAnalyzerSegmentColumnNames;
 import org.embl.mobie.lib.table.columns.SegmentColumnNames;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.DoubleColumn;
@@ -149,8 +151,20 @@ public class TableOpener
 		{
 			if ( columnName.equals( segmentColumnNames.labelIdColumn() ) )
 			{
-				final int[] ints = Arrays.stream( resultsTable.getColumn( columnName ) ).mapToInt( x -> ( int ) x ).toArray();
-				final IntColumn intColumn = IntColumn.create( columnName, ints );
+				final int[] labels;
+				if ( segmentColumnNames instanceof MorpholibJSegmentColumnNames ||
+						segmentColumnNames instanceof ParticleAnalyzerSegmentColumnNames )
+				{
+					final int size = resultsTable.size();
+					labels = new int[ size ];
+					for ( int i = 0; i < size; i++ )
+						labels[ i ] = Integer.parseInt( resultsTable.getLabel( i ) );
+				}
+				else
+				{
+					labels = Arrays.stream( resultsTable.getColumn( columnName ) ).mapToInt( x -> ( int ) x ).toArray();
+				}
+				final IntColumn intColumn = IntColumn.create( columnName, labels );
 				table.addColumns( intColumn );
 			}
 			else

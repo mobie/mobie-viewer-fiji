@@ -30,13 +30,13 @@ package org.embl.mobie.lib.table.columns;
 
 import java.util.Collection;
 
-public class MorpholibJSegmentColumnNames implements SegmentColumnNames
+public class ParticleAnalyzerSegmentColumnNames implements SegmentColumnNames
 {
 	private static final String NONE = "None";
 	private static final String LABEL_ID = "Label";
-	private static final String[] ANCHOR = { "Centroid.X", "Centroid.Y", "Centroid.Z" };
-	private static final String[] BB_MIN = { "Box.X.Min", "Box.Y.Min", "Box.Z.Min" };
-	private static final String[] BB_MAX = { "Box.X.Max", "Box.Y.Max", "Box.Z.Max" };
+	private static final String[] ANCHOR = { "X", "Y" };
+	//private static final String[] BB_MIN = { "BX", "BY" };
+	//private static final String[] BB_MAX = { "Box.X.Max", "Box.Y.Max", "Box.Z.Max" };
 	private static final String TIMEPOINT = "Timepoint";
 
 	@Override
@@ -66,17 +66,20 @@ public class MorpholibJSegmentColumnNames implements SegmentColumnNames
 	@Override
 	public String[] bbMinColumns()
 	{
-		return BB_MIN;
+		// TODO: if we want to support this for IJ ParticleAnalyzer ResultsTable
+		//  we need to do some math, because the BB is given as min and size.
+		//  see corresponding comment in {@code TableSawAnnotatedSegmentCreator}
+		return new String[]{ NONE };
 	}
 
 	@Override
 	public String[] bbMaxColumns()
 	{
-		return BB_MAX;
+		return new String[]{ NONE };
 	}
 
 	public static boolean matches( Collection< String > columns )
 	{
-		return columns.contains( LABEL_ID );
+		return columns.contains( ANCHOR[ 0 ] );
 	}
 }

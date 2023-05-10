@@ -453,7 +453,7 @@ public class MoBIE
 	//
 	// tables: provide the {@code StorageLocation}
 	// and the {@code TableDataFormat}.
-	public MoBIE( String projectName, AbstractSpimData< ? > image, @Nullable AbstractSpimData< ? > segmentation, @Nullable StorageLocation tableStorageLocation, @Nullable TableDataFormat tableDataFormat )
+	public MoBIE( String projectName, AbstractSpimData< ? > image, @Nullable AbstractSpimData< ? > labels, @Nullable StorageLocation tableStorageLocation, @Nullable TableDataFormat tableDataFormat )
 	{
 		initImageJAndMoBIE();
 
@@ -461,8 +461,8 @@ public class MoBIE
 
 		addSpimDataImages( image, false, null, null );
 
-		if ( segmentation != null )
-			addSpimDataImages( segmentation, true, tableStorageLocation, tableDataFormat );
+		if ( labels  != null )
+			addSpimDataImages( labels, true, tableStorageLocation, tableDataFormat );
 
 		initUIandShowView( null );
 	}
@@ -567,7 +567,7 @@ public class MoBIE
 			if ( isSegmentation )
 			{
 				dataSource = new SegmentationDataSource( imageName, imageDataFormat, storageLocation, tableDataFormat, tableStorageLocation );
-				addSegmentationView( dataSource.getName(), spimData, setupIndex );
+				addSegmentationView( spimData, setupIndex, imageName );
 			}
 			else
 			{
@@ -603,23 +603,30 @@ public class MoBIE
 		dataset.views().put( view.getName(), view );
 	}
 
-	private String getImageName( String imagePath, int numImages, int imageIndex )
+	private String getImageName( String setupName, int numImages, int setupIndex )
 	{
-		String imageName = FilenameUtils.removeExtension( new File( imagePath ).getName() );
-		if ( numImages > 1 )
-			imageName += "_ch" + imageIndex;
+		String imageName = FilenameUtils.removeExtension( new File( setupName ).getName() );
+		if ( numImages == 1)
+		{
+			imageName = imageName.replaceAll( " channel.*", "" );
+		}
+		else
+		{
+			imageName = imageName.replaceAll( " channel ", "ch_" );
+		}
+
 		return imageName;
 	}
 
-	private void addSegmentationView( String imageName, AbstractSpimData< ? > spimData, int setupId  )
+	private void addSegmentationView( AbstractSpimData< ? > spimData, int setupId, String name  )
 	{
-		final SegmentationDisplay< ? > display = new SegmentationDisplay<>( imageName, Arrays.asList( imageName ) );
+		final SegmentationDisplay< ? > display = new SegmentationDisplay<>( name, Arrays.asList( name ) );
 
 		final BasicViewSetup viewSetup = spimData.getSequenceDescription().getViewSetupsOrdered().get( setupId );
 		final double pixelWidth = viewSetup.getVoxelSize().dimension( 0 );
 		display.setResolution3dView( new Double[]{ pixelWidth, pixelWidth, pixelWidth } );
 
-		final View view = new View( imageName, "segmentations", Arrays.asList( display ), null, false );
+		final View view = new View( name, "segmentations", Arrays.asList( display ), null, false );
 		dataset.views().put( view.getName(), view );
 	}
 

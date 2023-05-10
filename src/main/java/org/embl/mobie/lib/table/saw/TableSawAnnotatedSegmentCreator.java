@@ -110,9 +110,9 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 
 		int timePoint = timePointColumnIndex > -1 ? table.intColumn( timePointColumnIndex ).get( rowIndex ) : 0;
 
-
 		final FinalRealInterval boundingBox = boundingBox( table, rowIndex );
 
+		// TODO do we want to support missing anchor columns?
 		double[] position = new double[]{
 				table.numberColumn( anchorColumnIndices[ 0 ] ).getDouble( rowIndex ),
 				table.numberColumn( anchorColumnIndices[ 1 ] ).getDouble( rowIndex ),
@@ -133,6 +133,9 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 	private FinalRealInterval boundingBox( Table table, int rowIndex )
 	{
 		if ( ! hasBoundingBox ) return null;
+
+		// TODO: if we want to support this for IJ ParticleAnalyzer ResultsTable
+		//  we need to do some math, because it is given as min and size.
 
 		final double[] min = {
 				table.numberColumn( bbMinColumnIndices[ 0 ] ).getDouble( rowIndex ),

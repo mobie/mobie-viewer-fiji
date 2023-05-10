@@ -3,7 +3,7 @@
 # thanks @axtimwalde & co!
 
 JAVA_HOME="/Users/tischer/Library/Java/JavaVirtualMachines/corretto-1.8.0_312/Contents/Home"
-VERSION="4.0.3-SNAPSHOT"
+VERSION="4.0.4-SNAPSHOT"
 MEM=8
 
 mvn clean install -Denforcer.skip -Dmaven.test.skip=true
@@ -20,7 +20,6 @@ echo -n $(cat cp.txt) >> mobie-files
 echo ' \' >> mobie-files
 echo '  org.embl.mobie.cmd.FilesCmd "$@"' >> mobie-files
 chmod a+x mobie-files
-echo ""
 echo "Installed mobie-files in current directory."
 echo "Execute ./mobie-files to see all options"
 
@@ -35,7 +34,6 @@ echo -n $(cat cp.txt) >> mobie-table
 echo ' \' >> mobie-table
 echo '  org.embl.mobie.cmd.TableCmd "$@"' >> mobie-table
 chmod a+x mobie-table
-echo ""
 echo "Installed mobie-table in current directory."
 echo "Execute ./mobie-table to see all options"
 
@@ -50,7 +48,6 @@ echo -n $(cat cp.txt) >> mobie-hcs
 echo ' \' >> mobie-hcs
 echo '  org.embl.mobie.cmd.HCSCmd "$@"' >> mobie-hcs
 chmod a+x mobie-hcs
-echo ""
 echo "Installed mobie-hcs in current directory."
 echo "Execute ./mobie-hcs to see all options"
 
@@ -65,7 +62,6 @@ echo -n $(cat cp.txt) >> mobie-project
 echo ' \' >> mobie-project
 echo '  org.embl.mobie.cmd.ProjectCmd "$@"' >> mobie-project
 chmod a+x mobie-project
-echo ""
 echo "Installed mobie-project in current directory."
 echo "Execute ./mobie-project to see all options"
 

@@ -101,7 +101,7 @@ public class SkimageSegmentColumnNames implements SegmentColumnNames
 
 	public static boolean matches( Collection< String > columns )
 	{
-		return columns.contains( "centroid-0" );
+		return columns.contains( LABEL_ID );
 	}
 
 	public static int numDimensions( Collection< String > columns )
