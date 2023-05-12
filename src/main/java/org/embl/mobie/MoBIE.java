@@ -218,6 +218,7 @@ public class MoBIE
 		final Table table = TableOpener.openDelimitedTextFile( tablePath );
 
 		final List< ImageSources > imageSources = new ArrayList<>();
+
 		for ( String image : images )
 		{
 			final TableImageSource tableImageSource = new TableImageSource( image );
@@ -225,10 +226,11 @@ public class MoBIE
 		}
 
 		final List< LabelSources > labelSources = new ArrayList<>();
+		final String firstLabel = labels.get( 0 );
 		for ( String label : labels )
 		{
 			final TableImageSource tableImageSource = new TableImageSource( label );
-			labelSources.add( new LabelSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root,  gridType ) );
+			labelSources.add( new LabelSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType, label.equals( firstLabel ) ) );
 		}
 
 		openImagesAndLabels( imageSources, labelSources );
@@ -365,6 +367,9 @@ public class MoBIE
 			{
 				final ArrayList< Display< ? > > displays = new ArrayList<>();
 
+				// TODO: probably we should not even create the region table
+				//   for any source other than the first one while
+				//   creating the ImageSources
 				if ( sources.equals( firstImageSources ) )
 				{
 					// create a RegionDisplay

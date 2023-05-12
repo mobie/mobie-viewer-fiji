@@ -116,6 +116,7 @@ public class ImageSources
 
 		final List< String > columnNames = table.columnNames();
 		dealWithObjectTableIfNeeded( name, table, pathColumn, columnNames );
+
 		createRegionTable();
 
 		// add column for joining on

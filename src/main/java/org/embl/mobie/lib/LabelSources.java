@@ -45,28 +45,31 @@ public class LabelSources extends ImageSources
 {
 	protected Map< String, TableSource > nameToLabelTable = new LinkedHashMap<>();
 
-	public LabelSources( String name, Table table, String columnName, Integer channelIndex, String root, GridType gridType )
+	public LabelSources( String name, Table table, String columnName, Integer channelIndex, String root, GridType gridType, boolean useTableForSegments )
 	{
 		super( name, table, columnName, channelIndex, root, gridType);
 
-		final SegmentColumnNames segmentColumnNames = TableDataFormat.getSegmentColumnNames( table.columnNames() );
+		if ( useTableForSegments )
+		{
+			final SegmentColumnNames segmentColumnNames = TableDataFormat.getSegmentColumnNames( table.columnNames() );
 
-		if ( segmentColumnNames != null )
-		{
-			for ( Map.Entry< String, String > entry : nameToPath.entrySet() )
+			if ( segmentColumnNames != null )
 			{
-				Table rowSubset = table.where( table.stringColumn( columnName ).isEqualTo( entry.getValue() ) );
-				final StorageLocation storageLocation = new StorageLocation();
-				storageLocation.data = rowSubset;
-				final TableSource tableSource = new TableSource( TableDataFormat.Table, storageLocation );
-				nameToLabelTable.put( entry.getKey(), tableSource );
+				for ( Map.Entry< String, String > entry : nameToPath.entrySet() )
+				{
+					Table rowSubset = table.where( table.stringColumn( columnName ).isEqualTo( entry.getValue() ) );
+					final StorageLocation storageLocation = new StorageLocation();
+					storageLocation.data = rowSubset;
+					final TableSource tableSource = new TableSource( TableDataFormat.Table, storageLocation );
+					nameToLabelTable.put( entry.getKey(), tableSource );
+				}
 			}
-		}
-		else
-		{
-			/*
-			The table does not contain any segment information that can be parsed.
-			 */
+			else
+			{
+				/*
+				The table does not contain any segment information that can be parsed.
+				 */
+			}
 		}
 	}
 
@@ -95,8 +98,9 @@ public class LabelSources extends ImageSources
 
 	public TableSource getLabelTable( String name )
 	{
-		// May return null if there are no tables
-		// for the label mask images
-		return nameToLabelTable.get( name );
+		if ( nameToLabelTable.containsKey( name ) )
+			return nameToLabelTable.get( name );
+		else
+			return null;
 	}
 }
