@@ -226,6 +226,7 @@ public class MoBIE
 		}
 
 		final List< LabelSources > labelSources = new ArrayList<>();
+		// see https://github.com/mobie/mobie-viewer-fiji/issues/1038
 		final String firstLabel = labels.get( 0 );
 		for ( String label : labels )
 		{

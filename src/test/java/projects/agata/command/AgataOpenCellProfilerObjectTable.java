@@ -39,11 +39,11 @@ class AgataOpenCellProfilerObjectTable
 	{
 		new ImageJ().ui().showUI();
 		final OpenTableCommand command = new OpenTableCommand();
-		command.root = new File( "/g/cba/exchange/agata-misiaszek/data/analysed" );
-		command.table = new File( "/g/cba/exchange/agata-misiaszek/data/analysed/Nuclei.txt" );
+		//command.root = new File( "/g/cba/exchange/agata-misiaszek/data/analysed" );
+		command.root = new File( "/Users/tischer/Desktop/mobie-data/cellprofiler" );
+		//command.table = new File( "/g/cba/exchange/agata-misiaszek/data/analysed/Nuclei.txt" );
+		command.table = new File( "/Users/tischer/Desktop/mobie-data/cellprofiler/Nuclei.txt" );
 		command.images = "Image_FileName_DNA=DAPI;0,Image_FileName_DNA=RPAC1;1";
-		// in fact the Nucleoplasm should work because it should have he same labels
-		// as the nuclei labels
 		command.labels = "Image_FileName_NucleiLabels=Nuclei,Image_FileName_NucleoplasmLabels=Nucleoplasm,Image_FileName_NucleoliLabels=Nucleoli,Image_FileName_SpecklesLabels=Speckles";
 		command.removeSpatialCalibration = true;
 		command.run();
