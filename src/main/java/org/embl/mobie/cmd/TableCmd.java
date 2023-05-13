@@ -60,7 +60,7 @@ public class TableCmd implements Callable< Void > {
 	@Option(names = {"-i", "--image"}, required = false, description = "intensity image column; to open multiple columns repeat the -i parameter; to replace the column name use, e.g., \"Nuclei=FilePath_DAPI\"; to only open one channel from a multi-channel file use, e.g., \"Nuclei=FilePath_Image;0\"")
 	public String[] images;
 
-	@Option(names = {"-l", "--labels"}, required = false, description = "label mask image column; see --images for further explanations")
+	@Option(names = {"-l", "--labels"}, required = false, description = "label mask image column; if the table is an object table and contains multiple label mask columns the first label column must be the one that corresponds to the label index and anchor columns (this is, e.g., relevant for CellProfiler object tables where one can add information about other (child) objects to the parent object); see --images for further explanations")
 	public String[] labels;
 
 	@Option(names = {"-g", "--grid"}, required = false, description = "grid type: none, stitched (default), transform; \"stitched\" should yield the best performance but requires that all images have the same dimensions")
