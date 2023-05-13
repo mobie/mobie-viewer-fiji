@@ -31,11 +31,9 @@ package org.embl.mobie.cmd;
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.lib.transform.GridType;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
-import java.util.Arrays;
 import java.util.concurrent.Callable;
 
 @CommandLine.Command(name = "mobie-project", mixinStandardHelpOptions = true, version = "4.0.3", description = "Visualise multi-modal big image data stored as a MoBIE project, see https://mobie.github.io/")
@@ -53,11 +51,10 @@ public class ProjectCmd implements Callable< Void > {
 	public Void call() throws Exception {
 
 		final MoBIESettings settings = new MoBIESettings()
-				.cli( true );
+				.openedFromCLI( true );
 
 		if ( view != null ) settings.view( view );
 
-		new ImageJ().ui().showUI();
 		new MoBIE( project, settings );
 
 		return null;

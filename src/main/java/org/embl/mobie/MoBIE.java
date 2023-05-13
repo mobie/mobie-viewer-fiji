@@ -44,15 +44,17 @@ import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.ImageSources;
+import org.embl.mobie.lib.ImagesAndLabelsDataAdder;
 import org.embl.mobie.lib.LabelSources;
 import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.SourcesFromFilesCreator;
+import org.embl.mobie.lib.SourcesFromTableCreator;
 import org.embl.mobie.lib.ThreadHelper;
-import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.lib.annotation.LazyAnnotatedSegmentAdapter;
-import org.embl.mobie.lib.hcs.HCSDataSetter;
+import org.embl.mobie.lib.HCSDataAdder;
 import org.embl.mobie.lib.hcs.Plate;
 import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.image.AnnotatedLabelImage;
@@ -75,17 +77,11 @@ import org.embl.mobie.lib.serialize.RegionDataSource;
 import org.embl.mobie.lib.serialize.SegmentationDataSource;
 import org.embl.mobie.lib.serialize.SpotDataSource;
 import org.embl.mobie.lib.serialize.View;
-import org.embl.mobie.lib.serialize.display.Display;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
-import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
-import org.embl.mobie.lib.serialize.transformation.MergedGridTransformation;
-import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.table.DefaultAnnData;
 import org.embl.mobie.lib.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.lib.table.TableDataFormat;
-import org.embl.mobie.lib.io.TableImageSource;
-import org.embl.mobie.lib.table.TableSource;
 import org.embl.mobie.lib.table.columns.SegmentColumnNames;
 import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedSegment;
@@ -95,7 +91,6 @@ import org.embl.mobie.lib.table.saw.TableSawAnnotatedSpotCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.lib.transform.GridType;
-import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
 import org.embl.mobie.lib.ui.UserInterface;
 import org.embl.mobie.lib.ui.WindowArrangementHelper;
 import org.embl.mobie.lib.view.ViewManager;
@@ -113,9 +108,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -136,7 +129,6 @@ public class MoBIE
 	}
 
 	private static MoBIE moBIE;
-	public static boolean openedFromCLI = false;
 	public static ImageJ imageJ;
 
 	private String projectLocation;
@@ -193,46 +185,32 @@ public class MoBIE
 		openHCSDataset( relativeWellMargin, relativeSiteMargin );
 	}
 
-	public MoBIE( List< String > images, List< String > labels, List< String > labelTables, String root, GridType grid, MoBIESettings settings ) throws IOException
+	public MoBIE( List< String > imagePaths, List< String > labelPaths, List< String > labelTablePaths, String root, GridType grid, MoBIESettings settings ) throws IOException
 	{
 		this.settings = settings;
 
 		System.out.println( "root: " + root );
-		System.out.println( "images: " + Arrays.toString( images.toArray() ) );
-		System.out.println( "labels: " + Arrays.toString( labels.toArray() ) );
-		System.out.println( "tables: " + Arrays.toString( labelTables.toArray() ) );
+		System.out.println( "images: " + Arrays.toString( imagePaths.toArray() ) );
+		System.out.println( "labels: " + Arrays.toString( labelPaths.toArray() ) );
+		System.out.println( "tables: " + Arrays.toString( labelTablePaths.toArray() ) );
 
-		openFiles( images, labels, labelTables, root, grid );
+		final SourcesFromFilesCreator sourcesCreator = new SourcesFromFilesCreator( imagePaths, labelPaths, labelTablePaths, root, grid );
+
+		final List< ImageSources > imageSources = sourcesCreator.getImageSources();
+		final List< LabelSources > labelSources = sourcesCreator.getLabelSources();
+
+		openImagesAndLabels( imageSources, labelSources );
 	}
 
-	// Open image table
+	// open an image or object table
 	public MoBIE( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, GridType grid, MoBIESettings settings ) throws IOException
 	{
 		this.settings = settings;
 
-		openTable( tablePath, imageColumns, labelColumns, root, grid );
-	}
+		final SourcesFromTableCreator sourcesCreator = new SourcesFromTableCreator( tablePath, imageColumns, labelColumns, root, grid );
 
-	private void openTable( String tablePath, List< String > images, List< String > labels, String root, GridType gridType )
-	{
-		final Table table = TableOpener.openDelimitedTextFile( tablePath );
-
-		final List< ImageSources > imageSources = new ArrayList<>();
-
-		for ( String image : images )
-		{
-			final TableImageSource tableImageSource = new TableImageSource( image );
-			imageSources.add( new ImageSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType ) );
-		}
-
-		final List< LabelSources > labelSources = new ArrayList<>();
-		// see https://github.com/mobie/mobie-viewer-fiji/issues/1038
-		final String firstLabel = labels.get( 0 );
-		for ( String label : labels )
-		{
-			final TableImageSource tableImageSource = new TableImageSource( label );
-			labelSources.add( new LabelSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType, label.equals( firstLabel ) ) );
-		}
+		final List< ImageSources > imageSources = sourcesCreator.getImageSources();
+		final List< LabelSources > labelSources = sourcesCreator.getLabelSources();
 
 		openImagesAndLabels( imageSources, labelSources );
 	}
@@ -248,67 +226,8 @@ public class MoBIE
 		openAndViewDataset();
 	}
 
-	// TODO: add label tables
 	private void openFiles( List< String > images, List< String > labels, List< String > labelTables, String root, GridType grid )
 	{
-		// images
-		//
-		final List< ImageSources > imageSources = new ArrayList<>();
-		for ( String image : images )
-		{
-			final FileImageSource fileImageSource = new FileImageSource( image );
-			imageSources.add( new ImageSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
-		}
-
-		// labels
-		//
-		List< LabelSources > labelSources = new ArrayList<>();
-		for ( int labelSourceIndex = 0; labelSourceIndex < labels.size(); labelSourceIndex++ )
-		{
-			final FileImageSource fileImageSource = new FileImageSource( labels.get( labelSourceIndex ) );
-
-			if ( labelTables.size() > labelSourceIndex )
-			{
-				final String labelTable = labelTables.get( labelSourceIndex );
-				labelSources.add( new LabelSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, labelTable, root, grid ) );
-			}
-			else
-			{
-				labelSources.add( new LabelSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
-			}
-		}
-
-		openImagesAndLabels( imageSources, labelSources );
-
-		// TODO consider adding back the functionality of groups for sorting the grid
-		//			final List< String > groups = MoBIEHelper.getGroupNames( regex );
-		//			if ( groups.size() > 0 )
-		//			{
-		//				final Pattern pattern = Pattern.compile( regex );
-		//				final Set< String > set = new LinkedHashSet<>();
-		//				for ( String path : paths )
-		//				{
-		//					final Matcher matcher = pattern.matcher( path );
-		//					matcher.matches();
-		//					set.add( matcher.group( 1 ) );
-		//				}
-		//
-		//				final ArrayList< String > categories = new ArrayList<>( set );
-		//				final int[] numSources = new int[ categories.size() ];
-		//				grid.positions = new ArrayList<>();
-		//				for ( String source : sources )
-		//				{
-		//					final Matcher matcher = pattern.matcher( source );
-		//					matcher.matches();
-		//					final int row = categories.indexOf( matcher.group( rowGroup ) );
-		//					final int column = numSources[ row ];
-		//					numSources[ row ]++;
-		//					grid.positions.add( new int[]{ column, row } );
-		//				}
-		//			}
-		//			}
-		//			else
-		//			{
 
 	}
 
@@ -319,124 +238,7 @@ public class MoBIE
 
 		initProject( "" );
 
-		final ArrayList< ImageSources > allSources = new ArrayList<>();
-		allSources.addAll( images );
-		allSources.addAll( labels );
-
-		// create and add data sources to the dataset
-		for ( ImageSources sources : allSources )
-		{
-			for ( String name : sources.getSources() )
-			{
-				final String path = sources.getPath( name );
-				ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
-				if ( path.endsWith( "ome.tif" ) || path.endsWith( "ome.tiff" ) )
-				{
-					// FIXME: for multi-color ome-tiff this seems required, however,
-					//        for the HCS plate images this will not work,
-					//        thus we may need different logic there than here.
-					//        Maybe  ImageDataFormat.fromPath() should return BioFormats if it is
-					//        OME-TIFF; this is changed now in mobie-io
-					imageDataFormat = ImageDataFormat.BioFormats;
-				}
-
-				final StorageLocation storageLocation = new StorageLocation();
-				storageLocation.absolutePath = path;
-				storageLocation.setChannel( sources.getChannelIndex() );
-				if ( sources instanceof LabelSources )
-				{
-					final TableSource tableSource = ( ( LabelSources ) sources ).getLabelTable( name );
-					SegmentationDataSource segmentationDataSource = SegmentationDataSource.create( name, imageDataFormat, storageLocation, tableSource );
-					segmentationDataSource.preInit( false );
-					dataset.addDataSource( segmentationDataSource );
-				}
-				else
-				{
-					final ImageDataSource imageDataSource = new ImageDataSource( name, imageDataFormat, storageLocation );
-					imageDataSource.preInit( false );
-					dataset.addDataSource( imageDataSource );
-				}
-			}
-		}
-
-		// TODO don't create a grid view if there is only one image and label mask
-		final ImageSources firstImageSources = allSources.get( 0 );
-
-		for ( ImageSources sources : allSources )
-		{
-			if ( sources.getGridType().equals( GridType.Stitched ) )
-			{
-				final ArrayList< Display< ? > > displays = new ArrayList<>();
-
-				// TODO: probably we should not even create the region table
-				//   for any source other than the first one while
-				//   creating the ImageSources
-				if ( sources.equals( firstImageSources ) )
-				{
-					// create a RegionDisplay
-
-					// init table for the RegionDisplay
-					final StorageLocation storageLocation = new StorageLocation();
-					storageLocation.data = sources.getRegionTable();
-					final RegionDataSource regionDataSource = new RegionDataSource( sources.getName() );
-					regionDataSource.addTable( TableDataFormat.Table, storageLocation );
-					DataStore.putRawData( regionDataSource );
-
-					// init RegionDisplay
-					final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( "image table" );
-					regionDisplay.sources = new LinkedHashMap<>();
-					regionDisplay.tableSource = regionDataSource.getName();
-					regionDisplay.showAsBoundaries( true );
-					regionDisplay.setBoundaryThickness( 0.05 );
-					regionDisplay.boundaryThicknessIsRelative( true );
-					regionDisplay.setRelativeDilation( 0.05 );
-					regionDisplay.setOpacity( 1.0 );
-					final int numTimePoints = sources.getMetadata().numTimePoints;
-					for ( int t = 0; t < numTimePoints; t++ )
-						regionDisplay.timepoints().add( t );
-
-					final List< String > sourceNames = sources.getSources();
-					final int numRegions = sourceNames.size();
-					for ( int regionIndex = 0; regionIndex < numRegions; regionIndex++ )
-						regionDisplay.sources.put( sourceNames.get( regionIndex ), Collections.singletonList( sourceNames.get( regionIndex ) ) );
-
-					displays.add( regionDisplay );
-				}
-
-				// create grid transformation
-				final MergedGridTransformation grid = new MergedGridTransformation( sources.getName() );
-				grid.sources = sources.getSources();
-				grid.metadataSource = sources.getMetadataSource();
-				// TODO https://github.com/mobie/mobie-viewer-fiji/issues/1035
-				grid.lazyLoadTables = false;
-
-				if ( sources instanceof LabelSources )
-				{
-					// SegmentationDisplay
-					final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( grid.getName(), Collections.singletonList( grid.getName() ) );
-					final int numLabelTables = ( ( LabelSources ) sources ).getNumLabelTables();
-					segmentationDisplay.setShowTable( numLabelTables > 0 );
-					displays.add( segmentationDisplay );
-				}
-				else
-				{
-					// ImageDisplay
-					final Metadata metadata = sources.getMetadata();
-					displays.add( new ImageDisplay<>( grid.getName(), Collections.singletonList( grid.getName() ), metadata.color, metadata.contrastLimits ) );
-				}
-
-				// create grid view
-				//
-				final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( grid.getSources().get( 0 ), 0 );
-				final View gridView = new View( sources.getName(), "data", displays, Arrays.asList( grid ), viewerTransform, false );
-				//gridView.overlayNames( true ); // Timepoint bug:
-				dataset.views().put( gridView.getName(), gridView );
-			}
-			else
-			{
-				throw new UnsupportedOperationException( "Grid type not yet supported.");
-			}
-		}
+		new ImagesAndLabelsDataAdder( images, labels ).addData( dataset );
 
 		initUIandShowView( dataset.views().keySet().iterator().next() );
 	}
@@ -467,8 +269,10 @@ public class MoBIE
 	{
 		DebugTools.setRootLevel( "OFF" ); // Disable Bio-Formats logging
 
-		if ( MoBIE.openedFromCLI )
+		if ( settings.values.getOpenedFromCLI() )
 		{
+			// TODO: if possible open init the SciJava Services
+			//   by different means
 			imageJ = new ImageJ(); // Init SciJava Services
 			imageJ.ui().showUI(); // Enable SciJava Command rendering
 		}
@@ -479,6 +283,7 @@ public class MoBIE
 			IJ.log("Detected running MoBIE instance.");
 			moBIE.close();
 		}
+
 		moBIE = this;
 	}
 
@@ -487,7 +292,7 @@ public class MoBIE
 		initProject( "HCS" );
 		final Plate plate = new Plate( projectLocation );
 		IJ.log( "HCS Pattern: " + plate.getHcsPattern() );
-		new HCSDataSetter().addPlateToDataset( plate, dataset, wellMargin, siteMargin );
+		new HCSDataAdder( plate, wellMargin, siteMargin ).addData( dataset );
 		initUIandShowView( dataset.views().keySet().iterator().next() );
 	}
 
@@ -514,9 +319,7 @@ public class MoBIE
 		WindowArrangementHelper.bottomAlignWindow( userInterfaceWindow, WindowManager.getWindow( "Log" ), true, true );
 	}
 
-	/*
-	Use this if there is no project.json
-	 */
+	// use this if there is no project.json
 	private void initProject( String projectName )
 	{
 		if ( settings == null ) settings = new MoBIESettings();
@@ -524,7 +327,7 @@ public class MoBIE
 		dataset = new Dataset( project.getName() );
 		project.datasets().add( dataset.getName() );
 		project.setDefaultDataset( dataset.getName() );
-		dataset.is2D( true ); 
+		dataset.is2D( true );
 	}
 
 	public String getProjectLocation()
@@ -832,14 +635,14 @@ public class MoBIE
 			ThreadHelper.resetIOThreads();
 			viewManager.close();
 			IJ.log( "MoBIE closed." );
-			if ( settings.values.getCli() )
+			if ( settings.values.getOpenedFromCLI() )
 				System.exit( 0 );
 		}
 		catch ( Exception e )
 		{
 			IJ.log( "[ERROR] Could not fully close MoBIE." );
 			e.printStackTrace();
-			if ( settings.values.getCli() )
+			if ( settings.values.getOpenedFromCLI() )
 				System.exit( 1 );
 		}
 	}

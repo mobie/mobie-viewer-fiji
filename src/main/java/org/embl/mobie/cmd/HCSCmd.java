@@ -30,14 +30,9 @@ package org.embl.mobie.cmd;
 
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.lib.transform.GridType;
-import org.scijava.plugin.Parameter;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 @CommandLine.Command(name = "mobie-hcs", mixinStandardHelpOptions = true, version = "4.0.3", description = "Visualise high content screening image data, see https://mobie.github.io/tutorials/hcs.html")
@@ -62,7 +57,7 @@ public class HCSCmd implements Callable< Void > {
 	public Void call() throws Exception {
 
 		final MoBIESettings settings = new MoBIESettings()
-				.cli( true )
+				.openedFromCLI( true )
 				.removeSpatialCalibration( removeSpatialCalibration );
 
 		new MoBIE( hcs, settings, wellMargin, siteMargin );

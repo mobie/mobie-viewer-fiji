@@ -73,7 +73,7 @@ public class TableCmd implements Callable< Void > {
 	public Void call() throws Exception {
 
 		final MoBIESettings settings = new MoBIESettings()
-				.cli( true )
+				.openedFromCLI( true )
 				.removeSpatialCalibration( removeSpatialCalibration );
 
 		List< String > imageList = images != null ?
@@ -82,7 +82,6 @@ public class TableCmd implements Callable< Void > {
 		List< String > labelsList = labels != null ?
 				Arrays.asList( labels ) : new ArrayList<>();
 
-		new ImageJ().ui().showUI();
 		new MoBIE( table, imageList, labelsList, root, gridType, settings );
 
 		return null;

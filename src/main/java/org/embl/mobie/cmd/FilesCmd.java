@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.cmd;
 
-import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.lib.transform.GridType;
@@ -72,7 +71,7 @@ public class FilesCmd implements Callable< Void > {
 	public Void call() throws Exception {
 
 		final MoBIESettings settings = new MoBIESettings()
-				.cli( true )
+				.openedFromCLI( true )
 				.removeSpatialCalibration( removeSpatialCalibration );
 
 		List< String > imageList = images != null ?
@@ -84,7 +83,6 @@ public class FilesCmd implements Callable< Void > {
 		List< String > tablesList = tables != null ?
 				Arrays.asList( tables ) : new ArrayList<>();
 
-		new ImageJ().ui().showUI();
 		new MoBIE( imageList, labelsList, tablesList, root, gridType, settings );
 
 		return null;

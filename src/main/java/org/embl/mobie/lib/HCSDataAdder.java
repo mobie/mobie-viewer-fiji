@@ -26,10 +26,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.hcs;
+package org.embl.mobie.lib;
 
 import net.thisptr.jackson.jq.internal.misc.Strings;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
+import org.embl.mobie.lib.hcs.Channel;
+import org.embl.mobie.lib.hcs.Plate;
+import org.embl.mobie.lib.hcs.Site;
+import org.embl.mobie.lib.hcs.Well;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.ImageDataSource;
 import org.embl.mobie.lib.serialize.View;
@@ -46,21 +50,20 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
-public class HCSDataSetter
+public class HCSDataAdder
 {
-	/**
-	 * Adds the content of the {@code hcsPlate} to the {@code dataset}.
-	 *
-	 * @param plate
-	 * 					a HCSPlate
-	 * @param dataset
-	 * 					the current MoBIE dataset
-	 * @param wellMargin
-	 * 					well margin (relative)
-	 * @param siteMargin
-	 * 					site margin (relative)
-	 */
-	public void addPlateToDataset( Plate plate, Dataset dataset, double wellMargin, double siteMargin )
+	private final Plate plate;
+	private final double wellMargin;
+	private final double siteMargin;
+
+	public HCSDataAdder( Plate plate, double wellMargin, double siteMargin  )
+	{
+		this.plate = plate;
+		this.wellMargin = wellMargin;
+		this.siteMargin = siteMargin;
+	}
+
+	public void addData( Dataset dataset )
 	{
 		if ( dataset.is2D() ) dataset.is2D( plate.is2D() );
 
