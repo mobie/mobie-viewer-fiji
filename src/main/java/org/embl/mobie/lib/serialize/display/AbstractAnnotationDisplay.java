@@ -189,6 +189,10 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 		return opacityNotSelected;
 	}
 
+	public void setShowTable( boolean showTable )
+	{
+		this.showTable = showTable;
+	}
 
 	@Override
 	public BlendingMode getBlendingMode()

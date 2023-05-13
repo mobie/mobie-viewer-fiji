@@ -44,7 +44,7 @@ class AgataOpenCellProfilerObjectTable
 		//command.table = new File( "/g/cba/exchange/agata-misiaszek/data/analysed/Nuclei.txt" );
 		command.table = new File( "/Users/tischer/Desktop/mobie-data/cellprofiler/Nuclei.txt" );
 		command.images = "Image_FileName_DNA=DAPI;0,Image_FileName_DNA=RPAC1;1";
-		command.labels = "Image_FileName_NucleiLabels=Nuclei,Image_FileName_NucleoplasmLabels=Nucleoplasm,Image_FileName_NucleoliLabels=Nucleoli,Image_FileName_SpecklesLabels=Speckles";
+		command.labels = "Image_FileName_NucleiLables=Nuclei,Image_FileName_NucleoplasmLabels=Nucleoplasm,Image_FileName_NucleoliLabels=Nucleoli,Image_FileName_SpecklesLabels=Speckles";
 		command.removeSpatialCalibration = true;
 		command.run();
 	}

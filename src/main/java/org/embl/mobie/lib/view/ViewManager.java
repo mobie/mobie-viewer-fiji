@@ -407,8 +407,8 @@ public class ViewManager
 
 						if ( ! mergedGridTransformation.lazyLoadTables && annotatedStitchedImage.getAnnData().getTable() instanceof ConcatenatedAnnotationTableModel )
 						{
-							// force loading of all tables
-							//
+							// force loading of all tables to enable meaningful
+							// row sorting and creating a meaningful scatterplot
 							final ConcatenatedAnnotationTableModel< ? extends Annotation > concatenatedTableModel = ( ConcatenatedAnnotationTableModel ) annotatedStitchedImage.getAnnData().getTable();
 							final Set< ? extends AnnotationTableModel< ? extends Annotation > > tableModels = concatenatedTableModel.getTableModels();
 							for ( AnnotationTableModel< ? extends Annotation > tableModel : tableModels )
@@ -610,7 +610,7 @@ public class ViewManager
 				throw new UnsupportedOperationException("Coloring LUT " + lut + " is not supported.");
 			}
 
-			// show in slice viewer
+			// show the data
 			//
 			annotationDisplay.sliceViewer = sliceViewer;
 			annotationDisplay.sliceView = new AnnotationSliceView<>( moBIE, annotationDisplay );
@@ -666,12 +666,13 @@ public class ViewManager
 	private void initTableView( AbstractAnnotationDisplay< ? extends Annotation > display )
 	{
 		display.tableView = new TableView( display );
-		// Note that currently we must show the table here
-		// in order to instantiate the window.
-		// This window is needed in {@code UserInterfaceHelper}
-		// in the function {@code createWindowVisibilityCheckbox},
-		// in which the table window will be
-		// hidden, if {@code display.showTable == false}.
+		// TODO: Note that currently we must show the table here
+		//   in order to instantiate the window.
+		//   This window is needed in {@code UserInterfaceHelper}
+		//   in the function {@code createWindowVisibilityCheckbox},
+		//   in which the table window will be
+		//   hidden, if {@code display.showTable == false}.
+		//   It would be good if we would not have to show it.
 		display.tableView.show();
 		setTablePosition( display.sliceViewer.getWindow(), display.tableView.getWindow() );
 		display.selectionModel.listeners().add( display.tableView );

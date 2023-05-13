@@ -412,7 +412,10 @@ public class MoBIE
 				if ( sources instanceof LabelSources )
 				{
 					// SegmentationDisplay
-					displays.add( new SegmentationDisplay<>( grid.getName(), Collections.singletonList( grid.getName() ) ) );
+					final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( grid.getName(), Collections.singletonList( grid.getName() ) );
+					final int numLabelTables = ( ( LabelSources ) sources ).getNumLabelTables();
+					segmentationDisplay.setShowTable( numLabelTables > 0 );
+					displays.add( segmentationDisplay );
 				}
 				else
 				{
@@ -1087,7 +1090,6 @@ public class MoBIE
 				else
 				{
 					// label image representing segments without annotation table
-
 					final LazyAnnotatedSegmentTableModel tableModel = new LazyAnnotatedSegmentTableModel( image.getName() );
 					final DefaultAnnData< AnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
 					final LazyAnnotatedSegmentAdapter segmentAdapter = new LazyAnnotatedSegmentAdapter( image.getName(), tableModel );

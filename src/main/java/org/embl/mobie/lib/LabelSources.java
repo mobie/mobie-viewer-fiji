@@ -103,4 +103,9 @@ public class LabelSources extends ImageSources
 		else
 			return null;
 	}
+
+	public int getNumLabelTables()
+	{
+		return nameToLabelTable.size();
+	}
 }

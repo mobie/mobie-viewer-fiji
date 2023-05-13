@@ -292,6 +292,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		}
 		catch( Exception e )
 		{
+			int a = 1;
 			// This seems to have no consequences:
 			// https://github.com/mobie/mobie-viewer-fiji/issues/1011
 		}
