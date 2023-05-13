@@ -30,6 +30,7 @@ package org.embl.mobie.lib.table.saw;
 
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
@@ -54,15 +55,17 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	private String source;
 	private RealMaskRealInterval mask;
 	private Set< Image< ? > > images;
+	private final double relativeDilation;
 
 	public TableSawAnnotatedRegion(
-			TableSawAnnotationTableModel< TableSawAnnotatedRegion > model,
-			int rowIndex,
-			List< String > imageNames,
-			Integer timePoint,
-			String regionId,
-			int labelId,
-			String uuid )
+			final TableSawAnnotationTableModel< TableSawAnnotatedRegion > model,
+			final int rowIndex,
+			final List< String > imageNames,
+			final Integer timePoint,
+			final String regionId,
+			final int labelId,
+			final String uuid,
+			final double relativeDilation)
 	{
 		super( model, rowIndex );
 		this.source = model.getDataSourceName();
@@ -71,8 +74,10 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 		this.timePoint = timePoint;
 		this.labelId = labelId;
 		this.uuid = uuid;
+		this.relativeDilation = relativeDilation;
 
 		images = DataStore.getImageSet( imageNames );
+
 		for ( Image< ? > image : images )
 			image.listeners().add( this );
 	}
@@ -144,6 +149,21 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 			// Compute the mask of the images
 			// that are annotated by this region
 			mask = TransformHelper.getUnionMask( images );
+
+			if ( relativeDilation > 0 )
+			{
+				final double[] min = mask.minAsDoubleArray();
+				final double[] max = mask.maxAsDoubleArray();
+
+				for ( int d = 0; d < min.length; d++ )
+				{
+					final double size = max[ d ] - min[ d ];
+					min[ d ] -= size * relativeDilation;
+					max[ d ] += size * relativeDilation;
+				}
+
+				mask = GeomMasks.closedBox( min, max );
+			}
 		}
 
 		return mask;

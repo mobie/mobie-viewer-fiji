@@ -53,11 +53,14 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotat
 
 	// Other
 
-	private Set< Integer > timepoints = new HashSet<>( Arrays.asList( 0 ) ); // which timepoints to annotate
+	private transient Set< Integer > timepoints = new HashSet<>( Arrays.asList( 0 ) ); // which timepoints to annotate
 
-	private String sourceNamesRegex; // optionally parse the source names to create annotations
+	private transient String sourceNamesRegex; // optionally parse the source names to create annotations
 
-	private boolean boundaryThicknessIsRelative = false;
+	private transient boolean boundaryThicknessIsRelative = false;
+
+	// TODO create an issue to discuss this
+	private transient double relativeDilation = 0.05; // dilation of the regions, useful for rendering as outside boundaries
 
 	public boolean boundaryThicknessIsRelative()
 	{
@@ -67,6 +70,16 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotat
 	public void boundaryThicknessIsRelative( boolean boundaryThicknessIsRelative )
 	{
 		this.boundaryThicknessIsRelative = boundaryThicknessIsRelative;
+	}
+
+	public double getRelativeDilation()
+	{
+		return relativeDilation;
+	}
+
+	public void setRelativeDilation( double relativeDilation )
+	{
+		this.relativeDilation = relativeDilation;
 	}
 
 	// Used by Gson

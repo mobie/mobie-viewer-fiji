@@ -389,6 +389,7 @@ public class MoBIE
 					regionDisplay.showAsBoundaries( true );
 					regionDisplay.setBoundaryThickness( 0.05 );
 					regionDisplay.boundaryThicknessIsRelative( true );
+					regionDisplay.setRelativeDilation( 0.05 );
 					regionDisplay.setOpacity( 1.0 );
 					final int numTimePoints = sources.getMetadata().numTimePoints;
 					for ( int t = 0; t < numTimePoints; t++ )

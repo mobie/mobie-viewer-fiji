@@ -81,9 +81,13 @@ public class AnnotationType< A > implements Type< AnnotationType< A > >
 		if ( annotation == null )
 		{
 			if ( annotationType.getAnnotation() == null )
+			{
 				return true;
+			}
 			else
+			{
 				return false;
+			}
 		}
 		else
 		{

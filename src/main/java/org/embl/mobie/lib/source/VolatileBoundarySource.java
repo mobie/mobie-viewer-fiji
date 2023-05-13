@@ -64,7 +64,7 @@ public class VolatileBoundarySource< T extends Type< T >, V extends Volatile< T 
             // assumes that the default variable is the background value
             final V background = input.createVariable();
 
-            // set to valid background...
+            // set to valid background
             output.set( background );
             output.setValid( true );
 

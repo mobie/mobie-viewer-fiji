@@ -72,7 +72,7 @@ public class RegionDisplayAnnDataCreator
 		else
 			fetchTable();
 
-		final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( table, regionDisplay.sources );
+		final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( table, regionDisplay.sources, regionDisplay.getRelativeDilation() );
 
 		final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( regionDisplay.getName(), annotationCreator, tableLocation, tableFormat, table );
 

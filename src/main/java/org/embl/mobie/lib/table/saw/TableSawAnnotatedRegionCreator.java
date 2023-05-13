@@ -38,10 +38,12 @@ public class TableSawAnnotatedRegionCreator implements TableSawAnnotationCreator
 {
 	private final Map< String, List< String > > regionIdToImageNames;
 	private final int timePointColumnIndex;
+	private final double relativeDilation;
 	private int regionIdColumnIndex;
 
-	public TableSawAnnotatedRegionCreator( Table table, Map< String, List< String > > regionIdToImageNames )
+	public TableSawAnnotatedRegionCreator( Table table, Map< String, List< String > > regionIdToImageNames, double relativeDilation )
 	{
+		this.relativeDilation = relativeDilation;
 		final List< String > columnNames = table.columnNames();
 		this.regionIdToImageNames = regionIdToImageNames;
 		regionIdColumnIndex = columnNames.indexOf( ColumnNames.REGION_ID );
@@ -61,7 +63,7 @@ public class TableSawAnnotatedRegionCreator implements TableSawAnnotationCreator
 
 		final String uuid = timePoint + ";" + regionId;
 
-		return new TableSawAnnotatedRegion( model, rowIndex, regionIdToImageNames.get( regionId ), timePoint, regionId, labelId, uuid );
+		return new TableSawAnnotatedRegion( model, rowIndex, regionIdToImageNames.get( regionId ), timePoint, regionId, labelId, uuid, relativeDilation );
 	}
 
 	@Override

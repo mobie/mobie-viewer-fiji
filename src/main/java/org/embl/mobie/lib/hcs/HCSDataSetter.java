@@ -74,7 +74,8 @@ public class HCSDataSetter
 		wellDisplay.sources = new LinkedHashMap<>();
 		wellDisplay.showAsBoundaries( true );
 		wellDisplay.setBoundaryThickness( 0.1 );
-		wellDisplay.boundaryThicknessIsRelative( true);
+		wellDisplay.boundaryThicknessIsRelative( true );
+		wellDisplay.setRelativeDilation( 0.1 );
 
 		// wells should be displayed for all time-points.
 		// currently, the below code assumes that the time-points
