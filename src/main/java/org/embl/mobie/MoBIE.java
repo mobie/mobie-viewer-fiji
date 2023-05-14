@@ -35,21 +35,20 @@ import ij.IJ;
 import ij.WindowManager;
 import loci.common.DebugTools;
 import mpicbg.spim.data.generic.AbstractSpimData;
-import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.ImgLoader;
 import net.imagej.ImageJ;
-import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.S3Utils;
+import org.embl.mobie.lib.AnnotatedLabelImageCreator;
 import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.ImageSources;
 import org.embl.mobie.lib.ImagesAndLabelsDataAdder;
 import org.embl.mobie.lib.LabelSources;
-import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.SourcesFromFilesCreator;
 import org.embl.mobie.lib.SourcesFromTableCreator;
 import org.embl.mobie.lib.SpimDataAdder;
+import org.embl.mobie.lib.SpotImageCreator;
 import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
@@ -64,7 +63,6 @@ import org.embl.mobie.lib.image.CachedCellImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.SpimDataImage;
 import org.embl.mobie.lib.image.SpotAnnotationImage;
-import org.embl.mobie.lib.io.FileImageSource;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.plugins.platybrowser.GeneSearchCommand;
@@ -78,8 +76,6 @@ import org.embl.mobie.lib.serialize.RegionDataSource;
 import org.embl.mobie.lib.serialize.SegmentationDataSource;
 import org.embl.mobie.lib.serialize.SpotDataSource;
 import org.embl.mobie.lib.serialize.View;
-import org.embl.mobie.lib.serialize.display.ImageDisplay;
-import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.table.DefaultAnnData;
 import org.embl.mobie.lib.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.lib.table.TableDataFormat;
@@ -98,13 +94,11 @@ import org.embl.mobie.lib.view.ViewManager;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
-import spimdata.util.Displaysettings;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
 import javax.annotation.Nullable;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -664,8 +658,7 @@ public class MoBIE
 
 	public String absolutePath( String... files )
 	{
-		final String datasetRoot = combinePath( projectRoot, getDataset().getName() );
-		String location = datasetRoot;
+		String location = combinePath( projectRoot, getDataset().getName() );
 		for ( String file : files )
 			location = combinePath( location, file );
 		return location;
@@ -779,7 +772,7 @@ public class MoBIE
 			{
 				// force initialization here to save time later
 				// (i.e. help smooth rendering in BDV)
-				final Source source = image.getSourcePair().getSource();
+				final Source< ? > source = image.getSourcePair().getSource();
 				final int levels = source.getNumMipmapLevels();
 				for ( int level = 0; level < levels; level++ )
 					source.getSource( 0, level ).randomAccess();
@@ -787,26 +780,8 @@ public class MoBIE
 
 			if ( dataSource.getClass() == SegmentationDataSource.class )
 			{
-				final SegmentationDataSource segmentationDataSource = ( SegmentationDataSource ) dataSource;
-
-				if ( segmentationDataSource.tableData != null )
-				{
-					// label image representing annotated segments
-					TableSawAnnotationTableModel< TableSawAnnotatedSegment > tableModel = createTableModel( segmentationDataSource );
-					final DefaultAnnData< TableSawAnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
-					final DefaultAnnotationAdapter< TableSawAnnotatedSegment > annotationAdapter = new DefaultAnnotationAdapter( annData );
-					final AnnotatedLabelImage< TableSawAnnotatedSegment > annotatedLabelImage = new DefaultAnnotatedLabelImage( image, annData, annotationAdapter );
-					DataStore.putImage( annotatedLabelImage );
-				}
-				else
-				{
-					// label image representing segments without annotation table
-					final LazyAnnotatedSegmentTableModel tableModel = new LazyAnnotatedSegmentTableModel( image.getName() );
-					final DefaultAnnData< AnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
-					final LazyAnnotatedSegmentAdapter segmentAdapter = new LazyAnnotatedSegmentAdapter( image.getName(), tableModel );
-					final DefaultAnnotatedLabelImage< ? > annotatedLabelImage = new DefaultAnnotatedLabelImage( image, annData, segmentAdapter );
-					DataStore.putImage( annotatedLabelImage );
-				}
+				final AnnotatedLabelImage< ? > annotatedLabelImage = new AnnotatedLabelImageCreator( ( SegmentationDataSource ) dataSource ).getAnnotatedLabelImage();
+				DataStore.putImage( annotatedLabelImage );
 			}
 			else
 			{
@@ -817,25 +792,9 @@ public class MoBIE
 
 		if ( dataSource instanceof SpotDataSource )
 		{
-			//final long start = System.currentTimeMillis();
-			final SpotDataSource spotDataSource = ( SpotDataSource ) dataSource;
-			final StorageLocation tableLocation = getTableLocation( spotDataSource.tableData );
-			final TableDataFormat tableFormat = getTableDataFormat( spotDataSource.tableData );
-
-			Table table = TableOpener.open( tableLocation, tableFormat );
-
-			final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator( table );
-
-			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, tableLocation, tableFormat, table );
-
-			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
-
-			final SpotAnnotationImage< AnnotatedSpot > spotAnnotationImage = new SpotAnnotationImage( spotDataSource.getName(), spotAnnData, 1.0, spotDataSource.boundingBoxMin, spotDataSource.boundingBoxMax );
-
-			// Spots image, built from spots table
+			// build spots image from spots table
+			final SpotAnnotationImage< AnnotatedSpot > spotAnnotationImage = new SpotImageCreator( ( SpotDataSource ) dataSource, this ).getSpotAnnotationImage();
 			DataStore.putImage( spotAnnotationImage );
-
-			// System.out.println("Created spots image " + spotsImage.getName() + " with " + spotAnnData.getTable().numAnnotations() + " spots in [ms] " + ( System.currentTimeMillis() - start ));
 		}
 
 		if ( dataSource instanceof RegionDataSource )
@@ -845,7 +804,6 @@ public class MoBIE
 			// to images that are created later by means of a
 			// transformation.
 			// However, we can already load the region table here.
-
 			final RegionDataSource regionDataSource = ( RegionDataSource ) dataSource;
 			final StorageLocation tableLocation = getTableLocation( regionDataSource.tableData );
 			final TableDataFormat tableFormat = getTableDataFormat( regionDataSource.tableData );
@@ -863,15 +821,16 @@ public class MoBIE
 		final TableDataFormat tableFormat = getTableDataFormat( dataSource.tableData );
 
 		Table table = null;
-		SegmentColumnNames segmentColumnNames = null;
 		if ( dataSource.preInit() )
 			table = TableOpener.open( tableLocation, tableFormat );
+
+		SegmentColumnNames segmentColumnNames = null;
 		if ( table != null )
 			segmentColumnNames = TableDataFormat.getSegmentColumnNames( table.columnNames() );
 
 		final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( segmentColumnNames, table );
 
-		final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, tableLocation, tableFormat, table );
+		final TableSawAnnotationTableModel  tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, tableLocation, tableFormat, table );
 
 		return tableModel;
 	}
