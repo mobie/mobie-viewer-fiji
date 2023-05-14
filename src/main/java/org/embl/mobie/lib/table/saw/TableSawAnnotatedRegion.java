@@ -142,7 +142,7 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	}
 
 	@Override
-	public RealMaskRealInterval getMask()
+	public synchronized RealMaskRealInterval getMask()
 	{
 		if ( mask == null )
 		{
