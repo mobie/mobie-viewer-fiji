@@ -32,8 +32,10 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.io.StorageLocation;
+import tech.tablesaw.api.StringColumn;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -44,6 +46,7 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	private final Set< AnnotationTableModel< A > > tableModels;
 	private AnnotationTableModel< A > referenceTable;
 	private ArrayList< A > annotations = new ArrayList<>();
+	private boolean allTablesLoaded = false;
 
 	public ConcatenatedAnnotationTableModel( Set< AnnotationTableModel< A > > tableModels )
 	{
@@ -139,8 +142,16 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	@Override
 	public void addStringColumn( String columnName )
 	{
-		// here we probably need to load all tables
-		throw new UnsupportedOperationException("Annotation of concatenated tables is not yet implemented.");
+		if ( columnNames().contains( columnName ) )
+			return;
+
+		for ( AnnotationTableModel< A > tableModel : tableModels )
+		{
+			if ( ! tableModel.columnNames().contains( columnName ) )
+			{
+				tableModel.addStringColumn( columnName );
+			}
+		}
 	}
 
 	@Override
@@ -189,8 +200,14 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 			annotationListener.columnAdded( columnName );
 	}
 
-	public Set< AnnotationTableModel< A > > getTableModels()
+	public synchronized void loadAllTables()
 	{
-		return tableModels;
+		if ( ! allTablesLoaded )
+		{
+			for ( AnnotationTableModel< ? extends Annotation > tableModel : tableModels )
+				tableModel.annotations();
+
+			allTablesLoaded = true;
+		}
 	}
 }
