@@ -32,6 +32,7 @@ import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.TableUIs;
 import ij.IJ;
 import ij.gui.GenericDialog;
+import loci.poi.hssf.extractor.ExcelExtractor;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.annotation.AnnotationUI;
 import org.embl.mobie.lib.annotation.Annotation;
@@ -290,11 +291,12 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 			swingTableModel.tableChanged();
 			repaintTable();
 		}
-		catch( Exception e )
+		catch ( Exception e )
 		{
-			int a = 1;
-			// This seems to have no consequences:
-			// https://github.com/mobie/mobie-viewer-fiji/issues/1011
+			// TODO: this error seems never thrown even though there is
+			//   an error occurring within the above code
+			System.out.println( "Issue updating the table rendering");
+			e.printStackTrace();
 		}
 	}
 
@@ -812,7 +814,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private synchronized void repaintTable()
 	{
-		SwingUtilities.invokeLater( () -> jTable.repaint() );
+		jTable.repaint();
 	}
 
 	@Override
