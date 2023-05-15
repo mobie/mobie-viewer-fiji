@@ -28,7 +28,9 @@
  */
 package org.embl.mobie.lib.table;
 
+import IceInternal.Ex;
 import org.embl.mobie.lib.annotation.Annotation;
+import org.jboss.netty.channel.ExceptionEvent;
 import org.jetbrains.annotations.Nls;
 
 import javax.swing.event.TableModelEvent;

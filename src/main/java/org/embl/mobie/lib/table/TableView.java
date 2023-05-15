@@ -54,6 +54,7 @@ import org.embl.mobie.lib.ui.UserInterfaceHelper;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -824,14 +825,19 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	}
 
 	@Override
-	public void columnAdded( String columnName )
+	public synchronized void columnAdded( String columnName )
 	{
 		updateTable();
+		// TODO: errors such as
+		// Exception in thread "AWT-EventQueue-0" java.lang.ArrayIndexOutOfBoundsException: 31 >= 31
+		//	at java.util.Vector.elementAt(Vector.java:479)
+		//	at javax.swing.table.DefaultTableColumnModel
 //		For debugging:
 //		final List< String > columnNames = tableModel.columnNames();
-//		final int columnCount1 = swingTableModel.getColumnCount();
+//		final int swingColumnCount = swingTableModel.getColumnCount();
 //		final TableColumnModel columnModel = jTable.getColumnModel();
-//		final int columnCount = columnModel.getColumnCount();
+//		final int jTableColumnCount = columnModel.getColumnCount();
+////		IJ.wait( 100 ); // maybe this avoids the updating error?
 //		for ( int i = 0; i < columnNames.size(); i++ )
 //		{
 //			System.out.println( columnNames.get( i ) );
