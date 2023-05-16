@@ -53,6 +53,8 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.ui.UserInterfaceHelper;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
@@ -276,7 +278,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				}
 
 				IJ.log( "...done!" );
-				updateTable();
 
 			}).start()
 		);
@@ -287,18 +288,8 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		if ( jTable == null ) return;
 
-		try
-		{
-			swingTableModel.tableChanged();
-			repaintTable();
-		}
-		catch ( Exception e )
-		{
-			// TODO: this error seems never thrown even though there is
-			//   an error occurring within the above code
-			System.out.println( "Issue updating the table rendering");
-			e.printStackTrace();
-		}
+		swingTableModel.tableChanged();
+		repaintTable();
 	}
 
 	private JMenuItem createSaveTableAsMenuItem()
@@ -818,6 +809,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		jTable.repaint();
 	}
 
+
 	@Override
 	public void annotationsAdded( Collection< A > annotations )
 	{
@@ -825,7 +817,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	}
 
 	@Override
-	public synchronized void columnAdded( String columnName )
+	public synchronized void columnsAdded( Collection< String > columns )
 	{
 		updateTable();
 		// TODO: errors such as

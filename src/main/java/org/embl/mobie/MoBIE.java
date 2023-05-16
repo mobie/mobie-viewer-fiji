@@ -172,6 +172,11 @@ public class MoBIE
 		openMoBIEProject();
 	}
 
+	public static MoBIE getInstance()
+	{
+		return moBIE;
+	}
+
 	private void initTableSaw()
 	{
 		// force TableSaw class loading

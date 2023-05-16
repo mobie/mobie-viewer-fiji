@@ -35,5 +35,5 @@ import java.util.Collection;
 public interface AnnotationListener< A extends Annotation >
 {
 	void annotationsAdded( Collection< A > annotations );
-	void columnAdded( String columnName );
+	void columnsAdded( Collection< String > columns );
 }

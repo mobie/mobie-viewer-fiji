@@ -47,6 +47,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -102,23 +103,38 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 
 		// load and join internal table chunks
 		//
+		boolean columnsAdded = false;
+
 		final List< String > tableChunks = chunkToStatus.entrySet().stream()
 				.filter( chunk -> chunk.getValue().equals( Status.Closed ) )
 				.map( chunk -> chunk.getKey() )
 				.collect( Collectors.toList() );
 
 		for ( String tableChunk : tableChunks )
+		{
 			joinTable( openTableChunk( tableChunk ) );
+			columnsAdded = true;
+		}
 
 		// load and join external table chunks
 		//
-		final List< StorageLocation > storageLocations = externalChunkToStatus.entrySet().stream()
+		final List< StorageLocation > storageLocations = externalChunkToStatus
+				.entrySet().stream()
 				.filter( chunk -> chunk.getValue().equals( Status.Closed ) )
 				.map( chunk -> chunk.getKey() )
 				.collect( Collectors.toList() );
 
 		for ( StorageLocation storageLocation : storageLocations )
+		{
 			joinTable( openExternalTableChunk( storageLocation ) );
+			columnsAdded = true;
+		}
+
+		if ( columnsAdded )
+		{
+			for ( AnnotationListener< A > listener : listeners.list )
+				listener.columnsAdded( null );
+		}
 
 		synchronized ( affineTransform3D )
 		{
@@ -210,7 +226,6 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		// view them in the table.
 		// Currently, this only concerns the SpotAnnotations.
 		table.removeColumns( annotationCreator.removeColumns() );
-
 	}
 
 	public Table getTable()
@@ -291,12 +306,6 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		externalChunkToStatus.put( location, Status.Closed );
 	}
 
-//	@Override
-//	public void setAvailableTableChunks( Set< String > tableChunks )
-//	{
-//		this.tableChunks = tableChunks;
-//	}
-
 	@Override
 	public Collection< String > getAvailableTableChunks()
 	{
@@ -331,20 +340,16 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	{
 		update();
 
-		if ( ! table.containsColumn( columnName ) )
-		{
-			final String[] strings = new String[ table.rowCount() ];
-			Arrays.fill( strings, DefaultValues.NONE );
-			final StringColumn stringColumn = StringColumn.create( columnName, strings );
-			table.addColumns( stringColumn );
-
-			for ( AnnotationListener< A > listener : listeners.list )
-				listener.columnAdded( columnName );
-		}
-		else
-		{
+		if ( table.containsColumn( columnName ) )
 			throw new UnsupportedOperationException("Column " + columnName + " exists already.");
-		}
+
+		final String[] strings = new String[ table.rowCount() ];
+		Arrays.fill( strings, DefaultValues.NONE );
+		final StringColumn stringColumn = StringColumn.create( columnName, strings );
+		table.addColumns( stringColumn );
+
+		for ( AnnotationListener< A > listener : listeners.list )
+			listener.columnsAdded( Collections.singleton( columnName ) );
 	}
 
 	@Override
