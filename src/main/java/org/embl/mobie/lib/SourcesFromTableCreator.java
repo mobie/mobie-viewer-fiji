@@ -10,19 +10,19 @@ import java.util.List;
 
 public class SourcesFromTableCreator
 {
-	private List< ImageSources > imageSources;
-	private List< LabelSources > labelSources;
+	private List< ImageFiles > imageFileSources;
+	private List< LabelFiles > labelSources;
 
 	public SourcesFromTableCreator( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, GridType gridType )
 	{
 		final Table table = TableOpener.openDelimitedTextFile( tablePath );
 
-		imageSources = new ArrayList<>();
+		imageFileSources = new ArrayList<>();
 
 		for ( String image : imageColumns )
 		{
 			final TableImageSource tableImageSource = new TableImageSource( image );
-			imageSources.add( new ImageSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType ) );
+			imageFileSources.add( new ImageFiles( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType ) );
 		}
 
 		labelSources = new ArrayList<>();
@@ -31,16 +31,16 @@ public class SourcesFromTableCreator
 		for ( String label : labelColumns )
 		{
 			final TableImageSource tableImageSource = new TableImageSource( label );
-			labelSources.add( new LabelSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType, label.equals( firstLabel ) ) );
+			labelSources.add( new LabelFiles( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType, label.equals( firstLabel ) ) );
 		}
 	}
 
-	public List< ImageSources > getImageSources()
+	public List< ImageFiles > getImageSources()
 	{
-		return imageSources;
+		return imageFileSources;
 	}
 
-	public List< LabelSources > getLabelSources()
+	public List< LabelFiles > getLabelSources()
 	{
 		return labelSources;
 	}

@@ -104,6 +104,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -555,8 +556,11 @@ public class ViewManager
 			final Set< String > selectedAnnotationIds = annotationDisplay.selectedAnnotationIds();
 			if ( selectedAnnotationIds != null )
 			{
-				final Set< A > annotations = annotationDisplay.annotationAdapter().getAnnotations( selectedAnnotationIds );
-				annotationDisplay.selectionModel.setSelected( annotations, true );
+				final List< A > selectedAnnotations = annotationDisplay
+						.getAnnData().getTable().annotations().stream()
+						.filter( a -> selectedAnnotationIds.contains( a.uuid() ) )
+						.collect( Collectors.toList() );
+				annotationDisplay.selectionModel.setSelected( selectedAnnotations, true );
 			}
 
 			// configure coloring model

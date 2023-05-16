@@ -65,6 +65,8 @@ public class DefaultAnnotatedLabelImage< A extends Annotation > implements Annot
 			// non-volatile source
 			final AnnotatedLabelSource< ?, A > source = new AnnotatedLabelSource( sourcePair.getSource(), annotationAdapter );
 
+			annotationAdapter.init();
+
 			if ( sourcePair.getVolatileSource() == null )
 			{
 				this.sourcePair = new DefaultSourcePair<>( source, null );

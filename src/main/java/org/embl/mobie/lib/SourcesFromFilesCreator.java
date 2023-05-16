@@ -1,28 +1,25 @@
 package org.embl.mobie.lib;
 
 import org.embl.mobie.lib.io.FileImageSource;
-import org.embl.mobie.lib.io.TableImageSource;
-import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.transform.GridType;
-import tech.tablesaw.api.Table;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class SourcesFromFilesCreator
 {
-	private List< ImageSources > imageSources;
-	private List< LabelSources > labelSources;
+	private List< ImageFiles > imageFileSources;
+	private List< LabelFiles > labelSources;
 
 	public SourcesFromFilesCreator( List < String > imagePaths, List < String > labelPaths, List < String > labelTablePaths, String root, GridType grid )
 	{
 		// images
 		//
-		imageSources = new ArrayList<>();
+		imageFileSources = new ArrayList<>();
 		for ( String imagePath : imagePaths )
 		{
 			final FileImageSource fileImageSource = new FileImageSource( imagePath );
-			imageSources.add( new ImageSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
+			imageFileSources.add( new ImageFiles( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
 		}
 
 		// labels & tables
@@ -35,11 +32,11 @@ public class SourcesFromFilesCreator
 			if ( labelTablePaths.size() > labelSourceIndex )
 			{
 				final String labelTable = labelTablePaths.get( labelSourceIndex );
-				labelSources.add( new LabelSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, labelTable, root, grid ) );
+				labelSources.add( new LabelFiles( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, labelTable, root, grid ) );
 			}
 			else
 			{
-				labelSources.add( new LabelSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
+				labelSources.add( new LabelFiles( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
 			}
 		}
 	}
@@ -74,12 +71,12 @@ public class SourcesFromFilesCreator
 	//			else
 	//			{
 
-	public List< ImageSources > getImageSources()
+	public List< ImageFiles > getImageSources()
 	{
-		return imageSources;
+		return imageFileSources;
 	}
 
-	public List< LabelSources > getLabelSources()
+	public List< LabelFiles > getLabelSources()
 	{
 		return labelSources;
 	}

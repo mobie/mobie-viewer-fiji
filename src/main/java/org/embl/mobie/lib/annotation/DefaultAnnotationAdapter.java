@@ -41,7 +41,6 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 {
 	private final AtomicBoolean throwError = new AtomicBoolean( true );
 	private final AnnData< A > annData;
-	private Map< String, A > uuidToAnnotation; // FIXME this should go somewhere else!
 	private Map< String, A > stlToAnnotation; // source, timepoint, label
 
 	public DefaultAnnotationAdapter( AnnData< A > annData )
@@ -52,36 +51,14 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 	@Override
 	public A createVariable()
 	{
-		// TODO
-		//  is this OK?
-		//  or do we need to create a copy of that?
 		return annData.getTable().annotation( 0 );
-	}
-
-	// UUID for de-serialisation of selected segments
-	// https://github.com/mobie/mobie-viewer-fiji/issues/827
-	@Override
-	public A getAnnotation( String uuid )
-	{
-		if ( uuidToAnnotation == null )
-		{
-			uuidToAnnotation = new ConcurrentHashMap<>();
-			final Iterator< A > iterator = annData.getTable().annotations().iterator();
-			while( iterator.hasNext() )
-			{
-				A annotation = iterator.next();
-				uuidToAnnotation.put( annotation.uuid(), annotation );
-			}
-		}
-
-		return uuidToAnnotation.get( uuid );
 	}
 
 	// This is for mapping for voxels within an
 	// {@code AnnotatedLabelSource}
 	// to the corresponding annotation.
 	@Override
-	public synchronized A getAnnotation( String source, int timePoint, int label )
+	public synchronized A getAnnotation( final String source, final int timePoint, final int label )
 	{
 		if ( label == 0 )
 		{
@@ -89,14 +66,6 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 			// null is the background annotation
 			return null ;
 		}
-
-		// TODO the fact that this method currently is synchronized may cause
-		//   rendering in BDV effectively single threaded!
-		//   In theory, once stlToAnnotation is initialised this does
-		//   not need to be synchronised anymore; but I did not figure out
-		//   yet how to fix concurrency issues.
-		if ( stlToAnnotation == null )
-			initMapping();
 
 		final String stl = stlKey( source, timePoint, label );
 		final A annotation = stlToAnnotation.get( stl );
@@ -109,13 +78,14 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 				System.err.println( "AnnotationAdapter: Suppressing further errors of that kind.");
 			}
 
-			throwError.set( false ); // Not to crash the system by too many Serr prints
+			throwError.set( false );
 		}
 
 		return annotation;
 	}
 
-	private void initMapping()
+	@Override
+	public void init()
 	{
 		stlToAnnotation = new ConcurrentHashMap<>();
 		final Iterator< A > iterator = annData.getTable().annotations().iterator();
@@ -129,11 +99,5 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 	private String stlKey( String source, int timePoint, int label )
 	{
 		return source + ";" + timePoint + ";" + label;
-	}
-
-	@Override
-	public Set< A > getAnnotations( Set< String > uuids )
-	{
-		return uuids.stream().map( uuid -> getAnnotation( uuid ) ).collect( Collectors.toSet() );
 	}
 }

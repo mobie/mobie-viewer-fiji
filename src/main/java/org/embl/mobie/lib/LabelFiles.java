@@ -41,11 +41,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LabelSources extends ImageSources
+public class LabelFiles extends ImageFiles
 {
 	protected Map< String, TableSource > nameToLabelTable = new LinkedHashMap<>();
 
-	public LabelSources( String name, Table table, String columnName, Integer channelIndex, String root, GridType gridType, boolean useTableForSegments )
+	public LabelFiles( String name, Table table, String columnName, Integer channelIndex, String root, GridType gridType, boolean useTableForSegments )
 	{
 		super( name, table, columnName, channelIndex, root, gridType);
 
@@ -73,12 +73,12 @@ public class LabelSources extends ImageSources
 		}
 	}
 
-	public LabelSources( String name, String labelsPath, Integer channelIndex, String root, GridType grid )
+	public LabelFiles( String name, String labelsPath, Integer channelIndex, String root, GridType grid )
 	{
 		super( name, labelsPath, channelIndex, root, grid );
 	}
 
-	public LabelSources( String name, String path, Integer channelIndex, String labelTablePath, String root, GridType grid )
+	public LabelFiles( String name, String path, Integer channelIndex, String labelTablePath, String root, GridType grid )
 	{
 		super( name, path, channelIndex, root, grid );
 

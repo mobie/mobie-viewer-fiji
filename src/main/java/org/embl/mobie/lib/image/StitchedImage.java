@@ -841,7 +841,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		// FIXME Maybe also transform the contained images?!
+		// FIXME also transform the contained images?!
 		final AffineTransform3D transform3D = new AffineTransform3D();
 		transformedSource.getFixedTransform( transform3D );
 		transform3D.preConcatenate( affineTransform3D );

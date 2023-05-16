@@ -50,7 +50,7 @@ import java.util.Map;
 
 import static tech.tablesaw.aggregate.AggregateFunctions.mean;
 
-public class ImageSources
+public class ImageFiles
 {
 	protected final String name;
 	protected Map< String, String > nameToFullPath = new LinkedHashMap<>();
@@ -61,7 +61,7 @@ public class ImageSources
 	protected Metadata metadata = new Metadata();
 	private String metadataSource;
 
-	public ImageSources( String name, String regex, Integer channelIndex, String root, GridType gridType )
+	public ImageFiles( String name, String regex, Integer channelIndex, String root, GridType gridType )
 	{
 		this.gridType = gridType;
 		this.name = name;
@@ -92,7 +92,7 @@ public class ImageSources
 		return paths;
 	}
 
-	public ImageSources( String name, Table table, String pathColumn, Integer channelIndex, String root, GridType gridType )
+	public ImageFiles( String name, Table table, String pathColumn, Integer channelIndex, String root, GridType gridType )
 	{
 		this.name = name;
 		this.channelIndex = channelIndex;

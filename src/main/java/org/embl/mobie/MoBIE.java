@@ -42,9 +42,9 @@ import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.lib.AnnotatedLabelImageCreator;
 import org.embl.mobie.lib.DataStore;
-import org.embl.mobie.lib.ImageSources;
-import org.embl.mobie.lib.ImagesAndLabelsDataAdder;
-import org.embl.mobie.lib.LabelSources;
+import org.embl.mobie.lib.ImageFiles;
+import org.embl.mobie.lib.ImageAndLabelFilesAdder;
+import org.embl.mobie.lib.LabelFiles;
 import org.embl.mobie.lib.SourcesFromFilesCreator;
 import org.embl.mobie.lib.SourcesFromTableCreator;
 import org.embl.mobie.lib.SpimDataAdder;
@@ -180,10 +180,10 @@ public class MoBIE
 
 		final SourcesFromFilesCreator sourcesCreator = new SourcesFromFilesCreator( imagePaths, labelPaths, labelTablePaths, root, grid );
 
-		final List< ImageSources > imageSources = sourcesCreator.getImageSources();
-		final List< LabelSources > labelSources = sourcesCreator.getLabelSources();
+		final List< ImageFiles > imageFileSources = sourcesCreator.getImageSources();
+		final List< LabelFiles > labelSources = sourcesCreator.getLabelSources();
 
-		openImagesAndLabels( imageSources, labelSources );
+		openImagesAndLabels( imageFileSources, labelSources );
 	}
 
 	// open an image or object table
@@ -193,10 +193,10 @@ public class MoBIE
 
 		final SourcesFromTableCreator sourcesCreator = new SourcesFromTableCreator( tablePath, imageColumns, labelColumns, root, grid );
 
-		final List< ImageSources > imageSources = sourcesCreator.getImageSources();
-		final List< LabelSources > labelSources = sourcesCreator.getLabelSources();
+		final List< ImageFiles > imageFileSources = sourcesCreator.getImageSources();
+		final List< LabelFiles > labelSources = sourcesCreator.getLabelSources();
 
-		openImagesAndLabels( imageSources, labelSources );
+		openImagesAndLabels( imageFileSources, labelSources );
 	}
 
 	private void openMoBIEProject() throws IOException
@@ -216,13 +216,13 @@ public class MoBIE
 	}
 
 	// TODO 2D or 3D?
-	private void openImagesAndLabels( List< ImageSources > images, List< LabelSources > labels )
+	private void openImagesAndLabels( List< ImageFiles > images, List< LabelFiles > labels )
 	{
 		initImageJAndMoBIE();
 
 		initProject( "" );
 
-		new ImagesAndLabelsDataAdder( images, labels ).addData( dataset );
+		new ImageAndLabelFilesAdder( images, labels ).addData( dataset );
 
 		initUIandShowView( dataset.views().keySet().iterator().next() );
 	}
@@ -719,11 +719,10 @@ public class MoBIE
 
 		for ( DataSource dataSource : dataSources )
 		{
-			// FIXME Cache SpimData?
+			// TODO Cache SpimData?
 			//   https://github.com/mobie/mobie-viewer-fiji/issues/857
-			// FIXME This currently only is used for region tables,
+			// TODO This currently only is used for region tables,
 			//   and thus seems to be of no general use
-			//   also consider:
 			if ( DataStore.containsRawData( dataSource.getName() ) )
 			{
 				continue;

@@ -29,12 +29,10 @@
 package org.embl.mobie.lib.serialize;
 
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.lib.LabelSources;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 

@@ -26,12 +26,12 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-public class ImagesAndLabelsDataAdder
+public class ImageAndLabelFilesAdder
 {
-	private final List< ImageSources > images;
-	private final List< LabelSources > labels;
+	private final List< ImageFiles > images;
+	private final List< LabelFiles > labels;
 
-	public ImagesAndLabelsDataAdder( List< ImageSources > images, List< LabelSources > labels )
+	public ImageAndLabelFilesAdder( List< ImageFiles > images, List< LabelFiles > labels )
 	{
 		this.images = images;
 		this.labels = labels;
@@ -39,33 +39,24 @@ public class ImagesAndLabelsDataAdder
 
 	public void addData( Dataset dataset )
 	{
-		final ArrayList< ImageSources > allSources = new ArrayList<>();
+		final ArrayList< ImageFiles > allSources = new ArrayList<>();
 		allSources.addAll( images );
 		allSources.addAll( labels );
 
 		// create and add data sources to the dataset
-		for ( ImageSources sources : allSources )
+		for ( ImageFiles sources : allSources )
 		{
 			for ( String name : sources.getSources() )
 			{
 				final String path = sources.getPath( name );
 				ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
-				if ( path.endsWith( "ome.tif" ) || path.endsWith( "ome.tiff" ) )
-				{
-					// FIXME: for multi-color ome-tiff this seems required, however,
-					//        for the HCS plate images this will not work,
-					//        thus we may need different logic there than here.
-					//        Maybe  ImageDataFormat.fromPath() should return BioFormats if it is
-					//        OME-TIFF; this is changed now in mobie-io
-					imageDataFormat = ImageDataFormat.BioFormats;
-				}
 
 				final StorageLocation storageLocation = new StorageLocation();
 				storageLocation.absolutePath = path;
 				storageLocation.setChannel( sources.getChannelIndex() );
-				if ( sources instanceof LabelSources )
+				if ( sources instanceof LabelFiles )
 				{
-					final TableSource tableSource = ( ( LabelSources ) sources ).getLabelTable( name );
+					final TableSource tableSource = ( ( LabelFiles ) sources ).getLabelTable( name );
 					SegmentationDataSource segmentationDataSource = SegmentationDataSource.create( name, imageDataFormat, storageLocation, tableSource );
 					segmentationDataSource.preInit( false );
 					dataset.addDataSource( segmentationDataSource );
@@ -80,9 +71,9 @@ public class ImagesAndLabelsDataAdder
 		}
 
 		// TODO don't create a grid view if there is only one image and label mask
-		final ImageSources firstImageSources = allSources.get( 0 );
+		final ImageFiles firstImageFiles = allSources.get( 0 );
 
-		for ( ImageSources sources : allSources )
+		for ( ImageFiles sources : allSources )
 		{
 			if ( sources.getGridType().equals( GridType.Stitched ) )
 			{
@@ -91,7 +82,7 @@ public class ImagesAndLabelsDataAdder
 				// TODO: probably we should not even create the region table
 				//   for any source other than the first one while
 				//   creating the ImageSources
-				if ( sources.equals( firstImageSources ) )
+				if ( sources.equals( firstImageFiles ) )
 				{
 					// create a RegionDisplay
 
@@ -130,11 +121,11 @@ public class ImagesAndLabelsDataAdder
 				// TODO https://github.com/mobie/mobie-viewer-fiji/issues/1035
 				grid.lazyLoadTables = false;
 
-				if ( sources instanceof LabelSources )
+				if ( sources instanceof LabelFiles )
 				{
 					// SegmentationDisplay
 					final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( grid.getName(), Collections.singletonList( grid.getName() ) );
-					final int numLabelTables = ( ( LabelSources ) sources ).getNumLabelTables();
+					final int numLabelTables = ( ( LabelFiles ) sources ).getNumLabelTables();
 					segmentationDisplay.setShowTable( numLabelTables > 0 );
 					displays.add( segmentationDisplay );
 				}
