@@ -148,12 +148,12 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 		{
 			// Compute the mask of the images
 			// that are annotated by this region
-			mask = TransformHelper.getUnionMask( images );
+			final RealMaskRealInterval unionMask = TransformHelper.getUnionMask( images );
 
 			if ( relativeDilation > 0 )
 			{
-				final double[] min = mask.minAsDoubleArray();
-				final double[] max = mask.maxAsDoubleArray();
+				final double[] min = unionMask.minAsDoubleArray();
+				final double[] max = unionMask.maxAsDoubleArray();
 
 				for ( int d = 0; d < min.length; d++ )
 				{
@@ -163,6 +163,10 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 				}
 
 				mask = GeomMasks.closedBox( min, max );
+			}
+			else
+			{
+				mask = unionMask;
 			}
 		}
 

@@ -410,11 +410,7 @@ public class ViewManager
 							// force loading of all tables to enable meaningful
 							// row sorting and creating a meaningful scatterplot
 							final ConcatenatedAnnotationTableModel< ? extends Annotation > concatenatedTableModel = ( ConcatenatedAnnotationTableModel ) annotatedStitchedImage.getAnnData().getTable();
-							final Set< ? extends AnnotationTableModel< ? extends Annotation > > tableModels = concatenatedTableModel.getTableModels();
-							for ( AnnotationTableModel< ? extends Annotation > tableModel : tableModels )
-							{
-								tableModel.annotations();
-							}
+							concatenatedTableModel.loadAllTables();
 						}
 
 						DataStore.putImage( annotatedStitchedImage );

@@ -44,6 +44,7 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	private final Set< AnnotationTableModel< A > > tableModels;
 	private AnnotationTableModel< A > referenceTable;
 	private ArrayList< A > annotations = new ArrayList<>();
+	private boolean allTablesLoaded = false;
 
 	public ConcatenatedAnnotationTableModel( Set< AnnotationTableModel< A > > tableModels )
 	{
@@ -104,6 +105,9 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	{
 		for ( AnnotationTableModel< A > tableModel : tableModels )
 			tableModel.loadTableChunk( tableChunk );
+
+		// TODO: it is not logical that this method does not trigger
+		//   an annotation listener...
 	}
 
 	@Override
@@ -139,8 +143,19 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	@Override
 	public void addStringColumn( String columnName )
 	{
-		// here we probably need to load all tables
-		throw new UnsupportedOperationException("Annotation of concatenated tables is not yet implemented.");
+		if ( columnNames().contains( columnName ) )
+			return;
+
+		for ( AnnotationTableModel< A > tableModel : tableModels )
+		{
+			if ( ! tableModel.columnNames().contains( columnName ) )
+			{
+				tableModel.addStringColumn( columnName );
+			}
+		}
+
+		for ( AnnotationListener< A > listener : listeners.list )
+			listener.columnsAdded( null );
 	}
 
 	@Override
@@ -167,30 +182,39 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	@Override
 	public void annotationsAdded( Collection< A > annotations )
 	{
-		// A main reason this method is called is
-		// that {@code Annotations} have been added to the wrapped
+		// this method is called, e.g., if
+		// {@code Annotations} have been added to (one of)
+		// the wrapped
 		// {code Set< AnnotationTableModel< A > > tableModels}
 		// and should thus be added to this model.
-		addAnnotations( annotations );
-	}
-
-	private void addAnnotations( Collection< A > annotations )
-	{
 		this.annotations.addAll( annotations );
 
-		for ( AnnotationListener< A > annotationListener : listeners.list )
-			annotationListener.annotationsAdded( annotations );
+		// inform listeners such as the {@code TableView}
+		for ( AnnotationListener< A > listener : listeners.list )
+			listener.annotationsAdded( annotations );
 	}
 
 	@Override
-	public void columnAdded( String columnName )
+	public void columnsAdded( Collection< String > columns )
 	{
-		for ( AnnotationListener< A > annotationListener : listeners.list )
-			annotationListener.columnAdded( columnName );
+		// additions of columns occurs via
+		// {@code addStringColumn} or
+		// {@code loadTableChunk},
+		// which notify listeners themselves.
+		// notifying listeners here would cause notification
+		// from each of the wrapped table model, which is not needed
+		// and in fact leads to concurrency errors
+		// re-rendering views of this table.
 	}
 
-	public Set< AnnotationTableModel< A > > getTableModels()
+	public synchronized void loadAllTables()
 	{
-		return tableModels;
+		if ( ! allTablesLoaded )
+		{
+			for ( AnnotationTableModel< ? extends Annotation > tableModel : tableModels )
+				tableModel.annotations();
+
+			allTablesLoaded = true;
+		}
 	}
 }

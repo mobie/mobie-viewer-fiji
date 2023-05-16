@@ -32,6 +32,7 @@ import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.TableUIs;
 import ij.IJ;
 import ij.gui.GenericDialog;
+import loci.poi.hssf.extractor.ExcelExtractor;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.annotation.AnnotationUI;
 import org.embl.mobie.lib.annotation.Annotation;
@@ -52,7 +53,10 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.ui.UserInterfaceHelper;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -274,7 +278,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				}
 
 				IJ.log( "...done!" );
-				updateTable();
 
 			}).start()
 		);
@@ -285,17 +288,8 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		if ( jTable == null ) return;
 
-		try
-		{
-			swingTableModel.tableChanged();
-			repaintTable();
-		}
-		catch( Exception e )
-		{
-			int a = 1;
-			// This seems to have no consequences:
-			// https://github.com/mobie/mobie-viewer-fiji/issues/1011
-		}
+		swingTableModel.tableChanged();
+		repaintTable();
 	}
 
 	private JMenuItem createSaveTableAsMenuItem()
@@ -812,8 +806,9 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private synchronized void repaintTable()
 	{
-		SwingUtilities.invokeLater( () -> jTable.repaint() );
+		jTable.repaint();
 	}
+
 
 	@Override
 	public void annotationsAdded( Collection< A > annotations )
@@ -822,14 +817,19 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	}
 
 	@Override
-	public void columnAdded( String columnName )
+	public synchronized void columnsAdded( Collection< String > columns )
 	{
 		updateTable();
+		// TODO: errors such as
+		// Exception in thread "AWT-EventQueue-0" java.lang.ArrayIndexOutOfBoundsException: 31 >= 31
+		//	at java.util.Vector.elementAt(Vector.java:479)
+		//	at javax.swing.table.DefaultTableColumnModel
 //		For debugging:
 //		final List< String > columnNames = tableModel.columnNames();
-//		final int columnCount1 = swingTableModel.getColumnCount();
+//		final int swingColumnCount = swingTableModel.getColumnCount();
 //		final TableColumnModel columnModel = jTable.getColumnModel();
-//		final int columnCount = columnModel.getColumnCount();
+//		final int jTableColumnCount = columnModel.getColumnCount();
+////		IJ.wait( 100 ); // maybe this avoids the updating error?
 //		for ( int i = 0; i < columnNames.size(); i++ )
 //		{
 //			System.out.println( columnNames.get( i ) );
