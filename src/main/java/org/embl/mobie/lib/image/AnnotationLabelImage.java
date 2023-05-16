@@ -28,45 +28,11 @@
  */
 package org.embl.mobie.lib.image;
 
-import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.lib.annotation.Annotation;
-import org.embl.mobie.lib.source.AnnotationType;
-import org.embl.mobie.lib.source.VolatileAnnotationType;
-import org.embl.mobie.lib.table.AnnData;
-import org.embl.mobie.lib.table.AnnDataHelper;
 
-import javax.annotation.Nullable;
-import java.util.List;
-
-public class StitchedAnnotatedLabelImage< A extends Annotation > extends StitchedImage< AnnotationType< A >, VolatileAnnotationType< A > > implements AnnotatedLabelImage< A >
+public interface AnnotationLabelImage< A extends Annotation > extends AnnotationImage< A >
 {
-	private AnnData< A > annData;
-
-	public StitchedAnnotatedLabelImage( List< ? extends AnnotatedLabelImage< A > > annotatedImages, Image< AnnotationType< A > > metadataImage, @Nullable List< int[] > positions, String imageName, double relativeCellMargin )
-	{
-		super( annotatedImages, metadataImage, positions, imageName, relativeCellMargin );
-		annData = AnnDataHelper.concatenate( ( List ) getTileImages() );
-	}
-
-	@Override
-	public AnnData< A > getAnnData()
-	{
-		return annData;
-	}
-
-	@Override
-	public Image< ? extends IntegerType< ? > > getLabelImage()
-	{
-		// FIXME: Either StitchedAnnotatedLabelImage does not implement AnnotatedLabelImage
-		//   Or we don't require that the LabelImage is of type Integer
-		//   We add back the AnnotatedImage interface (<= probably)
-		throw new RuntimeException("StitchedAnnotatedLabelImage does not contain a label image");
-	}
-
-	@Override
-	public void transform( AffineTransform3D affineTransform3D )
-	{
-		super.transform( affineTransform3D );
-	}
+	// Label image corresponding to {@code annotation.label()}
+	Image< ? extends IntegerType< ? > > getLabelImage();
 }

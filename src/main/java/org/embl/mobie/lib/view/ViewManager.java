@@ -53,10 +53,10 @@ import org.embl.mobie.lib.color.MobieColoringModel;
 import org.embl.mobie.lib.color.NumericAnnotationColoringModel;
 import org.embl.mobie.lib.color.lut.ColumnARGBLut;
 import org.embl.mobie.lib.color.lut.LUTs;
-import org.embl.mobie.lib.image.AnnotatedLabelImage;
+import org.embl.mobie.lib.image.AnnotationImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
-import org.embl.mobie.lib.image.StitchedAnnotatedLabelImage;
+import org.embl.mobie.lib.image.StitchedAnnotationImage;
 import org.embl.mobie.lib.image.StitchedImage;
 import org.embl.mobie.lib.plot.ScatterPlotSettings;
 import org.embl.mobie.lib.plot.ScatterPlotView;
@@ -104,7 +104,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -369,11 +368,12 @@ public class ViewManager
 					for ( Image< ? > image : images )
 					{
 						final Image< ? > transformedImage =
-							ImageTransformer.applyAffineTransform(
-									image,
-									affineTransformation.getAffineTransform3D(),
-									affineTransformation.getTransformedImageName( image.getName() ) );
+								ImageTransformer.affineTransform(
+										image,
+										affineTransformation.getAffineTransform3D(),
+										affineTransformation.getTransformedImageName( image.getName() ) );
 						DataStore.putImage( transformedImage );
+
 					}
 				}
 				else if ( transformation instanceof CropTransformation )
@@ -402,11 +402,12 @@ public class ViewManager
 
 					// Create the stitched grid image
 					//
-					if ( gridImages.get( 0 ) instanceof AnnotatedLabelImage )
+					if ( gridImages.get( 0 ) instanceof AnnotationImage )
 					{
-						final StitchedAnnotatedLabelImage< ? extends Annotation > annotatedStitchedImage = new StitchedAnnotatedLabelImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.getName(), mergedGridTransformation.margin );
+						final StitchedAnnotationImage< ? extends Annotation > annotatedStitchedImage = new StitchedAnnotationImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.getName(), mergedGridTransformation.margin );
 
-						if ( ! mergedGridTransformation.lazyLoadTables && annotatedStitchedImage.getAnnData().getTable() instanceof ConcatenatedAnnotationTableModel )
+						if ( ! mergedGridTransformation.lazyLoadTables
+								&& annotatedStitchedImage.getAnnData().getTable() instanceof ConcatenatedAnnotationTableModel )
 						{
 							// force loading of all tables to enable meaningful
 							// row sorting and creating a meaningful scatterplot

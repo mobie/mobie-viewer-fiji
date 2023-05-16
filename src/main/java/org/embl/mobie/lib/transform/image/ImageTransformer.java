@@ -30,12 +30,13 @@ package org.embl.mobie.lib.transform.image;
 
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.IntegerType;
+import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
-import org.embl.mobie.lib.image.AnnotatedLabelImage;
+import org.embl.mobie.lib.image.AnnotationLabelImage;
 import org.embl.mobie.lib.image.AnnotationImage;
-import org.embl.mobie.lib.image.DefaultAnnotatedLabelImage;
+import org.embl.mobie.lib.image.DefaultAnnotationLabelImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.transform.AnnotationAffineTransformer;
@@ -51,26 +52,18 @@ import java.util.concurrent.Future;
 
 public class ImageTransformer
 {
-	// FIXME
-	//  Note that the Image Type may change, e.g. if this is an annotated label image
-	//  (maybe this is the only case where the Type changes?
-	//  Is there a cleaner solution? For normal images the type would not change.
-	//  also for annotated images the type would only change
-	//  if transformedImage != image.getName(), because otherwise we would transform in place
-	//  Maybe two methods, one for really creating a new image and one for in place transformation?
-	public static Image< ? > applyAffineTransform( Image< ? > image, AffineTransform3D affineTransform3D, @Nullable String transformedImageName )
+	public static Image< ? > affineTransform( Image< ? > image, AffineTransform3D affineTransform3D, String transformedImageName )
 	{
-		if ( transformedImageName == null )
+		if( transformedImageName == null || image.getName().equals( transformedImageName ) )
 		{
-			// Perform an in place transformation.
-			image.transform( affineTransform3D );
+			// in place transformation
+			image.transform( affineTransform3D  );
 			return image;
 		}
 
-		// Create a new transformed image.
-		if ( image instanceof AnnotatedLabelImage )
+		if ( image instanceof AnnotationLabelImage )
 		{
-			return createTransformedAnnotatedLabelImage( ( AnnotatedLabelImage ) image, affineTransform3D, transformedImageName );
+			return createTransformedAnnotatedLabelImage( ( AnnotationLabelImage ) image, affineTransform3D, transformedImageName );
 		}
 		else if ( image instanceof AnnotationImage )
 		{
@@ -91,7 +84,7 @@ public class ImageTransformer
 		return timepointsTransformedImage;
 	}
 
-	private static < A extends Annotation, TA extends A > DefaultAnnotatedLabelImage< TA > createTransformedAnnotatedLabelImage( AnnotatedLabelImage< A > annotatedLabelImage, AffineTransform3D affineTransform3D, String transformedImageName )
+	private static < A extends Annotation, TA extends A > DefaultAnnotationLabelImage< TA > createTransformedAnnotatedLabelImage( AnnotationLabelImage< A > annotatedLabelImage, AffineTransform3D affineTransform3D, String transformedImageName )
 	{
 		final Image< ? extends IntegerType< ? > > labelImage = annotatedLabelImage.getLabelImage();
 
@@ -101,11 +94,11 @@ public class ImageTransformer
 
 		TransformedAnnData< A, TA > transformedAnnData = new TransformedAnnData<>( annData, affineTransformer );
 
-		final Image< ? extends IntegerType< ? > > transformedLabelImage = ( Image< ? extends IntegerType< ? > > ) applyAffineTransform( labelImage, affineTransform3D, transformedImageName );
+		final DefaultAnnotationAdapter< TA > annotationAdapter = new DefaultAnnotationAdapter<>( transformedAnnData );
 
-		// FIXME I guess I have to get the AnnotationAdapter
-		//   from the AnnotatedLabelImage?!
-		final DefaultAnnotatedLabelImage< TA > transformedAnnotatedImage = new DefaultAnnotatedLabelImage< TA >( transformedLabelImage, transformedAnnData, new DefaultAnnotationAdapter( annData ) );
+		final Image< ? extends IntegerType< ? > > transformedLabelImage = ( Image< ? extends IntegerType< ? > > ) affineTransform( labelImage, affineTransform3D, transformedImageName );
+
+		final DefaultAnnotationLabelImage< TA > transformedAnnotatedImage = new DefaultAnnotationLabelImage< TA >( transformedLabelImage, transformedAnnData, annotationAdapter );
 
 		return transformedAnnotatedImage;
 	}
@@ -152,11 +145,18 @@ public class ImageTransformer
 		{
 			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform( translationX, translationY, image, centerAtOrigin );
 
-			String transformedName = transformedNames == null ? null : transformedNames.get( images.indexOf( image ) );
-
-			final Image< ? > transformedImage = applyAffineTransform( image, translationTransform, transformedName );
-
-			translatedImages.add( transformedImage );
+			if ( transformedNames == null )
+			{
+				// in place transformation
+				image.transform( translationTransform );
+				translatedImages.add( image );
+			}
+			else
+			{
+				// create a new transformed image
+				final Image< ? > transformedImage = affineTransform( image, translationTransform, transformedNames.get( images.indexOf( image ) ) );
+				translatedImages.add( transformedImage );
+			}
 		}
 
 		return translatedImages;

@@ -90,12 +90,10 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 
 	private void createImage()
 	{
-		//long start = System.currentTimeMillis();
-		// FIXME We could implement a kdTree that just uses float precision
-		//   to save memory.
 		final ArrayList< AS > annotations = annData.getTable().annotations();
 		kdTree = new KDTree( annotations, annotations );
-		//System.out.println( "Built tree with " + annotatedSpots.size() + " elements in " + ( System.currentTimeMillis() - start ) + " ms." );
+		// TODO: there is a KDTreeFloat implementation in this repo that we could use
+		//   to save memory
 
 		if ( boundingBoxMin == null )
 			boundingBoxMin = kdTree.minAsDoubleArray();

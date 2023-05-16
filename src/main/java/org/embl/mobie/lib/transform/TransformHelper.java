@@ -289,9 +289,14 @@ public class TransformHelper
 	}
 
 
-	public static RealMaskRealInterval getUnionMask( Collection< ? extends Masked > masks )
+	public static RealMaskRealInterval getUnionMask( Collection< ? extends Masked > maskeds )
 	{
-		// use below code once https://github.com/imglib/imglib2-roi/pull/63 is merged
+		if ( maskeds.size() == 1 )
+			return maskeds.stream().iterator().next().getMask();
+
+		// TODO: trying using below code once https://github.com/imglib/imglib2-roi/pull/63 is merged and released
+
+
 //		RealMaskRealInterval union = null;
 //
 //		for ( Masked masked : masks )
@@ -318,12 +323,12 @@ public class TransformHelper
 		// note that this does not work if the masks are rotated.
 		// for this we would need the code above.
 
-		// FIXME There also is a consideration of computational efficiency
-		//   Even if the above code may work, the resulting joined intervals
-		//   may be computationally heavy to get.
+		// there also is a consideration of computational efficiency:
+		// even if the above code may work, the resulting joined intervals
+		// may be computationally heavy to get.
 		int masksUsed = 0;
 		RealInterval union = null;
-		for ( Masked masked : masks )
+		for ( Masked masked : maskeds )
 		{
 			final RealMaskRealInterval mask = masked.getMask();
 
@@ -342,13 +347,12 @@ public class TransformHelper
 			masksUsed++;
 		}
 
-		// there is only one mask to be considered
-		// thus we can return it (including potential rotations)
 		if ( masksUsed == 1 )
-			return masks.stream().iterator().next().getMask();
+		{
+			return maskeds.stream().iterator().next().getMask();
+		}
 
-		// multiple masks
-		// we need to join
+		// multiple masks: we need to join
 		// issue here currently is that we loose rotations.
 		final double[] min = union.minAsDoubleArray();
 		final double[] max = union.maxAsDoubleArray();

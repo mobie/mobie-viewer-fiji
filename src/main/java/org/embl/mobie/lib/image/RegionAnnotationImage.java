@@ -39,7 +39,6 @@ import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.RealRandomAccessibleIntervalTimelapseSource;
-import org.embl.mobie.lib.source.VolatileAnnotationType;
 import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegion;
 import org.embl.mobie.lib.transform.TransformHelper;

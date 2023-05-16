@@ -41,20 +41,13 @@ public class AffineTransformedImage< T > implements Image< T >
 {
 	protected final AffineTransform3D affineTransform3D;
 	protected final Image< T > image;
-	protected final String transformedImageName;
+	protected final String name;
 	private RealMaskRealInterval mask;
 
-	public AffineTransformedImage( Image< T > image )
+	public AffineTransformedImage( Image< T > image, String name, AffineTransform3D affineTransform3D )
 	{
 		this.image = image;
-		this.transformedImageName = image.getName();
-		this.affineTransform3D = new AffineTransform3D();
-	}
-
-	public AffineTransformedImage( Image< T > image, String transformedImageName, AffineTransform3D affineTransform3D )
-	{
-		this.image = image;
-		this.transformedImageName = transformedImageName;
+		this.name = name;
 		this.affineTransform3D = affineTransform3D;
 	}
 
@@ -70,7 +63,7 @@ public class AffineTransformedImage< T > implements Image< T >
 		final Source< T > source = sourcePair.getSource();
 		final Source< ? extends Volatile< T > > volatileSource = sourcePair.getVolatileSource();
 
-		final TransformedSource transformedSource = new TransformedSource( source, transformedImageName );
+		final TransformedSource transformedSource = new TransformedSource( source, name );
 		transformedSource.setFixedTransform( affineTransform3D );
 		final TransformedSource volatileTransformedSource = new TransformedSource( volatileSource, transformedSource );
 
@@ -80,7 +73,7 @@ public class AffineTransformedImage< T > implements Image< T >
 	@Override
 	public String getName()
 	{
-		return transformedImageName;
+		return name;
 	}
 
 	@Override

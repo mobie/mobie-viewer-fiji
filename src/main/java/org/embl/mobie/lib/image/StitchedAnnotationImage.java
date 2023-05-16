@@ -26,100 +26,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.table;
+package org.embl.mobie.lib.image;
 
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.lib.annotation.AnnotatedSpot;
+import org.embl.mobie.lib.annotation.Annotation;
+import org.embl.mobie.lib.source.AnnotationType;
+import org.embl.mobie.lib.source.VolatileAnnotationType;
+import org.embl.mobie.lib.table.AnnData;
+import org.embl.mobie.lib.table.AnnDataHelper;
 
-public class DefaultAnnotatedSpot implements AnnotatedSpot
+import javax.annotation.Nullable;
+import java.util.List;
+
+public class StitchedAnnotationImage< A extends Annotation > extends StitchedImage< AnnotationType< A >, VolatileAnnotationType< A > > implements AnnotationImage< A >
 {
-	private static final String[] idColumns = new String[]{ ColumnNames.SPOT_ID };
-	private final int rowIndex;
+	private AnnData< A > annData;
 
-	private String uuid; // FIXME not initialised !
-	private int label;
-	private double[] position;
-	private String source;
-
-	// We use {@code Supplier< Table > tableSupplier}
-	// because the table may change, e.g.
-	// due to merging of additional columns.
-	public DefaultAnnotatedSpot( final double[] position, final int rowIndex )
+	public StitchedAnnotationImage( List< ? extends AnnotationImage< A > > annotatedImages, Image< AnnotationType< A > > metadataImage, @Nullable List< int[] > positions, String imageName, double relativeCellMargin )
 	{
-		this.rowIndex = rowIndex;
-		this.label = rowIndex;
-		this.position = position;
+		super( annotatedImages, metadataImage, positions, imageName, relativeCellMargin );
+		annData = AnnDataHelper.concatenate( ( List ) getTileImages() );
 	}
 
 	@Override
-	public int label()
+	public AnnData< A > getAnnData()
 	{
-		return label;
-	}
-
-	@Override
-	public Integer timePoint()
-	{
-		return 0;
-	}
-
-	@Override
-	public double[] positionAsDoubleArray()
-	{
-		return position;
-	}
-
-	@Override
-	public double getDoublePosition( int d )
-	{
-		return position[ d ];
-	}
-
-	@Override
-	public String uuid()
-	{
-		return uuid;
-	}
-
-	@Override
-	public String source()
-	{
-		return source;
-	}
-
-	@Override
-	public Object getValue( String feature )
-	{
-		return null;
-	}
-
-	@Override
-	public Double getNumber( String feature )
-	{
-		return null;
-	}
-
-	@Override
-	public void setString( String columnName, String value )
-	{
-
-	}
-
-	@Override
-	public String[] idColumns()
-	{
-		return idColumns;
+		return annData;
 	}
 
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		affineTransform3D.apply( position, position );
-	}
-
-	@Override
-	public int numDimensions()
-	{
-		return position.length;
+		super.transform( affineTransform3D );
 	}
 }

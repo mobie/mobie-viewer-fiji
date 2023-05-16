@@ -286,7 +286,6 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 
 		annData = AnnDataHelper.concatenate( annotationImages );
 
-		// FIXME This only is a uuidAdaptor, the stl is not needed
 		annotationAdapter = new DefaultAnnotationAdapter<>( annData );
 	}
 

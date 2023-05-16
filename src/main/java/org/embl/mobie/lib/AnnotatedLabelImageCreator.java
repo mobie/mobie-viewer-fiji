@@ -2,11 +2,10 @@ package org.embl.mobie.lib;
 
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
-import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.lib.annotation.LazyAnnotatedSegmentAdapter;
-import org.embl.mobie.lib.image.AnnotatedLabelImage;
-import org.embl.mobie.lib.image.DefaultAnnotatedLabelImage;
+import org.embl.mobie.lib.image.AnnotationLabelImage;
+import org.embl.mobie.lib.image.DefaultAnnotationLabelImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.SegmentationDataSource;
@@ -20,12 +19,10 @@ import org.embl.mobie.lib.table.saw.TableSawAnnotatedSegmentCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationTableModel;
 import tech.tablesaw.api.Table;
 
-import java.util.Map;
-
 public class AnnotatedLabelImageCreator
 {
 	private final MoBIE moBIE;
-	private AnnotatedLabelImage< TableSawAnnotatedSegment > annotatedLabelImage;
+	private AnnotationLabelImage< TableSawAnnotatedSegment > annotatedLabelImage;
 
 	public AnnotatedLabelImageCreator( MoBIE moBIE, SegmentationDataSource dataSource, Image< ? > image )
 	{
@@ -50,7 +47,7 @@ public class AnnotatedLabelImageCreator
 
 			final DefaultAnnotationAdapter< TableSawAnnotatedSegment > annotationAdapter = new DefaultAnnotationAdapter( annData );
 
-			annotatedLabelImage = new DefaultAnnotatedLabelImage( image, annData, annotationAdapter );
+			annotatedLabelImage = new DefaultAnnotationLabelImage( image, annData, annotationAdapter );
 		}
 		else
 		{
@@ -58,11 +55,11 @@ public class AnnotatedLabelImageCreator
 			final LazyAnnotatedSegmentTableModel tableModel = new LazyAnnotatedSegmentTableModel( image.getName() );
 			final DefaultAnnData< AnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
 			final LazyAnnotatedSegmentAdapter segmentAdapter = new LazyAnnotatedSegmentAdapter( image.getName(), tableModel );
-			annotatedLabelImage = new DefaultAnnotatedLabelImage( image, annData, segmentAdapter );
+			annotatedLabelImage = new DefaultAnnotationLabelImage( image, annData, segmentAdapter );
 		}
 	}
 
-	public AnnotatedLabelImage< ? > create()
+	public AnnotationLabelImage< ? > create()
 	{
 		return annotatedLabelImage;
 	}

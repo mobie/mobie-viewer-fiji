@@ -39,16 +39,14 @@ import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.VolatileAnnotatedLabelSource;
 import org.embl.mobie.lib.table.AnnData;
 
-public class DefaultAnnotatedLabelImage< A extends Annotation > implements AnnotatedLabelImage< A >
+public class DefaultAnnotationLabelImage< A extends Annotation > implements AnnotationLabelImage< A >
 {
 	protected Image< ? extends IntegerType< ? > > labelImage;
 	protected AnnData< A > annData;
 	protected SourcePair< AnnotationType< A > > sourcePair;
 	private AnnotationAdapter< A > annotationAdapter;
 
-	// TODO This should probably also expose the annotationAdapter in a getter
-	//   already in the interface
-	public DefaultAnnotatedLabelImage( Image< ? extends IntegerType< ? > > labelImage, AnnData< A > annData, AnnotationAdapter< A > annotationAdapter )
+	public DefaultAnnotationLabelImage( Image< ? extends IntegerType< ? > > labelImage, AnnData< A > annData, AnnotationAdapter< A > annotationAdapter )
 	{
 		this.labelImage = labelImage;
 		this.annData = annData;
@@ -91,8 +89,6 @@ public class DefaultAnnotatedLabelImage< A extends Annotation > implements Annot
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		// TODO: it is not so clear to me whether to actually transform the
-		//   labelImage or only the annotatedLabelImage (in the open() function).
 		labelImage.transform( affineTransform3D );
 		annData.getTable().transform( affineTransform3D );
 		for ( ImageListener listener : listeners.list )
@@ -122,4 +118,5 @@ public class DefaultAnnotatedLabelImage< A extends Annotation > implements Annot
 	{
 		return labelImage;
 	}
+
 }

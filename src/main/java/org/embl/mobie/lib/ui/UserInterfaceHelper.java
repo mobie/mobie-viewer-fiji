@@ -338,10 +338,8 @@ public class UserInterfaceHelper
 				new SliderPanelDouble( "Min", min, spinnerStepSize );
 		minSlider.setNumColummns( 10 );
 
-		// FIXME: adapt the number of decimal places to the
-		//  current range
+		// TODO: adapt the number of decimal places to the current range
 		minSlider.setDecimalFormat( "#####.####" );
-		//minSlider.setDecimalFormat( "####E0" );
 
 		final SliderPanelDouble maxSlider =
 				new SliderPanelDouble( "Max", max, spinnerStepSize );

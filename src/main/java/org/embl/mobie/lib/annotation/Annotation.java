@@ -34,13 +34,11 @@ public interface Annotation extends Location
 {
 	String uuid();
 
-	// Data source (can be a table and/or a label mask image)
+	// Data source (can be a table or a label mask image)
 	String source();
 
 	// Integer label for representing the annotation as a
 	// region in one time point of a label image
-	// FIXME can we get rid of this (see less labels)
-	// FIXME for a Region this does not apply!
 	int label();
 
 	// For retrieving features (measurements)

@@ -38,17 +38,13 @@ public abstract class AbstractImageTransformation< A, B > implements ImageTransf
 	protected List< String > sources;
 	protected List< String > sourceNamesAfterTransform;
 
-	// FIXME for stitching this does not apply
 	@Override
 	public String getTransformedImageName( String imageName )
 	{
-		if ( sourceNamesAfterTransform != null )
-		{
-			return sourceNamesAfterTransform.get( sources.indexOf( imageName ) );
-		}
-		else
-		{
+		if ( sourceNamesAfterTransform == null )
 			return null;
-		}
+
+		return sourceNamesAfterTransform.get( sources.indexOf( imageName ) );
+
 	}
 }
