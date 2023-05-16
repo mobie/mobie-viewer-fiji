@@ -29,7 +29,6 @@
 package org.embl.mobie.lib.ui;
 
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.lib.bdv.ActiveListener;
 import org.embl.mobie.lib.bdv.ImageNameOverlay;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
@@ -86,7 +85,7 @@ public class UserInterface
 				{
 					frame.dispose();
 					moBIE.close();
-					if ( MoBIE.openedFromCLI )
+					if ( moBIE.getSettings().values.isOpenedFromCLI() )
 						System.exit( 0 );
 				}
 			});

@@ -35,7 +35,7 @@ public class SpotImageCreator
 		spotAnnotationImage = new SpotAnnotationImage( spotDataSource.getName(), spotAnnData, 1.0, spotDataSource.boundingBoxMin, spotDataSource.boundingBoxMax );
 	}
 
-	public SpotAnnotationImage< AnnotatedSpot > getSpotAnnotationImage()
+	public SpotAnnotationImage< AnnotatedSpot > create()
 	{
 		return spotAnnotationImage;
 	}

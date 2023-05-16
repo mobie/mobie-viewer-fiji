@@ -54,7 +54,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-// https://jtablesaw.github.io/tablesaw/userguide/tables.html
 public class TableSawAnnotationTableModel< A extends Annotation > extends AbstractAnnotationTableModel< A >
 {
 	private final String dataSourceName;

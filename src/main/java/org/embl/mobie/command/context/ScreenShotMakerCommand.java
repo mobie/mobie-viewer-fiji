@@ -67,7 +67,8 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
 
 
     @Override
-    public void run() {
+    public void run()
+    {
         ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvh );
         screenShotMaker.setPhysicalPixelSpacingInXY( targetSamplingInXY, pixelUnit );
 
@@ -77,7 +78,7 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
         if( showMultiChannel )
             screenShotMaker.getRawScreenShot().show();
 
-        if ( MoBIE.openedFromCLI )
+        if ( MoBIE.getInstance().getSettings().values.isOpenedFromCLI() )
             MoBIE.imageJ.ui().showUI();
     }
 

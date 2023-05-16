@@ -50,19 +50,12 @@ import org.embl.mobie.lib.SourcesFromTableCreator;
 import org.embl.mobie.lib.SpimDataAdder;
 import org.embl.mobie.lib.SpotImageCreator;
 import org.embl.mobie.lib.ThreadHelper;
-import org.embl.mobie.lib.annotation.AnnotatedSegment;
-import org.embl.mobie.lib.annotation.AnnotatedSpot;
-import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
-import org.embl.mobie.lib.annotation.LazyAnnotatedSegmentAdapter;
 import org.embl.mobie.lib.HCSDataAdder;
 import org.embl.mobie.lib.hcs.Plate;
 import org.embl.mobie.lib.hcs.Site;
-import org.embl.mobie.lib.image.AnnotatedLabelImage;
-import org.embl.mobie.lib.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.lib.image.CachedCellImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.SpimDataImage;
-import org.embl.mobie.lib.image.SpotAnnotationImage;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.plugins.platybrowser.GeneSearchCommand;
@@ -76,17 +69,8 @@ import org.embl.mobie.lib.serialize.RegionDataSource;
 import org.embl.mobie.lib.serialize.SegmentationDataSource;
 import org.embl.mobie.lib.serialize.SpotDataSource;
 import org.embl.mobie.lib.serialize.View;
-import org.embl.mobie.lib.table.DefaultAnnData;
-import org.embl.mobie.lib.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.lib.table.TableDataFormat;
-import org.embl.mobie.lib.table.columns.SegmentColumnNames;
 import org.embl.mobie.lib.table.saw.TableOpener;
-import org.embl.mobie.lib.table.saw.TableSawAnnotatedSegment;
-import org.embl.mobie.lib.table.saw.TableSawAnnotatedSegmentCreator;
-import org.embl.mobie.lib.table.saw.TableSawAnnotatedSpot;
-import org.embl.mobie.lib.table.saw.TableSawAnnotatedSpotCreator;
-import org.embl.mobie.lib.table.saw.TableSawAnnotationCreator;
-import org.embl.mobie.lib.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.lib.transform.GridType;
 import org.embl.mobie.lib.ui.UserInterface;
 import org.embl.mobie.lib.ui.WindowArrangementHelper;
@@ -146,12 +130,12 @@ public class MoBIE
 
 	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
+		this.settings = settings;
+		this.projectLocation = projectLocation;
+
 		initTableSaw();
 
 		initImageJAndMoBIE();
-
-		this.settings = settings;
-		this.projectLocation = projectLocation;
 
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening: " + projectLocation );
@@ -168,7 +152,7 @@ public class MoBIE
 	{
 		// force TableSaw class loading
 		// to save time during the actual loading
-		// TOD: this makes no sense if we don't open a project with tables
+		// TODO: this makes no sense if we don't open a project with tables
 		Table.read().usingOptions( CsvReadOptions.builderFromString( "aaa\tbbb" ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" ) );
 	}
 
@@ -243,16 +227,10 @@ public class MoBIE
 		initUIandShowView( dataset.views().keySet().iterator().next() );
 	}
 
-	// use this constructor from the Fiji UI
-	//
-	// images: convert all image data to {@code SpimData}
-	// before calling this constructor.
-	// {@code SpimDataOpener} in mobie-io provides methods for this.
-	//
-	// tables: provide the {@code StorageLocation}
-	// and the {@code TableDataFormat}.
 	public MoBIE( String projectName, AbstractSpimData< ? > image, @Nullable AbstractSpimData< ? > labels, @Nullable StorageLocation tableStorageLocation, @Nullable TableDataFormat tableDataFormat )
 	{
+		settings = new MoBIESettings();
+
 		initImageJAndMoBIE();
 
 		initProject( projectName );
@@ -269,7 +247,7 @@ public class MoBIE
 	{
 		DebugTools.setRootLevel( "OFF" ); // Disable Bio-Formats logging
 
-		if ( settings.values.getOpenedFromCLI() )
+		if ( settings.values.isOpenedFromCLI() )
 		{
 			// TODO: if possible open init the SciJava Services
 			//   by different means
@@ -547,14 +525,14 @@ public class MoBIE
 			ThreadHelper.resetIOThreads();
 			viewManager.close();
 			IJ.log( "MoBIE closed." );
-			if ( settings.values.getOpenedFromCLI() )
+			if ( settings.values.isOpenedFromCLI() )
 				System.exit( 0 );
 		}
 		catch ( RuntimeException e )
 		{
 			IJ.log( "[ERROR] Could not fully close MoBIE." );
 			e.printStackTrace();
-			if ( settings.values.getOpenedFromCLI() )
+			if ( settings.values.isOpenedFromCLI() )
 				System.exit( 1 );
 		}
 	}
@@ -785,8 +763,9 @@ public class MoBIE
 
 			if ( dataSource.getClass() == SegmentationDataSource.class )
 			{
-				final AnnotatedLabelImage< ? > annotatedLabelImage = new AnnotatedLabelImageCreator( ( SegmentationDataSource ) dataSource ).getAnnotatedLabelImage();
-				DataStore.putImage( annotatedLabelImage );
+				// label image
+				final AnnotatedLabelImageCreator labelImageCreator = new AnnotatedLabelImageCreator( this, ( SegmentationDataSource ) dataSource, image );
+				DataStore.putImage( labelImageCreator.create() );
 			}
 			else
 			{
@@ -798,8 +777,8 @@ public class MoBIE
 		if ( dataSource instanceof SpotDataSource )
 		{
 			// build spots image from spots table
-			final SpotAnnotationImage< AnnotatedSpot > spotAnnotationImage = new SpotImageCreator( ( SpotDataSource ) dataSource, this ).getSpotAnnotationImage();
-			DataStore.putImage( spotAnnotationImage );
+			final SpotImageCreator spotImageCreator = new SpotImageCreator( ( SpotDataSource ) dataSource, this );
+			DataStore.putImage( spotImageCreator.create() );
 		}
 
 		if ( dataSource instanceof RegionDataSource )
@@ -820,25 +799,6 @@ public class MoBIE
 			IJ.log( log + dataSource.getName() );
 	}
 
-	private TableSawAnnotationTableModel< TableSawAnnotatedSegment > createTableModel( SegmentationDataSource dataSource )
-	{
-		final StorageLocation tableLocation = getTableLocation( dataSource.tableData );
-		final TableDataFormat tableFormat = getTableDataFormat( dataSource.tableData );
-
-		Table table = null;
-		if ( dataSource.preInit() )
-			table = TableOpener.open( tableLocation, tableFormat );
-
-		SegmentColumnNames segmentColumnNames = null;
-		if ( table != null )
-			segmentColumnNames = TableDataFormat.getSegmentColumnNames( table.columnNames() );
-
-		final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( segmentColumnNames, table );
-
-		final TableSawAnnotationTableModel  tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, tableLocation, tableFormat, table );
-
-		return tableModel;
-	}
 
 	private Image< ? > initImage( ImageDataFormat imageDataFormat, StorageLocation storageLocation, String name )
 	{

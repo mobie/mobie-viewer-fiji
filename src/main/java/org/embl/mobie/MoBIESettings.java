@@ -178,7 +178,7 @@ public class MoBIESettings
 			return s3AccessAndSecretKey;
 		}
 
-		public Boolean getOpenedFromCLI()
+		public Boolean isOpenedFromCLI()
 		{
 			return openedFromCLI;
 		}
