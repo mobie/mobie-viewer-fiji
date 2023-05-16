@@ -39,8 +39,10 @@ class AgataCheckCellPoseSegmentation
 	{
 		new ImageJ().ui().showUI();
 		final OpenMultipleImagesAndLabelsCommand command = new OpenMultipleImagesAndLabelsCommand();
-		command.image0 = new File("/Volumes/cba/exchange/agata-misiaszek/data/analysed/.*.ome.tif");
-		command.labels0 = new File("/Volumes/cba/exchange/agata-misiaszek/data/analysed/.*.ome_cp_masks.tif");
+		//final String root = "/Volumes/cba/exchange/agata-misiaszek/data/analysed/";
+		final String root = "/Users/tischer/Desktop/mobie-data/cellprofiler/";
+		command.image0 = new File( root + ".*.ome.tif" );
+		command.labels0 = new File( root + ".*.ome_cp_masks.tif" );
 		command.run();
 	}
 }
