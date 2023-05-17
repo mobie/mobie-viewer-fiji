@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.published;
+package org.embl.mobie.published;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;

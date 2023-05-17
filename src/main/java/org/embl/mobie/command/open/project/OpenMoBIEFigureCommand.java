@@ -29,12 +29,11 @@
 package org.embl.mobie.command.open.project;
 
 import ij.gui.GenericDialog;
-import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.published.PublishedFigure;
-import org.embl.mobie.lib.published.PublishedFigures;
+import org.embl.mobie.published.PublishedFigure;
+import org.embl.mobie.published.PublishedFigures;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
 

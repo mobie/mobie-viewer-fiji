@@ -35,7 +35,6 @@ import bdv.viewer.ViewerPanel;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
-import org.embl.mobie.lib.playground.SourceAffineTransformer;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.source.Masked;
 import org.embl.mobie.lib.source.SourceHelper;
@@ -48,7 +47,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class TransformHelper
@@ -71,17 +69,7 @@ public class TransformHelper
 		return union;
 	}
 
-	public static SourceAndConverter< ? > centerAtOrigin( SourceAndConverter< ? > sourceAndConverter )
-	{
-		final AffineTransform3D translate = new AffineTransform3D();
-		final AffineTransform3D sourceTransform = new AffineTransform3D();
-		sourceAndConverter.getSpimSource().getSourceTransform( 0,0, sourceTransform );
-		final double[] center = getCenter( sourceAndConverter );
-		translate.translate( center );
-		final SourceAffineTransformer transformer = new SourceAffineTransformer( translate.inverse(), false );
-		sourceAndConverter = transformer.apply( sourceAndConverter );
-		return sourceAndConverter;
-	}
+
 
 	public static double[] getCenter( Image< ? > image, int t )
 	{

@@ -1,6 +1,7 @@
-package org.embl.mobie.lib;
+package org.embl.mobie.lib.files;
 
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.io.StorageLocation;
@@ -26,12 +27,12 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-public class ImageAndLabelFilesAdder
+public class FileSourcesDataSetter
 {
-	private final List< ImageFiles > images;
-	private final List< LabelFiles > labels;
+	private final List< ImageFileSources > images;
+	private final List< LabelFileSources > labels;
 
-	public ImageAndLabelFilesAdder( List< ImageFiles > images, List< LabelFiles > labels )
+	public FileSourcesDataSetter( List< ImageFileSources > images, List< LabelFileSources > labels )
 	{
 		this.images = images;
 		this.labels = labels;
@@ -39,12 +40,12 @@ public class ImageAndLabelFilesAdder
 
 	public void addData( Dataset dataset )
 	{
-		final ArrayList< ImageFiles > allSources = new ArrayList<>();
+		final ArrayList< ImageFileSources > allSources = new ArrayList<>();
 		allSources.addAll( images );
 		allSources.addAll( labels );
 
 		// create and add data sources to the dataset
-		for ( ImageFiles sources : allSources )
+		for ( ImageFileSources sources : allSources )
 		{
 			for ( String name : sources.getSources() )
 			{
@@ -54,9 +55,9 @@ public class ImageAndLabelFilesAdder
 				final StorageLocation storageLocation = new StorageLocation();
 				storageLocation.absolutePath = path;
 				storageLocation.setChannel( sources.getChannelIndex() );
-				if ( sources instanceof LabelFiles )
+				if ( sources instanceof LabelFileSources )
 				{
-					final TableSource tableSource = ( ( LabelFiles ) sources ).getLabelTable( name );
+					final TableSource tableSource = ( ( LabelFileSources ) sources ).getLabelTable( name );
 					SegmentationDataSource segmentationDataSource = SegmentationDataSource.create( name, imageDataFormat, storageLocation, tableSource );
 					segmentationDataSource.preInit( false );
 					dataset.addDataSource( segmentationDataSource );
@@ -71,9 +72,9 @@ public class ImageAndLabelFilesAdder
 		}
 
 		// TODO don't create a grid view if there is only one image and label mask
-		final ImageFiles firstImageFiles = allSources.get( 0 );
+		final ImageFileSources firstImageFileSources = allSources.get( 0 );
 
-		for ( ImageFiles sources : allSources )
+		for ( ImageFileSources sources : allSources )
 		{
 			if ( sources.getGridType().equals( GridType.Stitched ) )
 			{
@@ -82,7 +83,7 @@ public class ImageAndLabelFilesAdder
 				// TODO: probably we should not even create the region table
 				//   for any source other than the first one while
 				//   creating the ImageSources
-				if ( sources.equals( firstImageFiles ) )
+				if ( sources.equals( firstImageFileSources ) )
 				{
 					// create a RegionDisplay
 
@@ -121,11 +122,11 @@ public class ImageAndLabelFilesAdder
 				// TODO https://github.com/mobie/mobie-viewer-fiji/issues/1035
 				grid.lazyLoadTables = false;
 
-				if ( sources instanceof LabelFiles )
+				if ( sources instanceof LabelFileSources )
 				{
 					// SegmentationDisplay
 					final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( grid.getName(), Collections.singletonList( grid.getName() ) );
-					final int numLabelTables = ( ( LabelFiles ) sources ).getNumLabelTables();
+					final int numLabelTables = ( ( LabelFileSources ) sources ).getNumLabelTables();
 					segmentationDisplay.setShowTable( numLabelTables > 0 );
 					displays.add( segmentationDisplay );
 				}

@@ -42,15 +42,15 @@ import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.lib.AnnotatedLabelImageCreator;
 import org.embl.mobie.lib.DataStore;
-import org.embl.mobie.lib.ImageFiles;
-import org.embl.mobie.lib.ImageAndLabelFilesAdder;
-import org.embl.mobie.lib.LabelFiles;
-import org.embl.mobie.lib.SourcesFromFilesCreator;
+import org.embl.mobie.lib.files.ImageFileSources;
+import org.embl.mobie.lib.files.FileSourcesDataSetter;
+import org.embl.mobie.lib.files.LabelFileSources;
+import org.embl.mobie.lib.files.SourcesFromPathsCreator;
 import org.embl.mobie.lib.SourcesFromTableCreator;
 import org.embl.mobie.lib.SpimDataAdder;
 import org.embl.mobie.lib.SpotImageCreator;
 import org.embl.mobie.lib.ThreadHelper;
-import org.embl.mobie.lib.HCSDataAdder;
+import org.embl.mobie.lib.hcs.HCSDataAdder;
 import org.embl.mobie.lib.hcs.Plate;
 import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.image.CachedCellImage;
@@ -58,7 +58,7 @@ import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.SpimDataImage;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
-import org.embl.mobie.lib.plugins.platybrowser.GeneSearchCommand;
+import org.embl.mobie.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.lib.serialize.DataSource;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.DatasetJsonParser;
@@ -178,10 +178,10 @@ public class MoBIE
 		System.out.println( "labels: " + Arrays.toString( labelPaths.toArray() ) );
 		System.out.println( "tables: " + Arrays.toString( labelTablePaths.toArray() ) );
 
-		final SourcesFromFilesCreator sourcesCreator = new SourcesFromFilesCreator( imagePaths, labelPaths, labelTablePaths, root, grid );
+		final SourcesFromPathsCreator sourcesCreator = new SourcesFromPathsCreator( imagePaths, labelPaths, labelTablePaths, root, grid );
 
-		final List< ImageFiles > imageFileSources = sourcesCreator.getImageSources();
-		final List< LabelFiles > labelSources = sourcesCreator.getLabelSources();
+		final List< ImageFileSources > imageFileSources = sourcesCreator.getImageSources();
+		final List< LabelFileSources > labelSources = sourcesCreator.getLabelSources();
 
 		openImagesAndLabels( imageFileSources, labelSources );
 	}
@@ -193,8 +193,8 @@ public class MoBIE
 
 		final SourcesFromTableCreator sourcesCreator = new SourcesFromTableCreator( tablePath, imageColumns, labelColumns, root, grid );
 
-		final List< ImageFiles > imageFileSources = sourcesCreator.getImageSources();
-		final List< LabelFiles > labelSources = sourcesCreator.getLabelSources();
+		final List< ImageFileSources > imageFileSources = sourcesCreator.getImageSources();
+		final List< LabelFileSources > labelSources = sourcesCreator.getLabelSources();
 
 		openImagesAndLabels( imageFileSources, labelSources );
 	}
@@ -216,13 +216,13 @@ public class MoBIE
 	}
 
 	// TODO 2D or 3D?
-	private void openImagesAndLabels( List< ImageFiles > images, List< LabelFiles > labels )
+	private void openImagesAndLabels( List< ImageFileSources > images, List< LabelFileSources > labels )
 	{
 		initImageJAndMoBIE();
 
 		initProject( "" );
 
-		new ImageAndLabelFilesAdder( images, labels ).addData( dataset );
+		new FileSourcesDataSetter( images, labels ).addData( dataset );
 
 		initUIandShowView( dataset.views().keySet().iterator().next() );
 	}

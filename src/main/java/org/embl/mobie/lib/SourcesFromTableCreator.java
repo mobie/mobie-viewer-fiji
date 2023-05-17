@@ -1,5 +1,7 @@
 package org.embl.mobie.lib;
 
+import org.embl.mobie.lib.files.ImageFileSources;
+import org.embl.mobie.lib.files.LabelFileSources;
 import org.embl.mobie.lib.io.TableImageSource;
 import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.transform.GridType;
@@ -10,8 +12,8 @@ import java.util.List;
 
 public class SourcesFromTableCreator
 {
-	private List< ImageFiles > imageFileSources;
-	private List< LabelFiles > labelSources;
+	private List< ImageFileSources > imageFileSources;
+	private List< LabelFileSources > labelSources;
 
 	public SourcesFromTableCreator( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, GridType gridType )
 	{
@@ -22,7 +24,7 @@ public class SourcesFromTableCreator
 		for ( String image : imageColumns )
 		{
 			final TableImageSource tableImageSource = new TableImageSource( image );
-			imageFileSources.add( new ImageFiles( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType ) );
+			imageFileSources.add( new ImageFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType ) );
 		}
 
 		labelSources = new ArrayList<>();
@@ -31,16 +33,16 @@ public class SourcesFromTableCreator
 		for ( String label : labelColumns )
 		{
 			final TableImageSource tableImageSource = new TableImageSource( label );
-			labelSources.add( new LabelFiles( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType, label.equals( firstLabel ) ) );
+			labelSources.add( new LabelFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType, label.equals( firstLabel ) ) );
 		}
 	}
 
-	public List< ImageFiles > getImageSources()
+	public List< ImageFileSources > getImageSources()
 	{
 		return imageFileSources;
 	}
 
-	public List< LabelFiles > getLabelSources()
+	public List< LabelFileSources > getLabelSources()
 	{
 		return labelSources;
 	}

@@ -26,10 +26,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib;
+package org.embl.mobie.lib.files;
 
 import ij.IJ;
 import org.apache.commons.io.FilenameUtils;
+import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.lib.table.ColumnNames;
@@ -50,7 +51,7 @@ import java.util.Map;
 
 import static tech.tablesaw.aggregate.AggregateFunctions.mean;
 
-public class ImageFiles
+public class ImageFileSources
 {
 	protected final String name;
 	protected Map< String, String > nameToFullPath = new LinkedHashMap<>();
@@ -61,7 +62,7 @@ public class ImageFiles
 	protected Metadata metadata = new Metadata();
 	private String metadataSource;
 
-	public ImageFiles( String name, String regex, Integer channelIndex, String root, GridType gridType )
+	public ImageFileSources( String name, String regex, Integer channelIndex, String root, GridType gridType )
 	{
 		this.gridType = gridType;
 		this.name = name;
@@ -92,7 +93,7 @@ public class ImageFiles
 		return paths;
 	}
 
-	public ImageFiles( String name, Table table, String pathColumn, Integer channelIndex, String root, GridType gridType )
+	public ImageFileSources( String name, Table table, String pathColumn, Integer channelIndex, String root, GridType gridType )
 	{
 		this.name = name;
 		this.channelIndex = channelIndex;

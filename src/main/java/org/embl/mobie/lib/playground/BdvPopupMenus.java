@@ -75,12 +75,6 @@ public abstract class BdvPopupMenus
 		bdvToPopup.get( bdvHandle ).addPopupAction( actionName, runnable );
 	}
 
-	public static synchronized void addScreenshotAction( BdvHandle bdvHandle )
-	{
-		ensurePopupMenuExist( bdvHandle );
-		bdvToPopup.get( bdvHandle ).addPopupAction( "Make Screenshot...", new ViewCaptureDialog( bdvHandle ) );
-	}
-
 	public static synchronized void removePopupMenu( BdvHandle bdvHandle )
 	{
 		bdvToPopup.remove( bdvHandle );

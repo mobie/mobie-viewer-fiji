@@ -28,13 +28,11 @@
  */
 package org.embl.mobie.lib.io;
 
-
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 /*
  Note that this provides storage locations for both images and tables,
  but some fields are only used for tables or images.
+ TODO: we could split this up into two classes, one for the images and
+ 	one for the tables
 
  Images:
  One {@code StorageLocation} contains data for

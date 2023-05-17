@@ -38,10 +38,16 @@ public class FileImageSource
 	public String path;
 	public Integer channelIndex = 0;
 
+	/**
+	 * Parses the input string assuming the pattern:
+	 * "path=name;channelIndex"
+	 * where everything after path is optional
+	 *
+	 * @param string
+	 * 				the string to be parsed
+	 */
 	public FileImageSource( String string )
 	{
-		// "path=name;channelIndex"
-
 		String[] split = new String[]{ string };
 		if ( string.contains( ";" ) )
 		{

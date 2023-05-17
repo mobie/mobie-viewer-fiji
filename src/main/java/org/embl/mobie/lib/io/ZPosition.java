@@ -30,16 +30,16 @@ package org.embl.mobie.lib.io;
 
 public class ZPosition
 {
-	private final String timepoint;
+	private final String zPosition;
 
-	public ZPosition( String timepoint )
+	public ZPosition( String zPosition )
 	{
-		this.timepoint = timepoint;
+		this.zPosition = zPosition;
 	}
 
 	@Override
 	public String toString()
 	{
-		return timepoint;
+		return zPosition;
 	}
 }

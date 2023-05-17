@@ -1,4 +1,4 @@
-package org.embl.mobie.lib;
+package org.embl.mobie.lib.files;
 
 import org.embl.mobie.lib.io.FileImageSource;
 import org.embl.mobie.lib.transform.GridType;
@@ -6,12 +6,12 @@ import org.embl.mobie.lib.transform.GridType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SourcesFromFilesCreator
+public class SourcesFromPathsCreator
 {
-	private List< ImageFiles > imageFileSources;
-	private List< LabelFiles > labelSources;
+	private List< ImageFileSources > imageFileSources;
+	private List< LabelFileSources > labelSources;
 
-	public SourcesFromFilesCreator( List < String > imagePaths, List < String > labelPaths, List < String > labelTablePaths, String root, GridType grid )
+	public SourcesFromPathsCreator( List < String > imagePaths, List < String > labelPaths, List < String > labelTablePaths, String root, GridType grid )
 	{
 		// images
 		//
@@ -19,7 +19,7 @@ public class SourcesFromFilesCreator
 		for ( String imagePath : imagePaths )
 		{
 			final FileImageSource fileImageSource = new FileImageSource( imagePath );
-			imageFileSources.add( new ImageFiles( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
+			imageFileSources.add( new ImageFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
 		}
 
 		// labels & tables
@@ -32,11 +32,11 @@ public class SourcesFromFilesCreator
 			if ( labelTablePaths.size() > labelSourceIndex )
 			{
 				final String labelTable = labelTablePaths.get( labelSourceIndex );
-				labelSources.add( new LabelFiles( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, labelTable, root, grid ) );
+				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, labelTable, root, grid ) );
 			}
 			else
 			{
-				labelSources.add( new LabelFiles( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
+				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
 			}
 		}
 	}
@@ -71,12 +71,12 @@ public class SourcesFromFilesCreator
 	//			else
 	//			{
 
-	public List< ImageFiles > getImageSources()
+	public List< ImageFileSources > getImageSources()
 	{
 		return imageFileSources;
 	}
 
-	public List< LabelFiles > getLabelSources()
+	public List< LabelFileSources > getLabelSources()
 	{
 		return labelSources;
 	}

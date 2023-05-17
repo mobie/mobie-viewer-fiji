@@ -34,10 +34,16 @@ public class TableImageSource
 	public String columnName;
 	public Integer channelIndex = 0;
 
+	/**
+	 * Parses the input string assuming the pattern:
+	 * "columnName=image;channelIndex"
+	 * where everything after columnName is optional
+	 *
+	 * @param string
+	 * 				the string to be parsed
+	 */
 	public TableImageSource( String string )
 	{
-		// "columnName=image;channelIndex"
-
 		String[] split = new String[]{ string };
 		if ( string.contains( ";" ) )
 		{

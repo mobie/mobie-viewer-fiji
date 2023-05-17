@@ -67,6 +67,8 @@ public class MobieBdvSupplier implements IBdvSupplier {
 
         BdvOptions options = sOptions.getBdvOptions();
 
+        //options = options.screenScales(new double[]{1,0.25});
+
         // create dummy image to instantiate a BDV
         ArrayImg< ByteType, ByteArray > dummyImg = ArrayImgs.bytes(2, 2, 2);
         options = options.sourceTransform( new AffineTransform3D() );

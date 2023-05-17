@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.plugins.platybrowser;
+package org.embl.mobie.plugins.platybrowser;
 
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;

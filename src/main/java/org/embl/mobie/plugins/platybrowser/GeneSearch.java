@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.plugins.platybrowser;
+package org.embl.mobie.plugins.platybrowser;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.TableUIs;
@@ -65,8 +65,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
-import static org.embl.mobie.lib.plugins.platybrowser.GeneSearch.GeneSearchUtils.getFractionOfNonZeroVoxels;
-import static org.embl.mobie.lib.plugins.platybrowser.GeneSearch.GeneSearchUtils.sortByValue;
+import static org.embl.mobie.plugins.platybrowser.GeneSearch.GeneSearchUtils.getFractionOfNonZeroVoxels;
+import static org.embl.mobie.plugins.platybrowser.GeneSearch.GeneSearchUtils.sortByValue;
 
 public class GeneSearch
 {

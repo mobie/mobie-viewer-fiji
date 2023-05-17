@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib;
+package org.embl.mobie.lib.hcs;
 
 import net.thisptr.jackson.jq.internal.misc.Strings;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;

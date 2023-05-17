@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib;
+package org.embl.mobie.lib.files;
 
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.TableDataFormat;
@@ -41,11 +41,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LabelFiles extends ImageFiles
+public class LabelFileSources extends ImageFileSources
 {
 	protected Map< String, TableSource > nameToLabelTable = new LinkedHashMap<>();
 
-	public LabelFiles( String name, Table table, String columnName, Integer channelIndex, String root, GridType gridType, boolean useTableForSegments )
+	public LabelFileSources( String name, Table table, String columnName, Integer channelIndex, String root, GridType gridType, boolean useTableForSegments )
 	{
 		super( name, table, columnName, channelIndex, root, gridType);
 
@@ -73,12 +73,12 @@ public class LabelFiles extends ImageFiles
 		}
 	}
 
-	public LabelFiles( String name, String labelsPath, Integer channelIndex, String root, GridType grid )
+	public LabelFileSources( String name, String labelsPath, Integer channelIndex, String root, GridType grid )
 	{
 		super( name, labelsPath, channelIndex, root, grid );
 	}
 
-	public LabelFiles( String name, String path, Integer channelIndex, String labelTablePath, String root, GridType grid )
+	public LabelFileSources( String name, String path, Integer channelIndex, String labelTablePath, String root, GridType grid )
 	{
 		super( name, path, channelIndex, root, grid );
 
