@@ -126,7 +126,7 @@ public class RegionDisplayAnnDataCreator
 	{
 		final Pattern pattern = Pattern.compile( regionDisplay.getSourceNamesRegex() );
 		final HashMap< String, List< String > > columnToValues = new HashMap<>();
-		final List< String > groupNames = MoBIEHelper.getGroupNames( regionDisplay.getSourceNamesRegex() );
+		final List< String > groupNames = MoBIEHelper.getNamedGroups( regionDisplay.getSourceNamesRegex() );
 
 		Integer groupCount = null;
 		Boolean useNames = null;

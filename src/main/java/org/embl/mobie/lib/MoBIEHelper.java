@@ -167,7 +167,7 @@ public abstract class MoBIEHelper
 		return size.dimension( 2 ) == 1;
 	}
 
-	public static List< String > getGroupNames( String regex )
+	public static List< String > getNamedGroups( String regex )
 	{
 		List< String > namedGroups = new ArrayList<>();
 
@@ -200,6 +200,10 @@ public abstract class MoBIEHelper
 			}
 		}
 		else if ( path.endsWith( ".h5" ) )
+		{
+			return new Metadata();
+		}
+		else if ( path.endsWith( ".toml" ) )
 		{
 			return new Metadata();
 		}

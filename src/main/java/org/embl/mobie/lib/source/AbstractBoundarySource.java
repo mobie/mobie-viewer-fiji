@@ -98,10 +98,14 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
             // Ultimately we need the boundaries in pixel units,
             // because we have to check the voxel values in the rra,
             // which is in pixel units.
+            // TODO: the above statement does not seem true for a RegionAnnotationImage
+            //   which is a RealRandomAccessible.
+            //   Maybe there could be different mechanisms for creating
+            //   boundaries for voxel based sources and for the RegionAnnotationImage?
             // However, it feels like we could stay longer
             // in physical units here to make this less confusing.
             final double[] pixelUnitsBoundaryWidth = pixelBoundaryWidth( t, level );
-            return createBoundaryImage( rra, boundaryDimensions, pixelUnitsBoundaryWidth );
+            return createBoundaryRealRandomAccessible( rra, boundaryDimensions, pixelUnitsBoundaryWidth );
         }
         else
         {
@@ -116,7 +120,7 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
     // the values could be directly created in real space without
     // any backing of a voxel grid. This is in fact the case for the
     // ImageAnnotationLabelImage, which is one use-case of the BoundarySource.
-    protected abstract RealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, double[] pixelUnitsBoundaryWidth );
+    protected abstract RealRandomAccessible< T > createBoundaryRealRandomAccessible( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, double[] pixelUnitsBoundaryWidth );
 
     protected ArrayList< Integer > boundaryDimensions()
     {

@@ -26,20 +26,20 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.io;
+package projects.kristina.command;
 
-public class ZPosition
+import net.imagej.ImageJ;
+import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsCommand;
+
+import java.io.File;
+
+class KristinaOpenJPEGSeries
 {
-	private final String zPosition;
-
-	public ZPosition( String zPosition )
+	public static void main( String[] args ) throws Exception
 	{
-		this.zPosition = zPosition;
-	}
-
-	@Override
-	public String toString()
-	{
-		return zPosition;
+		new ImageJ().ui().showUI();
+		final OpenMultipleImagesAndLabelsCommand command = new OpenMultipleImagesAndLabelsCommand();
+		command.image0 = new File("/Volumes/cba/exchange/kristina-mirkes/develop/data-test/processed/exp/batch/date/MVI_1253/.*.image.toml");
+		command.run();
 	}
 }

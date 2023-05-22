@@ -49,6 +49,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.embl.mobie.io.util.IOHelper.getPaths;
 import static tech.tablesaw.aggregate.AggregateFunctions.mean;
 
 public class ImageFileSources
@@ -58,17 +59,21 @@ public class ImageFileSources
 	protected Map< String, String > nameToPath = new LinkedHashMap<>(); // for loading from tables
 	protected GridType gridType;
 	protected Table regionTable;
-	protected Integer channelIndex = null;
-	protected Metadata metadata = new Metadata();
+	protected Integer channelIndex;
+	protected Metadata metadata;
 	private String metadataSource;
 
-	public ImageFileSources( String name, String regex, Integer channelIndex, String root, GridType gridType )
+	public ImageFileSources( String name, String pathRegex, Integer channelIndex, String root, GridType gridType )
 	{
 		this.gridType = gridType;
 		this.name = name;
 		this.channelIndex = channelIndex;
 
-		List< String > paths = getFullPaths( regex, root );
+		// TODO: how to handle images sources that are distributed across mulltiple files?
+		//   those would probably be indicated via groups in the regex
+		//   maybe it is easier(!) if we add a JSON or TOML file into the movie directory
+		//   and open this file; this could contain the regex to open the individual files!
+		List< String > paths = getFullPaths( pathRegex, root );
 
 		for ( String path : paths )
 		{
@@ -89,7 +94,8 @@ public class ImageFileSources
 		if ( root != null )
 			regex = new File( root, regex ).getAbsolutePath();
 
-		List< String > paths = IOHelper.getPaths( regex, 999 );
+		List< String > paths = getPaths( regex, 999 );
+
 		return paths;
 	}
 
@@ -147,6 +153,7 @@ public class ImageFileSources
 	private void dealWithObjectTableIfNeeded( String name, Table table, String pathColumn, List< String > columnNames )
 	{
 		final SegmentColumnNames segmentColumnNames = TableDataFormat.getSegmentColumnNames( columnNames );
+
 		if ( segmentColumnNames != null && table.containsColumn( segmentColumnNames.timePointColumn()) )
 		{
 			// it can be that not all sources have the same number of time points,
@@ -211,6 +218,10 @@ public class ImageFileSources
 
 	public String getPath( String source )
 	{
+		// TODO:
+		//   for multifile sources we could use:
+		//   private Map< TPosition, Map< ZPosition, String > > paths = new LinkedHashMap();
+		//   or we leave the group regex in the paths
 		return nameToFullPath.get( source );
 	}
 

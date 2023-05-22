@@ -35,16 +35,14 @@ import ij.measure.Calibration;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.toml.TPosition;
 import org.embl.mobie.lib.color.ColorHelper;
-import org.embl.mobie.lib.io.TPosition;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;

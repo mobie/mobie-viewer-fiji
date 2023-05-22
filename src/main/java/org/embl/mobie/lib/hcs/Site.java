@@ -30,9 +30,9 @@ package org.embl.mobie.lib.hcs;
 
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.toml.TPosition;
+import org.embl.mobie.io.toml.ZPosition;
 import org.embl.mobie.lib.io.StorageLocation;
-import org.embl.mobie.lib.io.TPosition;
-import org.embl.mobie.lib.io.ZPosition;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

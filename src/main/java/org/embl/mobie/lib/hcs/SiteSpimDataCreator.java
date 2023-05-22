@@ -36,8 +36,8 @@ import ij.measure.Calibration;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.io.SpimDataOpener;
-import org.embl.mobie.lib.io.TPosition;
-import org.embl.mobie.lib.io.ZPosition;
+import org.embl.mobie.io.toml.TPosition;
+import org.embl.mobie.io.toml.ZPosition;
 
 import java.util.ArrayList;
 import java.util.Collections;

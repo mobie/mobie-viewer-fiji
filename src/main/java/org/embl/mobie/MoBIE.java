@@ -674,29 +674,14 @@ public class MoBIE
     public synchronized String getImageLocation( ImageDataFormat imageDataFormat, StorageLocation storageLocation )
 	{
 		switch (imageDataFormat) {
-			case Tiff:
-			case ImageJ:
-			case BioFormats:
-			case BdvHDF5:
-			case BdvN5:
-			case BdvOmeZarr:
-			case BdvOmeZarrS3: // assuming that the xml is not at storageLocation.s3Address
-			case BdvN5S3: // assuming that the xml is not at storageLocation.s3Address
-			case OmeZarr:
-            	if ( storageLocation.absolutePath != null  )
-				{
-					return storageLocation.absolutePath;
-				}
-				else
-				{
-					// construct absolute from relative path
-					return combinePath( imageRoot, dataset.getName(), storageLocation.relativePath );
-				}
-            case OpenOrganelleS3:
+			case OpenOrganelleS3:
             case OmeZarrS3:
                 return storageLocation.s3Address;
             default:
-                throw new UnsupportedOperationException( "File format not supported: " + imageDataFormat );
+				if ( storageLocation.absolutePath != null  )
+					return storageLocation.absolutePath;
+				else
+					return combinePath( imageRoot, dataset.getName(), storageLocation.relativePath );
         }
     }
 

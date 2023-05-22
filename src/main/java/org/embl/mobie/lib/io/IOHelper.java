@@ -79,34 +79,6 @@ public class IOHelper
 		return(s.toString());
 	}
 
-	public static List< String > getPaths( String regex, int maxDepth )
-	{
-		final String dir = new File( regex ).getParent();
-		String name = new File( regex ).getName();
-
-		try
-		{
-			final List< String > paths = Files.find( Paths.get( dir ), maxDepth,
-					( path, basicFileAttribute ) ->
-							( basicFileAttribute.isRegularFile() || basicFileAttribute.isDirectory() )
-							&& path.getFileName().toString()
-							.matches( name ) )
-							.map( path -> path.toString() ).collect( Collectors.toList() );
-			Collections.sort( paths );
-
-			if ( paths.size() == 0 )
-				System.err.println("Could not find any files for " + regex );
-
-			return paths;
-
-		}
-		catch ( IOException e )
-		{
-			e.printStackTrace();
-			throw new RuntimeException( e );
-		}
-	}
-
 	public static AbstractSpimData< ? > tryOpenSpimData( String path, ImageDataFormat imageDataFormat )
 	{
 		try

@@ -46,9 +46,7 @@ import org.embl.mobie.lib.transform.TransformHelper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -64,7 +62,7 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	private RealMaskRealInterval mask;
 
 	private boolean debug = false;
-	private List< AR > annotatedRegions;
+	private List< AR > annotations;
 	private List< RealMaskRealInterval > masks;
 
 
@@ -128,34 +126,36 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 		private class LocationToRegion implements BiConsumer< RealLocalizable, AnnotationType< AR > >
 		{
 			private RealMaskRealInterval recentMask;
+			private AR recentAnnotation;
 
 			public LocationToRegion()
 			{
 				this.recentMask = masks.get( 0 );
+				this.recentAnnotation = annotations.get( 0 );
 			}
 
 			@Override
 			public void accept( RealLocalizable location, AnnotationType< AR > value )
 			{
-
-				// It is likely that the next asked location
+				// It is likely that the next location
 				// is within the same mask, thus we test that one first
 				// to safe some computations.
 				if ( recentMask.test( location ) )
 				{
-					value.setAnnotation( annotatedRegions.get( masks.indexOf( recentMask ) ) );
+					value.setAnnotation( recentAnnotation );
 					return;
 				}
 
 				for ( RealMaskRealInterval mask : masks )
 				{
 					if ( mask == recentMask )
-						continue;
+						continue; // because that one has been checked already above
 
 					if ( mask.test( location ) )
 					{
 						recentMask = mask;
-						value.setAnnotation( annotatedRegions.get( masks.indexOf( recentMask ) ) );
+						recentAnnotation = annotations.get( masks.indexOf( recentMask ) );
+						value.setAnnotation( recentAnnotation );
 						return;
 					}
 				}
@@ -167,19 +167,19 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	}
 
 	@Override
-	public SourcePair< AnnotationType< AR > > getSourcePair()
+	public synchronized SourcePair< AnnotationType< AR > > getSourcePair()
 	{
 		if ( sourcePair == null )
 		{
 			final Interval interval = Intervals.smallestContainingInterval( getMask() );
 			// TODO: this could be more lazy and only done within getSourcePair
-			annotatedRegions = new ArrayList<>();
+			annotations = new ArrayList<>();
 			masks = new ArrayList<>();
 			final ArrayList< AR > annotations = annData.getTable().annotations();
 			for ( AR annotatedRegion : annotations )
 			{
 				masks.add( annotatedRegion.getMask() );
-				annotatedRegions.add( annotatedRegion );
+				this.annotations.add( annotatedRegion );
 			}
 
 			// one could add a time point parameter to LocationToAnnotatedRegionSupplier

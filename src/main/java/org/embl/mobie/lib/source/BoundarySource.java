@@ -47,7 +47,7 @@ public class BoundarySource< T extends Type< T > > extends AbstractBoundarySourc
         super( source, showAsBoundaries, boundaryWidth, bounds );
     }
 
-    protected RealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, double[] pixelUnitsBoundaryWidth )
+    protected RealRandomAccessible< T > createBoundaryRealRandomAccessible( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, double[] pixelUnitsBoundaryWidth )
     {
         BiConsumer< RealLocalizable, T > biConsumer = ( l, output ) ->
         {
@@ -82,7 +82,6 @@ public class BoundarySource< T extends Type< T > > extends AbstractBoundarySourc
             }
         };
 
-        final FunctionRealRandomAccessible< T > boundaries = new FunctionRealRandomAccessible( 3, biConsumer, () -> getType().createVariable() );
-        return boundaries;
+        return new FunctionRealRandomAccessible( 3, biConsumer, () -> getType().createVariable() );
     }
 }

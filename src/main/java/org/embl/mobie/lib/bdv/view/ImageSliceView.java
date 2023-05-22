@@ -33,9 +33,11 @@ import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.RealARGBColorConverter;
+import net.imglib2.display.ScaledARGBConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.volatiles.VolatileARGBType;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.opacity.AdjustableOpacityColorConverter;
@@ -44,7 +46,7 @@ import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
-public class ImageSliceView< T extends NumericType< T > & RealType< T > > extends AbstractSliceView
+public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceView
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -75,18 +77,37 @@ public class ImageSliceView< T extends NumericType< T > & RealType< T > > extend
 
 	private SourceAndConverter createSourceAndConverter( Image< T > image )
 	{
-		final Converter< T, ARGBType > converter = createConverterToARGB( image.getSourcePair().getSource().getType() );
-		final SourceAndConverter volatileSac = new SourceAndConverter( image.getSourcePair().getVolatileSource(), converter );
-		final SourceAndConverter sac = new SourceAndConverter( image.getSourcePair().getSource(), converter, volatileSac );
-		return sac;
+		final T type = image.getSourcePair().getSource().getType();
+
+		if ( type instanceof ARGBType )
+		{
+			final SourceAndConverter volatileSac = new SourceAndConverter( image.getSourcePair().getVolatileSource(), new ScaledARGBConverter.VolatileARGB( 0, 255 ) );
+			final SourceAndConverter sac = new SourceAndConverter( image.getSourcePair().getSource(), new ScaledARGBConverter.ARGB( 0, 255 ), volatileSac );
+			return sac;
+		}
+		else
+		{
+			final Converter< T, ARGBType > converter = createConverterToARGB( type );
+			final SourceAndConverter volatileSac = new SourceAndConverter( image.getSourcePair().getVolatileSource(), converter );
+			final SourceAndConverter sac = new SourceAndConverter( image.getSourcePair().getSource(), converter, volatileSac );
+			return sac;
+		}
 	}
 
-	private Converter< T, ARGBType > createConverterToARGB( final T t )
+	private Converter< T, ARGBType > createConverterToARGB( final T type )
 	{
-		final double typeMin = Math.max( 0, Math.min( t.getMinValue(), 65535 ) );
-		final double typeMax = Math.max( 0, Math.min( t.getMaxValue(), 65535 ) );
-		final RealARGBColorConverter< T > converter = RealARGBColorConverter.create( t, typeMin, typeMax );
-		return new AdjustableOpacityColorConverter( converter );
+		if ( type instanceof RealType )
+		{
+			final RealType< ? > realType = ( RealType< ? > ) type;
+			final double typeMin = Math.max( 0, Math.min( realType.getMinValue(), 65535 ) );
+			final double typeMax = Math.max( 0, Math.min( realType.getMaxValue(), 65535 ) );
+			final RealARGBColorConverter< ? extends RealType< ? > > converter = RealARGBColorConverter.create( realType, typeMin, typeMax );
+			return new AdjustableOpacityColorConverter( converter );
+		}
+		else
+		{
+			throw new UnsupportedOperationException( "Unsupported type " + type.getClass() );
+		}
 	}
 
 	private void adaptContrastLimits( SourceAndConverter< ? > sourceAndConverter )
