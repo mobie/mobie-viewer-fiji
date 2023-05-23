@@ -66,7 +66,6 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	private List< RealMaskRealInterval > masks;
 
 
-
 	/**
 	 * Builds an image that annotates all {@code AnnotatedRegion} in the
 	 * provided {@code AnnData}.

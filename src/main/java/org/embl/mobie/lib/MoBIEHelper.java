@@ -39,6 +39,7 @@ import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.Dimensions;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
+import org.embl.mobie.io.toml.TOMLOpener;
 import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
@@ -190,8 +191,7 @@ public abstract class MoBIEHelper
 				final SpimSource< ? > source = new SpimSource( spimData, channelIndex, "" );
 				final int levels = source.getNumMipmapLevels();
 				final ImagePlus imagePlus = new SourceToImagePlusConverter<>( source ).getImagePlus( levels - 1 );
-				final Metadata metadata = getMetadata( imagePlus );
-				return metadata;
+				return new Metadata( imagePlus );
 			}
 			catch ( SpimDataException e )
 			{
@@ -205,27 +205,15 @@ public abstract class MoBIEHelper
 		}
 		else if ( path.endsWith( ".toml" ) )
 		{
-			return new Metadata();
+			final ImagePlus imagePlus = new TOMLOpener( path ).asImagePlus();
+			return new Metadata( imagePlus );
 		}
 		else
 		{
 			final ImagePlus imagePlus = IJ.openVirtual( path );
 			imagePlus.setC( channelIndex + 1 );
-			final Metadata metadata = getMetadata( imagePlus );
-			return metadata;
+			return new Metadata( imagePlus );
 		}
-	}
-
-	public static Metadata getMetadata( ImagePlus imagePlus )
-	{
-		final Metadata metadata = new Metadata();
-		metadata.color = "White"; // TODO: why not extract the color?
-		// we could use more direct methods:
-		// https://imagej.nih.gov/ij/developer/source/ij/plugin/ContrastEnhancer.java.html
-		IJ.run( imagePlus, "Enhance Contrast", "saturated=0.35" );
-		metadata.contrastLimits = new double[]{ imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
-		metadata.numTimePoints = imagePlus.getNFrames();
-		return metadata;
 	}
 
 	// Note that this opens the image and thus may be slow!

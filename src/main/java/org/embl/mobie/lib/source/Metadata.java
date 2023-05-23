@@ -28,9 +28,27 @@
  */
 package org.embl.mobie.lib.source;
 
+import ij.IJ;
+import ij.ImagePlus;
+
 public class Metadata
 {
 	public String color = "White";
 	public double[] contrastLimits = null;
-	public int numTimePoints = 1;
+	public Integer numTimePoints = null;
+
+	public Metadata()
+	{
+	}
+
+	public Metadata( ImagePlus imagePlus )
+	{
+		color = "White"; // TODO: why not extract the color?
+		// we could use more direct methods:
+		// https://imagej.nih.gov/ij/developer/source/ij/plugin/ContrastEnhancer.java.html
+		IJ.run( imagePlus, "Enhance Contrast", "saturated=0.35" );
+		contrastLimits = new double[]{ imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
+		numTimePoints = imagePlus.getNFrames();
+	}
+
 }

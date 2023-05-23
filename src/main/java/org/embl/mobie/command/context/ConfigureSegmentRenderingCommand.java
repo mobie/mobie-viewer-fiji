@@ -55,7 +55,6 @@ public class ConfigureSegmentRenderingCommand extends ConfigureLabelRenderingCom
 	public void run()
 	{
 		super.run();
-
 		updateVolumeRendering();
 	}
 

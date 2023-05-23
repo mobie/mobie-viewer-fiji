@@ -67,10 +67,10 @@ public class ConfigureLabelRenderingCommand extends DynamicCommand implements Bd
 	@Parameter
 	protected SourceAndConverter< ? >[] sourceAndConverters;
 
-	@Parameter( label = "Show labels as boundaries" )
+	@Parameter( label = "Show labels as boundaries", persist = false )
 	public boolean showAsBoundary;
 
-	@Parameter( label = "Boundary thickness", callback = "logBoundaryThickness", style = "format:#.00" )
+	@Parameter( label = "Boundary thickness", callback = "logBoundaryThickness", style = "format:#.00", persist = false )
 	public double boundaryThickness = 1.0F;
 
 	@Parameter( label = "Label coloring", choices = { SEGMENT_COLOR, SELECTION_COLOR } )
@@ -92,7 +92,7 @@ public class ConfigureLabelRenderingCommand extends DynamicCommand implements Bd
 	public void initialize()
 	{
 		initRandomColorSeedItem();
-		initBoundaryRenderingItem();
+		initBoundaryRendering();
 	}
 
 	protected void initRandomColorSeedItem()
@@ -118,22 +118,20 @@ public class ConfigureLabelRenderingCommand extends DynamicCommand implements Bd
 		}
 	}
 
-	protected void initBoundaryRenderingItem()
+	protected void initBoundaryRendering()
 	{
-		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			final BoundarySource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
+			final BoundarySource< ? > boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
 
 			if ( boundarySource != null )
 			{
 				final MutableModuleItem< Boolean > showAsBoundaryItem = getInfo().getMutableInput( "showAsBoundary", Boolean.class );
-
-				showAsBoundaryItem.setValue( this, boundarySource.showAsBoundaries() );
+				final boolean showAsBoundaries = boundarySource.showAsBoundaries();
+				showAsBoundaryItem.setValue( this, showAsBoundaries );
 
 				final MutableModuleItem< Double > boundaryThicknessItem = getInfo().getMutableInput( "boundaryThickness", Double.class );
-
 				boundaryThicknessItem.setValue( this, boundarySource.getBoundaryWidth() );
-
 				return;
 			}
 		}

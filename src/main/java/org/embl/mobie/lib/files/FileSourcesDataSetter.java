@@ -103,7 +103,10 @@ public class FileSourcesDataSetter
 					regionDisplay.boundaryThicknessIsRelative( true );
 					regionDisplay.setRelativeDilation( 0.025 );
 					regionDisplay.setOpacity( 1.0 );
-					final int numTimePoints = sources.getMetadata().numTimePoints;
+
+					Integer numTimePoints = sources.getMetadata().numTimePoints;
+					if ( numTimePoints == null )
+						numTimePoints = 1000; // TODO
 					for ( int t = 0; t < numTimePoints; t++ )
 						regionDisplay.timepoints().add( t );
 
