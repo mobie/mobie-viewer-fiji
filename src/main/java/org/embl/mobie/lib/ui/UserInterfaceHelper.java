@@ -892,6 +892,7 @@ public class UserInterfaceHelper
 	public static JCheckBox createSegmentsVolumeViewerVisibilityCheckbox( SegmentationDisplay display )
 	{
 		JCheckBox checkBox = new JCheckBox( "V" );
+		checkBox.setToolTipText( "Toggle dataset visibility" );
 		checkBox.setSelected( display.showSelectedSegmentsIn3d() );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 
@@ -922,6 +923,7 @@ public class UserInterfaceHelper
 			final List< ? extends SourceAndConverter< ? > > sourceAndConverters )
 	{
 		JCheckBox checkBox = new JCheckBox( "S" );
+		checkBox.setToolTipText( "Toggle slice viewer visibility" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 
@@ -945,6 +947,7 @@ public class UserInterfaceHelper
 			Window window )
 	{
 		JCheckBox checkBox = new JCheckBox( "T" );
+		checkBox.setToolTipText( "Toggle window visibility" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 		window.setVisible( isVisible );
@@ -964,6 +967,7 @@ public class UserInterfaceHelper
 			boolean isVisible )
 	{
 		JCheckBox checkBox = new JCheckBox( "P" );
+		checkBox.setToolTipText( "Toggle scatter plot visibility" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 		checkBox.addActionListener( e ->
@@ -993,6 +997,7 @@ public class UserInterfaceHelper
 	public static JCheckBox createImageVolumeViewerVisibilityCheckbox( ImageDisplay display )
 	{
 		JCheckBox checkBox = new JCheckBox( "V" );
+		checkBox.setToolTipText( "Toggle dataset visibility" );
 		checkBox.setSelected( display.showImagesIn3d() );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 
@@ -1026,6 +1031,7 @@ public class UserInterfaceHelper
 	public static JButton createFocusButton( AbstractDisplay sourceDisplay, BdvHandle bdvHandle, List< Source< ? > > sources )
 	{
 		JButton button = new JButton( "F" );
+		button.setToolTipText( "Show whole dataset" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		button.addActionListener( e ->
@@ -1040,6 +1046,7 @@ public class UserInterfaceHelper
 	public static JButton createImageDisplayBrightnessButton( ImageDisplay< ? > imageDisplay )
 	{
 		JButton button = new JButton( "B" );
+		button.setToolTipText( "Change brightness/contrast" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		button.addActionListener( e ->
@@ -1060,6 +1067,7 @@ public class UserInterfaceHelper
 	public static JButton createOpacityButton( List< ? extends SourceAndConverter< ? > > sourceAndConverters, String name, BdvHandle bdvHandle )
 	{
 		JButton button = new JButton( "O" );
+		button.setToolTipText( "Change opacity" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		button.addActionListener( e ->
@@ -1076,6 +1084,7 @@ public class UserInterfaceHelper
 	private static JButton createColorButton( JPanel parentPanel, List< ? extends SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
 	{
 		JButton colorButton = new JButton( "C" );
+		colorButton.setToolTipText( "Change color" );
 
 		colorButton.setPreferredSize( PREFERRED_BUTTON_SIZE);
 
@@ -1120,6 +1129,7 @@ public class UserInterfaceHelper
 	private JButton createRemoveButton( Display display )
 	{
 		JButton removeButton = new JButton( "X" );
+		removeButton.setToolTipText( "Remove dataset" );
 		removeButton.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		removeButton.addActionListener( e ->

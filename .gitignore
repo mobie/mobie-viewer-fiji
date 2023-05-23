@@ -14,3 +14,8 @@ target
 *~
 *.orig
 hs_err_*.log
+
+mobie-files
+mobie-hcs
+mobie-project
+mobie-table
