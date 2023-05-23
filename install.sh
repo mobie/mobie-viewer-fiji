@@ -2,8 +2,12 @@
 # This script is shamelessly adapted from https://github.com/saalfeldlab/n5-utils
 # thanks @axtimwalde & co!
 
-JAVA_HOME="/Users/tischer/Library/Java/JavaVirtualMachines/corretto-1.8.0_312/Contents/Home"
-VERSION="4.0.5-SNAPSHOT"
+# Customize JAVA_HOME if necessary
+# not necessary using conda
+# JAVA_HOME="/Users/tischer/Library/Java/JavaVirtualMachines/corretto-1.8.0_312/Contents/Home"
+
+# set the version here:
+VERSION="4.0.7-SNAPSHOT"
 MEM=8
 
 mvn clean install -Denforcer.skip -Dmaven.test.skip=true
