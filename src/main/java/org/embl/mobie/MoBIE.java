@@ -793,7 +793,7 @@ public class MoBIE
 
 		if ( imageDataFormat.equals( ImageDataFormat.IlastikHDF5 ) )
 		{
-			final CachedCellImage< Object > image = new CachedCellImage<>( name, storageLocation.absolutePath, storageLocation.getChannel(), imageDataFormat, ThreadHelper.sharedQueue );
+			final CachedCellImage< ? > image = new CachedCellImage<>( name, storageLocation.absolutePath, storageLocation.getChannel(), imageDataFormat, ThreadHelper.sharedQueue );
 			return image;
 		}
 
