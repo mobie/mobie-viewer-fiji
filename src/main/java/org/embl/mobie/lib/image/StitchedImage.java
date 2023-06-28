@@ -222,12 +222,12 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			this.positions = new ArrayList<>();
 			for ( int[] position : positions )
 			{
-				final int[] thisPosition = new int[ 2 ];
+				final int[] zeroMinPosition = new int[ 2 ];
 				for ( int d = 0; d < 2; d++ )
 				{
-					thisPosition[ d ] = position[ d ] - min[ d ];
+					zeroMinPosition[ d ] = position[ d ] - min[ d ];
 				}
-				this.positions.add( thisPosition );
+				this.positions.add( zeroMinPosition );
 			}
 		}
 	}
@@ -490,8 +490,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			{
 				final V background = volatileType.createVariable();
 				background.setValid( true );
-				final FunctionRandomAccessible< V > stichedTimepointAtLevel = new FunctionRandomAccessible( 3, new VolatileValueFromTilesFetcherSupplier( tileStore, t, level, background ).get(), () -> volatileType.createVariable() );
-				final IntervalView< V > rai = Views.interval( stichedTimepointAtLevel, getInterval( level ) );
+				final FunctionRandomAccessible< V > stitchedTimepointAtLevel = new FunctionRandomAccessible( 3, new VolatileValueFromTilesFetcherSupplier( tileStore, t, level, background ).get(), () -> volatileType.createVariable() );
+				final IntervalView< V > rai = Views.interval( stitchedTimepointAtLevel, getInterval( level ) );
 				stitched.get( t ).add( rai );
 			}
 		}

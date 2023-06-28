@@ -129,12 +129,6 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	}
 
 	@Override
-	public String[] idColumns()
-	{
-		return idColumns;
-	}
-
-	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
 		// don't do anything here, because the annotated regions

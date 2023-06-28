@@ -31,6 +31,7 @@ package org.embl.mobie.lib.table.saw;
 import org.embl.mobie.lib.table.ColumnNames;
 import tech.tablesaw.api.Table;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< TableSawAnnotatedSpot >
@@ -40,6 +41,7 @@ public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< 
 	private final int yColumnIndex;
 	private final int zColumnIndex;
 	private int timePointColumnIndex;
+	private ArrayList< String > idColumns;
 
 	public TableSawAnnotatedSpotCreator( Table table )
 	{
@@ -49,6 +51,9 @@ public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< 
 		yColumnIndex = columnNames.indexOf( ColumnNames.SPOT_Y );
 		zColumnIndex = columnNames.indexOf( ColumnNames.SPOT_Z );
 		timePointColumnIndex = columnNames.indexOf( ColumnNames.TIMEPOINT );
+		idColumns = new ArrayList<>();
+		idColumns.add( ColumnNames.SPOT_ID );
+		idColumns.add( ColumnNames.TIMEPOINT );
 	}
 
 	@Override
@@ -76,5 +81,11 @@ public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< 
 	public int[] removeColumns()
 	{
 		return new int[]{ xColumnIndex, yColumnIndex, zColumnIndex };
+	}
+
+	@Override
+	public List< String > getIDColumns()
+	{
+		return idColumns;
 	}
 }

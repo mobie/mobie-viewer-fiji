@@ -103,12 +103,6 @@ public class TableSawAnnotatedSpot extends AbstractTableSawAnnotation implements
 	}
 
 	@Override
-	public String[] idColumns()
-	{
-		return idColumns;
-	}
-
-	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
 		affineTransform3D.apply( position, position );

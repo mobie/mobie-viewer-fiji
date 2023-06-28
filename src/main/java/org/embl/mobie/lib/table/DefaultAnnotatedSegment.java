@@ -158,12 +158,6 @@ public class DefaultAnnotatedSegment implements AnnotatedSegment
 	}
 
 	@Override
-	public String[] idColumns()
-	{
-		return idColumns;
-	}
-
-	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
 		// update fields

@@ -135,12 +135,6 @@ public class TableSawAnnotatedSegment extends AbstractTableSawAnnotation impleme
 	}
 
 	@Override
-	public String[] idColumns()
-	{
-		return idColumns;
-	}
-
-	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
 		if ( position != null )

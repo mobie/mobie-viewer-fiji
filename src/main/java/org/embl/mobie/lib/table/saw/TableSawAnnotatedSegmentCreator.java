@@ -34,6 +34,7 @@ import org.embl.mobie.lib.table.columns.SegmentColumnNames;
 import tech.tablesaw.api.Table;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -51,6 +52,7 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 	private AtomicBoolean columnsInitialised = new AtomicBoolean( false );
 	private boolean is3D;
 	private boolean hasBoundingBox;
+	private ArrayList< String > idColumns;
 
 	public TableSawAnnotatedSegmentCreator(
 			@Nullable SegmentColumnNames segmentColumnNames,
@@ -59,6 +61,15 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 		this.segmentColumnNames = segmentColumnNames;
 		if ( table != null )
 			initColumns( table );
+
+		idColumns = new ArrayList< String >();
+		if ( segmentColumnNames != null )
+		{
+			idColumns.add( segmentColumnNames.labelIdColumn() );
+			idColumns.add( segmentColumnNames.timePointColumn() );
+			idColumns.add( segmentColumnNames.labelImageColumn() );
+		}
+
 	}
 
 	private synchronized void initColumns( Table table )
@@ -93,7 +104,6 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 		is3D = anchorColumnIndices.length == 3 && anchorColumnIndices[ 2 ] > -1;
 
 		hasBoundingBox = bbMinColumnIndices[ 0 ] > -1;
-
 	}
 
 	@Override
@@ -152,5 +162,11 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 		final FinalRealInterval boundingBox = new FinalRealInterval( min, max );
 
 		return boundingBox;
+	}
+
+	@Override
+	public List< String > getIDColumns()
+	{
+		return idColumns;
 	}
 }

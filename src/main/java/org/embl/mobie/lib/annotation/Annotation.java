@@ -52,9 +52,6 @@ public interface Annotation extends Location
 	// For adding manual annotations
 	void setString( String columnName, String value );
 
-	// For merging tables.
-	String[] idColumns();
-
 	// Transform the spatial coordinates of this annotation.
 	// Note that there are also methods to transform annotations,
 	// which create a copy of the annotation;

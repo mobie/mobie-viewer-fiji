@@ -32,17 +32,18 @@ import java.util.List;
 
 public class MergedGridTransformation extends AbstractGridTransformation
 {
-	// Serialization TODO: make fields private and add getter and setter methods
+	// Serialization
 
 	public List< String > sources; // required
-
-	private String mergedGridSourceName = "merged image"; // required => name of corresponding StitchedImage
 
 	public String metadataSource; // optional, this improves performance (a lot)
 
 	public boolean centerAtOrigin = false; // TODO: should actually be true, but: https://github.com/mobie/mobie-viewer-fiji/issues/685#issuecomment-1108179599
 
+	private String mergedGridSourceName = "merged image"; // required => name of corresponding StitchedImage
+
 	// Runtime
+
 	public transient int timepoints = 1; // the number of timepoints that the sources span
 
 	public transient boolean lazyLoadTables = true;
