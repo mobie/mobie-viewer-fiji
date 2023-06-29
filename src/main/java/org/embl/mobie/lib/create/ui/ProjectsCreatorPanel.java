@@ -661,7 +661,7 @@ public class ProjectsCreatorPanel extends JFrame {
     }
 
     private void addBdvFile( String filePath, String datasetName ) throws SpimDataException {
-        SpimData spimData = ( SpimData ) new SpimDataOpener().openSpimData( filePath, imageDataFormat );
+        SpimData spimData = ( SpimData ) new SpimDataOpener().open( filePath, imageDataFormat );
 
         int nChannels = spimData.getSequenceDescription().getViewSetupsOrdered().size();
         String imageUnit = spimData.getSequenceDescription().getViewSetupsOrdered().get(0).getVoxelSize().unit();

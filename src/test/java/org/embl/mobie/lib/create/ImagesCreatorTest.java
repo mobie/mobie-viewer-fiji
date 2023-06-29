@@ -118,7 +118,7 @@ class ImagesCreatorTest {
             assertTrue( new File(imageLocation).exists() );
         }
 
-        SpimData spimData = (SpimData) new SpimDataOpener().openSpimData( xmlLocation, imageDataFormat );
+        SpimData spimData = (SpimData) new SpimDataOpener().open( xmlLocation, imageDataFormat );
         assertionsForSpimData( spimData );
     }
 
@@ -131,7 +131,7 @@ class ImagesCreatorTest {
 
         assertTrue( new File(imageLocation).exists() );
 
-        SpimData spimData = (SpimData) new SpimDataOpener().openSpimData( imageLocation, imageDataFormat );
+        SpimData spimData = (SpimData) new SpimDataOpener().open( imageLocation, imageDataFormat );
         assertionsForSpimData( spimData );
     }
 

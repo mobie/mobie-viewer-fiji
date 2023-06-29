@@ -238,7 +238,7 @@ public class ProjectCreator {
                         if (!format.isRemote()) {
                             String imagePath = IOHelper.combinePath( projectLocation.getAbsolutePath(), datasetName,
                                     imageSource.imageData.get(format).relativePath);
-                            SpimData spimData = (SpimData) new SpimDataOpener().openSpimData( imagePath, format );
+                            SpimData spimData = (SpimData) new SpimDataOpener().open( imagePath, format );
                             VoxelDimensions voxelDimensions = spimData.getSequenceDescription().
                                     getViewSetupsOrdered().get(0).getVoxelSize();
                             voxelUnit = voxelDimensions.unit();
