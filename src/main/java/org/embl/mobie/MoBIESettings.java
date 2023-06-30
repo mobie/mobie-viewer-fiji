@@ -91,6 +91,13 @@ public class MoBIESettings
 		return this;
 	}
 
+	public MoBIESettings preferentialDataLocation( DataFormats.Location location )
+	{
+		this.values.preferentialLocation = location;
+		return this;
+	}
+
+
 	public MoBIESettings s3AccessAndSecretKey( String[] s3AccessAndSecretKey )
 	{
 		this.values.s3AccessAndSecretKey = s3AccessAndSecretKey;

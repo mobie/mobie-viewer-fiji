@@ -28,48 +28,27 @@
  */
 package org.embl.mobie.command.open.project;
 
-import mpicbg.spim.data.SpimDataException;
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.ThreadHelper;
-import org.embl.mobie.lib.bdv.view.SliceViewer;
+import org.embl.mobie.lib.io.DataFormats;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import java.io.IOException;
-
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open MoBIE Project Branch..." )
-public class OpenMoBIEProjectBranchCommand implements Command
+public class OpenMoBIEProjectBranchCommand extends OpenMoBIEProjectCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
-
-	@Parameter ( label = "Project Location" )
-	public String projectLocation = "https://github.com/platybrowser/platybrowser";
 
 	@Parameter ( label = "Project Branch" )
 	public String projectBranch = "master";
 
-	@Parameter ( label = "Number of threads" )
-	public int numThreads = 4;
-	@Parameter ( label = "Tile render debug overlay" )
-	public boolean tileRenderOverlay = false;
-
 	@Override
 	public void run()
 	{
-		try
-		{
-			SliceViewer.tileRenderOverlay = tileRenderOverlay;
-			ThreadHelper.setNumIoThreads( numThreads );
-			final MoBIE moBIE = new MoBIE( projectLocation, MoBIESettings.settings().gitProjectBranch( projectBranch ) );
+		settings.preferentialDataLocation( DataFormats.Location.valueOf( location ) )
+				.gitProjectBranch( projectBranch );
 
-		}
-		catch ( IOException e )
-		{
-			e.printStackTrace();
-		}
+		super.run();
 	}
 }
 

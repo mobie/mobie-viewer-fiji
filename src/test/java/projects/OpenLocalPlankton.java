@@ -42,7 +42,7 @@ public class OpenLocalPlankton
 		new ImageJ().ui().showUI();
 		try {
 			new MoBIE("/Volumes/emcf/pape/plankton-fibsem-project",
-					MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5 ).dataset( "galdieria" ) );
+					MoBIESettings.settings().dataset( "galdieria" ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

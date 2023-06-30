@@ -43,7 +43,7 @@ public class OpenLocalPlatynereis
 		imageJ.ui().showUI();
 		try {
 			new MoBIE("/g/arendt/EM_6dpf_segmentation/platy-browser-data/data/",
-					MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5 ) );
+					MoBIESettings.settings() );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

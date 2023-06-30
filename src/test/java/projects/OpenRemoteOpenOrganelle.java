@@ -42,7 +42,7 @@ public class OpenRemoteOpenOrganelle
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
         try {
-            new MoBIE("https://github.com/mobie/open-organelle-test", MoBIESettings.settings().addImageDataFormat( ImageDataFormat.OpenOrganelleS3) );
+            new MoBIE("https://github.com/mobie/open-organelle-test", MoBIESettings.settings() );
         } catch (IOException e) {
             e.printStackTrace();
         }

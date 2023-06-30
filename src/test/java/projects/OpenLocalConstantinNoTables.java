@@ -41,6 +41,6 @@ public class OpenLocalConstantinNoTables
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		final MoBIE moBIE = new MoBIE("/Volumes/emcf/pape/jil", MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5 ));
+		final MoBIE moBIE = new MoBIE("/Volumes/emcf/pape/jil", MoBIESettings.settings());
 	}
 }

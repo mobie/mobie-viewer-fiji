@@ -20,32 +20,38 @@ public class DataFormats
 			add( ImageDataFormat.BdvOmeZarrS3 );
 			add( ImageDataFormat.BdvN5S3 );
 			add( ImageDataFormat.OpenOrganelleS3 );
-
-			// local
-			add( ImageDataFormat.OmeZarr );
-			add( ImageDataFormat.BdvOmeZarr );
-			add( ImageDataFormat.BdvN5 );
-			add( ImageDataFormat.BdvHDF5 );
-			add( ImageDataFormat.ImageJ );
-			add( ImageDataFormat.BioFormats );
 		}
 	};
 
 	static List< ImageDataFormat > local = new ArrayList< ImageDataFormat >() {
 		{
 			// local
+			add( ImageDataFormat.SpimData );
 			add( ImageDataFormat.OmeZarr );
 			add( ImageDataFormat.BdvOmeZarr );
 			add( ImageDataFormat.BdvN5 );
 			add( ImageDataFormat.BdvHDF5 );
+			add( ImageDataFormat.Toml );
+			add( ImageDataFormat.Tiff );
 			add( ImageDataFormat.ImageJ );
 			add( ImageDataFormat.BioFormats );
+			add( ImageDataFormat.Bdv );
+			add( ImageDataFormat.IlastikHDF5 );
+		}
+	};
 
-			// remote
-			add( ImageDataFormat.OmeZarrS3 );
-			add( ImageDataFormat.BdvOmeZarrS3 );
-			add( ImageDataFormat.BdvN5S3 );
-			add( ImageDataFormat.OpenOrganelleS3 );
+
+	static List< ImageDataFormat > remoteLocal = new ArrayList< ImageDataFormat >() {
+		{
+			addAll( remote );
+			addAll( local );
+		}
+	};
+
+	static List< ImageDataFormat > localRemote = new ArrayList< ImageDataFormat >() {
+		{
+			addAll( local );
+			addAll( remote );
 		}
 	};
 
@@ -54,11 +60,11 @@ public class DataFormats
 	{
 		if ( preferential.equals( Location.Remote ) )
 		{
-			return remote;
+			return remoteLocal;
 		}
 		else // Location.Local
 		{
-			return local;
+			return localRemote;
 		}
 	}
 }
