@@ -43,7 +43,7 @@ public class OpenLocalTobias
 		imageJ.ui().showUI();
 		try {
 			new MoBIE("/g/schwab/Tobias/MoBIE",
-					MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5 ) );
+					MoBIESettings.settings() );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

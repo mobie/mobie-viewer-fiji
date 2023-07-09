@@ -43,7 +43,7 @@ public class OpenLocalCovidPlate
 		imageJ.ui().showUI();
 
 		try {
-			new MoBIE("/g/kreshuk/pape/Work/mobie/covid-if-project/data", MoBIESettings.settings().addImageDataFormat( ImageDataFormat.OmeZarr ) );
+			new MoBIE("/g/kreshuk/pape/Work/mobie/covid-if-project/data", MoBIESettings.settings() );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

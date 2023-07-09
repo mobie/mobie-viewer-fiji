@@ -56,6 +56,7 @@ import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.image.CachedCellImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.SpimDataImage;
+import org.embl.mobie.lib.io.DataFormats;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.plugins.platybrowser.GeneSearchCommand;
@@ -206,13 +207,8 @@ public class MoBIE
 		registerProjectPlugins( projectLocation );
 		project = new ProjectJsonParser().parseProject( combinePath( projectRoot, "project.json" ) );
 		if ( project.getName() == null ) project.setName( getFileName( projectLocation ) );
-		setDataFormats( projectLocation );
+		settings.addTableDataFormat( TableDataFormat.TSV );
 		openAndViewDataset();
-	}
-
-	private void openFiles( List< String > images, List< String > labels, List< String > labelTables, String root, GridType grid )
-	{
-
 	}
 
 	// TODO 2D or 3D?
@@ -353,36 +349,6 @@ public class MoBIE
 		{
 			S3Utils.setS3AccessAndSecretKey( settings.values.getS3AccessAndSecretKey() );
 		}
-	}
-
-	// set whether to open data from local or remote
-	private void setDataFormats( String projectLocation )
-	{
-		// images
-		//
-		final Set< ImageDataFormat > imageDataFormat = settings.values.getImageDataFormats();
-
-		if ( imageDataFormat.size() == 0 )
-		{
-			if ( projectLocation.startsWith( "http" ) )
-			{
-				 settings.addImageDataFormat( ImageDataFormat.OmeZarrS3 );
-				 settings.addImageDataFormat( ImageDataFormat.BdvOmeZarrS3 );
-				 settings.addImageDataFormat( ImageDataFormat.BdvN5S3 );
-				 settings.addImageDataFormat( ImageDataFormat.OpenOrganelleS3 );
-			}
-			else
-			{
-				settings.addImageDataFormat( ImageDataFormat.OmeZarr );
-				settings.addImageDataFormat( ImageDataFormat.BdvOmeZarr );
-				settings.addImageDataFormat( ImageDataFormat.BdvN5 );
-				settings.addImageDataFormat( ImageDataFormat.BdvHDF5 );
-			}
-		}
-
-		// tables
-		//
-		settings.addTableDataFormat( TableDataFormat.TSV );
 	}
 
 	private void openAndViewDataset() throws IOException
@@ -539,35 +505,19 @@ public class MoBIE
 
 	private ImageDataFormat getImageDataFormat( ImageDataSource imageSource )
 	{
-		final Set< ImageDataFormat > settingsFormats = settings.values.getImageDataFormats();
+		final List< ImageDataFormat > formats = DataFormats.getImageDataFormats( settings.values.getPreferentialLocation() );
 
-		if ( settingsFormats.size() == 0 )
+		// The {@code formats} contain all supported image data formats sorted in
+		// order of preference. This preference is set by the user when opening the project.
+		for ( ImageDataFormat format : formats )
 		{
-			/*
-				there is no preferred image data format specified,
-				thus we simply return the first (and potentially only) format
-			 */
-			return imageSource.imageData.keySet().iterator().next();
-		}
-
-		for ( ImageDataFormat sourceFormat : imageSource.imageData.keySet() )
-		{
-			if ( settingsFormats.contains( sourceFormat ) )
+			if ( imageSource.imageData.keySet().contains( format ) )
 			{
-				/*
-					return the first source format that
-				    matches the settings
-				 */
-				return sourceFormat;
+				return format;
 			}
 		}
 
-		for ( ImageDataFormat dataFormat : imageSource.imageData.keySet() )
-			System.err.println("Source supports: " + dataFormat);
-		for ( ImageDataFormat dataFormat : settingsFormats )
-			System.err.println("Settings require: " + dataFormat);
-
-		throw new RuntimeException( "Error identifying an image data format for: " + imageSource.getName() );
+		throw new RuntimeException( "Could not find a storage location for: " + imageSource.getName() );
 	}
 
 	public TableDataFormat getTableDataFormat( Map< TableDataFormat, StorageLocation > tableData )
@@ -793,7 +743,7 @@ public class MoBIE
 
 		if ( imageDataFormat.equals( ImageDataFormat.IlastikHDF5 ) )
 		{
-			final CachedCellImage< Object > image = new CachedCellImage<>( name, storageLocation.absolutePath, storageLocation.getChannel(), imageDataFormat, ThreadHelper.sharedQueue );
+			final CachedCellImage< ? > image = new CachedCellImage<>( name, storageLocation.absolutePath, storageLocation.getChannel(), imageDataFormat, ThreadHelper.sharedQueue );
 			return image;
 		}
 

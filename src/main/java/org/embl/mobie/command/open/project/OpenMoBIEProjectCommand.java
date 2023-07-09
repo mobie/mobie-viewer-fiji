@@ -32,6 +32,7 @@ import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.io.DataFormats;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -47,14 +48,19 @@ public class OpenMoBIEProjectCommand implements Command
 	@Parameter ( label = "Project Location" )
 	public String projectLocation = "https://github.com/mobie/platybrowser-datasets";
 
+	@Parameter ( label = "Preferentially Fetch Data From", choices = {"Remote", "Local"} )
+	public String location = "Remote";
+
+	protected MoBIESettings settings = MoBIESettings.settings();
+
 	@Override
 	public void run()
 	{
-		MoBIESettings options = MoBIESettings.settings();
+		settings.preferentialDataLocation( DataFormats.Location.valueOf( location ) );
 
 		try
 		{
-			new MoBIE( projectLocation, options );
+			new MoBIE( projectLocation, settings );
 		}
 		catch ( IOException e )
 		{

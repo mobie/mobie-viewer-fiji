@@ -40,6 +40,6 @@ public class OpenLocalTestData
 	public static void main( String[] args ) throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
-		final MoBIE moBIE = new MoBIE("/g/emcf/pape/mobie-test-projects", MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5 ));
+		final MoBIE moBIE = new MoBIE("/g/emcf/pape/mobie-test-projects", MoBIESettings.settings() );
 	}
 }
