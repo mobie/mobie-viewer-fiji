@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.scijava</groupId>
         <artifactId>pom-scijava</artifactId>
-        <version>34.1.0</version>
+        <version>36.0.0</version>
     </parent>
 
     <groupId>org.embl.mobie</groupId>
@@ -84,7 +84,10 @@
 
         <bigdataviewer-playground.version>0.6.0</bigdataviewer-playground.version>
         <imagej-utils.version>0.6.9</imagej-utils.version>
-        <mobie-io.version>2.1.1</mobie-io.version>
+        <mobie-io.version>2.2.0-SNAPSHOT</mobie-io.version>
+        <trove.version>1.0.2</trove.version>
+        <annotations.version>16.0.2</annotations.version>
+
 
         <!-- Version 1.6.0-scijava-3-SNAPSHOT of j3dcore addresses a minor issue
         https://github.com/fiji/3D_Viewer/issues/26
@@ -104,6 +107,7 @@
 
         <!-- NB: Deploy releases to the SciJava Maven repository. -->
         <releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
+
 
     </properties>
 
@@ -190,12 +194,11 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>16.0.2</version>
+            <version>${annotations.version}</version>
         </dependency>
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf</artifactId>
-<!--            <version>1.0</version>-->
         </dependency>
         <dependency>
             <groupId>net.imagej</groupId>
@@ -204,7 +207,7 @@
         <dependency>
             <groupId>trove</groupId>
             <artifactId>trove</artifactId>
-            <version>1.0.2</version>
+            <version>${trove.version}</version>
         </dependency>
         <dependency>
             <groupId>tech.tablesaw</groupId>
