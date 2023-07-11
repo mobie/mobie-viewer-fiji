@@ -83,11 +83,12 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		this.removeSpatialCalibration = removeSpatialCalibration;
 	}
 
-	public SpimDataImage( Site site, String name )
+	public SpimDataImage( Site site, String name, SharedQueue sharedQueue )
 	{
 		this.setupId = site.getChannel();
 		this.name = name;
 		this.site = site;
+		this.sharedQueue = sharedQueue;
 	}
 
 	@Override
@@ -165,6 +166,8 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 
 		transformedSource = new TransformedSource( source );
 		transformedSource.setFixedTransform( affineTransform3D );
+
+		//BdvFunctions.show( source );
 
 		sourcePair = new DefaultSourcePair( transformedSource, new TransformedSource( vSource, transformedSource ) );
 	}
