@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -39,16 +39,13 @@ import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.RealRandomAccessibleIntervalTimelapseSource;
-import org.embl.mobie.lib.source.VolatileAnnotationType;
 import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegion;
 import org.embl.mobie.lib.transform.TransformHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
@@ -58,12 +55,16 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	private final String name;
 
 	private final AnnData< AR > annData;
+	private final Set< Integer > timepoints;
 
 	private Source< AnnotationType< AR > > source;
 	private SourcePair< AnnotationType< AR > > sourcePair;
 	private RealMaskRealInterval mask;
 
 	private boolean debug = false;
+	private List< AR > annotations;
+	private List< RealMaskRealInterval > masks;
+
 
 	/**
 	 * Builds an image that annotates all {@code AnnotatedRegion} in the
@@ -86,19 +87,9 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	{
 		this.name = name;
 		this.annData = annData;
+		this.timepoints = timepoints;
 
 		if( debug ) logRegions();
-
-		final Interval interval = Intervals.smallestContainingInterval( getMask() );
-
-		// one could add a time point parameter to LocationToAnnotatedRegionSupplier
-		// and then make a Map< Timepoint, regions > and modify RealRandomAccessibleIntervalTimelapseSource to consume this map
-		final FunctionRealRandomAccessible< AnnotationType< AR > > regions = new FunctionRealRandomAccessible( 3, new LocationToAnnotatedRegionSupplier(), () -> new AnnotationType<>( annData.getTable().annotations().get( 0 ) ) );
-
-		// TODO it would be nice if this Source had the same voxel unit
-		//   as the other sources, but that would mean touching one of the
-		//   annotated images which could be expensive.
-		source = new RealRandomAccessibleIntervalTimelapseSource<>( regions, interval, new AnnotationType<>( annData.getTable().annotations().get( 0 ) ), new AffineTransform3D(), name, true, timepoints );
 	}
 
 	private void logRegions()
@@ -134,61 +125,36 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 		private class LocationToRegion implements BiConsumer< RealLocalizable, AnnotationType< AR > >
 		{
 			private RealMaskRealInterval recentMask;
-			private HashMap< RealMaskRealInterval, AR > maskToAnnotatedRegion;
+			private AR recentAnnotation;
 
 			public LocationToRegion()
 			{
-				maskToAnnotatedRegion = new HashMap<>();
-				final ArrayList< AR > annotations = annData.getTable().annotations();
-				for ( AR annotatedRegion : annotations )
-				{
-					// one could filter here for the timepoint of the annotation
-					// if the constructor of LocationToAnnotatedRegionSupplier
-					// would have a time point parameter
-					// in fact, rather, an annotatedRegion
-					// could/should(?) annotate all timepoints of the
-					// source that is referred to in the annotatedRegion
-					final RealMaskRealInterval mask = annotatedRegion.getMask();
-					maskToAnnotatedRegion.put( mask, annotatedRegion );
-				}
-				this.recentMask = maskToAnnotatedRegion.keySet().iterator().next();
+				this.recentMask = masks.get( 0 );
+				this.recentAnnotation = annotations.get( 0 );
 			}
 
 			@Override
 			public void accept( RealLocalizable location, AnnotationType< AR > value )
 			{
-				// TODO
-				//    There is a lof of background, which is expensive as one
-				//    needs to traverse the whole loop => implement a background mask
-				//    that is tested first.
-				//    This needs however: https://github.com/imglib/imglib2-roi/pull/63
-				//    Also this only makes sense if one can cache the mask such that it
-				//    it does not need to traverse (thus maybe not possible)?
-				//    Alternative: Is there some data structure that would allow to
-				//    first look for image annotations that are close to the point?
-				//    Maybe the idea with the most recent one is
-				//    still the best (see above)?
-
-				// It is likely that the next asked location
+				// It is likely that the next location
 				// is within the same mask, thus we test that one first
 				// to safe some computations.
 				if ( recentMask.test( location ) )
 				{
-					value.setAnnotation( maskToAnnotatedRegion.get( recentMask) );
+					value.setAnnotation( recentAnnotation );
 					return;
 				}
 
-				for ( Map.Entry< RealMaskRealInterval, AR > entry : maskToAnnotatedRegion.entrySet() )
+				for ( RealMaskRealInterval mask : masks )
 				{
-					final RealMaskRealInterval mask = entry.getKey();
-
 					if ( mask == recentMask )
-						continue;
+						continue; // because that one has been checked already above
 
 					if ( mask.test( location ) )
 					{
 						recentMask = mask;
-						value.setAnnotation( entry.getValue() );
+						recentAnnotation = annotations.get( masks.indexOf( recentMask ) );
+						value.setAnnotation( recentAnnotation );
 						return;
 					}
 				}
@@ -200,10 +166,30 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	}
 
 	@Override
-	public SourcePair< AnnotationType< AR > > getSourcePair()
+	public synchronized SourcePair< AnnotationType< AR > > getSourcePair()
 	{
 		if ( sourcePair == null )
 		{
+			final Interval interval = Intervals.smallestContainingInterval( getMask() );
+			// TODO: this could be more lazy and only done within getSourcePair
+			annotations = new ArrayList<>();
+			masks = new ArrayList<>();
+			final ArrayList< AR > annotations = annData.getTable().annotations();
+			for ( AR annotatedRegion : annotations )
+			{
+				masks.add( annotatedRegion.getMask() );
+				this.annotations.add( annotatedRegion );
+			}
+
+			// one could add a time point parameter to LocationToAnnotatedRegionSupplier
+			// and then make a Map< Timepoint, regions > and modify RealRandomAccessibleIntervalTimelapseSource to consume this map
+			final FunctionRealRandomAccessible< AnnotationType< AR > > regions = new FunctionRealRandomAccessible( 3, new LocationToAnnotatedRegionSupplier(), () -> new AnnotationType<>( annData.getTable().annotations().get( 0 ) ) );
+
+			// TODO it would be nice if this Source had the same voxel unit
+			//   as the other sources, but that would mean touching one of the
+			//   annotated images which could be expensive.
+			source = new RealRandomAccessibleIntervalTimelapseSource<>( regions, interval, new AnnotationType<>( annData.getTable().annotations().get( 0 ) ), new AffineTransform3D(), name, true, timepoints );
+
 			// There is no volatile implementation (yet), because the
 			// {@code Source} should be fast enough,
 			// and probably a volatile version would need an {@code CachedCellImg},

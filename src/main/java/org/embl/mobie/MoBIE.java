@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -34,35 +34,32 @@ import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import ij.WindowManager;
 import loci.common.DebugTools;
-import lombok.val;
 import mpicbg.spim.data.generic.AbstractSpimData;
-import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.ImgLoader;
 import net.imagej.ImageJ;
-import org.apache.commons.io.FilenameUtils;
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.S3Utils;
+import org.embl.mobie.lib.AnnotatedLabelImageCreator;
 import org.embl.mobie.lib.DataStore;
-import org.embl.mobie.lib.ImageSources;
-import org.embl.mobie.lib.LabelSources;
-import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.files.ImageFileSources;
+import org.embl.mobie.lib.files.FileSourcesDataSetter;
+import org.embl.mobie.lib.files.LabelFileSources;
+import org.embl.mobie.lib.files.SourcesFromPathsCreator;
+import org.embl.mobie.lib.SourcesFromTableCreator;
+import org.embl.mobie.lib.SpimDataAdder;
+import org.embl.mobie.lib.SpotImageCreator;
 import org.embl.mobie.lib.ThreadHelper;
-import org.embl.mobie.lib.annotation.AnnotatedRegion;
-import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.lib.annotation.AnnotatedSegment;
-import org.embl.mobie.lib.annotation.AnnotatedSpot;
-import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
-import org.embl.mobie.lib.annotation.LazyAnnotatedSegmentAdapter;
-import org.embl.mobie.lib.hcs.HCSDataSetter;
+import org.embl.mobie.lib.hcs.HCSDataAdder;
 import org.embl.mobie.lib.hcs.Plate;
 import org.embl.mobie.lib.hcs.Site;
-import org.embl.mobie.lib.image.AnnotatedLabelImage;
-import org.embl.mobie.lib.image.DefaultAnnotatedLabelImage;
+import org.embl.mobie.lib.image.CachedCellImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.SpimDataImage;
-import org.embl.mobie.lib.image.SpotAnnotationImage;
+import org.embl.mobie.lib.io.DataFormats;
 import org.embl.mobie.lib.io.IOHelper;
-import org.embl.mobie.lib.plugins.platybrowser.GeneSearchCommand;
+import org.embl.mobie.lib.io.StorageLocation;
+import org.embl.mobie.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.lib.serialize.DataSource;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.DatasetJsonParser;
@@ -73,47 +70,25 @@ import org.embl.mobie.lib.serialize.RegionDataSource;
 import org.embl.mobie.lib.serialize.SegmentationDataSource;
 import org.embl.mobie.lib.serialize.SpotDataSource;
 import org.embl.mobie.lib.serialize.View;
-import org.embl.mobie.lib.serialize.display.Display;
-import org.embl.mobie.lib.serialize.display.ImageDisplay;
-import org.embl.mobie.lib.serialize.display.RegionDisplay;
-import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
-import org.embl.mobie.lib.io.StorageLocation;
-import org.embl.mobie.lib.serialize.transformation.MergedGridTransformation;
-import org.embl.mobie.lib.source.Metadata;
-import org.embl.mobie.lib.table.DefaultAnnData;
-import org.embl.mobie.lib.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.lib.table.TableDataFormat;
-import org.embl.mobie.lib.table.TableSource;
-import org.embl.mobie.lib.table.columns.SegmentColumnNames;
 import org.embl.mobie.lib.table.saw.TableOpener;
-import org.embl.mobie.lib.table.saw.TableSawAnnotatedSegment;
-import org.embl.mobie.lib.table.saw.TableSawAnnotatedSegmentCreator;
-import org.embl.mobie.lib.table.saw.TableSawAnnotatedSpot;
-import org.embl.mobie.lib.table.saw.TableSawAnnotatedSpotCreator;
-import org.embl.mobie.lib.table.saw.TableSawAnnotationCreator;
-import org.embl.mobie.lib.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.lib.transform.GridType;
-import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
 import org.embl.mobie.lib.ui.UserInterface;
 import org.embl.mobie.lib.ui.WindowArrangementHelper;
 import org.embl.mobie.lib.view.ViewManager;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
-import spimdata.util.Displaysettings;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
 import javax.annotation.Nullable;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -134,7 +109,6 @@ public class MoBIE
 	}
 
 	private static MoBIE moBIE;
-	public static boolean openedFromCLI = false;
 	public static ImageJ imageJ;
 
 	private String projectLocation;
@@ -148,7 +122,7 @@ public class MoBIE
 	private ViewManager viewManager;
 	private UserInterface userInterface;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
-	private ArrayList< String > projectCommands = new ArrayList<>();
+	private final ArrayList< String > projectCommands = new ArrayList<>();
 
 	public MoBIE( String projectLocation ) throws IOException
 	{
@@ -157,12 +131,12 @@ public class MoBIE
 
 	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
+		this.settings = settings;
+		this.projectLocation = projectLocation;
+
 		initTableSaw();
 
 		initImageJAndMoBIE();
-
-		this.settings = settings;
-		this.projectLocation = projectLocation;
 
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening: " + projectLocation );
@@ -170,11 +144,16 @@ public class MoBIE
 		openMoBIEProject();
 	}
 
+	public static MoBIE getInstance()
+	{
+		return moBIE;
+	}
+
 	private void initTableSaw()
 	{
 		// force TableSaw class loading
 		// to save time during the actual loading
-		// TOD: this makes no sense if we don't open a project with tables
+		// TODO: this makes no sense if we don't open a project with tables
 		Table.read().usingOptions( CsvReadOptions.builderFromString( "aaa\tbbb" ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" ) );
 	}
 
@@ -191,55 +170,34 @@ public class MoBIE
 		openHCSDataset( relativeWellMargin, relativeSiteMargin );
 	}
 
-	// TODO: add label tables
-	public MoBIE( Data data, List< String > images, List< String > labels, String root, GridType grid, MoBIESettings settings ) throws IOException
+	public MoBIE( List< String > imagePaths, List< String > labelPaths, List< String > labelTablePaths, String root, GridType grid, MoBIESettings settings ) throws IOException
 	{
-		assert data.equals( Data.Files );
-
 		this.settings = settings;
 
-		openFiles( images, labels, root, grid );
+		System.out.println( "root: " + root );
+		System.out.println( "images: " + Arrays.toString( imagePaths.toArray() ) );
+		System.out.println( "labels: " + Arrays.toString( labelPaths.toArray() ) );
+		System.out.println( "tables: " + Arrays.toString( labelTablePaths.toArray() ) );
+
+		final SourcesFromPathsCreator sourcesCreator = new SourcesFromPathsCreator( imagePaths, labelPaths, labelTablePaths, root, grid );
+
+		final List< ImageFileSources > imageFileSources = sourcesCreator.getImageSources();
+		final List< LabelFileSources > labelSources = sourcesCreator.getLabelSources();
+
+		openImagesAndLabels( imageFileSources, labelSources );
 	}
 
-	public MoBIE( Data data, String tablePath, List< String > images, List< String > labels, String root, GridType grid, MoBIESettings settings ) throws IOException
+	// open an image or object table
+	public MoBIE( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, GridType grid, MoBIESettings settings ) throws IOException
 	{
-		assert data.equals( Data.Table );
-
 		this.settings = settings;
 
-		openTable( tablePath, images, labels, root, grid );
-	}
+		final SourcesFromTableCreator sourcesCreator = new SourcesFromTableCreator( tablePath, imageColumns, labelColumns, root, grid );
 
-	private void openTable( String tablePath, List< String > images, List< String > labels, String root, GridType gridType )
-	{
-		final Table table = Table.read().file( new File( tablePath ) );
+		final List< ImageFileSources > imageFileSources = sourcesCreator.getImageSources();
+		final List< LabelFileSources > labelSources = sourcesCreator.getLabelSources();
 
-		final List< ImageSources > imageSources = new ArrayList<>();
-		for ( String image : images )
-		{
-			final String[] nameAndColumn = getNameAndColumn( image );
-			imageSources.add( new ImageSources( nameAndColumn[ 0 ], table, nameAndColumn[ 1 ], root,  gridType ) );
-		}
-
-		final List< LabelSources > labelSources = new ArrayList<>();
-		for ( String label : labels )
-		{
-			final String[] nameAndColumn = getNameAndColumn( label );
-			labelSources.add( new LabelSources( nameAndColumn[ 0 ], table, nameAndColumn[ 1 ], root,  gridType ) );
-		}
-
-		openImagesAndLabels( imageSources, labelSources );
-	}
-
-	private String[] getNameAndColumn( String string )
-	{
-		final String[] split = string.split( "=" );
-		if ( split.length == 2 )
-			return split;
-		else if ( split.length == 1 )
-			return new String[]{ string, string };
-		else
-			throw new UnsupportedOperationException( "Too many \"=\" signs found!" );
+		openImagesAndLabels( imageFileSources, labelSources );
 	}
 
 	private void openMoBIEProject() throws IOException
@@ -249,200 +207,34 @@ public class MoBIE
 		registerProjectPlugins( projectLocation );
 		project = new ProjectJsonParser().parseProject( combinePath( projectRoot, "project.json" ) );
 		if ( project.getName() == null ) project.setName( getFileName( projectLocation ) );
-		setDataFormats( projectLocation );
+		settings.addTableDataFormat( TableDataFormat.TSV );
 		openAndViewDataset();
 	}
 
-	// TODO: add label tables
-	private void openFiles( List< String > imageRegex, List< String > labelsRegex, String root, GridType grid )
-	{
-		//		if ( tablePaths != null && tablePaths[ 0 ].contains( "*" ) )
-		//			tablePaths = IOHelper.getPaths( tablePaths[ 0 ], 999 );
-
-		final List< ImageSources > imageSources = new ArrayList<>();
-		for ( String regex : imageRegex )
-		{
-			//			final List< String > groups = MoBIEHelper.getGroupNames( regex );
-			//			if ( groups.size() > 0 )
-			//			{
-			//				final Pattern pattern = Pattern.compile( regex );
-			//				final Set< String > set = new LinkedHashSet<>();
-			//				for ( String path : paths )
-			//				{
-			//					final Matcher matcher = pattern.matcher( path );
-			//					matcher.matches();
-			//					set.add( matcher.group( 1 ) );
-			//				}
-			//
-			//				final ArrayList< String > categories = new ArrayList<>( set );
-			//				final int[] numSources = new int[ categories.size() ];
-			//				grid.positions = new ArrayList<>();
-			//				for ( String source : sources )
-			//				{
-			//					final Matcher matcher = pattern.matcher( source );
-			//					matcher.matches();
-			//					final int row = categories.indexOf( matcher.group( rowGroup ) );
-			//					final int column = numSources[ row ];
-			//					numSources[ row ]++;
-			//					grid.positions.add( new int[]{ column, row } );
-			//				}
-			//			}
-			//			}
-			//			else
-			//			{
-			final String name = FilenameUtils.removeExtension( new File( regex ).getName() );
-			imageSources.add( new ImageSources( name, regex, root, grid ) );
-		}
-
-		List< LabelSources > labelSources = new ArrayList<>();
-		for ( String regex : labelsRegex )
-		{
-			final String name = FilenameUtils.removeExtension( new File( regex ).getName() );
-			labelSources.add( new LabelSources( name, regex, root, grid ) );
-		}
-
-		openImagesAndLabels( imageSources, labelSources );
-	}
-
 	// TODO 2D or 3D?
-	private void openImagesAndLabels( List< ImageSources > images, List< LabelSources > labels )
+	private void openImagesAndLabels( List< ImageFileSources > images, List< LabelFileSources > labels )
 	{
 		initImageJAndMoBIE();
 
-		initProject( "Project" );
+		initProject( "" );
 
-		final ArrayList< ImageSources > allSources = new ArrayList<>();
-		allSources.addAll( images );
-		allSources.addAll( labels );
-
-		// create and add data sources to the dataset
-		for ( ImageSources sources : allSources )
-		{
-			for ( String name : sources.getSources() )
-			{
-				final String path = sources.getPath( name );
-				ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
-				final StorageLocation storageLocation = new StorageLocation();
-				storageLocation.absolutePath = path;
-				storageLocation.channel = sources.getChannel();
-				if ( sources instanceof LabelSources )
-				{
-					final TableSource tableSource = ( ( LabelSources ) sources ).getLabelTable( name );
-					SegmentationDataSource segmentationDataSource = SegmentationDataSource.create( name, imageDataFormat, storageLocation, tableSource );
-					segmentationDataSource.preInit( false );
-					dataset.addDataSource( segmentationDataSource );
-				}
-				else
-				{
-					final ImageDataSource imageDataSource = new ImageDataSource( name, imageDataFormat, storageLocation );
-					imageDataSource.preInit( false );
-					dataset.addDataSource( imageDataSource );
-				}
-			}
-		}
-
-		for ( ImageSources sources : allSources )
-		{
-			if ( sources.getGridType().equals( GridType.Merged ) )
-			{
-				// init table for the RegionDisplay
-				final StorageLocation storageLocation = new StorageLocation();
-				storageLocation.data = sources.getRegionTable();
-				final RegionDataSource regionDataSource = new RegionDataSource( sources.getName() );
-				regionDataSource.addTable( TableDataFormat.Table, storageLocation );
-				DataStore.putRawData( regionDataSource );
-
-				// init RegionDisplay
-				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( sources.getName() + " table" );
-				regionDisplay.sources = new LinkedHashMap<>();
-				regionDisplay.tableSource = regionDataSource.getName();
-				regionDisplay.showAsBoundaries( true );
-				regionDisplay.setBoundaryThickness( 0.05 );
-				regionDisplay.boundaryThicknessIsRelative( true );
-				regionDisplay.setOpacity( 1.0 );
-				final int numTimePoints = sources.getMetadata().numTimePoints;
-				for ( int t = 0; t < numTimePoints; t++ )
-					regionDisplay.timepoints().add( t );
-
-				final List< String > sourceNames = sources.getSources();
-				final int numRegions = sourceNames.size();
-				for ( int regionIndex = 0; regionIndex < numRegions; regionIndex++ )
-				{
-					regionDisplay.sources.put( sourceNames.get( regionIndex ), Collections.singletonList( sourceNames.get( regionIndex ) ) );
-				}
-
-				// create grid transformation
-				final MergedGridTransformation grid = new MergedGridTransformation( sources.getName() );
-				grid.sources = sources.getSources();
-				grid.metadataSource = sources.getMetadataSource();
-
-				// create displays
-				//
-				final ArrayList< Display< ? > > displays = new ArrayList<>();
-
-				if ( sources instanceof LabelSources )
-				{
-					// SegmentationDisplay
-					displays.add( new SegmentationDisplay<>( grid.getName(), Collections.singletonList( grid.getName() ) ) );
-				}
-				else
-				{
-					// ImageDisplay
-					final Metadata metadata = sources.getMetadata();
-					displays.add( new ImageDisplay<>( grid.getName(), Collections.singletonList( grid.getName() ), metadata.color, metadata.contrastLimits ) );
-				}
-
-				displays.add( regionDisplay );
-
-				// create grid view
-				//
-				final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( grid.getSources().get( 0 ), 0 );
-				final View gridView = new View( sources.getName(), "grids", displays, Arrays.asList( grid ), viewerTransform, false );
-				//gridView.overlayNames( true ); // Timepoint bug:
-				dataset.views().put( gridView.getName(), gridView );
-			}
-			else
-			{
-				//					for ( int gridPosition = 0; gridPosition < numRegions; gridPosition++ )
-//					{
-//						try
-//						{
-//							final String sourceName = sources.get( gridPosition );
-//							grid.nestedSources.get( gridPosition ).add( sourceName );
-//							regionDisplay.sources.get( "grid_" + gridPosition ).add( sourceName );
-//						}
-//						catch ( Exception e )
-//						{
-//							e.printStackTrace();
-//						}
-//					}
-//				}
-
-				throw new UnsupportedOperationException( "Grid type currently not supported.");
-			}
-		}
+		new FileSourcesDataSetter( images, labels ).addData( dataset );
 
 		initUIandShowView( dataset.views().keySet().iterator().next() );
 	}
 
-	// use this constructor from the Fiji UI
-	//
-	// images: convert all image data to {@code SpimData}
-	// before calling this constructor.
-	// {@code SpimDataOpener} in mobie-io provides methods for this.
-	//
-	// tables: provide the {@code StorageLocation}
-	// and the {@code TableDataFormat}.
-	public MoBIE( String projectName, AbstractSpimData< ? > image, @Nullable AbstractSpimData< ? > segmentation, @Nullable StorageLocation tableStorageLocation, @Nullable TableDataFormat tableDataFormat )
+	public MoBIE( String projectName, AbstractSpimData< ? > image, @Nullable AbstractSpimData< ? > labels, @Nullable StorageLocation tableStorageLocation, @Nullable TableDataFormat tableDataFormat )
 	{
+		settings = new MoBIESettings();
+
 		initImageJAndMoBIE();
 
 		initProject( projectName );
 
-		addSpimDataImages( image, false, null, null );
+		final SpimDataAdder spimDataAdder = new SpimDataAdder( image, labels, tableStorageLocation, tableDataFormat );
 
-		if ( segmentation != null )
-			addSpimDataImages( segmentation, true, tableStorageLocation, tableDataFormat );
+		// TODO: Do I really need the settings here?
+		spimDataAdder.addData( dataset, settings );
 
 		initUIandShowView( null );
 	}
@@ -451,8 +243,10 @@ public class MoBIE
 	{
 		DebugTools.setRootLevel( "OFF" ); // Disable Bio-Formats logging
 
-		if ( MoBIE.openedFromCLI )
+		if ( settings.values.isOpenedFromCLI() )
 		{
+			// TODO: if possible open init the SciJava Services
+			//   by different means
 			imageJ = new ImageJ(); // Init SciJava Services
 			imageJ.ui().showUI(); // Enable SciJava Command rendering
 		}
@@ -463,6 +257,7 @@ public class MoBIE
 			IJ.log("Detected running MoBIE instance.");
 			moBIE.close();
 		}
+
 		moBIE = this;
 	}
 
@@ -471,13 +266,13 @@ public class MoBIE
 		initProject( "HCS" );
 		final Plate plate = new Plate( projectLocation );
 		IJ.log( "HCS Pattern: " + plate.getHcsPattern() );
-		new HCSDataSetter().addPlateToDataset( plate, dataset, wellMargin, siteMargin );
+		new HCSDataAdder( plate, wellMargin, siteMargin ).addData( dataset );
 		initUIandShowView( dataset.views().keySet().iterator().next() );
 	}
 
 	private void initUIandShowView( @Nullable String view )
 	{
-		initUI();
+		buildUI();
 
 		if ( view == null )
 		{
@@ -494,13 +289,11 @@ public class MoBIE
 	private void adjustLogWindow( UserInterface userInterface )
 	{
 		final Window userInterfaceWindow = userInterface.getWindow();
-		IJ.log( " " ); // ensure that the window exists
+		IJ.log( " " ); // ensures that the window exists
 		WindowArrangementHelper.bottomAlignWindow( userInterfaceWindow, WindowManager.getWindow( "Log" ), true, true );
 	}
 
-	/*
-	Use this if there is no project.json
-	 */
+	// use this if there is no project.json
 	private void initProject( String projectName )
 	{
 		if ( settings == null ) settings = new MoBIESettings();
@@ -508,7 +301,7 @@ public class MoBIE
 		dataset = new Dataset( project.getName() );
 		project.datasets().add( dataset.getName() );
 		project.setDefaultDataset( dataset.getName() );
-		dataset.is2D( true ); 
+		dataset.is2D( true );
 	}
 
 	public String getProjectLocation()
@@ -521,92 +314,11 @@ public class MoBIE
 		return project;
 	}
 
-	private void addSpimDataImages(
-			AbstractSpimData< ? > spimData,
-			boolean isSegmentation,
-			@Nullable StorageLocation tableStorageLocation, // for segmentations
-			@Nullable TableDataFormat tableDataFormat // for segmentations
-	)
-	{
-		final ImageDataFormat imageDataFormat = ImageDataFormat.SpimData;
-		settings.addImageDataFormat( imageDataFormat );
-		if ( tableDataFormat != null )
-			settings.addTableDataFormat( tableDataFormat );
-
-		final int numSetups = spimData.getSequenceDescription().getViewSetupsOrdered().size();
-
-		for ( int setupIndex = 0; setupIndex < numSetups; setupIndex++ )
-		{
-			final StorageLocation storageLocation = new StorageLocation();
-			storageLocation.data = spimData;
-			storageLocation.channel = setupIndex;
-			final String setupName = spimData.getSequenceDescription().getViewSetupsOrdered().get( setupIndex ).getName();
-			String imageName = getImageName( setupName, numSetups, setupIndex );
-
-			DataSource dataSource;
-			if ( isSegmentation )
-			{
-				dataSource = new SegmentationDataSource( imageName, imageDataFormat, storageLocation, tableDataFormat, tableStorageLocation );
-				addSegmentationView( dataSource.getName(), spimData, setupIndex );
-			}
-			else
-			{
-				dataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
-				addImageView( spimData, setupIndex, imageName );
-			}
-
-			dataSource.preInit( true );
-			dataset.addDataSource( dataSource );
-			dataset.is2D( MoBIEHelper.is2D( spimData, setupIndex ) );
-		}
-	}
-
-	private void addImageView( AbstractSpimData< ? > spimData, int imageIndex, String imageName )
-	{
-		final Displaysettings displaysettings = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex ).getAttribute( Displaysettings.class );
-
-		String color = "White";
-		double[] contrastLimits = null;
-
-		if ( displaysettings != null )
-		{
-			// FIXME: Wrong color from Bio-Formats
-			//    https://forum.image.sc/t/bio-formats-color-wrong-for-imagej-images/76021/15
-			//    https://github.com/BIOP/bigdataviewer-image-loaders/issues/8
-			color = "White"; // ColorHelper.getString( displaysettings.color );
-			contrastLimits = new double[]{ displaysettings.min, displaysettings.max };
-			//System.out.println( imageName + ": contrast limits = " + Arrays.toString( contrastLimits ) );
-		}
-
-		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, Arrays.asList( imageName ), color, contrastLimits );
-		final View view = new View( imageName, "images", Arrays.asList( imageDisplay ), null, false );
-		dataset.views().put( view.getName(), view );
-	}
-
-	private String getImageName( String imagePath, int numImages, int imageIndex )
-	{
-		String imageName = FilenameUtils.removeExtension( new File( imagePath ).getName() );
-		if ( numImages > 1 )
-			imageName += "_ch" + imageIndex;
-		return imageName;
-	}
-
-	private void addSegmentationView( String imageName, AbstractSpimData< ? > spimData, int setupId  )
-	{
-		final SegmentationDisplay< ? > display = new SegmentationDisplay<>( imageName, Arrays.asList( imageName ) );
-
-		final BasicViewSetup viewSetup = spimData.getSequenceDescription().getViewSetupsOrdered().get( setupId );
-		final double pixelWidth = viewSetup.getVoxelSize().dimension( 0 );
-		display.setResolution3dView( new Double[]{ pixelWidth, pixelWidth, pixelWidth } );
-
-		final View view = new View( imageName, "segmentations", Arrays.asList( display ), null, false );
-		dataset.views().put( view.getName(), view );
-	}
-
+	// TODO not used?!
 	private StorageLocation configureCommandLineImageLocation( String imagePath, int channel, ImageDataFormat imageDataFormat )
 	{
 		final StorageLocation imageStorageLocation = new StorageLocation();
-		imageStorageLocation.channel = channel;
+		imageStorageLocation.setChannel( channel );
 
 		if ( imageDataFormat.isRemote() )
 		{
@@ -637,36 +349,6 @@ public class MoBIE
 		{
 			S3Utils.setS3AccessAndSecretKey( settings.values.getS3AccessAndSecretKey() );
 		}
-	}
-
-	// set whether to open data from local or remote
-	private void setDataFormats( String projectLocation )
-	{
-		// images
-		//
-		final Set< ImageDataFormat > imageDataFormat = settings.values.getImageDataFormats();
-
-		if ( imageDataFormat.size() == 0 )
-		{
-			if ( projectLocation.startsWith( "http" ) )
-			{
-				 settings.addImageDataFormat( ImageDataFormat.OmeZarrS3 );
-				 settings.addImageDataFormat( ImageDataFormat.BdvOmeZarrS3 );
-				 settings.addImageDataFormat( ImageDataFormat.BdvN5S3 );
-				 settings.addImageDataFormat( ImageDataFormat.OpenOrganelleS3 );
-			}
-			else
-			{
-				settings.addImageDataFormat( ImageDataFormat.OmeZarr );
-				settings.addImageDataFormat( ImageDataFormat.BdvOmeZarr );
-				settings.addImageDataFormat( ImageDataFormat.BdvN5 );
-				settings.addImageDataFormat( ImageDataFormat.BdvHDF5 );
-			}
-		}
-
-		// tables
-		//
-		settings.addTableDataFormat( TableDataFormat.TSV );
 	}
 
 	private void openAndViewDataset() throws IOException
@@ -747,17 +429,16 @@ public class MoBIE
 
 		// log views
 		System.out.println("# Available views");
-		for ( String s : getViews().keySet() )
-			System.out.println( s );
+		for ( String view : getViews().keySet() )
+			System.out.println( view );
 
 		// build UI and show view
-		initUI();
+		buildUI();
 		viewManager.show( getView( viewName, dataset ) );
 	}
 
-	private void initUI()
+	private void buildUI()
 	{
-		IJ.log( "# MoBIE" );
 		sourceNameToImgLoader = new HashMap<>();
 		userInterface = new UserInterface( this );
 		adjustLogWindow( userInterface );
@@ -810,54 +491,33 @@ public class MoBIE
 			ThreadHelper.resetIOThreads();
 			viewManager.close();
 			IJ.log( "MoBIE closed." );
-			IJ.log( "Closing MoBIE may have lead to errors due to processes that are interrupted." );
-			IJ.log( "Usually it is fine to ignore those errors." );
+			if ( settings.values.isOpenedFromCLI() )
+				System.exit( 0 );
 		}
-		catch ( Exception e )
+		catch ( RuntimeException e )
 		{
 			IJ.log( "[ERROR] Could not fully close MoBIE." );
 			e.printStackTrace();
+			if ( settings.values.isOpenedFromCLI() )
+				System.exit( 1 );
 		}
-
-	}
-
-	public synchronized DataSource getData( String sourceName )
-	{
-		return dataset.sources().get( sourceName );
 	}
 
 	private ImageDataFormat getImageDataFormat( ImageDataSource imageSource )
 	{
-		final Set< ImageDataFormat > settingsFormats = settings.values.getImageDataFormats();
+		final List< ImageDataFormat > formats = DataFormats.getImageDataFormats( settings.values.getPreferentialLocation() );
 
-		if ( settingsFormats.size() == 0 )
+		// The {@code formats} contain all supported image data formats sorted in
+		// order of preference. This preference is set by the user when opening the project.
+		for ( ImageDataFormat format : formats )
 		{
-			/*
-				there is no preferred image data format specified,
-				thus we simply return the first (and potentially only)
-				source format
-			 */
-			return imageSource.imageData.keySet().iterator().next();
-		}
-
-		for ( ImageDataFormat sourceFormat : imageSource.imageData.keySet() )
-		{
-			if ( settingsFormats.contains( sourceFormat ) )
+			if ( imageSource.imageData.keySet().contains( format ) )
 			{
-				/*
-					return the first source format that
-				    matches what is required by the settings
-				 */
-				return sourceFormat;
+				return format;
 			}
 		}
 
-		for ( ImageDataFormat dataFormat : imageSource.imageData.keySet() )
-			System.err.println("Source supports: " + dataFormat);
-		for ( ImageDataFormat dataFormat : settingsFormats )
-			System.err.println("Settings require: " + dataFormat);
-
-		throw new RuntimeException( "Error identifying an image data format for: " + imageSource.getName() );
+		throw new RuntimeException( "Could not find a storage location for: " + imageSource.getName() );
 	}
 
 	public TableDataFormat getTableDataFormat( Map< TableDataFormat, StorageLocation > tableData )
@@ -931,8 +591,7 @@ public class MoBIE
 
 	public String absolutePath( String... files )
 	{
-		final String datasetRoot = combinePath( projectRoot, getDataset().getName() );
-		String location = datasetRoot;
+		String location = combinePath( projectRoot, getDataset().getName() );
 		for ( String file : files )
 			location = combinePath( location, file );
 		return location;
@@ -965,29 +624,14 @@ public class MoBIE
     public synchronized String getImageLocation( ImageDataFormat imageDataFormat, StorageLocation storageLocation )
 	{
 		switch (imageDataFormat) {
-			case Tiff:
-			case ImageJ:
-			case BioFormats:
-			case BdvHDF5:
-			case BdvN5:
-			case BdvOmeZarr:
-			case BdvOmeZarrS3: // assuming that the xml is not at storageLocation.s3Address
-			case BdvN5S3: // assuming that the xml is not at storageLocation.s3Address
-			case OmeZarr:
-            	if ( storageLocation.absolutePath != null  )
-				{
-					return storageLocation.absolutePath;
-				}
-				else
-				{
-					// construct absolute from relative path
-					return combinePath( imageRoot, dataset.getName(), storageLocation.relativePath );
-				}
-            case OpenOrganelleS3:
+			case OpenOrganelleS3:
             case OmeZarrS3:
                 return storageLocation.s3Address;
             default:
-                throw new UnsupportedOperationException( "File format not supported: " + imageDataFormat );
+				if ( storageLocation.absolutePath != null  )
+					return storageLocation.absolutePath;
+				else
+					return combinePath( imageRoot, dataset.getName(), storageLocation.relativePath );
         }
     }
 
@@ -1010,11 +654,10 @@ public class MoBIE
 
 		for ( DataSource dataSource : dataSources )
 		{
-			// FIXME Cache SpimData?
+			// TODO Cache SpimData?
 			//   https://github.com/mobie/mobie-viewer-fiji/issues/857
-			// FIXME This currently only is used for region tables,
+			// TODO This currently only is used for region tables,
 			//   and thus seems to be of no general use
-			//   also consider:
 			if ( DataStore.containsRawData( dataSource.getName() ) )
 			{
 				continue;
@@ -1046,7 +689,7 @@ public class MoBIE
 			{
 				// force initialization here to save time later
 				// (i.e. help smooth rendering in BDV)
-				final Source source = image.getSourcePair().getSource();
+				final Source< ? > source = image.getSourcePair().getSource();
 				final int levels = source.getNumMipmapLevels();
 				for ( int level = 0; level < levels; level++ )
 					source.getSource( 0, level ).randomAccess();
@@ -1054,27 +697,9 @@ public class MoBIE
 
 			if ( dataSource.getClass() == SegmentationDataSource.class )
 			{
-				final SegmentationDataSource segmentationDataSource = ( SegmentationDataSource ) dataSource;
-
-				if ( segmentationDataSource.tableData != null )
-				{
-					// label image representing annotated segments
-					TableSawAnnotationTableModel< TableSawAnnotatedSegment > tableModel = createTableModel( segmentationDataSource );
-					final DefaultAnnData< TableSawAnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
-					final DefaultAnnotationAdapter< TableSawAnnotatedSegment > annotationAdapter = new DefaultAnnotationAdapter( annData );
-					final AnnotatedLabelImage< TableSawAnnotatedSegment > annotatedLabelImage = new DefaultAnnotatedLabelImage( image, annData, annotationAdapter );
-					DataStore.putImage( annotatedLabelImage );
-				}
-				else
-				{
-					// label image representing segments without annotation table
-
-					final LazyAnnotatedSegmentTableModel tableModel = new LazyAnnotatedSegmentTableModel( image.getName() );
-					final DefaultAnnData< AnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
-					final LazyAnnotatedSegmentAdapter segmentAdapter = new LazyAnnotatedSegmentAdapter( image.getName(), tableModel );
-					final DefaultAnnotatedLabelImage< ? > annotatedLabelImage = new DefaultAnnotatedLabelImage( image, annData, segmentAdapter );
-					DataStore.putImage( annotatedLabelImage );
-				}
+				// label image
+				final AnnotatedLabelImageCreator labelImageCreator = new AnnotatedLabelImageCreator( this, ( SegmentationDataSource ) dataSource, image );
+				DataStore.putImage( labelImageCreator.create() );
 			}
 			else
 			{
@@ -1085,25 +710,9 @@ public class MoBIE
 
 		if ( dataSource instanceof SpotDataSource )
 		{
-			//final long start = System.currentTimeMillis();
-			final SpotDataSource spotDataSource = ( SpotDataSource ) dataSource;
-			final StorageLocation tableLocation = getTableLocation( spotDataSource.tableData );
-			final TableDataFormat tableFormat = getTableDataFormat( spotDataSource.tableData );
-
-			Table table = TableOpener.open( tableLocation, tableFormat );
-
-			final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator( table );
-
-			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, tableLocation, tableFormat, table );
-
-			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
-
-			final SpotAnnotationImage< AnnotatedSpot > spotAnnotationImage = new SpotAnnotationImage( spotDataSource.getName(), spotAnnData, 1.0, spotDataSource.boundingBoxMin, spotDataSource.boundingBoxMax );
-
-			// Spots image, built from spots table
-			DataStore.putImage( spotAnnotationImage );
-
-			// System.out.println("Created spots image " + spotsImage.getName() + " with " + spotAnnData.getTable().numAnnotations() + " spots in [ms] " + ( System.currentTimeMillis() - start ));
+			// build spots image from spots table
+			final SpotImageCreator spotImageCreator = new SpotImageCreator( ( SpotDataSource ) dataSource, this );
+			DataStore.putImage( spotImageCreator.create() );
 		}
 
 		if ( dataSource instanceof RegionDataSource )
@@ -1113,7 +722,6 @@ public class MoBIE
 			// to images that are created later by means of a
 			// transformation.
 			// However, we can already load the region table here.
-
 			final RegionDataSource regionDataSource = ( RegionDataSource ) dataSource;
 			final StorageLocation tableLocation = getTableLocation( regionDataSource.tableData );
 			final TableDataFormat tableFormat = getTableDataFormat( regionDataSource.tableData );
@@ -1125,30 +733,18 @@ public class MoBIE
 			IJ.log( log + dataSource.getName() );
 	}
 
-	private TableSawAnnotationTableModel< TableSawAnnotatedSegment > createTableModel( SegmentationDataSource dataSource )
-	{
-		final StorageLocation tableLocation = getTableLocation( dataSource.tableData );
-		final TableDataFormat tableFormat = getTableDataFormat( dataSource.tableData );
 
-		Table table = null;
-		SegmentColumnNames segmentColumnNames = null;
-		if ( dataSource.preInit() )
-			table = TableOpener.open( tableLocation, tableFormat );
-		if ( table != null )
-			segmentColumnNames = TableDataFormat.getSegmentColumnNames( table.columnNames() );
-
-		final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( segmentColumnNames, table );
-
-		final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, tableLocation, tableFormat, table );
-
-		return tableModel;
-	}
-
-	private SpimDataImage< ? > initImage( ImageDataFormat imageDataFormat, StorageLocation storageLocation, String name )
+	private Image< ? > initImage( ImageDataFormat imageDataFormat, StorageLocation storageLocation, String name )
 	{
 		if ( imageDataFormat.equals( ImageDataFormat.SpimData ) )
 		{
-			return new SpimDataImage<>( ( AbstractSpimData ) storageLocation.data, storageLocation.channel, name, settings.values.getRemoveSpatialCalibration() );
+			return new SpimDataImage<>( ( AbstractSpimData ) storageLocation.data, storageLocation.getChannel(), name, settings.values.getRemoveSpatialCalibration() );
+		}
+
+		if ( imageDataFormat.equals( ImageDataFormat.IlastikHDF5 ) )
+		{
+			final CachedCellImage< ? > image = new CachedCellImage<>( name, storageLocation.absolutePath, storageLocation.getChannel(), imageDataFormat, ThreadHelper.sharedQueue );
+			return image;
 		}
 
 		if ( storageLocation instanceof Site )
@@ -1158,9 +754,8 @@ public class MoBIE
 
 		// TODO improve caching: https://github.com/mobie/mobie-viewer-fiji/issues/857
 		final String imagePath = getImageLocation( imageDataFormat, storageLocation );
-		final SpimDataImage spimDataImage = new SpimDataImage( imageDataFormat, imagePath, storageLocation.channel, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
+		final SpimDataImage spimDataImage = new SpimDataImage( imageDataFormat, imagePath, storageLocation.getChannel(), name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
 		return spimDataImage;
-
 	}
 
 	public List< DataSource > getDataSources( Set< String > names )

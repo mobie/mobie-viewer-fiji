@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -43,7 +43,15 @@ public class MergedGridTransformation extends AbstractGridTransformation
 	public boolean centerAtOrigin = false; // TODO: should actually be true, but: https://github.com/mobie/mobie-viewer-fiji/issues/685#issuecomment-1108179599
 
 	// Runtime
-	public int timepoints = 1; // the number of timepoints that the sources span
+	public transient int timepoints = 1; // the number of timepoints that the sources span
+
+	public transient boolean lazyLoadTables = true;
+
+	// Needed for GSON to populate the default values
+	public MergedGridTransformation()
+	{
+		super();
+	}
 
 	public MergedGridTransformation( String mergedGridSourceName )
 	{

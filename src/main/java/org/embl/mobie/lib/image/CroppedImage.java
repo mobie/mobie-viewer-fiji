@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.image;
 
+import bdv.img.hdf5.Hdf5ImageLoader;
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;

@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -76,9 +76,11 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 
 		for ( Image< AnnotationType< A > > image : display.images() )
 		{
-			SourceAndConverter sourceAndConverter = createSourceAndConverter( display, image );
+			SourceAndConverter< ? > sourceAndConverter = createSourceAndConverter( display, image );
 
-			show( sourceAndConverter );
+			configureRendering( sourceAndConverter );
+
+			display.sliceViewer.show( image, sourceAndConverter, display );
 
 			if ( display instanceof SegmentationDisplay )
 			{
@@ -92,6 +94,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 
 				final SpotAnnotationImage spotAnnotationImage = ( ( SpotAnnotationImage ) image );
 				spotAnnotationImage.setRadius( spotDisplay.spotRadius );
+
 				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, SpotAnnotationImage.class.getName(), spotAnnotationImage );
 			}
 		}
@@ -132,8 +135,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 
 	private void show( SourceAndConverter< ? > sourceAndConverter )
 	{
-		configureRendering( sourceAndConverter );
-		display.sliceViewer.show( sourceAndConverter, display );
+
 	}
 
 	private void configureRendering( SourceAndConverter< ? > sourceAndConverter )
@@ -153,6 +155,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 					final String someSource = display.sources.get( someRegion ).get( 0 );
 					final RealMaskRealInterval mask = DataStore.getImage( someSource ).getMask();
 					final double width = mask.realMax( 0 ) - mask.realMin( 0 );
+					// negative ?!
 					boundaryThickness = width * boundaryThickness;
 				}
 			}

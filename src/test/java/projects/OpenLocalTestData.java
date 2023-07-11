@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -40,6 +40,6 @@ public class OpenLocalTestData
 	public static void main( String[] args ) throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
-		final MoBIE moBIE = new MoBIE("/g/emcf/pape/mobie-test-projects", MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5 ));
+		final MoBIE moBIE = new MoBIE("/g/emcf/pape/mobie-test-projects", MoBIESettings.settings() );
 	}
 }

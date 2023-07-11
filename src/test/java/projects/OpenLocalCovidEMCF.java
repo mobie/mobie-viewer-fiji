@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -43,7 +43,7 @@ public class OpenLocalCovidEMCF
 		imageJ.ui().showUI();
 		try {
 			new MoBIE("/Volumes/emcf/common/5792_Sars-Cov-2/covid-em/data",
-					MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5 ) );
+					MoBIESettings.settings() );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

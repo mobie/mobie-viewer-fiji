@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -39,8 +39,8 @@ import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.sequence.ViewSetup;
 import net.imglib2.Dimensions;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.command.internal.ScreenShotMakerCommand;
-import org.embl.mobie.command.internal.ShowRasterImagesCommand;
+import org.embl.mobie.command.context.ScreenShotMakerCommand;
+import org.embl.mobie.command.context.ShowRasterImagesCommand;
 import org.embl.mobie.lib.bdv.SourcesAtMousePositionSupplier;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;

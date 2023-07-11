@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -49,7 +49,7 @@ public class VolatileBoundarySource< T extends Type< T >, V extends Volatile< T 
     }
 
     @Override
-    protected RealRandomAccessible< V > createBoundaryImage( RealRandomAccessible< V > rra, ArrayList< Integer > boundaryDimensions, double[] pixelUnitsBoundaryWidth )
+    protected RealRandomAccessible< V > createBoundaryRealRandomAccessible( RealRandomAccessible< V > rra, ArrayList< Integer > boundaryDimensions, double[] pixelUnitsBoundaryWidth )
     {
         BiConsumer< RealLocalizable, V > boundaries = ( l, output ) ->
         {
@@ -64,7 +64,7 @@ public class VolatileBoundarySource< T extends Type< T >, V extends Volatile< T 
             // assumes that the default variable is the background value
             final V background = input.createVariable();
 
-            // set to valid background...
+            // set to valid background
             output.set( background );
             output.setValid( true );
 

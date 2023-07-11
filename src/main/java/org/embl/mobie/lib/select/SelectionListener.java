@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,19 +28,12 @@
  */
 package org.embl.mobie.lib.select;
 
-/**
+/*
  * Interface for listeners of a {@link SelectionModel}.
- *
  */
 public interface SelectionListener< T >
 {
-	/**
-	 * Notifies when the select has changed.
-	 */
 	void selectionChanged();
 
-	/**
-	 * Notifies when a focus event happened.
-	 */
 	void focusEvent( T selection, Object initiator );
 }

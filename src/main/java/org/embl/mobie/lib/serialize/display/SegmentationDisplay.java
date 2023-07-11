@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,6 +29,7 @@
 package org.embl.mobie.lib.serialize.display;
 
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
+import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.color.lut.LUTs;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 
@@ -103,7 +104,7 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Abstract
 			boolean showSelectedSegmentsIn3d,
 			boolean showScatterPlot,
 			@Nullable String[] scatterPlotAxes,
-			@Nullable List< String > tables,
+			@Nullable List< String > additionalTables,
 			@Nullable Double[] resolution3dView )
 	{
 		this.name = name;
@@ -116,7 +117,7 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Abstract
 		this.showSelectedSegmentsIn3d = showSelectedSegmentsIn3d;
 		this.showScatterPlot = showScatterPlot;
 		this.scatterPlotAxes = scatterPlotAxes;
-		this.additionalTables = tables;
+		this.additionalTables = additionalTables;
 		this.resolution3dView = resolution3dView;
 	}
 

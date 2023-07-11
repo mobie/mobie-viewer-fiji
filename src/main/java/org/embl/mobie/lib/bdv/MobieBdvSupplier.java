@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -66,6 +66,8 @@ public class MobieBdvSupplier implements IBdvSupplier {
         Prefs.sourceNameOverlayPosition( Prefs.OverlayPosition.TOP_RIGHT );
 
         BdvOptions options = sOptions.getBdvOptions();
+
+        //options = options.screenScales(new double[]{1,0.25});
 
         // create dummy image to instantiate a BDV
         ArrayImg< ByteType, ByteArray > dummyImg = ArrayImgs.bytes(2, 2, 2);

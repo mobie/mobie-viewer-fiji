@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -30,22 +30,24 @@ package org.embl.mobie.lib.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.command.internal.BigWarpRegistrationCommand;
-import org.embl.mobie.command.internal.ConfigureLabelRenderingCommand;
-import org.embl.mobie.command.internal.ManualRegistrationCommand;
-import org.embl.mobie.command.internal.ScreenShotMakerCommand;
-import org.embl.mobie.command.internal.ShowRasterImagesCommand;
-import org.embl.mobie.command.internal.SourceInfoLoggerCommand;
+import org.embl.mobie.command.context.BigWarpRegistrationCommand;
+import org.embl.mobie.command.context.ConfigureLabelRenderingCommand;
+import org.embl.mobie.command.context.ManualRegistrationCommand;
+import org.embl.mobie.command.context.ScreenShotMakerCommand;
+import org.embl.mobie.command.context.ShowRasterImagesCommand;
+import org.embl.mobie.command.context.SourceInfoLoggerCommand;
 import org.embl.mobie.command.view.ViewerTransformLoggerCommand;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.lib.bdv.MobieBdvSupplier;
 import org.embl.mobie.lib.bdv.MobieSerializableBdvOptions;
-import org.embl.mobie.lib.bdv.SourceNameOverlay;
+import org.embl.mobie.lib.bdv.ImageNameOverlay;
 import org.embl.mobie.lib.bdv.SourcesAtMousePositionSupplier;
 import org.embl.mobie.lib.bdv.blend.AccumulateAlphaBlendingProjectorARGB;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.color.OpacityHelper;
+import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.serialize.display.AbstractDisplay;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.ui.WindowArrangementHelper;
@@ -59,7 +61,7 @@ import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.Window;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -80,7 +82,7 @@ public class SliceViewer
 
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 	private final SourceAndConverterService sacService;
-	private SourceNameOverlay sourceNameOverlay;
+	private ImageNameOverlay imageNameOverlay;
 
 	public SliceViewer( MoBIE moBIE, boolean is2D )
 	{
@@ -101,7 +103,7 @@ public class SliceViewer
 
 		sacDisplayService.registerBdvHandle( bdvHandle );
 
-		sourceNameOverlay = new SourceNameOverlay( bdvHandle, false );
+		imageNameOverlay = new ImageNameOverlay( bdvHandle, false, this );
 
 		installContextMenuAndKeyboardShortCuts();
 
@@ -109,9 +111,9 @@ public class SliceViewer
 
 	}
 
-	public SourceNameOverlay getSourceNameOverlay()
+	public ImageNameOverlay getImageNameOverlay()
 	{
-		return sourceNameOverlay;
+		return imageNameOverlay;
 	}
 
 	public synchronized BdvHandle getBdvHandle()
@@ -212,11 +214,14 @@ public class SliceViewer
 		return SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
 	}
 
-	public void show( SourceAndConverter< ? > sourceAndConverter, AbstractDisplay display )
+	public void show( Image< ? > image, SourceAndConverter< ? > sourceAndConverter, AbstractDisplay display )
 	{
 		// register
 		SourceAndConverterServices.getSourceAndConverterService().register( sourceAndConverter );
 		display.sourceAndConverters().add( sourceAndConverter );
+
+		// link to image
+		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, Image.class.getName(), image );
 
 		// blending mode
 		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.class.getName(), display.getBlendingMode() );
@@ -245,6 +250,10 @@ public class SliceViewer
 		int maxNumTimePoints = 1;
 		for ( SourceAndConverter< ? > sac : sacs )
 		{
+			final Image< ? > image = ( Image ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sac, Image.class.getName() );
+			if ( image instanceof RegionAnnotationImage )
+				continue; // https://github.com/mobie/mobie-viewer-fiji/issues/975
+
 			int numTimepoints = SourceHelper.getNumTimepoints( sac.getSpimSource() );
 			if ( numTimepoints > maxNumTimePoints ) maxNumTimePoints = numTimepoints;
 		}

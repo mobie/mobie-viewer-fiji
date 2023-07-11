@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -33,10 +33,8 @@ import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.lib.create.JSONValidator;
 import org.embl.mobie.lib.io.StorageLocation;
-import org.everit.json.schema.Schema;
-import org.everit.json.schema.ValidationException;
-import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,12 +42,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.embl.mobie.lib.create.JSONValidator.validate;
 
 class DatasetJsonParserTest {
 
@@ -62,13 +61,6 @@ class DatasetJsonParserTest {
     private DatasetJsonParser datasetJsonParser;
     private String datasetJsonName = "dataset.json";
 
-    @BeforeAll
-    static void downloadSchema() throws IOException {
-        try( InputStream schemaInputStream = IOHelper.getInputStream(
-                "https://raw.githubusercontent.com/mobie/mobie.github.io/master/schema/dataset.schema.json") ) {
-            datasetSchema = new JSONObject(new JSONTokener(schemaInputStream));
-        }
-    }
 
     @BeforeEach
     void setUp( @TempDir Path tempDir ) throws IOException {
@@ -84,24 +76,8 @@ class DatasetJsonParserTest {
         dataset.sources().put("testSource", imageSource );
     }
 
-    void validateJSON( String jsonPath ) throws IOException {
 
-        try( InputStream jsonInputStream = new FileInputStream( jsonPath ) ) {
-            JSONObject jsonSubject = new JSONObject(new JSONTokener(jsonInputStream));
-
-            // library only supports up to draft 7 json schema - specify here, otherwise errors when reads 2020-12 in
-            // the schema file
-            SchemaLoader loader = SchemaLoader.builder()
-                    .schemaJson(datasetSchema)
-                    .draftV7Support()
-                    .build();
-            Schema schema = loader.load().build();
-
-            schema.validate(jsonSubject);
-        }
-    }
-
-    //@Test
+    //@Test // FIXME does that work on CI?
     public void savePlatyView() throws IOException
     {
         final ImageJ imageJ = new ImageJ();
@@ -109,26 +85,19 @@ class DatasetJsonParserTest {
 
         final MoBIE moBIE = new MoBIE("https://github.com/mobie/platybrowser-project", MoBIESettings.settings());
 
-        // show a view with a segmentation and selected cells that loads fast, to test saving
+        // show a view with a segmentation and
+        // selected cells that loads fast, to test saving
         final Map< String, View > views = moBIE.getViews();
         moBIE.getViewManager().show( views.get("Suppl. Fig. 2A: Neuron" ) );
 
         // grab the current view and save it
-        View view  = moBIE.getViewManager().createViewFromCurrentState( uiSelectionGroup, isExclusive, true );
+        View view = moBIE.getViewManager().createViewFromCurrentState( uiSelectionGroup, isExclusive, true );
         dataset.views().put( viewName, view );
 
-        String jsonPath = new File( tempDir, datasetJsonName ).getAbsolutePath();
-        datasetJsonParser.saveDataset( dataset, jsonPath );
+        String datasetJSONPath = new File( tempDir, datasetJsonName ).getAbsolutePath();
+        datasetJsonParser.saveDataset( dataset, datasetJSONPath );
 
-        try {
-            validateJSON(jsonPath);
-        } catch ( ValidationException e ) {
-            // print details of individual errors - so error message is more informative, then re-throw the exception
-            System.out.println(e.getMessage());
-            e.getCausingExceptions().stream()
-                    .map(ValidationException::getMessage)
-                    .forEach(System.out::println);
-            throw e;
-        }
+        // FIXME this needs assertTrue
+        validate(datasetJSONPath, JSONValidator.datasetSchemaURL);
     }
 }

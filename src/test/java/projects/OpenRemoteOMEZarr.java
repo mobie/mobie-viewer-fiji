@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -32,7 +32,7 @@ import net.imagej.ImageJ;
 
 import java.io.IOException;
 
-import org.embl.mobie.command.open.OpenOMEZARRFromS3Command;
+import org.embl.mobie.command.open.omezarr.OpenOMEZARRFromS3Command;
 
 public class OpenRemoteOMEZarr
 {

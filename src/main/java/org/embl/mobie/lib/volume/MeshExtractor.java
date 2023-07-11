@@ -1,8 +1,8 @@
 /*-
  * #%L
- * Various Java code for ImageJ
+ * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -447,9 +447,6 @@ public class MeshExtractor< T extends Type< T > >
 
 	private final BooleanSupplier wasInterrupted;
 
-	/**
-	 * Initialize the class parameters with default values
-	 */
 	public MeshExtractor(
 			final RandomAccessible< T > input,
 			final Interval interval, 
@@ -467,10 +464,12 @@ public class MeshExtractor< T extends Type< T > >
 	/**
 	 * Creates the mesh using the information directly from the RAI structure
 	 *
-	 * @return
-	 * @param segment
+	 * @param type
+	 * 			any Type
+	 *
+	 * @return the mesh
 	 */
-	public float[] extractMesh( T segment )
+	public float[] extractMesh( T type )
 	{
 		final long[]                   stride           = Arrays.stream(cubeSize).mapToLong(i -> i).toArray();
 		final FinalInterval            expandedInterval = Intervals.expand(
@@ -592,14 +591,14 @@ public class MeshExtractor< T extends Type< T > >
 			// This way, we need to remap the cube vertices:
 			// @formatter:on
 			final int vertexValues =
-					(cursor5.next().valueEquals( segment )  ? 0b00000001 : 0) |
-					(cursor7.next().valueEquals( segment ) ? 0b00000010 : 0) |
-					(cursor3.next().valueEquals( segment ) ? 0b00000100 : 0) |
-					(cursor1.next().valueEquals( segment ) ? 0b00001000 : 0) |
-					(cursor4.next().valueEquals( segment ) ? 0b00010000 : 0) |
-					(cursor6.next().valueEquals( segment ) ? 0b00100000 : 0) |
-					(cursor2.next().valueEquals( segment ) ? 0b01000000 : 0) |
-					(cursor0.next().valueEquals( segment ) ? 0b10000000 : 0);
+					(cursor5.next().valueEquals( type )  ? 0b00000001 : 0) |
+					(cursor7.next().valueEquals( type ) ? 0b00000010 : 0) |
+					(cursor3.next().valueEquals( type ) ? 0b00000100 : 0) |
+					(cursor1.next().valueEquals( type ) ? 0b00001000 : 0) |
+					(cursor4.next().valueEquals( type ) ? 0b00010000 : 0) |
+					(cursor6.next().valueEquals( type ) ? 0b00100000 : 0) |
+					(cursor2.next().valueEquals( type ) ? 0b01000000 : 0) |
+					(cursor0.next().valueEquals( type ) ? 0b10000000 : 0);
 
 			triangulation(
 					vertexValues,

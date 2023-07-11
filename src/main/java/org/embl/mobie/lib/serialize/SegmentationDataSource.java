@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,12 +29,10 @@
 package org.embl.mobie.lib.serialize;
 
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.lib.LabelSources;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 

@@ -1,8 +1,8 @@
 /*-
  * #%L
- * Various Java code for ImageJ
+ * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -63,13 +63,14 @@ public abstract class ColorHelper
 		return getString( getARGBType( lut ) );
 	}
 
+	// convert a color to a string
+	// https://github.com/mobie/mobie-viewer-fiji/issues/924
 	public static String getString( ARGBType argbType )
 	{
 		if ( argbType == null ) return null;
 
 		final int colorIndex = argbType.get();
-		// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/924
-		final String string = "" + ARGBType.red( colorIndex ) + "-" + ARGBType.green( colorIndex ) + "-" + ARGBType.blue( colorIndex ) + "-" + ARGBType.alpha( colorIndex );
+		final String string = "r" + ARGBType.red( colorIndex ) + "-g" + ARGBType.green( colorIndex ) + "-b" + ARGBType.blue( colorIndex ) + "-a" + ARGBType.alpha( colorIndex );
 		return string;
 	}
 
@@ -84,13 +85,19 @@ public abstract class ColorHelper
 
 	// convert a string to a color
 	// trying various encodings
+	// https://github.com/mobie/mobie-viewer-fiji/issues/924
 	public static ARGBType getARGBType( String string )
 	{
 		if ( string == null ) return null;
 		if ( string.equals( "" ) ) return null;
 
-		Pattern pattern = Pattern.compile("(.+)-(.+)-(.+)-(.+)");
+		Pattern pattern = Pattern.compile("r(.+)-g(.+)-b(.+)-a(.+)");
 		Matcher matcher = pattern.matcher(string);
+		if ( matcher.matches() )
+			return getArgbType( matcher );
+
+		pattern = Pattern.compile("(.+)-(.+)-(.+)-(.+)");
+		matcher = pattern.matcher(string);
 		if ( matcher.matches() )
 			return getArgbType( matcher );
 

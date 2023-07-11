@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -40,14 +40,14 @@ import net.imglib2.type.numeric.RealType;
 import javax.annotation.Nullable;
 import java.util.Map;
 
-public class TransformedTimepointSource<T extends NumericType<T> & RealType<T>> implements Source<T>, SourceWrapper<T>
+public class TransformedTimepointSource< T > implements Source<T>, SourceWrapper<T>
 {
     private final String name;
     private final Source<T> source;
     private Map< Integer, Integer > timepoints; // new to old
     private boolean keep;
 
-    public TransformedTimepointSource( @Nullable String name, final Source< T > source, Map< Integer, Integer > timepoints, boolean keep )
+    public TransformedTimepointSource( String name, final Source< T > source, Map< Integer, Integer > timepoints, boolean keep )
     {
         this.name = name;
         this.source = source;
@@ -130,9 +130,9 @@ public class TransformedTimepointSource<T extends NumericType<T> & RealType<T>> 
         }
         else
         {
-            // missing t crashes: https://github.com/bigdataviewer/bigdataviewer-core/issues/140
-            System.err.println( "Access at non-existing timepoint: " + t + "; returning t = 0 instead.");
-            Thread.dumpStack();
+            // TODO missing t crashes: https://github.com/bigdataviewer/bigdataviewer-core/issues/140
+            // System.err.println( "Access at non-existing timepoint: " + t + "; returning t = 0 instead.");
+            //Thread.dumpStack();
             return 0;
         }
     }

@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -42,6 +42,7 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.annotation.Annotation;
+import org.embl.mobie.lib.bdv.ImageNameOverlay;
 import org.embl.mobie.lib.bdv.view.AnnotationSliceView;
 import org.embl.mobie.lib.bdv.view.ImageSliceView;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
@@ -52,10 +53,10 @@ import org.embl.mobie.lib.color.MobieColoringModel;
 import org.embl.mobie.lib.color.NumericAnnotationColoringModel;
 import org.embl.mobie.lib.color.lut.ColumnARGBLut;
 import org.embl.mobie.lib.color.lut.LUTs;
-import org.embl.mobie.lib.image.AnnotatedLabelImage;
+import org.embl.mobie.lib.image.AnnotationImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
-import org.embl.mobie.lib.image.StitchedAnnotatedLabelImage;
+import org.embl.mobie.lib.image.StitchedAnnotationImage;
 import org.embl.mobie.lib.image.StitchedImage;
 import org.embl.mobie.lib.plot.ScatterPlotSettings;
 import org.embl.mobie.lib.plot.ScatterPlotView;
@@ -72,12 +73,14 @@ import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.CropTransformation;
 import org.embl.mobie.lib.serialize.transformation.GridTransformation;
 import org.embl.mobie.lib.serialize.transformation.MergedGridTransformation;
+import org.embl.mobie.lib.serialize.transformation.TimepointsTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.image.CroppedImage;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.table.AnnotationTableModel;
+import org.embl.mobie.lib.table.ConcatenatedAnnotationTableModel;
 import org.embl.mobie.lib.table.RegionDisplayAnnDataCreator;
 import org.embl.mobie.lib.table.TableView;
 import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
@@ -285,9 +288,6 @@ public class ViewManager
 					currentDisplays.get( 0 ) ).applyMultiSourceTransform();
 		}
 
-		// set rendering of source name overlay
-		getSliceViewer().getSourceNameOverlay().transformChanged( sliceViewer.getBdvHandle().getViewerPanel().state().getViewerTransform() );
-
 		// adapt time point
 		if ( view.getViewerTransform() != null )
 		{
@@ -298,7 +298,9 @@ public class ViewManager
 		}
 
 		// overlay names
-		getSliceViewer().getSourceNameOverlay().setActive( view.overlayNames() );
+		final ImageNameOverlay imageNameOverlay = getSliceViewer().getImageNameOverlay();
+		userInterface.setImageNameOverlay( imageNameOverlay );
+		imageNameOverlay.setActive( view.overlayNames() );
 
 		IJ.log("Opened view: " + view.getName() + " in " + (System.currentTimeMillis() - startTime) + " ms." );
 	}
@@ -366,11 +368,12 @@ public class ViewManager
 					for ( Image< ? > image : images )
 					{
 						final Image< ? > transformedImage =
-							ImageTransformer.transform(
-									image,
-									affineTransformation.getAffineTransform3D(),
-									affineTransformation.getTransformedImageName( image.getName() ) );
+								ImageTransformer.affineTransform(
+										image,
+										affineTransformation.getAffineTransform3D(),
+										affineTransformation.getTransformedImageName( image.getName() ) );
 						DataStore.putImage( transformedImage );
+
 					}
 				}
 				else if ( transformation instanceof CropTransformation )
@@ -399,9 +402,19 @@ public class ViewManager
 
 					// Create the stitched grid image
 					//
-					if ( gridImages.get( 0 ) instanceof AnnotatedLabelImage )
+					if ( gridImages.get( 0 ) instanceof AnnotationImage )
 					{
-						final StitchedAnnotatedLabelImage< ? extends Annotation> annotatedStitchedImage = new StitchedAnnotatedLabelImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.getName(), mergedGridTransformation.margin );
+						final StitchedAnnotationImage< ? extends Annotation > annotatedStitchedImage = new StitchedAnnotationImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.getName(), mergedGridTransformation.margin );
+
+						if ( ! mergedGridTransformation.lazyLoadTables
+								&& annotatedStitchedImage.getAnnData().getTable() instanceof ConcatenatedAnnotationTableModel )
+						{
+							// force loading of all tables to enable meaningful
+							// row sorting and creating a meaningful scatterplot
+							final ConcatenatedAnnotationTableModel< ? extends Annotation > concatenatedTableModel = ( ConcatenatedAnnotationTableModel ) annotatedStitchedImage.getAnnData().getTable();
+							concatenatedTableModel.loadAllTables();
+						}
+
 						DataStore.putImage( annotatedStitchedImage );
 					}
 					else
@@ -449,6 +462,23 @@ public class ViewManager
 					final List< ? extends Image< ? > > transformedImages = ImageTransformer.gridTransform( nestedImages, gridTransformation.transformedNames, gridPositions, tileRealDimensions, gridTransformation.centerAtOrigin, offset );
 
 					DataStore.putImages( transformedImages );
+				}
+				else if ( transformation instanceof TimepointsTransformation )
+				{
+					final TimepointsTransformation< ? > timepointsTransformation = ( TimepointsTransformation ) transformation;
+
+					final Set< Image< ? > > images = DataStore.getImageSet( timepointsTransformation.getSources() );
+
+					for ( Image< ? > image : images )
+					{
+						final Image< ? > transformedImage =
+								ImageTransformer.applyTimepointsTransform(
+										image,
+										timepointsTransformation.getTimepointsMapping(),
+										timepointsTransformation.isKeep(),
+										timepointsTransformation.getTransformedImageName( image.getName() ) );
+						DataStore.putImage( transformedImage );
+					}
 				}
 				else
 				{
@@ -527,8 +557,11 @@ public class ViewManager
 			final Set< String > selectedAnnotationIds = annotationDisplay.selectedAnnotationIds();
 			if ( selectedAnnotationIds != null )
 			{
-				final Set< A > annotations = annotationDisplay.annotationAdapter().getAnnotations( selectedAnnotationIds );
-				annotationDisplay.selectionModel.setSelected( annotations, true );
+				final List< A > selectedAnnotations = annotationDisplay
+						.getAnnData().getTable().annotations().stream()
+						.filter( a -> selectedAnnotationIds.contains( a.uuid() ) )
+						.collect( Collectors.toList() );
+				annotationDisplay.selectionModel.setSelected( selectedAnnotations, true );
 			}
 
 			// configure coloring model
@@ -578,7 +611,7 @@ public class ViewManager
 				throw new UnsupportedOperationException("Coloring LUT " + lut + " is not supported.");
 			}
 
-			// show in slice viewer
+			// show the data
 			//
 			annotationDisplay.sliceViewer = sliceViewer;
 			annotationDisplay.sliceView = new AnnotationSliceView<>( moBIE, annotationDisplay );
@@ -634,12 +667,13 @@ public class ViewManager
 	private void initTableView( AbstractAnnotationDisplay< ? extends Annotation > display )
 	{
 		display.tableView = new TableView( display );
-		// Note that currently we must show the table here
-		// in order to instantiate the window.
-		// This window is needed in {@code UserInterfaceHelper}
-		// in the function {@code createWindowVisibilityCheckbox},
-		// in which the table window will be
-		// hidden, if {@code display.showTable == false}.
+		// TODO: Note that currently we must show the table here
+		//   in order to instantiate the window.
+		//   This window is needed in {@code UserInterfaceHelper}
+		//   in the function {@code createWindowVisibilityCheckbox},
+		//   in which the table window will be
+		//   hidden, if {@code display.showTable == false}.
+		//   It would be good if we would not have to show it.
 		display.tableView.show();
 		setTablePosition( display.sliceViewer.getWindow(), display.tableView.getWindow() );
 		display.selectionModel.listeners().add( display.tableView );

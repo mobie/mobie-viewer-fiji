@@ -1,8 +1,8 @@
 /*-
  * #%L
- * Various Java code for ImageJ
+ * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -49,7 +49,7 @@ import java.util.stream.IntStream;
  * we only need one KDTree and not multiple, but it also does not
  * hurt, so I left it like this.
  *
- * @param <A>
+ * @param <A> an annotation
  */
 public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplier< KDTree< A > >
 {
@@ -77,7 +77,7 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 	 * because the KDTree modifies those lists internally,
 	 * which would lead to confusion and concurrency issues.
 	 *
-	 * @return
+	 * @return KDTree
 	 */
 	@Override
 	public KDTree< A > get()

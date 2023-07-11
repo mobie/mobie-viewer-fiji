@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -41,6 +41,6 @@ public class OpenRemoteCOMULIS
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE("https://s3.embl.de/comulis", MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvOmeZarrS3 ).s3AccessAndSecretKey( new String[]{"UYP3FNN3V5F0P86DR2O3","3EL7Czzg0vVwx2L4v27GQiX0Ct1GkMHS+tbcJR3D"} ) );
+		new MoBIE("https://s3.embl.de/comulis", MoBIESettings.settings().s3AccessAndSecretKey( new String[]{"UYP3FNN3V5F0P86DR2O3","3EL7Czzg0vVwx2L4v27GQiX0Ct1GkMHS+tbcJR3D"} ) );
 	}
 }

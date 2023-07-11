@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -61,7 +61,7 @@ class DatasetsCreatorTest {
         String datasetName = "test";
         datasetsCreator.addDataset(datasetName, false);
 
-        Project project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
+        Project project = new ProjectJsonParser().parseProject(projectCreator.getProjectJson().getAbsolutePath() );
         assertEquals(project.datasets().size(), 1);
         assertEquals(project.datasets().get(0), datasetName);
         assertTrue(new File(projectCreator.getProjectLocation(), datasetName).exists());
@@ -74,7 +74,7 @@ class DatasetsCreatorTest {
         datasetsCreator.addDataset(oldDatasetName, false);
         datasetsCreator.renameDataset(oldDatasetName, newDatasetName);
 
-        Project project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
+        Project project = new ProjectJsonParser().parseProject(projectCreator.getProjectJson().getAbsolutePath() );
         assertEquals(project.datasets().size(), 1);
         assertEquals(project.datasets().get(0), newDatasetName);
         assertTrue(new File(projectCreator.getProjectLocation(), newDatasetName).exists());
@@ -88,25 +88,27 @@ class DatasetsCreatorTest {
         datasetsCreator.addDataset(dataset1Name, false);
         datasetsCreator.addDataset(dataset2Name, false);
 
-        Project project;
-        project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
+        String projectJSONPath = projectCreator.getProjectJson().getAbsolutePath();
+        Project project = new ProjectJsonParser().parseProject( projectJSONPath );
         assertEquals( project.getDefaultDataset(), dataset1Name );
+        assertTrue( JSONValidator.validate( projectJSONPath, JSONValidator.projectSchemaURL ) );
 
         datasetsCreator.makeDefaultDataset( dataset2Name );
-
-        project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
+        projectJSONPath = projectCreator.getProjectJson().getAbsolutePath();
+        project = new ProjectJsonParser().parseProject( projectJSONPath );
         assertEquals( project.getDefaultDataset(), dataset2Name );
+        assertTrue( JSONValidator.validate( projectJSONPath, JSONValidator.projectSchemaURL ) );
     }
 
     @Test
     void makeDataset2D() throws IOException {
         String datasetName = "test";
-        String datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
-                datasetName, "dataset.json" );
+        String datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "dataset.json" );
 
         Dataset dataset;
+
         datasetsCreator.addDataset(datasetName, false);
-        dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
+        dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
         assertFalse( dataset.is2D() );
 
         datasetsCreator.makeDataset2D(datasetName, true);

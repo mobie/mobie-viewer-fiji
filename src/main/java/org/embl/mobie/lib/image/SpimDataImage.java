@@ -1,3 +1,31 @@
+/*-
+ * #%L
+ * Fiji viewer for MoBIE projects
+ * %%
+ * Copyright (C) 2018 - 2023 EMBL
+ * %%
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * #L%
+ */
 package org.embl.mobie.lib.image;
 
 import bdv.SpimSource;
@@ -23,7 +51,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 {
 	private ImageDataFormat imageDataFormat;
 	private String path;
-	private int setupId;
+	private int setupId = 0;
 	private SourcePair< T > sourcePair;
 	private String name;
 	private Site site;
@@ -34,15 +62,15 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	private TransformedSource transformedSource;
 	private AffineTransform3D affineTransform3D = new AffineTransform3D();
 
-	public SpimDataImage( AbstractSpimData< ? > spimData, int channel, String name, Boolean removeSpatialCalibration  )
+	public SpimDataImage( AbstractSpimData< ? > spimData, Integer setupId, String name, Boolean removeSpatialCalibration  )
 	{
 		this.imageDataFormat = null;
 		this.path = null;
 		this.sharedQueue = null;
-		this.setupId = channel;
+		this.setupId = setupId == null ? 0 : setupId;
 		this.name = name;
 		this.removeSpatialCalibration = removeSpatialCalibration;
-		createSourcePair( spimData, channel, name );
+		createSourcePair( spimData, setupId, name );
 	}
 
 	public SpimDataImage( ImageDataFormat imageDataFormat, String path, int setupId, String name, @Nullable SharedQueue sharedQueue, Boolean removeSpatialCalibration )
@@ -57,7 +85,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 
 	public SpimDataImage( Site site, String name )
 	{
-		this.setupId = site.channel;
+		this.setupId = site.getChannel();
 		this.name = name;
 		this.site = site;
 	}
@@ -147,7 +175,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		{
 			if ( site != null )
 			{
-				return SiteSpimDataCreator.create( site );
+				return SiteSpimDataCreator.create( site, sharedQueue );
 			}
 
 			return new SpimDataOpener().open( path, imageDataFormat, sharedQueue );

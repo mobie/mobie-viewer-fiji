@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -42,7 +42,7 @@ public class OpenRemoteOpenOrganelle
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
         try {
-            new MoBIE("https://github.com/mobie/open-organelle-test", MoBIESettings.settings().addImageDataFormat( ImageDataFormat.OpenOrganelleS3) );
+            new MoBIE("https://github.com/mobie/open-organelle-test", MoBIESettings.settings() );
         } catch (IOException e) {
             e.printStackTrace();
         }

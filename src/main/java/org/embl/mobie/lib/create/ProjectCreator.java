@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -80,11 +80,6 @@ public class ProjectCreator {
         move
     }
 
-    /**
-     * Make a project creator, allowing creation / editing of projects
-     * @param projectLocation directory that contains the project.json and individual dataset directories
-     * @throws IOException
-     */
     public ProjectCreator( File projectLocation ) throws IOException {
         this.projectLocation = projectLocation;
         if ( ! projectLocation.exists() )
@@ -95,7 +90,7 @@ public class ProjectCreator {
         } else {
             this.project = new Project();
             project.setDatasets( new ArrayList<>() );
-            project.setSpecVersion( "0.2.0" );
+            project.setSpecVersion( "0.3.0" );
         }
 
         this.datasetsCreator = new DatasetsCreator( this );
@@ -119,10 +114,6 @@ public class ProjectCreator {
 
     public File getProjectJson() { return projectJson; }
 
-    /**
-     * Reload project by parsing the project.json again
-     * @throws IOException
-     */
     public void reloadProject() throws IOException {
         this.project = new ProjectJsonParser().parseProject( projectJson.getAbsolutePath() );
     }
@@ -148,11 +139,6 @@ public class ProjectCreator {
         }
     }
 
-    /**
-     * Get names of uiSelectionGroups in this dataset
-     * @param datasetName dataset name
-     * @return names of uiSelectionGroups
-     */
     public String[] getGroups( String datasetName ) {
         if ( !datasetName.equals(currentDatasetName) ) {
             getDataset( datasetName );
@@ -166,12 +152,6 @@ public class ProjectCreator {
         return groups;
     }
 
-    /**
-     * Get names of views in this dataset and uiSelectionGroup
-     * @param datasetName dataset name
-     * @param uiSelectionGroup uiSelectionGroup
-     * @return names of views
-     */
     public String[] getViews( String datasetName, String uiSelectionGroup ) {
         if ( !datasetName.equals(currentDatasetName) ) {
             getDataset( datasetName );
@@ -184,7 +164,6 @@ public class ProjectCreator {
 
         return views;
     }
-
     public String getVoxelUnit() {
         return voxelUnit;
     }
@@ -193,10 +172,6 @@ public class ProjectCreator {
         this.voxelUnit = voxelUnit;
     }
 
-    /**
-     * Reload current dataset by parsing the dataset.json again
-     * @throws IOException
-     */
     public void reloadCurrentDataset() throws IOException {
         if ( currentDatasetName != null ) {
             this.currentDataset = new DatasetJsonParser().parseDataset(currentDatasetJson.getAbsolutePath());

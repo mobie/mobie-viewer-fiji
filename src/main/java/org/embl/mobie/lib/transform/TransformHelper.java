@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,9 +35,7 @@ import bdv.viewer.ViewerPanel;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
-import org.embl.mobie.lib.playground.SourceAffineTransformer;
 import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.serialize.transformation.AbstractGridTransformation;
 import org.embl.mobie.lib.source.Masked;
 import org.embl.mobie.lib.source.SourceHelper;
 import net.imglib2.RealInterval;
@@ -49,7 +47,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class TransformHelper
@@ -72,17 +69,7 @@ public class TransformHelper
 		return union;
 	}
 
-	public static SourceAndConverter< ? > centerAtOrigin( SourceAndConverter< ? > sourceAndConverter )
-	{
-		final AffineTransform3D translate = new AffineTransform3D();
-		final AffineTransform3D sourceTransform = new AffineTransform3D();
-		sourceAndConverter.getSpimSource().getSourceTransform( 0,0, sourceTransform );
-		final double[] center = getCenter( sourceAndConverter );
-		translate.translate( center );
-		final SourceAffineTransformer transformer = new SourceAffineTransformer( translate.inverse(), false );
-		sourceAndConverter = transformer.apply( sourceAndConverter );
-		return sourceAndConverter;
-	}
+
 
 	public static double[] getCenter( Image< ? > image, int t )
 	{
@@ -290,9 +277,14 @@ public class TransformHelper
 	}
 
 
-	public static RealMaskRealInterval getUnionMask( Collection< ? extends Masked > masks )
+	public static RealMaskRealInterval getUnionMask( Collection< ? extends Masked > maskeds )
 	{
-		// use below code once https://github.com/imglib/imglib2-roi/pull/63 is merged
+		if ( maskeds.size() == 1 )
+			return maskeds.stream().iterator().next().getMask();
+
+		// TODO: trying using below code once https://github.com/imglib/imglib2-roi/pull/63 is merged and released
+
+
 //		RealMaskRealInterval union = null;
 //
 //		for ( Masked masked : masks )
@@ -319,12 +311,12 @@ public class TransformHelper
 		// note that this does not work if the masks are rotated.
 		// for this we would need the code above.
 
-		// FIXME There also is a consideration of computational efficiency
-		//   Even if the above code may work, the resulting joined intervals
-		//   may be computationally heavy to get.
+		// there also is a consideration of computational efficiency:
+		// even if the above code may work, the resulting joined intervals
+		// may be computationally heavy to get.
 		int masksUsed = 0;
 		RealInterval union = null;
-		for ( Masked masked : masks )
+		for ( Masked masked : maskeds )
 		{
 			final RealMaskRealInterval mask = masked.getMask();
 
@@ -343,13 +335,12 @@ public class TransformHelper
 			masksUsed++;
 		}
 
-		// there is only one mask to be considered
-		// thus we can return it (including potential rotations)
 		if ( masksUsed == 1 )
-			return masks.stream().iterator().next().getMask();
+		{
+			return maskeds.stream().iterator().next().getMask();
+		}
 
-		// multiple masks
-		// we need to join
+		// multiple masks: we need to join
 		// issue here currently is that we loose rotations.
 		final double[] min = union.minAsDoubleArray();
 		final double[] max = union.maxAsDoubleArray();

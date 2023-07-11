@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -41,7 +41,7 @@ import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.command.internal.ConfigureSegmentRenderingCommand;
+import org.embl.mobie.command.context.ConfigureSegmentRenderingCommand;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.MoBIEHelper.FileLocation;
@@ -50,9 +50,9 @@ import org.embl.mobie.lib.Services;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.OpacityHelper;
 import org.embl.mobie.lib.color.opacity.OpacityAdjuster;
-import org.embl.mobie.command.internal.ConfigureImageRenderingCommand;
-import org.embl.mobie.command.internal.ConfigureLabelRenderingCommand;
-import org.embl.mobie.command.internal.ConfigureSpotRenderingCommand;
+import org.embl.mobie.command.context.ConfigureImageRenderingCommand;
+import org.embl.mobie.command.context.ConfigureLabelRenderingCommand;
+import org.embl.mobie.command.context.ConfigureSpotRenderingCommand;
 import org.embl.mobie.lib.plot.ScatterPlotView;
 import org.embl.mobie.lib.serialize.Project;
 import org.embl.mobie.lib.serialize.View;
@@ -113,10 +113,16 @@ public class UserInterfaceHelper
 	private JPanel viewSelectionPanel;
 	private Map< String, Map< String, View > > groupingsToViews;
 	private Map< String, JComboBox > groupingsToComboBox;
+	private JCheckBox overlayNamesCheckbox;
 
 	public UserInterfaceHelper( MoBIE moBIE )
 	{
 		this.moBIE = moBIE;
+	}
+
+	public JCheckBox getOverlayNamesCheckbox()
+	{
+		return overlayNamesCheckbox;
 	}
 
 	public static FileLocation loadFromProjectOrFileSystemDialog() {
@@ -332,10 +338,8 @@ public class UserInterfaceHelper
 				new SliderPanelDouble( "Min", min, spinnerStepSize );
 		minSlider.setNumColummns( 10 );
 
-		// FIXME: adapt the number of decimal places to the
-		//  current range
+		// TODO: adapt the number of decimal places to the current range
 		minSlider.setDecimalFormat( "#####.####" );
-		//minSlider.setDecimalFormat( "####E0" );
 
 		final SliderPanelDouble maxSlider =
 				new SliderPanelDouble( "Max", max, spinnerStepSize );
@@ -750,14 +754,11 @@ public class UserInterfaceHelper
 			} );
 		} );
 
-		JCheckBox checkBox = new JCheckBox( "overlay names" );
-		checkBox.setSelected( false );
-		checkBox.addActionListener( e -> new Thread( () ->
-		{
-			moBIE.getViewManager().getSliceViewer().getSourceNameOverlay().setActive( checkBox.isSelected() );
-		}).start() );
+		overlayNamesCheckbox =new JCheckBox( "overlay names" );
+		overlayNamesCheckbox.setSelected( false );
+		overlayNamesCheckbox.addActionListener( e -> new Thread( () -> moBIE.getViewManager().getSliceViewer().getImageNameOverlay().setActive( overlayNamesCheckbox.isSelected() ) ).start() );
 
-		panel.add( checkBox );
+		panel.add( overlayNamesCheckbox );
 		panel.add( space() );
 		panel.add( button );
 		return panel;
@@ -891,6 +892,7 @@ public class UserInterfaceHelper
 	public static JCheckBox createSegmentsVolumeViewerVisibilityCheckbox( SegmentationDisplay display )
 	{
 		JCheckBox checkBox = new JCheckBox( "V" );
+		checkBox.setToolTipText( "Toggle dataset visibility" );
 		checkBox.setSelected( display.showSelectedSegmentsIn3d() );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 
@@ -921,6 +923,7 @@ public class UserInterfaceHelper
 			final List< ? extends SourceAndConverter< ? > > sourceAndConverters )
 	{
 		JCheckBox checkBox = new JCheckBox( "S" );
+		checkBox.setToolTipText( "Toggle slice viewer visibility" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 
@@ -944,11 +947,11 @@ public class UserInterfaceHelper
 			Window window )
 	{
 		JCheckBox checkBox = new JCheckBox( "T" );
+		checkBox.setToolTipText( "Toggle window visibility" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 		window.setVisible( isVisible );
 		checkBox.addActionListener( e -> SwingUtilities.invokeLater( () -> window.setVisible( checkBox.isSelected() ) ) );
-
 		window.addWindowListener(
 				new WindowAdapter() {
 					public void windowClosing( WindowEvent ev) {
@@ -964,6 +967,7 @@ public class UserInterfaceHelper
 			boolean isVisible )
 	{
 		JCheckBox checkBox = new JCheckBox( "P" );
+		checkBox.setToolTipText( "Toggle scatter plot visibility" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 		checkBox.addActionListener( e ->
@@ -993,6 +997,7 @@ public class UserInterfaceHelper
 	public static JCheckBox createImageVolumeViewerVisibilityCheckbox( ImageDisplay display )
 	{
 		JCheckBox checkBox = new JCheckBox( "V" );
+		checkBox.setToolTipText( "Toggle dataset visibility" );
 		checkBox.setSelected( display.showImagesIn3d() );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 
@@ -1026,6 +1031,7 @@ public class UserInterfaceHelper
 	public static JButton createFocusButton( AbstractDisplay sourceDisplay, BdvHandle bdvHandle, List< Source< ? > > sources )
 	{
 		JButton button = new JButton( "F" );
+		button.setToolTipText( "Show whole dataset" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		button.addActionListener( e ->
@@ -1040,6 +1046,7 @@ public class UserInterfaceHelper
 	public static JButton createImageDisplayBrightnessButton( ImageDisplay< ? > imageDisplay )
 	{
 		JButton button = new JButton( "B" );
+		button.setToolTipText( "Change brightness/contrast" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		button.addActionListener( e ->
@@ -1060,6 +1067,7 @@ public class UserInterfaceHelper
 	public static JButton createOpacityButton( List< ? extends SourceAndConverter< ? > > sourceAndConverters, String name, BdvHandle bdvHandle )
 	{
 		JButton button = new JButton( "O" );
+		button.setToolTipText( "Change opacity" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		button.addActionListener( e ->
@@ -1076,6 +1084,7 @@ public class UserInterfaceHelper
 	private static JButton createColorButton( JPanel parentPanel, List< ? extends SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
 	{
 		JButton colorButton = new JButton( "C" );
+		colorButton.setToolTipText( "Change color" );
 
 		colorButton.setPreferredSize( PREFERRED_BUTTON_SIZE);
 
@@ -1120,6 +1129,7 @@ public class UserInterfaceHelper
 	private JButton createRemoveButton( Display display )
 	{
 		JButton removeButton = new JButton( "X" );
+		removeButton.setToolTipText( "Remove dataset" );
 		removeButton.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		removeButton.addActionListener( e ->

@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -98,7 +98,7 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 	// Used by Gson deserialization
 	public AbstractAnnotationDisplay()
 	{
-		blendingMode = BlendingMode.Alpha;
+		//blendingMode = BlendingMode.Alpha;
 		opacity = 0.5;
 	}
 
@@ -189,6 +189,17 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 		return opacityNotSelected;
 	}
 
+	public void setShowTable( boolean showTable )
+	{
+		this.showTable = showTable;
+	}
+
+	@Override
+	public BlendingMode getBlendingMode()
+	{
+		return blendingMode != null ? blendingMode : BlendingMode.Alpha;
+	}
+
 	private void setSerializableFields( AbstractAnnotationDisplay< ? extends Annotation > annotationDisplay )
 	{
 		this.name = annotationDisplay.name;
@@ -275,7 +286,6 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 
 		annData = AnnDataHelper.concatenate( annotationImages );
 
-		// FIXME This only is a uuidAdaptor, the stl is not needed
 		annotationAdapter = new DefaultAnnotationAdapter<>( annData );
 	}
 

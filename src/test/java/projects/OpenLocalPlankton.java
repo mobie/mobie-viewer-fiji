@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -42,7 +42,7 @@ public class OpenLocalPlankton
 		new ImageJ().ui().showUI();
 		try {
 			new MoBIE("/Volumes/emcf/pape/plankton-fibsem-project",
-					MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5 ).dataset( "galdieria" ) );
+					MoBIESettings.settings().dataset( "galdieria" ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

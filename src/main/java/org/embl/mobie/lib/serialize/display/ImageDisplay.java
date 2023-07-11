@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -80,9 +80,10 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		return contrastLimits;
 	}
 
+	@Override
 	public BlendingMode getBlendingMode()
 	{
-		return blendingMode;
+		return blendingMode != null ? blendingMode : BlendingMode.Sum;
 	}
 
 	public Double[] getResolution3dView() { return resolution3dView; }
@@ -112,10 +113,8 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		this.showImagesIn3d = showImagesIn3d;
 	}
 
-	/**
+	/*
 	 * Create a serializable copy
-	 *
-	 * @param imageDisplay
 	 */
 	public ImageDisplay( ImageDisplay< ? > imageDisplay )
 	{

@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,18 +28,23 @@
  */
 package org.embl.mobie.lib;
 
+import bdv.SpimSource;
 import ij.IJ;
 import ij.ImagePlus;
 import loci.plugins.in.ImagePlusReader;
 import loci.plugins.in.ImportProcess;
 import loci.plugins.in.ImporterOptions;
+import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.Dimensions;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.SpimDataOpener;
+import org.embl.mobie.io.toml.TOMLOpener;
 import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.ImageDataSource;
+import org.embl.mobie.lib.source.SourceToImagePlusConverter;
 import spimdata.util.Displaysettings;
 
 import java.util.ArrayList;
@@ -163,7 +168,7 @@ public abstract class MoBIEHelper
 		return size.dimension( 2 ) == 1;
 	}
 
-	public static List< String > getGroupNames( String regex )
+	public static List< String > getNamedGroups( String regex )
 	{
 		List< String > namedGroups = new ArrayList<>();
 
@@ -176,15 +181,39 @@ public abstract class MoBIEHelper
 		return namedGroups;
 	}
 
-	public static Metadata getMetadataFromImageFile( String path )
+	public static Metadata getMetadataFromImageFile( String path, int channelIndex )
 	{
-		final ImagePlus imagePlus = IJ.openVirtual( path );
-
-		final Metadata metadata = new Metadata();
-		metadata.color = "White";
-		metadata.contrastLimits = new double[]{ imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
-		metadata.numTimePoints = imagePlus.getNFrames();
-		return metadata;
+		if ( path.contains( ".zarr" ) )
+		{
+			try
+			{
+				AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, ImageDataFormat.OmeZarr );
+				final SpimSource< ? > source = new SpimSource( spimData, channelIndex, "" );
+				final int levels = source.getNumMipmapLevels();
+				final ImagePlus imagePlus = new SourceToImagePlusConverter<>( source ).getImagePlus( levels - 1 );
+				return new Metadata( imagePlus );
+			}
+			catch ( SpimDataException e )
+			{
+				e.printStackTrace();
+				throw new RuntimeException( e );
+			}
+		}
+		else if ( path.endsWith( ".h5" ) )
+		{
+			return new Metadata();
+		}
+		else if ( path.endsWith( ".toml" ) )
+		{
+			final ImagePlus imagePlus = new TOMLOpener( path ).asImagePlus();
+			return new Metadata( imagePlus );
+		}
+		else
+		{
+			final ImagePlus imagePlus = IJ.openVirtual( path );
+			imagePlus.setC( channelIndex + 1 );
+			return new Metadata( imagePlus );
+		}
 	}
 
 	// Note that this opens the image and thus may be slow!
@@ -195,11 +224,10 @@ public abstract class MoBIEHelper
 
 		final AbstractSpimData< ? > spimData = IOHelper.tryOpenSpimData( location.absolutePath, format );
 
-
 		final Metadata metadata = new Metadata();
 		metadata.color = "White";
 		metadata.contrastLimits = null;
-		final Displaysettings settingsFromFile = spimData.getSequenceDescription().getViewSetupsOrdered().get( location.channel ).getAttribute( Displaysettings.class );
+		final Displaysettings settingsFromFile = spimData.getSequenceDescription().getViewSetupsOrdered().get( location.getChannel() ).getAttribute( Displaysettings.class );
 		if ( settingsFromFile != null )
 		{
 			// FIXME: Wrong color from Bio-Formats

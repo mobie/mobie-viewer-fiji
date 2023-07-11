@@ -1,8 +1,8 @@
 /*-
  * #%L
- * Various Java code for ImageJ
+ * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -31,10 +31,10 @@ package org.embl.mobie.lib.color.lut;
 public interface ARGBLut
 {
 	/**
-	 *
 	 * @param x
 	 * 			value between zero and one to specify the color
-	 * @return ARGB color index
+	 * @return
+	 * 			ARGB color index
 	 */
 	int getARGB( double x );
 

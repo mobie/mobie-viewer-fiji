@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -38,17 +38,13 @@ public abstract class AbstractImageTransformation< A, B > implements ImageTransf
 	protected List< String > sources;
 	protected List< String > sourceNamesAfterTransform;
 
-	// FIXME for stitching this does not apply
 	@Override
 	public String getTransformedImageName( String imageName )
 	{
-		if ( sourceNamesAfterTransform != null )
-		{
-			return sourceNamesAfterTransform.get( sources.indexOf( imageName ) );
-		}
-		else
-		{
+		if ( sourceNamesAfterTransform == null )
 			return null;
-		}
+
+		return sourceNamesAfterTransform.get( sources.indexOf( imageName ) );
+
 	}
 }

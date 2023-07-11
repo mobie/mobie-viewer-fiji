@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -43,7 +43,7 @@ public abstract class AbstractSliceView implements SliceView
 
 	// TODO: get rid of MoBIE here, which is only needed to close the sacs...
 	//  in fact, using Nico's addition to the SACService will resolve this!
-	//  see the corresponding issue:
+	//  see the corresponding issue: https://github.com/bigdataviewer/bigdataviewer-playground/issues/259#issuecomment-1279705489
 	public AbstractSliceView( MoBIE moBIE, AbstractDisplay< ? > display )
 	{
 		this.moBIE = moBIE;

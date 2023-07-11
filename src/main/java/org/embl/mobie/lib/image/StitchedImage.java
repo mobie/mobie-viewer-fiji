@@ -2,17 +2,17 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
+ * 
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -30,6 +30,7 @@ package org.embl.mobie.lib.image;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.Affine3DHelpers;
+import bdv.util.BdvHandle;
 import bdv.util.DefaultInterpolators;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
@@ -39,6 +40,7 @@ import net.imglib2.Localizable;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
+import net.imglib2.RealPoint;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
 import net.imglib2.interpolation.randomaccess.NearestNeighborInterpolatorFactory;
@@ -49,12 +51,14 @@ import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.NumericType;
+import net.imglib2.util.Intervals;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.ThreadHelper;
+import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
 import org.embl.mobie.lib.io.Status;
 import org.embl.mobie.lib.source.MoBIEVolatileTypeMatcher;
 import org.embl.mobie.lib.source.SourceHelper;
@@ -68,6 +72,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
@@ -187,6 +192,13 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		stitch();
 	}
 
+	public Optional< ? extends Image< ? > > getTileImageAtGlobalPosition( RealPoint position )
+	{
+		final Optional< ? extends Image< ? > > optionalImage = getTileImages().stream().filter( img -> Intervals.contains( img.getMask(), position ) ).findFirst();
+
+		return optionalImage;
+	}
+
 	private void setPositions( List< ? extends Image< T > > images, List< int[] > positions )
 	{
 		if ( positions == null )
@@ -271,7 +283,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				// Here, we don't need to use {@code metadataImage},
 				// because the images of those tiles
 				// are already initialised.
-				final List< String > tileNames = ( ( StitchedImage< ?, ? > ) image ).getImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
+				final List< String > tileNames = ( ( StitchedImage< ?, ? > ) image ).getTileImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
 				final Set< Image< ? > > stitchedImages = DataStore.getImageSet( tileNames );
 				for ( Image< ? > containedImage : stitchedImages )
 				{
@@ -317,7 +329,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 	}
 
-	public List< ? extends Image< ? > > getImages()
+	public List< ? extends Image< ? > > getTileImages()
 	{
 		return images;
 	}
@@ -348,10 +360,10 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		// non-volatile
 		//
-		final Map< Integer, List< RandomAccessibleInterval< T > > > timepointToRAI = stitchTiles( tileStore );
+		final Map< Integer, List< RandomAccessibleInterval< T > > > timepointToRAIs = stitchTiles( tileStore );
 
 		final StitchedSource< T > source = new StitchedSource<>(
-				timepointToRAI,
+				timepointToRAIs,
 				type,
 				voxelDimensions,
 				name,
@@ -360,10 +372,10 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		// volatile
 		//
-		final Map< Integer, List< RandomAccessibleInterval< V > > > timepointToVolatileRAI = stitchVolatileTiles( tileStore );
+		final Map< Integer, List< RandomAccessibleInterval< V > > > timepointToVolatileRAIs = stitchVolatileTiles( tileStore );
 
 		final StitchedSource< V > volatileSource = new StitchedSource<>(
-				timepointToVolatileRAI,
+				timepointToVolatileRAIs,
 				volatileType,
 				voxelDimensions,
 				name,
@@ -642,7 +654,6 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 					x = x - xTileIndex * tileDimension[ 0 ];
 					y = y - yTileIndex * tileDimension[ 1 ];
 
-					System.out.println( "" + x + " " + y );
 					if ( ! tileStore.contains( timepoint, level, xTileIndex, yTileIndex ) )
 					{
 						value.set( type.createVariable() ); // background
@@ -830,7 +841,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		// FIXME Maybe here is the right place to also transform the contained images?!
+		// FIXME also transform the contained images?!
 		final AffineTransform3D transform3D = new AffineTransform3D();
 		transformedSource.getFixedTransform( transform3D );
 		transform3D.preConcatenate( affineTransform3D );

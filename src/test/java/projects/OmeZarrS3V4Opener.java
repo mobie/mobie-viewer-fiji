@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -43,6 +43,6 @@ public class OmeZarrS3V4Opener {
     public static void showYX() throws IOException {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        final MoBIE moBIE = new MoBIE("https://s3.embl.de/i2k-2020/ngff-example-data/v0.4/yx.ome.zarr", MoBIESettings.settings().addImageDataFormat( ImageDataFormat.OmeZarrS3));
+        final MoBIE moBIE = new MoBIE("https://s3.embl.de/i2k-2020/ngff-example-data/v0.4/yx.ome.zarr", MoBIESettings.settings());
     }
 }

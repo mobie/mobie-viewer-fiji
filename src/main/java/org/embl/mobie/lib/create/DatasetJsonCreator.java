@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -70,8 +70,7 @@ public class DatasetJsonCreator {
 
     public void addImage(String imageName, String datasetName,
                          String uiSelectionGroup,
-                         ImageDataFormat imageDataFormat, double[] contrastLimits, String colour,
-                         boolean exclusive, AffineTransform3D sourceTransform ) {
+                         ImageDataFormat imageDataFormat, double[] contrastLimits, String colour, boolean exclusive, AffineTransform3D sourceTransform ) {
         Dataset dataset = fetchDataset( datasetName );
 
         addNewImageSource( dataset, imageName, imageDataFormat );
@@ -212,9 +211,7 @@ public class DatasetJsonCreator {
         ArrayList<String> sources = new ArrayList<>();
         sources.add( imageName );
 
-        ArrayList<String> tables = new ArrayList<>();
-        tables.add( "default.tsv" );
-        SegmentationDisplay segmentationDisplay = new SegmentationDisplay( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ ColumnNames.ANCHOR_X, ColumnNames.ANCHOR_Y }, tables, null );
+        SegmentationDisplay segmentationDisplay = new SegmentationDisplay( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ ColumnNames.ANCHOR_X, ColumnNames.ANCHOR_Y }, null, null );
         displays.add( segmentationDisplay );
 
         if ( sourceTransform.isIdentity() ) {

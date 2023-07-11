@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -39,6 +39,6 @@ public class OpenRemoteBdvOmeZarr {
     public static void main(String[] args) throws IOException {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        new MoBIE("https://s3.embl.de/i2k-2020/project-bdv-ome-zarr", MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvOmeZarr));
+        new MoBIE("https://s3.embl.de/i2k-2020/project-bdv-ome-zarr", MoBIESettings.settings());
     }
 }

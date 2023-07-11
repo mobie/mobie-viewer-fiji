@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -32,6 +32,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import edu.mines.jtk.util.AtomicDouble;
 import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
@@ -65,17 +66,11 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getLevel;
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getViewerVoxelSpacing;
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
-
-/**
- * BigDataViewer Playground Action --
- * ScreenShotMaker
- * Author: @haesleinhuepf, @tischi
- *         December 2019
- */
 
 public class ScreenShotMaker
 {
@@ -171,6 +166,9 @@ public class ScreenShotMaker
 
         final int t = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
 
+        IJ.log( "\nScreenshot: Fetching data from " + sacs.size() + " sources."  );
+        final long currentTimeMillis = System.currentTimeMillis();
+
         for ( SourceAndConverter< ?  > sac : sacs )
         {
             final RandomAccessibleInterval< FloatType > rawCapture
@@ -193,9 +191,15 @@ public class ScreenShotMaker
 
             boolean interpolate = ! ( source.getType() instanceof AnnotationType );
 
+            final long[] screenshotDimensions = Intervals.dimensionsAsLongArray( argbCapture );
+            final long numPixels = screenshotDimensions[ 0 ] * screenshotDimensions[ 1 ];
+
+            final AtomicInteger pixelCount = new AtomicInteger();
+            final AtomicDouble fractionDone = new AtomicDouble( 0.2 );
+
             Grids.collectAllContainedIntervals(
-                    Intervals.dimensionsAsLongArray( argbCapture ),
-                    new int[]{100, 100}).parallelStream().forEach( interval ->
+                    screenshotDimensions,
+                    new int[]{96, 96}).parallelStream().forEach( interval ->
             {
                 RealRandomAccess< ? extends Type< ? > > access = getRealRandomAccess( ( Source< Type< ? > > ) source, t, level, interpolate );
 
@@ -231,6 +235,22 @@ public class ScreenShotMaker
                     access.setPosition( sourceRealPosition );
                     setFloatPixelValue( access, floatCaptureAccess );
                     setArgbPixelValue( converter, access, argbCaptureAccess, argbType );
+                    pixelCount.incrementAndGet();
+
+                    final double currentFractionDone = 1.0 * pixelCount.get() / numPixels;
+                    if ( currentFractionDone >= fractionDone.get() )
+                    {
+                        synchronized ( fractionDone )
+                        {
+                            // check again, because meanwhile another thread might have
+                            // incremented fractionDone
+                            if ( currentFractionDone >= fractionDone.get() )
+                            {
+                                IJ.log(sac.getSpimSource().getName() + ": " + ( Math.round( 100 * fractionDone.get() ) + "%" ) );
+                                fractionDone.addAndGet( 0.2 );
+                            }
+                        }
+                    }
                 }
             });
 
@@ -239,6 +259,8 @@ public class ScreenShotMaker
             // colors.add( getSourceColor( bdv, sourceIndex ) ); Not used, show GrayScale
             displayRanges.add( BdvHandleHelper.getDisplayRange( sacService.getConverterSetup( sac ) ) );
         }
+
+        IJ.log( "Screenshot: Fetched data in " + ( System.currentTimeMillis() - currentTimeMillis ) + " ms." );
 
         final double[] voxelSpacing = new double[ 3 ];
         for ( int d = 0; d < 2; d++ )
@@ -326,12 +348,12 @@ public class ScreenShotMaker
     {
         final RandomAccessibleInterval< ARGBType > argbTarget = ArrayImgs.argbs( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ]  );
 
-        project( argbSources, argbTarget, sacs );
+        createARGBprojection( argbSources, argbTarget, sacs );
 
         return asImagePlus( argbTarget, physicalUnit, voxelSpacing );
     }
 
-    private void project( ArrayList< RandomAccessibleInterval< ARGBType > > argbSources, RandomAccessibleInterval< ARGBType > argbTarget, List< SourceAndConverter< ? > > sacs )
+    private void createARGBprojection( ArrayList< RandomAccessibleInterval< ARGBType > > argbSources, RandomAccessibleInterval< ARGBType > argbTarget, List< SourceAndConverter< ? > > sacs )
     {
         final Cursor< ARGBType > argbCursor = Views.iterable( argbTarget ).localizingCursor();
         final int numVisibleSources = argbSources.size();

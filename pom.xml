@@ -9,13 +9,14 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>3.2.0-SNAPSHOT</version>
+    <version>4.0.7-SNAPSHOT</version>
 
+    <!-- force javadoc generation to fetch errors:    -->
+    <!-- mvn javadoc:javadoc | grep error -->
     <!--  ../scijava-scripts/release-version.sh - -skip-version-check - -skip-license-update -->
-    <!-- mvn javadoc:javadoc -Denforcer.skip | grep error -->
-    <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
+    <!-- mvn install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
-    <!-- ../scijava-scripts/release-version.sh - -skip-version-check -->
+    <!-- ../scijava-scripts/release-version.sh - -skip-version-check  - -skip-license-update -->
 
     <url>https://github.com/mobie/mobie-viewer-fiji</url>
     <name>MoBIE Fiji Viewer</name>
@@ -87,7 +88,6 @@
         <mobie-io.version>2.2.0-SNAPSHOT</mobie-io.version>
         <trove.version>1.0.2</trove.version>
         <annotations.version>16.0.2</annotations.version>
-
 
         <!-- Version 1.6.0-scijava-3-SNAPSHOT of j3dcore addresses a minor issue
         https://github.com/fiji/3D_Viewer/issues/26
@@ -242,7 +242,7 @@
         <dependency>
             <groupId>com.github.erosb</groupId>
             <artifactId>everit-json-schema</artifactId>
-            <version>1.14.1</version>
+            <version>1.14.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

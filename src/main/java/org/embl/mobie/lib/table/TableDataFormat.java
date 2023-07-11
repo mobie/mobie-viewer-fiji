@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,7 +29,10 @@
 package org.embl.mobie.lib.table;
 
 import com.google.gson.annotations.SerializedName;
+import ij.IJ;
 import org.apache.commons.lang3.StringUtils;
+import org.embl.mobie.lib.table.columns.CellProfilerSegmentColumnNames;
+import org.embl.mobie.lib.table.columns.IlastikSegmentColumnNames;
 import org.embl.mobie.lib.table.columns.MoBIESegmentColumnNames;
 import org.embl.mobie.lib.table.columns.MorpholibJSegmentColumnNames;
 import org.embl.mobie.lib.table.columns.SegmentColumnNames;
@@ -76,22 +79,6 @@ public enum TableDataFormat
 		}
 	}
 
-	public static TableDataFormat fromString( String string )
-	{
-		switch ( string )
-		{
-			case RESULTS_TABLE:
-				return ResultsTable;
-			case TABLE:
-				return Table;
-			case TableDataFormatNames.CSV:
-				return CSV;
-			case TableDataFormatNames.TSV:
-			default:
-				return TableDataFormat.TSV;
-		}
-	}
-
 	public static TableDataFormat fromPath( String path )
 	{
 		if ( path.endsWith( ".csv" ) ) return CSV;
@@ -129,6 +116,19 @@ public enum TableDataFormat
 		if ( SkimageSegmentColumnNames.matches( columnNames ) )
 			return new SkimageSegmentColumnNames( columnNames );
 
-		throw new UnsupportedOperationException( "Could not match column names. " + StringUtils.join( columnNames ) );
+		if ( IlastikSegmentColumnNames.matches( columnNames ) )
+		{
+			return new IlastikSegmentColumnNames();
+		}
+
+		if ( CellProfilerSegmentColumnNames.matches( columnNames ) )
+		{
+			final String objectName = CellProfilerSegmentColumnNames.getObjectName( columnNames );
+//			IJ.log( TableDataFormat.class.getSimpleName() +": Identified CellProfiler object table with object name: " + objectName );
+			return new CellProfilerSegmentColumnNames( objectName );
+		}
+
+
+		return null;
 	}
 }

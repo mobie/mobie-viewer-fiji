@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -57,17 +57,11 @@ public class LazyAnnotatedSegmentAdapter implements AnnotationAdapter< Annotated
 		return new DefaultAnnotatedSegment( name, 0, 0 );
 	}
 
-	@Override
-	public AnnotatedSegment getAnnotation( String uuid )
-	{
-		throw new UnsupportedOperationException("Fetching annotations via UUID for segmentation images without a table is not yet implemented.");
-	}
-
 	// This is for mapping for voxels within an
 	// {@code AnnotatedLabelSource}
 	// to the corresponding annotation.
 	@Override
-	public synchronized AnnotatedSegment getAnnotation( String source, int timePoint, int label )
+	public AnnotatedSegment getAnnotation( String source, int timePoint, int label )
 	{
 		if ( label == 0 )
 		{
@@ -76,27 +70,28 @@ public class LazyAnnotatedSegmentAdapter implements AnnotationAdapter< Annotated
 			return null ;
 		}
 
-		// FIXME The fact that the method is synchronized makes
-		//   rendering in BDV effectively single threaded!
-		//   Once itlToAnnotation is initialised this does
-		//   not need to be synchronised anymore.
 		final String stl = stlKey( source, timePoint, label );
+
 		if ( ! stlToAnnotation.containsKey( stl ) )
 		{
-			final AnnotatedSegment annotatedSegment = tableModel.createAnnotation( source, timePoint, label );
-			stlToAnnotation.put( stl, annotatedSegment );
+			synchronized ( stlToAnnotation )
+			{
+				final AnnotatedSegment annotatedSegment = tableModel.createAnnotation( source, timePoint, label );
+				stlToAnnotation.put( stl, annotatedSegment );
+			}
 		}
+
 		return stlToAnnotation.get( stl );
+	}
+
+	@Override
+	public void init()
+	{
+
 	}
 
 	private String stlKey( String source, int timePoint, int label )
 	{
 		return source + ";" + timePoint + ";" + label;
-	}
-
-	@Override
-	public Set< AnnotatedSegment > getAnnotations( Set< String > uuids )
-	{
-		return uuids.stream().map( uuid -> getAnnotation( uuid ) ).collect( Collectors.toSet() );
 	}
 }

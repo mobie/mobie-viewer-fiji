@@ -1,8 +1,8 @@
 /*-
  * #%L
- * Various Java code for ImageJ
+ * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -73,12 +73,6 @@ public abstract class BdvPopupMenus
 	{
 		ensurePopupMenuExist( bdvHandle );
 		bdvToPopup.get( bdvHandle ).addPopupAction( actionName, runnable );
-	}
-
-	public static synchronized void addScreenshotAction( BdvHandle bdvHandle )
-	{
-		ensurePopupMenuExist( bdvHandle );
-		bdvToPopup.get( bdvHandle ).addPopupAction( "Make Screenshot...", new ViewCaptureDialog( bdvHandle ) );
 	}
 
 	public static synchronized void removePopupMenu( BdvHandle bdvHandle )

@@ -1,24 +1,19 @@
 package org.embl.mobie.lib.plot;
 /*
  * #%L
- * ImgLib2: a general-purpose, multidimensional image processing library.
+ * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2009 - 2021 Tobias Pietzsch, Stephan Preibisch, Stephan Saalfeld,
- * John Bogovic, Albert Cardona, Barry DeZonia, Christian Dietz, Jan Funke,
- * Aivar Grislis, Jonathan Hale, Grant Harris, Stefan Helfrich, Mark Hiner,
- * Martin Horn, Steffen Jaensch, Lee Kamentsky, Larry Lindsey, Melissa Linkert,
- * Mark Longair, Brian Northan, Nick Perry, Curtis Rueden, Johannes Schindelin,
- * Jean-Yves Tinevez and Michael Zinsmaier.
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
+ * 
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -48,13 +43,13 @@ import net.imglib2.RealPositionable;
 import net.imglib2.Sampler;
 import net.imglib2.util.KthElement;
 
-/**
+/*
  * KDTree to access values at RealLocalizable positions.
  *
  * @param <T>
  *            type of values stored in the tree.
  *
- * @author Tobias Pietzsch, Christian Tischer
+ * @author Tobias Pietzsch (modified by Christian Tischer)
  */
 public class KDTreeFloat< T > implements EuclideanSpace, IterableRealInterval< T >
 {
@@ -82,6 +77,9 @@ public class KDTreeFloat< T > implements EuclideanSpace, IterableRealInterval< T
 
 	/**
 	 * A KDTreeNode that stores it's value as a reference.
+	 *
+	 *  @param <T>
+	 *             type of values stored in the tree.
 	 */
 	protected final static class ValueNode< T > extends KDTreeNode< T >
 	{
@@ -271,6 +269,11 @@ public class KDTreeFloat< T > implements EuclideanSpace, IterableRealInterval< T
 	/**
 	 * Check whether all positions in the positions list have dimension n.
 	 *
+	 * @param positions
+	 * 					the positions
+	 * @param n
+	 * 			dimensionality
+	 *
 	 * @return true, if all positions have dimension n.
 	 */
 	protected static < L extends RealLocalizable > boolean verifyDimensions( final List< L > positions, final int n )
@@ -415,6 +418,8 @@ public class KDTreeFloat< T > implements EuclideanSpace, IterableRealInterval< T
 	 *            end index of sublist to process
 	 * @param d
 	 *            dimension along which to split the sublist
+	 *
+	 * @return 	  a node
 	 */
 	@SuppressWarnings( "unchecked" )
 	protected < L extends RealLocalizable > ValueNode< T > makeNode( final List< L > elements, final int i, final int j, final int d )

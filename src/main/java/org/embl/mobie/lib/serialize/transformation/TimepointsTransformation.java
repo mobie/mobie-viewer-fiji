@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2022 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,24 +28,34 @@
  */
 package org.embl.mobie.lib.serialize.transformation;
 
-import bdv.viewer.SourceAndConverter;
-import mpicbg.spim.data.sequence.TimePoint;
-import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.source.TransformedTimepointSource;
-import net.imglib2.Volatile;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
-
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public class TimepointsTransformation< T > extends AbstractImageTransformation< T, T >
 {
 	// Serialisation
+
+	/**
+	 * Outer list: list of timepoints that you want to map
+	 * Inner list: pairs of timepoints: to be read as
+	 * mapping the timepoint of the new source to the old source, i.e. new to old
+	 * "old" must exist in the input source
+	 * "new" will exist in the transformed source
+	 * "new" timepoints must be unique
+	 * "old" may be referred to several times
+	 */
 	protected List< List< Integer > > parameters;
-	protected boolean keep = false; // default is false
-	protected List< String > sources;
-	protected List< String > sourceNamesAfterTransform;
+
+	/**
+	 * Whether to keep the timepoints that are present in the source
+	 */
+	protected boolean keep = false;
+
+	// For GSON
+	public TimepointsTransformation()
+	{
+	}
 
 	public TimepointsTransformation( String name, List< List< Integer > > timepoints, boolean keep, List< String > sources ) {
 		this( name, timepoints, keep, sources, null );
@@ -60,55 +70,20 @@ public class TimepointsTransformation< T > extends AbstractImageTransformation< 
 		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
 	}
 
-	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
+	public HashMap< Integer, Integer > getTimepointsMapping()
 	{
-		// Convert to Map (it comes as List< List< Integer > >,
-		// because this works better for the serialisation;
-		// in a Map the key in JSON always is a String, which
-		// is not appropriate here)
-		final HashMap< Integer, Integer > timepointMap = new HashMap<>();
-		for ( List< Integer > pair : parameters )
+		final HashMap< Integer, Integer > timepointMap = new LinkedHashMap<>();
+		for ( List< Integer > newOld : parameters )
 		{
-			timepointMap.put( pair.get( 0 ), pair.get( 1 ) );
+			timepointMap.put( newOld.get( 0 ), newOld.get( 1 ) );
 		}
 
-		for ( String sourceName : sourceNameToSourceAndConverter.keySet() )
-		{
-			if ( ! sources.contains( sourceName ) ) continue;
-
-			final SourceAndConverter< ? > sac = sourceNameToSourceAndConverter.get( sourceName );
-
-			SourceAndConverter transformedSac = transform( timepointMap, sourceName, sac );
-
-			sourceNameToSourceAndConverter.put( transformedSac.getSpimSource().getName(), transformedSac );
-		}
+		return timepointMap;
 	}
 
-	private SourceAndConverter transform( HashMap< Integer, Integer > timepointMap, String sourceName, SourceAndConverter< ? > sac )
+	public boolean isKeep()
 	{
-		if ( sourceNamesAfterTransform != null )
-			sourceName =  sourceNamesAfterTransform.get( sources.indexOf( sourceName ) );
-
-		final TransformedTimepointSource transformedSource = new TransformedTimepointSource( sourceName, sac.getSpimSource(), timepointMap, keep );
-
-		if ( sac.asVolatile() != null )
-		{
-			final SourceAndConverter< ? extends Volatile< ? > > vSac = sac.asVolatile();
-			TransformedTimepointSource vTransformedSource = new TransformedTimepointSource( sourceName, vSac.getSpimSource(), timepointMap, keep );
-			SourceAndConverter vTransformedSac = new SourceAndConverter<>( vTransformedSource, SourceAndConverterHelper.cloneConverter( vSac.getConverter(), vSac ) );
-			return new SourceAndConverter( transformedSource, SourceAndConverterHelper.cloneConverter( sac.getConverter(), sac ), vTransformedSac );
-		}
-		else
-		{
-			return new SourceAndConverter<>( transformedSource, SourceAndConverterHelper.cloneConverter( sac.getConverter(), sac ) );
-		}
-	}
-
-	//@Override
-	public Image< T > apply( Image< T > image )
-	{
-		// TODO
-		return null;
+		return keep;
 	}
 
 	@Override

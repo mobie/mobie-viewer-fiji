@@ -1,3 +1,31 @@
+/*-
+ * #%L
+ * Fiji viewer for MoBIE projects
+ * %%
+ * Copyright (C) 2018 - 2023 EMBL
+ * %%
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * #L%
+ */
 package org.embl.mobie.lib.table;
 
 import net.imglib2.realtransform.AffineTransform3D;
@@ -16,15 +44,18 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	private final Set< AnnotationTableModel< A > > tableModels;
 	private AnnotationTableModel< A > referenceTable;
 	private ArrayList< A > annotations = new ArrayList<>();
+	private boolean allTablesLoaded = false;
 
 	public ConcatenatedAnnotationTableModel( Set< AnnotationTableModel< A > > tableModels )
 	{
 		this.tableModels = tableModels;
 
-		// Note that all loading of data from the {@code tableModels}
+		// note that all loading of data from the {@code tableModels}
 		// it handled by the listening.
 		for ( AnnotationTableModel< A > tableModel : tableModels )
+		{
 			tableModel.addAnnotationListener( this );
+		}
 
 		this.referenceTable = tableModels.iterator().next();
 	}
@@ -74,6 +105,9 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	{
 		for ( AnnotationTableModel< A > tableModel : tableModels )
 			tableModel.loadTableChunk( tableChunk );
+
+		// TODO: it is not logical that this method does not trigger
+		//   an annotation listener...
 	}
 
 	@Override
@@ -109,8 +143,19 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	@Override
 	public void addStringColumn( String columnName )
 	{
-		// here we probably need to load all tables
-		throw new UnsupportedOperationException("Annotation of concatenated tables is not yet implemented.");
+		if ( columnNames().contains( columnName ) )
+			return;
+
+		for ( AnnotationTableModel< A > tableModel : tableModels )
+		{
+			if ( ! tableModel.columnNames().contains( columnName ) )
+			{
+				tableModel.addStringColumn( columnName );
+			}
+		}
+
+		for ( AnnotationListener< A > listener : listeners.list )
+			listener.columnsAdded( null );
 	}
 
 	@Override
@@ -137,25 +182,39 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	@Override
 	public void annotationsAdded( Collection< A > annotations )
 	{
-		// A main reason this method is called is
-		// that {@code Annotations} have been added to the wrapped
+		// this method is called, e.g., if
+		// {@code Annotations} have been added to (one of)
+		// the wrapped
 		// {code Set< AnnotationTableModel< A > > tableModels}
 		// and should thus be added to this model.
-		addAnnotations( annotations );
-	}
-
-	private void addAnnotations( Collection< A > annotations )
-	{
 		this.annotations.addAll( annotations );
 
-		for ( AnnotationListener< A > annotationListener : listeners.list )
-			annotationListener.annotationsAdded( annotations );
+		// inform listeners such as the {@code TableView}
+		for ( AnnotationListener< A > listener : listeners.list )
+			listener.annotationsAdded( annotations );
 	}
 
 	@Override
-	public void columnAdded( String columnName )
+	public void columnsAdded( Collection< String > columns )
 	{
-		for ( AnnotationListener< A > annotationListener : listeners.list )
-			annotationListener.columnAdded( columnName );
+		// additions of columns occurs via
+		// {@code addStringColumn} or
+		// {@code loadTableChunk},
+		// which notify listeners themselves.
+		// notifying listeners here would cause notification
+		// from each of the wrapped table model, which is not needed
+		// and in fact leads to concurrency errors
+		// re-rendering views of this table.
+	}
+
+	public synchronized void loadAllTables()
+	{
+		if ( ! allTablesLoaded )
+		{
+			for ( AnnotationTableModel< ? extends Annotation > tableModel : tableModels )
+				tableModel.annotations();
+
+			allTablesLoaded = true;
+		}
 	}
 }
