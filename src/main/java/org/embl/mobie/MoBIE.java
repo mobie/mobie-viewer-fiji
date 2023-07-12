@@ -159,10 +159,10 @@ public class MoBIE
 
 	public MoBIE( String hcsDataLocation, MoBIESettings settings, double relativeWellMargin, double relativeSiteMargin ) throws IOException
 	{
-		initImageJAndMoBIE();
-
 		this.settings = settings;
 		this.projectLocation = hcsDataLocation;
+
+		initImageJAndMoBIE();
 
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening: " + hcsDataLocation );
@@ -743,13 +743,12 @@ public class MoBIE
 
 		if ( imageDataFormat.equals( ImageDataFormat.IlastikHDF5 ) )
 		{
-			final CachedCellImage< ? > image = new CachedCellImage<>( name, storageLocation.absolutePath, storageLocation.getChannel(), imageDataFormat, ThreadHelper.sharedQueue );
-			return image;
+			return new CachedCellImage<>( name, storageLocation.absolutePath, storageLocation.getChannel(), imageDataFormat, ThreadHelper.sharedQueue );
 		}
 
 		if ( storageLocation instanceof Site )
 		{
-			return new SpimDataImage( ( Site ) storageLocation, name );
+			return new SpimDataImage( ( Site ) storageLocation, name, ThreadHelper.sharedQueue );
 		}
 
 		// TODO improve caching: https://github.com/mobie/mobie-viewer-fiji/issues/857

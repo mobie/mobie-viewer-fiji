@@ -109,7 +109,7 @@ public class Plate
 
 		for ( String path : paths )
 		{
-			if ( ! hcsPattern.setPath( path ) )
+			if ( ! hcsPattern.setMatcher( path ) )
 				continue;
 
 			if ( metadata != null )
