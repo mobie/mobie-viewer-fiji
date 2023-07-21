@@ -54,22 +54,11 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 	private boolean hasBoundingBox;
 	private ArrayList< String > idColumns;
 
-	public TableSawAnnotatedSegmentCreator(
-			@Nullable SegmentColumnNames segmentColumnNames,
-			@Nullable Table table )
+	public TableSawAnnotatedSegmentCreator( @Nullable Table table )
 	{
-		this.segmentColumnNames = segmentColumnNames;
+		//this.segmentColumnNames = segmentColumnNames;
 		if ( table != null )
 			initColumns( table );
-
-		idColumns = new ArrayList< String >();
-		if ( segmentColumnNames != null )
-		{
-			idColumns.add( segmentColumnNames.labelIdColumn() );
-			idColumns.add( segmentColumnNames.timePointColumn() );
-			idColumns.add( segmentColumnNames.labelImageColumn() );
-		}
-
 	}
 
 	private synchronized void initColumns( Table table )
@@ -78,8 +67,12 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 
 		final List< String > columnNames = table.columnNames();
 
-		if ( segmentColumnNames == null )
-			segmentColumnNames = TableDataFormat.getSegmentColumnNames( columnNames );
+		segmentColumnNames = TableDataFormat.getSegmentColumnNames( columnNames );
+
+		idColumns = new ArrayList<>();
+		idColumns.add( segmentColumnNames.labelIdColumn() );
+		idColumns.add( segmentColumnNames.timePointColumn() );
+		idColumns.add( segmentColumnNames.labelImageColumn() );
 
 		labelIdColumnIndex = columnNames.indexOf( segmentColumnNames.labelIdColumn() );
 		if ( labelIdColumnIndex == -1 )
@@ -104,6 +97,8 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 		is3D = anchorColumnIndices.length == 3 && anchorColumnIndices[ 2 ] > -1;
 
 		hasBoundingBox = bbMinColumnIndices[ 0 ] > -1;
+
+
 	}
 
 	@Override

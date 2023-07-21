@@ -21,25 +21,26 @@ import tech.tablesaw.api.Table;
 
 public class AnnotatedLabelImageCreator
 {
-	private final MoBIE moBIE;
 	private AnnotationLabelImage< TableSawAnnotatedSegment > annotatedLabelImage;
 
 	public AnnotatedLabelImageCreator( MoBIE moBIE, SegmentationDataSource dataSource, Image< ? > image )
 	{
-		this.moBIE = moBIE;
-
 		if ( dataSource.tableData != null )
 		{
+			//System.out.println(dataSource.getName() + ": initialising.." );
+
 			final StorageLocation tableLocation = moBIE.getTableLocation( dataSource.tableData );
 			final TableDataFormat tableFormat =  moBIE.getTableDataFormat( dataSource.tableData );
+
+			//System.out.println( dataSource.getName() + ": pre-init: " + dataSource.preInit() );
 
 			Table table = dataSource.preInit() ?
 					TableOpener.open( tableLocation, tableFormat ) : null;
 
-			SegmentColumnNames segmentColumnNames = table != null ?
-					TableDataFormat.getSegmentColumnNames( table.columnNames() ) : null;
+			//SegmentColumnNames segmentColumnNames = table != null ?
+			//		TableDataFormat.getSegmentColumnNames( table.columnNames() ) : null;
 
-			final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( segmentColumnNames, table );
+			final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( table );
 
 			final TableSawAnnotationTableModel< TableSawAnnotatedSegment >  tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, tableLocation, tableFormat, table );
 
