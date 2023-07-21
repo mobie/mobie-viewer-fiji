@@ -128,7 +128,6 @@ public enum TableDataFormat
 			return new CellProfilerSegmentColumnNames( objectName );
 		}
 
-
-		return null;
+		throw new RuntimeException("Could not match the label table column names to any of the supported formats.");
 	}
 }
