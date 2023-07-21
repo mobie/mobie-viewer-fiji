@@ -47,11 +47,11 @@ public class OpenPlatyBrowserCommand implements Command
 	@Override
 	public void run()
 	{
-		MoBIESettings options = MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5S3 );
+		MoBIESettings settings = MoBIESettings.settings();
 
 		try
 		{
-			new MoBIE( "https://github.com/mobie/platybrowser-datasets", options );
+			new MoBIE( "https://github.com/mobie/platybrowser-datasets", settings );
 		}
 		catch ( IOException e )
 		{

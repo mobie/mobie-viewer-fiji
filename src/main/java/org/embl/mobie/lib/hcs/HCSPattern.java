@@ -36,35 +36,44 @@ public enum HCSPattern
 {
 	Operetta,
 	IncuCyte,
+	InCell, // https://github.com/embl-cba/plateviewer/issues/45
 	MolecularDevices;
 
-	private static final String WELL = "W";
-	private static final String SITE = "S";
-	private static final String CHANNEL = "C";
-	private static final String T = "T";
-	private static final String Z = "Z";
+	public static final String WELL = "W";
+	public static final String SITE = "S";
+	public static final String CHANNEL = "C";
+	public static final String T = "T";
+	public static final String Z = "Z";
 
 	/*
 	example:
 	r01c01f04p01-ch1sk1fk1fl1.tiff
 	well = r01c01, site = 04, channel = 1
 	 */
-	private static final String OPERETTA = ".*(?<"+WELL+">r[0-9]{2}c[0-9]{2})f(?<"+SITE+">[0-9]{2})p[0-9]{2}.*-ch(?<"+CHANNEL+">[0-9])sk.*.tiff$";
+	public static final String OPERETTA = ".*(?<"+WELL+">r[0-9]{2}c[0-9]{2})f(?<"+SITE+">[0-9]{2})p[0-9]{2}.*-ch(?<"+CHANNEL+">[0-9])sk.*.tiff$";
 
 	/*
 	example:
 	MiaPaCa2-PhaseOriginal_A2_1_03d06h40m.tif
 	well = A2, site = 1, frame = 03d06h40m
 	 */
-	private static final String INCUCYTE = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{1,2})_(?<"+SITE+">[0-9]{1,2})_(?<"+ T +">[0-9]{2}d[0-9]{2}h[0-9]{2}m).tif$";
+	public static final String INCUCYTE = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{1,2})_(?<"+SITE+">[0-9]{1,2})_(?<"+ T +">[0-9]{2}d[0-9]{2}h[0-9]{2}m).tif$";
 
 	/*
 	example:
 	MIP-2P-2sub_C05_s1_w146C9B2CD-0BB3-4B8A-9187-2805F4C90506.tif
 	well = C05, site = 1, channel = 1
 	 */
-	private final String MOLDEV_WELL_SITE_CHANNEL = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">.*)_w(?<"+CHANNEL+">[0-9])[^_thumb].*";
+	public static final String MOLDEV_WELL_SITE_CHANNEL = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">.*)_w(?<"+CHANNEL+">[0-9])[^_thumb].*";
 
+
+	/*
+	example:
+	A - 01(fld 1 wv Green - dsRed z 3).tif
+	well = A - 01, site = 1, channel = 1
+ 	*/
+	public static final String INCELL_EXAMPLE = "A - 01(fld 1 wv Green - dsRed z 3).tif";
+	public static final String INCELL_WELL_SITE_CHANNEL = ".*(?<"+WELL+">[A-Z]{1} - [0-9]{2})\\(fld (?<"+SITE+">[0-9]{1}) (?<"+CHANNEL+">.*)\\).tif";
 
 	private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -98,29 +107,20 @@ public enum HCSPattern
 				return Pattern.compile( OPERETTA ).matcher( path );
 			case MolecularDevices:
 				return Pattern.compile( MOLDEV_WELL_SITE_CHANNEL ).matcher( path );
+			case InCell:
+				return Pattern.compile( INCELL_WELL_SITE_CHANNEL ).matcher( path );
 			default:
 			case IncuCyte:
 				return Pattern.compile( INCUCYTE ).matcher( path );
 		}
 	}
 
-	public boolean setPath( String path )
+	public boolean setMatcher( String path )
 	{
 		if ( new File( path ).getName().startsWith( "." ) )
 			return false;
 
-		switch( this )
-		{
-			case Operetta:
-				matcher = Pattern.compile( OPERETTA ).matcher( path );
-				break;
-			case MolecularDevices:
-				matcher = Pattern.compile( MOLDEV_WELL_SITE_CHANNEL ).matcher( path );
-				break;
-			default:
-			case IncuCyte:
-				matcher = Pattern.compile( INCUCYTE ).matcher( path );
-		}
+		matcher = getMatcher( path );
 
 		return matcher.matches();
 	}
@@ -131,6 +131,8 @@ public enum HCSPattern
 		{
 			case Operetta:
 				return decodeOperettaWellPosition( well );
+			case InCell:
+				return decodeInCellWellPosition( well );
 			default:
 				return decodeA01WellPosition( well );
 		}
@@ -145,13 +147,22 @@ public enum HCSPattern
 		return new int[]{ x, y };
 	}
 
+	private int[] decodeInCellWellPosition( String well )
+	{
+		// (?<"+WELL+">[A-Z]{1} - [0-9]{2})
+		final Matcher matcher = Pattern.compile( "(?<row>[A-Z]{1}) - (?<col>[0-9]{2})" ).matcher( well );
+		matcher.matches();
+		final int x = Integer.parseInt( matcher.group( "col" ) ) - 1;
+		final int y = ALPHABET.indexOf( matcher.group( "row" ).toUpperCase() );
+		return new int[]{ x, y };
+	}
+
 	public static int[] decodeA01WellPosition( String well )
 	{
 		final int length = well.length();
-		int[] wellPosition = new int[ 2 ];
-		wellPosition[ 0 ] = Integer.parseInt( well.substring( 1, length ) ) - 1;
-		wellPosition[ 1 ] = ALPHABET.indexOf( well.substring( 0, 1 ).toUpperCase() );
-		return wellPosition;
+		final int x = Integer.parseInt( well.substring( 1, length ) ) - 1;
+		final int y = ALPHABET.indexOf( well.substring( 0, 1 ).toUpperCase() );
+		return new int[]{ x, y };
 	}
 
 	private boolean hasChannels()
@@ -173,6 +184,7 @@ public enum HCSPattern
 		{
 			case Operetta:
 			case MolecularDevices:
+			case InCell:
 				return false;
 			default:
 			case IncuCyte:

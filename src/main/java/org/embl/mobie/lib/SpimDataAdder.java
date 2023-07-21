@@ -50,7 +50,7 @@ public class SpimDataAdder
 	private void addSpimData( AbstractSpimData< ? > spimData, boolean isSegmentation )
 	{
 		final ImageDataFormat imageDataFormat = ImageDataFormat.SpimData;
-		settings.addImageDataFormat( imageDataFormat );
+
 		if ( tableDataFormat != null )
 			settings.addTableDataFormat( tableDataFormat );
 

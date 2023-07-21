@@ -26,29 +26,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open.project;
+package hcs;
 
-import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.io.DataFormats;
-import org.scijava.command.Command;
-import org.scijava.plugin.Parameter;
-import org.scijava.plugin.Plugin;
+import mpicbg.spim.data.SpimDataException;
+import net.imagej.ImageJ;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open MoBIE Project Branch..." )
-public class OpenMoBIEProjectBranchCommand extends OpenMoBIEProjectCommand
+import java.io.IOException;
+
+class HCSInCellAnalyzer6000
 {
-	static { net.imagej.patcher.LegacyInjector.preinit(); }
-
-	@Parameter ( label = "Project Branch" )
-	public String projectBranch = "master";
-
-	@Override
-	public void run()
+	// https://github.com/embl-cba/plateviewer/issues/45
+	public static void main( String[] args ) throws SpimDataException, IOException
 	{
-		settings.preferentialDataLocation( DataFormats.Location.valueOf( location ) )
-				.gitProjectBranch( projectBranch );
+		new ImageJ().ui().showUI();
 
-		super.run();
+		new MoBIE( "/Users/tischer/Downloads/incell", new MoBIESettings(), 0.1, 0.0  );
 	}
 }
-

@@ -44,7 +44,7 @@ public class OpenRemoteTomograms
 
 		try {
 			new MoBIE("https://github.com/mobie/covid-tomo-datasets",
-					MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5S3 ) );
+					MoBIESettings.settings() );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
