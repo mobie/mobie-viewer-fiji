@@ -49,6 +49,9 @@ import java.util.Map;
 
 import static org.embl.mobie.lib.create.ProjectCreatorHelper.getGroupToViewsMap;
 
+/**
+ * Class to create and edit MoBIE projects.
+ */
 public class ProjectCreator {
 
     static { LegacyInjector.preinit(); }
@@ -80,6 +83,12 @@ public class ProjectCreator {
         move
     }
 
+    /**
+     * Make a projectCreator - main entry point to create + edit MoBIE projects.
+     * This will create the project directory (if it doesn't exist).
+     * @param projectLocation Filepath of project directory
+     * @throws IOException
+     */
     public ProjectCreator( File projectLocation ) throws IOException {
         this.projectLocation = projectLocation;
         if ( ! projectLocation.exists() )
@@ -114,6 +123,10 @@ public class ProjectCreator {
 
     public File getProjectJson() { return projectJson; }
 
+    /**
+     * Reload project by directly reading the project json
+     * @throws IOException
+     */
     public void reloadProject() throws IOException {
         this.project = new ProjectJsonParser().parseProject( projectJson.getAbsolutePath() );
     }
@@ -139,6 +152,11 @@ public class ProjectCreator {
         }
     }
 
+    /**
+     * Get all ui selection groups (i.e. MoBIE dropdown menu names) used by views in the named dataset
+     * @param datasetName dataset name
+     * @return array of ui selection group names
+     */
     public String[] getGroups( String datasetName ) {
         if ( !datasetName.equals(currentDatasetName) ) {
             getDataset( datasetName );
@@ -152,6 +170,12 @@ public class ProjectCreator {
         return groups;
     }
 
+    /**
+     * Get all view names within the given dataset and ui selection group (i.e. MoBIE dropdown menu)
+     * @param datasetName dataset name
+     * @param uiSelectionGroup ui selection group name
+     * @return array of view names
+     */
     public String[] getViews( String datasetName, String uiSelectionGroup ) {
         if ( !datasetName.equals(currentDatasetName) ) {
             getDataset( datasetName );
@@ -164,6 +188,7 @@ public class ProjectCreator {
 
         return views;
     }
+
     public String getVoxelUnit() {
         return voxelUnit;
     }
@@ -172,6 +197,10 @@ public class ProjectCreator {
         this.voxelUnit = voxelUnit;
     }
 
+    /**
+     * Reload dataset by directly reading the dataset json
+     * @throws IOException
+     */
     public void reloadCurrentDataset() throws IOException {
         if ( currentDatasetName != null ) {
             this.currentDataset = new DatasetJsonParser().parseDataset(currentDatasetJson.getAbsolutePath());

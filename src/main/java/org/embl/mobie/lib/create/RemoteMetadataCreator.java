@@ -54,6 +54,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * Class to create and modify the metadata required for remote (S3) storage of MoBIE projects
+ */
 public class RemoteMetadataCreator {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }

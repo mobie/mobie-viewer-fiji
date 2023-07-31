@@ -82,12 +82,19 @@ import static org.embl.mobie.lib.create.ProjectCreatorHelper.imageFormatToFolder
 import static org.embl.mobie.lib.create.ProjectCreatorHelper.isImageValid;
 import static org.embl.mobie.lib.create.ProjectCreatorHelper.isSpimData2D;
 
+/**
+ * Class to add images and segmentations to MoBIE projects in the correct file formats
+ */
 public class ImagesCreator {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     ProjectCreator projectCreator;
 
+    /**
+     * Make an imagesCreator - includes all functions for adding images and segmentations to MoBIE projects
+     * @param projectCreator projectCreator
+     */
     public ImagesCreator( ProjectCreator projectCreator ) {
         this.projectCreator = projectCreator;
     }
@@ -125,32 +132,129 @@ public class ImagesCreator {
         return IOHelper.combinePath( getDefaultTableDirPath(datasetName, imageName), "default.tsv" );
     }
 
+    /**
+     * Check if named image exists within dataset
+     * @param datasetName dataset name
+     * @param imageName image name
+     * @param imageDataFormat image data format - ImageDataFormat.BdvN5 or ImageDataFormat.OmeZarr
+     * @return whether the image exists or not
+     */
     public boolean imageExists( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
         // either xml file path or zarr file path depending on imageDataFormat
         String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
         return new File (filePath).exists();
     }
 
+    /**
+     * Add ImagePlus image to MoBIE project. Resolutions, subdivisions and compression of converted image will be
+     * set to sensible defaults.
+     * @param imp ImagePlus image
+     * @param imageName image name
+     * @param datasetName dataset name
+     * @param imageDataFormat image data format to convert to - ImageDataFormat.BdvN5 or ImageDataFormat.OmeZarr
+     * @param imageType image type i.e. image or segmentation
+     * @param sourceTransform Affine transform of image
+     * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
+     *                         menu it will appear in
+     * @throws SpimDataException
+     * @throws IOException
+     */
     public void addImage ( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, AffineTransform3D sourceTransform, String uiSelectionGroup ) throws SpimDataException, IOException
     {
         addImage( imp, imageName, datasetName, imageDataFormat, imageType, sourceTransform, uiSelectionGroup, false, null, null, null );
     }
 
+    /**
+     * Add ImagePlus image to MoBIE project. Resolutions, subdivisions and compression of converted image will be
+     * set to sensible defaults.
+     * @param imp ImagePlus image
+     * @param imageName image name
+     * @param datasetName dataset name
+     * @param imageDataFormat image data format to convert to - ImageDataFormat.BdvN5 or ImageDataFormat.OmeZarr
+     * @param imageType image type i.e. image or segmentation
+     * @param sourceTransform Affine transform of image
+     * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
+     *                         menu it will appear in
+     * @param exclusive whether the image view is exclusive or not i.e. when viewed, does it first remove all current
+     *                  images from the viewer?
+     * @throws SpimDataException
+     * @throws IOException
+     */
     public void addImage ( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, AffineTransform3D sourceTransform, String uiSelectionGroup, boolean exclusive ) throws SpimDataException, IOException
     {
         addImage( imp, imageName, datasetName, imageDataFormat, imageType, sourceTransform, uiSelectionGroup, exclusive, null, null, null );
     }
 
+    /**
+     * Add ImagePlus image to MoBIE project. Resolutions, subdivisions and compression of converted image will be
+     * set to sensible defaults.
+     * @param imp ImagePlus image
+     * @param imageName image name
+     * @param datasetName dataset name
+     * @param imageDataFormat image data format to convert to - ImageDataFormat.BdvN5 or ImageDataFormat.OmeZarr
+     * @param imageType image type i.e. image or segmentation
+     * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
+     *                         menu it will appear in
+     * @param exclusive whether the image view is exclusive or not i.e. when viewed, does it first remove all current
+     *                  images from the viewer?
+     * @throws SpimDataException
+     * @throws IOException
+     */
     public void addImage ( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, String uiSelectionGroup, boolean exclusive ) throws SpimDataException, IOException
     {
         addImage( imp, imageName, datasetName, imageDataFormat, imageType, new AffineTransform3D(), uiSelectionGroup, exclusive, null, null, null );
     }
 
+    /**
+     * Add ImagePlus image to MoBIE project. Resolutions, subdivisions and compression of converted image must be
+     * provided directly.
+     * @param imp ImagePlus image
+     * @param imageName image name
+     * @param datasetName dataset name
+     * @param imageDataFormat image data format to convert to - ImageDataFormat.BdvN5 or ImageDataFormat.OmeZarr
+     * @param imageType image type i.e. image or segmentation
+     * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
+     *                         menu it will appear in
+     * @param exclusive whether the image view is exclusive or not i.e. when viewed, does it first remove all current
+     *                  images from the viewer?
+     * @param resolutions Resolution levels to use for converted image e.g. [ [1,1,1], [2,2,2], [4,4,4] ] will
+     *                    write one full resolution level, then one 2x downsampled, and one 4x downsampled.
+     *                    The order is [x, y, z].
+     * @param subdivisions Subdivisions/chunk size to use for converted image. This must have the same number of
+     *                    entries as 'resolutions'. e.g. [ [64,64,64], [64,64,64], [64,64,64] ] will use a chunk size
+     *                    of (64, 64, 64) for all levels. The order is [x, y, z].
+     * @param compression Type of compression to use for converted image.
+     * @throws SpimDataException
+     * @throws IOException
+     */
     public void addImage ( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, String uiSelectionGroup, boolean exclusive, int[][] resolutions, int[][] subdivisions, Compression compression ) throws SpimDataException, IOException
     {
         addImage( imp, imageName, datasetName, imageDataFormat, imageType, new AffineTransform3D(), uiSelectionGroup, exclusive, resolutions, subdivisions, compression );
     }
 
+    /**
+     * Add ImagePlus image to MoBIE project. Resolutions, subdivisions and compression of converted image must be
+     * provided directly.
+     * @param imp ImagePlus image
+     * @param imageName image name
+     * @param datasetName dataset name
+     * @param imageDataFormat image data format to convert to - ImageDataFormat.BdvN5 or ImageDataFormat.OmeZarr
+     * @param imageType image type i.e. image or segmentation
+     * @param sourceTransform Affine transform of image
+     * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
+     *                         menu it will appear in
+     * @param exclusive whether the image view is exclusive or not i.e. when viewed, does it first remove all current
+     *                  images from the viewer?
+     * @param resolutions Resolution levels to use for converted image e.g. [ [1,1,1], [2,2,2], [4,4,4] ] will
+     *                    write one full resolution level, then one 2x downsampled, and one 4x downsampled.
+     *                    The order is [x, y, z].
+     * @param subdivisions Subdivisions/chunk size to use for converted image. This must have the same number of
+     *                     entries as 'resolutions'. e.g. [ [64,64,64], [64,64,64], [64,64,64] ] will use a chunk size
+     *                     of (64, 64, 64) for all levels. The order is [x, y, z].
+     * @param compression Type of compression to use for converted image.
+     * @throws IOException
+     * @throws SpimDataException
+     */
     public void addImage( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, AffineTransform3D sourceTransform, String uiSelectionGroup, boolean exclusive, int[][] resolutions, int[][] subdivisions, Compression compression ) throws IOException, SpimDataException
     {
         // either xml file path or zarr file path depending on imageDataFormat
@@ -310,6 +414,25 @@ public class ImagesCreator {
         }
     }
 
+    /**
+     * Add BigDataViewer (Bdv) format image to MoBIE project e.g. one already in n5/ome-zarr.
+     * @param fileLocation image file location - for n5, location of the xml, for ome-zarr,
+     *                     location of the .ome.zarr directory.
+     * @param imageName image name
+     * @param datasetName dataset name
+     * @param imageType image type i.e. image or segmentation
+     * @param addMethod link, copy or move the image - link (leave image as-is, and link to this location. Only
+     *                  supported for N5 and local projects), copy (copy image into project),
+     *                  or move (move image into project - be careful as this will delete the image
+     *                  from its original location!)
+     * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
+     *                         menu it will appear in
+     * @param imageDataFormat  image data format of image - ImageDataFormat.BdvN5 or ImageDataFormat.OmeZarr
+     * @param exclusive whether the image view is exclusive or not i.e. when viewed, does it first remove all current
+     *                  images from the viewer?
+     * @throws SpimDataException
+     * @throws IOException
+     */
     public void addBdvFormatImage ( File fileLocation, String imageName, String datasetName, ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod, String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
 
         if ( fileLocation.exists() ) {
@@ -321,6 +444,24 @@ public class ImagesCreator {
         }
     }
 
+    /**
+     * Add BigDataViewer (Bdv) format image to MoBIE project e.g. one already in n5/ome-zarr.
+     * @param spimData spim data object for image
+     * @param imageName image name
+     * @param datasetName dataset name
+     * @param imageType image type i.e. image or segmentation
+     * @param addMethod link, copy or move the image - link (leave image as-is, and link to this location. Only
+     *                  supported for N5 and local projects), copy (copy image into project),
+     *                  or move (move image into project - be careful as this will delete the image
+     *                  from its original location!)
+     * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
+     *                         menu it will appear in
+     * @param imageDataFormat image data format of image - ImageDataFormat.BdvN5 or ImageDataFormat.OmeZarr
+     * @param exclusive whether the image view is exclusive or not i.e. when viewed, does it first remove all current
+     *                  images from the viewer?
+     * @throws SpimDataException
+     * @throws IOException
+     */
     public void addBdvFormatImage ( SpimData spimData, String imageName, String datasetName,
 									ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod, String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
 

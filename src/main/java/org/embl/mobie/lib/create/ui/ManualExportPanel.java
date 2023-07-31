@@ -41,9 +41,11 @@ import org.janelia.saalfeldlab.n5.Lz4Compression;
 import org.janelia.saalfeldlab.n5.RawCompression;
 import org.janelia.saalfeldlab.n5.XzCompression;
 
-// based on https://github.com/bigdataviewer/bigdataviewer_fiji/blob/master/src/main/java/bdv/ij/ExportImagePlusAsN5PlugIn.java
-// removing export path, that shouldn't be set manually
-
+/**
+ * Class for user interface to manually set image export parameters like resolution and chunk sizes
+ * based on https://github.com/bigdataviewer/bigdataviewer_fiji/blob/master/src/main/java/bdv/ij/ExportImagePlusAsN5PlugIn.java
+ * removing export path, that shouldn't be set manually
+ */
 public class ManualExportPanel {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
@@ -57,6 +59,10 @@ public class ManualExportPanel {
     static int lastCompressionChoice = 0;
     static boolean lastCompressionDefaultSettings = true;
 
+    /**
+     * Create main panel for manual export of images
+     * @param imageDataFormat image format to export to
+     */
     public ManualExportPanel( ImageDataFormat imageDataFormat ) {
 
         final GenericDialog manualSettings = new GenericDialog( "Manual Settings for " +
@@ -99,14 +105,28 @@ public class ManualExportPanel {
         }
     }
 
+    /**
+     * Get chosen subdivisions/chunk size
+     * @return Subdivisions/chunk size to use for converted image. e.g. [ [64,64,64], [64,64,64], [64,64,64] ]
+     * will use a chunk size of (64, 64, 64) for all levels. The order is [x, y, z].
+     */
     public int[][] getSubdivisions() {
         return subdivisions;
     }
 
+    /**
+     * Get chosen resolutions
+     * @return Resolution levels to use for converted image e.g. [ [1,1,1], [2,2,2], [4,4,4] ] will
+     * write one full resolution level, then one 2x downsampled, and one 4x downsampled. The order is [x, y, z].
+     */
     public int[][] getResolutions() {
         return resolutions;
     }
 
+    /**
+     * Get chosen compression
+     * @return type of compression to use for export
+     */
     public Compression getCompression() {
         return compression;
     }

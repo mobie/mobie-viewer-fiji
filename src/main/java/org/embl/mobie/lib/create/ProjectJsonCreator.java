@@ -33,13 +33,25 @@ import org.embl.mobie.lib.serialize.ProjectJsonParser;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Class to create and modify the metadata stored in project Json files
+ */
 public class ProjectJsonCreator {
     ProjectCreator projectCreator;
 
+    /**
+     * Make a projectJsonCreator - includes all functions for creating and modifying metadata
+     * stored in project Json files
+     * @param projectCreator projectCreator
+     */
     public ProjectJsonCreator( ProjectCreator projectCreator ) {
         this.projectCreator = projectCreator;
     }
 
+    /**
+     * Add new dataset to project Json
+     * @param datasetName dataset name
+     */
     public void addDataset( String datasetName ) {
         List<String> currentDatasets = projectCreator.getProject().datasets();
 
@@ -51,6 +63,11 @@ public class ProjectJsonCreator {
         writeProjectJson();
     }
 
+    /**
+     * Renames dataset in project Json
+     * @param oldName old dataset name
+     * @param newName new dataset name
+     */
     public void renameDataset( String oldName, String newName ) {
         if ( projectCreator.getProject().getDefaultDataset().equals(oldName) ) {
             projectCreator.getProject().setDefaultDataset( newName );
@@ -62,11 +79,18 @@ public class ProjectJsonCreator {
         writeProjectJson();
     }
 
+    /**
+     * Set default dataset in project Json
+     * @param datasetName dataset name
+     */
     public void setDefaultDataset( String datasetName ) {
         projectCreator.getProject().setDefaultDataset( datasetName );
         writeProjectJson();
     }
 
+    /**
+     * Write current project to a project Json file
+     */
     public void writeProjectJson() {
         try {
             new ProjectJsonParser().saveProject( projectCreator.getProject(), projectCreator.getProjectJson().getAbsolutePath() );

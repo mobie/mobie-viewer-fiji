@@ -63,6 +63,9 @@ import static org.embl.mobie.lib.create.ProjectCreatorHelper.getVoxelSizeString;
 import static org.embl.mobie.lib.create.ProjectCreatorHelper.isImageValid;
 import static org.embl.mobie.lib.create.ProjectCreatorHelper.isSpimData2D;
 
+/**
+ * Class for the main user interface of the project creator
+ */
 public class ProjectsCreatorPanel extends JFrame {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
@@ -87,6 +90,11 @@ public class ProjectsCreatorPanel extends JFrame {
     private final String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(), ProjectCreator.ImageType.segmentation.toString() };
 
 
+    /**
+     * Create main project creator panel
+     * @param projectLocation project directory
+     * @throws IOException
+     */
     public ProjectsCreatorPanel ( File projectLocation ) throws IOException {
 
         // account for projects with and without the top 'data' directory
@@ -109,6 +117,9 @@ public class ProjectsCreatorPanel extends JFrame {
         this.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
     }
 
+    /**
+     * Show the main project creator panel
+     */
     public void showProjectsCreatorPanel() {
         this.pack();
         this.setLocationRelativeTo(null);
@@ -367,6 +378,10 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
+    /**
+     * Dialog to choose a dataset
+     * @return Name of chosen datset, or null if cancelled
+     */
     public String chooseDatasetDialog() {
         final GenericDialog gd = new GenericDialog( "Choose a dataset" );
         String[] currentDatasets = getDatasetNames();
@@ -382,6 +397,9 @@ public class ProjectsCreatorPanel extends JFrame {
 
     }
 
+    /**
+     * Dialog to add an image to a MoBIE project
+     */
     public void addImageDialog() {
         final GenericDialog gd = new GenericDialog( "Add..." );
         String[] addMethods = new String[] {"current open image", "bdv format image"};
@@ -480,6 +498,9 @@ public class ProjectsCreatorPanel extends JFrame {
         return imageName;
     }
 
+    /**
+     * Dialog for adding image currently open in ImageJ to the MoBIE project
+     */
     public void addCurrentOpenImageDialog() {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
@@ -577,6 +598,9 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
+    /**
+     * Dialog for adding BigDataViewer (bdv) format image to MoBIE project - i.e. N5 or ome-zarr image
+     */
     public void addBdvFormatImageDialog() {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
@@ -710,6 +734,9 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
+    /**
+     * Dialog to add a new dataset to a MoBIE project
+     */
     public void addDatasetDialog () {
         final GenericDialog gd = new GenericDialog( "Create a new dataset" );
         gd.addStringField( "Name of dataset", "", 35 );
