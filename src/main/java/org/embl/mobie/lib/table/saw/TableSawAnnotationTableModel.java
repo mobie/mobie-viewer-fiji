@@ -171,14 +171,16 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	{
 		// join additional table
 		// some columns, e.g. timepoint, are optional and thus
-		// are only used for merging if they are actually present
+		// may be missing in the parent table;
+		// thus we only use columns for merging that are actually present
 		final List< String > columnNames = table.columnNames();
-		final List< String > mergeByColumnNames = Arrays.stream( annotation( 0 ).idColumns() ).filter( column -> columnNames.contains( column ) ).collect( Collectors.toList() );
+		//final String[] idColumns = annotation( 0 ).idColumns();
+		final List< String > idColumns = annotationCreator.getIDColumns();
+		final List< String > mergeByColumnNames = idColumns.stream().filter( column -> columnNames.contains( column ) ).collect( Collectors.toList() );
 
-		// note that the below joining changes the table object,
+		// the below table merging changes the table object,
 		// thus other classes that need that table object
-		// need to retrieve the new one using the {@code getTable()}
-		// method
+		// need to retrieve the new table using {@code getTable()}
 		try
 		{
 			final List< String > additionalColumnNames = additionalTable.columnNames().stream().filter( col -> ! mergeByColumnNames.contains( col ) ).collect( Collectors.toList() );

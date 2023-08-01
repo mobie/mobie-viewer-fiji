@@ -31,6 +31,7 @@ package org.embl.mobie.lib.table.saw;
 import org.embl.mobie.lib.table.ColumnNames;
 import tech.tablesaw.api.Table;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -40,6 +41,7 @@ public class TableSawAnnotatedRegionCreator implements TableSawAnnotationCreator
 	private final int timePointColumnIndex;
 	private final double relativeDilation;
 	private int regionIdColumnIndex;
+	private ArrayList< String > idColumns;
 
 	public TableSawAnnotatedRegionCreator( Table table, Map< String, List< String > > regionIdToImageNames, double relativeDilation )
 	{
@@ -48,6 +50,9 @@ public class TableSawAnnotatedRegionCreator implements TableSawAnnotationCreator
 		this.regionIdToImageNames = regionIdToImageNames;
 		regionIdColumnIndex = columnNames.indexOf( ColumnNames.REGION_ID );
 		timePointColumnIndex = columnNames.indexOf( ColumnNames.TIMEPOINT );
+		idColumns = new ArrayList<>();
+		idColumns.add( ColumnNames.REGION_ID );
+		idColumns.add( ColumnNames.TIMEPOINT );
 	}
 
 	@Override
@@ -70,5 +75,11 @@ public class TableSawAnnotatedRegionCreator implements TableSawAnnotationCreator
 	public int[] removeColumns()
 	{
 		return new int[ 0 ];
+	}
+
+	@Override
+	public List< String > getIDColumns()
+	{
+		return idColumns;
 	}
 }

@@ -145,12 +145,6 @@ public class AffineTransformedAnnotatedSegment< AS extends AnnotatedSegment > im
 	}
 
 	@Override
-	public String[] idColumns()
-	{
-		return annotatedSegment.idColumns();
-	}
-
-	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
 		if ( position != null )

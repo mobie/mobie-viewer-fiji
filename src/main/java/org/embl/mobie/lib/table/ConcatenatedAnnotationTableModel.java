@@ -106,8 +106,8 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 		for ( AnnotationTableModel< A > tableModel : tableModels )
 			tableModel.loadTableChunk( tableChunk );
 
-		// TODO: it is not logical that this method does not trigger
-		//   an annotation listener...
+		for ( AnnotationListener< A > listener : listeners.list )
+			listener.columnsAdded( null );
 	}
 
 	@Override

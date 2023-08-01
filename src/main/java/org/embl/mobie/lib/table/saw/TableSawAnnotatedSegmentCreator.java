@@ -34,6 +34,7 @@ import org.embl.mobie.lib.table.columns.SegmentColumnNames;
 import tech.tablesaw.api.Table;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -51,12 +52,11 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 	private AtomicBoolean columnsInitialised = new AtomicBoolean( false );
 	private boolean is3D;
 	private boolean hasBoundingBox;
+	private ArrayList< String > idColumns;
 
-	public TableSawAnnotatedSegmentCreator(
-			@Nullable SegmentColumnNames segmentColumnNames,
-			@Nullable Table table )
+	public TableSawAnnotatedSegmentCreator( @Nullable Table table )
 	{
-		this.segmentColumnNames = segmentColumnNames;
+		//this.segmentColumnNames = segmentColumnNames;
 		if ( table != null )
 			initColumns( table );
 	}
@@ -67,8 +67,12 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 
 		final List< String > columnNames = table.columnNames();
 
-		if ( segmentColumnNames == null )
-			segmentColumnNames = TableDataFormat.getSegmentColumnNames( columnNames );
+		segmentColumnNames = TableDataFormat.getSegmentColumnNames( columnNames );
+
+		idColumns = new ArrayList<>();
+		idColumns.add( segmentColumnNames.labelIdColumn() );
+		idColumns.add( segmentColumnNames.timePointColumn() );
+		idColumns.add( segmentColumnNames.labelImageColumn() );
 
 		labelIdColumnIndex = columnNames.indexOf( segmentColumnNames.labelIdColumn() );
 		if ( labelIdColumnIndex == -1 )
@@ -93,6 +97,7 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 		is3D = anchorColumnIndices.length == 3 && anchorColumnIndices[ 2 ] > -1;
 
 		hasBoundingBox = bbMinColumnIndices[ 0 ] > -1;
+
 
 	}
 
@@ -152,5 +157,11 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 		final FinalRealInterval boundingBox = new FinalRealInterval( min, max );
 
 		return boundingBox;
+	}
+
+	@Override
+	public List< String > getIDColumns()
+	{
+		return idColumns;
 	}
 }

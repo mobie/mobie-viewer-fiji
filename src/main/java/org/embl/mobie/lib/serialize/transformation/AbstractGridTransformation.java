@@ -34,8 +34,8 @@ public abstract class AbstractGridTransformation implements Transformation
 {
 	// Serialization
 
-	public List< int[] > positions;
+	public List< int[] > positions; // x,y positions of the image tiles
 
-	public double margin = 0.1; // 0.1;
+	public double margin = 0.1;
 
 }
