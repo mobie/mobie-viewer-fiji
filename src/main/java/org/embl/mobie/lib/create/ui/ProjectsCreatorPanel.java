@@ -71,10 +71,13 @@ public class ProjectsCreatorPanel extends JFrame {
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     private ProjectCreator projectsCreator;
+    private JPanel contentGrid;
     private JComboBox<String> datasetComboBox;
     private JComboBox<String> sourcesComboBox;
     private JComboBox<String> groupsComboBox;
     private JComboBox<String> viewsComboBox;
+    private final int labelPaddingX = 15;
+    private final int labelPaddingY = 15;
 
     private static ProjectCreator.ImageType imageType = ProjectCreator.ImageType.image;
     private static ImageDataFormat imageDataFormat = ImageDataFormat.BdvN5;
@@ -101,19 +104,27 @@ public class ProjectsCreatorPanel extends JFrame {
         File dataDirectory = ProjectCreatorHelper.getDataLocation( projectLocation );
         this.projectsCreator = new ProjectCreator( dataDirectory );
 
-        addDatasetPanel();
-        addSourcesPanel();
-        this.getContentPane().add(new JSeparator(SwingConstants.HORIZONTAL));
-        this.getContentPane().add( Box.createVerticalStrut( 10 ) );
-        addViewsPanel();
+        this.getContentPane().setLayout( new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS ) );
+
+        // Panel for main content - with a 10 pixel border
+        contentGrid = new JPanel();
+        contentGrid.setBorder( BorderFactory.createEmptyBorder(10, 10, 10, 10) );
+        contentGrid.setLayout( new GridBagLayout());
+
+        addDatasetsToGrid( 0 );
+        addSourcesToGrid( 1 );
+        addSeparatorToGrid( 2 );
+        addViewsToGrid(3 );
+
+        this.getContentPane().add( contentGrid );
         addButtonsPanel();
 
         String shortenedProjectName = projectLocation.getName();
         if ( shortenedProjectName.length() > 50 ) {
             shortenedProjectName = shortenedProjectName.substring( 0, 47 ) + "...";
         }
+
         this.setTitle( "Editing MoBIE Project: " + shortenedProjectName );
-        this.getContentPane().setLayout( new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS ) );
         this.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
     }
 
@@ -130,11 +141,10 @@ public class ProjectsCreatorPanel extends JFrame {
         return projectsCreator;
     }
 
-    private void addDatasetPanel() {
-        final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+    private void addDatasetsToGrid(int rowIndex ) {
 
-        final JButton addButton = SwingHelper.createButton("Add");
-        final JButton editButton = SwingHelper.createButton("Edit");
+        final JButton addButton = new JButton("Add");
+        final JButton editButton = new JButton("Edit");
 
         createDatasetComboBox();
         addButton.addActionListener( e ->
@@ -147,13 +157,11 @@ public class ProjectsCreatorPanel extends JFrame {
             new Thread( () -> { editDatasetDialog(); } ).start();
         } );
 
-        horizontalLayoutPanel.add( SwingHelper.getJLabel("dataset", 60, 10));
-        horizontalLayoutPanel.add(datasetComboBox);
-        horizontalLayoutPanel.add(addButton);
-        horizontalLayoutPanel.add(editButton);
-        horizontalLayoutPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
-
-        this.getContentPane().add(horizontalLayoutPanel);
+        contentGrid.add( createJLabel("dataset"),
+                createGridBagConstraints(0.5, 0, rowIndex, labelPaddingX, labelPaddingY));
+        contentGrid.add( datasetComboBox, createGridBagConstraints(1, 1, rowIndex, 0, 0) );
+        contentGrid.add( addButton, createGridBagConstraints(0.5, 2, rowIndex, 0, 0) );
+        contentGrid.add( editButton, createGridBagConstraints(0.5, 3, rowIndex, 0, 0) );
     }
 
     private String[] getDatasetNames() {
@@ -169,11 +177,22 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
+    private GridBagConstraints createGridBagConstraints(double weightX, int gridX, int gridY, int ipadX, int ipadY) {
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.weightx = weightX;
+        constraints.gridx = gridX;
+        constraints.gridy = gridY;
+        constraints.ipadx = ipadX;
+        constraints.ipady = ipadY;
+        return constraints;
+    }
+
     private void createDatasetComboBox() {
         String[] datasetNames = getDatasetNames();
         datasetComboBox = new JComboBox<>( datasetNames );
         datasetComboBox.setSelectedItem( datasetNames[0] );
-        setComboBoxDimensions(datasetComboBox);
+        setComboBoxDisplayParameters(datasetComboBox);
         datasetComboBox.setPrototypeDisplayValue( UserInterfaceHelper.PROTOTYPE_DISPLAY_VALUE);
         datasetComboBox.addItemListener( new SyncAllWithDatasetComboBox() );
     }
@@ -189,7 +208,7 @@ public class ProjectsCreatorPanel extends JFrame {
             sourcesComboBox = new JComboBox<>( new String[] {""} );
             sourcesComboBox.setSelectedItem( "" );
         }
-        setComboBoxDimensions(sourcesComboBox);
+        setComboBoxDisplayParameters(sourcesComboBox);
         sourcesComboBox.setPrototypeDisplayValue( UserInterfaceHelper.PROTOTYPE_DISPLAY_VALUE);
     }
 
@@ -207,7 +226,7 @@ public class ProjectsCreatorPanel extends JFrame {
             groupsComboBox = new JComboBox<>( new String[] {""} );
             groupsComboBox.setSelectedItem( "" );
         }
-        setComboBoxDimensions(groupsComboBox);
+        setComboBoxDisplayParameters(groupsComboBox);
         groupsComboBox.setPrototypeDisplayValue( UserInterfaceHelper.PROTOTYPE_DISPLAY_VALUE);
         groupsComboBox.addItemListener( new SyncGroupAndViewComboBox() );
     }
@@ -228,15 +247,23 @@ public class ProjectsCreatorPanel extends JFrame {
             viewsComboBox.setSelectedItem( "" );
         }
 
-        setComboBoxDimensions(viewsComboBox);
+        setComboBoxDisplayParameters(viewsComboBox);
         viewsComboBox.setPrototypeDisplayValue( UserInterfaceHelper.PROTOTYPE_DISPLAY_VALUE);
     }
 
-    public static void setComboBoxDimensions( JComboBox< String > comboBox )
+    private JLabel createJLabel( String text ) {
+        JLabel label = new JLabel( text );
+        SwingHelper.alignJLabel( label );
+        return label;
+    }
+
+    private void setComboBoxDisplayParameters(JComboBox< String > comboBox )
     {
         comboBox.setPrototypeDisplayValue( UserInterfaceHelper.PROTOTYPE_DISPLAY_VALUE );
-        comboBox.setPreferredSize( new Dimension( 350, 20 ) );
-        comboBox.setMaximumSize( new Dimension( 350, 20 ) );
+        // Keep preferred height as is, but double the preferred width of the combobox
+        // (to ensure there's room to view long names). By basing this on .getPreferredSize(), it will scale with the
+        // screen dpi used
+        comboBox.setPreferredSize( new Dimension(comboBox.getPreferredSize().width*2, comboBox.getPreferredSize().height ) );
     }
 
     private class SyncAllWithDatasetComboBox implements ItemListener {
@@ -258,13 +285,12 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
-    private void addSourcesPanel() {
-        final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+    private void addSourcesToGrid(int rowIndex ) {
 
-        final JButton addButton = SwingHelper.createButton( "Add" );
+        final JButton addButton = new JButton( "Add" );
         // for now we don't support editing any image properties, but this is likely to change in future,
         // so keep this code for now
-        // final JButton editButton = createButton("Edit");
+        // final JButton editButton = new JButton("Edit");
 
         createSoucesComboBox();
         addButton.addActionListener( e ->
@@ -277,36 +303,36 @@ public class ProjectsCreatorPanel extends JFrame {
         //     new Thread( () -> { editImageDialog(); } ).start();
         // } );
 
-        horizontalLayoutPanel.add( SwingHelper.getJLabel("source", 60, 10));
-        horizontalLayoutPanel.add(sourcesComboBox);
-        horizontalLayoutPanel.add( addButton );
-        horizontalLayoutPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
-        // horizontalLayoutPanel.add( editButton );
-        horizontalLayoutPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
-
-        this.getContentPane().add(horizontalLayoutPanel);
+        contentGrid.add( createJLabel("source"),
+                createGridBagConstraints(0.5, 0, rowIndex, labelPaddingX, labelPaddingY) );
+        contentGrid.add( sourcesComboBox, createGridBagConstraints(1, 1, rowIndex, 0, 0) );
+        contentGrid.add( addButton, createGridBagConstraints(0.5, 2, rowIndex, 0, 0) );
     }
 
-    private void addViewsPanel() {
-        final JPanel groupPanel = SwingUtils.horizontalLayoutPanel();
-        final JPanel viewsPanel = SwingUtils.horizontalLayoutPanel();
+    private void addViewsToGrid(int rowIndex ) {
 
         createGroupsCombobox();
         createViewsCombobox();
 
-        groupPanel.add( SwingHelper.getJLabel("group", 60, 10));
-        viewsPanel.add( SwingHelper.getJLabel("view", 60, 10));
-        groupPanel.add( groupsComboBox );
-        viewsPanel.add( viewsComboBox );
-        groupPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
-        groupPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
-        viewsPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
-        viewsPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
-        groupPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
-        viewsPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
+        contentGrid.add( createJLabel("group"),
+                createGridBagConstraints(0.5, 0, rowIndex, labelPaddingX, labelPaddingY) );
+        contentGrid.add( groupsComboBox, createGridBagConstraints(1, 1, rowIndex, 0, 0) );
+        contentGrid.add( createJLabel("view"),
+                createGridBagConstraints(0.5, 0, rowIndex + 1, labelPaddingX, labelPaddingY));
+        contentGrid.add( viewsComboBox, createGridBagConstraints(1, 1, rowIndex+1, 0, 0) );
+    }
 
-        this.getContentPane().add( groupPanel );
-        this.getContentPane().add( viewsPanel );
+    private void addSeparatorToGrid( int rowIndex ) {
+        GridBagConstraints separatorConstraints = createGridBagConstraints( 0.5, 0, rowIndex, 0, 30 );
+        separatorConstraints.gridwidth = contentGrid.getWidth();
+
+        // Have to wrap the separator in another panel to get it to centre properly vertically
+        JPanel wrapper = new JPanel(new GridBagLayout());
+        GridBagConstraints wrapperConstraints = createGridBagConstraints( 1, 0, 0, 0, 0);
+        wrapperConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        wrapper.add( new JSeparator(SwingConstants.HORIZONTAL), wrapperConstraints );
+
+        contentGrid.add( wrapper, separatorConstraints );
     }
 
     private void addButtonsPanel() {
