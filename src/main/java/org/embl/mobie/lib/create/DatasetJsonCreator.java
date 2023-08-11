@@ -54,20 +54,46 @@ import java.util.Map;
 
 import static org.embl.mobie.lib.create.ProjectCreatorHelper.imageFormatToFolderName;
 
+/**
+ * Class to create and modify the metadata stored in dataset Json files
+ */
 public class DatasetJsonCreator {
 
     ProjectCreator projectCreator;
 
+    /**
+     * Make a datasetJsonCreator - includes all functions for creating and modifying metadata
+     * stored in dataset Json files
+     * @param projectCreator projectCreator
+     */
     public DatasetJsonCreator( ProjectCreator projectCreator ) {
         this.projectCreator = projectCreator;
     }
 
+    /**
+     * Create dataset Json for new dataset
+     * @param datasetName dataset name
+     * @param is2D whether dataset only contains 2D images
+     */
     public void addDataset( String datasetName, boolean is2D ) {
         Dataset dataset = new Dataset();
         dataset.is2D( is2D );
         writeDatasetJson( datasetName, dataset );
     }
 
+    /**
+     * Add named image to dataset Json (including a view with the image name and sensible defaults)
+     * @param imageName image name
+     * @param datasetName dataset name
+     * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
+     *                         menu it will appear in
+     * @param imageDataFormat image data format
+     * @param contrastLimits contrast limits for image view
+     * @param colour colour for image view
+     * @param exclusive whether the image view is exclusive or not i.e. when viewed, does it first remove all current
+     *                  images from the viewer?
+     * @param sourceTransform affine transform of image view
+     */
     public void addImage(String imageName, String datasetName,
                          String uiSelectionGroup,
                          ImageDataFormat imageDataFormat, double[] contrastLimits, String colour, boolean exclusive, AffineTransform3D sourceTransform ) {
@@ -87,6 +113,17 @@ public class DatasetJsonCreator {
         writeDatasetJson( datasetName, dataset );
     }
 
+    /**
+     * Add named segmentation to dataset Json (including a view with the segmentation name and sensible defaults)
+     * @param imageName segmentation name
+     * @param datasetName dataset name
+     * @param uiSelectionGroup name of ui selection group to add segmentation view to i.e. the name of the MoBIE
+     *                         dropdown menu it will appear in
+     * @param imageDataFormat segmentation image data format
+     * @param exclusive whether the segmentation view is exclusive or not i.e. when viewed, does it first
+     *                  remove all current images from the viewer?
+     * @param sourceTransform affine transform of segmentation view
+     */
     public void addSegmentation(String imageName, String datasetName, String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive, AffineTransform3D sourceTransform ) {
         Dataset dataset = fetchDataset( datasetName );
 
@@ -104,6 +141,11 @@ public class DatasetJsonCreator {
         writeDatasetJson( datasetName, dataset );
     }
 
+    /**
+     * Make named dataset 2D in the dataset Json
+     * @param datasetName dataset name
+     * @param is2D whether dataset only contains 2D images
+     */
     public void makeDataset2D( String datasetName, boolean is2D ) {
         Dataset dataset = projectCreator.getDataset( datasetName );
         dataset.is2D( is2D );
@@ -222,6 +264,11 @@ public class DatasetJsonCreator {
         }
     }
 
+    /**
+     * Write the provided dataset to a dataset Json file
+     * @param datasetName dataset name
+     * @param dataset dataset
+     */
     public void writeDatasetJson ( String datasetName, Dataset dataset ) {
         try {
             String datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),

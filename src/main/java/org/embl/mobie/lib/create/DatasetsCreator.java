@@ -34,6 +34,9 @@ import org.embl.mobie.io.util.IOHelper;
 import java.io.File;
 import java.util.List;
 
+/**
+ * Class to create and modify MoBIE datasets
+ */
 public class DatasetsCreator {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }

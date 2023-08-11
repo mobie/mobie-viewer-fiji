@@ -50,10 +50,14 @@ public class SwingHelper
 	{
 		final JLabel comp = new JLabel( text );
 		comp.setPreferredSize( new Dimension( width,height ) );
-		comp.setHorizontalAlignment( SwingConstants.LEFT );
-		comp.setHorizontalTextPosition( SwingConstants.LEFT );
-		comp.setAlignmentX( Component.LEFT_ALIGNMENT );
+		alignJLabel( comp );
 		return comp;
+	}
+
+	public static void alignJLabel( JLabel label ) {
+		label.setHorizontalAlignment( SwingConstants.LEFT );
+		label.setHorizontalTextPosition( SwingConstants.LEFT );
+		label.setAlignmentX( Component.LEFT_ALIGNMENT );
 	}
 
 	public static JButton createButton( String buttonLabel )

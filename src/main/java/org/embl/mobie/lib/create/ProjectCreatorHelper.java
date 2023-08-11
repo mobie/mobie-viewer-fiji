@@ -62,10 +62,18 @@ import java.util.Map;
 
 import static org.embl.mobie.lib.ui.UserInterfaceHelper.tidyString;
 
+/**
+ * Utility class for helper functions used during project creation
+ */
 public class ProjectCreatorHelper {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
+    /**
+     * Check if entered affine string is valid - i.e. does it only contain valid characters, and have a length of 12
+     * @param affine
+     * @return whether the affine string is valid or not
+     */
     public static boolean isValidAffine(String affine) {
         if (!affine.matches("^[-0-9., ]+$")) {
             IJ.log("Invalid affine transform - must contain only numbers, commas and spaces");
@@ -81,6 +89,11 @@ public class ProjectCreatorHelper {
         return true;
     }
 
+    /**
+     * Parses an affine string to a valid AffineTransform3D
+     * @param affine an affine string
+     * @return a valid AffineTransform3D
+     */
     public static AffineTransform3D parseAffineString(String affine) {
         if (isValidAffine(affine)) {
             AffineTransform3D sourceTransform = new AffineTransform3D();
@@ -98,6 +111,12 @@ public class ProjectCreatorHelper {
         }
     }
 
+    /**
+     * Generates a default affine transform for a given ImagePlus image - this only sets the scaling to match the
+     * voxel dimensions of the image.
+     * @param imp ImagePlus image
+     * @return An AffineTransform 3D with scaling set to match the image
+     */
     public static AffineTransform3D generateDefaultAffine(ImagePlus imp) {
         final double pixelWidth = imp.getCalibration().pixelWidth;
         final double pixelHeight = imp.getCalibration().pixelHeight;
@@ -109,6 +128,13 @@ public class ProjectCreatorHelper {
         return defaultAffine;
     }
 
+    /**
+     * Finds filepath of image from sequence description
+     * @param seq sequence description
+     * @param imageFormat image format - either ImageDataFormat.BdvN5, ImageDataFormat.BdvOmeZarr or
+     *                    ImageDataFormat.OmeZarr
+     * @return Filepath of image
+     */
     public static File getImageLocationFromSequenceDescription( AbstractSequenceDescription seq, ImageDataFormat imageFormat ) {
         File imageLocation = null;
 
@@ -138,6 +164,11 @@ public class ProjectCreatorHelper {
         return imageLocation;
     }
 
+    /**
+     * Finds filepath of directory containing project data i.e. checks if a 'data' folder is present
+     * @param projectLocation project location directory
+     * @return directory containing project data
+     */
     public static File getDataLocation( File projectLocation ) {
         String dataDirectoryPath = IOHelper.combinePath(projectLocation.getAbsolutePath(), "data");
         File dataDirectory = new File( dataDirectoryPath );
@@ -148,6 +179,11 @@ public class ProjectCreatorHelper {
         }
     }
 
+    /**
+     * Check if spim data is 2D
+     * @param spimData spim data object
+     * @return whether spimData is 2D or not
+     */
     public static boolean isSpimData2D( SpimData spimData ) {
         BasicViewSetup firstSetup = spimData.getSequenceDescription().getViewSetupsOrdered().get(0);
         long[] dimensions = firstSetup.getSize().dimensionsAsLongArray();
@@ -158,6 +194,11 @@ public class ProjectCreatorHelper {
         }
     }
 
+    /**
+     * Get mapping of ui selection groups (i.e. MoBIE dropdown menu names) to views for a given dataset
+     * @param dataset dataset
+     * @return Map of ui selection group names to array of view names
+     */
     public static Map<String, ArrayList<String>> getGroupToViewsMap( Dataset dataset ) {
         Map<String, ArrayList<String>> groupToViewsMap = new HashMap<>();
         for ( String viewName: dataset.views().keySet() ) {
@@ -175,6 +216,12 @@ public class ProjectCreatorHelper {
         return groupToViewsMap;
     }
 
+    /**
+     * Get mapping of ui selection groups (i.e. MoBIE dropdown menu names) to views for given additionalViews (i.e.
+     * views saved in a separate views json file).
+     * @param additionalViews additional views - from a separate views json file
+     * @return Map of ui selection group names to array of view names
+     */
     public static Map<String, ArrayList<String>> getGroupToViewsMap( AdditionalViews additionalViews ) {
         Map<String, ArrayList<String>> groupToViewsMap = new HashMap<>();
         for ( String viewName: additionalViews.views.keySet() ) {
@@ -192,10 +239,20 @@ public class ProjectCreatorHelper {
         return groupToViewsMap;
     }
 
+    /**
+     * Get number of timepoints present in spimData
+     * @param spimData spimData object
+     * @return number of timepoints
+     */
     public static int getNumTimePointsFromSpimData( SpimData spimData ) {
         return spimData.getSequenceDescription().getTimePoints().size();
     }
 
+    /**
+     * Open dialog to choose new ui selection group name
+     * @param currentUiSelectionGroups array of current ui selection group names
+     * @return name of new ui selection group, or null if cancelled
+     */
     public static String makeNewUiSelectionGroup( String[] currentUiSelectionGroups ) {
         String newUiSelectionGroup = chooseNewSelectionGroupNameDialog();
 
@@ -215,6 +272,10 @@ public class ProjectCreatorHelper {
         return newUiSelectionGroup;
     }
 
+    /**
+     * Dialog to enter new ui selection group name
+     * @return name of new ui selection group, or null if cancelled
+     */
     public static String chooseNewSelectionGroupNameDialog() {
         final GenericDialog gd = new GenericDialog("Choose ui selection group name:");
 
@@ -228,10 +289,20 @@ public class ProjectCreatorHelper {
         }
     }
 
+    /**
+     * Convert image format to valid folder name
+     * @param imageFormat image format
+     * @return folder name
+     */
     public static String imageFormatToFolderName( ImageDataFormat imageFormat ) {
         return imageFormat.toString().replaceAll("\\.", "-");
     }
 
+    /**
+     * Get string stating the voxel dimensions in x/y/z for the given ImagePlus image
+     * @param imp ImagePlus image
+     * @return String describing the voxel dimensions
+     */
     public static String getVoxelSizeString( ImagePlus imp ) {
         DecimalFormat df = new DecimalFormat("#.###");
         String voxelString =  "Voxel size: " + df.format( imp.getCalibration().pixelWidth ) + ", " +
@@ -241,11 +312,25 @@ public class ProjectCreatorHelper {
         return voxelString;
     }
 
+    /**
+     * Convert the mu symbol into "u" - as udunits can't handle this
+     * @param string string containing mu symbol
+     * @return string containing 'u'
+     */
     private static String replaceMu( String string ) {
-        // Convert the mu symbol into "u" - as udunits can't handle this
         return  string.replace("\u00B5", "u");
     }
 
+    /**
+     * Check with udunits that given unit strings are equivalent
+     * @param unit1 name of unit
+     * @param unit2 name of unit
+     * @return whether units are equivalent or not
+     * @throws PrefixDBException
+     * @throws UnitSystemException
+     * @throws SpecificationException
+     * @throws UnitDBException
+     */
     public static boolean unitsEqual( String unit1, String unit2 ) throws PrefixDBException, UnitSystemException, SpecificationException, UnitDBException {
         // check with udunits that units are equivalent
         UnitFormat unitFormatter = UnitFormatManager.instance();
@@ -255,6 +340,14 @@ public class ProjectCreatorHelper {
         return parsedUnit1.getCanonicalString().equals(parsedUnit2.getCanonicalString());
     }
 
+    /**
+     * Checks if image with given properties is valid for MoBIE project
+     * @param nChannels number of channels
+     * @param imageUnit voxel unit of image
+     * @param projectUnit voxel unit of project
+     * @param bdvFormat whether image is in a BigDataViewer (bdv) compatible format e.g. N5/ome-zarr
+     * @return whether image is valid for MoBIE project or not
+     */
     public static boolean isImageValid( int nChannels, String imageUnit, String projectUnit, boolean bdvFormat ) {
         // reject multi-channel images
         if ( nChannels > 1 ) {
