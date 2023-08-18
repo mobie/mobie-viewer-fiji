@@ -83,7 +83,7 @@
         <license.copyrightOwners>EMBL</license.copyrightOwners>
         <enforcer.skip>true</enforcer.skip>
 
-        <bigdataviewer-playground.version>0.6.0</bigdataviewer-playground.version>
+        <bigdataviewer-playground.version>0.8.0</bigdataviewer-playground.version>
         <imagej-utils.version>0.6.9</imagej-utils.version>
         <mobie-io.version>2.2.0-SNAPSHOT</mobie-io.version>
         <trove.version>1.0.2</trove.version>
@@ -107,7 +107,6 @@
 
         <!-- NB: Deploy releases to the SciJava Maven repository. -->
         <releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
-
 
     </properties>
 

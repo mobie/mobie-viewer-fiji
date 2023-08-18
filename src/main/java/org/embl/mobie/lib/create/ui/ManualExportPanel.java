@@ -34,12 +34,7 @@ import ij.IJ;
 import ij.gui.GenericDialog;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.embl.mobie.io.ImageDataFormat;
-import org.janelia.saalfeldlab.n5.Bzip2Compression;
-import org.janelia.saalfeldlab.n5.Compression;
-import org.janelia.saalfeldlab.n5.GzipCompression;
-import org.janelia.saalfeldlab.n5.Lz4Compression;
-import org.janelia.saalfeldlab.n5.RawCompression;
-import org.janelia.saalfeldlab.n5.XzCompression;
+import org.embl.mobie.io.n5.shaded.*;
 
 /**
  * Class for user interface to manually set image export parameters like resolution and chunk sizes
