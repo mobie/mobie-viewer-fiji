@@ -157,18 +157,18 @@
             <artifactId>mobie-io</artifactId>
             <version>${mobie-io.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.janelia.saalfeldlab</groupId>
-            <artifactId>n5-aws-s3</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.janelia.saalfeldlab</groupId>
-            <artifactId>n5-imglib2</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.janelia.saalfeldlab</groupId>
-            <artifactId>n5-blosc</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.janelia.saalfeldlab</groupId>-->
+<!--            <artifactId>n5-aws-s3</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.janelia.saalfeldlab</groupId>-->
+<!--            <artifactId>n5-imglib2</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.janelia.saalfeldlab</groupId>-->
+<!--            <artifactId>n5-blosc</artifactId>-->
+<!--        </dependency>-->
         <dependency>
             <!--  https://github.com/fiji/3D_Viewer/pull/33#event-8572718504  -->
             <groupId>sc.fiji</groupId>
