@@ -28,14 +28,10 @@
  */
 package projects;
 
-import ij.ImagePlus;
-import net.imagej.ImgPlus;
-import net.imglib2.img.display.imagej.ImageJFunctions;
-import org.embl.mobie.MoBIE;
 import net.imagej.ImageJ;
+import org.embl.mobie.MoBIE;
 
 import java.io.IOException;
-import java.util.Properties;
 
 public class OpenRemotePlatynereis
 {

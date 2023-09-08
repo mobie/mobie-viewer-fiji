@@ -69,10 +69,6 @@ public class ImageFileSources
 		this.name = name;
 		this.channelIndex = channelIndex;
 
-		// TODO: how to handle images sources that are distributed across mulltiple files?
-		//   those would probably be indicated via groups in the regex
-		//   maybe it is easier(!) if we add a JSON or TOML file into the movie directory
-		//   and open this file; this could contain the regex to open the individual files!
 		List< String > paths = getFullPaths( pathRegex, root );
 
 		for ( String path : paths )
