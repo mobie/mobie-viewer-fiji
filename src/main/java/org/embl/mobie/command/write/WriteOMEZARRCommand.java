@@ -30,13 +30,12 @@ package org.embl.mobie.command.write;
 
 import ij.ImagePlus;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.io.n5.shaded.*;
 import org.embl.mobie.lib.create.ui.ManualExportPanel;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.n5.util.DownsampleBlock;
 import org.embl.mobie.io.ome.zarr.writers.imageplus.WriteImagePlusToN5OmeZarr;
-import org.janelia.saalfeldlab.n5.Compression;
-import org.janelia.saalfeldlab.n5.GzipCompression;
 import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
@@ -87,7 +86,7 @@ public class WriteOMEZARRCommand implements Command {
         if ( name != null ) {
             if ( useDefaults ) {
                 new WriteImagePlusToN5OmeZarr().export(currentImage, filePath, sourceTransform, method,
-                        new GzipCompression() );
+                        new GzipCompression());
             } else {
                 ManualExportPanel manualExportPanel = new ManualExportPanel( ImageDataFormat.OmeZarr );
                 int[][] resolutions = manualExportPanel.getResolutions();

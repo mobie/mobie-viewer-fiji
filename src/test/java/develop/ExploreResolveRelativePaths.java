@@ -28,8 +28,6 @@
  */
 package develop;
 
-import org.janelia.saalfeldlab.n5.s3.N5AmazonS3Reader;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
