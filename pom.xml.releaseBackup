@@ -9,7 +9,7 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>4.1.0-SNAPSHOT</version>
+    <version>4.0.7-SNAPSHOT</version>
 
     <!-- force javadoc generation to fetch errors:    -->
     <!-- mvn javadoc:javadoc | grep error -->
@@ -66,7 +66,7 @@
     <scm>
         <connection>scm:git:https://github.com/mobie/mobie-viewer-fiji</connection>
         <developerConnection>scm:git:git@github.com:mobie/mobie-viewer-fiji</developerConnection>
-        <tag>mobie-viewer-fiji-4.0.7</tag>
+        <tag>mobie-viewer-fiji-3.0.9</tag>
         <url>https://github.com/mobie/mobie-viewer-fiji</url>
     </scm>
     <issueManagement>
@@ -85,7 +85,7 @@
 
         <bigdataviewer-playground.version>0.8.0</bigdataviewer-playground.version>
         <imagej-utils.version>0.6.9</imagej-utils.version>
-        <mobie-io.version>2.2.1</mobie-io.version>
+        <mobie-io.version>2.2.0</mobie-io.version>
         <trove.version>1.0.2</trove.version>
         <annotations.version>16.0.2</annotations.version>
 
