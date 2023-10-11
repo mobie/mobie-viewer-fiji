@@ -26,57 +26,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.table.columns;
+package i2k2023;
 
-import java.util.Collection;
+import net.imagej.ImageJ;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.command.open.OpenTableCommand;
 
-public class MorpholibJSegmentColumnNames implements SegmentColumnNames
+import java.io.File;
+
+class I2K2023OpenCellProfilerObjectTable
 {
-	private static final String NONE = "None";
-	private static final String LABEL_ID = "Label";
-	private static final String[] ANCHOR = { "Centroid.X", "Centroid.Y", "Centroid.Z" };
-	private static final String[] BB_MIN = { "Box.X.Min", "Box.Y.Min", "Box.Z.Min" };
-	private static final String[] BB_MAX = { "Box.X.Max", "Box.Y.Max", "Box.Z.Max" };
-	private static final String TIMEPOINT = "Timepoint";
-
-	@Override
-	public String labelImageColumn()
+	public static void main( String[] args ) throws Exception
 	{
-		return NONE;
-	}
+		new ImageJ().ui().showUI();
+		final OpenTableCommand command = new OpenTableCommand();
+		command.root = new File( "/Users/tischer/Documents/cellprofiler-practical-NeuBIAS-Lisbon-2017/mobie" );
+		command.table = new File( "/Users/tischer/Documents/cellprofiler-practical-NeuBIAS-Lisbon-2017/mobie/Cells.txt" );
+		command.images = "FileName_DNA=DNA,FileName_PLA=PLA";
+		command.labels = "FileName_CellLabels=Cells,FileName_NucleiLabels=Nuclei,FileName_PLALabels=PLASpots";
+		command.removeSpatialCalibration = true;
+		command.run();
 
-	@Override
-	public String labelIdColumn()
-	{
-		return LABEL_ID;
-	}
-
-	@Override
-	public String timePointColumn()
-	{
-		return TIMEPOINT;
-	}
-
-	@Override
-	public String[] anchorColumns()
-	{
-		return ANCHOR;
-	}
-
-	@Override
-	public String[] bbMinColumns()
-	{
-		return BB_MIN;
-	}
-
-	@Override
-	public String[] bbMaxColumns()
-	{
-		return BB_MAX;
-	}
-
-	public static boolean matches( Collection< String > columns )
-	{
-		return columns.contains( LABEL_ID );
+		//MoBIE.getInstance().getViewManager().show( "Nuclei" );
 	}
 }

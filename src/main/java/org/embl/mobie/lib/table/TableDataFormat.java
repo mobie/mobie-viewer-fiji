@@ -30,17 +30,12 @@ package org.embl.mobie.lib.table;
 
 import com.google.gson.annotations.SerializedName;
 import ij.IJ;
-import org.apache.commons.lang3.StringUtils;
-import org.embl.mobie.lib.table.columns.CellProfilerSegmentColumnNames;
-import org.embl.mobie.lib.table.columns.IlastikSegmentColumnNames;
-import org.embl.mobie.lib.table.columns.MoBIESegmentColumnNames;
-import org.embl.mobie.lib.table.columns.MorpholibJSegmentColumnNames;
-import org.embl.mobie.lib.table.columns.SegmentColumnNames;
-import org.embl.mobie.lib.table.columns.SkimageSegmentColumnNames;
+import org.embl.mobie.lib.table.columns.*;
 
 import java.util.Collection;
 
-import static org.embl.mobie.lib.table.TableDataFormatNames.*;
+import static org.embl.mobie.lib.table.TableDataFormatNames.RESULTS_TABLE;
+import static org.embl.mobie.lib.table.TableDataFormatNames.TABLE;
 
 /**
  * Note that this does not fully specify the table file format.
@@ -110,11 +105,15 @@ public enum TableDataFormat
 		if ( MoBIESegmentColumnNames.matches( columnNames ) )
 			return new MoBIESegmentColumnNames();
 
-		if ( MorpholibJSegmentColumnNames.matches( columnNames ) )
-			return new MorpholibJSegmentColumnNames();
+		if ( MorphoLibJSegmentColumnNames.matches( columnNames ) )
+		{
+			return new MorphoLibJSegmentColumnNames();
+		}
 
-		if ( SkimageSegmentColumnNames.matches( columnNames ) )
+		if ( SkimageSegmentColumnNames.matches( columnNames ) ) 
+		{
 			return new SkimageSegmentColumnNames( columnNames );
+		}
 
 		if ( IlastikSegmentColumnNames.matches( columnNames ) )
 		{
@@ -123,11 +122,9 @@ public enum TableDataFormat
 
 		if ( CellProfilerSegmentColumnNames.matches( columnNames ) )
 		{
-			final String objectName = CellProfilerSegmentColumnNames.getObjectName( columnNames );
-//			IJ.log( TableDataFormat.class.getSimpleName() +": Identified CellProfiler object table with object name: " + objectName );
-			return new CellProfilerSegmentColumnNames( objectName );
+			IJ.log( "Identified CellProfiler object table." );
+			return new CellProfilerSegmentColumnNames( columnNames );
 		}
-
 
 		return null;
 	}

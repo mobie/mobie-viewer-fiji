@@ -51,7 +51,7 @@ public class OpenTableCommand implements Command {
 	@Parameter( label = "Table Path", required = true )
 	public File table;
 
-	@Parameter( label = "Root Folder", required = false )
+	@Parameter( label = "Root Folder", style = "directory", required = false )
 	public File root;
 
 	@Parameter( label = "Image Columns (Comma Separated)", required = true )

@@ -28,6 +28,8 @@
  */
 package org.embl.mobie.lib.table.columns;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,26 +38,67 @@ public class CellProfilerSegmentColumnNames implements SegmentColumnNames
 {
 	private static final String NONE = "None";
 	private final String LABEL_ID = "ObjectNumber";
-	private static final String[] ANCHOR = { "AreaShape_Center_X", "AreaShape_Center_Y", "AreaShape_Center_z" };
+
+	// TODO: we could also support Location_X here
+	private static final String[] AREA_SHAPE_ANCHOR = { "AreaShape_Center_X", "AreaShape_Center_Y", "AreaShape_Center_Z" };
+	private static final String[] LOCATION_ANCHOR = { "Location_X", "Location_Y", "Location_Z" };
 
 	public static final String OBJECT = "Object";
-	public static final Pattern LOCATION_X_PATTERN = Pattern.compile( "(?<" + OBJECT + ">.*)_AreaShape_Center_X" );
 
-	private final String objectName;
+	// TODO: we could also support Location_X here
+	public static final Pattern SINGLE_OBJECT_AREA_SHAPE_ANCHOR_PATTERN = Pattern.compile( "AreaShape_Center_X" );
+	public static final Pattern SINGLE_OBJECT_LOCATION_ANCHOR_PATTERN = Pattern.compile( "Location_X" );
+	public static final Pattern MULTI_OBJECT_AREA_SHAPE_ANCHOR_PATTERN = Pattern.compile( "(?<" + OBJECT + ">.*)_AreaShape_Center_X" );
+	public static final Pattern MULTI_OBJECT_LOCATION_ANCHOR_PATTERN = Pattern.compile( "(?<" + OBJECT + ">.*)_Location_X" );
+
 	private final String[] anchor;
 	private final String labelId;
 
-	public CellProfilerSegmentColumnNames( String objectName )
+	public CellProfilerSegmentColumnNames( Collection<String> columnNames )
 	{
-		this.objectName = objectName;
+		final String objectName = getObjectName( columnNames );
 
-		this.anchor = new String[3];
-		for ( int d = 0; d < 3; d++ )
+		if ( objectName == null )
 		{
-			anchor[ d ] = objectName + "_" + ANCHOR[ d ];
+			// there is only one object type (e.g., only nuclei) in the CellProfiler table
+			this.anchor = getSingleObjectAnchorColumns( columnNames );
+			this.labelId = LABEL_ID;
+		}
+		else
+		{
+			// there are multiple object types (e.g., nuclei and cells) in the CellProfiler table
+			this.anchor = getMultiObjectAnchorColumns( columnNames, objectName );
+			this.labelId = objectName + "_" + LABEL_ID;
+		}
+	}
+
+	@NotNull
+	private static String[] getMultiObjectAnchorColumns( Collection< String > columns, String objectName )
+	{
+		String[] anchor = new String[ 3 ];
+
+		for ( String column : columns )
+		{
+			if( MULTI_OBJECT_AREA_SHAPE_ANCHOR_PATTERN.matcher( column ).matches() )
+			{
+				for ( int d = 0; d < 3; d++ )
+				{
+					anchor[ d ] = objectName + "_" + AREA_SHAPE_ANCHOR[ d ];
+				}
+				return anchor;
+			}
+
+			if( MULTI_OBJECT_LOCATION_ANCHOR_PATTERN.matcher( column ).matches() )
+			{
+				for ( int d = 0; d < 3; d++ )
+				{
+					anchor[ d ] = objectName + "_" + LOCATION_ANCHOR[ d ];
+				}
+				return anchor;
+			}
 		}
 
-		this.labelId = objectName + "_" + LABEL_ID;
+		return null; // Should not happen
 	}
 
 	@Override
@@ -98,19 +141,48 @@ public class CellProfilerSegmentColumnNames implements SegmentColumnNames
 	{
 		for ( String column : columns )
 		{
-			final Matcher matcher = LOCATION_X_PATTERN.matcher( column );
-			if( matcher.matches() )
+			if( SINGLE_OBJECT_LOCATION_ANCHOR_PATTERN.matcher( column ).matches() )
+				return true;
+
+			if( SINGLE_OBJECT_AREA_SHAPE_ANCHOR_PATTERN.matcher( column ).matches() )
+				return true;
+
+			if( MULTI_OBJECT_LOCATION_ANCHOR_PATTERN.matcher( column ).matches() )
+				return true;
+
+			if( MULTI_OBJECT_AREA_SHAPE_ANCHOR_PATTERN.matcher( column ).matches() )
 				return true;
 		}
 
 		return false;
 	}
 
-	public static String getObjectName( Collection< String > columns )
+	private static String[] getSingleObjectAnchorColumns( Collection< String > columns )
 	{
 		for ( String column : columns )
 		{
-			final Matcher matcher = LOCATION_X_PATTERN.matcher( column );
+			if( SINGLE_OBJECT_LOCATION_ANCHOR_PATTERN.matcher( column ).matches() )
+				return LOCATION_ANCHOR;
+
+			if( SINGLE_OBJECT_AREA_SHAPE_ANCHOR_PATTERN.matcher( column ).matches() )
+				return AREA_SHAPE_ANCHOR;
+		}
+
+		return null;
+	}
+
+	private static String getObjectName( Collection< String > columns )
+	{
+		for ( String column : columns )
+		{
+			if( SINGLE_OBJECT_AREA_SHAPE_ANCHOR_PATTERN.matcher( column ).matches() )
+				return null;
+
+            Matcher matcher = MULTI_OBJECT_AREA_SHAPE_ANCHOR_PATTERN.matcher( column );
+			if( matcher.matches() )
+				return matcher.group( OBJECT );
+
+			matcher = MULTI_OBJECT_LOCATION_ANCHOR_PATTERN.matcher( column );
 			if( matcher.matches() )
 				return matcher.group( OBJECT );
 		}
