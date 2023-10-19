@@ -60,9 +60,11 @@ public enum HCSPattern
 	public static final String INCUCYTE = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{1,2})_(?<"+SITE+">[0-9]{1,2})_(?<"+ T +">[0-9]{2}d[0-9]{2}h[0-9]{2}m).tif$";
 
 	/*
-	example:
+	examples:
 	MIP-2P-2sub_C05_s1_w146C9B2CD-0BB3-4B8A-9187-2805F4C90506.tif
 	well = C05, site = 1, channel = 1
+	Plate10x4sites_A01_s1_w1.TIF
+	well = A01, site = 1, channel = 1
 	 */
 	public static final String MOLDEV_WELL_SITE_CHANNEL = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">.*)_w(?<"+CHANNEL+">[0-9])[^_thumb].*";
 
