@@ -105,6 +105,9 @@
         <tablesaw-core.version>0.43.1</tablesaw-core.version>
         <tablesaw-parquet.version>0.10.0</tablesaw-parquet.version>
 
+        <!-- AutoMicTools -->
+        <AutoMicoTools_.version>1.1.66-SNAPSHOT</AutoMicoTools_.version>
+
         <!-- NB: Deploy releases to the SciJava Maven repository. -->
         <releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
 
@@ -117,6 +120,11 @@
         </repository>
     </repositories>
     <dependencies>
+        <dependency>
+            <groupId>embl.almf</groupId>
+            <artifactId>AutoMicoTools_</artifactId>
+            <version>${AutoMicoTools_.version}</version>
+        </dependency>
         <dependency>
             <groupId>net.imagej</groupId>
             <artifactId>imagej-legacy</artifactId>
