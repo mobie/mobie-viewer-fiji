@@ -54,7 +54,7 @@ public class OpenAutoMicToolsTableCommand implements Command {
 	{
 		DebugTools.setRootLevel( "OFF" );
 
-		final GridType gridType = GridType.Stitched; // TODO: fetch from UI
+		final GridType gridType = GridType.Transformed; // TODO: fetch from UI
 
 		final MoBIESettings settings = new MoBIESettings();
 		settings.removeSpatialCalibration( false );

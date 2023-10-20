@@ -449,13 +449,17 @@ public class ViewManager
 
 					// Add a margin to the tiles
 					for ( int d = 0; d < 2; d++ )
+					{
 						tileRealDimensions[ d ] = tileRealDimensions[ d ] * ( 1.0 + 2 * gridTransformation.margin );
+					}
 
 					// Compute the corresponding offset of where to place
 					// the images within the tile
 					final double[] offset = new double[ 2 ];
 					for ( int d = 0; d < 2; d++ )
+					{
 						offset[ d ] = tileRealDimensions[ d ] * gridTransformation.margin;
+					}
 
 					final List< int[] > gridPositions = gridTransformation.positions == null ? TransformHelper.createGridPositions( nestedSources.size() ) : gridTransformation.positions;
 

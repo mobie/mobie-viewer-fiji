@@ -191,8 +191,8 @@ public class MoBIE
 	public MoBIE( String autoMicTablePath, GridType gridType, MoBIESettings settings )
 	{
 		this.settings = settings;
-		SourcesFromAutoMicTableCreator sourcesCreator = new SourcesFromAutoMicTableCreator( autoMicTablePath, gridType );
 
+		SourcesFromAutoMicTableCreator sourcesCreator = new SourcesFromAutoMicTableCreator( autoMicTablePath, gridType );
 		final List< ImageFileSources > imageSources = sourcesCreator.getImageSources();
 		final List< LabelFileSources > labelSources = sourcesCreator.getLabelSources();
 

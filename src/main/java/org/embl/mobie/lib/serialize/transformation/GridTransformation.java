@@ -29,6 +29,7 @@
 package org.embl.mobie.lib.serialize.transformation;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class GridTransformation extends AbstractGridTransformation
@@ -37,6 +38,15 @@ public class GridTransformation extends AbstractGridTransformation
 	public List< List< String > > nestedSources;
 	public List< List< String > > transformedNames;
 	public boolean centerAtOrigin = true;
+
+	public GridTransformation( List< String > sources )
+	{
+		nestedSources = new ArrayList<>();
+		for ( String source : sources )
+		{
+			nestedSources.add( Collections.singletonList( source ) );
+		}
+	}
 
 	@Override
 	public List< String > getSources()

@@ -158,7 +158,6 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				System.out.println( "StitchedImage: Metadata dimensions: " + Arrays.toString( dimensions ) );
 				System.out.println( "StitchedImage: Metadata tile mask: " + TransformHelper.maskToString( referenceMask ) );
 				System.out.println( "StitchedImage: Number of tiles: " + gridPositions.size() );
-
 			}
 
 			levelToSourceTransform.put( level, copy );
@@ -368,6 +367,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				voxelDimensions,
 				name,
 				mipmapTransforms );
+
 		transformedSource = new TransformedSource<>( source );
 
 		// volatile
