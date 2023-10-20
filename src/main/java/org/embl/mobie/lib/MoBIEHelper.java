@@ -210,7 +210,8 @@ public abstract class MoBIEHelper
 		}
 		else
 		{
-			final ImagePlus imagePlus = IJ.openVirtual( path );
+			final ImagePlus imagePlus = MoBIEHelper.openWithBioFormats( path, 0 );
+			// final ImagePlus imagePlus = IJ.openVirtual( path );
 			imagePlus.setC( channelIndex + 1 );
 			return new Metadata( imagePlus );
 		}

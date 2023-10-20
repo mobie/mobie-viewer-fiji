@@ -26,31 +26,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.source;
+package org.embl.mobie.command.open;
 
-import ij.IJ;
-import ij.ImagePlus;
+import loci.common.DebugTools;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.transform.GridType;
+import org.scijava.command.Command;
+import org.scijava.plugin.Parameter;
+import org.scijava.plugin.Plugin;
 
-public class Metadata
-{
-	public String color = "White";
-	public double[] contrastLimits = null;
-	public Integer numTimePoints = null;
-	public Integer numZSlices = 1;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 
-	public Metadata()
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Experimental>Open AutoMicTools Table..." )
+public class OpenAutoMicToolsTableCommand implements Command {
+
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
+	@Parameter( label = "Table Path", required = true )
+	public File table;
+
+	@Override
+	public void run()
 	{
-	}
+		DebugTools.setRootLevel( "OFF" );
 
-	public Metadata( ImagePlus imagePlus )
-	{
-		color = "White"; // TODO: why not extract the color?
-		// we could use more direct methods:
-		// https://imagej.nih.gov/ij/developer/source/ij/plugin/ContrastEnhancer.java.html
-		IJ.run( imagePlus, "Enhance Contrast", "saturated=0.35" );
-		contrastLimits = new double[]{ imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
-		numTimePoints = imagePlus.getNFrames();
-		numZSlices = imagePlus.getNSlices();
-	}
+		final GridType gridType = GridType.Stitched; // TODO: fetch from UI
 
+		final MoBIESettings settings = new MoBIESettings();
+		settings.removeSpatialCalibration( false );
+
+		new MoBIE( table.getAbsolutePath(), gridType, settings );
+	}
 }

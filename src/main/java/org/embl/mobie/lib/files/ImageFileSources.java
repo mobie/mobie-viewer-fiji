@@ -28,11 +28,12 @@
  */
 package org.embl.mobie.lib.files;
 
+import IceInternal.Ex;
+import automic.table.TableModel;
 import ij.IJ;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.source.Metadata;
-import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.columns.SegmentColumnNames;
@@ -48,6 +49,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import static org.embl.mobie.io.util.IOHelper.getPaths;
 import static tech.tablesaw.aggregate.AggregateFunctions.mean;
@@ -57,9 +59,11 @@ public class ImageFileSources
 	protected final String name;
 	protected Map< String, String > nameToFullPath = new LinkedHashMap<>();
 	protected Map< String, String > nameToPath = new LinkedHashMap<>(); // for loading from tables
+
 	protected GridType gridType;
 	protected Table regionTable;
 	protected Integer channelIndex;
+
 	protected Metadata metadata;
 	private String metadataSource;
 
@@ -83,16 +87,6 @@ public class ImageFileSources
 		this.metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ), channelIndex );
 
 		createRegionTable();
-	}
-
-	protected static List< String > getFullPaths( String regex, String root )
-	{
-		if ( root != null )
-			regex = new File( root, regex ).getAbsolutePath();
-
-		List< String > paths = getPaths( regex, 999 );
-
-		return paths;
 	}
 
 	public ImageFileSources( String name, Table table, String pathColumn, Integer channelIndex, String root, GridType gridType )
@@ -144,6 +138,68 @@ public class ImageFileSources
 				regionTable = regionTable.joinOn( pathColumn ).leftOuter( summary );
 			}
 		}
+	}
+
+	// For creating image sources from an AutoMicTools table
+	public ImageFileSources( String name, TableModel tableModel, String imageTag, Integer channelIndex, GridType gridType )
+	{
+		this.name = name;
+		this.gridType = gridType;
+		this.channelIndex = channelIndex;
+
+		int rowCount = tableModel.getRowCount();
+		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
+		{
+			try
+			{
+				String fileName = tableModel.getFileName( rowIndex, imageTag, "IMG" );
+				String path = tableModel.getFileAbsolutePathString( rowIndex, imageTag, "IMG" );
+				String imageName = createImageName( channelIndex, fileName );
+				nameToFullPath.put( imageName, path );
+			}
+			catch ( Exception e )
+			{
+				e.printStackTrace();
+				throw new RuntimeException( e );
+			}
+		}
+
+		this.metadataSource = nameToFullPath.keySet().iterator().next();
+		this.metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ), channelIndex );
+
+		createRegionTable();
+
+		// add column for joining on // TODO
+//		regionTable.addColumns( StringColumn.create( pathColumn, new ArrayList<>( nameToPath.values() )  ) );
+		// add table columns to region table
+//		final List< Column< ? > > columns = table.columns();
+//		final int numColumns = columns.size();
+//		for ( int columnIndex = 0; columnIndex < numColumns; columnIndex++ )
+//		{
+//			final Column< ? > column = columns.get( columnIndex );
+//
+//			if ( column instanceof NumberColumn )
+//			{
+//				final Table summary = table.summarize( column, mean ).by( pathColumn );
+//				regionTable = regionTable.joinOn( pathColumn ).leftOuter( summary );
+//			}
+//
+//			if ( column instanceof StringColumn )
+//			{
+//				final Table summary = table.summarize( column, Aggregators.firstString ).by( pathColumn );
+//				regionTable = regionTable.joinOn( pathColumn ).leftOuter( summary );
+//			}
+//		}
+	}
+
+	protected static List< String > getFullPaths( String regex, String root )
+	{
+		if ( root != null )
+			regex = new File( root, regex ).getAbsolutePath();
+
+		List< String > paths = getPaths( regex, 999 );
+
+		return paths;
 	}
 
 	private void dealWithObjectTableIfNeeded( String name, Table table, String pathColumn, List< String > columnNames )

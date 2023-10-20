@@ -40,16 +40,11 @@ import net.imagej.ImageJ;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.S3Utils;
-import org.embl.mobie.lib.AnnotatedLabelImageCreator;
-import org.embl.mobie.lib.DataStore;
+import org.embl.mobie.lib.*;
 import org.embl.mobie.lib.files.ImageFileSources;
 import org.embl.mobie.lib.files.FileSourcesDataSetter;
 import org.embl.mobie.lib.files.LabelFileSources;
 import org.embl.mobie.lib.files.SourcesFromPathsCreator;
-import org.embl.mobie.lib.SourcesFromTableCreator;
-import org.embl.mobie.lib.SpimDataAdder;
-import org.embl.mobie.lib.SpotImageCreator;
-import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.hcs.HCSDataAdder;
 import org.embl.mobie.lib.hcs.Plate;
 import org.embl.mobie.lib.hcs.Site;
@@ -149,14 +144,6 @@ public class MoBIE
 		return moBIE;
 	}
 
-	private void initTableSaw()
-	{
-		// force TableSaw class loading
-		// to save time during the actual loading
-		// TODO: this makes no sense if we don't open a project with tables
-		Table.read().usingOptions( CsvReadOptions.builderFromString( "aaa\tbbb" ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" ) );
-	}
-
 	public MoBIE( String hcsDataLocation, MoBIESettings settings, double relativeWellMargin, double relativeSiteMargin ) throws IOException
 	{
 		this.settings = settings;
@@ -194,10 +181,30 @@ public class MoBIE
 
 		final SourcesFromTableCreator sourcesCreator = new SourcesFromTableCreator( tablePath, imageColumns, labelColumns, root, grid );
 
-		final List< ImageFileSources > imageFileSources = sourcesCreator.getImageSources();
+		final List< ImageFileSources > imageSources = sourcesCreator.getImageSources();
 		final List< LabelFileSources > labelSources = sourcesCreator.getLabelSources();
 
-		openImagesAndLabels( imageFileSources, labelSources );
+		openImagesAndLabels( imageSources, labelSources );
+	}
+
+	// opens an AutoMicTools table
+	public MoBIE( String autoMicTablePath, GridType gridType, MoBIESettings settings )
+	{
+		this.settings = settings;
+		SourcesFromAutoMicTableCreator sourcesCreator = new SourcesFromAutoMicTableCreator( autoMicTablePath, gridType );
+
+		final List< ImageFileSources > imageSources = sourcesCreator.getImageSources();
+		final List< LabelFileSources > labelSources = sourcesCreator.getLabelSources();
+
+		openImagesAndLabels( imageSources, labelSources );
+	}
+
+	private void initTableSaw()
+	{
+		// force TableSaw class loading
+		// to save time during the actual loading
+		// TODO: this makes no sense if we don't open a project with tables
+		Table.read().usingOptions( CsvReadOptions.builderFromString( "aaa\tbbb" ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" ) );
 	}
 
 	private void openMoBIEProject() throws IOException

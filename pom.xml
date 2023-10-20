@@ -119,12 +119,13 @@
             <url>https://maven.scijava.org/content/groups/public</url>
         </repository>
     </repositories>
+
     <dependencies>
-        <dependency>
-            <groupId>embl.almf</groupId>
-            <artifactId>AutoMicoTools_</artifactId>
-            <version>${AutoMicoTools_.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>embl.almf</groupId>-->
+<!--            <artifactId>AutoMicoTools_</artifactId>-->
+<!--            <version>${AutoMicoTools_.version}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>net.imagej</groupId>
             <artifactId>imagej-legacy</artifactId>

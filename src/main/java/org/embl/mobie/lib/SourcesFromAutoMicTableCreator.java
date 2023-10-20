@@ -28,40 +28,76 @@
  */
 package org.embl.mobie.lib;
 
+import automic.table.TableModel;
+import ij.IJ;
+import ij.ImagePlus;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.files.ImageFileSources;
 import org.embl.mobie.lib.files.LabelFileSources;
 import org.embl.mobie.lib.io.TableImageSource;
 import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.transform.GridType;
+import org.jetbrains.annotations.NotNull;
 import tech.tablesaw.api.Table;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SourcesFromTableCreator
+public class SourcesFromAutoMicTableCreator
 {
 	private final List< ImageFileSources > imageFileSources;
 	private final List< LabelFileSources > labelSources;
 
-	public SourcesFromTableCreator( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, GridType gridType )
+	public SourcesFromAutoMicTableCreator( String tablePath, GridType gridType )
 	{
-		final Table table = TableOpener.openDelimitedTextFile( tablePath );
+		TableModel tableModel = openTable( new File( tablePath ) );
+
+		String[] imageFileTags = tableModel.getImageFileTags();
+		String[] imageTags = new String[]{ "Result.Image" }; // FIXME: how to automate this?
+
+//		try
+//		{
+//			double rotation = tableModel.getNumericValue( 0, "Rotation" );
+//			System.out.printf( "rotation " + rotation );
+//		} catch ( Exception e )
+//		{
+//			throw new RuntimeException( e );
+//		}
 
 		imageFileSources = new ArrayList<>();
-
-		for ( String image : imageColumns )
+		for ( String imageTag : imageTags )
 		{
-			final TableImageSource tableImageSource = new TableImageSource( image );
-			imageFileSources.add( new ImageFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType ) );
+			int numChannels = getNumChannels( imageTag, tableModel );
+
+			for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
+			{
+				imageFileSources.add( new ImageFileSources( imageTag + "_C" + channelIndex, tableModel, imageTag, channelIndex, gridType ) );
+			}
 		}
 
-		labelSources = new ArrayList<>();
-		// see https://github.com/mobie/mobie-viewer-fiji/issues/1038
-		final String firstLabel = labelColumns.get( 0 );
-		for ( String label : labelColumns )
-		{
-			final TableImageSource tableImageSource = new TableImageSource( label );
-			labelSources.add( new LabelFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType, label.equals( firstLabel ) ) );
+		labelSources = new ArrayList<>(); // TODO: AutoMicTools uses ROIs....
+	}
+
+	@NotNull
+	private static TableModel openTable( File tableFile ) {
+		try {
+			return new TableModel( tableFile );
+		} catch ( Exception e ) {
+			throw new RuntimeException( e );
+		}
+	}
+
+	private static int getNumChannels( String imageTag, TableModel tableModel ) {
+		try {
+			String metadataImagePath = tableModel.getFileAbsolutePathString( 0, imageTag, "IMG" );
+			IJ.log( "Determining number of channels of " + imageTag + "...");
+			final ImagePlus imagePlus = MoBIEHelper.openWithBioFormats( metadataImagePath, 0 );
+			int numChannels = imagePlus.getNChannels();
+			IJ.log( "...number of channels is " + numChannels );
+			return numChannels;
+		} catch ( Exception e ) {
+			throw new RuntimeException( e );
 		}
 	}
 

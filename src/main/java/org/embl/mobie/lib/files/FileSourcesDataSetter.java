@@ -75,6 +75,11 @@ public class FileSourcesDataSetter
 		// create and add data sources to the dataset
 		for ( ImageFileSources sources : allSources )
 		{
+			if ( sources.getMetadata().numZSlices > 1 )
+			{
+				dataset.is2D( false );
+			}
+
 			for ( String name : sources.getSources() )
 			{
 				final String path = sources.getPath( name );
