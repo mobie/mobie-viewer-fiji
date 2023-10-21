@@ -28,9 +28,9 @@
  */
 package org.embl.mobie.lib.files;
 
-import IceInternal.Ex;
 import automic.table.TableModel;
 import ij.IJ;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.source.Metadata;
@@ -49,7 +49,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import static org.embl.mobie.io.util.IOHelper.getPaths;
 import static tech.tablesaw.aggregate.AggregateFunctions.mean;
@@ -57,6 +56,7 @@ import static tech.tablesaw.aggregate.AggregateFunctions.mean;
 public class ImageFileSources
 {
 	protected final String name;
+	protected Map< String, AffineTransform3D > nameToAffineTransform = new LinkedHashMap<>();
 	protected Map< String, String > nameToFullPath = new LinkedHashMap<>();
 	protected Map< String, String > nameToPath = new LinkedHashMap<>(); // for loading from tables
 
@@ -156,6 +156,8 @@ public class ImageFileSources
 				String path = tableModel.getFileAbsolutePathString( rowIndex, imageTag, "IMG" );
 				String imageName = createImageName( channelIndex, fileName );
 				nameToFullPath.put( imageName, path );
+				// FIXME: Construct the affine transform from the table
+				nameToAffineTransform.put( imageName, new AffineTransform3D() );
 			}
 			catch ( Exception e )
 			{
@@ -277,6 +279,11 @@ public class ImageFileSources
 		return nameToFullPath.get( source );
 	}
 
+	public AffineTransform3D getTransform( String source )
+	{
+		return nameToAffineTransform.get( source );
+	}
+
 	public String getMetadataSource()
 	{
 		return metadataSource;
@@ -286,6 +293,8 @@ public class ImageFileSources
 	{
 		return metadata;
 	}
+
+
 }
 
 

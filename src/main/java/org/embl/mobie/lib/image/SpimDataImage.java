@@ -41,6 +41,7 @@ import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
+import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.hcs.SiteSpimDataCreator;
 import org.embl.mobie.lib.source.SourceHelper;
@@ -146,7 +147,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 
 	private void open()
 	{
-		final AbstractSpimData spimData = tryOpenSpimData();
+		final AbstractSpimData spimData = openSpimData();
 
 		createSourcePair( spimData, setupId, name );
 	}
@@ -172,16 +173,28 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		sourcePair = new DefaultSourcePair( transformedSource, new TransformedSource( vSource, transformedSource ) );
 	}
 
-	private AbstractSpimData tryOpenSpimData( )
+	private AbstractSpimData openSpimData( )
 	{
 		try
 		{
 			if ( site != null )
 			{
-				return SiteSpimDataCreator.create( site, sharedQueue );
+				AbstractSpimData< ? > cachedSpimData = DataStore.getSpimData( site.getName() );
+				if ( cachedSpimData != null )
+					return cachedSpimData;
+
+				AbstractSpimData< ? > spimData = SiteSpimDataCreator.create( site, sharedQueue );
+				DataStore.putSpimData( site.getName(), spimData );
+				return spimData;
 			}
 
-			return new SpimDataOpener().open( path, imageDataFormat, sharedQueue );
+			AbstractSpimData< ? > cachedSpimData = DataStore.getSpimData( path );
+			if ( cachedSpimData != null )
+				return cachedSpimData;
+
+			AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, imageDataFormat, sharedQueue );
+			DataStore.putSpimData( path, spimData );
+			return spimData;
 		}
 		catch ( SpimDataException e )
 		{

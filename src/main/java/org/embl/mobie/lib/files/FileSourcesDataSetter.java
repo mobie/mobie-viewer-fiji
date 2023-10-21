@@ -42,10 +42,7 @@ import org.embl.mobie.lib.serialize.display.Display;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
-import org.embl.mobie.lib.serialize.transformation.AbstractGridTransformation;
-import org.embl.mobie.lib.serialize.transformation.GridTransformation;
-import org.embl.mobie.lib.serialize.transformation.MergedGridTransformation;
-import org.embl.mobie.lib.serialize.transformation.Transformation;
+import org.embl.mobie.lib.serialize.transformation.*;
 import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
@@ -118,6 +115,8 @@ public class FileSourcesDataSetter
 			// TODO: probably we should not even create the region table
 			//   for any source other than the first one while
 			//   creating the ImageSources
+			List< String > sourceNames = sources.getSources();
+
 			if ( sources.equals( firstImageFileSources ) )
 			{
 				// create a RegionDisplay
@@ -146,7 +145,6 @@ public class FileSourcesDataSetter
 				for ( int t = 0; t < numTimePoints; t++ )
 					regionDisplay.timepoints().add( t );
 
-				final List< String > sourceNames = sources.getSources();
 				final int numRegions = sourceNames.size();
 				for ( int regionIndex = 0; regionIndex < numRegions; regionIndex++ )
 				{
@@ -161,7 +159,7 @@ public class FileSourcesDataSetter
 			if ( sources.getGridType().equals( GridType.Stitched ) )
 			{
 				MergedGridTransformation grid = new MergedGridTransformation( sources.getName() );
-				grid.sources = sources.getSources();
+				grid.sources = sourceNames;
 				grid.metadataSource = sources.getMetadataSource();
 				grid.lazyLoadTables = false; // TODO https://github.com/mobie/mobie-viewer-fiji/issues/1035
 
@@ -189,14 +187,14 @@ public class FileSourcesDataSetter
 			}
 			else if ( sources.getGridType().equals( GridType.Transformed ) )
 			{
-				GridTransformation grid = new GridTransformation( sources.getSources() );
+				ArrayList< Transformation > transformations = new ArrayList<>();
 
 				// Add the individual images to the displays
 				//
 				if ( sources instanceof LabelFileSources )
 				{
 					// SegmentationDisplay
-					final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( sources.getName(), sources.getSources() );
+					final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( sources.getName(), sourceNames );
 					final int numLabelTables = ( ( LabelFileSources ) sources ).getNumLabelTables();
 					segmentationDisplay.setShowTable( numLabelTables > 0 );
 					displays.add( segmentationDisplay );
@@ -205,13 +203,25 @@ public class FileSourcesDataSetter
 				{
 					// ImageDisplay
 					final Metadata metadata = sources.getMetadata();
-					displays.add( new ImageDisplay<>( sources.getName(), sources.getSources(), metadata.color, metadata.contrastLimits ) );
+					displays.add( new ImageDisplay<>( sources.getName(), sourceNames, metadata.color, metadata.contrastLimits ) );
+				}
+
+				// Add image transformations (e.g., derived from columns in the AutoMicTools table)
+				for ( String sourceName : sourceNames )
+				{
+					if ( sources.getTransform( sourceName ) != null )
+					{
+						AffineTransformation affineTransformation = new AffineTransformation<>( sourceName, sources.getTransform( sourceName ), Collections.singletonList( sourceName ) );
+						transformations.add( affineTransformation );
+					}
 				}
 
 				// construct and add the view
 				//
+				GridTransformation grid = new GridTransformation( sourceNames );
+				transformations.add( grid );
 				final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( grid.getSources().get( 0 ), 0 );
-				final View gridView = new View( sources.getName(), "data", displays, Arrays.asList( grid ), viewerTransform, false );
+				final View gridView = new View( sources.getName(), "data", displays, transformations, viewerTransform, false );
 				//gridView.overlayNames( true ); // FIXME: Timepoint bug!
 				dataset.views().put( gridView.getName(), gridView );
 			}
@@ -219,8 +229,6 @@ public class FileSourcesDataSetter
 			{
 				throw new RuntimeException( "Grid type not supported: " + sources.getGridType() );
 			}
-
-
 		}
 	}
 }

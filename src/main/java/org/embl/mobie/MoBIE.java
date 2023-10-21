@@ -758,7 +758,6 @@ public class MoBIE
 			return new SpimDataImage( ( Site ) storageLocation, name, ThreadHelper.sharedQueue );
 		}
 
-		// TODO improve caching: https://github.com/mobie/mobie-viewer-fiji/issues/857
 		final String imagePath = getImageLocation( imageDataFormat, storageLocation );
 		final SpimDataImage spimDataImage = new SpimDataImage( imageDataFormat, imagePath, storageLocation.getChannel(), name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
 		return spimDataImage;

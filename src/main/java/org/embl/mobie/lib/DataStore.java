@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib;
 
+import mpicbg.spim.data.generic.AbstractSpimData;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.serialize.DataSource;
 
@@ -48,6 +49,26 @@ public abstract class DataStore
 
 	// Currently, only used to pre-load tables for region annotations
 	private static Map< String, DataSource > rawData = new ConcurrentHashMap<>();
+
+	// TODO: replace by some soft ref cache? How to free the memory?
+	private static Map< String, AbstractSpimData< ? > > pathToSpimData = new ConcurrentHashMap<>();
+
+	public static void putSpimData( String path, AbstractSpimData< ? > spimData )
+	{
+		pathToSpimData.put( path, spimData );
+	}
+
+	public static AbstractSpimData< ? > getSpimData( String path )
+	{
+		return pathToSpimData.get( path );
+	}
+
+	public static void clearSpimData( )
+	{
+		pathToSpimData.clear();
+		pathToSpimData = null;
+		pathToSpimData = new ConcurrentHashMap<>();
+	}
 
 	public static void putRawData( DataSource dataSource )
 	{

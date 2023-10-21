@@ -775,5 +775,8 @@ public class ViewManager
 		universeManager.close();
 		IJ.log( "Closing UI..." );
 		userInterface.close();
+		// see also https://github.com/mobie/mobie-viewer-fiji/issues/857
+		IJ.log( "Clearing SpimData cache..." );
+		DataStore.clearSpimData();
 	}
 }

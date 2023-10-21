@@ -41,6 +41,10 @@ public class AffineTransformation< T > extends AbstractImageTransformation< T, T
 		this( name, parameters, sources, null );
 	}
 
+	public AffineTransformation( String name, AffineTransform3D affineTransform3D, List< String > sources ) {
+		this( name, affineTransform3D.getRowPackedCopy(), sources, null );
+	}
+
 	public AffineTransformation( String name, double[] parameters, List< String > sources, List< String > sourceNamesAfterTransform )
 	{
 		this.name = name;
