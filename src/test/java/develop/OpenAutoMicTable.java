@@ -14,7 +14,8 @@ public class OpenAutoMicTable
 
         OpenAutoMicToolsTableCommand command = new OpenAutoMicToolsTableCommand();
         //command.table = new File( "/Volumes/almf/group/Aliaksandr/User_data/Furlong_CrispR/test_data_20231018/20231004/20231004-172458/summary_calculated1.txt" );
-        command.table = new File( "/Volumes/almf/group/Aliaksandr/User_data/Furlong_CrispR/test_data_20231018/20231004/20231004-172458/summary_calculated1_subset.txt" );
+        //command.table = new File( "/Volumes/almf/group/Aliaksandr/User_data/Furlong_CrispR/test_data_20231018/20231004/20231004-172458/summary_calculated1_subset.txt" );
+        command.table = new File( "/Users/tischer/Desktop/teresa/summary_calculated1_subset.txt" );
         command.run();
     }
 }

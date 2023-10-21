@@ -156,8 +156,11 @@ public class ImageFileSources
 				String path = tableModel.getFileAbsolutePathString( rowIndex, imageTag, "IMG" );
 				String imageName = createImageName( channelIndex, fileName );
 				nameToFullPath.put( imageName, path );
-				// FIXME: Construct the affine transform from the table
-				nameToAffineTransform.put( imageName, new AffineTransform3D() );
+				double rotation = tableModel.getNumericValue( rowIndex, "Rotation" ); // FIXME do not hard-code
+				//IJ.log( imageName + " rotation [degrees]: " + rotation );
+				AffineTransform3D affineTransform3D = new AffineTransform3D();
+				affineTransform3D.rotate( 2, rotation * Math.PI / 180 );
+				nameToAffineTransform.put( imageName, affineTransform3D );
 			}
 			catch ( Exception e )
 			{
