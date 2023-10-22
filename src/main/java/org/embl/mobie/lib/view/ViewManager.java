@@ -441,7 +441,7 @@ public class ViewManager
 					double[] tileRealDimensions = new double[ 2 ];
 					for ( List< ? extends Image< ? > > images : nestedImages )
 					{
-						final RealMaskRealInterval unionMask = TransformHelper.getUnionMask( images );
+						final RealMaskRealInterval unionMask = TransformHelper.createUnionMask( images );
 						final double[] realDimensions = TransformHelper.getRealDimensions( unionMask );
 						for ( int d = 0; d < 2; d++ )
 							tileRealDimensions[ d ] = realDimensions[ d ] > tileRealDimensions[ d ] ? realDimensions[ d ] : tileRealDimensions[ d ];

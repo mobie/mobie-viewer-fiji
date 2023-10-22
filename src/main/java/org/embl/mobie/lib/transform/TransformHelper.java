@@ -42,6 +42,7 @@ import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
 import net.imglib2.util.Intervals;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -276,47 +277,19 @@ public class TransformHelper
 		return positions;
 	}
 
-
-	public static RealMaskRealInterval getUnionMask( Collection< ? extends Masked > maskeds )
+	// The evaluation of the resulting masks is slower than in
+	// create createUnionBox, but it takes rotations into account.
+	// TODO: This currently does not really work, because in {@code TableSawAnnotatedRegion}
+	//   the dilation of the mask will create a rectangular shape
+	//   see "if ( relativeDilation > 0 )"
+	public static RealMaskRealInterval createUnionMask( Collection< ? extends Masked > maskedCollection )
 	{
-		if ( maskeds.size() == 1 )
-			return maskeds.stream().iterator().next().getMask();
+		if ( maskedCollection.size() == 1 )
+			return maskedCollection.stream().iterator().next().getMask();
 
-		// TODO: trying using below code once https://github.com/imglib/imglib2-roi/pull/63 is merged and released
+		RealMaskRealInterval union = null;
 
-
-//		RealMaskRealInterval union = null;
-//
-//		for ( Masked masked : masks )
-//		{
-//			final RealMaskRealInterval mask = masked.getMask();
-//
-//			if ( union == null )
-//			{
-//				union = mask;
-//			}
-//			else
-//			{
-//				if ( Intervals.equals( mask, union ) )
-//					continue;
-//
-//				union = union.or( mask );
-//			}
-//		}
-//
-//		return union;
-
-
-		// join the masks using the interval union.
-		// note that this does not work if the masks are rotated.
-		// for this we would need the code above.
-
-		// there also is a consideration of computational efficiency:
-		// even if the above code may work, the resulting joined intervals
-		// may be computationally heavy to get.
-		int masksUsed = 0;
-		RealInterval union = null;
-		for ( Masked masked : maskeds )
+		for ( Masked masked : maskedCollection )
 		{
 			final RealMaskRealInterval mask = masked.getMask();
 
@@ -326,28 +299,42 @@ public class TransformHelper
 			}
 			else
 			{
-				if ( Intervals.equals( mask, union ) )
-				{
+				if ( Intervals.contains( union, mask ) )
 					continue;
-				}
+				union = union.or( mask );
+			}
+		}
+
+		return union;
+	}
+
+	public static RealMaskRealInterval createUnionBox( Collection< ? extends Masked > maskedCollection )
+	{
+		RealInterval union = null;
+		for ( Masked masked : maskedCollection )
+		{
+			final RealMaskRealInterval mask = masked.getMask();
+
+			if ( union == null )
+			{
+				union = mask;
+			}
+			else
+			{
+				if ( Intervals.contains( union, mask ) )
+					continue;
+
 				union = Intervals.union( mask, union );
 			}
-			masksUsed++;
 		}
 
-		if ( masksUsed == 1 )
-		{
-			return maskeds.stream().iterator().next().getMask();
-		}
-
-		// multiple masks: we need to join
-		// issue here currently is that we loose rotations.
+		// convert to a box
 		final double[] min = union.minAsDoubleArray();
 		final double[] max = union.maxAsDoubleArray();
-
 		return GeomMasks.closedBox( min, max );
 	}
 
+	@Nullable
 	public static double[] getRealDimensions( RealMaskRealInterval unionMask )
 	{
 		final int numDimensions = unionMask.numDimensions();

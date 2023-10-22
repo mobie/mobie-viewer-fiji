@@ -63,8 +63,6 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 
 	private boolean debug = false;
 	private List< AR > annotations;
-	private List< RealMaskRealInterval > masks;
-
 
 	/**
 	 * Builds an image that annotates all {@code AnnotatedRegion} in the
@@ -124,12 +122,10 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 
 		private class LocationToRegion implements BiConsumer< RealLocalizable, AnnotationType< AR > >
 		{
-			private RealMaskRealInterval recentMask;
-			private AR recentAnnotation;
+			private AR recentAnnotation; // the annotation that was at the recent location
 
 			public LocationToRegion()
 			{
-				this.recentMask = masks.get( 0 );
 				this.recentAnnotation = annotations.get( 0 );
 			}
 
@@ -139,27 +135,28 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 				// It is likely that the next location
 				// is within the same mask, thus we test that one first
 				// to safe some computations.
-				if ( recentMask.test( location ) )
+				if ( recentAnnotation.getMask().test( location ) )
 				{
 					value.setAnnotation( recentAnnotation );
 					return;
 				}
 
-				for ( RealMaskRealInterval mask : masks )
+				// It was not in the recent mask,
+				// so we need to test all the others.
+				for ( AR annotation : annotations )
 				{
-					if ( mask == recentMask )
-						continue; // because that one has been checked already above
+					if ( annotation == recentAnnotation )
+						continue; // that one has been checked already above
 
-					if ( mask.test( location ) )
+					if ( annotation.getMask().test( location ) )
 					{
-						recentMask = mask;
-						recentAnnotation = annotations.get( masks.indexOf( recentMask ) );
+						recentAnnotation = annotation;
 						value.setAnnotation( recentAnnotation );
 						return;
 					}
 				}
 
-				// background
+				// The location is not within any mask => it is background
 				value.setAnnotation( null );
 			}
 		}
@@ -171,19 +168,12 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 		if ( sourcePair == null )
 		{
 			final Interval interval = Intervals.smallestContainingInterval( getMask() );
-			// TODO: this could be more lazy and only done within getSourcePair
-			annotations = new ArrayList<>();
-			masks = new ArrayList<>();
-			final ArrayList< AR > annotations = annData.getTable().annotations();
-			for ( AR annotatedRegion : annotations )
-			{
-				masks.add( annotatedRegion.getMask() );
-				this.annotations.add( annotatedRegion );
-			}
+
+			annotations = annData.getTable().annotations();
 
 			// one could add a time point parameter to LocationToAnnotatedRegionSupplier
 			// and then make a Map< Timepoint, regions > and modify RealRandomAccessibleIntervalTimelapseSource to consume this map
-			final FunctionRealRandomAccessible< AnnotationType< AR > > regions = new FunctionRealRandomAccessible( 3, new LocationToAnnotatedRegionSupplier(), () -> new AnnotationType<>( annData.getTable().annotations().get( 0 ) ) );
+			final FunctionRealRandomAccessible< AnnotationType< AR > > regions = new FunctionRealRandomAccessible( 3, new LocationToAnnotatedRegionSupplier(), () -> new AnnotationType<>( annotations.get( 0 ) ) );
 
 			// TODO it would be nice if this Source had the same voxel unit
 			//   as the other sources, but that would mean touching one of the
@@ -209,8 +199,9 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		// TODO Not sure this actually makes sense, because the regions
-		//   are the entities that should be transformed.
+		// TODO
+		//   The issue is that the regions should
+		//   just represent the location of the annotated images!?
 		throw new RuntimeException();
 	}
 
@@ -218,7 +209,7 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	public RealMaskRealInterval getMask( )
 	{
 		if ( mask == null )
-			mask = TransformHelper.getUnionMask( annData.getTable().annotations() );
+			mask = TransformHelper.createUnionMask( annData.getTable().annotations() );
 
 		return mask;
 	}

@@ -29,8 +29,10 @@
 package org.embl.mobie.lib.table.saw;
 
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.Scale;
+import net.imglib2.realtransform.Scale2D;
+import net.imglib2.realtransform.Scale3D;
 import net.imglib2.roi.RealMaskRealInterval;
-import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
@@ -142,21 +144,34 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 		{
 			// Compute the mask of the images
 			// that are annotated by this region
-			final RealMaskRealInterval unionMask = TransformHelper.getUnionMask( images );
+			final RealMaskRealInterval unionMask = TransformHelper.createUnionMask( images );
 
 			if ( relativeDilation > 0 )
 			{
-				final double[] min = unionMask.minAsDoubleArray();
-				final double[] max = unionMask.maxAsDoubleArray();
+				mask = unionMask;
+				double scale = 1 + relativeDilation;
+				Scale scaleTransform = new Scale( scale );
+				int numDimensions = mask.numDimensions();
+				if ( numDimensions == 2 )
+					mask = mask.transform( new Scale2D( scale ) );
+				else if ( numDimensions == 3 )
+					mask = mask.transform( new Scale3D( scale ) );
 
-				for ( int d = 0; d < min.length; d++ )
-				{
-					final double size = max[ d ] - min[ d ];
-					min[ d ] -= size * relativeDilation;
-					max[ d ] += size * relativeDilation;
-				}
+				int a = 1;
+				// FIXME: This does not work with rotated masks!
+				//   ask if one can dilate a mask in Zulip:
 
-				mask = GeomMasks.closedBox( min, max );
+//				final double[] min = unionMask.minAsDoubleArray();
+//				final double[] max = unionMask.maxAsDoubleArray();
+//
+//				for ( int d = 0; d < min.length; d++ )
+//				{
+//					final double size = max[ d ] - min[ d ];
+//					min[ d ] -= size * relativeDilation;
+//					max[ d ] += size * relativeDilation;
+//				}
+//
+//				mask = GeomMasks.closedBox( min, max );
 			}
 			else
 			{
