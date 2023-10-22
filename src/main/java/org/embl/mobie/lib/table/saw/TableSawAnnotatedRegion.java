@@ -28,16 +28,14 @@
  */
 package org.embl.mobie.lib.table.saw;
 
-import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.realtransform.Scale;
-import net.imglib2.realtransform.Scale2D;
-import net.imglib2.realtransform.Scale3D;
+import net.imglib2.realtransform.*;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.ImageListener;
+import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.transform.TransformHelper;
 
@@ -150,12 +148,19 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 			{
 				mask = unionMask;
 				double scale = 1 + relativeDilation;
-				Scale scaleTransform = new Scale( scale );
 				int numDimensions = mask.numDimensions();
 				if ( numDimensions == 2 )
-					mask = mask.transform( new Scale2D( scale ) );
+				{
+					AffineTransform2D transform2D = new AffineTransform2D();
+					transform2D.scale( scale );
+					mask = mask.transform( transform2D );
+				}
 				else if ( numDimensions == 3 )
-					mask = mask.transform( new Scale3D( scale ) );
+				{
+					AffineTransform3D transform3D = new AffineTransform3D();
+					transform3D.scale( scale );
+					mask = mask.transform( transform3D );
+				}
 
 				int a = 1;
 				// FIXME: This does not work with rotated masks!
