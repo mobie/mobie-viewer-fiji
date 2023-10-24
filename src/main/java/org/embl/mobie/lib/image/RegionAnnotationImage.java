@@ -209,7 +209,9 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	public RealMaskRealInterval getMask( )
 	{
 		if ( mask == null )
-			mask = TransformHelper.createUnionMask( annData.getTable().annotations() );
+		{
+			mask = TransformHelper.unionBox( annData.getTable().annotations() );
+		}
 
 		return mask;
 	}

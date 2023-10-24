@@ -441,10 +441,10 @@ public class ViewManager
 					double[] tileRealDimensions = new double[ 2 ];
 					for ( List< ? extends Image< ? > > images : nestedImages )
 					{
-						final RealMaskRealInterval unionMask = TransformHelper.createUnionMask( images );
+						final RealMaskRealInterval unionMask = TransformHelper.union( images );
 						final double[] realDimensions = TransformHelper.getRealDimensions( unionMask );
 						for ( int d = 0; d < 2; d++ )
-							tileRealDimensions[ d ] = realDimensions[ d ] > tileRealDimensions[ d ] ? realDimensions[ d ] : tileRealDimensions[ d ];
+							tileRealDimensions[ d ] = Math.max( realDimensions[ d ], tileRealDimensions[ d ] );
 					}
 
 					// Add a margin to the tiles

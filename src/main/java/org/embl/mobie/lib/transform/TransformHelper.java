@@ -71,7 +71,6 @@ public class TransformHelper
 	}
 
 
-
 	public static double[] getCenter( Image< ? > image, int t )
 	{
 		final RealInterval bounds = image.getMask();
@@ -279,14 +278,11 @@ public class TransformHelper
 
 	// The evaluation of the resulting masks is slower than in
 	// create createUnionBox, but it takes rotations into account.
-	// TODO: This currently does not really work, because in {@code TableSawAnnotatedRegion}
+	// FIXME: This currently does not really work, because in {@code TableSawAnnotatedRegion}
 	//   the dilation of the mask will create a rectangular shape
 	//   see "if ( relativeDilation > 0 )"
-	public static RealMaskRealInterval createUnionMask( Collection< ? extends Masked > maskedCollection )
+	public static RealMaskRealInterval union( Collection< ? extends Masked > maskedCollection )
 	{
-		if ( maskedCollection.size() == 1 )
-			return maskedCollection.stream().iterator().next().getMask();
-
 		RealMaskRealInterval union = null;
 
 		for ( Masked masked : maskedCollection )
@@ -301,6 +297,7 @@ public class TransformHelper
 			{
 				if ( Intervals.contains( union, mask ) )
 					continue;
+
 				union = union.or( mask );
 			}
 		}
@@ -308,9 +305,10 @@ public class TransformHelper
 		return union;
 	}
 
-	public static RealMaskRealInterval createUnionBox( Collection< ? extends Masked > maskedCollection )
+	public static RealMaskRealInterval unionBox( Collection< ? extends Masked > maskedCollection )
 	{
 		RealInterval union = null;
+
 		for ( Masked masked : maskedCollection )
 		{
 			final RealMaskRealInterval mask = masked.getMask();

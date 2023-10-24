@@ -29,7 +29,6 @@
 package org.embl.mobie.lib;
 
 import bdv.SpimSource;
-import ij.IJ;
 import ij.ImagePlus;
 import loci.plugins.in.ImagePlusReader;
 import loci.plugins.in.ImportProcess;
@@ -46,7 +45,10 @@ import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.ImageDataSource;
 import org.embl.mobie.lib.source.SourceToImagePlusConverter;
 import spimdata.util.Displaysettings;
+import tech.tablesaw.api.Table;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -158,7 +160,7 @@ public abstract class MoBIEHelper
 		catch ( Exception e )
 		{
 			e.printStackTrace();
-			return null;
+			throw new RuntimeException("Could not open " + path );
 		}
 	}
 
@@ -242,6 +244,16 @@ public abstract class MoBIEHelper
 		// TODO measure the number of time points
 
 		return metadata;
+	}
+
+	public static String getAbsoluteImagePathFromAutoMicTable( Table table, String imageTag, Path rootFolder, int rowIndex )
+	{
+		String folderName = table.getString( rowIndex, "PathName_" + imageTag + "_IMG" );
+		String fileName = table.getString( rowIndex, "FileName_" + imageTag + "_IMG" );
+		Path relativePath = Paths.get( folderName, fileName );
+		Path tempPath = Paths.get( "root" ).relativize( relativePath );
+		Path resolve = rootFolder.resolve( tempPath );
+		return resolve.toString();
 	}
 
 	public enum FileLocation

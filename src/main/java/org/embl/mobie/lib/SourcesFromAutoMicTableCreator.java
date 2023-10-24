@@ -28,19 +28,17 @@
  */
 package org.embl.mobie.lib;
 
-import automic.table.TableModel;
 import ij.IJ;
 import ij.ImagePlus;
-import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.files.ImageFileSources;
 import org.embl.mobie.lib.files.LabelFileSources;
-import org.embl.mobie.lib.io.TableImageSource;
 import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.transform.GridType;
-import org.jetbrains.annotations.NotNull;
 import tech.tablesaw.api.Table;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,52 +49,41 @@ public class SourcesFromAutoMicTableCreator
 
 	public SourcesFromAutoMicTableCreator( String tablePath, GridType gridType )
 	{
-		TableModel tableModel = openTable( new File( tablePath ) );
+		File tableFile = new File( tablePath );
+		Path rootFolder =  Paths.get( tableFile.getParent() );
+		final Table table = TableOpener.openDelimitedTextFile( tablePath );
+		table.columnNames();
 
-		String[] imageFileTags = tableModel.getImageFileTags();
-		String[] imageTags = new String[]{ "Result.Image" }; // FIXME: how to automate this?
-
-//		try
-//		{
-//			double rotation = tableModel.getNumericValue( 0, "Rotation" );
-//			System.out.printf( "rotation " + rotation );
-//		} catch ( Exception e )
-//		{
-//			throw new RuntimeException( e );
-//		}
+		//String[] imageFileTags = tableModel.getImageFileTags();
+		String[] imageTags = new String[]{ "Result.Image" }; // FIXME: Do not hard-code
 
 		imageFileSources = new ArrayList<>();
 		for ( String imageTag : imageTags )
 		{
-			int numChannels = getNumChannels( imageTag, tableModel );
+			String referenceImagePath = MoBIEHelper.getAbsoluteImagePathFromAutoMicTable( table, imageTag, rootFolder, 0 );
+
+			int numChannels = getNumChannels( imageTag, referenceImagePath );
 
 			for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
 			{
-				imageFileSources.add( new ImageFileSources( imageTag + "_C" + channelIndex, tableModel, imageTag, channelIndex, gridType ) );
+				imageFileSources.add( new ImageFileSources( imageTag + "_C" + channelIndex, table, rootFolder, imageTag, channelIndex, gridType ) );
 			}
 		}
 
 		labelSources = new ArrayList<>(); // TODO: AutoMicTools uses ROIs....
 	}
 
-	@NotNull
-	private static TableModel openTable( File tableFile ) {
-		try {
-			return new TableModel( tableFile );
-		} catch ( Exception e ) {
-			throw new RuntimeException( e );
-		}
-	}
-
-	private static int getNumChannels( String imageTag, TableModel tableModel ) {
-		try {
-			String metadataImagePath = tableModel.getFileAbsolutePathString( 0, imageTag, "IMG" );
+	private static int getNumChannels( String imageTag, String metadataImagePath ) {
+		try
+		{
 			IJ.log( "Determining number of channels of " + imageTag + "...");
 			final ImagePlus imagePlus = MoBIEHelper.openWithBioFormats( metadataImagePath, 0 );
-			int numChannels = imagePlus.getNChannels();
+           	int numChannels = imagePlus.getNChannels();
 			IJ.log( "...number of channels is " + numChannels );
 			return numChannels;
-		} catch ( Exception e ) {
+		}
+		catch ( Exception e )
+		{
 			throw new RuntimeException( e );
 		}
 	}

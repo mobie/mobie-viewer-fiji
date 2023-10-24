@@ -35,7 +35,6 @@ import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.ImageListener;
-import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.transform.TransformHelper;
 
@@ -142,30 +141,40 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 		{
 			// Compute the mask of the images
 			// that are annotated by this region
-			final RealMaskRealInterval unionMask = TransformHelper.createUnionMask( images );
+			RealMaskRealInterval unionMask;
+			if ( images.size() > 1 )
+			{
+				//unionMask = TransformHelper.unionBox( images );
+				unionMask = TransformHelper.union( images );
+			}
+			else
+			{
+				unionMask = images.iterator().next().getMask();
+			}
 
 			if ( relativeDilation > 0 )
 			{
 				mask = unionMask;
-				double scale = 1 + relativeDilation;
-				int numDimensions = mask.numDimensions();
-				if ( numDimensions == 2 )
-				{
-					AffineTransform2D transform2D = new AffineTransform2D();
-					transform2D.scale( scale );
-					mask = mask.transform( transform2D );
-				}
-				else if ( numDimensions == 3 )
-				{
-					AffineTransform3D transform3D = new AffineTransform3D();
-					transform3D.scale( scale );
-					mask = mask.transform( transform3D );
-				}
 
-				int a = 1;
-				// FIXME: This does not work with rotated masks!
-				//   ask if one can dilate a mask in Zulip:
+				// FIXME: One probably needs to translate to zero,
+				//  scale and then translate back to center
+				//  https://imagesc.zulipchat.com/#narrow/stream/327240-ImgLib2
+//				double scale = 1 + relativeDilation;
+//				int numDimensions = unionMask.numDimensions();
+//				if ( numDimensions == 2 )
+//				{
+//					AffineTransform2D transform2D = new AffineTransform2D();
+//					transform2D.scale( scale );
+//					mask = unionMask.transform( transform2D );
+//				}
+//				else if ( numDimensions == 3 )
+//				{
+//					AffineTransform3D transform3D = new AffineTransform3D();
+//					transform3D.scale( scale );
+//					mask = unionMask.transform( transform3D );
+//				}
 
+////				OLD CODE
 //				final double[] min = unionMask.minAsDoubleArray();
 //				final double[] max = unionMask.maxAsDoubleArray();
 //

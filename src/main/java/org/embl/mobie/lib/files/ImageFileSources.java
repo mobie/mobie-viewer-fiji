@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.lib.files;
 
-import automic.table.TableModel;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.io.FilenameUtils;
@@ -45,6 +44,7 @@ import tech.tablesaw.api.Table;
 import tech.tablesaw.columns.Column;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -141,22 +141,23 @@ public class ImageFileSources
 	}
 
 	// For creating image sources from an AutoMicTools table
-	public ImageFileSources( String name, TableModel tableModel, String imageTag, Integer channelIndex, GridType gridType )
+	// TODO: Can we remove this and include it into one of the other constructors?
+	public ImageFileSources( String name, Table autoMicTable, Path rootFolder, String imageTag, Integer channelIndex, GridType gridType )
 	{
 		this.name = name;
 		this.gridType = gridType;
 		this.channelIndex = channelIndex;
 
-		int rowCount = tableModel.getRowCount();
+		int rowCount = autoMicTable.rowCount();
 		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
 		{
 			try
 			{
-				String fileName = tableModel.getFileName( rowIndex, imageTag, "IMG" );
-				String path = tableModel.getFileAbsolutePathString( rowIndex, imageTag, "IMG" );
+				String path = MoBIEHelper.getAbsoluteImagePathFromAutoMicTable( autoMicTable, imageTag, rootFolder, rowIndex );
+				String fileName = new File( path ).getName();
 				String imageName = createImageName( channelIndex, fileName );
 				nameToFullPath.put( imageName, path );
-				double rotation = tableModel.getNumericValue( rowIndex, "Rotation" ); // FIXME do not hard-code
+				double rotation = autoMicTable.doubleColumn( "Rotation_NUM" ).get( rowIndex );
 				//IJ.log( imageName + " rotation [degrees]: " + rotation );
 				AffineTransform3D affineTransform3D = new AffineTransform3D();
 				affineTransform3D.rotate( 2, rotation * Math.PI / 180 );
