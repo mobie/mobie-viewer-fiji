@@ -74,6 +74,11 @@ public class TransformHelper
 	public static double[] getCenter( Image< ? > image, int t )
 	{
 		final RealInterval bounds = image.getMask();
+        return getCenter( bounds );
+	}
+
+	public static double[] getCenter( RealInterval bounds )
+	{
 		final double[] center = bounds.minAsDoubleArray();
 		final double[] max = bounds.maxAsDoubleArray();
 		for ( int d = 0; d < max.length; d++ )
@@ -86,12 +91,7 @@ public class TransformHelper
 	public static double[] getCenter( SourceAndConverter< ? > sourceAndConverter )
 	{
 		final RealInterval bounds = SourceHelper.getMask( sourceAndConverter.getSpimSource(), 0 );
-		final double[] center = bounds.minAsDoubleArray();
-		final double[] max = bounds.maxAsDoubleArray();
-		for ( int d = 0; d < max.length; d++ )
-		{
-			center[ d ] = ( center[ d ] + max[ d ] ) / 2;
-		}
+		final double[] center = getCenter( bounds );
 		return center;
 	}
 
