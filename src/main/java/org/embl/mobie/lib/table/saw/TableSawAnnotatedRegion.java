@@ -155,24 +155,9 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 
 			if ( relativeDilation > 0 )
 			{
-
-				// FIXME: One probably needs to translate to zero,
-				//  scale and then translate back to center
-				//  https://imagesc.zulipchat.com/#narrow/stream/327240-ImgLib2
 				double scale = 1 + relativeDilation;
-				int numDimensions = unionMask.numDimensions();
-				if ( numDimensions == 2 )
-				{
-					AffineTransform2D transform2D = new AffineTransform2D();
-					transform2D.scale( scale );
-					mask = unionMask.transform( transform2D );
-				}
-				else if ( numDimensions == 3 )
-				{
-					AffineTransform3D transform3D = getEnlargementTransform( unionMask, scale );
-					mask = unionMask.transform( transform3D );
-				}
-
+				AffineGet transform = getEnlargementTransform( unionMask, scale );
+				mask = unionMask.transform( transform );
 ////				OLD CODE
 //				final double[] min = unionMask.minAsDoubleArray();
 //				final double[] max = unionMask.maxAsDoubleArray();
@@ -196,15 +181,32 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	}
 
 	@NotNull
-	public static AffineTransform3D getEnlargementTransform( RealMaskRealInterval realMaskRealInterval, double scale )
+	public static AffineGet getEnlargementTransform( RealMaskRealInterval realMaskRealInterval, double scale )
 	{
-		// FIXME: make this work for any dimension
-		AffineTransform3D transform3D = new AffineTransform3D();
-		double[] center = TransformHelper.getCenter( realMaskRealInterval );
-		transform3D.translate( Arrays.stream( center ).map( x -> -x ).toArray() );
-		transform3D.scale( 1.0 / scale );
-		transform3D.translate( center );
-		return transform3D;
+		int numDimensions = realMaskRealInterval.numDimensions();
+
+		if ( numDimensions == 2 )
+		{
+			AffineTransform2D transform2D = new AffineTransform2D();
+			double[] center = TransformHelper.getCenter( realMaskRealInterval );
+			transform2D.translate( Arrays.stream( center ).map( x -> -x ).toArray() );
+			transform2D.scale( 1.0 / scale );
+			transform2D.translate( center );
+			return transform2D;
+		}
+		else if ( numDimensions == 3 )
+		{
+			AffineTransform3D transform3D = new AffineTransform3D();
+			double[] center = TransformHelper.getCenter( realMaskRealInterval );
+			transform3D.translate( Arrays.stream( center ).map( x -> -x ).toArray() );
+			transform3D.scale( 1.0 / scale );
+			transform3D.translate( center );
+			return transform3D;
+		}
+		else
+		{
+			throw new RuntimeException( "Unsupported number of dimensions " + numDimensions + ".");
+		}
 	}
 
 	@Override
