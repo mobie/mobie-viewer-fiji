@@ -46,7 +46,6 @@ public class SourcesFromAutoMicTableCreator
 {
 	private final List< ImageFileSources > imageFileSources;
 	private final List< LabelFileSources > labelSources;
-
 	public SourcesFromAutoMicTableCreator( String tablePath, GridType gridType )
 	{
 		File tableFile = new File( tablePath );
