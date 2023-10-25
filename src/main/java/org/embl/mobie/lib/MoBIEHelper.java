@@ -46,7 +46,9 @@ import org.embl.mobie.lib.serialize.ImageDataSource;
 import org.embl.mobie.lib.source.SourceToImagePlusConverter;
 import spimdata.util.Displaysettings;
 import tech.tablesaw.api.Table;
+import vib.app.FileGroup;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -185,6 +187,11 @@ public abstract class MoBIEHelper
 
 	public static Metadata getMetadataFromImageFile( String path, int channelIndex )
 	{
+		if ( ! new File( path ).exists() )
+		{
+			throw new RuntimeException( "Path does not exist: " + path );
+		}
+
 		if ( path.contains( ".zarr" ) )
 		{
 			try
@@ -193,7 +200,9 @@ public abstract class MoBIEHelper
 				final SpimSource< ? > source = new SpimSource( spimData, channelIndex, "" );
 				final int levels = source.getNumMipmapLevels();
 				final ImagePlus imagePlus = new SourceToImagePlusConverter<>( source ).getImagePlus( levels - 1 );
-				return new Metadata( imagePlus );
+				Metadata metadata = new Metadata( imagePlus );
+				metadata.numChannelsContainer = spimData.getSequenceDescription().getViewSetups().size();
+				return metadata;
 			}
 			catch ( SpimDataException e )
 			{

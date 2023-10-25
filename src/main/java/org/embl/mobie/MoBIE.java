@@ -187,20 +187,6 @@ public class MoBIE
 		openImagesAndLabels( imageSources, labelSources );
 	}
 
-	// opens an AutoMicTools table
-	// FIXME: Can we generalise this?
-	public MoBIE( String autoMicTablePath, GridType gridType, MoBIESettings settings )
-	{
-		this.settings = settings;
-
-		// FIXME: Can we generalise this and use the normal sources creator?
-		SourcesFromAutoMicTableCreator sourcesCreator = new SourcesFromAutoMicTableCreator( autoMicTablePath, gridType );
-		final List< ImageFileSources > imageSources = sourcesCreator.getImageSources();
-		final List< LabelFileSources > labelSources = sourcesCreator.getLabelSources();
-
-		openImagesAndLabels( imageSources, labelSources );
-	}
-
 	private void initTableSaw()
 	{
 		// force TableSaw class loading

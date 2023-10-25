@@ -34,9 +34,11 @@ import ij.ImagePlus;
 public class Metadata
 {
 	public String color = "White";
+
 	public double[] contrastLimits = null;
 	public Integer numTimePoints = null;
 	public Integer numZSlices = 1;
+	public Integer numChannelsContainer = 1; // in MoBIE each image has jsut one channel, but the container could have multiple
 
 	public Metadata()
 	{
@@ -51,6 +53,7 @@ public class Metadata
 		contrastLimits = new double[]{ imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
 		numTimePoints = imagePlus.getNFrames();
 		numZSlices = imagePlus.getNSlices();
+		numChannelsContainer = imagePlus.getNChannels();
 	}
 
 }

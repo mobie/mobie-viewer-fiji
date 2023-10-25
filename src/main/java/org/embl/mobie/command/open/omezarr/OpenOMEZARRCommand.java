@@ -44,8 +44,8 @@ public class OpenOMEZARRCommand implements Command {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    @Parameter(label = "File path", style = "directory")
-    public File directory;
+    @Parameter(label = "OME-Zarr path", style = "directory")
+    public File omeZarrDirectory;
 
     protected static void openAndShow(String filePath) throws IOException {
         SpimData spimData = OMEZarrOpener.openFile(filePath);
@@ -56,7 +56,7 @@ public class OpenOMEZARRCommand implements Command {
     @Override
     public void run() {
         try {
-            openAndShow( directory.toString() );
+            openAndShow( omeZarrDirectory.toString() );
         } catch (IOException e) {
             e.printStackTrace();
         }

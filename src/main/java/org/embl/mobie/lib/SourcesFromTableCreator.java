@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib;
 
+import ij.IJ;
 import org.embl.mobie.lib.files.ImageFileSources;
 import org.embl.mobie.lib.files.LabelFileSources;
 import org.embl.mobie.lib.io.TableImageSource;
@@ -35,6 +36,9 @@ import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.transform.GridType;
 import tech.tablesaw.api.Table;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,12 +55,33 @@ public class SourcesFromTableCreator
 
 		for ( String image : imageColumns )
 		{
-			final TableImageSource tableImageSource = new TableImageSource( image );
-			imageFileSources.add( new ImageFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType ) );
+			if ( table.columnNames().contains( "FileName_" + image + "_IMG" ) )
+			{
+				// This is an AutoMicTools table, where the image path is distributed into the two columns (file name and folder)
+				gridType = GridType.Transformed; // To accommodate rotations
+				Path rootFolder = Paths.get( root );
+				String referenceImagePath = MoBIEHelper.getAbsoluteImagePathFromAutoMicTable( table, image, rootFolder, 0 );
+				IJ.log("Detected AutoMicTools table");
+				IJ.log("Determining number of channels of " + image + ", using " + referenceImagePath +  "...");
+				int numChannels = MoBIEHelper.getMetadataFromImageFile( referenceImagePath, 0 ).numChannelsContainer;
+				IJ.log("Number of channels is " + numChannels);
+				for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
+				{
+					imageFileSources.add( new ImageFileSources( image + "_C" + channelIndex, table, rootFolder, image, channelIndex, gridType ) );
+				}
+			}
+			else
+			{
+				// Default table
+				final TableImageSource tableImageSource = new TableImageSource( image );
+				imageFileSources.add( new ImageFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType ) );
+			}
 		}
 
 		labelSources = new ArrayList<>();
-		// see https://github.com/mobie/mobie-viewer-fiji/issues/1038
+		if ( labelColumns.isEmpty() )
+			return;
+
 		final String firstLabel = labelColumns.get( 0 );
 		for ( String label : labelColumns )
 		{

@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.command.open;
 
+import loci.common.DebugTools;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
@@ -66,6 +67,8 @@ public class OpenTableCommand implements Command {
 	@Override
 	public void run()
 	{
+		DebugTools.setRootLevel( "OFF" );
+
 		final GridType gridType = GridType.Stitched; // TODO: fetch from UI
 
 		final MoBIESettings settings = new MoBIESettings();

@@ -121,23 +121,20 @@ public class ImageFileSources
 
 		// add table columns to region table
 		final List< Column< ? > > columns = table.columns();
-		final int numColumns = columns.size();
-		for ( int columnIndex = 0; columnIndex < numColumns; columnIndex++ )
-		{
-			final Column< ? > column = columns.get( columnIndex );
+        for ( final Column< ? > column : columns )
+        {
+            if ( column instanceof NumberColumn )
+            {
+                final Table summary = table.summarize( column, mean ).by( pathColumn );
+                regionTable = regionTable.joinOn( pathColumn ).leftOuter( summary );
+            }
 
-			if ( column instanceof NumberColumn )
-			{
-				final Table summary = table.summarize( column, mean ).by( pathColumn );
-				regionTable = regionTable.joinOn( pathColumn ).leftOuter( summary );
-			}
-
-			if ( column instanceof StringColumn )
-			{
-				final Table summary = table.summarize( column, Aggregators.firstString ).by( pathColumn );
-				regionTable = regionTable.joinOn( pathColumn ).leftOuter( summary );
-			}
-		}
+            if ( column instanceof StringColumn )
+            {
+                final Table summary = table.summarize( column, Aggregators.firstString ).by( pathColumn );
+                regionTable = regionTable.joinOn( pathColumn ).leftOuter( summary );
+            }
+        }
 	}
 
 	// For creating image sources from an AutoMicTools table
