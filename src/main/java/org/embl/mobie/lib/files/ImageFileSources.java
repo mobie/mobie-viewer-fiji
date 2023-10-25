@@ -44,7 +44,6 @@ import tech.tablesaw.api.Table;
 import tech.tablesaw.columns.Column;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -58,7 +57,7 @@ public class ImageFileSources
 	protected final String name;
 	protected Map< String, AffineTransform3D > nameToAffineTransform = new LinkedHashMap<>();
 	protected Map< String, String > nameToFullPath = new LinkedHashMap<>();
-	protected Map< String, String > nameToPath = new LinkedHashMap<>(); // for loading from tables
+	protected Map< String, String > nameToPath = new LinkedHashMap<>();
 
 	protected GridType gridType;
 	protected Table regionTable;
@@ -89,110 +88,94 @@ public class ImageFileSources
 		createRegionTable();
 	}
 
-	public ImageFileSources( String name, Table table, String pathColumn, Integer channelIndex, String root, GridType gridType )
+	public ImageFileSources( String name, Table table, String imageColumn, Integer channelIndex, String root, GridType gridType )
 	{
 		this.name = name;
 		this.channelIndex = channelIndex;
 		this.gridType = gridType;
 
-		final StringColumn paths = table.stringColumn( pathColumn );
+		nameToPath = new LinkedHashMap<>(); // needed for joining the tables below when creating the region table
 
-		// for joining
-		nameToPath = new LinkedHashMap<>();
-
-		for ( String path : paths )
+		int numRows = table.rowCount();
+		if ( table.columnNames().contains( "FileName_" + imageColumn + "_IMG" )  )
 		{
-			File file = root == null ? new File( path ) : new File( root, path );
-			String imageName = createImageName( channelIndex, file.getName() );
-			nameToFullPath.put( imageName, file.getAbsolutePath() );
-			nameToPath.put( imageName, path );
+			// Automic table
+			String autoMicTableColumnName = "FileName_" + imageColumn + "_IMG";
+
+			for ( int rowIndex = 0; rowIndex < numRows; rowIndex++ )
+			{
+				String fileName = table.getString( rowIndex, autoMicTableColumnName );
+				String relativeFolderName = table.getString( rowIndex, "PathName_" + imageColumn + "_IMG" );
+				String path = MoBIEHelper.createAbsolutePath( root, fileName, relativeFolderName );
+				String imageName = createImageName( channelIndex, fileName );
+				nameToFullPath.put( imageName, path );
+				nameToPath.put( imageName, fileName );
+
+				if ( table.columnNames().contains( "Rotation_NUM" ) ) // TODO can we have this more generic?
+				{
+					double rotation = table.doubleColumn( "Rotation_NUM" ).get( rowIndex );
+					//IJ.log( imageName + " rotation [degrees]: " + rotation );
+					AffineTransform3D affineTransform3D = new AffineTransform3D();
+					affineTransform3D.rotate( 2, rotation * Math.PI / 180 );
+					nameToAffineTransform.put( imageName, affineTransform3D );
+				}
+			}
+
+			imageColumn = autoMicTableColumnName; // needed for joining the tables further down
+		}
+		else
+		{
+			// Default table
+			for ( int rowIndex = 0; rowIndex < numRows; rowIndex++ )
+			{
+				String path = table.getString( rowIndex, imageColumn );
+				File file = root == null ? new File( path ) : new File( root, path );
+				String imageName = createImageName( channelIndex, file.getName() );
+				nameToFullPath.put( imageName, file.getAbsolutePath() );
+				nameToPath.put( imageName, path );
+			}
 		}
 
 		metadataSource = nameToFullPath.keySet().iterator().next();
 		metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ), channelIndex );
+		dealWithTimepointsInObjectTableIfNeeded( name, table, imageColumn );
 
-		final List< String > columnNames = table.columnNames();
-		dealWithObjectTableIfNeeded( name, table, pathColumn, columnNames );
-
+		// Create region table
+		//
 		createRegionTable();
 
 		// add column for joining on
-		regionTable.addColumns( StringColumn.create( pathColumn, new ArrayList<>( nameToPath.values() )  ) );
+		regionTable.addColumns( StringColumn.create( imageColumn, new ArrayList<>( nameToPath.values() )  ) );
 
 		// add table columns to region table
-		final List< Column< ? > > columns = table.columns();
-        for ( final Column< ? > column : columns )
-        {
-            if ( column instanceof NumberColumn )
-            {
-                final Table summary = table.summarize( column, mean ).by( pathColumn );
-                regionTable = regionTable.joinOn( pathColumn ).leftOuter( summary );
-            }
-
-            if ( column instanceof StringColumn )
-            {
-                final Table summary = table.summarize( column, Aggregators.firstString ).by( pathColumn );
-                regionTable = regionTable.joinOn( pathColumn ).leftOuter( summary );
-            }
-        }
-	}
-
-	// For creating image sources from an AutoMicTools table
-	// TODO: Can we remove this and include it into one of the other constructors?
-	public ImageFileSources( String name, Table autoMicTable, Path rootFolder, String imageTag, Integer channelIndex, GridType gridType )
-	{
-		this.name = name;
-		this.gridType = gridType;
-		this.channelIndex = channelIndex;
-
-		int rowCount = autoMicTable.rowCount();
-		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
+		// FIXME it is ugly that there are summary statistics even if there is only one entry per region
+		//    Maybe check whether the number of rows is the same and then do not summarise?!
+		boolean needsSummary = table.rowCount() != regionTable.rowCount();
+		if ( needsSummary )
 		{
-			try
+			final List< Column< ? > > columns = table.columns();
+			for ( final Column< ? > column : columns )
 			{
-				String path = MoBIEHelper.getAbsoluteImagePathFromAutoMicTable( autoMicTable, imageTag, rootFolder, rowIndex );
-				String fileName = new File( path ).getName();
-				String imageName = createImageName( channelIndex, fileName );
-				nameToFullPath.put( imageName, path );
-				double rotation = autoMicTable.doubleColumn( "Rotation_NUM" ).get( rowIndex );
-				//IJ.log( imageName + " rotation [degrees]: " + rotation );
-				AffineTransform3D affineTransform3D = new AffineTransform3D();
-				affineTransform3D.rotate( 2, rotation * Math.PI / 180 );
-				nameToAffineTransform.put( imageName, affineTransform3D );
-			}
-			catch ( Exception e )
-			{
-				e.printStackTrace();
-				throw new RuntimeException( e );
+				if ( column instanceof NumberColumn )
+				{
+					final Table summary = table.summarize( column, mean ).by( imageColumn );
+					regionTable = regionTable.joinOn( imageColumn ).leftOuter( summary );
+				}
+				else if ( column instanceof StringColumn )
+				{
+					final Table summary = table.summarize( column, Aggregators.firstString ).by( imageColumn );
+					regionTable = regionTable.joinOn( imageColumn ).leftOuter( summary );
+				}
+				else
+				{
+					throw new RuntimeException( "Unsupported column type " + column.getClass() );
+				}
 			}
 		}
-
-		this.metadataSource = nameToFullPath.keySet().iterator().next();
-		this.metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ), channelIndex );
-
-		createRegionTable();
-
-		// add column for joining on // TODO
-//		regionTable.addColumns( StringColumn.create( pathColumn, new ArrayList<>( nameToPath.values() )  ) );
-		// add table columns to region table
-//		final List< Column< ? > > columns = table.columns();
-//		final int numColumns = columns.size();
-//		for ( int columnIndex = 0; columnIndex < numColumns; columnIndex++ )
-//		{
-//			final Column< ? > column = columns.get( columnIndex );
-//
-//			if ( column instanceof NumberColumn )
-//			{
-//				final Table summary = table.summarize( column, mean ).by( pathColumn );
-//				regionTable = regionTable.joinOn( pathColumn ).leftOuter( summary );
-//			}
-//
-//			if ( column instanceof StringColumn )
-//			{
-//				final Table summary = table.summarize( column, Aggregators.firstString ).by( pathColumn );
-//				regionTable = regionTable.joinOn( pathColumn ).leftOuter( summary );
-//			}
-//		}
+		else
+		{
+			regionTable = regionTable.joinOn( imageColumn ).leftOuter( table );
+		}
 	}
 
 	protected static List< String > getFullPaths( String regex, String root )
@@ -205,9 +188,9 @@ public class ImageFileSources
 		return paths;
 	}
 
-	private void dealWithObjectTableIfNeeded( String name, Table table, String pathColumn, List< String > columnNames )
+	private void dealWithTimepointsInObjectTableIfNeeded( String name, Table table, String pathColumn )
 	{
-		final SegmentColumnNames segmentColumnNames = TableDataFormat.getSegmentColumnNames( columnNames );
+		final SegmentColumnNames segmentColumnNames = TableDataFormat.getSegmentColumnNames( table.columnNames() );
 
 		if ( segmentColumnNames != null && table.containsColumn( segmentColumnNames.timePointColumn()) )
 		{

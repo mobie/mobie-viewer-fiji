@@ -36,9 +36,6 @@ import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.transform.GridType;
 import tech.tablesaw.api.Table;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,15 +56,16 @@ public class SourcesFromTableCreator
 			{
 				// This is an AutoMicTools table, where the image path is distributed into the two columns (file name and folder)
 				gridType = GridType.Transformed; // To accommodate rotations
-				Path rootFolder = Paths.get( root );
-				String referenceImagePath = MoBIEHelper.getAbsoluteImagePathFromAutoMicTable( table, image, rootFolder, 0 );
+				String fileName = table.getString( 0, "FileName_" + image + "_IMG" );
+				String relativeFolder = table.getString( 0, "PathName_" + image + "_IMG" );
+				String referenceImagePath = MoBIEHelper.createAbsolutePath( root, fileName, relativeFolder );
 				IJ.log("Detected AutoMicTools table");
 				IJ.log("Determining number of channels of " + image + ", using " + referenceImagePath +  "...");
 				int numChannels = MoBIEHelper.getMetadataFromImageFile( referenceImagePath, 0 ).numChannelsContainer;
 				IJ.log("Number of channels is " + numChannels);
 				for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
 				{
-					imageFileSources.add( new ImageFileSources( image + "_C" + channelIndex, table, rootFolder, image, channelIndex, gridType ) );
+					imageFileSources.add( new ImageFileSources( image + "_C" + channelIndex, table, image, channelIndex, root, gridType ) );
 				}
 			}
 			else

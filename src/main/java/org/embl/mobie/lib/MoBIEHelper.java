@@ -45,8 +45,6 @@ import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.ImageDataSource;
 import org.embl.mobie.lib.source.SourceToImagePlusConverter;
 import spimdata.util.Displaysettings;
-import tech.tablesaw.api.Table;
-import vib.app.FileGroup;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -255,13 +253,12 @@ public abstract class MoBIEHelper
 		return metadata;
 	}
 
-	public static String getAbsoluteImagePathFromAutoMicTable( Table table, String imageTag, Path rootFolder, int rowIndex )
+	public static String createAbsolutePath( String rootFolder, String fileName, String folderName )
 	{
-		String folderName = table.getString( rowIndex, "PathName_" + imageTag + "_IMG" );
-		String fileName = table.getString( rowIndex, "FileName_" + imageTag + "_IMG" );
+		// The "root" is AutoMic table specific
 		Path relativePath = Paths.get( folderName, fileName );
 		Path tempPath = Paths.get( "root" ).relativize( relativePath );
-		Path resolve = rootFolder.resolve( tempPath );
+		Path resolve = Paths.get( rootFolder ).resolve( tempPath );
 		return resolve.toString();
 	}
 
