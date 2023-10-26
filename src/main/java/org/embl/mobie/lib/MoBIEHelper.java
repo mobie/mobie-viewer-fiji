@@ -253,6 +253,21 @@ public abstract class MoBIEHelper
 		return metadata;
 	}
 
+	public static ImagePlus openOMEZarrAsImagePlus( String path, int setupID )
+	{
+		try
+		{
+			AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, ImageDataFormat.OmeZarr );
+			final SpimSource< ? > spimSource = new SpimSource( spimData, setupID, "" );
+			final ImagePlus imagePlus = new SourceToImagePlusConverter<>( spimSource ).getImagePlus( 0 );
+			return imagePlus;
+		} catch ( SpimDataException e )
+		{
+			e.printStackTrace();
+			throw new RuntimeException( e );
+		}
+	}
+
 	public static String createAbsolutePath( String rootFolder, String fileName, String folderName )
 	{
 		// The "root" is AutoMic table specific

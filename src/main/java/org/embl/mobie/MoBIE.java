@@ -744,9 +744,23 @@ public class MoBIE
 			return new CachedCellImage<>( name, storageLocation.absolutePath, storageLocation.getChannel(), imageDataFormat, ThreadHelper.sharedQueue );
 		}
 
-		if ( storageLocation instanceof Site )
+		if ( storageLocation instanceof Site ) // HCS data
 		{
-			return new SpimDataImage( ( Site ) storageLocation, name, ThreadHelper.sharedQueue );
+			final Site site = ( Site ) storageLocation;
+
+			if ( site.getImageDataFormat().equals( ImageDataFormat.SpimData ) )
+			{
+				// the whole plate is already initialised as one big SpimData
+				// note that channel <=> setupID
+				return new SpimDataImage( site.getSpimData(), site.channel, name, false );
+			}
+
+			if ( site.getImageDataFormat().equals( ImageDataFormat.OmeZarr ) )
+			{
+				return new SpimDataImage( ImageDataFormat.OmeZarr, site.absolutePath, site.channel, name, ThreadHelper.sharedQueue, false );
+			}
+
+			return new SpimDataImage( site, name, ThreadHelper.sharedQueue );
 		}
 
 		final String imagePath = getImageLocation( imageDataFormat, storageLocation );

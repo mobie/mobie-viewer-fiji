@@ -41,6 +41,7 @@ import mpicbg.spim.data.generic.base.Entity;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.toml.TPosition;
+import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.color.ColorHelper;
 
 import ch.epfl.biop.bdv.img.bioformats.entity.SeriesIndex;
@@ -174,6 +175,7 @@ public class Plate
 					channel = new Channel( channelName );
 					channelWellSites.put( channel, new HashMap<>() );
 
+					// FIXME Replace with MoBIEHelper.getMetadataFromImageFile
 					ImagePlus singleChannelImagePlus = operettaMetadata == null ? openImagePlus( path, channelName ) : null;
 
 					// set channel metadata
