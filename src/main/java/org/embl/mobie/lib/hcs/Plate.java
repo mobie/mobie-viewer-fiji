@@ -28,15 +28,21 @@
  */
 package org.embl.mobie.lib.hcs;
 
+import bdv.SpimSource;
+import bdv.viewer.Source;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.io.Opener;
 import ij.measure.Calibration;
+import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.toml.TPosition;
 import org.embl.mobie.lib.color.ColorHelper;
+import org.embl.mobie.lib.source.SourceToImagePlusConverter;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,6 +56,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Plate
 {
@@ -81,10 +88,13 @@ public class Plate
 					.filter( e -> e.getNameCount() - rootPathDepth >= minDepth )
 					.map( e -> e.toString() )
 					.collect( Collectors.toList() );
+			hcsPattern = HCSPattern.OMEZarr;
+			imageDataFormat = ImageDataFormat.OmeZarr;
 		}
 		else
 		{
 			imageSitePaths = Files.walk( Paths.get( hcsDirectory ), 3 ).map( p -> p.toString() ).collect( Collectors.toList() );
+			hcsPattern = determineHCSPattern( hcsDirectory, imageSitePaths );
 		}
 
 		hcsPattern = determineHCSPattern( hcsDirectory, imageSitePaths );
@@ -94,6 +104,24 @@ public class Plate
 			//final File xml = new File( hcsDirectory, "Index.idx.xml" );
 			final File xml = new File( hcsDirectory, "Index.xml" );
 			metadata = new OperettaMetadata( xml );
+		}
+
+		if ( hcsPattern == HCSPattern.OMEZarr.OMEZarr )
+		{
+			try
+			{
+				final String firstImagePath = imageSitePaths.get( 0 );
+				AbstractSpimData< ? > spimData = new SpimDataOpener().open( firstImagePath, ImageDataFormat.OmeZarr );
+				final int numChannels = spimData.getSequenceDescription().getViewSetupsOrdered().size();
+				final List< String > channels = IntStream.range( 0, numChannels )
+						.mapToObj( i -> ( ( Integer ) i ).toString() )
+						.collect( Collectors.toList() );
+				hcsPattern.setChannels( channels );
+			} catch ( SpimDataException e )
+			{
+				e.printStackTrace();
+				throw new RuntimeException( e );
+			}
 		}
 
 		buildPlateMap( imageSitePaths );
@@ -122,128 +150,163 @@ public class Plate
 			}
 
 			numImages++;
-			//System.out.println( path );
 
-			// store this file's channel, well, and site
-			//
-
-			// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/972
-			//    WellH06_PointH06_0007_ChannelDAPI,WF_GFP,TRITC,WF_Cy5,DIA_Seq0502.tiff
-			//    Maybe change to hcsPattern.getChannels(); (plural) ?
-			//    and then loop through the channels
-
-			// channel
-			//
-			String channelGroup = hcsPattern.getChannelGroup();
-			Channel channel = getChannel( channelWellSites, channelGroup );
-			if ( channel == null )
+			if ( imageDataFormat == null )
 			{
-				// configure channel properties
-				//
+				imageDataFormat = ImageDataFormat.fromPath( path );
+				IJ.log( "Image data format: " + imageDataFormat.toString() );
+			}
 
-				channel = new Channel( channelGroup );
-				channelWellSites.put( channel, new HashMap<>() );
+			// some formats contain multiple channels in one file
+			List< String > channelIDs = hcsPattern.getChannels();
+			for ( String channelName : channelIDs )
+			{
+				Channel channel = getChannel( channelWellSites, channelName );
 
-				// TODO: implement this properly
-				if ( imageDataFormat == null )
+				if ( channel == null )
 				{
-					imageDataFormat = ImageDataFormat.fromPath( path );
-					IJ.log( "Image data format: " + imageDataFormat.toString() );
-				}
-
-				ImagePlus imagePlus;
-				if ( imageDataFormat.equals( ImageDataFormat.Tiff ) )
-				{
-					final File file = new File( path );
-					imagePlus = ( new Opener() ).openTiff( file.getParent(), file.getName() );
-				}
-				else
-				{
-					imagePlus = IJ.openImage( path );
-				}
-				final String color = ColorHelper.getString( imagePlus.getLuts()[ 0 ] );
-				channel.setColor( color );
-				final double[] contrastLimits = new double[]
-				{
-					imagePlus.getDisplayRangeMin(),
-					imagePlus.getDisplayRangeMax()
-				};
-				channel.setContrastLimits( contrastLimits );
-
-				if ( voxelDimensions == null )
-				{
-					// set spatial calibrations for the whole plate
+					// configure channel properties
 					//
-					if ( metadata == null )
+					channel = new Channel( channelName );
+					channelWellSites.put( channel, new HashMap<>() );
+
+					ImagePlus singleChannel = hcsMetadata == null ? openImagePlus( path, channelName ) : null;
+
+					// set channel metadata
+					//
+					if ( hcsMetadata != null )
 					{
-						final Calibration calibration = imagePlus.getCalibration();
-						voxelDimensions = new FinalVoxelDimensions( calibration.getUnit(), calibration.pixelWidth, calibration.pixelHeight, calibration.pixelDepth );
+
+
+						final String color = hcsMetadata.getColor( path );
+						channel.setColor( color );
+
+						// TODO: There does not always seem to be enough metadata for the
+						//   contrast limits, thus opening one image may be worth it
+						//   then convert to image plus and run once auto contrast on it
+						final double[] contrastLimits = hcsMetadata.getContrastLimits( path );
+						channel.setContrastLimits( contrastLimits );
+					}
+					else // from image file
+					{
+						final String color = ColorHelper.getString( singleChannel.getLuts()[ 0 ] );
+						channel.setColor( color );
+
+						final double[] contrastLimits = new double[]{
+								singleChannel.getDisplayRangeMin(),
+								singleChannel.getDisplayRangeMax()
+						};
+						channel.setContrastLimits( contrastLimits );
+					}
+
+					// determine spatial metadata (for all channels the same)
+					//
+					if ( voxelDimensions == null )
+					{
+						if ( hcsMetadata != null )
+						{
+							voxelDimensions = hcsMetadata.getVoxelDimensions( path );
+							siteDimensions = hcsMetadata.getSiteDimensions( path );
+						}
+						else // from image file
+						{
+							final Calibration calibration = singleChannel.getCalibration();
+							voxelDimensions = new FinalVoxelDimensions( calibration.getUnit(), calibration.pixelWidth, calibration.pixelHeight, calibration.pixelDepth );
+							siteDimensions = new int[]{ singleChannel.getWidth(), singleChannel.getHeight() };
+						}
+
+						// compute derived spatial metadata
+						//
+						siteRealDimensions = new double[]{
+								siteDimensions[ 0 ] * voxelDimensions.dimension( 0 ),
+								siteDimensions[ 1 ] * voxelDimensions.dimension( 1 ) };
+
+						siteRealDimensions = new double[]{
+								siteDimensions[ 0 ] * voxelDimensions.dimension( 0 ),
+								siteDimensions[ 1 ] * voxelDimensions.dimension( 1 ) };
+					}
+				}
+				// well
+				//
+				String wellGroup = hcsScheme.getWell();
+				Well well = getWell( channelWellSites, channel, wellGroup );
+				if ( well == null )
+				{
+					well = new Well( wellGroup );
+					channelWellSites.get( channel ).put( well, new HashSet<>() );
+					final int numWells = channelWellSites.get( channel ).size();
+					if ( numWells > wellsPerPlate )
+						wellsPerPlate = numWells;
+				}
+
+				// site
+				//
+				final String siteGroup = hcsScheme.getSite();
+				Site site = getSite( channelWellSites, channel, well, siteGroup );
+				if ( site == null )
+				{
+					if ( imageDataFormat.equals( ImageDataFormat.SpimData ) )
+					{
+						final int imageIndex = hcsMetadata.getImageIndex( path );
+						final BasicViewSetup viewSetup = spimDataPlate.getSequenceDescription().getViewSetupsOrdered().get( imageIndex );
+						IJ.log( "" );
+						final Map< String, Entity > attributes = viewSetup.getAttributes();
+						IJ.log( "Image index:" + imageIndex );
+						IJ.log( "Series index: " + ( ( SeriesIndex ) attributes.get( "seriesindex" ) ).getId() );
+						IJ.log( "Setup name: " + viewSetup.getName() );
+						IJ.log( "File name: " + new File( path ).getName() );
+						site = new Site( siteGroup, imageDataFormat, spimDataPlate, imageIndex );
 					}
 					else
 					{
-						voxelDimensions = metadata.getVoxelDimensions( path );
+						site = new Site( siteGroup, imageDataFormat );
 					}
+					site.setDimensions( siteDimensions );
+					site.setVoxelDimensions( voxelDimensions );
+					channelWellSites.get( channel ).get( well ).add( site );
+					final int numSites = channelWellSites.get( channel ).get( well ).size();
+					if ( numSites > sitesPerWell )
+						sitesPerWell = numSites; // needed to compute the site position within a well
+				}
 
-					siteRealDimensions = new double[]
-					{
-							imagePlus.getWidth() * voxelDimensions.dimension( 0 ),
-							imagePlus.getHeight() * voxelDimensions.dimension( 1 )
-					};
-
-					siteRealDimensions = new double[]
-					{
-							imagePlus.getWidth() * voxelDimensions.dimension( 0 ),
-							imagePlus.getHeight() * voxelDimensions.dimension( 1 )
-					};
-
-					siteDimensions = new int[]
-					{
-							imagePlus.getWidth(),
-							imagePlus.getHeight()
-					};
+				if ( hcsScheme.equals( HCSScheme.OMEZarr ) )
+				{
+					site.absolutePath = path;
+					site.channel = Integer.parseInt( channelName );
+				}
+				else
+				{
+					final String t = hcsScheme.getT();
+					final String z = hcsScheme.getZ();
+					site.addPath( t, z, path );
+					tPositions.add( new TPosition( t ) );
 				}
 			}
-
-			// well
-			//
-			String wellGroup = hcsPattern.getWellGroup();
-			Well well = getWell( channelWellSites, channel, wellGroup );
-			if ( well == null )
-			{
-				well = new Well( wellGroup );
-				channelWellSites.get( channel ).put( well, new HashSet<>() );
-				final int numWells = channelWellSites.get( channel ).size();
-				if ( numWells > wellsPerPlate )
-					wellsPerPlate = numWells;
-			}
-
-			// site
-			//
-			final String siteGroup = hcsPattern.getSiteGroup();
-			Site site = getSite( channelWellSites, channel, well, siteGroup );
-			if ( site == null )
-			{
-				site = new Site( siteGroup, imageDataFormat );
-				site.setDimensions( siteDimensions );
-				site.setVoxelDimensions( voxelDimensions );
-				channelWellSites.get( channel ).get( well ).add( site );
-				final int numSites = channelWellSites.get( channel ).get( well ).size();
-				if ( numSites > sitesPerWell )
-					sitesPerWell = numSites; // needed to compute the site position within a well
-			}
-
-			final String t = hcsPattern.getT();
-			final String z = hcsPattern.getZ();
-			site.addPath( t, z, path );
-
-			tPositions.add( new TPosition( t ) );
 		}
 
 		IJ.log( "Initialised HCS plate: " + getName() );
-		IJ.log( "Images: " + numImages );
+		IJ.log( "Images: " + numValidImages );
 		IJ.log( "Channels: " + channelWellSites.keySet().size() );
 		IJ.log( "Wells: " + wellsPerPlate );
 		IJ.log( "Sites per well: " + sitesPerWell );
+	}
+
+	private ImagePlus openImagePlus( String path, String channelName )
+	{
+		if ( imageDataFormat.equals( ImageDataFormat.Tiff ) )
+		{
+			final File file = new File( path );
+			return ( new Opener() ).openTiff( file.getParent(), file.getName() );
+		}
+
+		if ( imageDataFormat.equals( ImageDataFormat.OmeZarr ) )
+		{
+			final int setupID = Integer.parseInt( channelName );
+			return MoBIEHelper.openOMEZarrAsImagePlus( path, setupID );
+		}
+
+		return IJ.openImage( path );
+
 	}
 
 	private Channel getChannel( HashMap< Channel, Map< Well, Set< Site > > > channelWellSites, String channelName )

@@ -29,11 +29,14 @@
 package org.embl.mobie.lib.hcs;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public enum HCSPattern
 {
+	OMEZarr,
 	Operetta,
 	IncuCyte,
 	InCell, // https://github.com/embl-cba/plateviewer/issues/45
@@ -48,17 +51,25 @@ public enum HCSPattern
 
 	/*
 	example:
+	/g/cba/exchange/hcs-test/hcs-test.zarr/A/1/0/
+	well = C05, site = 1, channel = 1
+ 	*/
+	private static final String OME_ZARR = ".*.zarr/(?<"+WELL+">[A-Z]/[0-9]+)/(?<"+SITE+">[0-9]+)$";
+
+
+	/*
+	example:
 	r01c01f04p01-ch1sk1fk1fl1.tiff
 	well = r01c01, site = 04, channel = 1
 	 */
-	public static final String OPERETTA = ".*(?<"+WELL+">r[0-9]{2}c[0-9]{2})f(?<"+SITE+">[0-9]{2})p[0-9]{2}.*-ch(?<"+CHANNEL+">[0-9])sk.*.tiff$";
+	private static final String OPERETTA = ".*(?<"+WELL+">r[0-9]{2}c[0-9]{2})f(?<"+SITE+">[0-9]{2})p[0-9]{2}.*-ch(?<"+CHANNEL+">[0-9])sk.*.tiff$";
 
 	/*
 	example:
 	MiaPaCa2-PhaseOriginal_A2_1_03d06h40m.tif
 	well = A2, site = 1, frame = 03d06h40m
 	 */
-	public static final String INCUCYTE = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{1,2})_(?<"+SITE+">[0-9]{1,2})_(?<"+ T +">[0-9]{2}d[0-9]{2}h[0-9]{2}m).tif$";
+	private static final String INCUCYTE = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{1,2})_(?<"+SITE+">[0-9]{1,2})_(?<"+ T +">[0-9]{2}d[0-9]{2}h[0-9]{2}m).tif$";
 
 	/*
 	examples:
@@ -67,7 +78,7 @@ public enum HCSPattern
 	Plate10x4sites_A01_s1_w1.TIF
 	well = A01, site = 1, channel = 1
 	 */
-	public static final String MOLDEV_WELL_SITE_CHANNEL = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">.*)_w(?<"+CHANNEL+">[0-9])[^_thumb].*";
+	private static final String MOLDEV_WELL_SITE_CHANNEL = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">.*)_w(?<"+CHANNEL+">[0-9])[^_thumb].*";
 
 
 	/*
@@ -89,6 +100,7 @@ public enum HCSPattern
 	private final String MD_SITES = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">[0-9]{1}).*";
 
 	private Matcher matcher;
+	private List< String > channels;
 
 	public static HCSPattern fromPath( String fileName )
 	{
@@ -106,6 +118,8 @@ public enum HCSPattern
 	{
 		switch( this )
 		{
+			case OMEZarr:
+				return Pattern.compile( OME_ZARR ).matcher( path );
 			case Operetta:
 				return Pattern.compile( OPERETTA ).matcher( path );
 			case MolecularDevices:
@@ -132,6 +146,8 @@ public enum HCSPattern
 	{
 		switch ( this )
 		{
+			case OMEZarr:
+				return decodeOMEZarrWellPosition( well );
 			case Operetta:
 				return decodeOperettaWellPosition( well );
 			case InCell:
@@ -141,7 +157,16 @@ public enum HCSPattern
 		}
 	}
 
-	private int[] decodeOperettaWellPosition( String well )
+	private static int[] decodeOMEZarrWellPosition( String well )
+	{
+		final Matcher matcher = Pattern.compile( "(?<row>[A-Z])/(?<col>[0-9]+)" ).matcher( well );
+		matcher.matches();
+		final int x = Integer.parseInt( matcher.group( "col" ) ) - 1;
+		final int y = ALPHABET.indexOf( matcher.group("row") );
+		return new int[]{ x, y };
+	}
+
+	private static int[] decodeOperettaWellPosition( String well )
 	{
 		final Matcher matcher = Pattern.compile( "r(?<row>[0-9]{2})c(?<col>[0-9]{2})" ).matcher( well );
 		matcher.matches();
@@ -150,7 +175,7 @@ public enum HCSPattern
 		return new int[]{ x, y };
 	}
 
-	private int[] decodeInCellWellPosition( String well )
+	private static int[] decodeInCellWellPosition( String well )
 	{
 		// (?<"+WELL+">[A-Z]{1} - [0-9]{2})
 		final Matcher matcher = Pattern.compile( "(?<row>[A-Z]{1}) - (?<col>[0-9]{2})" ).matcher( well );
@@ -176,6 +201,7 @@ public enum HCSPattern
 			case MolecularDevices:
 				return true;
 			default:
+			case OMEZarr:
 			case IncuCyte:
 				return false;
 		}
@@ -185,6 +211,7 @@ public enum HCSPattern
 	{
 		switch ( this )
 		{
+			case OMEZarr:
 			case Operetta:
 			case MolecularDevices:
 			case InCell:
@@ -210,6 +237,17 @@ public enum HCSPattern
 			return matcher.group( HCSPattern.CHANNEL );
 		else
 			return "1" ;
+	}
+
+	public List< String > getChannels()
+	{
+		if ( channels != null )
+			return channels;
+
+		if ( hasChannels() )
+			return Collections.singletonList( matcher.group( HCSPattern.CHANNEL ) );
+
+		return Collections.singletonList( "1" );
 	}
 
 	public String getWellGroup()
@@ -238,5 +276,9 @@ public enum HCSPattern
 			return "1";
 	}
 
+	public void setChannels( List< String > channels )
+	{
+		this.channels = channels;
+	}
 
 }
