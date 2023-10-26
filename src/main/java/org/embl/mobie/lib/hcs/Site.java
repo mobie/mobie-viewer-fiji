@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.hcs;
 
+import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.toml.TPosition;
@@ -39,22 +40,33 @@ import java.util.Map;
 
 public class Site extends StorageLocation
 {
-	private final String name;
+	// The ID is not the final name of the corresponding image,
+	// but the image name will be concatenated also using the channel and well name.
+	private final String id;
 	private int[] dimensions;
 	private Map< TPosition, Map< ZPosition, String > > paths = new LinkedHashMap();
 	private VoxelDimensions voxelDimensions;
 	private ImageDataFormat imageDataFormat;
+	private AbstractSpimData< ? > spimData;
 
-	public Site( String name, ImageDataFormat imageDataFormat )
+	public Site( String id, ImageDataFormat imageDataFormat )
 	{
-		this.name = name;
+		this.id = id;
 		this.imageDataFormat = imageDataFormat;
 		this.channel = 0;
 	}
 
-	public String getName()
+	public Site( String id, ImageDataFormat imageDataFormat, AbstractSpimData< ? > spimData, int imageIndex )
 	{
-		return name;
+		this.id = id;
+		this.imageDataFormat = imageDataFormat;
+		this.spimData = spimData;
+		this.channel = imageIndex;
+	}
+
+	public String getId()
+	{
+		return id;
 	}
 
 	public int[] getDimensions()
@@ -102,5 +114,10 @@ public class Site extends StorageLocation
 	public ImageDataFormat getImageDataFormat()
 	{
 		return imageDataFormat;
+	}
+
+	public AbstractSpimData< ? > getSpimData()
+	{
+		return spimData;
 	}
 }

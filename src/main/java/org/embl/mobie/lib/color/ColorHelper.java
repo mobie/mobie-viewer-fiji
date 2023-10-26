@@ -39,7 +39,6 @@ import java.util.regex.Pattern;
 public abstract class ColorHelper
 {
 	final static public double goldenRatio = 1.0 / ( 0.5 * Math.sqrt( 5 ) + 0.5 );
-
 	public static final String RANDOM_FROM_GLASBEY = "randomFromGlasbey";
 
 	public static Color getColor( ARGBType argbType )

@@ -179,12 +179,12 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		{
 			if ( site != null )
 			{
-				AbstractSpimData< ? > cachedSpimData = DataStore.getSpimData( site.getName() );
+				AbstractSpimData< ? > cachedSpimData = DataStore.getSpimData( site.getId() );
 				if ( cachedSpimData != null )
 					return cachedSpimData;
 
 				AbstractSpimData< ? > spimData = SiteSpimDataCreator.create( site, sharedQueue );
-				DataStore.putSpimData( site.getName(), spimData );
+				DataStore.putSpimData( site.getId(), spimData );
 				return spimData;
 			}
 

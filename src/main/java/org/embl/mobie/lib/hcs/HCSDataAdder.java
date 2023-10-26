@@ -30,10 +30,6 @@ package org.embl.mobie.lib.hcs;
 
 import net.thisptr.jackson.jq.internal.misc.Strings;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
-import org.embl.mobie.lib.hcs.Channel;
-import org.embl.mobie.lib.hcs.Plate;
-import org.embl.mobie.lib.hcs.Site;
-import org.embl.mobie.lib.hcs.Well;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.ImageDataSource;
 import org.embl.mobie.lib.serialize.View;
@@ -197,7 +193,7 @@ public class HCSDataAdder
 
 	private String getSiteID( Plate plate, Channel channel, Well well, Site site )
 	{
-		return getWellID( plate, channel, well ) + "-s" + site.getName();
+		return getWellID( plate, channel, well ) + "-s" + site.getId();
 	}
 
 	private String getWellID( Plate plate, Channel channel, Well well )

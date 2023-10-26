@@ -28,21 +28,22 @@
  */
 package org.embl.mobie.lib.hcs;
 
-import bdv.SpimSource;
-import bdv.viewer.Source;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.io.Opener;
 import ij.measure.Calibration;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
+import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import mpicbg.spim.data.generic.base.Entity;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.toml.TPosition;
 import org.embl.mobie.lib.color.ColorHelper;
-import org.embl.mobie.lib.source.SourceToImagePlusConverter;
+
+import ch.epfl.biop.bdv.img.bioformats.entity.SeriesIndex;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,7 +71,9 @@ public class Plate
 	private Set< TPosition > tPositions;
 	private int wellsPerPlate;
 	private ImageDataFormat imageDataFormat;
-	private OperettaMetadata metadata;
+	private OperettaMetadata operettaMetadata;
+	private AbstractSpimData< ? > spimDataPlate;
+
 
 	public Plate( String hcsDirectory ) throws IOException
 	{
@@ -99,14 +102,14 @@ public class Plate
 
 		hcsPattern = determineHCSPattern( hcsDirectory, imageSitePaths );
 
+		// FIXME: remove support of Operetta?!
 		if ( hcsPattern == HCSPattern.Operetta )
 		{
 			//final File xml = new File( hcsDirectory, "Index.idx.xml" );
 			final File xml = new File( hcsDirectory, "Index.xml" );
-			metadata = new OperettaMetadata( xml );
+			operettaMetadata = new OperettaMetadata( xml );
 		}
-
-		if ( hcsPattern == HCSPattern.OMEZarr.OMEZarr )
+		else if ( hcsPattern == HCSPattern.OMEZarr )
 		{
 			try
 			{
@@ -117,7 +120,8 @@ public class Plate
 						.mapToObj( i -> ( ( Integer ) i ).toString() )
 						.collect( Collectors.toList() );
 				hcsPattern.setChannels( channels );
-			} catch ( SpimDataException e )
+			}
+			catch ( SpimDataException e )
 			{
 				e.printStackTrace();
 				throw new RuntimeException( e );
@@ -131,7 +135,7 @@ public class Plate
 	{
 		channelWellSites = new HashMap<>();
 		tPositions = new HashSet<>();
-		int numImages = 0;
+		int numValidImages = 0;
 
 		IJ.log("Files: " + paths.size() );
 
@@ -140,16 +144,16 @@ public class Plate
 			if ( ! hcsPattern.setMatcher( path ) )
 				continue;
 
-			if ( metadata != null )
+			if ( operettaMetadata != null )
 			{
-				if ( ! metadata.contains( path ) )
+				if ( ! operettaMetadata.contains( path ) )
 				{
 					IJ.log( "[WARNING] No metadata found for " + path );
 					continue;
 				}
 			}
 
-			numImages++;
+			numValidImages++;
 
 			if ( imageDataFormat == null )
 			{
@@ -170,31 +174,29 @@ public class Plate
 					channel = new Channel( channelName );
 					channelWellSites.put( channel, new HashMap<>() );
 
-					ImagePlus singleChannel = hcsMetadata == null ? openImagePlus( path, channelName ) : null;
+					ImagePlus singleChannelImagePlus = operettaMetadata == null ? openImagePlus( path, channelName ) : null;
 
 					// set channel metadata
 					//
-					if ( hcsMetadata != null )
+					if ( operettaMetadata != null )
 					{
-
-
-						final String color = hcsMetadata.getColor( path );
+						final String color = operettaMetadata.getColor( path );
 						channel.setColor( color );
 
 						// TODO: There does not always seem to be enough metadata for the
 						//   contrast limits, thus opening one image may be worth it
 						//   then convert to image plus and run once auto contrast on it
-						final double[] contrastLimits = hcsMetadata.getContrastLimits( path );
+						final double[] contrastLimits = operettaMetadata.getContrastLimits( path );
 						channel.setContrastLimits( contrastLimits );
 					}
 					else // from image file
 					{
-						final String color = ColorHelper.getString( singleChannel.getLuts()[ 0 ] );
+						final String color = ColorHelper.getString( singleChannelImagePlus.getLuts()[ 0 ] );
 						channel.setColor( color );
 
 						final double[] contrastLimits = new double[]{
-								singleChannel.getDisplayRangeMin(),
-								singleChannel.getDisplayRangeMax()
+								singleChannelImagePlus.getDisplayRangeMin(),
+								singleChannelImagePlus.getDisplayRangeMax()
 						};
 						channel.setContrastLimits( contrastLimits );
 					}
@@ -203,16 +205,16 @@ public class Plate
 					//
 					if ( voxelDimensions == null )
 					{
-						if ( hcsMetadata != null )
+						if ( operettaMetadata != null )
 						{
-							voxelDimensions = hcsMetadata.getVoxelDimensions( path );
-							siteDimensions = hcsMetadata.getSiteDimensions( path );
+							voxelDimensions = operettaMetadata.getVoxelDimensions( path );
+							siteDimensions = operettaMetadata.getSiteDimensions( path );
 						}
 						else // from image file
 						{
-							final Calibration calibration = singleChannel.getCalibration();
+							final Calibration calibration = singleChannelImagePlus.getCalibration();
 							voxelDimensions = new FinalVoxelDimensions( calibration.getUnit(), calibration.pixelWidth, calibration.pixelHeight, calibration.pixelDepth );
-							siteDimensions = new int[]{ singleChannel.getWidth(), singleChannel.getHeight() };
+							siteDimensions = new int[]{ singleChannelImagePlus.getWidth(), singleChannelImagePlus.getHeight() };
 						}
 
 						// compute derived spatial metadata
@@ -228,7 +230,7 @@ public class Plate
 				}
 				// well
 				//
-				String wellGroup = hcsScheme.getWell();
+				String wellGroup = hcsPattern.getWellGroup();
 				Well well = getWell( channelWellSites, channel, wellGroup );
 				if ( well == null )
 				{
@@ -241,13 +243,13 @@ public class Plate
 
 				// site
 				//
-				final String siteGroup = hcsScheme.getSite();
+				final String siteGroup = hcsPattern.getSiteGroup();
 				Site site = getSite( channelWellSites, channel, well, siteGroup );
 				if ( site == null )
 				{
 					if ( imageDataFormat.equals( ImageDataFormat.SpimData ) )
 					{
-						final int imageIndex = hcsMetadata.getImageIndex( path );
+						final int imageIndex = operettaMetadata.getImageIndex( path );
 						final BasicViewSetup viewSetup = spimDataPlate.getSequenceDescription().getViewSetupsOrdered().get( imageIndex );
 						IJ.log( "" );
 						final Map< String, Entity > attributes = viewSetup.getAttributes();
@@ -269,15 +271,15 @@ public class Plate
 						sitesPerWell = numSites; // needed to compute the site position within a well
 				}
 
-				if ( hcsScheme.equals( HCSScheme.OMEZarr ) )
+				if ( hcsPattern.equals( hcsPattern.OMEZarr ) )
 				{
 					site.absolutePath = path;
 					site.channel = Integer.parseInt( channelName );
 				}
 				else
 				{
-					final String t = hcsScheme.getT();
-					final String z = hcsScheme.getZ();
+					final String t = hcsPattern.getT();
+					final String z = hcsPattern.getZ();
 					site.addPath( t, z, path );
 					tPositions.add( new TPosition( t ) );
 				}
@@ -298,15 +300,15 @@ public class Plate
 			final File file = new File( path );
 			return ( new Opener() ).openTiff( file.getParent(), file.getName() );
 		}
-
-		if ( imageDataFormat.equals( ImageDataFormat.OmeZarr ) )
+		else if ( imageDataFormat.equals( ImageDataFormat.OmeZarr ) )
 		{
 			final int setupID = Integer.parseInt( channelName );
 			return MoBIEHelper.openOMEZarrAsImagePlus( path, setupID );
 		}
-
-		return IJ.openImage( path );
-
+		else
+		{
+			return IJ.openImage( path );
+		}
 	}
 
 	private Channel getChannel( HashMap< Channel, Map< Well, Set< Site > > > channelWellSites, String channelName )
@@ -338,7 +340,7 @@ public class Plate
 	{
 		try
 		{
-			return channelWellSites.get( channel ).get( well ).stream().filter( s -> s.getName().equals( siteName ) ).findFirst().get();
+			return channelWellSites.get( channel ).get( well ).stream().filter( s -> s.getId().equals( siteName ) ).findFirst().get();
 		}
 		catch ( NoSuchElementException e )
 		{
@@ -394,7 +396,7 @@ public class Plate
 		if ( sitesPerWell == 1 )
 			return new int[]{ 0, 0 };
 
-		int siteIndex = Integer.parseInt( site.getName() ) - 1;
+		int siteIndex = Integer.parseInt( site.getId() ) - 1;
 		int numColumns = (int) Math.ceil( Math.sqrt( sitesPerWell ) );
 
 		int[] gridPosition = new int[ 2 ];
@@ -407,7 +409,7 @@ public class Plate
 	private int[] getOperettaGridPosition( Site site )
 	{
 		final String path = site.getPaths().values().iterator().next().values().iterator().next();
-		final double[] realPosition = metadata.getRealPosition( path );
+		final double[] realPosition = operettaMetadata.getRealPosition( path );
 
 		final int[] position = new int[ 2 ];
 		for ( int d = 0; d < 2; d++ )
@@ -423,7 +425,7 @@ public class Plate
 		if ( sitesPerWell == 1 )
 			return new int[]{ 0, 0 };
 
-		int siteIndex = Integer.parseInt( site.getName() ) - 1;
+		int siteIndex = Integer.parseInt( site.getId() ) - 1;
 		int numSiteColumns = (int) Math.sqrt( sitesPerWell );
 
 		int[] gridPosition = new int[ 2 ];
