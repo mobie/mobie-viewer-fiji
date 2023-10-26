@@ -85,7 +85,6 @@ public class OMEZarrViewer
                     source.getSourceTransform( 0, scale, affineTransform3D );
                     IJ.log( "Scale " + scale + ": voxel space size = " + Arrays.toString( source.getSource( 0, scale ).dimensionsAsLongArray() ) );
                     IJ.log( "Scale " + scale + ": voxel to " + unit + " space transform = " + affineTransform3D );
-
                 }
             }
         }

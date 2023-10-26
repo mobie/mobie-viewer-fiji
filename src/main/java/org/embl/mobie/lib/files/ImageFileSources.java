@@ -111,10 +111,9 @@ public class ImageFileSources
 				nameToFullPath.put( imageName, path );
 				nameToPath.put( imageName, fileName );
 
-				if ( table.columnNames().contains( "Rotation_NUM" ) ) // TODO can we have this more generic?
+				if ( table.columnNames().contains( "Rotation_NUM" ) ) // FIXME can we have this more generic?
 				{
 					double rotation = table.doubleColumn( "Rotation_NUM" ).get( rowIndex );
-					//IJ.log( imageName + " rotation [degrees]: " + rotation );
 					AffineTransform3D affineTransform3D = new AffineTransform3D();
 					affineTransform3D.rotate( 2, rotation * Math.PI / 180 );
 					nameToAffineTransform.put( imageName, affineTransform3D );

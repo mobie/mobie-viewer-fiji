@@ -41,6 +41,6 @@ class HCSOMEZarr
 	{
 		new ImageJ().ui().showUI();
 
-		new MoBIE( "/g/cba/exchange/hcs-test/Bugra/testdata.zarr", new MoBIESettings(), 0.1, 0.0  );
+		new MoBIE( "/Volumes/cba/exchange/ome-zarr/bugra/HCS/testdata.zarr", new MoBIESettings(), 0.1, 0.0  );
 	}
 }

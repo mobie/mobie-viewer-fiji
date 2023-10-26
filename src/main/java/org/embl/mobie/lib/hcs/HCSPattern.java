@@ -42,6 +42,7 @@ public enum HCSPattern
 	public static final String WELL = "W";
 	public static final String SITE = "S";
 	public static final String CHANNEL = "C";
+
 	public static final String T = "T";
 	public static final String Z = "Z";
 
