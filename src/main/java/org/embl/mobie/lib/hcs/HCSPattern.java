@@ -241,13 +241,15 @@ public enum HCSPattern
 
 	public List< String > getChannels()
 	{
-		if ( channels != null )
-			return channels;
+		if ( channels == null )
+		{
+			if ( hasChannels() )
+				channels = Collections.singletonList( matcher.group( HCSPattern.CHANNEL ) );
+			else
+				channels = Collections.singletonList( "1" );
+		}
 
-		if ( hasChannels() )
-			return Collections.singletonList( matcher.group( HCSPattern.CHANNEL ) );
-
-		return Collections.singletonList( "1" );
+		return channels;
 	}
 
 	public String getWellGroup()

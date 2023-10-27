@@ -80,9 +80,14 @@ public class Plate
 	{
 		this.hcsDirectory = hcsDirectory;
 
-		final List< String > imageSitePaths;
+		// FIXME: fetch operetta paths from XML?!
+		// FIXME: fetch OME-Zarr paths entry point JSON?!
+		List< String > imageSitePaths;
 		if ( hcsDirectory.endsWith( ".zarr" ) )
 		{
+			hcsPattern = HCSPattern.OMEZarr;
+			imageDataFormat = ImageDataFormat.OmeZarr;
+
 			final int minDepth = 3;
 			final int maxDepth = 3;
 			final Path rootPath = Paths.get(hcsDirectory);
@@ -92,23 +97,27 @@ public class Plate
 					.filter( e -> e.getNameCount() - rootPathDepth >= minDepth )
 					.map( e -> e.toString() )
 					.collect( Collectors.toList() );
-			hcsPattern = HCSPattern.OMEZarr;
-			imageDataFormat = ImageDataFormat.OmeZarr;
 		}
 		else
 		{
-			imageSitePaths = Files.walk( Paths.get( hcsDirectory ), 3 ).map( p -> p.toString() ).collect( Collectors.toList() );
+			imageSitePaths = Files.walk( Paths.get( hcsDirectory ), 3 )
+					.map( p -> p.toString() )
+					.collect( Collectors.toList() );
 			hcsPattern = determineHCSPattern( hcsDirectory, imageSitePaths );
+			imageSitePaths = imageSitePaths.stream()
+					.filter( path -> hcsPattern.setMatcher( path ) ) // skip files like .DS_Store a.s.o.
+					.collect( Collectors.toList() );
 		}
 
-		hcsPattern = determineHCSPattern( hcsDirectory, imageSitePaths );
-
-		// FIXME: remove support of Operetta?!
 		if ( hcsPattern == HCSPattern.Operetta )
 		{
 			//final File xml = new File( hcsDirectory, "Index.idx.xml" );
 			final File xml = new File( hcsDirectory, "Index.xml" );
 			operettaMetadata = new OperettaMetadata( xml );
+			imageSitePaths = imageSitePaths.stream()
+					.filter( path -> operettaMetadata.contains( path ) ) // skip files like .DS_Store a.s.o.
+					.collect( Collectors.toList() );
+
 		}
 		else if ( hcsPattern == HCSPattern.OMEZarr )
 		{
@@ -136,32 +145,11 @@ public class Plate
 	{
 		channelWellSites = new HashMap<>();
 		tPositions = new HashSet<>();
-		int numValidImages = 0;
 
-		IJ.log("Files: " + paths.size() );
+		IJ.log("Parsing " + paths.size() + " HCS image paths...");
 
 		for ( String path : paths )
 		{
-			if ( ! hcsPattern.setMatcher( path ) )
-				continue;
-
-			if ( operettaMetadata != null )
-			{
-				if ( ! operettaMetadata.contains( path ) )
-				{
-					IJ.log( "[WARNING] No metadata found for " + path );
-					continue;
-				}
-			}
-
-			numValidImages++;
-
-			if ( imageDataFormat == null )
-			{
-				imageDataFormat = ImageDataFormat.fromPath( path );
-				IJ.log( "Image data format: " + imageDataFormat.toString() );
-			}
-
 			// some formats contain multiple channels in one file
 			List< String > channelIDs = hcsPattern.getChannels();
 			for ( String channelName : channelIDs )
@@ -289,7 +277,7 @@ public class Plate
 		}
 
 		IJ.log( "Initialised HCS plate: " + getName() );
-		IJ.log( "Images: " + numValidImages );
+		IJ.log( "Images: " + paths.size() );
 		IJ.log( "Channels: " + channelWellSites.keySet().size() );
 		IJ.log( "Wells: " + wellsPerPlate );
 		IJ.log( "Sites per well: " + sitesPerWell );
