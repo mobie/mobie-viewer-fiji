@@ -202,7 +202,6 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 		// TODO
 		//   The issue is that the regions should
 		//   just represent the location of the annotated images!?
-		throw new RuntimeException();
 	}
 
 	@Override

@@ -37,8 +37,8 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.lang.ArrayUtils;
-import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.annotation.Annotation;
@@ -46,50 +46,28 @@ import org.embl.mobie.lib.bdv.ImageNameOverlay;
 import org.embl.mobie.lib.bdv.view.AnnotationSliceView;
 import org.embl.mobie.lib.bdv.view.ImageSliceView;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
-import org.embl.mobie.lib.color.CategoricalAnnotationColoringModel;
-import org.embl.mobie.lib.color.ColorHelper;
-import org.embl.mobie.lib.color.ColoringModels;
-import org.embl.mobie.lib.color.MobieColoringModel;
-import org.embl.mobie.lib.color.NumericAnnotationColoringModel;
+import org.embl.mobie.lib.color.*;
 import org.embl.mobie.lib.color.lut.ColumnARGBLut;
 import org.embl.mobie.lib.color.lut.LUTs;
-import org.embl.mobie.lib.image.AnnotationImage;
 import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.image.RegionAnnotationImage;
-import org.embl.mobie.lib.image.StitchedAnnotationImage;
-import org.embl.mobie.lib.image.StitchedImage;
+import org.embl.mobie.lib.image.*;
 import org.embl.mobie.lib.plot.ScatterPlotSettings;
 import org.embl.mobie.lib.plot.ScatterPlotView;
 import org.embl.mobie.lib.select.MoBIESelectionModel;
 import org.embl.mobie.lib.serialize.DataSource;
 import org.embl.mobie.lib.serialize.View;
-import org.embl.mobie.lib.serialize.display.AbstractAnnotationDisplay;
-import org.embl.mobie.lib.serialize.display.Display;
-import org.embl.mobie.lib.serialize.display.ImageDisplay;
-import org.embl.mobie.lib.serialize.display.RegionDisplay;
-import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
-import org.embl.mobie.lib.serialize.display.SpotDisplay;
-import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
-import org.embl.mobie.lib.serialize.transformation.CropTransformation;
-import org.embl.mobie.lib.serialize.transformation.GridTransformation;
-import org.embl.mobie.lib.serialize.transformation.MergedGridTransformation;
-import org.embl.mobie.lib.serialize.transformation.TimepointsTransformation;
-import org.embl.mobie.lib.serialize.transformation.Transformation;
+import org.embl.mobie.lib.serialize.display.*;
+import org.embl.mobie.lib.serialize.transformation.*;
 import org.embl.mobie.lib.source.AnnotationType;
-import org.embl.mobie.lib.image.CroppedImage;
 import org.embl.mobie.lib.source.SourceHelper;
-import org.embl.mobie.lib.table.AnnData;
-import org.embl.mobie.lib.table.AnnotationTableModel;
-import org.embl.mobie.lib.table.ConcatenatedAnnotationTableModel;
-import org.embl.mobie.lib.table.RegionDisplayAnnDataCreator;
-import org.embl.mobie.lib.table.TableView;
-import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
-import org.embl.mobie.lib.transform.viewer.MoBIEViewerTransformAdjuster;
+import org.embl.mobie.lib.table.*;
 import org.embl.mobie.lib.transform.NormalizedAffineViewerTransform;
-import org.embl.mobie.lib.transform.viewer.ViewerTransform;
-import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
 import org.embl.mobie.lib.transform.TransformHelper;
 import org.embl.mobie.lib.transform.image.ImageTransformer;
+import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
+import org.embl.mobie.lib.transform.viewer.MoBIEViewerTransformAdjuster;
+import org.embl.mobie.lib.transform.viewer.ViewerTransform;
+import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
 import org.embl.mobie.lib.ui.UserInterface;
 import org.embl.mobie.lib.ui.WindowArrangementHelper;
 import org.embl.mobie.lib.view.save.ViewSaver;
@@ -101,12 +79,8 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ViewManager
@@ -118,7 +92,6 @@ public class ViewManager
 	private final SliceViewer sliceViewer;
 	private final SourceAndConverterService sacService;
 	private List< Display > currentDisplays;
-	private List< Transformation > currentTransformations;
 	private final UniverseManager universeManager;
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewSaver viewSaver;
@@ -128,7 +101,6 @@ public class ViewManager
 		this.moBIE = moBIE;
 		this.userInterface = userInterface;
 		currentDisplays = new ArrayList<>();
-		currentTransformations = new ArrayList<>();
 		sliceViewer = new SliceViewer( moBIE, is2D );
 		universeManager = new UniverseManager();
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
@@ -162,12 +134,13 @@ public class ViewManager
 
 	public ViewSaver getViewsSaver() { return viewSaver; }
 
-	private void addManualTransforms( List< Transformation > viewSourceTransforms, List< ? extends SourceAndConverter< ? >> sourceAndConverters )
+	private void addImageTransforms( List< Transformation > imageTransforms, List< ? extends SourceAndConverter< ? >> sourceAndConverters )
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			Source< ? > source = sourceAndConverter.getSpimSource();
 
+			// TODO: we could also refer to the Image here, not sure whether this would be better?
 			final TransformedSource< ? > transformedSource = SourceHelper.unwrapSource( source, TransformedSource.class );
 
 			if ( transformedSource != null )
@@ -178,37 +151,32 @@ public class ViewManager
 				{
 					List< String > sources = new ArrayList<>();
 					sources.add( source.getName() );
-					viewSourceTransforms.add( new AffineTransformation( "manualTransform", fixedTransform.getRowPackedCopy(), sources ) );
+					imageTransforms.add( new AffineTransformation( "manualTransform", fixedTransform.getRowPackedCopy(), sources ) );
 				}
 			}
         }
     }
 
-	public View createViewFromCurrentState( String uiSelectionGroup, boolean isExclusive, boolean includeViewerTransform )
+	public View createCurrentView( String uiSelectionGroup, boolean isExclusive, boolean includeViewerTransform )
 	{
-		List< Transformation > viewTransformations = new ArrayList<>( currentTransformations );
-
-		// Create copies of the current displays where the
-		// serializable fields are properly set
-		List< Display< ? > > viewDisplays = new ArrayList<>();
+		// Create serialisable copies of the current displays
+		List< Display< ? > > displays = new ArrayList<>();
+		List< Transformation > transformations = new ArrayList<>();
 		for ( Display< ? > display : currentDisplays )
 		{
 			if ( display instanceof ImageDisplay )
-				viewDisplays.add( new ImageDisplay( ( ImageDisplay ) display ) );
+				displays.add( new ImageDisplay( ( ImageDisplay ) display ) );
 			else if ( display instanceof SegmentationDisplay )
-				viewDisplays.add( new SegmentationDisplay( ( SegmentationDisplay ) display ) );
+				displays.add( new SegmentationDisplay( ( SegmentationDisplay ) display ) );
 			else if ( display instanceof RegionDisplay )
-				viewDisplays.add( new RegionDisplay( ( RegionDisplay ) display ) );
+				displays.add( new RegionDisplay( ( RegionDisplay ) display ) );
 			else if ( display instanceof SpotDisplay )
-				viewDisplays.add( new SpotDisplay( ( SpotDisplay) display ) );
+				displays.add( new SpotDisplay( ( SpotDisplay) display ) );
 			else
 				throw new UnsupportedOperationException( "Serialisation of a " + display.getClass().getName() + " is not yet supported." );
 
-			// Add transforms that were done by the user in BDV,
-			// using, e.g., the manual transform or BigWarp.
-			// Note that other transforms are already captured
-			// in the {@code viewTransformations} list.
-			addManualTransforms( viewTransformations, display.sourceAndConverters() );
+			// Add image transforms
+			addImageTransforms( transformations, display.sourceAndConverters() );
 		}
 
 		if ( includeViewerTransform )
@@ -216,11 +184,11 @@ public class ViewManager
 			final BdvHandle bdvHandle = sliceViewer.getBdvHandle();
 			AffineTransform3D normalisedViewTransform = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
 			final NormalizedAffineViewerTransform transform = new NormalizedAffineViewerTransform( normalisedViewTransform.getRowPackedCopy(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() );
-			return new View( "", uiSelectionGroup, viewDisplays, viewTransformations, transform, isExclusive);
+			return new View( "", uiSelectionGroup, displays, transformations, transform, isExclusive);
 		}
 		else
 		{
-			return new View( "", uiSelectionGroup, viewDisplays, viewTransformations, isExclusive );
+			return new View( "", uiSelectionGroup, displays, transformations, isExclusive );
 		}
 	}
 
@@ -357,8 +325,6 @@ public class ViewManager
 		{
 			for ( Transformation transformation : transformations )
 			{
-				currentTransformations.add( transformation );
-
 				if ( transformation instanceof AffineTransformation )
 				{
 					final AffineTransformation< ? > affineTransformation = ( AffineTransformation< ? > ) transformation;
@@ -671,7 +637,7 @@ public class ViewManager
 	private void initTableView( AbstractAnnotationDisplay< ? extends Annotation > display )
 	{
 		display.tableView = new TableView( display );
-		// TODO: Note that currently we must show the table here
+		// TODO: currently we must show the table here
 		//   in order to instantiate the window.
 		//   This window is needed in {@code UserInterfaceHelper}
 		//   in the function {@code createWindowVisibilityCheckbox},
@@ -733,37 +699,17 @@ public class ViewManager
 			imageDisplay.imageVolumeViewer.close();
 		}
 
-
 		userInterface.removeDisplaySettingsPanel( display );
 		currentDisplays.remove( display );
-
-		updateCurrentSourceTransformers();
-	}
-
-	private void updateCurrentSourceTransformers()
-	{
-		// remove any sourceTransformers, where none of its relevant sources are displayed
-
-		// create a copy of the currently shown source transformers, so we don't iterate over a list that we modify
-		final ArrayList< Transformation > imageTransformersCopy = new ArrayList<>( this.currentTransformations ) ;
-
-		Set<String> currentlyDisplayedSources = new HashSet<>();
-		for ( Display display: currentDisplays )
-			currentlyDisplayedSources.addAll( display.getSources() );
-
-		for ( Transformation imageTransformation : imageTransformersCopy )
-		{
-			if ( ! currentlyDisplayedSources.stream().anyMatch( s -> imageTransformation.getSources().contains( s ) ) )
-				currentTransformations.remove( imageTransformation );
-		}
 	}
 
 	// TODO: typing ( or remove )
 	public Collection< AbstractAnnotationDisplay< ? > > getAnnotationDisplays()
 	{
-		final List< AbstractAnnotationDisplay< ? > > collect = getCurrentSourceDisplays().stream().filter( s -> s instanceof AbstractAnnotationDisplay ).map( s -> ( AbstractAnnotationDisplay< ? > ) s ).collect( Collectors.toList() );
-
-		return collect;
+        return getCurrentSourceDisplays().stream()
+				.filter( s -> s instanceof AbstractAnnotationDisplay )
+				.map( s -> ( AbstractAnnotationDisplay< ? > ) s )
+				.collect( Collectors.toList() );
 	}
 
 	public void close()

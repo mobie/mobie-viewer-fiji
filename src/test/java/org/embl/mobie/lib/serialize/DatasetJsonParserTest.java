@@ -30,20 +30,16 @@ package org.embl.mobie.lib.serialize;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.lib.create.JSONValidator;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.json.JSONObject;
-import org.json.JSONTokener;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -91,7 +87,7 @@ class DatasetJsonParserTest {
         moBIE.getViewManager().show( views.get("Suppl. Fig. 2A: Neuron" ) );
 
         // grab the current view and save it
-        View view = moBIE.getViewManager().createViewFromCurrentState( uiSelectionGroup, isExclusive, true );
+        View view = moBIE.getViewManager().createCurrentView( uiSelectionGroup, isExclusive, true );
         dataset.views().put( viewName, view );
 
         String datasetJSONPath = new File( tempDir, datasetJsonName ).getAbsolutePath();

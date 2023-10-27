@@ -545,6 +545,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 				if ( doubleClick )
 				{
+					// TODO don't remember what?
 					int a = 1;
 				}
 

@@ -79,7 +79,7 @@ public class ViewSaver
         this.settings = moBIE.getSettings();
     }
 
-    public void saveCurrentSettingsAsViewDialog()
+    public void saveCurrentViewDialog()
     {
         final GenericDialog gd = new GenericDialog("Save current view");
 
@@ -155,7 +155,7 @@ public class ViewSaver
                 uiSelectionGroup = ProjectCreatorHelper.makeNewUiSelectionGroup(currentUiSelectionGroups);
             }
 
-            View currentView = moBIE.getViewManager().createViewFromCurrentState(uiSelectionGroup, exclusive, includeViewerTransform);
+            View currentView = moBIE.getViewManager().createCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
 
             if ( uiSelectionGroup != null && currentView != null ) {
                 if ( fileLocation == MoBIEHelper.FileLocation.Project && saveMethod == SaveMethod.saveAsNewView ) {

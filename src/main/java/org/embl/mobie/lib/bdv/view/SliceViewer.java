@@ -139,7 +139,7 @@ public class SliceViewer
 
 		sacService.registerAction( SAVE_CURRENT_SETTINGS_AS_VIEW, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
-			moBIE.getViewManager().getViewsSaver().saveCurrentSettingsAsViewDialog();
+			moBIE.getViewManager().getViewsSaver().saveCurrentViewDialog();
 		} );
 
 		final Set< String > actionsKeys = sacService.getActionsKeys();

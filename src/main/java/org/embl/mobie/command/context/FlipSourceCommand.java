@@ -35,10 +35,16 @@ import bdv.viewer.SourceAndConverter;
 import ij.gui.NonBlockingGenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.image.RegionAnnotationImage;
+import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.transform.TransformHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
+
+import java.util.Arrays;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Flip Current Source")
 public class FlipSourceCommand implements BdvPlaygroundActionCommand
@@ -51,24 +57,38 @@ public class FlipSourceCommand implements BdvPlaygroundActionCommand
 	@Parameter
 	protected SourceAndConverter< ? >[] sourceAndConverters;
 
+	@Parameter( label = "Axis", choices = {"X", "Y", "Z"} )
+	public String axis;
+
 	@Override
 	public void run()
 	{
 		SourceAndConverter< ? > currentSource = bdvh.getViewerPanel().state().getCurrentSource();
-		TransformedSource< ? > source = ( TransformedSource ) currentSource.getSpimSource();
-
-		AffineTransform3D transform = new AffineTransform3D();
-		source.getFixedTransform( transform );
+		Image< ? > image = (Image< ? >) SourceAndConverterServices.getSourceAndConverterService().getMetadata( currentSource, Image.class.getName() );
 
 		// Create a flip transformation along the X-axis
-		AffineTransform3D flipTransform = new AffineTransform3D();
-		flipTransform.identity();
-		flipTransform.set(-1, 0, 0);
+		AffineTransform3D flip = new AffineTransform3D();
+		switch ( axis )
+		{
+			case "X":
+				flip.set(-1, 0, 0);
+				break;
+			case "Y":
+				flip.set(-1, 1, 1);
+				break;
+			case "Z":
+				flip.set(-1, 2, 2);
+				break;
+		}
 
-		transform.preConcatenate( flipTransform );
-		source.setFixedTransform( transform );
+		AffineTransform3D transform = new AffineTransform3D();
+		double[] center = TransformHelper.getCenter( image, 0 );
+		transform.translate( Arrays.stream( center ).map( x -> -x ).toArray() );
+		transform.preConcatenate( flip );
+		transform.translate( center );
+
+		image.transform( transform );
 
 		bdvh.getViewerPanel().requestRepaint();
-		int a = 1;
 	}
 }
