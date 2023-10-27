@@ -150,6 +150,8 @@ public class Plate
 
 		for ( String path : paths )
 		{
+			hcsPattern.setMatcher( path );
+
 			// some formats contain multiple channels in one file
 			List< String > channelIDs = hcsPattern.getChannels();
 			for ( String channelName : channelIDs )
