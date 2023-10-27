@@ -28,34 +28,47 @@
  */
 package org.embl.mobie.command.context;
 
+import bdv.tools.transformation.TransformedSource;
+import bdv.util.BdvHandle;
+import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
 import ij.gui.NonBlockingGenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.transform.TransformHelper;
+import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Manual")
-public class ManualRegistrationCommand implements BdvPlaygroundActionCommand
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Flip Current Source")
+public class FlipSourceCommand implements BdvPlaygroundActionCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
+	@Parameter
+	protected BdvHandle bdvh;
+
+	@Parameter
+	protected SourceAndConverter< ? >[] sourceAndConverters;
 
 	@Override
 	public void run()
 	{
-		new Thread( () -> showDialog() ).start();
-	}
+		SourceAndConverter< ? > currentSource = bdvh.getViewerPanel().state().getCurrentSource();
+		TransformedSource< ? > source = ( TransformedSource ) currentSource.getSpimSource();
 
-	private void showDialog()
-	{
-		final NonBlockingGenericDialog dialog = new NonBlockingGenericDialog( "Registration - Manual" );
-		dialog.hideCancelButton();
-		dialog.addMessage( "Manual translation, rotation and scaling transformations.\n\n" +
-				"- Select the BDV window and press P and select the source to be transformed as the current source\n" +
-				"- Press T to start the manual transform mode\n" +
-				"  - While in manual transform mode the mouse and keyboard actions that normally change the view will now transform the current source\n" +
-				"  - For example, right mouse button and mouse drag will translate the source\n\n" +
-				"Press [ T ] again to fix the transformation\n" +
-				"Press [ ESC ] to abort the transformation");
-		dialog.showDialog();
+		AffineTransform3D transform = new AffineTransform3D();
+		source.getFixedTransform( transform );
+
+		// Create a flip transformation along the X-axis
+		AffineTransform3D flipTransform = new AffineTransform3D();
+		flipTransform.identity();
+		flipTransform.set(-1, 0, 0);
+
+		transform.preConcatenate( flipTransform );
+		source.setFixedTransform( transform );
+
+		bdvh.getViewerPanel().requestRepaint();
+		int a = 1;
 	}
 }

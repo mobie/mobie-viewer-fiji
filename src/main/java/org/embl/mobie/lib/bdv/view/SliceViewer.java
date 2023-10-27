@@ -30,12 +30,7 @@ package org.embl.mobie.lib.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.command.context.BigWarpRegistrationCommand;
-import org.embl.mobie.command.context.ConfigureLabelRenderingCommand;
-import org.embl.mobie.command.context.ManualRegistrationCommand;
-import org.embl.mobie.command.context.ScreenShotMakerCommand;
-import org.embl.mobie.command.context.ShowRasterImagesCommand;
-import org.embl.mobie.command.context.SourceInfoLoggerCommand;
+import org.embl.mobie.command.context.*;
 import org.embl.mobie.command.view.ViewerTransformLoggerCommand;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.SliceViewAnnotationSelector;
@@ -156,6 +151,7 @@ public class SliceViewer
 		actions.add( sacService.getCommandName( SourceInfoLoggerCommand.class ) );
 		actions.add( sacService.getCommandName( BigWarpRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( ManualRegistrationCommand.class ) );
+		actions.add( sacService.getCommandName( FlipSourceCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );
 		actions.add( LOAD_ADDITIONAL_VIEWS );
 		actions.add( SAVE_CURRENT_SETTINGS_AS_VIEW );
