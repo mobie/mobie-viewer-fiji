@@ -41,12 +41,14 @@ import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.hcs.SiteSpimDataCreator;
 import org.embl.mobie.lib.source.SourceHelper;
 
 import javax.annotation.Nullable;
+import java.io.File;
 
 public class SpimDataImage< T extends NumericType< T > & RealType< T > > implements Image< T >
 {
@@ -190,7 +192,19 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 
 			AbstractSpimData< ? > cachedSpimData = DataStore.getSpimData( path );
 			if ( cachedSpimData != null )
+			{
+				System.out.println( "Using cache for " + path );
 				return cachedSpimData;
+			}
+			else
+			{
+				System.out.println( "Opening " + path + ", " + imageDataFormat );
+			}
+
+			if ( ! IOHelper.exists( path ) ) // FIXME: Remove this!
+			{
+				throw new RuntimeException("File does not exist: " + path );
+			}
 
 			AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, imageDataFormat, sharedQueue );
 			DataStore.putSpimData( path, spimData );

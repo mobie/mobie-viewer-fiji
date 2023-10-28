@@ -52,7 +52,6 @@ import org.embl.mobie.lib.image.CachedCellImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.SpimDataImage;
 import org.embl.mobie.lib.io.DataFormats;
-import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.lib.serialize.DataSource;
@@ -365,14 +364,14 @@ public class MoBIE
 
 	private void setProjectImageAndTableRootLocations( )
 	{
-		projectRoot = IOHelper.createPath( projectLocation, settings.values.getProjectBranch() );
+		projectRoot = MoBIEHelper.createPath( projectLocation, settings.values.getProjectBranch() );
 
 		if( ! org.embl.mobie.io.util.IOHelper.exists( combinePath( projectRoot, "project.json" ) ) )
 		{
 			projectRoot = combinePath( projectRoot, "data" );
 		}
 
-		imageRoot = IOHelper.createPath(
+		imageRoot = MoBIEHelper.createPath(
 				settings.values.getImageDataLocation() != null ? settings.values.getImageDataLocation() : projectLocation,
 				settings.values.getImageDataBranch() );
 
@@ -381,7 +380,7 @@ public class MoBIE
 			imageRoot = combinePath( imageRoot, "data" );
 		}
 
-		tableRoot = IOHelper.createPath(
+		tableRoot = MoBIEHelper.createPath(
 				settings.values.getTableDataLocation() != null ? settings.values.getTableDataLocation() : projectLocation,
 				settings.values.getTableDataBranch() );
 

@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.files;
 
+import ij.IJ;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
@@ -84,24 +85,25 @@ public class FileSourcesDataSetter
 				dataset.is2D( false );
 			}
 
-			for ( String name : sources.getSources() )
+			List< String > imageNames = sources.getSources();
+			ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( sources.getPath( imageNames.get( 0 ) ) );
+			IJ.log("Format/opener for " + sources.name + ": " + imageDataFormat );
+			for ( String imageName : imageNames )
 			{
-				final String path = sources.getPath( name );
-				ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
-
+				final String path = sources.getPath( imageName );
 				final StorageLocation storageLocation = new StorageLocation();
 				storageLocation.absolutePath = path;
 				storageLocation.setChannel( sources.getChannelIndex() );
 				if ( sources instanceof LabelFileSources )
 				{
-					final TableSource tableSource = ( ( LabelFileSources ) sources ).getLabelTable( name );
-					SegmentationDataSource segmentationDataSource = SegmentationDataSource.create( name, imageDataFormat, storageLocation, tableSource );
+					final TableSource tableSource = ( ( LabelFileSources ) sources ).getLabelTable( imageName );
+					SegmentationDataSource segmentationDataSource = SegmentationDataSource.create( imageName, imageDataFormat, storageLocation, tableSource );
 					segmentationDataSource.preInit( false );
 					dataset.addDataSource( segmentationDataSource );
 				}
 				else
 				{
-					final ImageDataSource imageDataSource = new ImageDataSource( name, imageDataFormat, storageLocation );
+					final ImageDataSource imageDataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
 					imageDataSource.preInit( false );
 					dataset.addDataSource( imageDataSource );
 				}
@@ -204,6 +206,7 @@ public class FileSourcesDataSetter
 				{
 					// ImageDisplay
 					final Metadata metadata = sources.getMetadata();
+					// TODO: one could set only the first one to be visible, would need a change of the constructor
 					displays.add( new ImageDisplay<>( sources.getName(), sourceNames, metadata.color, metadata.contrastLimits ) );
 				}
 

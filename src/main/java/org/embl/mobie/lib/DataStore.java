@@ -58,7 +58,7 @@ public abstract class DataStore
 		pathToSpimData.put( path, spimData );
 	}
 
-	public static AbstractSpimData< ? > getSpimData( String path )
+	public static synchronized AbstractSpimData< ? > getSpimData( String path )
 	{
 		return pathToSpimData.get( path );
 	}
