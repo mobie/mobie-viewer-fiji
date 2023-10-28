@@ -53,7 +53,6 @@ import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.*;
 import org.embl.mobie.lib.plot.ScatterPlotSettings;
 import org.embl.mobie.lib.plot.ScatterPlotView;
-import org.embl.mobie.lib.select.MoBIESelectionModel;
 import org.embl.mobie.lib.serialize.DataSource;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.*;
@@ -339,7 +338,6 @@ public class ViewManager
 										affineTransformation.getAffineTransform3D(),
 										affineTransformation.getTransformedImageName( image.getName() ) );
 						DataStore.putImage( transformedImage );
-
 					}
 				}
 				else if ( transformation instanceof CropTransformation )
@@ -457,24 +455,27 @@ public class ViewManager
 			}
 		}
 
-		// instantiate {@code RegionDisplay}
-		// note that this cannot be done already in MoBIE.initData()
+		// Instantiate {@code RegionDisplay}s
+		// This cannot be done already in MoBIE.initData()
 		// because we need to wait until all images are initialised
 		for ( Display< ? > display : view.displays() )
 		{
-			// https://github.com/mobie/mobie-viewer-fiji/issues/818
 			if ( display instanceof RegionDisplay )
 			{
-				// Note that the imageNames that are referred
-				// to here must exist in this view.
-				// Thus the {@code RegionDisplay} must be build
+				// Build the image that visualises this RegionDisplay
+				// The logic here is not ideal:
+				// https://github.com/mobie/mobie-viewer-fiji/issues/818
+				// ...as normally a display should visualise an existing image
+				// here however the display creates the image
+				// The imageNames that are referred to here must exist in this view.
+				// Thus the {@code RegionAnnotationImage} must be build
 				// *after* the above transformations,
 				// which may create new images
 				// that could be referred to here.
-				final RegionDisplay< ? > regionDisplay = ( RegionDisplay< ? > ) display;
-				final RegionDisplayAnnDataCreator annDataCreator = new RegionDisplayAnnDataCreator( moBIE, regionDisplay );
-				AnnData< AnnotatedRegion > annData = annDataCreator.getAnnData();
-				final RegionAnnotationImage< AnnotatedRegion > regionAnnotationImage = new RegionAnnotationImage( regionDisplay.getName(), annData, regionDisplay.timepoints() );
+				final RegionAnnotationImage< AnnotatedRegion > regionAnnotationImage = new RegionAnnotationImage( ( RegionDisplay< ? > ) display, new RegionDisplayAnnDataCreator( moBIE, ( RegionDisplay< ? > ) display ).createAnnData() );
+				// The region image has the same name as the display,
+				// thus it can be identified later to be the image that
+				// will be shown by this display (via {@code regionDisplay.getSources()})
 				DataStore.putImage( regionAnnotationImage );
 			}
 		}
@@ -500,14 +501,15 @@ public class ViewManager
 		{
 			final AbstractAnnotationDisplay< A > annotationDisplay = ( AbstractAnnotationDisplay ) display;
 
-			// create combined AnnData from all images
-			// that are shown
+			// create combined AnnData (table)
+			// from all sources that are shown
 			for ( String name : display.getSources() )
 			{
+				// all sources are modelled as images
 				final Image< ? > image = DataStore.getImage( name );
 				annotationDisplay.images().add( ( Image< AnnotationType< A > > ) image );
 			}
-			annotationDisplay.initAnnData();
+			annotationDisplay.combineAnnData();
 
 			// load additional tables (to be merged)
 			final List< String > requestedTableChunks = annotationDisplay.getRequestedTableChunks();
@@ -517,10 +519,6 @@ public class ViewManager
 					final AnnotationTableModel< A > tableModel = annotationDisplay.getAnnData().getTable();
 					tableModel.loadTableChunk( tableChunk );
 				}
-
-			// configure selection model
-			//
-			annotationDisplay.selectionModel = new MoBIESelectionModel<>();
 
 			// set selected segments
 			//

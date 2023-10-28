@@ -32,6 +32,8 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerPanel;
+import net.imglib2.realtransform.AffineGet;
+import net.imglib2.realtransform.AffineTransform2D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
@@ -42,6 +44,7 @@ import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
 import net.imglib2.util.Intervals;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -283,6 +286,9 @@ public class TransformHelper
 	//   see "if ( relativeDilation > 0 )"
 	public static RealMaskRealInterval union( Collection< ? extends Masked > maskedCollection )
 	{
+		if ( maskedCollection.isEmpty() )
+			throw new RuntimeException("Cannot create union of empty list of masks.");
+
 		RealMaskRealInterval union = null;
 
 		for ( Masked masked : maskedCollection )
@@ -307,6 +313,9 @@ public class TransformHelper
 
 	public static RealMaskRealInterval unionBox( Collection< ? extends Masked > maskedCollection )
 	{
+		if ( maskedCollection.isEmpty() )
+			throw new RuntimeException("Cannot create union of empty list of masks.");
+
 		RealInterval union = null;
 
 		for ( Masked masked : maskedCollection )
@@ -347,5 +356,34 @@ public class TransformHelper
 	public static String maskToString( RealMaskRealInterval mask )
 	{
 		return Arrays.toString( mask.minAsDoubleArray() ) + " - " + Arrays.toString( mask.maxAsDoubleArray() );
+	}
+
+	@NotNull
+	public static AffineGet getEnlargementTransform( RealMaskRealInterval realMaskRealInterval, double scale )
+	{
+		int numDimensions = realMaskRealInterval.numDimensions();
+
+		if ( numDimensions == 2 )
+		{
+			AffineTransform2D transform2D = new AffineTransform2D();
+			double[] center = getCenter( realMaskRealInterval );
+			transform2D.translate( Arrays.stream( center ).map( x -> -x ).toArray() );
+			transform2D.scale( 1.0 / scale );
+			transform2D.translate( center );
+			return transform2D;
+		}
+		else if ( numDimensions == 3 )
+		{
+			AffineTransform3D transform3D = new AffineTransform3D();
+			double[] center = getCenter( realMaskRealInterval );
+			transform3D.translate( Arrays.stream( center ).map( x -> -x ).toArray() );
+			transform3D.scale( 1.0 / scale );
+			transform3D.translate( center );
+			return transform3D;
+		}
+		else
+		{
+			throw new RuntimeException( "Unsupported number of dimensions " + numDimensions + ".");
+		}
 	}
 }

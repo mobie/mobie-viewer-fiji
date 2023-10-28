@@ -105,8 +105,9 @@ public class FileSourcesDataSetter
 			}
 		}
 
-		// TODO don't create a grid view if there is only one image and label mask
-		final ImageFileSources firstImageFileSources = allSources.get( 0 );
+		// FIXME don't create a grid view nor regionDisplay
+		//  if there is only one image and label mask
+		RegionDisplay< AnnotatedRegion > regionDisplay = null;
 
 		for ( ImageFileSources sources : allSources )
 		{
@@ -116,11 +117,12 @@ public class FileSourcesDataSetter
 			//   for any source other than the first one while
 			//   creating the ImageSources
 			List< String > sourceNames = sources.getSources();
+			final int numRegions = sourceNames.size();
 
-			if ( sources.equals( firstImageFileSources ) )
+			if ( regionDisplay == null )
 			{
-				// create a RegionDisplay
-				// for all the sources
+				// init RegionDisplay
+				regionDisplay = new RegionDisplay<>( "image table" );
 
 				// init table
 				final StorageLocation storageLocation = new StorageLocation();
@@ -130,7 +132,6 @@ public class FileSourcesDataSetter
 				DataStore.putRawData( regionDataSource );
 
 				// init display
-				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( "image table" );
 				regionDisplay.sources = new LinkedHashMap<>();
 				regionDisplay.tableSource = regionDataSource.getName();
 				regionDisplay.showAsBoundaries( true );
@@ -145,13 +146,21 @@ public class FileSourcesDataSetter
 				for ( int t = 0; t < numTimePoints; t++ )
 					regionDisplay.timepoints().add( t );
 
-				final int numRegions = sourceNames.size();
 				for ( int regionIndex = 0; regionIndex < numRegions; regionIndex++ )
 				{
-					regionDisplay.sources.put( sourceNames.get( regionIndex ), Collections.singletonList( sourceNames.get( regionIndex ) ) );
+					String regionName = sources.nameToPath.get( sourceNames.get( regionIndex ) );
+					regionDisplay.sources.put( regionName, new ArrayList<>() );
 				}
 
 				displays.add( regionDisplay );
+			}
+
+			// add the images of this source to the respective region
+			for ( int regionIndex = 0; regionIndex < numRegions; regionIndex++ )
+			{
+				String regionName = sources.nameToPath.get( sourceNames.get( regionIndex ) );
+				regionDisplay.sources.get( regionName ).add( sourceNames.get( regionIndex ) );
+				System.out.println("Region: " +  regionName + "; source: " + sourceNames.get( regionIndex ) );
 			}
 
 			// create grid transformations

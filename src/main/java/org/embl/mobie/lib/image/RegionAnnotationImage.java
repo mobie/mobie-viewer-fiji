@@ -37,10 +37,12 @@ import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
+import org.embl.mobie.lib.select.SelectionModel;
+import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.lib.table.AnnData;
-import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegion;
+import org.embl.mobie.lib.table.saw.TableSawAnnotatedImages;
 import org.embl.mobie.lib.transform.TransformHelper;
 
 import java.util.ArrayList;
@@ -65,27 +67,29 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	private List< AR > annotations;
 
 	/**
-	 * Builds an image that annotates all {@code AnnotatedRegion} in the
-	 * provided {@code AnnData}.
+	 * Builds a label image to visualise all {@code AnnotatedRegion} in the
+	 *  {@code AnnData} of a {@code RegionDisplay}.
 	 *
-	 * Note that currently the timepoints of the regions in annData are ignored.
+	 * Currently, the timepoints of the regions in annData are ignored.
 	 * This could be changed (there are some comments in the code of this class
 	 * for where and which changes would be needed). Instead, all the provided
 	 * {@code timepoints} are annotated with all {@code AnnotatedRegion}.
-	 * See https://github.com/mobie/mobie-viewer-fiji/issues/975
+	 * TODO https://github.com/mobie/mobie-viewer-fiji/issues/975
 	 *
-	 * @param name
-	 * 				name of this image
+	 * @param regionDisplay
+	 * 				the regionDisplay that "encodes" this image, TODO https://github.com/mobie/mobie-viewer-fiji/issues/818
 	 * @param annData
 	 * 				annData containing the regions that shall be annotated
-	 * @param timepoints
-	 * 				the timepoints that this image annotates
 	 */
-	public RegionAnnotationImage( String name, AnnData< AR > annData, Set< Integer > timepoints )
+	public RegionAnnotationImage( RegionDisplay< ? > regionDisplay, AnnData< AR > annData )
 	{
-		this.name = name;
+		this.name = regionDisplay.getName();
 		this.annData = annData;
-		this.timepoints = timepoints;
+		this.timepoints = regionDisplay.timepoints();
+
+		// FIXME Also attach the selectionModel to the RegionAnnotationImage
+		//   and use it in the transform step?!
+		SelectionModel< ? > selectionModel = regionDisplay.selectionModel;
 
 		if( debug ) logRegions();
 	}
@@ -95,9 +99,9 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 		final ArrayList< AR > annotations = annData.getTable().annotations();
 		for ( AR annotatedRegion : annotations )
 		{
-			final TableSawAnnotatedRegion tableSawAnnotatedRegion = ( TableSawAnnotatedRegion ) annotatedRegion;
-			System.out.println( "RegionLabelImage " + name + ": " + annotatedRegion.regionId() + " images = " + Arrays.toString( tableSawAnnotatedRegion.getRegionImageNames().toArray( new String[ 0 ] ) ) + "\n" + TransformHelper.maskToString( annotatedRegion.getMask() ) );
-			final List< String > regionImageNames = tableSawAnnotatedRegion.getRegionImageNames();
+			final TableSawAnnotatedImages tableSawAnnotatedImages = ( TableSawAnnotatedImages ) annotatedRegion;
+			System.out.println( "RegionLabelImage " + name + ": " + annotatedRegion.regionId() + " images = " + Arrays.toString( tableSawAnnotatedImages.getRegionImageNames().toArray( new String[ 0 ] ) ) + "\n" + TransformHelper.maskToString( annotatedRegion.getMask() ) );
+			final List< String > regionImageNames = tableSawAnnotatedImages.getRegionImageNames();
 			for ( String regionImageName : regionImageNames )
 			{
 				final Image< ? > viewImage = DataStore.getImage( regionImageName );

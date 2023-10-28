@@ -44,6 +44,7 @@ import org.embl.mobie.lib.color.OpacityHelper;
 import org.embl.mobie.lib.color.lut.LUTs;
 import org.embl.mobie.lib.image.AnnotationImage;
 import org.embl.mobie.lib.plot.ScatterPlotView;
+import org.embl.mobie.lib.select.MoBIESelectionModel;
 import org.embl.mobie.lib.select.SelectionModel;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.BoundarySource;
@@ -85,7 +86,7 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 	protected double opacityNotSelected = 0.15;
 
 	// Runtime
-	public transient SelectionModel< A > selectionModel;
+	public final transient SelectionModel< A > selectionModel = new MoBIESelectionModel<>();
 	public transient MobieColoringModel< A > coloringModel;
 	public transient AnnotationAdapter< A > annotationAdapter;
 	public transient TableView< A > tableView;
@@ -277,12 +278,11 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 		return annData;
 	}
 
-	// fetch annData from the annotated images
-	// the main use is to concatenate the tables
-	// in case this display shows several images
-	public void initAnnData()
+	public void combineAnnData()
 	{
-		final List< AnnotationImage< A > > annotationImages = images().stream().map( image -> ( AnnotationImage< A > ) image ).collect( Collectors.toList() );
+		final List< AnnotationImage< A > > annotationImages = images().stream()
+				.map( image -> ( AnnotationImage< A > ) image )
+				.collect( Collectors.toList() );
 
 		annData = AnnDataHelper.concatenate( annotationImages );
 
