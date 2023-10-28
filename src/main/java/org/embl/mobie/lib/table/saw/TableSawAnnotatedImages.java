@@ -156,18 +156,6 @@ public class TableSawAnnotatedImages extends AbstractTableSawAnnotation implemen
 				double scale = 1 + relativeDilation;
 				AffineGet transform = TransformHelper.getEnlargementTransform( unionMask, scale );
 				mask = unionMask.transform( transform );
-////				OLD CODE
-//				final double[] min = unionMask.minAsDoubleArray();
-//				final double[] max = unionMask.maxAsDoubleArray();
-//
-//				for ( int d = 0; d < min.length; d++ )
-//				{
-//					final double size = max[ d ] - min[ d ];
-//					min[ d ] -= size * relativeDilation;
-//					max[ d ] += size * relativeDilation;
-//				}
-//
-//				mask = GeomMasks.closedBox( min, max );
 			}
 			else
 			{

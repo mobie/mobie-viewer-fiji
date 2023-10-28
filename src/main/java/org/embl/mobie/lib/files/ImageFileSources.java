@@ -85,7 +85,12 @@ public class ImageFileSources
 		this.metadataSource = nameToFullPath.keySet().iterator().next();
 		this.metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ), channelIndex );
 
-		createRegionTable();
+		// FIXME: move this out to a separate function
+		regionTable = Table.create( this.name );
+		final List< String > regions = new ArrayList<>( nameToFullPath.keySet() );
+		regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) );
+		final List< String > paths1 = new ArrayList<>( nameToFullPath.values() );
+		regionTable.addColumns( StringColumn.create( "source_path", paths1 ) );
 	}
 
 	public ImageFileSources( String name, Table table, String imageColumn, Integer channelIndex, String root, GridType gridType )
@@ -97,15 +102,13 @@ public class ImageFileSources
 		nameToPath = new LinkedHashMap<>(); // needed for joining the tables below when creating the region table
 
 		int numRows = table.rowCount();
-		if ( table.columnNames().contains( "FileName_" + imageColumn + "_IMG" )  )
+		if ( imageColumn.contains( "_IMG" )  )
 		{
 			// Automic table
-			String autoMicTableColumnName = "FileName_" + imageColumn + "_IMG";
-
 			for ( int rowIndex = 0; rowIndex < numRows; rowIndex++ )
 			{
-				String fileName = table.getString( rowIndex, autoMicTableColumnName );
-				String relativeFolderName = table.getString( rowIndex, "PathName_" + imageColumn + "_IMG" );
+				String fileName = table.getString( rowIndex, imageColumn );
+				String relativeFolderName = table.getString( rowIndex, imageColumn.replace( "FileName_", "PathName_"  ) );
 				String path = MoBIEHelper.createAbsolutePath( root, fileName, relativeFolderName );
 				String imageName = createImageName( channelIndex, fileName );
 				nameToFullPath.put( imageName, path );
@@ -119,8 +122,6 @@ public class ImageFileSources
 					nameToAffineTransform.put( imageName, affineTransform3D );
 				}
 			}
-
-			imageColumn = autoMicTableColumnName; // needed for joining the tables further down
 		}
 		else
 		{
@@ -138,43 +139,6 @@ public class ImageFileSources
 		metadataSource = nameToFullPath.keySet().iterator().next();
 		metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ), channelIndex );
 		dealWithTimepointsInObjectTableIfNeeded( name, table, imageColumn );
-
-		// Create region table
-		//
-		createRegionTable();
-
-		// add column for joining on
-		regionTable.addColumns( StringColumn.create( imageColumn, new ArrayList<>( nameToPath.values() )  ) );
-
-		// add table columns to region table
-		// FIXME it is ugly that there are summary statistics even if there is only one entry per region
-		//    Maybe check whether the number of rows is the same and then do not summarise?!
-		boolean needsSummary = table.rowCount() != regionTable.rowCount();
-		if ( needsSummary )
-		{
-			final List< Column< ? > > columns = table.columns();
-			for ( final Column< ? > column : columns )
-			{
-				if ( column instanceof NumberColumn )
-				{
-					final Table summary = table.summarize( column, mean ).by( imageColumn );
-					regionTable = regionTable.joinOn( imageColumn ).leftOuter( summary );
-				}
-				else if ( column instanceof StringColumn )
-				{
-					final Table summary = table.summarize( column, Aggregators.firstString ).by( imageColumn );
-					regionTable = regionTable.joinOn( imageColumn ).leftOuter( summary );
-				}
-				else
-				{
-					throw new RuntimeException( "Unsupported column type " + column.getClass() );
-				}
-			}
-		}
-		else
-		{
-			regionTable = regionTable.joinOn( imageColumn ).leftOuter( table );
-		}
 	}
 
 	protected static List< String > getFullPaths( String regex, String root )
@@ -217,15 +181,6 @@ public class ImageFileSources
 		}
 
 		return imageName;
-	}
-
-	private void createRegionTable()
-	{
-		regionTable = Table.create( name );
-		final List< String > regions = new ArrayList<>( nameToFullPath.keySet() );
-		regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) );
-		final List< String > paths = new ArrayList<>( nameToFullPath.values() );
-		regionTable.addColumns( StringColumn.create( "source_path", paths ) );
 	}
 
 	public GridType getGridType()

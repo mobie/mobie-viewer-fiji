@@ -61,7 +61,7 @@ import org.embl.mobie.lib.serialize.DatasetJsonParser;
 import org.embl.mobie.lib.serialize.ImageDataSource;
 import org.embl.mobie.lib.serialize.Project;
 import org.embl.mobie.lib.serialize.ProjectJsonParser;
-import org.embl.mobie.lib.serialize.RegionDataSource;
+import org.embl.mobie.lib.serialize.RegionTableSource;
 import org.embl.mobie.lib.serialize.SegmentationDataSource;
 import org.embl.mobie.lib.serialize.SpotDataSource;
 import org.embl.mobie.lib.serialize.View;
@@ -171,7 +171,8 @@ public class MoBIE
 		final List< ImageFileSources > imageFileSources = sourcesCreator.getImageSources();
 		final List< LabelFileSources > labelSources = sourcesCreator.getLabelSources();
 
-		openImagesAndLabels( imageFileSources, labelSources );
+		// FIXME: create the region table (similar as in the constructor below)
+		openImagesAndLabels( imageFileSources, labelSources, null );
 	}
 
 	// open an image or object table
@@ -186,8 +187,9 @@ public class MoBIE
 
 		final List< ImageFileSources > imageSources = sourcesCreator.getImageSources();
 		final List< LabelFileSources > labelSources = sourcesCreator.getLabelSources();
+		Table regionTable = sourcesCreator.getRegionTable();
 
-		openImagesAndLabels( imageSources, labelSources );
+		openImagesAndLabels( imageSources, labelSources, regionTable );
 	}
 
 	private void initTableSaw()
@@ -210,15 +212,15 @@ public class MoBIE
 	}
 
 	// TODO 2D or 3D?
-	private void openImagesAndLabels( List< ImageFileSources > images, List< LabelFileSources > labels )
+	private void openImagesAndLabels( List< ImageFileSources > images, List< LabelFileSources > labels, Table regionTable )
 	{
 		initImageJAndMoBIE();
 
 		initProject( "" );
 
-		new FileSourcesDataSetter( images, labels ).addData( dataset );
+		new FileSourcesDataSetter( images, labels, regionTable ).addDataAndDisplaysAndViews( dataset );
 
-		initUIandShowView( dataset.views().keySet().iterator().next() );
+		initUIandShowView( null ); //dataset.views().keySet().iterator().next() );
 	}
 
 	public MoBIE( String projectName, AbstractSpimData< ? > image, @Nullable AbstractSpimData< ? > labels, @Nullable StorageLocation tableStorageLocation, @Nullable TableDataFormat tableDataFormat )
@@ -713,18 +715,18 @@ public class MoBIE
 			DataStore.putImage( spotImageCreator.create() );
 		}
 
-		if ( dataSource instanceof RegionDataSource )
+		if ( dataSource instanceof RegionTableSource )
 		{
 			// Region images cannot be fully initialised
 			// here because the region annotations can refer
 			// to images that are created later by means of a
 			// transformation.
 			// However, we can already load the region table here.
-			final RegionDataSource regionDataSource = ( RegionDataSource ) dataSource;
-			final StorageLocation tableLocation = getTableLocation( regionDataSource.tableData );
-			final TableDataFormat tableFormat = getTableDataFormat( regionDataSource.tableData );
-			regionDataSource.table = TableOpener.open( tableLocation, tableFormat );
-			DataStore.putRawData( regionDataSource );
+			final RegionTableSource regionTableSource = ( RegionTableSource ) dataSource;
+			final StorageLocation tableLocation = getTableLocation( regionTableSource.tableData );
+			final TableDataFormat tableFormat = getTableDataFormat( regionTableSource.tableData );
+			regionTableSource.table = TableOpener.open( tableLocation, tableFormat );
+			DataStore.putRawData( regionTableSource );
 		}
 
 		if ( log != null )

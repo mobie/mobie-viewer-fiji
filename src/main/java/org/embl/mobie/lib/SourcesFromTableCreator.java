@@ -32,59 +32,123 @@ import ij.IJ;
 import org.embl.mobie.lib.files.ImageFileSources;
 import org.embl.mobie.lib.files.LabelFileSources;
 import org.embl.mobie.lib.io.TableImageSource;
+import org.embl.mobie.lib.table.ColumnNames;
+import org.embl.mobie.lib.table.saw.Aggregators;
 import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.transform.GridType;
+import tech.tablesaw.api.NumberColumn;
+import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
+import tech.tablesaw.columns.Column;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static tech.tablesaw.aggregate.AggregateFunctions.mean;
 
 public class SourcesFromTableCreator
 {
 	private final List< ImageFileSources > imageFileSources;
 	private final List< LabelFileSources > labelSources;
+	private Table regionTable;
 
 	public SourcesFromTableCreator( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, GridType gridType )
 	{
 		final Table table = TableOpener.openDelimitedTextFile( tablePath );
 
+		// images
+		//
 		imageFileSources = new ArrayList<>();
 
-		for ( String image : imageColumns )
+		for ( String imageColumn : imageColumns )
 		{
-			if ( table.columnNames().contains( "FileName_" + image + "_IMG" ) )
+			if ( imageColumn.contains( "_IMG" ) )
 			{
-				// This is an AutoMicTools table, where the image path is distributed into the two columns (file name and folder)
+				IJ.log( "Detected AutoMicTools table" );
 				gridType = GridType.Transformed; // To accommodate rotations
-				String fileName = table.getString( 0, "FileName_" + image + "_IMG" );
-				String relativeFolder = table.getString( 0, "PathName_" + image + "_IMG" );
+				// the image path is distributed into two columns: file name and folder
+				String fileName = table.getString( 0, imageColumn);
+				String relativeFolder = table.getString( 0, imageColumn.replace(  "FileName_", "PathName_" ) );
 				String referenceImagePath = MoBIEHelper.createAbsolutePath( root, fileName, relativeFolder );
-				IJ.log("Detected AutoMicTools table");
-				IJ.log("Determining number of channels of " + image + ", using " + referenceImagePath +  "...");
+				IJ.log( "Determining number of channels of " + imageColumn + ", using " + referenceImagePath + "..." );
 				int numChannels = MoBIEHelper.getMetadataFromImageFile( referenceImagePath, 0 ).numChannelsContainer;
-				IJ.log("Number of channels is " + numChannels);
+				IJ.log( "Number of channels is " + numChannels );
 				for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
 				{
-					imageFileSources.add( new ImageFileSources( image + "_C" + channelIndex, table, image, channelIndex, root, gridType ) );
+					imageFileSources.add( new ImageFileSources( imageColumn + "_C" + channelIndex, table, imageColumn, channelIndex, root, gridType ) );
 				}
 			}
 			else
 			{
 				// Default table
-				final TableImageSource tableImageSource = new TableImageSource( image );
+				final TableImageSource tableImageSource = new TableImageSource( imageColumn );
 				imageFileSources.add( new ImageFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType ) );
 			}
 		}
 
+		// segmentations
+		//
 		labelSources = new ArrayList<>();
-		if ( labelColumns.isEmpty() )
-			return;
-
-		final String firstLabel = labelColumns.get( 0 );
-		for ( String label : labelColumns )
+		if ( ! labelColumns.isEmpty() )
 		{
-			final TableImageSource tableImageSource = new TableImageSource( label );
-			labelSources.add( new LabelFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType, label.equals( firstLabel ) ) );
+			final String firstLabel = labelColumns.get( 0 );
+			for ( String label : labelColumns )
+			{
+				final TableImageSource tableImageSource = new TableImageSource( label );
+				labelSources.add( new LabelFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType, label.equals( firstLabel ) ) );
+			}
+		}
+
+		// region table for grid view
+		//
+		int numSources = imageFileSources.get( 0 ).getSources().size();
+
+		if ( numSources == 1 )
+		{
+			// no region table and grid view needed
+		}
+		else if ( table.rowCount() == numSources )
+		{
+			// the input table was an image table already
+			String imageColumn = imageColumns.get( 0 );
+			final List< String > regions = table.stringColumn( imageColumn ).asList();
+			regionTable = table.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) );
+		}
+		else
+		{
+			// the input table was an object table
+			// thus we need to summarize it into an image table
+
+			regionTable = Table.create( "image table" );
+
+			// init columns
+			String imageColumn = imageColumns.get( 0 );
+			final List< String > regions = table.stringColumn( imageColumn ).asList();
+			// needed for each region table
+			regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) );
+			// needed for joining the initial table on
+			regionTable.addColumns( StringColumn.create( imageColumn, regions ) );
+
+			//final List< String > paths = new ArrayList<>( nameToFullPath.values() );
+			//regionTable.addColumns( StringColumn.create( "source_path", paths ) );
+			final List< Column< ? > > columns = table.columns();
+			for ( final Column< ? > column : columns )
+			{
+				if ( column instanceof NumberColumn )
+				{
+					final Table summary = table.summarize( column, mean ).by( imageColumn );
+					regionTable = regionTable.joinOn( imageColumn ).leftOuter( summary );
+				}
+				else if ( column instanceof StringColumn )
+				{
+					final Table summary = table.summarize( column, Aggregators.firstString ).by( imageColumn );
+					regionTable = regionTable.joinOn( imageColumn ).leftOuter( summary );
+				}
+				else
+				{
+					throw new RuntimeException( "Unsupported column type " + column.getClass() );
+				}
+			}
 		}
 	}
 
@@ -97,4 +161,10 @@ public class SourcesFromTableCreator
 	{
 		return labelSources;
 	}
+
+	public Table getRegionTable()
+	{
+		return regionTable;
+	}
+
 }

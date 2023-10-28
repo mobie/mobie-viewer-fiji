@@ -43,8 +43,8 @@ public class DataSourceMapAdapter implements JsonSerializer< Map< String, DataSo
 		classToName.put( ImageDataSource.class.getName(), "image");
 		nameToClass.put("segmentation", SegmentationDataSource.class);
 		classToName.put( SegmentationDataSource.class.getName(), "segmentation");
-		nameToClass.put("regions", RegionDataSource.class);
-		classToName.put( RegionDataSource.class.getName(), "regions");
+		nameToClass.put("regions", RegionTableSource.class);
+		classToName.put( RegionTableSource.class.getName(), "regions");
 		nameToClass.put("spots", SpotDataSource.class);
 		classToName.put( SpotDataSource.class.getName(), "spots");
 	}
