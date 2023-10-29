@@ -119,7 +119,6 @@ public class TableOpener
 		}
 		catch ( Exception e )
 		{
-			e.printStackTrace();
 			throw new RuntimeException( e );
 		}
 	}
@@ -197,7 +196,6 @@ public class TableOpener
 		}
 		catch ( IOException e )
 		{
-			e.printStackTrace();
 			throw new RuntimeException( e );
 		}
 

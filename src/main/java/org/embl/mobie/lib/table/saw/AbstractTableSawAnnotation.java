@@ -56,7 +56,6 @@ public abstract class AbstractTableSawAnnotation implements Annotation
 		}
 		catch ( Exception e )
 		{
-			e.printStackTrace();
 			throw new RuntimeException( e );
 		}
 	}

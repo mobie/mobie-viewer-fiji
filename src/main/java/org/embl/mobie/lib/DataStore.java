@@ -123,8 +123,6 @@ public abstract class DataStore
 
 	public static void clearSpimData( )
 	{
-		spimDataCache.clear();
-		spimDataCache = null;
 		spimDataCache = new ConcurrentHashMap<>();
 	}
 

@@ -162,7 +162,6 @@ public abstract class MoBIEHelper
 		}
 		catch ( Exception e )
 		{
-			e.printStackTrace();
 			throw new RuntimeException("Could not open " + path );
 		}
 	}
@@ -207,7 +206,6 @@ public abstract class MoBIEHelper
 			}
 			catch ( SpimDataException e )
 			{
-				e.printStackTrace();
 				throw new RuntimeException( e );
 			}
 		}
@@ -272,9 +270,9 @@ public abstract class MoBIEHelper
 			final SpimSource< ? > spimSource = new SpimSource( spimData, setupID, "" );
 			final ImagePlus imagePlus = new SourceToImagePlusConverter<>( spimSource ).getImagePlus( 0 );
 			return imagePlus;
-		} catch ( SpimDataException e )
+		}
+		catch ( SpimDataException e )
 		{
-			e.printStackTrace();
 			throw new RuntimeException( e );
 		}
 	}

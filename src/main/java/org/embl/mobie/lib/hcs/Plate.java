@@ -133,7 +133,6 @@ public class Plate
 			}
 			catch ( SpimDataException e )
 			{
-				e.printStackTrace();
 				throw new RuntimeException( e );
 			}
 		}
