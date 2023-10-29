@@ -28,17 +28,26 @@
  */
 package org.embl.mobie.lib;
 
+import bdv.cache.SharedQueue;
+import ch.epfl.biop.bdv.img.imageplus.ImagePlusToSpimData;
+import ij.ImagePlus;
+import ij.VirtualStack;
+import ij.measure.Calibration;
+import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
+import mpicbg.spim.data.sequence.VoxelDimensions;
+import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.SpimDataOpener;
+import org.embl.mobie.io.toml.TPosition;
+import org.embl.mobie.io.toml.ZPosition;
+import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.serialize.DataSource;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 
 public abstract class DataStore
 {
@@ -51,23 +60,72 @@ public abstract class DataStore
 	private static Map< String, DataSource > rawData = new ConcurrentHashMap<>();
 
 	// TODO: replace by some soft ref cache? How to free the memory?
-	private static Map< String, AbstractSpimData< ? > > pathToSpimData = new ConcurrentHashMap<>();
+	private static Map< Object, CompletableFuture< AbstractSpimData< ? > > > spimDataCache = new ConcurrentHashMap<>();
 
 	public static void putSpimData( String path, AbstractSpimData< ? > spimData )
 	{
-		pathToSpimData.put( path, spimData );
+		spimDataCache.put( path, CompletableFuture.completedFuture( spimData ) );
 	}
 
-	public static synchronized AbstractSpimData< ? > getSpimData( String path )
+	public static AbstractSpimData< ? > fetchSpimData( String path, ImageDataFormat imageDataFormat, SharedQueue sharedQueue )
 	{
-		return pathToSpimData.get( path );
+		try
+		{
+			return spimDataCache
+					.computeIfAbsent( path,
+							p -> CompletableFuture.supplyAsync( ()
+							-> openSpimData( (String) p, imageDataFormat, sharedQueue ) ) )
+					.get();
+		}
+		catch ( InterruptedException e )
+		{
+			throw new RuntimeException( e );
+		}
+		catch ( ExecutionException e )
+		{
+			throw new RuntimeException( e );
+		}
+	}
+
+	public static AbstractSpimData< ? > fetchSpimData( Site site, SharedQueue sharedQueue )
+	{
+		try
+		{
+			return spimDataCache
+					.computeIfAbsent(site,
+							s -> CompletableFuture.supplyAsync(()
+									-> openSpimData( (Site) s, sharedQueue )))
+					.get();
+		}
+		catch ( InterruptedException e )
+		{
+			throw new RuntimeException( e );
+		}
+		catch ( ExecutionException e )
+		{
+			throw new RuntimeException( e );
+		}
+	}
+
+	private static AbstractSpimData< ? > openSpimData( String path, ImageDataFormat imageDataFormat, SharedQueue sharedQueue )
+	{
+		//System.out.println( "Opening " + path + ", " +imageDataFormat  );
+
+		try
+		{
+			return new SpimDataOpener().open( path, imageDataFormat, sharedQueue );
+		}
+		catch ( SpimDataException e )
+		{
+			throw new RuntimeException( e );
+		}
 	}
 
 	public static void clearSpimData( )
 	{
-		pathToSpimData.clear();
-		pathToSpimData = null;
-		pathToSpimData = new ConcurrentHashMap<>();
+		spimDataCache.clear();
+		spimDataCache = null;
+		spimDataCache = new ConcurrentHashMap<>();
 	}
 
 	public static void putRawData( DataSource dataSource )
@@ -132,5 +190,50 @@ public abstract class DataStore
 	{
 		// FIXME Caching: https://github.com/mobie/mobie-viewer-fiji/issues/813
 		images.clear();
+	}
+
+	public static AbstractSpimData< ? > openSpimData( Site site, SharedQueue sharedQueue )
+	{
+		VirtualStack virtualStack = null;
+
+		final Map< TPosition, Map< ZPosition, String > > paths = site.getPaths();
+
+		final ArrayList< TPosition > tPositions = new ArrayList<>( paths.keySet() );
+		Collections.sort( tPositions );
+		int nT = tPositions.size();
+		int nZ = 1;
+		for ( TPosition t : tPositions )
+		{
+			final Set< ZPosition > zPositions = paths.get( t ).keySet();
+			nZ = zPositions.size();
+			for ( ZPosition z : zPositions )
+			{
+				if ( virtualStack == null )
+				{
+					final int[] dimensions = site.getDimensions();
+					virtualStack = new VirtualStack( dimensions[ 0 ], dimensions[ 1 ], null, "" );
+				}
+
+				virtualStack.addSlice( paths.get( t ).get( z ) );
+			}
+		}
+
+		final ImagePlus imagePlus = new ImagePlus( site.getId(), virtualStack );
+
+		final Calibration calibration = new Calibration();
+		final VoxelDimensions voxelDimensions = site.getVoxelDimensions();
+		calibration.setUnit( voxelDimensions.unit() );
+		calibration.pixelWidth = voxelDimensions.dimension( 0 );
+		calibration.pixelHeight = voxelDimensions.dimension( 1 );
+		calibration.pixelDepth = voxelDimensions.dimension( 2 );
+		imagePlus.setCalibration( calibration );
+
+		// TODO: is could be zSlices!
+		imagePlus.setDimensions( 1, nZ, nT );
+
+		final AbstractSpimData< ? > spimData = ImagePlusToSpimData.getSpimData( imagePlus );
+		SpimDataOpener.setSharedQueue( sharedQueue, spimData );
+
+		return spimData;
 	}
 }

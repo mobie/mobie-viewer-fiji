@@ -109,17 +109,20 @@ public class SourcesFromTableCreator
 		}
 		else if ( table.rowCount() == numSources )
 		{
-			// the input table was an image table already
+			// the input table is an image table and
+			// can thus be used as the region table
 			String imageColumn = imageColumns.get( 0 );
 			final List< String > regions = table.stringColumn( imageColumn ).asList();
 			regionTable = table.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) );
+			regionTable.setName( "image table" );
 		}
 		else
 		{
-			// the input table was an object table
+			// the input table is an object table
 			// thus we need to summarize it into an image table
-
+			// to be used as a region table
 			regionTable = Table.create( "image table" );
+			String name = regionTable.name();
 
 			// init columns
 			String imageColumn = imageColumns.get( 0 );

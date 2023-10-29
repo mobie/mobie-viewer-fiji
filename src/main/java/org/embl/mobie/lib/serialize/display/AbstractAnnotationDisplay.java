@@ -99,7 +99,6 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 	// Used by Gson deserialization
 	public AbstractAnnotationDisplay()
 	{
-		//blendingMode = BlendingMode.Alpha;
 		opacity = 0.5;
 	}
 
