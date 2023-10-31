@@ -81,16 +81,14 @@ public class ImageFileSources
 			nameToFullPath.put( imageName, path );
 		}
 
-		// TODO: how to deal with the inconsistent metadata (e.g. number of timepoints)?
+		// TODO: how to deal with the inconsistent metadata (e.g. number of time-points)?
 		this.metadataSource = nameToFullPath.keySet().iterator().next();
 		this.metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ), channelIndex );
 
 		// FIXME: move this out to a separate function
 		regionTable = Table.create( this.name );
-		final List< String > regions = new ArrayList<>( nameToFullPath.keySet() );
-		regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) );
-		final List< String > paths1 = new ArrayList<>( nameToFullPath.values() );
-		regionTable.addColumns( StringColumn.create( "source_path", paths1 ) );
+		regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, new ArrayList<>( nameToFullPath.keySet() ) ) );
+		regionTable.addColumns( StringColumn.create( "source_path", new ArrayList<>( nameToFullPath.values() ) ) );
 	}
 
 	public ImageFileSources( String name, Table table, String imageColumn, Integer channelIndex, String root, GridType gridType )
@@ -114,7 +112,7 @@ public class ImageFileSources
 				nameToFullPath.put( imageName, path );
 				nameToPath.put( imageName, fileName );
 
-				if ( table.columnNames().contains( "Rotation_NUM" ) ) // FIXME can we have this more generic?
+				if ( table.columnNames().contains( "Rotation_NUM" ) ) // FIXME can we have this generic?
 				{
 					double rotation = table.doubleColumn( "Rotation_NUM" ).get( rowIndex );
 					AffineTransform3D affineTransform3D = new AffineTransform3D();

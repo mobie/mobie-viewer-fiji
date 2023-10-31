@@ -64,12 +64,16 @@ public class OpenTableCommand implements Command {
 	@Parameter( label = "Remove Spatial Calibration", required = false )
 	public Boolean removeSpatialCalibration = false;
 
+	protected GridType gridType = GridType.Stitched;
+
+
+
 	@Override
 	public void run()
 	{
 		DebugTools.setRootLevel( "OFF" );
 
-		final GridType gridType = GridType.Stitched; // TODO: fetch from UI
+		final GridType gridType = this.gridType;
 
 		final MoBIESettings settings = new MoBIESettings();
 		settings.removeSpatialCalibration( removeSpatialCalibration );

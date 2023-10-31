@@ -65,7 +65,7 @@ public class SourcesFromTableCreator
 			if ( imageColumn.contains( "_IMG" ) )
 			{
 				IJ.log( "Detected AutoMicTools table" );
-				gridType = GridType.Transformed; // To accommodate rotations
+
 				// the image path is distributed into two columns: file name and folder
 				String fileName = table.getString( 0, imageColumn);
 				String relativeFolder = table.getString( 0, imageColumn.replace(  "FileName_", "PathName_" ) );
