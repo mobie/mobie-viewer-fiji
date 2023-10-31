@@ -33,6 +33,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.CommandConstants;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
+import sc.fiji.bdvpg.scijava.command.source.ManualTransformCommand;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Manual")
 public class ManualRegistrationCommand implements BdvPlaygroundActionCommand
@@ -47,6 +48,7 @@ public class ManualRegistrationCommand implements BdvPlaygroundActionCommand
 
 	private void showDialog()
 	{
+		// TODO https://imagesc.zulipchat.com/#narrow/stream/327326-BigDataViewer/topic/Manual.20transform.20editor
 		final NonBlockingGenericDialog dialog = new NonBlockingGenericDialog( "Registration - Manual" );
 		dialog.hideCancelButton();
 		dialog.addMessage( "Manual translation, rotation and scaling transformations.\n\n" +

@@ -28,26 +28,24 @@
  */
 package org.embl.mobie.command.context;
 
-import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
-import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import ij.gui.NonBlockingGenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
-import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.transform.TransformHelper;
+import org.jetbrains.annotations.NotNull;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.Arrays;
+import java.util.List;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Flip Current Source")
-public class FlipSourceCommand implements BdvPlaygroundActionCommand
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Flip")
+public class FlipCommand implements BdvPlaygroundActionCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -66,7 +64,27 @@ public class FlipSourceCommand implements BdvPlaygroundActionCommand
 		SourceAndConverter< ? > currentSource = bdvh.getViewerPanel().state().getCurrentSource();
 		Image< ? > image = (Image< ? >) SourceAndConverterServices.getSourceAndConverterService().getMetadata( currentSource, Image.class.getName() );
 
-		// Create a flip transformation along the X-axis
+		if ( image instanceof RegionAnnotationImage )
+		{
+			List< Image< ? > > selectedImages = ( ( RegionAnnotationImage< ? > ) image ).getSelectedImages();
+			for ( Image< ? > selectedImage : selectedImages )
+			{
+				AffineTransform3D flipTransform = createFlipTransform( selectedImage );
+				selectedImage.transform( flipTransform );
+			}
+		}
+		else
+		{
+			AffineTransform3D flipTransform = createFlipTransform( image );
+			image.transform( flipTransform );
+		}
+
+		bdvh.getViewerPanel().requestRepaint();
+	}
+
+	@NotNull
+	private AffineTransform3D createFlipTransform( Image< ? > image )
+	{
 		AffineTransform3D flip = new AffineTransform3D();
 		switch ( axis )
 		{
@@ -86,9 +104,6 @@ public class FlipSourceCommand implements BdvPlaygroundActionCommand
 		transform.translate( Arrays.stream( center ).map( x -> -x ).toArray() );
 		transform.preConcatenate( flip );
 		transform.translate( center );
-
-		image.transform( transform );
-
-		bdvh.getViewerPanel().requestRepaint();
+		return transform;
 	}
 }

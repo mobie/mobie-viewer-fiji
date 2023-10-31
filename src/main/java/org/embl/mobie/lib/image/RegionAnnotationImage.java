@@ -44,6 +44,7 @@ import org.embl.mobie.lib.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedImages;
 import org.embl.mobie.lib.transform.TransformHelper;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,6 +52,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class RegionAnnotationImage< AR extends AnnotatedRegion > implements AnnotationImage< AR >
 {
@@ -58,7 +60,7 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 
 	private final AnnData< AR > annData;
 	private final Set< Integer > timepoints;
-
+	private final SelectionModel< ? > selectionModel;
 	private Source< AnnotationType< AR > > source;
 	private SourcePair< AnnotationType< AR > > sourcePair;
 	private RealMaskRealInterval mask;
@@ -86,10 +88,7 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 		this.name = regionDisplay.getName();
 		this.annData = annData;
 		this.timepoints = regionDisplay.timepoints();
-
-		// FIXME Also attach the selectionModel to the RegionAnnotationImage
-		//   and use it in the transform step?!
-		SelectionModel< ? > selectionModel = regionDisplay.selectionModel;
+		this.selectionModel = regionDisplay.selectionModel;
 
 		if( debug ) logRegions();
 	}
@@ -99,9 +98,11 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 		final ArrayList< AR > annotations = annData.getTable().annotations();
 		for ( AR annotatedRegion : annotations )
 		{
+			// FIXME currently the cast below works because TableSawAnnotatedImages is the only use-case
+			//    In general, it may also be something else
 			final TableSawAnnotatedImages tableSawAnnotatedImages = ( TableSawAnnotatedImages ) annotatedRegion;
-			System.out.println( "RegionLabelImage " + name + ": " + annotatedRegion.regionId() + " images = " + Arrays.toString( tableSawAnnotatedImages.getRegionImageNames().toArray( new String[ 0 ] ) ) + "\n" + TransformHelper.maskToString( annotatedRegion.getMask() ) );
-			final List< String > regionImageNames = tableSawAnnotatedImages.getRegionImageNames();
+			System.out.println( "RegionLabelImage " + name + ": " + annotatedRegion.regionId() + " images = " + Arrays.toString( tableSawAnnotatedImages.getImageNames().toArray( new String[ 0 ] ) ) + "\n" + TransformHelper.maskToString( annotatedRegion.getMask() ) );
+			final List< String > regionImageNames = tableSawAnnotatedImages.getImageNames();
 			for ( String regionImageName : regionImageNames )
 			{
 				final Image< ? > viewImage = DataStore.getImage( regionImageName );
@@ -182,7 +183,7 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 			// TODO it would be nice if this Source had the same voxel unit
 			//   as the other sources, but that would mean touching one of the
 			//   annotated images which could be expensive.
-			source = new RealRandomAccessibleIntervalTimelapseSource<>( regions, interval, new AnnotationType<>( annData.getTable().annotations().get( 0 ) ), new AffineTransform3D(), name, true, timepoints );
+			source = new RealRandomAccessibleIntervalTimelapseSource<>( regions, interval, new AnnotationType<>( annotations.get( 0 ) ), new AffineTransform3D(), name, true, timepoints );
 
 			// There is no volatile implementation (yet), because the
 			// {@code Source} should be fast enough,
@@ -203,10 +204,46 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		// TODO
-		//   The issue is that the regions should
-		//   just represent the location of the annotated images!?
+		if ( annotations.get( 0 ) instanceof TableSawAnnotatedImages )
+		{
+			// transform all images in all regions
+			List< TableSawAnnotatedImages > annotatedImages = ( List< TableSawAnnotatedImages > ) annotations;
+
+			List< Image< ? > > allImages = annotatedImages.stream()
+					.map( ai -> ai.getImageNames() )
+					.map( ain -> DataStore.getImageSet( ain ) )
+					.flatMap( images -> images.stream() )
+					.collect( Collectors.toList() );
+
+			allImages.stream().forEach( image -> image.transform( affineTransform3D ) );
+		}
+		else
+		{
+			throw new RuntimeException( "Transformation of regions of type "
+					+ annotations.get( 0 ).getClass() + " is currently not implemented." );
+		}
 	}
+
+	@NotNull
+	public List< Image< ? > > getSelectedImages()
+	{
+		if ( annotations.get( 0 ) instanceof TableSawAnnotatedImages )
+		{
+			Set< TableSawAnnotatedImages > annotatedImagesSet = ( Set< TableSawAnnotatedImages > ) selectionModel.getSelected();
+			List< Image< ? > > selectedImages = annotatedImagesSet.stream()
+					.map( annotatedImages -> annotatedImages.getImageNames() )
+					.map( annotatedImageNames -> DataStore.getImageSet( annotatedImageNames ) )
+					.flatMap( images -> images.stream() )
+					.collect( Collectors.toList() );
+			return selectedImages;
+		}
+		else
+		{
+			throw new RuntimeException( "Cannot return images, because the regions are of type "
+					+ annotations.get( 0 ).getClass() + " ." );
+		}
+	}
+
 
 	@Override
 	public RealMaskRealInterval getMask( )

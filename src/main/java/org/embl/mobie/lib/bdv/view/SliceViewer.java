@@ -151,7 +151,7 @@ public class SliceViewer
 		actions.add( sacService.getCommandName( SourceInfoLoggerCommand.class ) );
 		actions.add( sacService.getCommandName( BigWarpRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( ManualRegistrationCommand.class ) );
-		actions.add( sacService.getCommandName( FlipSourceCommand.class ) );
+		actions.add( sacService.getCommandName( FlipCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );
 		actions.add( LOAD_ADDITIONAL_VIEWS );
 		actions.add( SAVE_CURRENT_SETTINGS_AS_VIEW );

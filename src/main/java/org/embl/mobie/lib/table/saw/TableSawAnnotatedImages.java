@@ -43,7 +43,6 @@ import java.util.Set;
 
 public class TableSawAnnotatedImages extends AbstractTableSawAnnotation implements AnnotatedRegion, ImageListener
 {
-	private static final String[] idColumns = new String[]{ ColumnNames.REGION_ID };
 	private final List< String > imageNames;
 	private final String uuid;
 	private String regionId;
@@ -184,7 +183,7 @@ public class TableSawAnnotatedImages extends AbstractTableSawAnnotation implemen
 		return positionAsDoubleArray().length;
 	}
 
-	public List< String > getRegionImageNames()
+	public List< String > getImageNames()
 	{
 		return imageNames;
 	}
