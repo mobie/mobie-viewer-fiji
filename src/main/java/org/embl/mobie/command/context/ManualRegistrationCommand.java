@@ -41,9 +41,9 @@ import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Manual")
 public class ManualRegistrationCommand implements BdvPlaygroundActionCommand, ManualTransformActiveListener
@@ -60,34 +60,61 @@ public class ManualRegistrationCommand implements BdvPlaygroundActionCommand, Ma
 	@Override
 	public void run()
 	{
-		new Thread( () -> showDialog() ).start();
-	}
-
-	private void showDialog()
-	{
-		// TODO https://imagesc.zulipchat.com/#narrow/stream/327326-BigDataViewer/topic/Manual.20transform.20editor
-		final NonBlockingGenericDialog dialog = new NonBlockingGenericDialog( "Registration - Manual" );
-		dialog.hideCancelButton();
-		dialog.addMessage( "Manual translation, rotation and scaling transformations.\n\n" +
-				"- Select the BDV window and press P and select the source to be transformed as the current source\n" +
-				"- Press T to start the manual transform mode\n" +
-				"  - While in manual transform mode the mouse and keyboard actions that normally change the view will now transform the current source\n" +
-				"  - For example, right mouse button and mouse drag will translate the source\n\n" +
-				"Press [ T ] again to fix the transformation\n" +
-				"Press [ ESC ] to abort the transformation");
-		dialog.showDialog();
-
 		SourceAndConverter< ? > currentSource = bdvh.getViewerPanel().state().getCurrentSource();
-		// FIXME: Use the DataStore for keeping the references Image <=> SAC
 		Image< ? > image = DataStore.sourceToImage().get( currentSource );
 
-		if ( image instanceof RegionAnnotationImage )
+		if ( image instanceof RegionAnnotationImage &&
+				! ( ( RegionAnnotationImage< ? > ) image ).getSelectedImages().isEmpty() )
 		{
+			// instead of transforming the whole image
+			// we only transform the selected images
 			transformableImages = ( ( RegionAnnotationImage< ? > ) image ).getSelectedImages();
+
+			List< SourceAndConverter< ? > > sourceAndConverters = transformableImages.stream()
+					.map( img -> DataStore.sourceToImage().inverse().get( img ) )
+					.collect( Collectors.toList() );
 			ManualTransformationEditor transformationEditor = new ManualTransformationEditor( bdvh.getViewerPanel(), bdvh.getKeybindings() );
-			transformationEditor.setTransformableSources(  );
+			transformationEditor.setTransformableSources( sourceAndConverters );
 			transformationEditor.setActive( true );
 			transformationEditor.manualTransformActiveListeners().add( this );
+
+			new Thread( () ->
+			{
+				NonBlockingGenericDialog dialog = new NonBlockingGenericDialog( "Manual Registration" );
+				dialog.addMessage(
+						"You are now in manual transform mode, \n" +
+								"where mouse and keyboard actions will transform the selected sources.\n" +
+								"Click [ OK ] to fix the transformation.\n" +
+								"Click [ Cancel ] to abort the transformation." );
+
+				dialog.showDialog();
+
+				if ( dialog.wasCanceled() )
+				{
+					transformationEditor.abort();
+					transformationEditor.setActive( false );
+				}
+				else if ( dialog.wasOKed() )
+				{
+					transformationEditor.setActive( false );
+				}
+			} ).start();
+		}
+		else
+		{
+			new Thread( () ->
+			{
+				final NonBlockingGenericDialog dialog = new NonBlockingGenericDialog( "Registration - Manual" );
+				dialog.hideCancelButton();
+				dialog.addMessage( "Manual translation, rotation and scaling transformations.\n\n" +
+						"- Select the BDV window and press P and select the source to be transformed as the current source\n" +
+						"- Press T to start the manual transform mode\n" +
+						"  - While in manual transform mode the mouse and keyboard actions that normally change the view will now transform the current source\n" +
+						"  - For example, right mouse button and mouse drag will translate the source\n\n" +
+						"Press [ T ] again to fix the transformation\n" +
+						"Press [ ESC ] to abort the transformation" );
+				dialog.showDialog();
+			} ).start();
 		}
 	}
 
@@ -102,6 +129,14 @@ public class ManualRegistrationCommand implements BdvPlaygroundActionCommand, Ma
 				// trigger the update of the transform and notify listeners.
 				// see the {@code SpimDataImage} implementation.
 				transformableImages.stream().forEach( image -> image.transform( new AffineTransform3D() ) );
+			}
+			else
+			{
+				// trigger update of the transformed image
+				// FIXME this will not suffice if the user used the grouping mode
+				SourceAndConverter< ? > currentSource = bdvh.getViewerPanel().state().getCurrentSource();
+				Image< ? > image = DataStore.sourceToImage().get( currentSource );
+				image.transform( new AffineTransform3D() );
 			}
 		}
 	}

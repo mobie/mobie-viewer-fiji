@@ -249,12 +249,6 @@ public class ManualTransformationEditor implements TransformListener< AffineTran
         return manualTransformActiveListeners;
     }
 
-
-    public List< SourceAndConverter< ? > > getTransformableSources()
-    {
-        return transformableSources;
-    }
-
     public void setTransformableSources( List< SourceAndConverter< ? > > transformableSources )
     {
         this.transformableSources = transformableSources;
