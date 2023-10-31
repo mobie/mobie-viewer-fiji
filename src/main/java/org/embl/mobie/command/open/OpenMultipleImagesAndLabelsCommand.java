@@ -88,8 +88,8 @@ public class OpenMultipleImagesAndLabelsCommand implements Command {
 		if ( labels1 != null ) labelsList.add( labels1.getAbsolutePath() );
 
 		final ArrayList< String > tablesList = new ArrayList<>();
-		if ( table0 != null ) labelsList.add( table0.getAbsolutePath() );
-		if ( table1 != null ) labelsList.add( table1.getAbsolutePath() );
+		if ( table0 != null ) tablesList.add( table0.getAbsolutePath() );
+		if ( table1 != null ) tablesList.add( table1.getAbsolutePath() );
 
 		final MoBIESettings settings = new MoBIESettings();
 		settings.removeSpatialCalibration( removeSpatialCalibration );
