@@ -29,14 +29,14 @@
 package org.embl.mobie.lib.table;
 
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.lib.DataStore;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.io.StorageLocation;
-import org.embl.mobie.lib.serialize.RegionDataSource;
+import org.embl.mobie.lib.serialize.RegionTableSource;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.table.saw.TableOpener;
-import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegion;
+import org.embl.mobie.lib.table.saw.TableSawAnnotatedImages;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegionCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationTableModel;
@@ -65,14 +65,14 @@ public class RegionDisplayAnnDataCreator
 		this.regionDisplay = regionDisplay;
 	}
 
-	public AnnData< AnnotatedRegion > getAnnData()
+	public AnnData< AnnotatedRegion > createAnnData()
 	{
 		if (  regionDisplay.tableSource == null )
 			createTable();
 		else
 			fetchTable();
 
-		final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( table, regionDisplay.sources, regionDisplay.getRelativeDilation() );
+		final TableSawAnnotationCreator< TableSawAnnotatedImages > annotationCreator = new TableSawAnnotatedRegionCreator( table, regionDisplay.sources, regionDisplay.getRelativeDilation() );
 
 		final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( regionDisplay.getName(), annotationCreator, tableLocation, tableFormat, table );
 
@@ -83,9 +83,9 @@ public class RegionDisplayAnnDataCreator
 
 	private void fetchTable()
 	{
-		final RegionDataSource regionDataSource = ( RegionDataSource ) DataStore.getRawData( regionDisplay.tableSource );
-		tableLocation = moBIE.getTableLocation( regionDataSource.tableData );
-		tableFormat = moBIE.getTableDataFormat( regionDataSource.tableData );
+		final RegionTableSource regionTableSource = ( RegionTableSource ) DataStore.getRawData( regionDisplay.tableSource );
+		tableLocation = moBIE.getTableLocation( regionTableSource.tableData );
+		tableFormat = moBIE.getTableDataFormat( regionTableSource.tableData );
 		table = TableOpener.open( tableLocation, tableFormat );
 
 		// only keep the subset of rows (regions)

@@ -28,14 +28,15 @@
  */
 package org.embl.mobie.lib.files;
 
+import ij.IJ;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.lib.DataStore;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.ImageDataSource;
-import org.embl.mobie.lib.serialize.RegionDataSource;
+import org.embl.mobie.lib.serialize.RegionTableSource;
 import org.embl.mobie.lib.serialize.SegmentationDataSource;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.Display;
@@ -44,14 +45,14 @@ import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.transformation.*;
 import org.embl.mobie.lib.source.Metadata;
+import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
 import org.embl.mobie.lib.transform.GridType;
 import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
-import org.jetbrains.annotations.NotNull;
+import tech.tablesaw.api.Table;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,14 +61,16 @@ public class FileSourcesDataSetter
 {
 	private final List< ImageFileSources > images;
 	private final List< LabelFileSources > labels;
+	private final Table regionTable;
 
-	public FileSourcesDataSetter( List< ImageFileSources > images, List< LabelFileSources > labels )
+	public FileSourcesDataSetter( List< ImageFileSources > images, List< LabelFileSources > labels, Table regionTable )
 	{
 		this.images = images;
 		this.labels = labels;
+		this.regionTable = regionTable;
 	}
 
-	public void addData( Dataset dataset )
+	public void addDataAndDisplaysAndViews( Dataset dataset )
 	{
 		final ArrayList< ImageFileSources > allSources = new ArrayList<>();
 		allSources.addAll( images );
@@ -81,58 +84,56 @@ public class FileSourcesDataSetter
 				dataset.is2D( false );
 			}
 
-			for ( String name : sources.getSources() )
+			List< String > imageNames = sources.getSources();
+			ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( sources.getPath( imageNames.get( 0 ) ) );
+			IJ.log("Format/opener for " + sources.name + ": " + imageDataFormat );
+			for ( String imageName : imageNames )
 			{
-				final String path = sources.getPath( name );
-				ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( path );
-
+				final String path = sources.getPath( imageName );
 				final StorageLocation storageLocation = new StorageLocation();
 				storageLocation.absolutePath = path;
 				storageLocation.setChannel( sources.getChannelIndex() );
 				if ( sources instanceof LabelFileSources )
 				{
-					final TableSource tableSource = ( ( LabelFileSources ) sources ).getLabelTable( name );
-					SegmentationDataSource segmentationDataSource = SegmentationDataSource.create( name, imageDataFormat, storageLocation, tableSource );
+					final TableSource tableSource = ( ( LabelFileSources ) sources ).getLabelTable( imageName );
+					SegmentationDataSource segmentationDataSource = SegmentationDataSource.create( imageName, imageDataFormat, storageLocation, tableSource );
 					segmentationDataSource.preInit( false );
 					dataset.addDataSource( segmentationDataSource );
 				}
 				else
 				{
-					final ImageDataSource imageDataSource = new ImageDataSource( name, imageDataFormat, storageLocation );
+					final ImageDataSource imageDataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
 					imageDataSource.preInit( false );
 					dataset.addDataSource( imageDataSource );
 				}
 			}
 		}
 
-		// TODO don't create a grid view if there is only one image and label mask
-		final ImageFileSources firstImageFileSources = allSources.get( 0 );
+
+		RegionDisplay< AnnotatedRegion > regionDisplay = null;
+		final List< Display< ? > > displays = new ArrayList<>();
+		final List< Transformation > transformations = new ArrayList<>();
 
 		for ( ImageFileSources sources : allSources )
 		{
-			final ArrayList< Display< ? > > displays = new ArrayList<>();
-
-			// TODO: probably we should not even create the region table
-			//   for any source other than the first one while
-			//   creating the ImageSources
 			List< String > sourceNames = sources.getSources();
+			final int numRegions = sourceNames.size();
 
-			if ( sources.equals( firstImageFileSources ) )
+			if ( regionDisplay == null )
 			{
-				// create a RegionDisplay
-				// for all the sources
+				// init RegionDisplay
+				regionDisplay = new RegionDisplay<>( regionTable.name() );
 
-				// init table
+				// add table
 				final StorageLocation storageLocation = new StorageLocation();
-				storageLocation.data = sources.getRegionTable();
-				final RegionDataSource regionDataSource = new RegionDataSource( sources.getName() );
-				regionDataSource.addTable( TableDataFormat.Table, storageLocation );
-				DataStore.putRawData( regionDataSource );
+				storageLocation.data = regionTable;
+				final RegionTableSource regionTableSource = new RegionTableSource( regionTable.name() );
+				regionTableSource.addTable( TableDataFormat.Table, storageLocation );
+				DataStore.putRawData( regionTableSource );
 
 				// init display
-				final RegionDisplay< AnnotatedRegion > regionDisplay = new RegionDisplay<>( "image table" );
 				regionDisplay.sources = new LinkedHashMap<>();
-				regionDisplay.tableSource = regionDataSource.getName();
+				regionDisplay.tableSource = regionTableSource.getName();
 				regionDisplay.showAsBoundaries( true );
 				regionDisplay.setBoundaryThickness( 0.015 );
 				regionDisplay.boundaryThicknessIsRelative( true );
@@ -145,13 +146,21 @@ public class FileSourcesDataSetter
 				for ( int t = 0; t < numTimePoints; t++ )
 					regionDisplay.timepoints().add( t );
 
-				final int numRegions = sourceNames.size();
 				for ( int regionIndex = 0; regionIndex < numRegions; regionIndex++ )
 				{
-					regionDisplay.sources.put( sourceNames.get( regionIndex ), Collections.singletonList( sourceNames.get( regionIndex ) ) );
+					String regionName = regionTable.getString( regionIndex, ColumnNames.REGION_ID );
+					regionDisplay.sources.put( regionName, new ArrayList<>() );
 				}
 
 				displays.add( regionDisplay );
+			}
+
+			// add the images of this source to the respective region
+			for ( int regionIndex = 0; regionIndex < numRegions; regionIndex++ )
+			{
+				String regionName = regionTable.getString( regionIndex, ColumnNames.REGION_ID );
+				regionDisplay.sources.get( regionName ).add( sourceNames.get( regionIndex ) );
+				//System.out.println("Region: " +  regionName + "; source: " + sourceNames.get( regionIndex ) );
 			}
 
 			// create grid transformations
@@ -178,17 +187,10 @@ public class FileSourcesDataSetter
 					displays.add( new ImageDisplay<>( grid.getName(), Collections.singletonList( grid.getName() ), metadata.color, metadata.contrastLimits ) );
 				}
 
-				// construct and add the view
-				//
-				final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( grid.getSources().get( 0 ), 0 );
-				final View gridView = new View( sources.getName(), "data", displays, Arrays.asList( grid ), viewerTransform, false );
-				//gridView.overlayNames( true ); // FIXME: Timepoint bug!
-				dataset.views().put( gridView.getName(), gridView );
+				transformations.add( grid );
 			}
 			else if ( sources.getGridType().equals( GridType.Transformed ) )
 			{
-				ArrayList< Transformation > transformations = new ArrayList<>();
-
 				// Add the individual images to the displays
 				//
 				if ( sources instanceof LabelFileSources )
@@ -203,6 +205,7 @@ public class FileSourcesDataSetter
 				{
 					// ImageDisplay
 					final Metadata metadata = sources.getMetadata();
+					// TODO: one could set only the first one to be visible, would need a change of the constructor
 					displays.add( new ImageDisplay<>( sources.getName(), sourceNames, metadata.color, metadata.contrastLimits ) );
 				}
 
@@ -216,19 +219,21 @@ public class FileSourcesDataSetter
 					}
 				}
 
-				// construct and add the view
-				//
 				GridTransformation grid = new GridTransformation( sourceNames );
 				transformations.add( grid );
-				final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( grid.getSources().get( 0 ), 0 );
-				final View gridView = new View( sources.getName(), "data", displays, transformations, viewerTransform, false );
-				//gridView.overlayNames( true ); // FIXME: Timepoint bug!
-				dataset.views().put( gridView.getName(), gridView );
 			}
 			else
 			{
 				throw new RuntimeException( "Grid type not supported: " + sources.getGridType() );
 			}
 		}
+
+		// construct and add the view
+		//
+		// FIXME: Maybe the viewerTransform could be something else?
+		final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( transformations.get( 0 ).getSources().get( 0 ), 0 );
+		final View gridView = new View( "all images", "data", displays, transformations, viewerTransform, false );
+		//gridView.overlayNames( true ); // FIXME: Timepoint bug!
+		dataset.views().put( gridView.getName(), gridView );
 	}
 }

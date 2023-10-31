@@ -19,7 +19,7 @@ public class OpenAutoMicTable
         //command.table = new File( "/Volumes/cba/exchange/furlong_test/summary_calculated1_subset_zarr.txt" );
         //command.images = "Result.Image.Zarr"; // Result.Image.Zarr
         command.root = command.table.getParentFile();
-        command.images = "Result.Image"; // Result.Image.Zarr
+        command.images = "FileName_Result.Image_IMG"; // Result.Image.Zarr
         command.run();
     }
 }

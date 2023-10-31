@@ -97,9 +97,7 @@ public class UserInterface
 
 		splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		final int actionPanelHeight = userInterfaceHelper.getActionPanelHeight();
-
-		splitPane.setDividerLocation( actionPanelHeight );
+		splitPane.setDividerLocation( userInterfaceHelper.getActionPanelHeight() );
 		splitPane.setTopComponent( selectionPanel );
 		splitPane.setBottomComponent( displaySettingsPanel );
 		splitPane.setAutoscrolls( true );
@@ -114,7 +112,8 @@ public class UserInterface
 
 		final int longestStringWidth = new JPanel().getFontMetrics( new JComboBox<>().getFont() ).stringWidth( longestViewString );
 		final int width = Math.min( longestStringWidth + 400, Toolkit.getDefaultToolkit().getScreenSize().width / 2 );
-		frame.setPreferredSize( new Dimension( width, actionPanelHeight + 200 ) );
+		final int height = ( int ) ( Toolkit.getDefaultToolkit().getScreenSize().height * 0.6 );
+		frame.setPreferredSize( new Dimension( width, height ) );
 		frame.getContentPane().setLayout( new GridLayout() );
 		frame.getContentPane().add( splitPane );
 

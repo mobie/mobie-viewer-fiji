@@ -36,6 +36,5 @@ public interface Masked
 	//  - think about how to deal with time points
 	//  - think about how to forward that to the sources.
 	RealMaskRealInterval getMask();
-
 	void setMask( RealMaskRealInterval mask );
 }

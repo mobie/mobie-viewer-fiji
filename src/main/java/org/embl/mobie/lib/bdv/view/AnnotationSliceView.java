@@ -37,7 +37,7 @@ import net.imglib2.converter.Converter;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.lib.DataStore;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.lib.color.AnnotationARGBConverter;
 import org.embl.mobie.lib.color.ColoringListener;
@@ -61,6 +61,7 @@ import net.imglib2.Volatile;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
+import javax.xml.crypto.Data;
 import java.awt.*;
 
 public class AnnotationSliceView< A extends Annotation > extends AbstractSliceView implements ColoringListener, SelectionListener< A >
@@ -95,7 +96,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 				final SpotAnnotationImage spotAnnotationImage = ( ( SpotAnnotationImage ) image );
 				spotAnnotationImage.setRadius( spotDisplay.spotRadius );
 
-				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, SpotAnnotationImage.class.getName(), spotAnnotationImage );
+				DataStore.sourceToImage().put( sourceAndConverter, spotAnnotationImage );
 			}
 		}
 	}
@@ -155,7 +156,6 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 					final String someSource = display.sources.get( someRegion ).get( 0 );
 					final RealMaskRealInterval mask = DataStore.getImage( someSource ).getMask();
 					final double width = mask.realMax( 0 ) - mask.realMin( 0 );
-					// negative ?!
 					boundaryThickness = width * boundaryThickness;
 				}
 			}

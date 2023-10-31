@@ -196,7 +196,6 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		}
 		catch ( Exception e )
 		{
-			e.printStackTrace();
 			throw new RuntimeException( e );
 		}
 	}

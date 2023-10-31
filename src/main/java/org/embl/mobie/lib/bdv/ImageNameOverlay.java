@@ -40,6 +40,7 @@ import net.imglib2.FinalRealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.util.Intervals;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
@@ -136,7 +137,7 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 
 		for ( final SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			Image< ? > image = ( Image< ? > ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, Image.class.getName() );
+			Image< ? > image = DataStore.sourceToImage().get( sourceAndConverter );
 
 			if ( image instanceof RegionAnnotationImage )
 			{

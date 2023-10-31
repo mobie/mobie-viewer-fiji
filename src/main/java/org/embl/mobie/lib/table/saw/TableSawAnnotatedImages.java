@@ -31,21 +31,17 @@ package org.embl.mobie.lib.table.saw;
 import net.imglib2.realtransform.*;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.util.Intervals;
-import org.embl.mobie.lib.DataStore;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.ImageListener;
-import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.transform.TransformHelper;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implements AnnotatedRegion, ImageListener
+public class TableSawAnnotatedImages extends AbstractTableSawAnnotation implements AnnotatedRegion, ImageListener
 {
-	private static final String[] idColumns = new String[]{ ColumnNames.REGION_ID };
 	private final List< String > imageNames;
 	private final String uuid;
 	private String regionId;
@@ -57,8 +53,8 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	private Set< Image< ? > > images;
 	private final double relativeDilation;
 
-	public TableSawAnnotatedRegion(
-			final TableSawAnnotationTableModel< TableSawAnnotatedRegion > model,
+	public TableSawAnnotatedImages(
+			final TableSawAnnotationTableModel< TableSawAnnotatedImages > model,
 			final int rowIndex,
 			final List< String > imageNames,
 			final Integer timePoint,
@@ -156,20 +152,8 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 			if ( relativeDilation > 0 )
 			{
 				double scale = 1 + relativeDilation;
-				AffineGet transform = getEnlargementTransform( unionMask, scale );
+				AffineGet transform = TransformHelper.getEnlargementTransform( unionMask, scale );
 				mask = unionMask.transform( transform );
-////				OLD CODE
-//				final double[] min = unionMask.minAsDoubleArray();
-//				final double[] max = unionMask.maxAsDoubleArray();
-//
-//				for ( int d = 0; d < min.length; d++ )
-//				{
-//					final double size = max[ d ] - min[ d ];
-//					min[ d ] -= size * relativeDilation;
-//					max[ d ] += size * relativeDilation;
-//				}
-//
-//				mask = GeomMasks.closedBox( min, max );
 			}
 			else
 			{
@@ -178,35 +162,6 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 		}
 
 		return mask;
-	}
-
-	@NotNull
-	public static AffineGet getEnlargementTransform( RealMaskRealInterval realMaskRealInterval, double scale )
-	{
-		int numDimensions = realMaskRealInterval.numDimensions();
-
-		if ( numDimensions == 2 )
-		{
-			AffineTransform2D transform2D = new AffineTransform2D();
-			double[] center = TransformHelper.getCenter( realMaskRealInterval );
-			transform2D.translate( Arrays.stream( center ).map( x -> -x ).toArray() );
-			transform2D.scale( 1.0 / scale );
-			transform2D.translate( center );
-			return transform2D;
-		}
-		else if ( numDimensions == 3 )
-		{
-			AffineTransform3D transform3D = new AffineTransform3D();
-			double[] center = TransformHelper.getCenter( realMaskRealInterval );
-			transform3D.translate( Arrays.stream( center ).map( x -> -x ).toArray() );
-			transform3D.scale( 1.0 / scale );
-			transform3D.translate( center );
-			return transform3D;
-		}
-		else
-		{
-			throw new RuntimeException( "Unsupported number of dimensions " + numDimensions + ".");
-		}
 	}
 
 	@Override
@@ -227,7 +182,7 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 		return positionAsDoubleArray().length;
 	}
 
-	public List< String > getRegionImageNames()
+	public List< String > getImageNames()
 	{
 		return imageNames;
 	}

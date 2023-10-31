@@ -86,7 +86,6 @@ public class MeshCreator< S extends Segment >
 			}
 			catch ( Exception e )
 			{
-				e.printStackTrace();
 				throw new UnsupportedOperationException( "The location of segment " + segment.label() + " could not be determined and thus no mesh could be created;\npossibly the corresponding table has no anchor point entries for this segment" );
 			}
 
@@ -159,7 +158,6 @@ public class MeshCreator< S extends Segment >
 			{
 				final String msg = "Could not create mesh for segment " + segment.label() + " at time point " + segment.timePoint();
 				//IJ.showMessage( msg );
-				e.printStackTrace();
 				throw new RuntimeException( msg );
 			}
 		}

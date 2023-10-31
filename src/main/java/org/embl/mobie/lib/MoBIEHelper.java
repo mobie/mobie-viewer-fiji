@@ -38,9 +38,9 @@ import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.Dimensions;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
+import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.io.toml.TOMLOpener;
 import org.embl.mobie.lib.source.Metadata;
-import org.embl.mobie.lib.io.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.ImageDataSource;
 import org.embl.mobie.lib.source.SourceToImagePlusConverter;
@@ -50,9 +50,12 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.embl.mobie.io.util.IOHelper.combinePath;
 
 
 public abstract class MoBIEHelper
@@ -159,7 +162,6 @@ public abstract class MoBIEHelper
 		}
 		catch ( Exception e )
 		{
-			e.printStackTrace();
 			throw new RuntimeException("Could not open " + path );
 		}
 	}
@@ -204,7 +206,6 @@ public abstract class MoBIEHelper
 			}
 			catch ( SpimDataException e )
 			{
-				e.printStackTrace();
 				throw new RuntimeException( e );
 			}
 		}
@@ -232,7 +233,15 @@ public abstract class MoBIEHelper
 		final ImageDataFormat format = imageDataSource.imageData.keySet().iterator().next();
 		final StorageLocation location = imageDataSource.imageData.get( format );
 
-		final AbstractSpimData< ? > spimData = IOHelper.tryOpenSpimData( location.absolutePath, format );
+		AbstractSpimData< ? > spimData;
+		try
+		{
+			spimData = new SpimDataOpener().open( location.absolutePath, format );
+		}
+		catch ( SpimDataException e )
+		{
+			throw new RuntimeException( e );
+		}
 
 		final Metadata metadata = new Metadata();
 		metadata.color = "White";
@@ -261,9 +270,9 @@ public abstract class MoBIEHelper
 			final SpimSource< ? > spimSource = new SpimSource( spimData, setupID, "" );
 			final ImagePlus imagePlus = new SourceToImagePlusConverter<>( spimSource ).getImagePlus( 0 );
 			return imagePlus;
-		} catch ( SpimDataException e )
+		}
+		catch ( SpimDataException e )
 		{
-			e.printStackTrace();
 			throw new RuntimeException( e );
 		}
 	}
@@ -275,6 +284,21 @@ public abstract class MoBIEHelper
 		Path tempPath = Paths.get( "root" ).relativize( relativePath );
 		Path resolve = Paths.get( rootFolder ).resolve( tempPath );
 		return resolve.toString();
+	}
+
+	public static String createPath( String rootLocation, String githubBranch, String... files )
+	{
+		if ( rootLocation.contains( "github.com" ) )
+		{
+			rootLocation = GitHubUtils.createRawUrl( rootLocation, githubBranch );
+		}
+
+		final ArrayList< String > strings = new ArrayList<>();
+		strings.add( rootLocation );
+		Collections.addAll( strings, files );
+		final String path = combinePath( strings.toArray( new String[0] ) );
+
+		return path;
 	}
 
 	public enum FileLocation

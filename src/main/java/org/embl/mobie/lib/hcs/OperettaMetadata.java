@@ -46,7 +46,6 @@ public class OperettaMetadata
 		}
 		catch ( Exception e )
 		{
-			e.printStackTrace();
 			throw new RuntimeException( e );
 		}
 	}
@@ -118,7 +117,6 @@ public class OperettaMetadata
 		}
 		catch ( Exception e )
 		{
-			e.printStackTrace();
 			throw new RuntimeException( e );
 		}
 	}
@@ -131,7 +129,6 @@ public class OperettaMetadata
 		}
 		catch ( Exception e )
 		{
-			e.printStackTrace();
 			throw new RuntimeException( e );
 		}
 	}
@@ -144,7 +141,6 @@ public class OperettaMetadata
 		}
 		catch ( Exception e )
 		{
-			e.printStackTrace();
 			throw new RuntimeException( e );
 		}
 	}

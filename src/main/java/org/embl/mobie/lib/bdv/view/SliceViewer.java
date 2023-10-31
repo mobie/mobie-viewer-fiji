@@ -30,6 +30,7 @@ package org.embl.mobie.lib.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.command.context.*;
 import org.embl.mobie.command.view.ViewerTransformLoggerCommand;
 import org.embl.mobie.MoBIE;
@@ -151,7 +152,7 @@ public class SliceViewer
 		actions.add( sacService.getCommandName( SourceInfoLoggerCommand.class ) );
 		actions.add( sacService.getCommandName( BigWarpRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( ManualRegistrationCommand.class ) );
-		actions.add( sacService.getCommandName( FlipSourceCommand.class ) );
+		actions.add( sacService.getCommandName( FlipCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );
 		actions.add( LOAD_ADDITIONAL_VIEWS );
 		actions.add( SAVE_CURRENT_SETTINGS_AS_VIEW );
@@ -217,7 +218,7 @@ public class SliceViewer
 		display.sourceAndConverters().add( sourceAndConverter );
 
 		// link to image
-		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, Image.class.getName(), image );
+		DataStore.sourceToImage().put( sourceAndConverter, image );
 
 		// blending mode
 		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.class.getName(), display.getBlendingMode() );
@@ -246,7 +247,7 @@ public class SliceViewer
 		int maxNumTimePoints = 1;
 		for ( SourceAndConverter< ? > sac : sacs )
 		{
-			final Image< ? > image = ( Image ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sac, Image.class.getName() );
+			final Image< ? > image = DataStore.sourceToImage().get( sac );
 			if ( image instanceof RegionAnnotationImage )
 				continue; // https://github.com/mobie/mobie-viewer-fiji/issues/975
 

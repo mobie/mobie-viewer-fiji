@@ -35,7 +35,7 @@ import tech.tablesaw.api.Table;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RegionDataSource extends AbstractDataSource
+public class RegionTableSource extends AbstractDataSource
 {
 	// Serialization
 
@@ -50,7 +50,7 @@ public class RegionDataSource extends AbstractDataSource
 	// Runtime
 	public Table table;
 
-	public RegionDataSource( String name )
+	public RegionTableSource( String name )
 	{
 		super( name );
 	}
