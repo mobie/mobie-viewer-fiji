@@ -135,9 +135,9 @@ public class FileSourcesDataSetter
 				regionDisplay.sources = new LinkedHashMap<>();
 				regionDisplay.tableSource = regionTableSource.getName();
 				regionDisplay.showAsBoundaries( true );
-				regionDisplay.setBoundaryThickness( 0.015 );
 				regionDisplay.boundaryThicknessIsRelative( true );
-				regionDisplay.setRelativeDilation( 0.025 );
+				regionDisplay.setBoundaryThickness( 0.05 );
+				regionDisplay.setRelativeDilation( 2 * regionDisplay.getBoundaryThickness() );
 				regionDisplay.setOpacity( 1.0 );
 
 				Integer numTimePoints = sources.getMetadata().numTimePoints;

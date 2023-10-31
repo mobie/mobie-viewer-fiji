@@ -57,7 +57,7 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotat
 
 	private transient String sourceNamesRegex; // optionally parse the source names to create annotations
 
-	private transient boolean boundaryThicknessIsRelative = false;
+	private transient boolean boundaryThicknessIsRelative = false; //
 
 	// TODO create an issue to discuss this
 	private transient double relativeDilation = 0.05; // dilation of the regions, useful for rendering as outside boundaries
