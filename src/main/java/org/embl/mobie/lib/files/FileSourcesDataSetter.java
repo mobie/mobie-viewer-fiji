@@ -30,7 +30,7 @@ package org.embl.mobie.lib.files;
 
 import ij.IJ;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.lib.DataStore;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.io.StorageLocation;
@@ -53,7 +53,6 @@ import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
 import tech.tablesaw.api.Table;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;

@@ -31,11 +31,10 @@ package org.embl.mobie.lib.table.saw;
 import net.imglib2.realtransform.*;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.util.Intervals;
-import org.embl.mobie.lib.DataStore;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.ImageListener;
-import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.transform.TransformHelper;
 
 import java.util.List;

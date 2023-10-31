@@ -39,7 +39,7 @@ import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.lib.DataStore;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.source.SourceHelper;
 
@@ -58,7 +58,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	@Nullable
 	private RealMaskRealInterval mask;
 	private TransformedSource transformedSource;
-	private AffineTransform3D affineTransform3D = new AffineTransform3D();
+	private AffineTransform3D currentTransform = new AffineTransform3D();
 
 	public SpimDataImage( AbstractSpimData< ? > spimData, Integer setupId, String name, Boolean removeSpatialCalibration  )
 	{
@@ -112,10 +112,17 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 			mask = mask.transform( affineTransform3D.inverse() );
 		}
 
-		this.affineTransform3D.preConcatenate( affineTransform3D );
-
 		if ( transformedSource != null )
-			transformedSource.setFixedTransform( this.affineTransform3D );
+		{
+			transformedSource.getFixedTransform( currentTransform );
+			currentTransform.preConcatenate( affineTransform3D );
+			transformedSource.setFixedTransform( currentTransform );
+		}
+		else
+		{
+			// in case the image is transformed before it is instantiated
+			currentTransform.preConcatenate( affineTransform3D );
+		}
 
 		for ( ImageListener listener : listeners.list )
 			listener.imageChanged();
@@ -156,14 +163,14 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 
 		if ( removeSpatialCalibration )
 		{
-			source.getSourceTransform( 0, 0, affineTransform3D );
-			affineTransform3D = affineTransform3D.inverse();
+			source.getSourceTransform( 0, 0, currentTransform );
+			currentTransform = currentTransform.inverse();
 			SourceHelper.setVoxelDimensionsToPixels( source );
 			SourceHelper.setVoxelDimensionsToPixels( vSource );
 		}
 
 		transformedSource = new TransformedSource( source );
-		transformedSource.setFixedTransform( affineTransform3D );
+		transformedSource.setFixedTransform( currentTransform );
 
 		sourcePair = new DefaultSourcePair( transformedSource, new TransformedSource( vSource, transformedSource ) );
 	}

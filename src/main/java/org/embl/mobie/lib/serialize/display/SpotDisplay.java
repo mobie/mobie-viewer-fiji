@@ -29,6 +29,7 @@
 package org.embl.mobie.lib.serialize.display;
 
 import bdv.viewer.SourceAndConverter;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.image.SpotAnnotationImage;
@@ -99,7 +100,7 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AbstractAnnotatio
 		final SourceAndConverter< ? extends AnnotationType< ? extends Annotation > > sourceAndConverter = spotDisplay.sourceAndConverters().get( 0 );
 
 		// spot radius
-		final SpotAnnotationImage spotAnnotationImage = ( SpotAnnotationImage ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, SpotAnnotationImage.class.getName() );
+		final SpotAnnotationImage spotAnnotationImage = ( SpotAnnotationImage ) DataStore.sourceToImage().get( sourceAndConverter );
 		this.spotRadius = spotAnnotationImage.getRadius();
 	}
 }

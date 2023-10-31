@@ -36,6 +36,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import net.imglib2.RealPoint;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
 import org.embl.mobie.lib.image.Image;
@@ -80,7 +81,7 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 
 		for ( SourceAndConverter< T > sourceAndConverter : sourceAndConverters )
 		{
-			Image< ? > image = (Image< ? >) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, Image.class.getName() );
+			Image< ? > image = DataStore.sourceToImage().get( sourceAndConverter );
 
 			if ( image instanceof RegionAnnotationImage  )
 			{

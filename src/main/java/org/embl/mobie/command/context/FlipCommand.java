@@ -31,6 +31,7 @@ package org.embl.mobie.command.context;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
@@ -62,7 +63,7 @@ public class FlipCommand implements BdvPlaygroundActionCommand
 	public void run()
 	{
 		SourceAndConverter< ? > currentSource = bdvh.getViewerPanel().state().getCurrentSource();
-		Image< ? > image = (Image< ? >) SourceAndConverterServices.getSourceAndConverterService().getMetadata( currentSource, Image.class.getName() );
+		Image< ? > image = DataStore.sourceToImage().get( currentSource );
 
 		if ( image instanceof RegionAnnotationImage )
 		{

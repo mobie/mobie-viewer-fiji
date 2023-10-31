@@ -26,10 +26,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib;
+package org.embl.mobie;
 
 import bdv.cache.SharedQueue;
+import bdv.viewer.SourceAndConverter;
 import ch.epfl.biop.bdv.img.imageplus.ImagePlusToSpimData;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import ij.ImagePlus;
 import ij.VirtualStack;
 import ij.measure.Calibration;
@@ -58,6 +61,13 @@ public abstract class DataStore
 
 	// Currently, only used to pre-load tables for region annotations
 	private static Map< String, DataSource > rawData = new ConcurrentHashMap<>();
+
+	public static BiMap< SourceAndConverter< ? >, Image< ? > > sourceToImage()
+	{
+		return sourceToImage;
+	}
+
+	private static BiMap<SourceAndConverter<?>, Image<?>> sourceToImage = new HashBiMap.create();
 
 	// TODO: replace by some soft ref cache? How to free the memory?
 	private static Map< Object, CompletableFuture< AbstractSpimData< ? > > > spimDataCache = new ConcurrentHashMap<>();

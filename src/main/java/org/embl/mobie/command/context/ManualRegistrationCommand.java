@@ -28,17 +28,34 @@
  */
 package org.embl.mobie.command.context;
 
+import bdv.tools.transformation.ManualTransformActiveListener;
+import bdv.util.BdvHandle;
+import bdv.viewer.SourceAndConverter;
 import ij.gui.NonBlockingGenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.command.ManualTransformationEditor;
+import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.image.RegionAnnotationImage;
+import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
-import sc.fiji.bdvpg.scijava.command.source.ManualTransformCommand;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
+
+import java.util.List;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Manual")
-public class ManualRegistrationCommand implements BdvPlaygroundActionCommand
+public class ManualRegistrationCommand implements BdvPlaygroundActionCommand, ManualTransformActiveListener
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
+	@Parameter
+	protected BdvHandle bdvh;
+
+	@Parameter
+	protected SourceAndConverter< ? >[] sourceAndConverters;
+	private List< Image< ? > > transformableImages;
 
 	@Override
 	public void run()
@@ -59,5 +76,34 @@ public class ManualRegistrationCommand implements BdvPlaygroundActionCommand
 				"Press [ T ] again to fix the transformation\n" +
 				"Press [ ESC ] to abort the transformation");
 		dialog.showDialog();
+
+		SourceAndConverter< ? > currentSource = bdvh.getViewerPanel().state().getCurrentSource();
+		// FIXME: Use the DataStore for keeping the references Image <=> SAC
+		Image< ? > image = DataStore.sourceToImage().get( currentSource );
+
+		if ( image instanceof RegionAnnotationImage )
+		{
+			transformableImages = ( ( RegionAnnotationImage< ? > ) image ).getSelectedImages();
+			ManualTransformationEditor transformationEditor = new ManualTransformationEditor( bdvh.getViewerPanel(), bdvh.getKeybindings() );
+			transformationEditor.setTransformableSources(  );
+			transformationEditor.setActive( true );
+			transformationEditor.manualTransformActiveListeners().add( this );
+		}
 	}
+
+	@Override
+	public void manualTransformActiveChanged( boolean active )
+	{
+		if ( !active )
+		{
+			if ( transformableImages != null )
+			{
+				// transform each image with an identity transform in order to
+				// trigger the update of the transform and notify listeners.
+				// see the {@code SpimDataImage} implementation.
+				transformableImages.stream().forEach( image -> image.transform( new AffineTransform3D() ) );
+			}
+		}
+	}
+
 }
