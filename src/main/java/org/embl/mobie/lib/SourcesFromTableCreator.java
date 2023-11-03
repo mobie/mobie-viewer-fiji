@@ -42,6 +42,7 @@ import tech.tablesaw.api.Table;
 import tech.tablesaw.columns.Column;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import static tech.tablesaw.aggregate.AggregateFunctions.mean;
@@ -122,30 +123,31 @@ public class SourcesFromTableCreator
 			// thus we need to summarize it into an image table
 			// to be used as a region table
 			regionTable = Table.create( "image table" );
-			String name = regionTable.name();
 
 			// init columns
-			String imageColumn = imageColumns.get( 0 );
-			final List< String > regions = table.stringColumn( imageColumn ).asList();
-			// needed for each region table
-			regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) );
-			// needed for joining the initial table on
-			regionTable.addColumns( StringColumn.create( imageColumn, regions ) );
+			LinkedHashSet< String > uniqueImagePaths = new LinkedHashSet<>(); // important not to change the order!
+			String imageColumnName = new TableImageSource( imageColumns.get( 0 ) ).columnName;
+			StringColumn imageColumn = table.stringColumn( imageColumnName );
+			for ( String imagePath : imageColumn )
+			{
+				uniqueImagePaths.add( imagePath );
+			}
+			final List< String > regions = new ArrayList<>( uniqueImagePaths );
+			regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) ); // needed for region table
+			regionTable.addColumns( StringColumn.create( imageColumnName, regions ) ); // needed for joining the tables
 
-			//final List< String > paths = new ArrayList<>( nameToFullPath.values() );
-			//regionTable.addColumns( StringColumn.create( "source_path", paths ) );
 			final List< Column< ? > > columns = table.columns();
 			for ( final Column< ? > column : columns )
 			{
 				if ( column instanceof NumberColumn )
 				{
 					final Table summary = table.summarize( column, mean ).by( imageColumn );
-					regionTable = regionTable.joinOn( imageColumn ).leftOuter( summary );
+					regionTable = regionTable.joinOn( imageColumnName ).leftOuter( summary );
 				}
 				else if ( column instanceof StringColumn )
 				{
 					final Table summary = table.summarize( column, Aggregators.firstString ).by( imageColumn );
-					regionTable = regionTable.joinOn( imageColumn ).leftOuter( summary );
+					regionTable = regionTable.joinOn( imageColumnName ).leftOuter( summary );
 				}
 				else
 				{

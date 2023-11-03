@@ -67,7 +67,6 @@ public class OpenTableCommand implements Command {
 	protected GridType gridType = GridType.Stitched;
 
 
-
 	@Override
 	public void run()
 	{

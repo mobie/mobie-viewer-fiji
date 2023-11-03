@@ -104,39 +104,28 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 	private SourceAndConverter createSourceAndConverter( AbstractAnnotationDisplay< A > display, Image< AnnotationType< A > > image )
 	{
 		// create non-volatile sac
-		//
-		// System.out.println( "AnnotationSliceView: Creating SAC for " + image.getName() );
-
 		final Source< AnnotationType< A > > source = image.getSourcePair().getSource();
 		final BoundarySource boundarySource = new BoundarySource( source, false, 0.0F, image.getMask() );
 		final Converter< AnnotationType< A >, ARGBType > annotationARGBConverter = new AnnotationARGBConverter<>( display.coloringModel );
-		final TransformedSource transformedSource = new TransformedSource( boundarySource );
+		final TransformedSource transformedBoundarySource = new TransformedSource( boundarySource );
+		// FIXME: This is an issue if those sources are transformed, because the underlying image will not know about it
 
-		// create volatile sac
-		//
 		if ( image.getSourcePair().getVolatileSource() != null )
 		{
-			//System.out.println( "AnnotationSliceView: Creating volatile SAC for " + image.getName() );
+			// create volatile sac
 			final Source< ? extends Volatile< ? extends AnnotationType< ? > > > volatileSource = image.getSourcePair().getVolatileSource();
 			final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileSource, false, 1.0F, image.getMask() );
 			final VolatileAnnotationARGBConverter volatileAnnotationConverter = new VolatileAnnotationARGBConverter( display.coloringModel );
-			final TransformedSource volatileTransformedSource = new TransformedSource( volatileBoundarySource, transformedSource );
+			final TransformedSource volatileTransformedSource = new TransformedSource( volatileBoundarySource, transformedBoundarySource );
 			SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileTransformedSource, volatileAnnotationConverter );
 
-			// combine non-volatile and volatile sac
-			//
-			final SourceAndConverter combinedSAC = new SourceAndConverter( transformedSource, annotationARGBConverter, volatileSourceAndConverter );
+			// return combined non-volatile and volatile sac
+			final SourceAndConverter combinedSAC = new SourceAndConverter( transformedBoundarySource, annotationARGBConverter, volatileSourceAndConverter );
 			return combinedSAC;
 		}
 
-		// only non-volatile sac
-		final SourceAndConverter sac = new SourceAndConverter( transformedSource, annotationARGBConverter );
-		return sac;
-	}
-
-	private void show( SourceAndConverter< ? > sourceAndConverter )
-	{
-
+		// return non-volatile sac
+		return new SourceAndConverter( transformedBoundarySource, annotationARGBConverter );
 	}
 
 	private void configureRendering( SourceAndConverter< ? > sourceAndConverter )

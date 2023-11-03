@@ -158,6 +158,8 @@ public class FileSourcesDataSetter
 			// add the images of this source to the respective region
 			for ( int regionIndex = 0; regionIndex < numRegions; regionIndex++ )
 			{
+				// TODO: This is brittle as it requires that the sourceNames have the same
+				//   order as the regions in the regionTable
 				String regionName = regionTable.getString( regionIndex, ColumnNames.REGION_ID );
 				regionDisplay.sources.get( regionName ).add( sourceNames.get( regionIndex ) );
 				//System.out.println("Region: " +  regionName + "; source: " + sourceNames.get( regionIndex ) );

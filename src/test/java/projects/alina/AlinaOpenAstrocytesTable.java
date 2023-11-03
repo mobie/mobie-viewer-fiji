@@ -26,37 +26,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open;
+package projects.alina;
 
-import loci.common.DebugTools;
+import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.transform.GridType;
-import org.scijava.command.Command;
-import org.scijava.plugin.Parameter;
-import org.scijava.plugin.Plugin;
+import org.embl.mobie.command.open.OpenTableCommand;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Table (Advanced)..." )
-public class OpenTableAdvancedCommand extends OpenTableCommand {
-
-	static { net.imagej.patcher.LegacyInjector.preinit(); }
-
-	@Parameter( label = "Grid type", choices = {"Stitched", "Transformable"} )
-	public String gridTypeString = "Transformable" ;
-	// FIXME: SciJava supports enums now?!
-
-	@Override
-	public void run()
+class AlinaOpenAstrocytesTable
+{
+	public static void main( String[] args ) throws Exception
 	{
-		gridType = gridTypeString.equals( "Stitched" ) ? GridType.Stitched : GridType.Transformed;
-		super.run();
+		new ImageJ().ui().showUI();
+		final OpenTableCommand command = new OpenTableCommand();
+		command.root = new File( "/Volumes/20231101_CR_AD_IF_GFAPki67/analysis" );
+		command.table = new File( "/Volumes/20231101_CR_AD_IF_GFAPki67/analysis/concatenated.tsv" );
+		command.images = "DAPI_Path=DAPI,ki67_Path=ki67,GFAP_Path=GFAP";
+		command.labels = "Nuclei_Labels_Path=Nuclei"; // Nuclei_Periphery_Labels_Path=Periphery
+		command.removeSpatialCalibration = true;
+		command.run();
 	}
 }

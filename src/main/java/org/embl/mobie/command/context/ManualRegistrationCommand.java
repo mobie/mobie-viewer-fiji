@@ -29,13 +29,13 @@
 package org.embl.mobie.command.context;
 
 import bdv.tools.transformation.ManualTransformActiveListener;
+import bdv.tools.transformation.ManualTransformationEditor;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import ij.gui.NonBlockingGenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.command.ManualTransformationEditor;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.scijava.plugin.Parameter;
@@ -73,32 +73,36 @@ public class ManualRegistrationCommand implements BdvPlaygroundActionCommand, Ma
 			List< SourceAndConverter< ? > > sourceAndConverters = transformableImages.stream()
 					.map( img -> DataStore.sourceToImage().inverse().get( img ) )
 					.collect( Collectors.toList() );
-			ManualTransformationEditor transformationEditor = new ManualTransformationEditor( bdvh.getViewerPanel(), bdvh.getKeybindings() );
-			transformationEditor.setTransformableSources( sourceAndConverters );
-			transformationEditor.setActive( true );
-			transformationEditor.manualTransformActiveListeners().add( this );
 
-			new Thread( () ->
-			{
-				NonBlockingGenericDialog dialog = new NonBlockingGenericDialog( "Manual Registration" );
-				dialog.addMessage(
-						"You are now in manual transform mode, \n" +
-								"where mouse and keyboard actions will transform the selected sources.\n" +
-								"Click [ OK ] to fix the transformation.\n" +
-								"Click [ Cancel ] to abort the transformation." );
+			ManualTransformationEditor manualTransformEditor = bdvh.getManualTransformEditor();
+			manualTransformEditor.transform( sourceAndConverters );
+			manualTransformEditor.manualTransformActiveListeners().add( this );
+//			ManualTransformationEditor transformationEditor = new ManualTransformationEditor( bdvh.getViewerPanel(), bdvh.getKeybindings() );
+//			transformationEditor.setTransformableSources( sourceAndConverters );
+//			transformationEditor.setActive( true );
+//			transformationEditor.manualTransformActiveListeners().add( this );
 
-				dialog.showDialog();
-
-				if ( dialog.wasCanceled() )
-				{
-					transformationEditor.abort();
-					transformationEditor.setActive( false );
-				}
-				else if ( dialog.wasOKed() )
-				{
-					transformationEditor.setActive( false );
-				}
-			} ).start();
+//			new Thread( () ->
+//			{
+//				NonBlockingGenericDialog dialog = new NonBlockingGenericDialog( "Manual Registration" );
+//				dialog.addMessage(
+//						"You are now in manual transform mode, \n" +
+//								"where mouse and keyboard actions will transform the selected sources.\n" +
+//								"Click [ OK ] to fix the transformation.\n" +
+//								"Click [ Cancel ] to abort the transformation." );
+//
+//				dialog.showDialog();
+//
+//				if ( dialog.wasCanceled() )
+//				{
+//					transformationEditor.abort();
+//					transformationEditor.setActive( false );
+//				}
+//				else if ( dialog.wasOKed() )
+//				{
+//					transformationEditor.setActive( false );
+//				}
+//			} ).start();
 		}
 		else
 		{
