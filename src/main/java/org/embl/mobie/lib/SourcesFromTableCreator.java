@@ -106,7 +106,7 @@ public class SourcesFromTableCreator
 
 		if ( numSources == 1 )
 		{
-			// no region table and grid view needed
+			// no region table and no grid view needed
 		}
 		else if ( table.rowCount() == numSources )
 		{

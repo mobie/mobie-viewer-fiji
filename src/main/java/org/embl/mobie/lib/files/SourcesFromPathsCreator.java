@@ -28,16 +28,23 @@
  */
 package org.embl.mobie.lib.files;
 
+import org.apache.commons.compress.utils.FileNameUtils;
 import org.embl.mobie.lib.io.FileImageSource;
+import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.transform.GridType;
+import tech.tablesaw.api.StringColumn;
+import tech.tablesaw.api.Table;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SourcesFromPathsCreator
 {
 	private List< ImageFileSources > imageFileSources;
 	private List< LabelFileSources > labelSources;
+	private Table regionTable;
 
 	public SourcesFromPathsCreator( List < String > imagePaths, List < String > labelPaths, List < String > labelTablePaths, String root, GridType grid )
 	{
@@ -50,7 +57,7 @@ public class SourcesFromPathsCreator
 			imageFileSources.add( new ImageFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
 		}
 
-		// labels & tables
+		// segmentation images
 		//
 		labelSources = new ArrayList<>();
 		for ( int labelSourceIndex = 0; labelSourceIndex < labelPaths.size(); labelSourceIndex++ )
@@ -59,14 +66,20 @@ public class SourcesFromPathsCreator
 
 			if ( labelTablePaths.size() > labelSourceIndex )
 			{
-				final String labelTable = labelTablePaths.get( labelSourceIndex );
-				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, labelTable, root, grid ) );
+				final String labelTablePath = labelTablePaths.get( labelSourceIndex );
+				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, labelTablePath, root, grid ) );
 			}
 			else
 			{
 				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
 			}
 		}
+
+		// region table
+		//
+		regionTable = Table.create( "image table" );
+		final List< String > regions = imagePaths.stream().map( path -> FileNameUtils.getBaseName(  path  ) ).collect( Collectors.toList() );
+		regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) );
 	}
 
 	// TODO consider adding back the functionality of groups for sorting the grid
@@ -107,5 +120,10 @@ public class SourcesFromPathsCreator
 	public List< LabelFileSources > getLabelSources()
 	{
 		return labelSources;
+	}
+
+	public Table getRegionTable()
+	{
+		return regionTable;
 	}
 }

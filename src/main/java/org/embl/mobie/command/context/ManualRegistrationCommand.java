@@ -74,35 +74,38 @@ public class ManualRegistrationCommand implements BdvPlaygroundActionCommand, Ma
 					.map( img -> DataStore.sourceToImage().inverse().get( img ) )
 					.collect( Collectors.toList() );
 
-			ManualTransformationEditor manualTransformEditor = bdvh.getManualTransformEditor();
-			manualTransformEditor.transform( sourceAndConverters );
-			manualTransformEditor.manualTransformActiveListeners().add( this );
-//			ManualTransformationEditor transformationEditor = new ManualTransformationEditor( bdvh.getViewerPanel(), bdvh.getKeybindings() );
-//			transformationEditor.setTransformableSources( sourceAndConverters );
-//			transformationEditor.setActive( true );
-//			transformationEditor.manualTransformActiveListeners().add( this );
+			// FIXME: https://github.com/bigdataviewer/bigdataviewer-core/pull/169
+			// the below code needs the above PR merged
+//			ManualTransformationEditor manualTransformEditor = bdvh.getManualTransformEditor();
+//			manualTransformEditor.transform( sourceAndConverters );
+//			manualTransformEditor.manualTransformActiveListeners().add( this );
 
-//			new Thread( () ->
-//			{
-//				NonBlockingGenericDialog dialog = new NonBlockingGenericDialog( "Manual Registration" );
-//				dialog.addMessage(
-//						"You are now in manual transform mode, \n" +
-//								"where mouse and keyboard actions will transform the selected sources.\n" +
-//								"Click [ OK ] to fix the transformation.\n" +
-//								"Click [ Cancel ] to abort the transformation." );
-//
-//				dialog.showDialog();
-//
-//				if ( dialog.wasCanceled() )
-//				{
-//					transformationEditor.abort();
-//					transformationEditor.setActive( false );
-//				}
-//				else if ( dialog.wasOKed() )
-//				{
-//					transformationEditor.setActive( false );
-//				}
-//			} ).start();
+			// FIXME: All the code below would not be needed (including the new Thread() )
+			ManualTransformationEditor transformationEditor = new ManualTransformationEditor( bdvh.getViewerPanel(), bdvh.getKeybindings() );
+			transformationEditor.setActive( true );
+			transformationEditor.manualTransformActiveListeners().add( this );
+
+			new Thread( () ->
+			{
+				NonBlockingGenericDialog dialog = new NonBlockingGenericDialog( "Manual Registration" );
+				dialog.addMessage(
+						"You are now in manual transform mode, \n" +
+								"where mouse and keyboard actions will transform the selected sources.\n" +
+								"Click [ OK ] to fix the transformation.\n" +
+								"Click [ Cancel ] to abort the transformation." );
+
+				dialog.showDialog();
+
+				if ( dialog.wasCanceled() )
+				{
+					transformationEditor.abort();
+					transformationEditor.setActive( false );
+				}
+				else if ( dialog.wasOKed() )
+				{
+					transformationEditor.setActive( false );
+				}
+			} ).start();
 		}
 		else
 		{

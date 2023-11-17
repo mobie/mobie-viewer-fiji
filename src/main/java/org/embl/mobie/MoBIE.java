@@ -169,9 +169,9 @@ public class MoBIE
 
 		final List< ImageFileSources > imageFileSources = sourcesCreator.getImageSources();
 		final List< LabelFileSources > labelSources = sourcesCreator.getLabelSources();
+		Table regionTable = sourcesCreator.getRegionTable();
 
-		// FIXME: create the region table (similar as in the constructor below)
-		openImagesAndLabels( imageFileSources, labelSources, null );
+		openImagesAndLabels( imageFileSources, labelSources, regionTable );
 	}
 
 	// open an image or object table
