@@ -26,29 +26,58 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.lib.table.columns;
 
-import net.imagej.ImageJ;
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.command.open.OpenImageAndLabelsCommand;
+import java.util.Collection;
 
-import java.io.File;
-
-public class OpenIlastik2DImageAndSegmentationCommandTest
+public class IlastikTrackingSegmentColumnNames implements SegmentColumnNames
 {
-	static { net.imagej.patcher.LegacyInjector.preinit(); }
+	private static final String NONE = "None";
+	private static final String LABEL_ID = "labelimageId";
+	private static final String[] ANCHOR = { "Object_Center_0", "Object_Center_1", "Object_Center_2" };
+	private static final String[] BB_MIN = { "Bounding_Box_Minimum_0", "Bounding_Box_Minimum_1", "Bounding_Box_Minimum_2" };
+	private static final String[] BB_MAX = { "Bounding_Box_Maximum_0", "Bounding_Box_Maximum_1", "Bounding_Box_Maximum_2" };
+	private static final String TIMEPOINT = "frame";
 
-	public static void main( String[] args )
+	@Override
+	public String labelImageColumn()
 	{
-		new ImageJ().ui().showUI(); // initialise SciJava Services
-
-		final OpenImageAndLabelsCommand command = new OpenImageAndLabelsCommand();
-		command.image = new File( "src/test/resources/input/ilastik-2d/image.tif" );
-		command.labels = new File( "src/test/resources/input/ilastik-2d/labels.h5" );
-		command.table = new File( "src/test/resources/input/ilastik-2d/table.csv" );
-		command.run();
-
-		//final MoBIE moBIE = MoBIE.getInstance();
-		//moBIE.getViewManager().show( "labels" );
+		return NONE;
 	}
+
+	@Override
+	public String labelIdColumn()
+	{
+		return LABEL_ID;
+	}
+
+	@Override
+	public String timePointColumn()
+	{
+		return TIMEPOINT;
+	}
+
+	@Override
+	public String[] anchorColumns()
+	{
+		return ANCHOR;
+	}
+
+	@Override
+	public String[] bbMinColumns()
+	{
+		return BB_MIN;
+	}
+
+	@Override
+	public String[] bbMaxColumns()
+	{
+		return BB_MAX;
+	}
+
+	public static boolean matches( Collection< String > columns )
+	{
+		return columns.contains( LABEL_ID );
+	}
+
 }

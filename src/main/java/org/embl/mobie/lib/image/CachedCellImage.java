@@ -39,6 +39,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.util.Util;
+import net.imglib2.view.Views;
 import org.embl.mobie.io.CachedCellImgOpener;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.lib.source.SourceHelper;
@@ -103,21 +104,20 @@ public class CachedCellImage< T > implements Image< T >
 	private Source< ? > asSource( RandomAccessibleInterval< ? > rai )
 	{
 		Source< ? > source;
-		if ( rai.numDimensions() > 3 )
+		if ( rai.numDimensions() == 3 )
 		{
-			source = new RandomAccessibleIntervalSource4D(
-					rai,
-					( NumericType ) Util.getTypeFromInterval( rai ),
-					affineTransform3D,
-					name );
-		} else
-		{
-			source = new RandomAccessibleIntervalSource(
-					rai,
-					( NumericType ) Util.getTypeFromInterval( rai ),
-					affineTransform3D,
-					name );
+			// no time axis, thus we need to add one
+			// FIXME: it would we cleaner to add this logic into
+			//   org.embl.mobie.io.Axes.getChannels()
+			rai = Views.addDimension( rai, 0, 0 );
 		}
+
+		// this assumes that the last axis is the time axis
+		source = new RandomAccessibleIntervalSource4D(
+					rai,
+					( NumericType ) Util.getTypeFromInterval( rai ),
+					affineTransform3D,
+					name );
 
 		// no spatial calibration
 		SourceHelper.setVoxelDimensionsToPixels( source );

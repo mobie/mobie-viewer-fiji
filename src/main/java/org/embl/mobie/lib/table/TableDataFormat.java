@@ -103,7 +103,9 @@ public enum TableDataFormat
 	public static SegmentColumnNames getSegmentColumnNames( Collection< String > columnNames )
 	{
 		if ( MoBIESegmentColumnNames.matches( columnNames ) )
+		{
 			return new MoBIESegmentColumnNames();
+		}
 
 		if ( MorphoLibJSegmentColumnNames.matches( columnNames ) )
 		{
@@ -113,6 +115,11 @@ public enum TableDataFormat
 		if ( SkimageSegmentColumnNames.matches( columnNames ) ) 
 		{
 			return new SkimageSegmentColumnNames( columnNames );
+		}
+
+		if ( IlastikTrackingSegmentColumnNames.matches( columnNames ) )
+		{
+			return new IlastikTrackingSegmentColumnNames();
 		}
 
 		if ( IlastikSegmentColumnNames.matches( columnNames ) )

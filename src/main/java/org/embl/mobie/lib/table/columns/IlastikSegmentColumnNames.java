@@ -33,11 +33,12 @@ import java.util.Collection;
 public class IlastikSegmentColumnNames implements SegmentColumnNames
 {
 	private static final String NONE = "None";
-	private static final String LABEL_ID = "labelimageId";
-	private static final String[] ANCHOR = { "Object_Center_0", "Object_Center_1", "Object_Center_2" };
-	private static final String[] BB_MIN = { "Bounding_Box_Minimum_0", "Bounding_Box_Minimum_1", "Bounding_Box_Minimum_2" };
-	private static final String[] BB_MAX = { "Bounding_Box_Maximum_0", "Bounding_Box_Maximum_1", "Bounding_Box_Maximum_2" };
-	private static final String TIMEPOINT = "frame";
+	private static final String LABEL_ID = "labelimage_oid";
+	private static final String[] ANCHOR = { "Center of the object_0", "Center of the object_1", "Center of the object_2" };
+	private static final String[] BB_MIN = { "Bounding Box Minimum_0", "Bounding Box Minimum_1", "Bounding Box Minimum_2" };
+	private static final String[] BB_MAX = { "Bounding Box Maximum_0", "Bounding Box Maximum_1", "Bounding Box Maximum_2" };
+	private static final String TIMEPOINT = "timestep";
+
 
 	@Override
 	public String labelImageColumn()
