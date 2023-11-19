@@ -189,10 +189,19 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 			Font finalFont = font.deriveFont( finalFontSize );
 			g.setFont( finalFont );
 
-			// draw name below image
-			final float x = (float) ( sourceCenter - g.getFontMetrics().stringWidth( name ) / 2.0 );
+			// determine position
+			// TODO: does this need to be float?
+			final float x = (float) ( sourceCenter - textWidth / 2.0 );
 			final float y = (float) bounds.realMax( 1 ) + 1.1F * finalFont.getSize();
-			g.drawString( name, x, y );
+
+			// draw background (this sort of fixes: )
+			int textWidth = g.getFontMetrics().stringWidth( name );
+			int textHeight = g.getFontMetrics().getHeight();
+			g.setColor( Color.BLACK );
+			g.fillRect( (int) x, (int) y - textHeight + g.getFontMetrics().getDescent(), textWidth, textHeight);
+
+			// draw text
+			g.drawString( name,  x, y );
 		}
 	}
 
