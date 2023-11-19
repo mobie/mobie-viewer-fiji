@@ -181,26 +181,26 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 			final double sourceWidth = bounds.realMax( 0 ) - bounds.realMin( 0 );
 			final double sourceCenter = ( bounds.realMax( 0 ) + bounds.realMin( 0 ) ) / 2.0;
 
-			// determine appropriate font
+			// determine font size
 			final String name = entry.getKey();
 			g.setFont( font );
-			g.setColor( Color.WHITE );
 			final float finalFontSize = Math.min ( font.getSize(), ( float ) ( 1.0F * font.getSize() * sourceWidth / ( 1.0F * g.getFontMetrics().stringWidth( name ) ) ) );
 			Font finalFont = font.deriveFont( finalFontSize );
 			g.setFont( finalFont );
 
-			// determine position
-			// TODO: does this need to be float?
-			final float x = (float) ( sourceCenter - textWidth / 2.0 );
-			final float y = (float) bounds.realMax( 1 ) + 1.1F * finalFont.getSize();
-
-			// draw background (this sort of fixes: )
 			int textWidth = g.getFontMetrics().stringWidth( name );
 			int textHeight = g.getFontMetrics().getHeight();
+
+			// TODO: does this need to be float?
+			final int x = (int) ( sourceCenter - textWidth / 2.0 );
+			final int y = (int) ( bounds.realMax( 1 ) + 1.1F * finalFont.getSize() );
+
+			// draw background (this helps with https://github.com/mobie/mobie-viewer-fiji/issues/1013)
 			g.setColor( Color.BLACK );
-			g.fillRect( (int) x, (int) y - textHeight + g.getFontMetrics().getDescent(), textWidth, textHeight);
+			g.fillRect( x, y - textHeight + g.getFontMetrics().getDescent(), textWidth, textHeight );
 
 			// draw text
+			g.setColor( Color.WHITE );
 			g.drawString( name,  x, y );
 		}
 	}
