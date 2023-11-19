@@ -47,7 +47,6 @@ import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.image.StitchedImage;
 import org.embl.mobie.lib.select.Listeners;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -61,7 +60,7 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 {
 	private final BdvHandle bdvHandle;
 	private final SliceViewer sliceViewer;
-	private Map< String, FinalRealInterval > nameToBounds = new ConcurrentHashMap< String, FinalRealInterval >();
+	private Map< String, FinalRealInterval > imageBounds = new ConcurrentHashMap< String, FinalRealInterval >();
 	private BdvOverlaySource< ImageNameOverlay > overlaySource;
 	private boolean isActive;
 	private static final Font font = new Font( "Monospaced", Font.PLAIN, 20 );
@@ -119,13 +118,13 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 	{
 		if ( isActive )
 		{
-			adaptImageNames();
+			updateImages();
 		}
 	}
 
-	private synchronized void adaptImageNames()
+	private synchronized void updateImages()
 	{
-		nameToBounds.clear();
+		imageBounds.clear();
 
 		final ViewerState viewerState = bdvHandle.getViewerPanel().state().snapshot();
 
@@ -150,30 +149,30 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 
 				for ( Image< ? > tileImage : tileImages )
 				{
-					addImageToOverlay( viewerTransform, viewerInterval, tileImage );
+					addImage( viewerTransform, viewerInterval, tileImage );
 				}
 
 				continue;
 			}
 
-			addImageToOverlay( viewerTransform, viewerInterval, image );
+			addImage( viewerTransform, viewerInterval, image );
 		}
 	}
 
-	private void addImageToOverlay( AffineTransform3D viewerTransform, FinalRealInterval viewerInterval, Image< ? > image )
+	private void addImage( AffineTransform3D viewerTransform, FinalRealInterval viewerInterval, Image< ? > image )
 	{
 		final RealMaskRealInterval imageMask = image.getMask();
 		final FinalRealInterval intersect = Intervals.intersect( viewerInterval, imageMask );
 		if ( ! Intervals.isEmpty( intersect ) )
 		{
-			nameToBounds.put( image.getName(), viewerTransform.estimateBounds( imageMask ) );
+			imageBounds.put( image.getName(), viewerTransform.estimateBounds( imageMask ) );
 		}
 	}
 
 	@Override
 	protected void draw( Graphics2D g )
 	{
-		for ( Map.Entry< String, FinalRealInterval > entry : nameToBounds.entrySet() )
+		for ( Map.Entry< String, FinalRealInterval > entry : imageBounds.entrySet() )
 		{
 			// determine the size of the annotated source
 			// in the viewer
@@ -191,11 +190,12 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 			int textWidth = g.getFontMetrics().stringWidth( name );
 			int textHeight = g.getFontMetrics().getHeight();
 
-			// TODO: does this need to be float?
 			final int x = (int) ( sourceCenter - textWidth / 2.0 );
 			final int y = (int) ( bounds.realMax( 1 ) + 1.1F * finalFont.getSize() );
 
 			// draw background (this helps with https://github.com/mobie/mobie-viewer-fiji/issues/1013)
+			// TODO? in addition, one could also determine all the text bounds as an Interval
+			//   and then only draw the names that don't overlap with something that has been drawn already
 			g.setColor( Color.BLACK );
 			g.fillRect( x, y - textHeight + g.getFontMetrics().getDescent(), textWidth, textHeight );
 
