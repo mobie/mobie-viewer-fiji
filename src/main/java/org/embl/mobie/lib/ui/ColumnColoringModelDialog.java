@@ -76,7 +76,7 @@ public class ColumnColoringModelDialog< A extends Annotation>
 		if ( paintZeroTransparent )
 			lut += LUTs.ZERO_TRANSPARENT;
 
-		if ( LUTs.isNumeric( lut ) )
+		if ( LUTs.isNumeric( lut )  )
 		{
 			final Pair< Double, Double > minMax = table.getMinMax( columnName );
 			return ColoringModels.createNumericModel( columnName, lut, minMax, true );

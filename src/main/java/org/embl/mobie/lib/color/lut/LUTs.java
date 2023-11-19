@@ -53,8 +53,7 @@ public class LUTs
 
 	public static boolean isNumeric( String lut )
 	{
-		return lut.contains( BLUE_WHITE_RED )
-				|| lut.contains( VIRIDIS );
+		return lut.contains( BLUE_WHITE_RED ) || lut.contains( VIRIDIS );
 	}
 
 	public static boolean isCategorical( String lut )

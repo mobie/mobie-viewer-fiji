@@ -91,7 +91,7 @@ public class ColoringModels
 
 		if ( showUI )
 			SwingUtilities.invokeLater( () ->
-				new NumericColoringModelDialog( columnName, coloringModel ) );
+				new NumericColoringModelContrastDialog( columnName, coloringModel ) );
 
 		return coloringModel;
 	}
