@@ -41,15 +41,17 @@ import mpicbg.spim.data.generic.base.Entity;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.toml.TPosition;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.color.ColorHelper;
 
 import ch.epfl.biop.bdv.img.bioformats.entity.SeriesIndex;
+import org.embl.mobie.lib.hcs.omezarr.Image;
+import org.embl.mobie.lib.hcs.omezarr.OMEZarrHCSHelper;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -86,45 +88,19 @@ public class Plate
 		if ( hcsDirectory.endsWith( ".zarr" ) )
 		{
 			hcsPattern = HCSPattern.OMEZarr;
-			imageDataFormat = ImageDataFormat.OmeZarr;
 
-			final int minDepth = 3;
-			final int maxDepth = 3;
-			final Path rootPath = Paths.get(hcsDirectory);
-			final int rootPathDepth = rootPath.getNameCount();
-			imageSitePaths = Files.walk( rootPath, maxDepth )
-					.filter( e -> e.toFile().isDirectory() )
-					.filter( e -> e.getNameCount() - rootPathDepth >= minDepth )
-					.map( e -> e.toString() )
-					.collect( Collectors.toList() );
-		}
-		else
-		{
-			imageSitePaths = Files.walk( Paths.get( hcsDirectory ), 3 )
-					.map( p -> p.toString() )
-					.collect( Collectors.toList() );
-			hcsPattern = determineHCSPattern( hcsDirectory, imageSitePaths );
-			imageSitePaths = imageSitePaths.stream()
-					.filter( path -> hcsPattern.setMatcher( path ) ) // skip files like .DS_Store a.s.o.
-					.collect( Collectors.toList() );
-		}
+			if ( IOHelper.getType( hcsDirectory ).equals( IOHelper.ResourceType.S3 ) )
+				imageDataFormat = ImageDataFormat.OmeZarrS3;
+			else
+				imageDataFormat = ImageDataFormat.OmeZarr;
 
-		if ( hcsPattern == HCSPattern.Operetta )
-		{
-			//final File xml = new File( hcsDirectory, "Index.idx.xml" );
-			final File xml = new File( hcsDirectory, "Index.xml" );
-			operettaMetadata = new OperettaMetadata( xml );
-			imageSitePaths = imageSitePaths.stream()
-					.filter( path -> operettaMetadata.contains( path ) ) // skip files like .DS_Store a.s.o.
-					.collect( Collectors.toList() );
+			imageSitePaths = OMEZarrHCSHelper.sitePathsFromMetadata( hcsDirectory );
 
-		}
-		else if ( hcsPattern == HCSPattern.OMEZarr )
-		{
+			// determine the number of channels
 			try
 			{
 				final String firstImagePath = imageSitePaths.get( 0 );
-				AbstractSpimData< ? > spimData = new SpimDataOpener().open( firstImagePath, ImageDataFormat.OmeZarr );
+				AbstractSpimData< ? > spimData = new SpimDataOpener().open( firstImagePath, imageDataFormat );
 				final int numChannels = spimData.getSequenceDescription().getViewSetupsOrdered().size();
 				final List< String > channels = IntStream.range( 0, numChannels )
 						.mapToObj( i -> ( ( Integer ) i ).toString() )
@@ -135,6 +111,26 @@ public class Plate
 			{
 				throw new RuntimeException( e );
 			}
+		}
+		else if ( hcsPattern == HCSPattern.Operetta )
+		{
+			//final File xml = new File( hcsDirectory, "Index.idx.xml" );
+			final File xml = new File( hcsDirectory, "Index.xml" );
+			operettaMetadata = new OperettaMetadata( xml );
+			imageSitePaths = imageSitePaths.stream()
+					.filter( path -> operettaMetadata.contains( path ) ) // skip files like .DS_Store a.s.o.
+					.collect( Collectors.toList() );
+
+		}
+		else
+		{
+			imageSitePaths = Files.walk( Paths.get( hcsDirectory ), 3 )
+					.map( p -> p.toString() )
+					.collect( Collectors.toList() );
+			hcsPattern = determineHCSPattern( hcsDirectory, imageSitePaths );
+			imageSitePaths = imageSitePaths.stream()
+					.filter( path -> hcsPattern.setMatcher( path ) ) // skip files like .DS_Store a.s.o.
+					.collect( Collectors.toList() );
 		}
 
 		buildPlateMap( imageSitePaths );
