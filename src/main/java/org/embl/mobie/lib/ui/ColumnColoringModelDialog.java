@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.ui;
 
+import ij.IJ;
 import ij.gui.GenericDialog;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.color.ColoringModel;
@@ -76,18 +77,14 @@ public class ColumnColoringModelDialog< A extends Annotation>
 		if ( paintZeroTransparent )
 			lut += LUTs.ZERO_TRANSPARENT;
 
-		if ( LUTs.isNumeric( lut )  )
+		if ( Number.class.isAssignableFrom( table.columnClass( columnName ) ) )
 		{
 			final Pair< Double, Double > minMax = table.getMinMax( columnName );
 			return ColoringModels.createNumericModel( columnName, lut, minMax, true );
 		}
-		else if ( LUTs.isCategorical( lut ) )
-		{
-			return ColoringModels.createCategoricalModel( columnName, lut, TRANSPARENT );
-		}
 		else
 		{
-			throw new UnsupportedOperationException( "LUT " + lut + " is not supported." );
+			return ColoringModels.createCategoricalModel( columnName, lut, TRANSPARENT );
 		}
 	}
 }

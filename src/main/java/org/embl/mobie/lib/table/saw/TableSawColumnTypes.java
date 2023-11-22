@@ -40,11 +40,11 @@ public abstract class TableSawColumnTypes
 		typeToClass = new HashMap<>();
 		typeToClass.put( ColumnType.TEXT, String.class );
 		typeToClass.put( ColumnType.STRING, String.class );
+		typeToClass.put( ColumnType.BOOLEAN, Boolean.class );
 		typeToClass.put( ColumnType.DOUBLE, Double.class );
 		typeToClass.put( ColumnType.INTEGER, Integer.class );
 		typeToClass.put( ColumnType.SHORT, Short.class );
 		typeToClass.put( ColumnType.LONG, Long.class );
-		typeToClass.put( ColumnType.BOOLEAN, Boolean.class );
-		//...
 	}
+
 }
