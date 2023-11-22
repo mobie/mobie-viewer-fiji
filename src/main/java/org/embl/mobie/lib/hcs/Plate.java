@@ -46,7 +46,6 @@ import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.color.ColorHelper;
 
 import ch.epfl.biop.bdv.img.bioformats.entity.SeriesIndex;
-import org.embl.mobie.lib.hcs.omezarr.Image;
 import org.embl.mobie.lib.hcs.omezarr.OMEZarrHCSHelper;
 
 import java.io.File;
@@ -85,6 +84,7 @@ public class Plate
 		// FIXME: fetch operetta paths from XML?!
 		// FIXME: fetch OME-Zarr paths entry point JSON?!
 		List< String > imageSitePaths;
+
 		if ( hcsDirectory.endsWith( ".zarr" ) )
 		{
 			hcsPattern = HCSPattern.OMEZarr;
@@ -112,16 +112,6 @@ public class Plate
 				throw new RuntimeException( e );
 			}
 		}
-		else if ( hcsPattern == HCSPattern.Operetta )
-		{
-			//final File xml = new File( hcsDirectory, "Index.idx.xml" );
-			final File xml = new File( hcsDirectory, "Index.xml" );
-			operettaMetadata = new OperettaMetadata( xml );
-			imageSitePaths = imageSitePaths.stream()
-					.filter( path -> operettaMetadata.contains( path ) ) // skip files like .DS_Store a.s.o.
-					.collect( Collectors.toList() );
-
-		}
 		else
 		{
 			imageSitePaths = Files.walk( Paths.get( hcsDirectory ), 3 )
@@ -131,6 +121,17 @@ public class Plate
 			imageSitePaths = imageSitePaths.stream()
 					.filter( path -> hcsPattern.setMatcher( path ) ) // skip files like .DS_Store a.s.o.
 					.collect( Collectors.toList() );
+
+			if ( hcsPattern == HCSPattern.Operetta )
+			{
+				// only keep paths that are also in the XML
+				//final File xml = new File( hcsDirectory, "Index.idx.xml" );
+				final File xml = new File( hcsDirectory, "Index.xml" );
+				operettaMetadata = new OperettaMetadata( xml );
+				imageSitePaths = imageSitePaths.stream()
+						.filter( path -> operettaMetadata.contains( path ) ) // skip files like .DS_Store a.s.o.
+						.collect( Collectors.toList() );
+			}
 		}
 
 		buildPlateMap( imageSitePaths );
@@ -141,7 +142,7 @@ public class Plate
 		channelWellSites = new HashMap<>();
 		tPositions = new HashSet<>();
 
-		IJ.log("Parsing " + paths.size() + " HCS image paths...");
+		IJ.log("Parsing " + paths.size() + " images...");
 
 		for ( String path : paths )
 		{
@@ -282,15 +283,16 @@ public class Plate
 
 	private ImagePlus openImagePlus( String path, String channelName )
 	{
-		if ( imageDataFormat.equals( ImageDataFormat.Tiff ) )
+		if ( this.imageDataFormat.equals( ImageDataFormat.Tiff ) )
 		{
 			final File file = new File( path );
 			return ( new Opener() ).openTiff( file.getParent(), file.getName() );
 		}
-		else if ( imageDataFormat.equals( ImageDataFormat.OmeZarr ) )
+		else if ( this.imageDataFormat.equals( ImageDataFormat.OmeZarr )
+				|| this.imageDataFormat.equals( ImageDataFormat.OmeZarrS3 ) )
 		{
 			final int setupID = Integer.parseInt( channelName );
-			return MoBIEHelper.openOMEZarrAsImagePlus( path, setupID );
+			return MoBIEHelper.openAsImagePlus( path, setupID, imageDataFormat );
 		}
 		else
 		{

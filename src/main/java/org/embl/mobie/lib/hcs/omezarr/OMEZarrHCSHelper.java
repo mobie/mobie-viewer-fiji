@@ -2,7 +2,10 @@ package org.embl.mobie.lib.hcs.omezarr;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import ij.IJ;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.serialize.JsonHelper;
 
 import java.io.IOException;
@@ -11,6 +14,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public class OMEZarrHCSHelper
@@ -34,7 +41,7 @@ public class OMEZarrHCSHelper
 
     public static List< String > sitePathsFromMetadata( String hcsDirectory ) throws IOException
     {
-        List< String > imageSitePaths = new ArrayList<>();
+        List< String > imageSitePaths = new CopyOnWriteArrayList<>();
         Gson gson = JsonHelper.buildGson(false);
 
         String plateUri = hcsDirectory;
@@ -42,24 +49,47 @@ public class OMEZarrHCSHelper
         //System.out.println( plateJson );
         HCSMetadata hcsMetadata = gson.fromJson(plateJson, new TypeToken< HCSMetadata >() {}.getType());
 
-        int i = 0;
+        int numWells = hcsMetadata.plate.wells.size();
+        // lots of code for nice logging...
+        AtomicInteger wellIndex = new AtomicInteger(0);
+        AtomicInteger sourceLoggingModulo = new AtomicInteger(1);
+        AtomicLong lastLogMillis = new AtomicLong( System.currentTimeMillis() );
+        final long startTime = System.currentTimeMillis();
+        IJ.log( "Parsing " + numWells + " wells..." );
+
+        ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
         for ( Well well : hcsMetadata.plate.wells )
         {
-            System.out.println( "Parsing well: " + well.path );
-            String wellPath = well.path;
-            String wellUri = IOHelper.combinePath( plateUri, wellPath);
-            final String wellJson = IOHelper.read( wellUri + ZATTRS );
-            WellMetadata wellMetadata = gson.fromJson( wellJson, new TypeToken< WellMetadata >() {}.getType() );
+            futures.add(
+                ThreadHelper.ioExecutorService.submit( () ->
+                    {
+                        String log = MoBIEHelper.getLog( wellIndex, numWells, sourceLoggingModulo, lastLogMillis );
+                        if ( log != null )
+                            IJ.log( log + well.path );
 
-            for ( Image image : wellMetadata.well.images )
-            {
-                String imageUri = IOHelper.combinePath( wellUri, image.path );
-                imageSitePaths.add( imageUri );
-            }
+                        String wellUri = IOHelper.combinePath( plateUri, well.path);
+                        final String wellJson;
+                        try
+                        {
+                            wellJson = IOHelper.read( wellUri + ZATTRS );
+                        } catch ( IOException e )
+                        {
+                            throw new RuntimeException( e );
+                        }
+                        WellMetadata wellMetadata = gson.fromJson( wellJson, new TypeToken< WellMetadata >() {}.getType() );
 
-            i++;
-            if ( i > 1 ) break;
+                        for ( Image image : wellMetadata.well.images )
+                        {
+                            String imageUri = IOHelper.combinePath( wellUri, image.path );
+                            imageSitePaths.add( imageUri );
+                        }
+                    }
+                ) );
         }
+
+        ThreadHelper.waitUntilFinished( futures );
+
+        IJ.log( "Parsed " + numWells + " wells in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + ThreadHelper.getNumIoThreads() + " thread(s).");
 
         return imageSitePaths;
     }
