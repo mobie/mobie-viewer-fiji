@@ -75,6 +75,7 @@ public class Plate
 	private ImageDataFormat imageDataFormat;
 	private OperettaMetadata operettaMetadata;
 	private AbstractSpimData< ? > spimDataPlate;
+	private boolean siteIDsAreOneBased = true;
 
 
 	public Plate( String hcsDirectory ) throws IOException
@@ -142,7 +143,7 @@ public class Plate
 		channelWellSites = new HashMap<>();
 		tPositions = new HashSet<>();
 
-		IJ.log("Parsing " + paths.size() + " images...");
+		IJ.log("Parsing " + paths.size() + " sites...");
 
 		for ( String path : paths )
 		{
@@ -254,6 +255,8 @@ public class Plate
 					site.setDimensions( siteDimensions );
 					site.setVoxelDimensions( voxelDimensions );
 					channelWellSites.get( channel ).get( well ).add( site );
+					if ( Integer.parseInt( site.getId() ) == 0 )
+						siteIDsAreOneBased = false; // zero based
 					final int numSites = channelWellSites.get( channel ).get( well ).size();
 					if ( numSites > sitesPerWell )
 						sitesPerWell = numSites; // needed to compute the site position within a well
@@ -275,10 +278,10 @@ public class Plate
 		}
 
 		IJ.log( "Initialised HCS plate: " + getName() );
-		IJ.log( "Images: " + paths.size() );
-		IJ.log( "Channels: " + channelWellSites.keySet().size() );
 		IJ.log( "Wells: " + wellsPerPlate );
 		IJ.log( "Sites per well: " + sitesPerWell );
+		IJ.log( "Sites: " + paths.size() );
+		IJ.log( "Channels: " + channelWellSites.keySet().size() );
 	}
 
 	private ImagePlus openImagePlus( String path, String channelName )
@@ -414,7 +417,10 @@ public class Plate
 		if ( sitesPerWell == 1 )
 			return new int[]{ 0, 0 };
 
-		int siteIndex = Integer.parseInt( site.getId() ) - 1;
+		// TODO: not obvious that the ID can be parsed to an Integer here
+		int siteIndex = Integer.parseInt( site.getId() );
+		if ( siteIDsAreOneBased )
+			siteIndex -= 1;
 		int numSiteColumns = (int) Math.sqrt( sitesPerWell );
 
 		int[] gridPosition = new int[ 2 ];
