@@ -52,7 +52,7 @@ import bdv.viewer.TransformListener;
 import bdv.viewer.ViewerState;
 
 // TODO: what happens when the current source, display mode, etc is changed while the editor is active? deactivate?
-public class ManualTransformationEditor implements TransformListener< AffineTransform3D >
+public class MoBIEManualTransformationEditor implements TransformListener< AffineTransform3D >
 {
     private boolean active = false;
 
@@ -79,7 +79,7 @@ public class ManualTransformationEditor implements TransformListener< AffineTran
     private final Consumer< String > viewerMessageDisplay;
     private List< SourceAndConverter< ? > > transformableSources;
 
-    public ManualTransformationEditor( final AbstractViewerPanel viewer, final InputActionBindings inputActionBindings )
+    public MoBIEManualTransformationEditor( final AbstractViewerPanel viewer, final InputActionBindings inputActionBindings )
     {
         this( viewer.transformListeners(), viewer.state(), viewer::showMessage, inputActionBindings );
     }
@@ -94,7 +94,7 @@ public class ManualTransformationEditor implements TransformListener< AffineTran
      * @param inputActionBindings
      * 		the editors actionMap will be registered here while active
      */
-    public ManualTransformationEditor(
+    public MoBIEManualTransformationEditor(
             final Listeners< TransformListener< AffineTransform3D > > viewerTransformListeners,
             final ViewerState viewerState,
             final Consumer< String > viewerMessageDisplay,

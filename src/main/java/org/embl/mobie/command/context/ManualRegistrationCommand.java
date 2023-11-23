@@ -36,6 +36,7 @@ import ij.gui.NonBlockingGenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.command.MoBIEManualTransformationEditor;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.scijava.plugin.Parameter;
@@ -66,24 +67,22 @@ public class ManualRegistrationCommand implements BdvPlaygroundActionCommand, Ma
 		if ( image instanceof RegionAnnotationImage &&
 				! ( ( RegionAnnotationImage< ? > ) image ).getSelectedImages().isEmpty() )
 		{
-			// instead of transforming the whole image
-			// we only transform the selected images
 			transformableImages = ( ( RegionAnnotationImage< ? > ) image ).getSelectedImages();
 
 			List< SourceAndConverter< ? > > sourceAndConverters = transformableImages.stream()
 					.map( img -> DataStore.sourceToImage().inverse().get( img ) )
 					.collect( Collectors.toList() );
 
-			// FIXME: https://github.com/bigdataviewer/bigdataviewer-core/pull/169
-			// the below code needs the above PR merged
+			// FIXME: Use this once bdv-core 10.4.13 is shipped with Fiji....
 //			ManualTransformationEditor manualTransformEditor = bdvh.getManualTransformEditor();
 //			manualTransformEditor.transform( sourceAndConverters );
 //			manualTransformEditor.manualTransformActiveListeners().add( this );
 
-			// FIXME: All the code below would not be needed (including the new Thread() )
-			ManualTransformationEditor transformationEditor = new ManualTransformationEditor( bdvh.getViewerPanel(), bdvh.getKeybindings() );
+			// FIXME: ...instead of this.
+			MoBIEManualTransformationEditor transformationEditor = new MoBIEManualTransformationEditor( bdvh.getViewerPanel(), bdvh.getKeybindings() );
 			transformationEditor.setActive( true );
 			transformationEditor.manualTransformActiveListeners().add( this );
+			transformationEditor.setTransformableSources( sourceAndConverters );
 
 			new Thread( () ->
 			{
@@ -93,7 +92,6 @@ public class ManualRegistrationCommand implements BdvPlaygroundActionCommand, Ma
 								"where mouse and keyboard actions will transform the selected sources.\n" +
 								"Click [ OK ] to fix the transformation.\n" +
 								"Click [ Cancel ] to abort the transformation." );
-
 				dialog.showDialog();
 
 				if ( dialog.wasCanceled() )
