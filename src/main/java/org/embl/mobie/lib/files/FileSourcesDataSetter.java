@@ -86,7 +86,9 @@ public class FileSourcesDataSetter
 
 			List< String > imageNames = sources.getSources();
 			ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( sources.getPath( imageNames.get( 0 ) ) );
+
 			IJ.log(sources.name + " file type: " + imageDataFormat );
+
 			for ( String imageName : imageNames )
 			{
 				final String path = sources.getPath( imageName );

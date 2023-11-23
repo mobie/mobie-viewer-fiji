@@ -44,6 +44,7 @@ import tech.tablesaw.api.Table;
 import tech.tablesaw.columns.Column;
 
 import java.io.File;
+import java.lang.reflect.Executable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -151,21 +152,28 @@ public class ImageFileSources
 
 	private void dealWithTimepointsInObjectTableIfNeeded( String name, Table table, String pathColumn )
 	{
-		final SegmentColumnNames segmentColumnNames = TableDataFormat.getSegmentColumnNames( table.columnNames() );
-
-		if ( segmentColumnNames != null && table.containsColumn( segmentColumnNames.timePointColumn()) )
+		try
 		{
-			// it can be that not all sources have the same number of time points,
-			// thus we find out here which one has the most
-			final NumberColumn timepointColumn = ( NumberColumn ) table.column( segmentColumnNames.timePointColumn() );
-			final double min = timepointColumn.min();
-			final double max = timepointColumn.max();
-			metadata.numTimePoints = ( int ) ( max - min + 1 );
-			IJ.log("Detected " + metadata.numTimePoints  + " timepoints for " + name );
+			final SegmentColumnNames segmentColumnNames = TableDataFormat.getSegmentColumnNames( table.columnNames() );
 
-			final Table where = table.where( timepointColumn.isEqualTo( max ) );
-			final String path = where.stringColumn( pathColumn ).get( 0 );
-			metadataSource = nameToPath.entrySet().stream().filter( e -> e.getValue().equals( path ) ).findFirst().get().getKey();
+			if ( table.containsColumn( segmentColumnNames.timePointColumn() ) )
+			{
+				// it can be that not all sources have the same number of time points,
+				// thus we find out here which one has the most
+				final NumberColumn timepointColumn = ( NumberColumn ) table.column( segmentColumnNames.timePointColumn() );
+				final double min = timepointColumn.min();
+				final double max = timepointColumn.max();
+				metadata.numTimePoints = ( int ) ( max - min + 1 );
+				IJ.log( "Detected " + metadata.numTimePoints + " timepoints for " + name );
+
+				final Table where = table.where( timepointColumn.isEqualTo( max ) );
+				final String path = where.stringColumn( pathColumn ).get( 0 );
+				metadataSource = nameToPath.entrySet().stream().filter( e -> e.getValue().equals( path ) ).findFirst().get().getKey();
+			}
+		}
+		catch ( Exception e )
+		{
+			// the table probably is an image table as TableDataFormat.getSegmentColumnNames( ) errors
 		}
 	}
 
