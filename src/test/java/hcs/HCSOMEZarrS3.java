@@ -26,25 +26,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.table.saw;
+package hcs;
 
-import tech.tablesaw.api.ColumnType;
+import mpicbg.spim.data.SpimDataException;
+import net.imagej.ImageJ;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
 
-public abstract class TableSawColumnTypes
+class HCSOMEZarrS3
 {
-	public static Map< ColumnType, Class< ? > > typeToClass;
-	static {
-		typeToClass = new HashMap<>();
-		typeToClass.put( ColumnType.TEXT, String.class );
-		typeToClass.put( ColumnType.STRING, String.class );
-		typeToClass.put( ColumnType.BOOLEAN, Boolean.class );
-		typeToClass.put( ColumnType.DOUBLE, Double.class );
-		typeToClass.put( ColumnType.INTEGER, Integer.class );
-		typeToClass.put( ColumnType.SHORT, Short.class );
-		typeToClass.put( ColumnType.LONG, Long.class );
-	}
+	public static void main( String[] args ) throws SpimDataException, IOException
+	{
+		new ImageJ().ui().showUI();
 
+		new MoBIE( "https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.1/plates/5966.zarr", new MoBIESettings(), 0.1, 0.0  );
+	}
 }

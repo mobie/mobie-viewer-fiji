@@ -41,15 +41,16 @@ import mpicbg.spim.data.generic.base.Entity;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.toml.TPosition;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.color.ColorHelper;
 
 import ch.epfl.biop.bdv.img.bioformats.entity.SeriesIndex;
+import org.embl.mobie.lib.hcs.omezarr.OMEZarrHCSHelper;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -74,6 +75,7 @@ public class Plate
 	private ImageDataFormat imageDataFormat;
 	private OperettaMetadata operettaMetadata;
 	private AbstractSpimData< ? > spimDataPlate;
+	private boolean siteIDsAreOneBased = true;
 
 
 	public Plate( String hcsDirectory ) throws IOException
@@ -83,48 +85,23 @@ public class Plate
 		// FIXME: fetch operetta paths from XML?!
 		// FIXME: fetch OME-Zarr paths entry point JSON?!
 		List< String > imageSitePaths;
+
 		if ( hcsDirectory.endsWith( ".zarr" ) )
 		{
 			hcsPattern = HCSPattern.OMEZarr;
-			imageDataFormat = ImageDataFormat.OmeZarr;
 
-			final int minDepth = 3;
-			final int maxDepth = 3;
-			final Path rootPath = Paths.get(hcsDirectory);
-			final int rootPathDepth = rootPath.getNameCount();
-			imageSitePaths = Files.walk( rootPath, maxDepth )
-					.filter( e -> e.toFile().isDirectory() )
-					.filter( e -> e.getNameCount() - rootPathDepth >= minDepth )
-					.map( e -> e.toString() )
-					.collect( Collectors.toList() );
-		}
-		else
-		{
-			imageSitePaths = Files.walk( Paths.get( hcsDirectory ), 3 )
-					.map( p -> p.toString() )
-					.collect( Collectors.toList() );
-			hcsPattern = determineHCSPattern( hcsDirectory, imageSitePaths );
-			imageSitePaths = imageSitePaths.stream()
-					.filter( path -> hcsPattern.setMatcher( path ) ) // skip files like .DS_Store a.s.o.
-					.collect( Collectors.toList() );
-		}
+			if ( IOHelper.getType( hcsDirectory ).equals( IOHelper.ResourceType.S3 ) )
+				imageDataFormat = ImageDataFormat.OmeZarrS3;
+			else
+				imageDataFormat = ImageDataFormat.OmeZarr;
 
-		if ( hcsPattern == HCSPattern.Operetta )
-		{
-			//final File xml = new File( hcsDirectory, "Index.idx.xml" );
-			final File xml = new File( hcsDirectory, "Index.xml" );
-			operettaMetadata = new OperettaMetadata( xml );
-			imageSitePaths = imageSitePaths.stream()
-					.filter( path -> operettaMetadata.contains( path ) ) // skip files like .DS_Store a.s.o.
-					.collect( Collectors.toList() );
+			imageSitePaths = OMEZarrHCSHelper.sitePathsFromMetadata( hcsDirectory );
 
-		}
-		else if ( hcsPattern == HCSPattern.OMEZarr )
-		{
+			// determine the number of channels
 			try
 			{
 				final String firstImagePath = imageSitePaths.get( 0 );
-				AbstractSpimData< ? > spimData = new SpimDataOpener().open( firstImagePath, ImageDataFormat.OmeZarr );
+				AbstractSpimData< ? > spimData = new SpimDataOpener().open( firstImagePath, imageDataFormat );
 				final int numChannels = spimData.getSequenceDescription().getViewSetupsOrdered().size();
 				final List< String > channels = IntStream.range( 0, numChannels )
 						.mapToObj( i -> ( ( Integer ) i ).toString() )
@@ -136,6 +113,27 @@ public class Plate
 				throw new RuntimeException( e );
 			}
 		}
+		else
+		{
+			imageSitePaths = Files.walk( Paths.get( hcsDirectory ), 3 )
+					.map( p -> p.toString() )
+					.collect( Collectors.toList() );
+			hcsPattern = determineHCSPattern( hcsDirectory, imageSitePaths );
+			imageSitePaths = imageSitePaths.stream()
+					.filter( path -> hcsPattern.setMatcher( path ) ) // skip files like .DS_Store a.s.o.
+					.collect( Collectors.toList() );
+
+			if ( hcsPattern == HCSPattern.Operetta )
+			{
+				// only keep paths that are also in the XML
+				//final File xml = new File( hcsDirectory, "Index.idx.xml" );
+				final File xml = new File( hcsDirectory, "Index.xml" );
+				operettaMetadata = new OperettaMetadata( xml );
+				imageSitePaths = imageSitePaths.stream()
+						.filter( path -> operettaMetadata.contains( path ) ) // skip files like .DS_Store a.s.o.
+						.collect( Collectors.toList() );
+			}
+		}
 
 		buildPlateMap( imageSitePaths );
 	}
@@ -145,7 +143,7 @@ public class Plate
 		channelWellSites = new HashMap<>();
 		tPositions = new HashSet<>();
 
-		IJ.log("Parsing " + paths.size() + " HCS image paths...");
+		IJ.log("Parsing " + paths.size() + " sites...");
 
 		for ( String path : paths )
 		{
@@ -257,6 +255,8 @@ public class Plate
 					site.setDimensions( siteDimensions );
 					site.setVoxelDimensions( voxelDimensions );
 					channelWellSites.get( channel ).get( well ).add( site );
+					if ( Integer.parseInt( site.getId() ) == 0 )
+						siteIDsAreOneBased = false; // zero based
 					final int numSites = channelWellSites.get( channel ).get( well ).size();
 					if ( numSites > sitesPerWell )
 						sitesPerWell = numSites; // needed to compute the site position within a well
@@ -278,23 +278,24 @@ public class Plate
 		}
 
 		IJ.log( "Initialised HCS plate: " + getName() );
-		IJ.log( "Images: " + paths.size() );
-		IJ.log( "Channels: " + channelWellSites.keySet().size() );
 		IJ.log( "Wells: " + wellsPerPlate );
 		IJ.log( "Sites per well: " + sitesPerWell );
+		IJ.log( "Sites: " + paths.size() );
+		IJ.log( "Channels: " + channelWellSites.keySet().size() );
 	}
 
 	private ImagePlus openImagePlus( String path, String channelName )
 	{
-		if ( imageDataFormat.equals( ImageDataFormat.Tiff ) )
+		if ( this.imageDataFormat.equals( ImageDataFormat.Tiff ) )
 		{
 			final File file = new File( path );
 			return ( new Opener() ).openTiff( file.getParent(), file.getName() );
 		}
-		else if ( imageDataFormat.equals( ImageDataFormat.OmeZarr ) )
+		else if ( this.imageDataFormat.equals( ImageDataFormat.OmeZarr )
+				|| this.imageDataFormat.equals( ImageDataFormat.OmeZarrS3 ) )
 		{
 			final int setupID = Integer.parseInt( channelName );
-			return MoBIEHelper.openOMEZarrAsImagePlus( path, setupID );
+			return MoBIEHelper.openAsImagePlus( path, setupID, imageDataFormat );
 		}
 		else
 		{
@@ -416,7 +417,10 @@ public class Plate
 		if ( sitesPerWell == 1 )
 			return new int[]{ 0, 0 };
 
-		int siteIndex = Integer.parseInt( site.getId() ) - 1;
+		// TODO: not obvious that the ID can be parsed to an Integer here
+		int siteIndex = Integer.parseInt( site.getId() );
+		if ( siteIDsAreOneBased )
+			siteIndex -= 1;
 		int numSiteColumns = (int) Math.sqrt( sitesPerWell );
 
 		int[] gridPosition = new int[ 2 ];

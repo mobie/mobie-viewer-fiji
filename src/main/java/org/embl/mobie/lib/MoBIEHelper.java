@@ -52,6 +52,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -262,11 +264,11 @@ public abstract class MoBIEHelper
 		return metadata;
 	}
 
-	public static ImagePlus openOMEZarrAsImagePlus( String path, int setupID )
+	public static ImagePlus openAsImagePlus( String path, int setupID, ImageDataFormat imageDataFormat )
 	{
 		try
 		{
-			AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, ImageDataFormat.OmeZarr );
+			AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, imageDataFormat );
 			final SpimSource< ? > spimSource = new SpimSource( spimData, setupID, "" );
 			final ImagePlus imagePlus = new SourceToImagePlusConverter<>( spimSource ).getImagePlus( 0 );
 			return imagePlus;
@@ -299,6 +301,31 @@ public abstract class MoBIEHelper
 		final String path = combinePath( strings.toArray( new String[0] ) );
 
 		return path;
+	}
+
+	public static String getLog( AtomicInteger dataSetIndex, int numTotal, AtomicInteger dataSetLoggingInterval, AtomicLong lastLogMillis )
+	{
+		final int currentDatasetIndex = dataSetIndex.incrementAndGet();
+
+		if ( currentDatasetIndex % dataSetLoggingInterval.get() == 0  )
+		{
+			// Update logging frequency
+			// such that a message appears
+			// approximately every 5000 ms
+			final long currentTimeMillis = System.currentTimeMillis();
+			if ( currentTimeMillis - lastLogMillis.get() < 4000 )
+				dataSetLoggingInterval.set( Math.max( 1, dataSetLoggingInterval.get() * 2 ) );
+			else if ( currentTimeMillis - lastLogMillis.get() > 6000 )
+				dataSetLoggingInterval.set( Math.max( 1, dataSetLoggingInterval.get() / 2  ) );
+			lastLogMillis.set( currentTimeMillis );
+
+			// Return log message
+			return "Initialising (" + currentDatasetIndex + "/" + numTotal + "): ";
+		}
+		else
+		{
+			return null;
+		}
 	}
 
 	public enum FileLocation
