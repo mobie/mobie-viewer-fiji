@@ -28,14 +28,11 @@
  */
 package org.embl.mobie;
 
-import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.lib.io.DataFormats;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.table.TableDataFormat;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class MoBIESettings

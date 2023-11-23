@@ -130,6 +130,9 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 
 	public ValuePair< Double, Double > getValueLimits()
 	{
+		if ( valueLimits == null )
+			return null;
+
 		return new ValuePair<>( valueLimits[ 0 ], valueLimits[ 1 ] );
 	}
 
