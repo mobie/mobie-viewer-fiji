@@ -390,31 +390,6 @@ public class MoBIE
 		}
 	}
 
-	private String getLog( AtomicInteger dataSetIndex, int numTotal, AtomicInteger dataSetLoggingInterval, AtomicLong lastLogMillis )
-	{
-		final int currentDatasetIndex = dataSetIndex.incrementAndGet();
-
-		if ( currentDatasetIndex % dataSetLoggingInterval.get() == 0  )
-		{
-			// Update logging frequency
-			// such that a message appears
-			// approximately every 5000 ms
-			final long currentTimeMillis = System.currentTimeMillis();
-			if ( currentTimeMillis - lastLogMillis.get() < 4000 )
-				dataSetLoggingInterval.set( Math.max( 1, dataSetLoggingInterval.get() * 2 ) );
-			else if ( currentTimeMillis - lastLogMillis.get() > 6000 )
-				dataSetLoggingInterval.set( Math.max( 1, dataSetLoggingInterval.get() / 2  ) );
-			lastLogMillis.set( currentTimeMillis );
-
-			// Return log message
-			return "Initialising (" + currentDatasetIndex + "/" + numTotal + "): ";
-		}
-		else
-		{
-			return null;
-		}
-	}
-
 	private void openAndViewDataset( String datasetName, String viewName ) throws IOException
 	{
 		IJ.log("Opening dataset: " + datasetName );
@@ -665,7 +640,7 @@ public class MoBIE
 			futures.add(
 				ThreadHelper.ioExecutorService.submit( () ->
 					{
-						String log = getLog( sourceIndex, numImages, sourceLoggingModulo, lastLogMillis );
+						String log = MoBIEHelper.getLog( sourceIndex, numImages, sourceLoggingModulo, lastLogMillis );
 						initDataSource( dataSource, log );
 					}
 				) );
@@ -759,6 +734,11 @@ public class MoBIE
 			if ( site.getImageDataFormat().equals( ImageDataFormat.OmeZarr ) )
 			{
 				return new SpimDataImage( ImageDataFormat.OmeZarr, site.absolutePath, site.channel, name, ThreadHelper.sharedQueue, false );
+			}
+
+			if ( site.getImageDataFormat().equals( ImageDataFormat.OmeZarrS3 ) )
+			{
+				return new SpimDataImage( ImageDataFormat.OmeZarrS3, site.absolutePath, site.channel, name, ThreadHelper.sharedQueue, false );
 			}
 
 			return new SpimDataImage( site, name, ThreadHelper.sharedQueue );
