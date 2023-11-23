@@ -51,17 +51,6 @@ public class LUTs
 	public static final ARGBType TRANSPARENT = new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) );
 	public static final ARGBType DARK_GREY = new ARGBType( ARGBType.rgba( 100, 100, 100, 255 ) );
 
-	public static boolean isNumeric( String lut )
-	{
-		return lut.contains( BLUE_WHITE_RED ) || lut.contains( VIRIDIS );
-	}
-
-	public static boolean isCategorical( String lut )
-	{
-		return lut.contains( GLASBEY ) || lut.contains( ARGB_COLUMN ) || lut.contains( RGBA_COLUMN );
-	}
-
-
 	public static ARGBLut getLut( String lutName )
 	{
 		// we also encode zeroTransparent in the lutName

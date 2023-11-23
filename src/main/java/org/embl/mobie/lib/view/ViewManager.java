@@ -537,7 +537,7 @@ public class ViewManager
 			//
 			String lut = annotationDisplay.getLut();
 
-			if ( LUTs.isCategorical( lut ) )
+			if ( annotationDisplay.getValueLimits() == null )
 			{
 				CategoricalAnnotationColoringModel< Annotation > coloringModel = ColoringModels.createCategoricalModel( annotationDisplay.getColoringColumnName(), lut, LUTs.TRANSPARENT );
 
@@ -563,7 +563,7 @@ public class ViewManager
 
 				annotationDisplay.coloringModel = new MobieColoringModel( coloringModel, annotationDisplay.selectionModel, annotationDisplay.getSelectionColor(), annotationDisplay.getOpacityNotSelected() );
 			}
-			else if ( LUTs.isNumeric( lut ) )
+			else
 			{
 				NumericAnnotationColoringModel< Annotation > coloringModel
 						= ColoringModels.createNumericModel(
@@ -574,10 +574,6 @@ public class ViewManager
 							);
 
 				annotationDisplay.coloringModel = new MobieColoringModel( coloringModel, annotationDisplay.selectionModel, annotationDisplay.getSelectionColor(), annotationDisplay.getOpacityNotSelected() );
-			}
-			else
-			{
-				throw new UnsupportedOperationException("Coloring LUT " + lut + " is not supported.");
 			}
 
 			// show the data
