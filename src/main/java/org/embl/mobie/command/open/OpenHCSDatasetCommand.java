@@ -46,8 +46,8 @@ public class OpenHCSDatasetCommand implements Command
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter ( label = "HCS Plate Directory", style = "directory" )
-	public File hcsDirectory;
+	@Parameter ( label = "HCS Plate Directory" ) // , style = "directory"
+	public String hcsDirectory; // changed to String, because otherwise S3 addresses do not work
 
 	@Parameter ( label = "Relative Well Margin" )
 	public double wellMargin = 0.1;
@@ -63,7 +63,7 @@ public class OpenHCSDatasetCommand implements Command
 	{
 		try
 		{
-			new MoBIE( hcsDirectory.getAbsolutePath(), new MoBIESettings(), wellMargin, siteMargin );
+			new MoBIE( hcsDirectory, new MoBIESettings(), wellMargin, siteMargin );
 		}
 		catch ( IOException e )
 		{

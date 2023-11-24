@@ -43,6 +43,7 @@ import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.toml.TPosition;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.color.ColorHelper;
 
 import ch.epfl.biop.bdv.img.bioformats.entity.SeriesIndex;
@@ -91,9 +92,14 @@ public class Plate
 			hcsPattern = HCSPattern.OMEZarr;
 
 			if ( IOHelper.getType( hcsDirectory ).equals( IOHelper.ResourceType.S3 ) )
+			{
 				imageDataFormat = ImageDataFormat.OmeZarrS3;
+				ThreadHelper.setNumIoThreads( Math.max( 16, ThreadHelper.getNumIoThreads() ) );
+			}
 			else
+			{
 				imageDataFormat = ImageDataFormat.OmeZarr;
+			}
 
 			imageSitePaths = OMEZarrHCSHelper.sitePathsFromMetadata( hcsDirectory );
 
@@ -163,6 +169,7 @@ public class Plate
 					channelWellSites.put( channel, new HashMap<>() );
 
 					// FIXME Replace with MoBIEHelper.getMetadataFromImageFile
+					IJ.log( "Fetching metadata for channel " + channelName + " from " + path + "..." );
 					ImagePlus singleChannelImagePlus = operettaMetadata == null ? openImagePlus( path, channelName ) : null;
 
 					// set channel metadata
@@ -183,6 +190,7 @@ public class Plate
 						final String color = ColorHelper.getString( singleChannelImagePlus.getLuts()[ 0 ] );
 						channel.setColor( color );
 
+						IJ.run(singleChannelImagePlus, "Enhance Contrast", "saturated=0.35");
 						final double[] contrastLimits = new double[]{
 								singleChannelImagePlus.getDisplayRangeMin(),
 								singleChannelImagePlus.getDisplayRangeMax()

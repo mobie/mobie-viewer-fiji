@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -50,13 +51,21 @@ public class OMEZarrHCSHelper
         HCSMetadata hcsMetadata = gson.fromJson(plateJson, new TypeToken< HCSMetadata >() {}.getType());
 
         int numWells = hcsMetadata.plate.wells.size();
+
         // lots of code for nice logging...
         AtomicInteger wellIndex = new AtomicInteger(0);
         AtomicInteger sourceLoggingModulo = new AtomicInteger(1);
         AtomicLong lastLogMillis = new AtomicLong( System.currentTimeMillis() );
         final long startTime = System.currentTimeMillis();
         IJ.log( "Parsing " + numWells + " wells..." );
+        parseWells( hcsMetadata, wellIndex, numWells, sourceLoggingModulo, lastLogMillis, plateUri, gson, imageSitePaths );
+        IJ.log( "Parsed " + numWells + " wells in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + ThreadHelper.getNumIoThreads() + " thread(s).");
 
+        return imageSitePaths;
+    }
+
+    private static void parseWells( HCSMetadata hcsMetadata, AtomicInteger wellIndex, int numWells, AtomicInteger sourceLoggingModulo, AtomicLong lastLogMillis, String plateUri, Gson gson, List< String > imageSitePaths )
+    {
         ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
         for ( Well well : hcsMetadata.plate.wells )
         {
@@ -86,11 +95,50 @@ public class OMEZarrHCSHelper
                     }
                 ) );
         }
-
         ThreadHelper.waitUntilFinished( futures );
+    }
 
-        IJ.log( "Parsed " + numWells + " wells in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + ThreadHelper.getNumIoThreads() + " thread(s).");
+    //  attempt to implement asynch I/O, did not work though, i.e. no speed-up
+    private static void parseWellsExperimental( HCSMetadata hcsMetadata, AtomicInteger wellIndex, int numWells, AtomicInteger sourceLoggingModulo, AtomicLong lastLogMillis, String plateUri, Gson gson, List< String > imageSitePaths )
+    {
+        List< CompletableFuture<Void> > futureList = new ArrayList<>();
 
-        return imageSitePaths;
+        for ( Well well : hcsMetadata.plate.wells )
+        {
+            CompletableFuture<Void> future = CompletableFuture.supplyAsync(() ->
+                {
+                    String log = MoBIEHelper.getLog( wellIndex, numWells, sourceLoggingModulo, lastLogMillis );
+                    if ( log != null )
+                        IJ.log( log + well.path );
+
+                    String wellUri = IOHelper.combinePath( plateUri, well.path);
+                    final String wellJson;
+                    try
+                    {
+                        wellJson = IOHelper.read( wellUri + ZATTRS );
+                    } catch ( IOException e )
+                    {
+                        throw new RuntimeException( e );
+                    }
+                    WellMetadata wellMetadata = gson.fromJson( wellJson, new TypeToken< WellMetadata >() {}.getType() );
+
+                    for ( Image image : wellMetadata.well.images )
+                    {
+                        String imageUri = IOHelper.combinePath( wellUri, image.path );
+                        imageSitePaths.add( imageUri );
+                    }
+
+                    return null;
+                }, ThreadHelper.ioExecutorService ).thenRun(() -> {})
+                    .exceptionally(e -> {
+                        // Handle exceptions here
+                        return null;
+                    });
+
+            futureList.add(future);
+        }
+
+        // Wait for all futures to complete
+        CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
     }
 }

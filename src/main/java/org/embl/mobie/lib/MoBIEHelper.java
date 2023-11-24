@@ -36,6 +36,7 @@ import loci.plugins.in.ImporterOptions;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.Dimensions;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
@@ -266,17 +267,10 @@ public abstract class MoBIEHelper
 
 	public static ImagePlus openAsImagePlus( String path, int setupID, ImageDataFormat imageDataFormat )
 	{
-		try
-		{
-			AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, imageDataFormat );
-			final SpimSource< ? > spimSource = new SpimSource( spimData, setupID, "" );
-			final ImagePlus imagePlus = new SourceToImagePlusConverter<>( spimSource ).getImagePlus( 0 );
-			return imagePlus;
-		}
-		catch ( SpimDataException e )
-		{
-			throw new RuntimeException( e );
-		}
+		AbstractSpimData< ? > spimData = DataStore.fetchSpimData( path, imageDataFormat, ThreadHelper.sharedQueue );
+		final SpimSource< ? > spimSource = new SpimSource( spimData, setupID, "" );
+		final ImagePlus imagePlus = new SourceToImagePlusConverter<>( spimSource ).getImagePlus( 0 );
+		return imagePlus;
 	}
 
 	public static String createAbsolutePath( String rootFolder, String fileName, String folderName )
