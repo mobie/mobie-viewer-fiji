@@ -83,15 +83,15 @@ public class StorageLocation
 	// historically, we only had fluorescence channels,
 	// and thus the name of the variable is "channel" and cannot
 	// readily be changed because we use in the MoBIE JSON spec
-	public Integer channel; // only for images, will default to zero if not set
+	public Integer channelIndex; // only for images, will default to zero if not set
 
 	public Integer getChannel()
 	{
-		return channel == null ? 0 : channel;
+		return channelIndex == null ? 0 : channelIndex;
 	}
 
 	public void setChannel( Integer channel )
 	{
-		this.channel = channel;
+		this.channelIndex = channel;
 	}
 }

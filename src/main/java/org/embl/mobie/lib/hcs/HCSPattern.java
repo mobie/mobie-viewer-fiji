@@ -278,7 +278,7 @@ public enum HCSPattern
 			return "1";
 	}
 
-	public void setChannels( List< String > channels )
+	public void setChannelNames( List< String > channels )
 	{
 		this.channels = channels;
 	}

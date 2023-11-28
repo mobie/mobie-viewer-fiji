@@ -164,7 +164,7 @@ public class HCSDataAdder
 					{
 						// the one site is the well
 						//
-						ImageDataSource imageDataSource = createImageDataSource( channel, site, site.getId() );
+						ImageDataSource imageDataSource = createImageDataSource( channel, site, wellID );
 						dataset.addDataSource( imageDataSource );
 					}
 				}

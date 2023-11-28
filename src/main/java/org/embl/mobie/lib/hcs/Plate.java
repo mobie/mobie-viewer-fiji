@@ -32,9 +32,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.io.Opener;
 import ij.measure.Calibration;
-import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
-import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.ViewSetup;
@@ -42,7 +40,6 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 import mpicbg.spim.data.generic.base.Entity;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.toml.TPosition;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.MoBIEHelper;
@@ -63,7 +60,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class Plate
 {
@@ -110,7 +106,7 @@ public class Plate
 			AbstractSpimData< ? > spimData = DataStore.fetchSpimData( firstImagePath, imageDataFormat, ThreadHelper.sharedQueue );
 			List< ViewSetup > viewSetupsOrdered = ( List< ViewSetup > ) spimData.getSequenceDescription().getViewSetupsOrdered();
 			List< String > channels = viewSetupsOrdered.stream().map( vs -> vs.getChannel().getName() ).collect( Collectors.toList() );
-			hcsPattern.setChannels( channels );
+			hcsPattern.setChannelNames( channels );
 		}
 		else
 		{
@@ -149,11 +145,9 @@ public class Plate
 			hcsPattern.setMatcher( sitePath );
 
 			// some formats contain multiple channels in one file
-			List< String > channelIDs = hcsPattern.getChannels();
+			List< String > channelNames = hcsPattern.getChannels();
 
-			// FIXME: For labels, it can be that they are not present for all sites
-			//   Thus the site should not be instantiated in this case.
-			for ( String channelName : channelIDs ) // this could also be labels
+			for ( String channelName : channelNames )
 			{
 				Channel channel = getChannel( channelWellSites, channelName );
 
@@ -161,12 +155,12 @@ public class Plate
 				{
 					// configure channel properties
 					//
-					channel = new Channel( channelName );
+					channel = new Channel( channelName, channelNames.indexOf( channelName ) );
 					channelWellSites.put( channel, new HashMap<>() );
 
 					// FIXME Replace with MoBIEHelper.getMetadataFromImageFile
 					IJ.log( "Fetching metadata for setup " + channelName + " from " + sitePath + "..." );
-					ImagePlus singleChannelImagePlus = operettaMetadata == null ? openImagePlus( sitePath, channelName ) : null;
+					ImagePlus singleChannelImagePlus = operettaMetadata == null ? openImagePlus( sitePath, channel.getChannelIndex() ) : null;
 
 					// set channel metadata
 					//
@@ -269,7 +263,7 @@ public class Plate
 				if ( hcsPattern.equals( hcsPattern.OMEZarr ) )
 				{
 					site.absolutePath = sitePath;
-					site.channel = Integer.parseInt( channelName );
+					site.channelIndex = channel.getChannelIndex();
 				}
 				else
 				{
@@ -288,7 +282,7 @@ public class Plate
 		IJ.log( "Channels: " + channelWellSites.keySet().size() );
 	}
 
-	private ImagePlus openImagePlus( String path, String channelName )
+	private ImagePlus openImagePlus( String path, int channelID )
 	{
 		if ( this.imageDataFormat.equals( ImageDataFormat.Tiff ) )
 		{
@@ -298,8 +292,7 @@ public class Plate
 		else if ( this.imageDataFormat.equals( ImageDataFormat.OmeZarr )
 				|| this.imageDataFormat.equals( ImageDataFormat.OmeZarrS3 ) )
 		{
-			final int setupID = Integer.parseInt( channelName );
-			return MoBIEHelper.openAsImagePlus( path, setupID, imageDataFormat );
+			return MoBIEHelper.openAsImagePlus( path, channelID, imageDataFormat );
 		}
 		else
 		{
