@@ -30,15 +30,19 @@ package org.embl.mobie.lib.hcs;
 
 import net.thisptr.jackson.jq.internal.misc.Strings;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
+import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.ImageDataSource;
+import org.embl.mobie.lib.serialize.SegmentationDataSource;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.Display;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
+import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.transformation.MergedGridTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -139,7 +143,7 @@ public class HCSDataAdder
 						// create a site grid to form the well
 						//
 						String siteID = getSiteID( plate, channel, well, site );
-						final ImageDataSource imageDataSource = new ImageDataSource( siteID, site.getImageDataFormat(), site );
+						ImageDataSource imageDataSource = createImageDataSource( channel, site, siteID );
 						dataset.addDataSource( imageDataSource );
 
 						// add site image source to site grid
@@ -160,7 +164,7 @@ public class HCSDataAdder
 					{
 						// the one site is the well
 						//
-						final ImageDataSource imageDataSource = new ImageDataSource( wellID, site.getImageDataFormat(), site );
+						ImageDataSource imageDataSource = createImageDataSource( channel, site, site.getId() );
 						dataset.addDataSource( imageDataSource );
 					}
 				}
@@ -177,8 +181,17 @@ public class HCSDataAdder
 
 			imageTransforms.add( wellGrid );
 
-			final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( wellGrid.getName(), Arrays.asList( wellGrid.getName() ), channel.getColor(), channel.getContrastLimits() );
-			displays.add( imageDisplay );
+			if ( channel.getName().equals( "labels" ) )
+			{
+				SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( wellGrid.getName(), Arrays.asList( wellGrid.getName() ) );
+				displays.add( segmentationDisplay );
+			}
+			else
+			{
+				ImageDisplay< ? > imageDisplay = new ImageDisplay<>( wellGrid.getName(), Arrays.asList( wellGrid.getName() ), channel.getColor(), channel.getContrastLimits() );
+				displays.add( imageDisplay );
+			}
+
 		}
 
 		displays.add( wellDisplay );
@@ -189,6 +202,21 @@ public class HCSDataAdder
 		final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( wells.get( 0 ), 0 );
 		final View view = new View( plate.getName(), "plate", displays, imageTransforms, viewerTransform, true );
 		dataset.views().put( view.getName(), view );
+	}
+
+	@NotNull
+	private static ImageDataSource createImageDataSource( Channel channel, Site site, String siteID )
+	{
+		ImageDataSource imageDataSource;
+		if ( channel.getName().equals( "labels" ) )
+		{
+			imageDataSource = new SegmentationDataSource( siteID, site.getImageDataFormat(), site );
+		}
+		else
+		{
+			imageDataSource = new ImageDataSource( siteID, site.getImageDataFormat(), site );
+		}
+		return imageDataSource;
 	}
 
 	private String getSiteID( Plate plate, Channel channel, Well well, Site site )

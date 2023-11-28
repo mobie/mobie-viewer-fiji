@@ -28,6 +28,7 @@
  */
 package org.embl.mobie;
 
+import IceInternal.Ex;
 import bdv.cache.SharedQueue;
 import bdv.viewer.SourceAndConverter;
 import ch.epfl.biop.bdv.img.imageplus.ImagePlusToSpimData;
@@ -38,6 +39,7 @@ import ij.VirtualStack;
 import ij.measure.Calibration;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
+import mpicbg.spim.data.sequence.ViewSetup;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
@@ -119,13 +121,20 @@ public abstract class DataStore
 
 	private static AbstractSpimData< ? > openSpimData( String path, ImageDataFormat imageDataFormat, SharedQueue sharedQueue )
 	{
-		//System.out.println( "Opening " + path + ", " +imageDataFormat  );
-
 		try
 		{
-			return new SpimDataOpener().open( path, imageDataFormat, sharedQueue );
+			AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, imageDataFormat, sharedQueue );
+			List< ViewSetup > viewSetupsOrdered = ( List< ViewSetup > ) spimData.getSequenceDescription().getViewSetupsOrdered();
+
+//			System.out.println( "Opening " + path + ", " +imageDataFormat  );
+//			for ( ViewSetup viewSetup : viewSetupsOrdered )
+//			{
+//				System.out.println( "Channel: " + viewSetup.getChannel().getName() );
+//			}
+
+			return spimData;
 		}
-		catch ( SpimDataException e )
+		catch ( Exception e )
 		{
 			throw new RuntimeException( e );
 		}
@@ -200,7 +209,7 @@ public abstract class DataStore
 		images.clear();
 	}
 
-	public static AbstractSpimData< ? > openSpimData( Site site, SharedQueue sharedQueue )
+	private static AbstractSpimData< ? > openSpimData( Site site, SharedQueue sharedQueue )
 	{
 		VirtualStack virtualStack = null;
 

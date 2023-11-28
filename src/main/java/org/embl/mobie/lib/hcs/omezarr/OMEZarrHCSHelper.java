@@ -97,48 +97,4 @@ public class OMEZarrHCSHelper
         }
         ThreadHelper.waitUntilFinished( futures );
     }
-
-    //  attempt to implement asynch I/O, did not work though, i.e. no speed-up
-    private static void parseWellsExperimental( HCSMetadata hcsMetadata, AtomicInteger wellIndex, int numWells, AtomicInteger sourceLoggingModulo, AtomicLong lastLogMillis, String plateUri, Gson gson, List< String > imageSitePaths )
-    {
-        List< CompletableFuture<Void> > futureList = new ArrayList<>();
-
-        for ( Well well : hcsMetadata.plate.wells )
-        {
-            CompletableFuture<Void> future = CompletableFuture.supplyAsync(() ->
-                {
-                    String log = MoBIEHelper.getLog( wellIndex, numWells, sourceLoggingModulo, lastLogMillis );
-                    if ( log != null )
-                        IJ.log( log + well.path );
-
-                    String wellUri = IOHelper.combinePath( plateUri, well.path);
-                    final String wellJson;
-                    try
-                    {
-                        wellJson = IOHelper.read( wellUri + ZATTRS );
-                    } catch ( IOException e )
-                    {
-                        throw new RuntimeException( e );
-                    }
-                    WellMetadata wellMetadata = gson.fromJson( wellJson, new TypeToken< WellMetadata >() {}.getType() );
-
-                    for ( Image image : wellMetadata.well.images )
-                    {
-                        String imageUri = IOHelper.combinePath( wellUri, image.path );
-                        imageSitePaths.add( imageUri );
-                    }
-
-                    return null;
-                }, ThreadHelper.ioExecutorService ).thenRun(() -> {})
-                    .exceptionally(e -> {
-                        // Handle exceptions here
-                        return null;
-                    });
-
-            futureList.add(future);
-        }
-
-        // Wait for all futures to complete
-        CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
-    }
 }

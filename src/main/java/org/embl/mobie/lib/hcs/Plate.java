@@ -34,10 +34,13 @@ import ij.io.Opener;
 import ij.measure.Calibration;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
+import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
+import mpicbg.spim.data.sequence.ViewSetup;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import mpicbg.spim.data.generic.base.Entity;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.toml.TPosition;
@@ -103,21 +106,11 @@ public class Plate
 
 			imageSitePaths = OMEZarrHCSHelper.sitePathsFromMetadata( hcsDirectory );
 
-			// determine the number of channels
-			try
-			{
-				final String firstImagePath = imageSitePaths.get( 0 );
-				AbstractSpimData< ? > spimData = new SpimDataOpener().open( firstImagePath, imageDataFormat );
-				final int numChannels = spimData.getSequenceDescription().getViewSetupsOrdered().size();
-				final List< String > channels = IntStream.range( 0, numChannels )
-						.mapToObj( i -> ( ( Integer ) i ).toString() )
-						.collect( Collectors.toList() );
-				hcsPattern.setChannels( channels );
-			}
-			catch ( SpimDataException e )
-			{
-				throw new RuntimeException( e );
-			}
+			final String firstImagePath = imageSitePaths.get( 0 );
+			AbstractSpimData< ? > spimData = DataStore.fetchSpimData( firstImagePath, imageDataFormat, ThreadHelper.sharedQueue );
+			List< ViewSetup > viewSetupsOrdered = ( List< ViewSetup > ) spimData.getSequenceDescription().getViewSetupsOrdered();
+			List< String > channels = viewSetupsOrdered.stream().map( vs -> vs.getChannel().getName() ).collect( Collectors.toList() );
+			hcsPattern.setChannels( channels );
 		}
 		else
 		{
@@ -144,20 +137,23 @@ public class Plate
 		buildPlateMap( imageSitePaths );
 	}
 
-	private void buildPlateMap( List< String > paths )
+	private void buildPlateMap( List< String > sitePaths )
 	{
 		channelWellSites = new HashMap<>();
 		tPositions = new HashSet<>();
 
-		IJ.log("Parsing " + paths.size() + " sites...");
+		IJ.log("Parsing " + sitePaths.size() + " sites...");
 
-		for ( String path : paths )
+		for ( String sitePath : sitePaths )
 		{
-			hcsPattern.setMatcher( path );
+			hcsPattern.setMatcher( sitePath );
 
 			// some formats contain multiple channels in one file
 			List< String > channelIDs = hcsPattern.getChannels();
-			for ( String channelName : channelIDs )
+
+			// FIXME: For labels, it can be that they are not present for all sites
+			//   Thus the site should not be instantiated in this case.
+			for ( String channelName : channelIDs ) // this could also be labels
 			{
 				Channel channel = getChannel( channelWellSites, channelName );
 
@@ -169,20 +165,20 @@ public class Plate
 					channelWellSites.put( channel, new HashMap<>() );
 
 					// FIXME Replace with MoBIEHelper.getMetadataFromImageFile
-					IJ.log( "Fetching metadata for channel " + channelName + " from " + path + "..." );
-					ImagePlus singleChannelImagePlus = operettaMetadata == null ? openImagePlus( path, channelName ) : null;
+					IJ.log( "Fetching metadata for setup " + channelName + " from " + sitePath + "..." );
+					ImagePlus singleChannelImagePlus = operettaMetadata == null ? openImagePlus( sitePath, channelName ) : null;
 
 					// set channel metadata
 					//
 					if ( operettaMetadata != null )
 					{
-						final String color = operettaMetadata.getColor( path );
+						final String color = operettaMetadata.getColor( sitePath );
 						channel.setColor( color );
 
 						// TODO: There does not always seem to be enough metadata for the
 						//   contrast limits, thus opening one image may be worth it
 						//   then convert to image plus and run once auto contrast on it
-						final double[] contrastLimits = operettaMetadata.getContrastLimits( path );
+						final double[] contrastLimits = operettaMetadata.getContrastLimits( sitePath );
 						channel.setContrastLimits( contrastLimits );
 					}
 					else // from image file
@@ -204,8 +200,8 @@ public class Plate
 					{
 						if ( operettaMetadata != null )
 						{
-							voxelDimensions = operettaMetadata.getVoxelDimensions( path );
-							siteDimensions = operettaMetadata.getSiteDimensions( path );
+							voxelDimensions = operettaMetadata.getVoxelDimensions( sitePath );
+							siteDimensions = operettaMetadata.getSiteDimensions( sitePath );
 						}
 						else // from image file
 						{
@@ -246,14 +242,14 @@ public class Plate
 				{
 					if ( imageDataFormat.equals( ImageDataFormat.SpimData ) )
 					{
-						final int imageIndex = operettaMetadata.getImageIndex( path );
+						final int imageIndex = operettaMetadata.getImageIndex( sitePath );
 						final BasicViewSetup viewSetup = spimDataPlate.getSequenceDescription().getViewSetupsOrdered().get( imageIndex );
 						IJ.log( "" );
 						final Map< String, Entity > attributes = viewSetup.getAttributes();
 						IJ.log( "Image index:" + imageIndex );
 						IJ.log( "Series index: " + ( ( SeriesIndex ) attributes.get( "seriesindex" ) ).getId() );
 						IJ.log( "Setup name: " + viewSetup.getName() );
-						IJ.log( "File name: " + new File( path ).getName() );
+						IJ.log( "File name: " + new File( sitePath ).getName() );
 						site = new Site( siteGroup, imageDataFormat, spimDataPlate, imageIndex );
 					}
 					else
@@ -272,14 +268,14 @@ public class Plate
 
 				if ( hcsPattern.equals( hcsPattern.OMEZarr ) )
 				{
-					site.absolutePath = path;
+					site.absolutePath = sitePath;
 					site.channel = Integer.parseInt( channelName );
 				}
 				else
 				{
 					final String t = hcsPattern.getT();
 					final String z = hcsPattern.getZ();
-					site.addPath( t, z, path );
+					site.addPath( t, z, sitePath );
 					tPositions.add( new TPosition( t ) );
 				}
 			}
@@ -288,7 +284,7 @@ public class Plate
 		IJ.log( "Initialised HCS plate: " + getName() );
 		IJ.log( "Wells: " + wellsPerPlate );
 		IJ.log( "Sites per well: " + sitesPerWell );
-		IJ.log( "Sites: " + paths.size() );
+		IJ.log( "Sites: " + sitePaths.size() );
 		IJ.log( "Channels: " + channelWellSites.keySet().size() );
 	}
 

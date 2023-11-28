@@ -38,16 +38,17 @@ import org.embl.mobie.lib.io.StorageLocation;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+// Single channel image for one site in a plate
 public class Site extends StorageLocation
 {
 	// The ID is not the final name of the corresponding image,
 	// but the image name will be concatenated also using the channel and well name.
 	private final String id;
 	private int[] dimensions;
-	private Map< TPosition, Map< ZPosition, String > > paths = new LinkedHashMap();
+	private Map< TPosition, Map< ZPosition, String > > paths = new LinkedHashMap(); // data store
 	private VoxelDimensions voxelDimensions;
 	private ImageDataFormat imageDataFormat;
-	private AbstractSpimData< ? > spimData;
+	private AbstractSpimData< ? > spimData; // data store if all data
 
 	public Site( String id, ImageDataFormat imageDataFormat )
 	{

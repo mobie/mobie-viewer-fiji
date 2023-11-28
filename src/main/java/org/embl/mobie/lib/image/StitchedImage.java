@@ -50,6 +50,7 @@ import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.NumericType;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
@@ -73,6 +74,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -599,8 +601,17 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 					//   This logic could be added back, if needed.
 					//   For this it would be good to know if that actually does
 					//   yield a performance improvement
-					final V volatileType = tileStore.getVolatileRandomAccessible( t, level, xTileIndex, yTileIndex ).getAt( x, y, z );
-					volatileValue.set( volatileType );
+					try
+					{
+						final V volatileType = tileStore.getVolatileRandomAccessible( t, level, xTileIndex, yTileIndex ).getAt( x, y, z );
+						volatileValue.set( volatileType );
+					}
+					catch ( Exception e )
+					{
+						// https://github.com/ome/ngff/issues/221
+						//
+						throw new RuntimeException( e );
+					}
 				}
 			}
 		}
