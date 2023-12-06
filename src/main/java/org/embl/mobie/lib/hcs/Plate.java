@@ -61,6 +61,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+
 public class Plate
 {
 	private final String hcsDirectory;
@@ -76,6 +77,7 @@ public class Plate
 	private OperettaMetadata operettaMetadata;
 	private AbstractSpimData< ? > spimDataPlate;
 	private boolean siteIDsAreOneBased = true;
+	private boolean is2d = true;
 
 
 	public Plate( String hcsDirectory ) throws IOException
@@ -161,6 +163,8 @@ public class Plate
 					// FIXME Replace with MoBIEHelper.getMetadataFromImageFile
 					IJ.log( "Fetching metadata for setup " + channelName + " from " + sitePath + "..." );
 					ImagePlus singleChannelImagePlus = operettaMetadata == null ? openImagePlus( sitePath, channel.getChannelIndex() ) : null;
+					if ( singleChannelImagePlus.getNSlices() > 1 )
+						is2d = false;
 
 					// set channel metadata
 					//
@@ -434,7 +438,7 @@ public class Plate
 
 	public boolean is2D()
 	{
-		return true; // for now...
+		return is2d;
 	}
 
 	public String getName()

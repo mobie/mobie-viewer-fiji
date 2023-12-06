@@ -42,6 +42,7 @@ class HCSOMEZarr
 		new ImageJ().ui().showUI();
 
 		//new MoBIE( "/Volumes/cba/exchange/ome-zarr/bugra/HCS/testdata.zarr", new MoBIESettings(), 0.1, 0.0  );
-		new MoBIE( "/Users/tischer/Downloads/20200812-CardiomyocyteDifferentiation14-Cycle1.zarr", new MoBIESettings(), 0.1, 0.0  );
+		//new MoBIE( "/Users/tischer/Downloads/20200812-CardiomyocyteDifferentiation14-Cycle1.zarr", new MoBIESettings(), 0.1, 0.0  );
+		new MoBIE( "/Users/tischer/Downloads/test-plate.zarr", new MoBIESettings(), 0.1, 0.0  );
 	}
 }

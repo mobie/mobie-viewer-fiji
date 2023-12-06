@@ -134,6 +134,7 @@ public class MoBIE
 
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening: " + projectLocation );
+		IJ.log("Branch: " + settings.values.getProjectBranch() );
 
 		openMoBIEProject();
 	}
@@ -392,7 +393,7 @@ public class MoBIE
 
 	private void openAndViewDataset( String datasetName, String viewName ) throws IOException
 	{
-		IJ.log("Opening dataset: " + datasetName );
+		IJ.log("Dataset: " + datasetName );
 		final String datasetJsonPath = combinePath( projectRoot, datasetName, "dataset.json" );
 		dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
 		dataset.setName( datasetName );

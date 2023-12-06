@@ -28,10 +28,10 @@
  */
 package projects;
 
-import org.embl.mobie.io.ImageDataFormat;
+import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import net.imagej.ImageJ;
+import org.embl.mobie.lib.io.DataFormats;
 
 import java.io.IOException;
 
@@ -42,8 +42,12 @@ public class OpenLocalPlatynereis
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 		try {
-			new MoBIE("/g/arendt/EM_6dpf_segmentation/platy-browser-data/data/",
-					MoBIESettings.settings() );
+			MoBIESettings settings = MoBIESettings.settings()
+					.gitProjectBranch( "adding_images_test" )
+					.preferentialDataLocation( DataFormats.Location.Remote )
+					.view( "nuclei_centers" );
+			new MoBIE("/Users/tischer/Documents/platybrowser-project",
+					settings );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

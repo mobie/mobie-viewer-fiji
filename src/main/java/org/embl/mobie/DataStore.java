@@ -28,7 +28,6 @@
  */
 package org.embl.mobie;
 
-import IceInternal.Ex;
 import bdv.cache.SharedQueue;
 import bdv.viewer.SourceAndConverter;
 import ch.epfl.biop.bdv.img.imageplus.ImagePlusToSpimData;
@@ -37,7 +36,6 @@ import com.google.common.collect.HashBiMap;
 import ij.ImagePlus;
 import ij.VirtualStack;
 import ij.measure.Calibration;
-import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.ViewSetup;
 import mpicbg.spim.data.sequence.VoxelDimensions;

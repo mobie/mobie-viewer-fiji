@@ -6,6 +6,8 @@
 # not necessary using conda
 # JAVA_HOME="/Users/tischer/Library/Java/JavaVirtualMachines/corretto-1.8.0_312/Contents/Home"
 
+# this script is to be used in combination with https://github.com/mobie/mobie-cmd
+
 # set the version here:
 VERSION="4.0.7-SNAPSHOT"
 MEM=8
