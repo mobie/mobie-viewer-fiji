@@ -161,8 +161,8 @@ public class MoBIE
 	{
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening images: " + Arrays.toString( imagePaths.toArray() ) );
-		IJ.log("Opening labels: " + Arrays.toString( imagePaths.toArray() ) );
-		IJ.log("Opening tables: " + Arrays.toString( imagePaths.toArray() ) );
+		IJ.log("Opening labels: " + Arrays.toString( labelPaths.toArray() ) );
+		IJ.log("Opening tables: " + Arrays.toString( labelTablePaths.toArray() ) );
 
 		this.settings = settings;
 
