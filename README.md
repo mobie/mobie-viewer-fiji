@@ -11,13 +11,9 @@ The MoBIE was initially developed to explore a cellular atlas for the biological
 
 ## Cite
 
-If you use MoBIE, please cite the [Nature Methods MoBIE publication](https://www.nature.com/articles/s41592-023-01776-4):
+If you use MoBIE, please cite:
 
-Pape, C., Meechan, K., Moreva, E. et al. MoBIE: a Fiji plugin for sharing and exploration of multi-modal cloud-hosted big image data. Nat Methods (2023). https://doi.org/10.1038/s41592-023-01776-4
-
-<!---
-TODO we should also list important dependencies, FIJI, BDV, ?
--->
+[Pape, C., Meechan, K., Moreva, E. et al. MoBIE: a Fiji plugin for sharing and exploration of multi-modal cloud-hosted big image data. Nat Methods (2023). https://doi.org/10.1038/s41592-023-01776-4](https://www.nature.com/articles/s41592-023-01776-4).
 
 ## Documentation & Tutorials
 
