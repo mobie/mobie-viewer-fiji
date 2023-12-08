@@ -111,7 +111,11 @@ public class FileSourcesDataSetter
 			}
 		}
 
+		addGridView( dataset, allSources );
+	}
 
+	private void addGridView( Dataset dataset, ArrayList< ImageFileSources > allSources )
+	{
 		RegionDisplay< AnnotatedRegion > regionDisplay = null;
 		final List< Display< ? > > displays = new ArrayList<>();
 		final List< Transformation > transformations = new ArrayList<>();

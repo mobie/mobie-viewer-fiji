@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.files;
 
+import ij.IJ;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
@@ -44,6 +45,7 @@ import java.util.Map;
 public class LabelFileSources extends ImageFileSources
 {
 	protected Map< String, TableSource > nameToLabelTable = new LinkedHashMap<>();
+	private static boolean logLabelParsingError = true;
 
 	public LabelFileSources( String name, Table table, String columnName, Integer channelIndex, String root, GridType gridType, boolean useTableForSegments )
 	{
@@ -66,9 +68,11 @@ public class LabelFileSources extends ImageFileSources
 			}
 			else
 			{
-				/*
-				The table does not contain any segment information that can be parsed.
-				 */
+				if ( logLabelParsingError )
+				{
+					IJ.log( "[WARNING] The table does not contain parseable segments (labels) information."  );
+					logLabelParsingError = false;
+				}
 			}
 		}
 	}

@@ -36,22 +36,18 @@ import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.columns.SegmentColumnNames;
-import org.embl.mobie.lib.table.saw.Aggregators;
 import org.embl.mobie.lib.transform.GridType;
 import tech.tablesaw.api.NumberColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
-import tech.tablesaw.columns.Column;
 
 import java.io.File;
-import java.lang.reflect.Executable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.embl.mobie.io.util.IOHelper.getPaths;
-import static tech.tablesaw.aggregate.AggregateFunctions.mean;
 
 public class ImageFileSources
 {

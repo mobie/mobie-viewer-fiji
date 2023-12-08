@@ -28,23 +28,64 @@
  */
 package org.embl.mobie.lib.table.columns;
 
+import java.util.Collection;
 
-public interface SegmentColumnNames
+/**
+ * https://github.com/embl-cba/microglia-morphometry/tree/main#features
+ *
+ */
+public class MicrogliaSegmentColumnNames implements SegmentColumnNames
 {
-	String labelImageColumn();
+	private static final String NONE = "None";
+	private static final String LABEL_ID = "Object_Label";
+	private static final String[] ANCHOR = { "Centroid_X_Pixel", "Centroid_Y_Pixel", "Centroid_Z_Pixel" };
+	private static final String[] BB_MIN = { NONE, NONE, NONE };
+	private static final String[] BB_MAX = { NONE, NONE, NONE };
+	private static final String TIMEPOINT = "Centroid_Time_Frames";
 
-	String labelIdColumn();
-
-	String timePointColumn();
-
-	String[] anchorColumns();
-
-	String[] bbMinColumns();
-
-	String[] bbMaxColumns();
-
-	default boolean timePointsAreOneBased() {
-		return false;
+	@Override
+	public String labelImageColumn()
+	{
+		return NONE;
 	}
 
+	@Override
+	public String labelIdColumn()
+	{
+		return LABEL_ID;
+	}
+
+	@Override
+	public String timePointColumn()
+	{
+		return TIMEPOINT;
+	}
+
+	@Override
+	public String[] anchorColumns()
+	{
+		return ANCHOR;
+	}
+
+	@Override
+	public String[] bbMinColumns()
+	{
+		return BB_MIN;
+	}
+
+	@Override
+	public String[] bbMaxColumns()
+	{
+		return BB_MAX;
+	}
+
+	public static boolean matches( Collection< String > columns )
+	{
+		return columns.contains( LABEL_ID );
+	}
+
+	@Override
+	public boolean timePointsAreOneBased() {
+		return true;
+	}
 }

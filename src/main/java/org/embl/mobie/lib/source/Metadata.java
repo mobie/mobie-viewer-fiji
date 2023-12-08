@@ -28,8 +28,13 @@
  */
 package org.embl.mobie.lib.source;
 
+import IceInternal.Ex;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.plugin.ContrastEnhancer;
+import ij.process.ImageStatistics;
+
+import static ij.measure.Measurements.MIN_MAX;
 
 public class Metadata
 {
@@ -39,6 +44,7 @@ public class Metadata
 	public Integer numTimePoints = null;
 	public Integer numZSlices = 1;
 	public Integer numChannelsContainer = 1; // in MoBIE each image has jsut one channel, but the container could have multiple
+	private static boolean logBFError = true;
 
 	public Metadata()
 	{
@@ -46,11 +52,23 @@ public class Metadata
 
 	public Metadata( ImagePlus imagePlus )
 	{
-		color = "White"; // TODO: why not extract the color?
-		// we could use more direct methods:
-		// https://imagej.nih.gov/ij/developer/source/ij/plugin/ContrastEnhancer.java.html
-		IJ.run( imagePlus, "Enhance Contrast", "saturated=0.35" );
-		contrastLimits = new double[]{ imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
+		color = "White"; // TODO: why not also extract the color?
+
+		try
+		{
+			ImageStatistics statistics = ImageStatistics.getStatistics( imagePlus.getProcessor(), MIN_MAX, null );
+			new ContrastEnhancer().stretchHistogram( imagePlus.getProcessor(), 0.35, statistics );
+		}
+		catch ( Exception e )
+		{
+			if ( logBFError )
+			{
+				// https://forum.image.sc/t/b-c-for-a-whole-virtual-stack-cont/57811/12
+				IJ.log( "[WARNING] Could not determine auto-contrast for some images due to Bio-Formats issue: https://forum.image.sc/t/b-c-for-a-whole-virtual-stack-cont/57811/12" );
+				logBFError = false;
+			}
+		}
+		contrastLimits = new double[]{ imagePlus.getProcessor().getMin(), imagePlus.getProcessor().getMax() };
 		numTimePoints = imagePlus.getNFrames();
 		numZSlices = imagePlus.getNSlices();
 		numChannelsContainer = imagePlus.getNChannels();

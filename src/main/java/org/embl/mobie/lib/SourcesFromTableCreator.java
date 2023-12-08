@@ -104,11 +104,7 @@ public class SourcesFromTableCreator
 		//
 		int numSources = imageFileSources.get( 0 ).getSources().size();
 
-		if ( numSources == 1 )
-		{
-			// no region table and no grid view needed
-		}
-		else if ( table.rowCount() == numSources )
+		if ( table.rowCount() == numSources )
 		{
 			// the input table is an image table and
 			// can thus be used as the region table

@@ -30,6 +30,7 @@ package org.embl.mobie.lib.table.saw;
 
 import net.imglib2.FinalRealInterval;
 import org.embl.mobie.lib.table.TableDataFormat;
+import org.embl.mobie.lib.table.columns.MicrogliaSegmentColumnNames;
 import org.embl.mobie.lib.table.columns.SegmentColumnNames;
 import tech.tablesaw.api.Table;
 
@@ -97,8 +98,6 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 		is3D = anchorColumnIndices.length == 3 && anchorColumnIndices[ 2 ] > -1;
 
 		hasBoundingBox = bbMinColumnIndices[ 0 ] > -1;
-
-
 	}
 
 	@Override
@@ -114,6 +113,9 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 		String source = labelImageColumnIndex > -1 ? table.stringColumn( labelImageColumnIndex ).get( rowIndex ) : table.name();
 
 		int timePoint = timePointColumnIndex > -1 ? table.intColumn( timePointColumnIndex ).get( rowIndex ) : 0;
+
+		if ( timePointColumnIndex > -1 && segmentColumnNames.timePointsAreOneBased()  )
+			timePoint -= 1;
 
 		final FinalRealInterval boundingBox = boundingBox( table, rowIndex );
 

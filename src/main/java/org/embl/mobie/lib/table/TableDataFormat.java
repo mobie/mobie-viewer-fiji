@@ -31,6 +31,7 @@ package org.embl.mobie.lib.table;
 import com.google.gson.annotations.SerializedName;
 import ij.IJ;
 import org.embl.mobie.lib.table.columns.*;
+import org.embl.mobie.lib.table.saw.TableOpener;
 
 import java.util.Collection;
 
@@ -76,8 +77,9 @@ public enum TableDataFormat
 
 	public static TableDataFormat fromPath( String path )
 	{
-		if ( path.endsWith( ".csv" ) ) return CSV;
-		if ( path.endsWith( ".tsv" ) ) return TSV;
+		Character delimiter = TableOpener.determineDelimiter( path );
+		if ( delimiter.equals( ',' ) ) return CSV;
+		if ( delimiter.equals( '\t' ) ) return TSV;
 		throw new RuntimeException("Could not determine table format of " + path );
 	}
 
@@ -129,8 +131,12 @@ public enum TableDataFormat
 
 		if ( CellProfilerSegmentColumnNames.matches( columnNames ) )
 		{
-			IJ.log( "Identified CellProfiler object table." );
 			return new CellProfilerSegmentColumnNames( columnNames );
+		}
+
+		if ( MicrogliaSegmentColumnNames.matches( columnNames ) )
+		{
+			return new MicrogliaSegmentColumnNames();
 		}
 
 		return null;

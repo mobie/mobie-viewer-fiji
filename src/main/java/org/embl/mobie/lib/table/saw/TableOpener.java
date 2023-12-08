@@ -41,6 +41,9 @@ import tech.tablesaw.api.DoubleColumn;
 import tech.tablesaw.api.IntColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -176,7 +179,7 @@ public class TableOpener
 		return table;
 	}
 
-	public static Character guessDelimiter( String path )
+	public static Character determineDelimiter( String path )
 	{
 		if ( path.endsWith( ".txt" ) )
 			return '\t';
@@ -184,7 +187,22 @@ public class TableOpener
 		if ( path.endsWith( ".tsv" ) )
 			return '\t';
 
-		return ',';
+		try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
+			String firstLine = reader.readLine();
+			if (firstLine != null) {
+				if (firstLine.contains("\t")) {
+					return '\t';
+				} else if (firstLine.contains(",")) {
+					return ',';
+				} else {
+					return ','; // We could also throw and error, but maybe there is only one column ?
+				}
+			}
+		} catch (IOException e) {
+			throw new RuntimeException( e );
+		}
+
+		throw new RuntimeException( "Could not determine table delimiter" );
 	}
 
 	public static Table openDelimitedTextFile( String path, char separator )
@@ -253,6 +271,6 @@ public class TableOpener
 
 	public static Table openDelimitedTextFile( String path )
 	{
-		return openDelimitedTextFile( path, guessDelimiter( path ) );
+		return openDelimitedTextFile( path, determineDelimiter( path ) );
 	}
 }
