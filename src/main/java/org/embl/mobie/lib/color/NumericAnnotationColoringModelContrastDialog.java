@@ -35,11 +35,11 @@ import de.embl.cba.tables.color.ColoringListener;
 import javax.swing.*;
 import java.awt.*;
 
-public class NumericColoringModelContrastDialog extends JFrame implements ColoringListener
+public class NumericAnnotationColoringModelContrastDialog extends JFrame implements ColoringListener
 {
 	public static Point dialogLocation;
 
-	public NumericColoringModelContrastDialog(
+	public NumericAnnotationColoringModelContrastDialog(
 			final String coloringFeature,
 			final NumericAnnotationColoringModel< ? > coloringModel )
 	{

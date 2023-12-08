@@ -49,6 +49,7 @@ import org.embl.mobie.lib.MoBIEInfo;
 import org.embl.mobie.lib.Services;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.OpacityHelper;
+import org.embl.mobie.lib.color.opacity.MoBIEColorConverter;
 import org.embl.mobie.lib.color.opacity.OpacityAdjuster;
 import org.embl.mobie.command.context.ConfigureImageRenderingCommand;
 import org.embl.mobie.command.context.ConfigureLabelRenderingCommand;
@@ -69,6 +70,7 @@ import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
 import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 import org.embl.mobie.lib.volume.ImageVolumeViewer;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
+import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
@@ -304,8 +306,22 @@ public class UserInterfaceHelper
 
 	public static void showContrastLimitsDialog(
 			String name,
-			List< ConverterSetup > converterSetups )
+			List< ? extends SourceAndConverter< ? > > sacs,
+			BdvHandle bdvHandle )
 	{
+		ISourceAndConverterService service = SourceAndConverterServices.getSourceAndConverterService();
+
+		List< ConverterSetup > converterSetups = sacs
+				.stream()
+				.map( sac -> service.getConverterSetup( sac ) )
+				.collect( Collectors.toList() );
+
+		List< ? extends Converter< ?, ARGBType > > converters = sacs
+				.stream()
+				.map( sac -> sac.getConverter() )
+				.collect( Collectors.toList() );
+
+
 		JFrame frame = new JFrame( name );
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 
@@ -354,6 +370,32 @@ public class UserInterfaceHelper
 
 		panel.add( minSlider );
 		panel.add( maxSlider );
+
+		boolean isInvert = false;
+		for ( Converter< ?, ARGBType > converter : converters )
+		{
+			if ( converter instanceof MoBIEColorConverter )
+			{
+				isInvert = ( ( MoBIEColorConverter ) converter ).isInvert();
+				break;
+			}
+		}
+		JCheckBox invertCheckBox = new JCheckBox( "Invert LUT" );
+		invertCheckBox.setSelected( isInvert );
+		invertCheckBox.setToolTipText( "Invert the current LUT" );
+		invertCheckBox.addActionListener( e ->
+        {
+			for ( Converter< ?, ARGBType > converter : converters )
+			{
+				if ( converter instanceof MoBIEColorConverter )
+				{
+					( ( MoBIEColorConverter ) converter ).setInvert( invertCheckBox.isSelected() );
+				}
+			}
+			bdvHandle.getViewerPanel().requestRepaint();
+        } );
+
+		panel.add( invertCheckBox );
 
 		frame.setContentPane( panel );
 
@@ -1051,14 +1093,10 @@ public class UserInterfaceHelper
 
 		button.addActionListener( e ->
 		{
-			final ArrayList< ConverterSetup > converterSetups = new ArrayList<>();
-			final Collection< ? extends SourceAndConverter< ? > > sourceAndConverters = imageDisplay.sourceAndConverters();
-			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
-				converterSetups.add( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter ) );
-
 			UserInterfaceHelper.showContrastLimitsDialog(
 					imageDisplay.getName(),
-					converterSetups );
+					imageDisplay.sourceAndConverters(),
+					imageDisplay.imageSliceView.getSliceViewer().getBdvHandle() );
 		} );
 
 		return button;

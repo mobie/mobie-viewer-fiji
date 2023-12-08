@@ -33,19 +33,37 @@ import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 
-public class AdjustableOpacityColorConverter< T extends RealType< T > > implements OpacityAdjuster, ColorConverter, Converter< T, ARGBType >
+public class MoBIEColorConverter< R extends RealType< ? > > implements OpacityAdjuster, ColorConverter, Converter< R, ARGBType >
 {
-	private final Converter< T, ARGBType > converter;
+	private double min = 0;
+
+	private double max = 1;
+
+	private final ARGBType color = new ARGBType( ARGBType.rgba( 255, 255, 255, 255 ) );
+
+	private int A;
+
+	private double scaleR;
+
+	private double scaleG;
+
+	private double scaleB;
+
 	private double opacity = 1.0;
+
 	private int background = 0;
 
-	public AdjustableOpacityColorConverter( Converter< T, ARGBType > converter )
+	private boolean invert = false;
+
+	public MoBIEColorConverter( final R type, final double min, final double max )
 	{
-		this.converter = converter;
+		this.min = min;
+		this.max = max;
+		update();
 	}
 
 	@Override
-	public void convert( T realType, ARGBType color )
+	public void convert( R realType, ARGBType color )
 	{
 		if ( realType.getRealDouble() == background )
 		{
@@ -54,7 +72,26 @@ public class AdjustableOpacityColorConverter< T extends RealType< T > > implemen
 		}
 		else
 		{
-			converter.convert( realType, color );
+			final double v = realType.getRealDouble() - min;
+			int r0 = ( int ) ( scaleR * v + 0.5 );
+			int g0 = ( int ) ( scaleG * v + 0.5 );
+			int b0 = ( int ) ( scaleB * v + 0.5 );
+
+			if ( invert )
+			{
+				final int r = Math.max( 255 - r0, 0 );
+				final int g = Math.max( 255 - g0, 0 );
+				final int b = Math.max( 255 - b0, 0 );
+				color.set( ARGBType.rgba( r, g, b, A ) );
+			}
+			else
+			{
+				final int r = Math.min( 255, r0 );
+				final int g = Math.min( 255, g0 );
+				final int b = Math.min( 255, b0 );
+				color.set( ARGBType.rgba( r, g, b, A ) );
+			}
+
 			adjustOpacity( color, opacity );
 		}
 	}
@@ -71,45 +108,68 @@ public class AdjustableOpacityColorConverter< T extends RealType< T > > implemen
 		return opacity;
 	}
 
-	@Override
-	public ARGBType getColor()
+	public boolean isInvert()
 	{
-		return (( ColorConverter ) converter).getColor();
+		return invert;
+	}
+
+	public void setInvert( boolean invert )
+	{
+		this.invert = invert;
 	}
 
 	@Override
-	public void setColor( ARGBType c )
+	public ARGBType getColor()
 	{
-		(( ColorConverter ) converter).setColor( c );
+		return color.copy();
+	}
+
+	@Override
+	public void setColor( final ARGBType c )
+	{
+		color.set( c );
+		update();
 	}
 
 	@Override
 	public boolean supportsColor()
 	{
-		return (( ColorConverter ) converter).supportsColor();
+		return true;
 	}
 
 	@Override
 	public double getMin()
 	{
-		return (( ColorConverter ) converter).getMin();
+		return min;
 	}
 
 	@Override
 	public double getMax()
 	{
-		return (( ColorConverter ) converter).getMax();
+		return max;
 	}
 
 	@Override
-	public void setMin( double min )
+	public void setMax( final double max )
 	{
-		(( ColorConverter ) converter).setMin( min );
+		this.max = max;
+		update();
 	}
 
 	@Override
-	public void setMax( double max )
+	public void setMin( final double min )
 	{
-		(( ColorConverter ) converter).setMax( max );
+		this.min = min;
+		update();
+	}
+
+	private void update()
+	{
+		final double scale = 1.0 / ( max - min );
+		final int value = color.get();
+		A = ARGBType.alpha( value );
+		scaleR = ARGBType.red( value ) * scale;
+		scaleG = ARGBType.green( value ) * scale;
+		scaleB = ARGBType.blue( value ) * scale;
 	}
 }

@@ -40,7 +40,6 @@ public class MobieColoringModel< T > extends AbstractColoringModel< T >
 {
 	private ColoringModel< T > coloringModel;
 	private SelectionModel< T > selectionModel;
-
 	private ARGBType selectionColor;
 	private double opacityNotSelected;
 

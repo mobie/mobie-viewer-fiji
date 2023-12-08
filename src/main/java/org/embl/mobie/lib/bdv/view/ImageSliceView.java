@@ -32,15 +32,13 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import net.imglib2.converter.Converter;
-import net.imglib2.display.RealARGBColorConverter;
 import net.imglib2.display.ScaledARGBConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.volatiles.VolatileARGBType;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.color.ColorHelper;
-import org.embl.mobie.lib.color.opacity.AdjustableOpacityColorConverter;
+import org.embl.mobie.lib.color.opacity.MoBIEColorConverter;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -101,8 +99,8 @@ public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceV
 			final RealType< ? > realType = ( RealType< ? > ) type;
 			final double typeMin = Math.max( 0, Math.min( realType.getMinValue(), 65535 ) );
 			final double typeMax = Math.max( 0, Math.min( realType.getMaxValue(), 65535 ) );
-			final RealARGBColorConverter< ? extends RealType< ? > > converter = RealARGBColorConverter.create( realType, typeMin, typeMax );
-			return new AdjustableOpacityColorConverter( converter );
+			MoBIEColorConverter< ? extends RealType< ? > > converter = new MoBIEColorConverter<>( realType, typeMin, typeMax );
+			return ( Converter< T, ARGBType > ) converter;
 		}
 		else
 		{

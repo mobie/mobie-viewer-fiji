@@ -160,7 +160,7 @@ public class ImageFileSources
 				final double min = timepointColumn.min();
 				final double max = timepointColumn.max();
 				metadata.numTimePoints = ( int ) ( max - min + 1 );
-				IJ.log( "Detected " + metadata.numTimePoints + " timepoints for " + name );
+				IJ.log( "Detected " + metadata.numTimePoints + " timepoint(s) for " + name );
 
 				final Table where = table.where( timepointColumn.isEqualTo( max ) );
 				final String path = where.stringColumn( pathColumn ).get( 0 );
