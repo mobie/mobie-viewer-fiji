@@ -72,26 +72,14 @@ public class MoBIEColorConverter< R extends RealType< ? > > implements OpacityAd
 		}
 		else
 		{
-			final double v = realType.getRealDouble() - min;
+			final double v = invert ? max - realType.getRealDouble() : realType.getRealDouble() - min;
 			int r0 = ( int ) ( scaleR * v + 0.5 );
 			int g0 = ( int ) ( scaleG * v + 0.5 );
 			int b0 = ( int ) ( scaleB * v + 0.5 );
-
-			if ( invert )
-			{
-				final int r = Math.max( 255 - r0, 0 );
-				final int g = Math.max( 255 - g0, 0 );
-				final int b = Math.max( 255 - b0, 0 );
-				color.set( ARGBType.rgba( r, g, b, A ) );
-			}
-			else
-			{
-				final int r = Math.min( 255, r0 );
-				final int g = Math.min( 255, g0 );
-				final int b = Math.min( 255, b0 );
-				color.set( ARGBType.rgba( r, g, b, A ) );
-			}
-
+			final int r = Math.max( Math.min( 255, r0 ), 0 );
+			final int g = Math.max( Math.min( 255, g0 ), 0 );
+			final int b = Math.max( Math.min( 255, b0 ), 0 );
+			color.set( ARGBType.rgba( r, g, b, A ) );
 			adjustOpacity( color, opacity );
 		}
 	}

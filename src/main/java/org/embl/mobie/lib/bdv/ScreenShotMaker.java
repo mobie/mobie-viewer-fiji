@@ -38,14 +38,13 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.Duplicator;
 import ij.process.LUT;
+import net.imglib2.*;
+import net.imglib2.Cursor;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.real.FloatType;
+import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.bdv.blend.AccumulateAlphaBlendingProjectorARGB;
-import net.imglib2.Cursor;
-import net.imglib2.RandomAccess;
-import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealRandomAccess;
 import net.imglib2.algorithm.util.Grids;
 import net.imglib2.converter.Converter;
 import net.imglib2.img.array.ArrayImgs;
@@ -65,7 +64,9 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getLevel;
@@ -82,7 +83,7 @@ public class ScreenShotMaker
     private String physicalUnit = "Pixels";
     private ImagePlus rgbImagePlus = null;
     private CompositeImage compositeImagePlus = null;
-    private long[] captureImageSizeInPixels = new long[2];
+    private long[] screenshotDimensions = new long[2];
 
     public ScreenShotMaker( BdvHandle bdvHandle) {
         this.bdvHandle = bdvHandle;
@@ -142,7 +143,7 @@ public class ScreenShotMaker
         final AffineTransform3D viewerTransform = new AffineTransform3D();
         bdvHandle.getViewerPanel().state().getViewerTransform( viewerTransform );
 
-        captureImageSizeInPixels = getCaptureImageSizeInPixels( bdvHandle, samplingXY );
+        screenshotDimensions = getCaptureImageSizeInPixels( bdvHandle, samplingXY );
 
         final ArrayList< RandomAccessibleInterval< FloatType > > floatCaptures = new ArrayList<>();
         final ArrayList< RandomAccessibleInterval< ARGBType > > argbSources = new ArrayList<>();
@@ -162,22 +163,36 @@ public class ScreenShotMaker
                 continue;
             sacs.add( sac );
         }
-        if ( sacs.size() == 0 ) return;
+
+        if ( sacs.isEmpty() ) return;
 
         final int t = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
 
-        IJ.log( "\nScreenshot: Fetching data from " + sacs.size() + " sources."  );
+        IJ.log( "Fetching data from " + sacs.size() + " sources..."  );
+
+        final long numPixels = screenshotDimensions[ 0 ] * screenshotDimensions[ 1 ];
+        long pixelsPerThread = numPixels / ThreadHelper.getNumIoThreads();
+        int dimensionsPerThread = (int) Math.sqrt( pixelsPerThread );
+        int[] blockSize = { dimensionsPerThread, dimensionsPerThread };
+        List< Interval > intervals = Grids.collectAllContainedIntervals(
+                screenshotDimensions,
+                blockSize );
+        final double canvasStepSize = samplingXY / getViewerVoxelSpacing( bdvHandle );
+
+        IJ.log( "Number of threads: " + ThreadHelper.getNumIoThreads() );
+        IJ.log( "Block per thread: " + Arrays.toString( blockSize ) );
+
         final long currentTimeMillis = System.currentTimeMillis();
 
         for ( SourceAndConverter< ?  > sac : sacs )
         {
             final RandomAccessibleInterval< FloatType > rawCapture
-                    = ArrayImgs.floats( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ] );
+                    = ArrayImgs.floats( screenshotDimensions[ 0 ], screenshotDimensions[ 1 ] );
             final RandomAccessibleInterval< ARGBType > argbCapture
-                    = ArrayImgs.argbs( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ]  );
+                    = ArrayImgs.argbs( screenshotDimensions[ 0 ], screenshotDimensions[ 1 ]  );
 
             Source< ? > source = sac.getSpimSource();
-            final Converter converter = sac.getConverter();
+            final Converter< ?, ? > converter = sac.getConverter();
 
             final int level = getLevel( source, samplingXY );
             final AffineTransform3D sourceTransform =
@@ -187,72 +202,76 @@ public class ScreenShotMaker
             viewerToSourceTransform.preConcatenate( viewerTransform.inverse() );
             viewerToSourceTransform.preConcatenate( sourceTransform.inverse() );
 
-            final double canvasStepSize = samplingXY / getViewerVoxelSpacing( bdvHandle );
-
             boolean interpolate = ! ( source.getType() instanceof AnnotationType );
-
-            final long[] screenshotDimensions = Intervals.dimensionsAsLongArray( argbCapture );
-            final long numPixels = screenshotDimensions[ 0 ] * screenshotDimensions[ 1 ];
 
             final AtomicInteger pixelCount = new AtomicInteger();
             final AtomicDouble fractionDone = new AtomicDouble( 0.2 );
 
-            Grids.collectAllContainedIntervals(
-                    screenshotDimensions,
-                    new int[]{96, 96}).parallelStream().forEach( interval ->
+            IJ.log( "Fetching data from " + sac.getSpimSource().getName()  );
+
+            ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
+            for ( Interval interval : intervals )
             {
-                RealRandomAccess< ? extends Type< ? > > access = getRealRandomAccess( ( Source< Type< ? > > ) source, t, level, interpolate );
-
-                // to collect raw data
-                final IntervalView< FloatType > floatCrop = Views.interval( rawCapture, interval );
-                final Cursor< FloatType > floatCaptureCursor = Views.iterable( floatCrop ).localizingCursor();
-                final RandomAccess< FloatType > floatCaptureAccess = floatCrop.randomAccess();
-
-                // to collect colored data
-                final IntervalView< ARGBType > argbCrop = Views.interval( argbCapture, interval );
-                final RandomAccess< ARGBType > argbCaptureAccess = argbCrop.randomAccess();
-
-                final double[] canvasPosition = new double[ 3 ];
-                final double[] sourceRealPosition = new double[ 3 ];
-
-                final ARGBType argbType = new ARGBType();
-
-                // iterate through the target image in pixel units
-                while ( floatCaptureCursor.hasNext() )
-                {
-                    floatCaptureCursor.fwd();
-                    floatCaptureCursor.localize( canvasPosition );
-                    floatCaptureAccess.setPosition( floatCaptureCursor );
-                    argbCaptureAccess.setPosition( floatCaptureCursor );
-
-                    // canvasPosition is in calibrated units
-                    // canvasStepSize is the step size that is needed to get
-                    // the desired resolution in the output image
-                    canvasPosition[ 0 ] *= canvasStepSize;
-                    canvasPosition[ 1 ] *= canvasStepSize;
-
-                    viewerToSourceTransform.apply( canvasPosition, sourceRealPosition );
-                    access.setPosition( sourceRealPosition );
-                    setFloatPixelValue( access, floatCaptureAccess );
-                    setArgbPixelValue( converter, access, argbCaptureAccess, argbType );
-                    pixelCount.incrementAndGet();
-
-                    final double currentFractionDone = 1.0 * pixelCount.get() / numPixels;
-                    if ( currentFractionDone >= fractionDone.get() )
+                futures.add
+                (
+                    ThreadHelper.ioExecutorService.submit( () ->
                     {
-                        synchronized ( fractionDone )
+                        RealRandomAccess< ? extends Type< ? > > access = getRealRandomAccess( ( Source< Type< ? > > ) source, t, level, interpolate );
+
+                        // to collect raw data
+                        final IntervalView< FloatType > floatCrop = Views.interval( rawCapture, interval );
+                        final Cursor< FloatType > floatCaptureCursor = Views.iterable( floatCrop ).localizingCursor();
+                        final RandomAccess< FloatType > floatCaptureAccess = floatCrop.randomAccess();
+
+                        // to collect colored data
+                        final IntervalView< ARGBType > argbCrop = Views.interval( argbCapture, interval );
+                        final RandomAccess< ARGBType > argbCaptureAccess = argbCrop.randomAccess();
+
+                        final double[] canvasPosition = new double[ 3 ];
+                        final double[] sourceRealPosition = new double[ 3 ];
+
+                        final ARGBType argbType = new ARGBType();
+
+                        // iterate through the target image in pixel units
+                        while ( floatCaptureCursor.hasNext() )
                         {
-                            // check again, because meanwhile another thread might have
-                            // incremented fractionDone
+                            floatCaptureCursor.fwd();
+                            floatCaptureCursor.localize( canvasPosition );
+                            floatCaptureAccess.setPosition( floatCaptureCursor );
+                            argbCaptureAccess.setPosition( floatCaptureCursor );
+
+                            // canvasPosition is in calibrated units
+                            // canvasStepSize is the step size that is needed to get
+                            // the desired resolution in the output image
+                            canvasPosition[ 0 ] *= canvasStepSize;
+                            canvasPosition[ 1 ] *= canvasStepSize;
+
+                            viewerToSourceTransform.apply( canvasPosition, sourceRealPosition );
+                            access.setPosition( sourceRealPosition );
+                            setFloatPixelValue( access, floatCaptureAccess );
+                            setArgbPixelValue( converter, access, argbCaptureAccess, argbType );
+                            pixelCount.incrementAndGet();
+
+                            final double currentFractionDone = 1.0 * pixelCount.get() / numPixels;
                             if ( currentFractionDone >= fractionDone.get() )
                             {
-                                IJ.log(sac.getSpimSource().getName() + ": " + ( Math.round( 100 * fractionDone.get() ) + "%" ) );
-                                fractionDone.addAndGet( 0.2 );
+                                synchronized ( fractionDone )
+                                {
+                                    // check again, because meanwhile another thread might have
+                                    // incremented fractionDone
+                                    if ( currentFractionDone >= fractionDone.get() )
+                                    {
+                                        IJ.log(sac.getSpimSource().getName() + ": " + ( Math.round( 100 * fractionDone.get() ) + "%" ) );
+                                        fractionDone.addAndGet( 0.2 );
+                                    }
+                                }
                             }
                         }
-                    }
-                }
-            });
+                    } )
+                );
+            } // for interval
+
+            ThreadHelper.waitUntilFinished( futures );
 
             floatCaptures.add( rawCapture );
             argbSources.add( argbCapture );
@@ -260,7 +279,7 @@ public class ScreenShotMaker
             displayRanges.add( BdvHandleHelper.getDisplayRange( sacService.getConverterSetup( sac ) ) );
         }
 
-        IJ.log( "Screenshot: Fetched data in " + ( System.currentTimeMillis() - currentTimeMillis ) + " ms." );
+        IJ.log( "Fetched data in " + ( System.currentTimeMillis() - currentTimeMillis ) + " ms." );
 
         final double[] voxelSpacing = new double[ 3 ];
         for ( int d = 0; d < 2; d++ )
@@ -346,7 +365,7 @@ public class ScreenShotMaker
             double[] voxelSpacing,
             List< SourceAndConverter< ? > > sacs )
     {
-        final RandomAccessibleInterval< ARGBType > argbTarget = ArrayImgs.argbs( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ]  );
+        final RandomAccessibleInterval< ARGBType > argbTarget = ArrayImgs.argbs( screenshotDimensions[ 0 ], screenshotDimensions[ 1 ]  );
 
         createARGBprojection( argbSources, argbTarget, sacs );
 

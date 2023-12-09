@@ -29,6 +29,7 @@
 package org.embl.mobie.command.context;
 
 import bdv.util.BdvHandle;
+import de.embl.cba.bdv.utils.BdvUtils;
 import ij.IJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
@@ -38,6 +39,7 @@ import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.ArrayList;
@@ -85,6 +87,8 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     @Override
     public void initialize() {
 
+        IJ.log( "ScreenShotMaker:" );
+
         // set pixel unit choices
         //
         final MutableModuleItem< String > pixelUnitItem = //
@@ -93,6 +97,9 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
         final ArrayList< String > units = new ArrayList<>();
         units.add( pixelUnit );
         pixelUnitItem.setChoices( units );
+
+        IJ.log( "Viewer sampling: " + BdvHandleHelper.getViewerVoxelSpacing( bdvh ) + " " + pixelUnit );
+        IJ.log( "Choosing smaller sampling than the above may result in long waiting times." );
     }
 
     // callback
