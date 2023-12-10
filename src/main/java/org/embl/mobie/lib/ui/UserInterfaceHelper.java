@@ -376,7 +376,7 @@ public class UserInterfaceHelper
 		{
 			if ( converter instanceof MoBIEColorConverter )
 			{
-				isInvert = ( ( MoBIEColorConverter ) converter ).isInvert();
+				isInvert = ( ( MoBIEColorConverter ) converter ).invert();
 				break;
 			}
 		}
@@ -389,7 +389,7 @@ public class UserInterfaceHelper
 			{
 				if ( converter instanceof MoBIEColorConverter )
 				{
-					( ( MoBIEColorConverter ) converter ).setInvert( invertCheckBox.isSelected() );
+					( ( MoBIEColorConverter ) converter ).invert( invertCheckBox.isSelected() );
 				}
 			}
 			bdvHandle.getViewerPanel().requestRepaint();

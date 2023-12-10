@@ -142,7 +142,7 @@ public abstract class ColorHelper
 		return new int[]{ lut.getRed( 255 ), lut.getGreen( 255 ), lut.getBlue( 255 ), lut.getAlpha( 255 ) };
 	}
 
-	public static ARGBType getPseudoRandomGlasbeyARGBType( String name )
+	public static ARGBType getRandomGlasbeyARGBType( String name )
 	{
 		final GlasbeyARGBLut glasbeyARGBLut = new GlasbeyARGBLut();
 		double random = name.hashCode() * goldenRatio;

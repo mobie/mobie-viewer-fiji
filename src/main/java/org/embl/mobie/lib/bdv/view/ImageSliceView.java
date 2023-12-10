@@ -65,10 +65,19 @@ public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceV
 
 			adaptColor( sourceAndConverter );
 
+			// set LUT inversion
+			Converter< ?, ARGBType > converter = sourceAndConverter.getConverter();
+			if ( converter instanceof MoBIEColorConverter ) // should be always true within MoBIE
+			{
+				( ( MoBIEColorConverter ) converter ).invert( display.invert() );
+			}
+
 			// below command will configure opacity,
-			// blending mode and visibility
+			// blending mode and visibility, which are generic to all Displays
 			display.sliceViewer.show( image, sourceAndConverter, display );
 
+			// adapt Image specific contrast limits after showing the image,
+			// because we need the ConverterSetup to exist
 			adaptContrastLimits( sourceAndConverter );
 		}
 	}
@@ -127,7 +136,7 @@ public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceV
 
 		ARGBType argbType;
 		if ( color.equals( "randomFromGlasbey" ) )
-			argbType = ColorHelper.getPseudoRandomGlasbeyARGBType( sourceAndConverter.getSpimSource().getName() );
+			argbType = ColorHelper.getRandomGlasbeyARGBType( sourceAndConverter.getSpimSource().getName() );
 		else
 			argbType = ColorHelper.getARGBType( color );
 

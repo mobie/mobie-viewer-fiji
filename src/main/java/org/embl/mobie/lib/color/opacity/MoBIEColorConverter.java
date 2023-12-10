@@ -65,23 +65,25 @@ public class MoBIEColorConverter< R extends RealType< ? > > implements OpacityAd
 	@Override
 	public void convert( R realType, ARGBType color )
 	{
-		if ( realType.getRealDouble() == background )
-		{
-			// For the accumulate projector to know where the source ends
-			color.set( new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) ) );
-		}
-		else
-		{
-			final double v = invert ? max - realType.getRealDouble() : realType.getRealDouble() - min;
-			int r0 = ( int ) ( scaleR * v + 0.5 );
-			int g0 = ( int ) ( scaleG * v + 0.5 );
-			int b0 = ( int ) ( scaleB * v + 0.5 );
-			final int r = Math.max( Math.min( 255, r0 ), 0 );
-			final int g = Math.max( Math.min( 255, g0 ), 0 );
-			final int b = Math.max( Math.min( 255, b0 ), 0 );
-			color.set( ARGBType.rgba( r, g, b, A ) );
-			adjustOpacity( color, opacity );
-		}
+//      FIXME remove the commented code once we are certain it is not needed anymore,
+//			which could be due to relatively recent changes in the AccumulateProjector.
+//		if ( realType.getRealDouble() == background )
+//		{
+//			// For the accumulate projector to know where the source ends
+//			color.set( new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) ) );
+//		}
+//		else
+//		{
+		final double v = invert ? max - realType.getRealDouble() : realType.getRealDouble() - min;
+		int r0 = ( int ) ( scaleR * v + 0.5 );
+		int g0 = ( int ) ( scaleG * v + 0.5 );
+		int b0 = ( int ) ( scaleB * v + 0.5 );
+		final int r = Math.max( Math.min( 255, r0 ), 0 );
+		final int g = Math.max( Math.min( 255, g0 ), 0 );
+		final int b = Math.max( Math.min( 255, b0 ), 0 );
+		color.set( ARGBType.rgba( r, g, b, A ) );
+		adjustOpacity( color, opacity );
+//		}
 	}
 
 	@Override
@@ -96,12 +98,12 @@ public class MoBIEColorConverter< R extends RealType< ? > > implements OpacityAd
 		return opacity;
 	}
 
-	public boolean isInvert()
+	public boolean invert()
 	{
 		return invert;
 	}
 
-	public void setInvert( boolean invert )
+	public void invert( boolean invert )
 	{
 		this.invert = invert;
 	}

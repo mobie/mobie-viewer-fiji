@@ -30,9 +30,12 @@ package org.embl.mobie.lib.serialize.display;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.converter.Converter;
+import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.bdv.view.ImageSliceView;
 import org.embl.mobie.lib.color.OpacityHelper;
+import org.embl.mobie.lib.color.opacity.MoBIEColorConverter;
 import org.embl.mobie.lib.volume.ImageVolumeViewer;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.NumericType;
@@ -50,6 +53,7 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	protected double[] contrastLimits;
 	protected boolean showImagesIn3d;
 	protected Double[] resolution3dView;
+	protected boolean invert; // FIXME add to spec
 
 	// Runtime
 	public transient ImageSliceView imageSliceView;
@@ -78,6 +82,11 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	public double[] getContrastLimits()
 	{
 		return contrastLimits;
+	}
+
+	public boolean invert()
+	{
+		return invert;
 	}
 
 	@Override
@@ -146,13 +155,20 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	{
 		final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter );
 
-		opacity = OpacityHelper.getOpacity( sourceAndConverter.getConverter() );
+		Converter< ?, ARGBType > converter = sourceAndConverter.getConverter();
 
-		if ( sourceAndConverter.getConverter() instanceof ColorConverter)
+		opacity = OpacityHelper.getOpacity( converter );
+
+		if ( converter instanceof ColorConverter)
 		{
 			// needs to be of form r=(\\d+),g=(\\d+),b=(\\d+),a=(\\d+)"
-			color = ( ( ColorConverter ) sourceAndConverter.getConverter() ).getColor().toString();
+			color = ( ( ColorConverter ) converter ).getColor().toString();
 			color = color.replaceAll("[()]", "");
+		}
+
+		if ( converter instanceof MoBIEColorConverter )
+		{
+			invert = ( ( MoBIEColorConverter ) converter ).invert();
 		}
 
 		contrastLimits = new double[2];

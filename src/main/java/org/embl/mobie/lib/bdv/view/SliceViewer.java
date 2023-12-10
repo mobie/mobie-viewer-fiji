@@ -30,6 +30,8 @@ package org.embl.mobie.lib.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.converter.Converter;
+import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.context.*;
 import org.embl.mobie.command.view.ViewerTransformLoggerCommand;
@@ -42,6 +44,7 @@ import org.embl.mobie.lib.bdv.SourcesAtMousePositionSupplier;
 import org.embl.mobie.lib.bdv.blend.AccumulateAlphaBlendingProjectorARGB;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.color.OpacityHelper;
+import org.embl.mobie.lib.color.opacity.MoBIEColorConverter;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.serialize.display.AbstractDisplay;
