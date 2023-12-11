@@ -219,6 +219,7 @@ public class Plate
 								siteDimensions[ 1 ] * voxelDimensions.dimension( 1 ) };
 					}
 				}
+
 				// well
 				//
 				String wellGroup = hcsPattern.getWellGroup();

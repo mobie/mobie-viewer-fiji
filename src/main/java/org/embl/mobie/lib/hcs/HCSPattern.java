@@ -54,8 +54,8 @@ public enum HCSPattern
 	/g/cba/exchange/hcs-test/hcs-test.zarr/A/1/0/
 	well = C05, site = 1, channel = 1
  	*/
-	private static final String OME_ZARR = ".*.zarr/(?<"+WELL+">[A-Z]/[0-9]+)/(?<"+SITE+">[0-9]+)$";
-
+	//private static final String OME_ZARR = ".*.zarr/(?<"+WELL+">[A-Z]/[0-9]+)/(?<"+SITE+">[0-9]+)$";
+	private static final String OME_ZARR = ".+\\.zarr[\\\\/](?<"+WELL+">[A-Z][\\\\/][0-9]+)[\\\\/](?<"+SITE+">[0-9]+)$";
 
 	/*
 	example:
