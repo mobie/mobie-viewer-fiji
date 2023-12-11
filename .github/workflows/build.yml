@@ -9,6 +9,7 @@ on:
   pull_request:
     branches:
       - main
+      - develop
 
 jobs:
   build:
@@ -24,6 +25,10 @@ jobs:
           cache: 'maven'
       - name: Set up CI environment
         run: .github/setup.sh
+      - name: Install blosc
+        run: sudo apt install libblosc-dev
+      - name: Install xvfb
+        run: sudo apt-get install xvfb
       - name: Execute the build
         run: .github/build.sh
         env:
