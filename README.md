@@ -1,4 +1,5 @@
-[![](https://github.com/mobie/mobie-viewer-fiji/actions/workflows/build-main.yml/badge.svg)](https://github.com/mobie/mobie-viewer-fiji/actions/workflows/build-main.yml)
+[![Build Status](https://github.com/mobie/mobie-viewer-fiji/actions/workflows/build.yml/badge.svg)](https://github.com/mobie/mobie-viewer-fiji/actions/workflows/build.yml)
+
 [![DOI](https://zenodo.org/badge/177135630.svg)](https://zenodo.org/badge/latestdoi/177135630)
 
 # MoBIE Fiji Viewer
