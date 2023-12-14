@@ -120,6 +120,8 @@ public class Plate
 					.filter( path -> hcsPattern.setMatcher( path ) ) // skip files like .DS_Store a.s.o.
 					.collect( Collectors.toList() );
 
+			imageDataFormat = ImageDataFormat.BioFormats;
+
 			if ( hcsPattern == HCSPattern.Operetta )
 			{
 				// only keep paths that are also in the XML
@@ -161,7 +163,7 @@ public class Plate
 					channelWellSites.put( channel, new HashMap<>() );
 
 					// FIXME Replace with MoBIEHelper.getMetadataFromImageFile
-					IJ.log( "Fetching metadata for setup " + channelName + " from " + sitePath + "..." );
+					IJ.log( "Fetching metadata for setup " + channelName + " from " + sitePath );
 					ImagePlus singleChannelImagePlus = operettaMetadata == null ? openImagePlus( sitePath, channel.getChannelIndex() ) : null;
 					if ( singleChannelImagePlus.getNSlices() > 1 )
 						is2d = false;
@@ -292,7 +294,11 @@ public class Plate
 		if ( this.imageDataFormat.equals( ImageDataFormat.Tiff ) )
 		{
 			final File file = new File( path );
-			return ( new Opener() ).openTiff( file.getParent(), file.getName() );
+			if ( ! file.exists() )
+				throw new RuntimeException( file.getAbsolutePath() + " does not exist." );
+
+			ImagePlus imagePlus = ( new Opener() ).openTiff( file.getParent(), file.getName() );
+			return imagePlus;
 		}
 		else if ( this.imageDataFormat.equals( ImageDataFormat.OmeZarr )
 				|| this.imageDataFormat.equals( ImageDataFormat.OmeZarrS3 ) )
@@ -301,7 +307,10 @@ public class Plate
 		}
 		else
 		{
-			return IJ.openImage( path );
+			return MoBIEHelper.openAsImagePlus( path, channelID, imageDataFormat );
+
+			//return IJ.openImage( path ); // <- this does not auto-fetch using Bio-Formats, maybe because it is not on the class path?
+
 		}
 	}
 

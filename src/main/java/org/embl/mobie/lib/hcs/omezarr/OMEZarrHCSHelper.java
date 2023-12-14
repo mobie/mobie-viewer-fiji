@@ -49,7 +49,6 @@ public class OMEZarrHCSHelper
         final String plateJson = IOHelper.read( plateUri + ZATTRS );
         //System.out.println( plateJson );
         HCSMetadata hcsMetadata = gson.fromJson(plateJson, new TypeToken< HCSMetadata >() {}.getType());
-
         int numWells = hcsMetadata.plate.wells.size();
 
         // lots of code for nice logging...

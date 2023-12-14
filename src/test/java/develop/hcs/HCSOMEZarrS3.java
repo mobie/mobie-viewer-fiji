@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package hcs;
+package develop.hcs;
 
 import mpicbg.spim.data.SpimDataException;
 import net.imagej.ImageJ;
@@ -35,11 +35,14 @@ import org.embl.mobie.MoBIESettings;
 
 import java.io.IOException;
 
-class HCSOperetta5
+class HCSOMEZarrS3
 {
 	public static void main( String[] args ) throws SpimDataException, IOException
 	{
 		new ImageJ().ui().showUI();
-		new MoBIE( "/Volumes/cba/exchange/hcs-test/operetta5/CLSsamples", new MoBIESettings(), 0.1, 0.0  );
+
+		//new MoBIE( "https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.1/plates/5966.zarr", new MoBIESettings(), 0.1, 0.0  );
+		//new MoBIE( "https://radosgw.public.os2.wwu.de/ngff/test.zarr", new MoBIESettings(), 0.1, 0.0  );
+		new MoBIE( "https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.1/plates/2551.zarr", new MoBIESettings(), 0.1, 0.0 );
 	}
 }

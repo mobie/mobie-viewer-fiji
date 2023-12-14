@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package hcs;
+package develop.hcs;
 
 import mpicbg.spim.data.SpimDataException;
 import net.imagej.ImageJ;
@@ -35,14 +35,14 @@ import org.embl.mobie.MoBIESettings;
 
 import java.io.IOException;
 
-class HCSOMEZarrS3
+class HCSOMEZarr
 {
 	public static void main( String[] args ) throws SpimDataException, IOException
 	{
 		new ImageJ().ui().showUI();
 
-		//new MoBIE( "https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.1/plates/5966.zarr", new MoBIESettings(), 0.1, 0.0  );
-		//new MoBIE( "https://radosgw.public.os2.wwu.de/ngff/test.zarr", new MoBIESettings(), 0.1, 0.0  );
-		new MoBIE( "https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.1/plates/2551.zarr", new MoBIESettings(), 0.1, 0.0 );
+		//new MoBIE( "/Volumes/cba/exchange/ome-zarr/bugra/HCS/testdata.zarr", new MoBIESettings(), 0.1, 0.0  );
+		//new MoBIE( "/Users/tischer/Downloads/20200812-CardiomyocyteDifferentiation14-Cycle1.zarr", new MoBIESettings(), 0.1, 0.0  );
+		new MoBIE( "/Users/tischer/Downloads/test-plate.zarr", new MoBIESettings(), 0.1, 0.0  );
 	}
 }

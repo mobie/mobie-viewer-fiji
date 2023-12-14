@@ -39,6 +39,7 @@ public enum HCSPattern
 	OMEZarr,
 	Operetta,
 	IncuCyte,
+	IncuCyteRaw,
 	InCell, // https://github.com/embl-cba/plateviewer/issues/45
 	MolecularDevices;
 
@@ -72,6 +73,14 @@ public enum HCSPattern
 	private static final String INCUCYTE = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{1,2})_(?<"+SITE+">[0-9]{1,2})_(?<"+ T +">[0-9]{2}d[0-9]{2}h[0-9]{2}m).tif$";
 
 	/*
+	example:
+	B3-3-C2.tif
+	well = B3, site = 3, channel = C2
+	 */
+	private static final String INCUCYTE_RAW = "(?:.*[/\\\\])?(?<"+WELL+">[A-Z]{1}[0-9]{1,2})-(?<"+SITE+">[0-9]{1,2})-(?<"+CHANNEL+">.*).tif$";
+
+
+	/*
 	examples:
 	MIP-2P-2sub_C05_s1_w146C9B2CD-0BB3-4B8A-9187-2805F4C90506.tif
 	well = C05, site = 1, channel = 1
@@ -86,7 +95,7 @@ public enum HCSPattern
 	A - 01(fld 1 wv Green - dsRed z 3).tif
 	well = A - 01, site = 1, channel = 1
  	*/
-	public static final String INCELL_EXAMPLE = "A - 01(fld 1 wv Green - dsRed z 3).tif";
+
 	public static final String INCELL_WELL_SITE_CHANNEL = ".*(?<"+WELL+">[A-Z]{1} - [0-9]{2})\\(fld (?<"+SITE+">[0-9]{1}) (?<"+CHANNEL+">.*)\\).tif";
 
 	private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -110,7 +119,6 @@ public enum HCSPattern
 			if ( matcher.matches() )
 				return hcsPattern;
 		}
-
 		return null;
 	}
 
@@ -126,6 +134,8 @@ public enum HCSPattern
 				return Pattern.compile( MOLDEV_WELL_SITE_CHANNEL ).matcher( path );
 			case InCell:
 				return Pattern.compile( INCELL_WELL_SITE_CHANNEL ).matcher( path );
+			case IncuCyteRaw:
+				return Pattern.compile( INCUCYTE_RAW ).matcher( path );
 			default:
 			case IncuCyte:
 				return Pattern.compile( INCUCYTE ).matcher( path );
@@ -199,6 +209,7 @@ public enum HCSPattern
 		{
 			case Operetta:
 			case MolecularDevices:
+			case IncuCyteRaw:
 				return true;
 			default:
 			case OMEZarr:
@@ -215,6 +226,7 @@ public enum HCSPattern
 			case Operetta:
 			case MolecularDevices:
 			case InCell:
+			case IncuCyteRaw:
 				return false;
 			default:
 			case IncuCyte:
@@ -241,15 +253,10 @@ public enum HCSPattern
 
 	public List< String > getChannels()
 	{
-		if ( channels == null )
-		{
-			if ( hasChannels() )
-				channels = Collections.singletonList( matcher.group( HCSPattern.CHANNEL ) );
-			else
-				channels = Collections.singletonList( "1" );
-		}
-
-		return channels;
+		if ( hasChannels() )
+			return Collections.singletonList( matcher.group( HCSPattern.CHANNEL ) );
+		else
+			return Collections.singletonList( "1" );
 	}
 
 	public String getWellGroup()

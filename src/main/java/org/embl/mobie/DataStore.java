@@ -122,14 +122,6 @@ public abstract class DataStore
 		try
 		{
 			AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, imageDataFormat, sharedQueue );
-			List< ViewSetup > viewSetupsOrdered = ( List< ViewSetup > ) spimData.getSequenceDescription().getViewSetupsOrdered();
-
-//			System.out.println( "Opening " + path + ", " +imageDataFormat  );
-//			for ( ViewSetup viewSetup : viewSetupsOrdered )
-//			{
-//				System.out.println( "Channel: " + viewSetup.getChannel().getName() );
-//			}
-
 			return spimData;
 		}
 		catch ( Exception e )
@@ -209,46 +201,56 @@ public abstract class DataStore
 
 	private static AbstractSpimData< ? > openSpimData( Site site, SharedQueue sharedQueue )
 	{
+
 		VirtualStack virtualStack = null;
 
 		final Map< TPosition, Map< ZPosition, String > > paths = site.getPaths();
 
-		final ArrayList< TPosition > tPositions = new ArrayList<>( paths.keySet() );
-		Collections.sort( tPositions );
-		int nT = tPositions.size();
-		int nZ = 1;
-		for ( TPosition t : tPositions )
+		// TODO: This is a mess....
+		if ( paths.size() == 1 && paths.get( paths.keySet().iterator().next() ).size() == 1 )
 		{
-			final Set< ZPosition > zPositions = paths.get( t ).keySet();
-			nZ = zPositions.size();
-			for ( ZPosition z : zPositions )
-			{
-				if ( virtualStack == null )
-				{
-					final int[] dimensions = site.getDimensions();
-					virtualStack = new VirtualStack( dimensions[ 0 ], dimensions[ 1 ], null, "" );
-				}
-
-				virtualStack.addSlice( paths.get( t ).get( z ) );
-			}
+			Map< ZPosition, String > zPositionStringMap = paths.get( paths.keySet().iterator().next() );
+			String path = zPositionStringMap.get( zPositionStringMap.keySet().iterator().next() );
+			return openSpimData(  path, site.getImageDataFormat(), sharedQueue );
 		}
+		else
+		{
+			final ArrayList< TPosition > tPositions = new ArrayList<>( paths.keySet() );
+			Collections.sort( tPositions );
+			int nT = tPositions.size();
+			int nZ = 1;
+			for ( TPosition t : tPositions )
+			{
+				final Set< ZPosition > zPositions = paths.get( t ).keySet();
+				nZ = zPositions.size();
+				for ( ZPosition z : zPositions )
+				{
+					if ( virtualStack == null )
+					{
+						final int[] dimensions = site.getDimensions();
+						virtualStack = new VirtualStack( dimensions[ 0 ], dimensions[ 1 ], null, "" );
+					}
 
-		final ImagePlus imagePlus = new ImagePlus( site.getId(), virtualStack );
+					virtualStack.addSlice( paths.get( t ).get( z ) );
+				}
+			}
 
-		final Calibration calibration = new Calibration();
-		final VoxelDimensions voxelDimensions = site.getVoxelDimensions();
-		calibration.setUnit( voxelDimensions.unit() );
-		calibration.pixelWidth = voxelDimensions.dimension( 0 );
-		calibration.pixelHeight = voxelDimensions.dimension( 1 );
-		calibration.pixelDepth = voxelDimensions.dimension( 2 );
-		imagePlus.setCalibration( calibration );
+			final ImagePlus imagePlus = new ImagePlus( site.getId(), virtualStack );
 
-		// TODO: is could be zSlices!
-		imagePlus.setDimensions( 1, nZ, nT );
+			final Calibration calibration = new Calibration();
+			final VoxelDimensions voxelDimensions = site.getVoxelDimensions();
+			calibration.setUnit( voxelDimensions.unit() );
+			calibration.pixelWidth = voxelDimensions.dimension( 0 );
+			calibration.pixelHeight = voxelDimensions.dimension( 1 );
+			calibration.pixelDepth = voxelDimensions.dimension( 2 );
+			imagePlus.setCalibration( calibration );
 
-		final AbstractSpimData< ? > spimData = ImagePlusToSpimData.getSpimData( imagePlus );
-		SpimDataOpener.setSharedQueue( sharedQueue, spimData );
+			// TODO: is could be zSlices!
+			imagePlus.setDimensions( 1, nZ, nT );
 
-		return spimData;
+			final AbstractSpimData< ? > spimData = ImagePlusToSpimData.getSpimData( imagePlus );
+			SpimDataOpener.setSharedQueue( sharedQueue, spimData );
+			return spimData;
+		}
 	}
 }
