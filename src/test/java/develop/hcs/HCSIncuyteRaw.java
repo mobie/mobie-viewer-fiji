@@ -41,6 +41,6 @@ class HCSIncuyteRaw
 	{
 		new ImageJ().ui().showUI();
 
-		new MoBIE( "/Users/tischer/Downloads/incu-test-data/2207/19/1110/262", new MoBIESettings(), 0.1, 0.0  );
+		new MoBIE( "/Users/tischer/Downloads/incu-test-data/2207/19", new MoBIESettings(), 0.1, 0.0  );
 	}
 }

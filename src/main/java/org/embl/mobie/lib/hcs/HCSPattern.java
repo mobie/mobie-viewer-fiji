@@ -77,7 +77,7 @@ public enum HCSPattern
 	B3-3-C2.tif
 	well = B3, site = 3, channel = C2
 	 */
-	private static final String INCUCYTE_RAW = "(?:.*[/\\\\])?(?<"+WELL+">[A-Z]{1}[0-9]{1,2})-(?<"+SITE+">[0-9]{1,2})-(?<"+CHANNEL+">.*).tif$";
+	private static final String INCUCYTE_RAW = ".*[/\\\\](?<"+T+">\\d+)[/\\\\]\\d+[/\\\\](?<"+WELL+">[A-Z]{1}[0-9]{1,2})-(?<"+SITE+">[0-9]{1,2})-(?<"+CHANNEL+">.*).tif$";
 
 
 	/*
@@ -226,9 +226,9 @@ public enum HCSPattern
 			case Operetta:
 			case MolecularDevices:
 			case InCell:
-			case IncuCyteRaw:
 				return false;
 			default:
+			case IncuCyteRaw:
 			case IncuCyte:
 				return true;
 		}

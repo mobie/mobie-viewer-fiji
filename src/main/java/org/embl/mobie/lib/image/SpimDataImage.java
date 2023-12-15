@@ -182,7 +182,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 			return DataStore.fetchSpimData( site, sharedQueue );
 		}
 
-		return  DataStore.fetchSpimData( path, imageDataFormat, sharedQueue );
+		return DataStore.fetchSpimData( path, imageDataFormat, sharedQueue );
 	}
 
 }

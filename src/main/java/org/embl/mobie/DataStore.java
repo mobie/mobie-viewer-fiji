@@ -44,9 +44,11 @@ import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.toml.TPosition;
 import org.embl.mobie.io.toml.ZPosition;
 import org.embl.mobie.lib.hcs.Site;
+import org.embl.mobie.lib.hcs.VirtualBioFormatsStack;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.serialize.DataSource;
 
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -201,56 +203,55 @@ public abstract class DataStore
 
 	private static AbstractSpimData< ? > openSpimData( Site site, SharedQueue sharedQueue )
 	{
-
-		VirtualStack virtualStack = null;
+		VirtualBioFormatsStack virtualStack = null;
 
 		final Map< TPosition, Map< ZPosition, String > > paths = site.getPaths();
 
 		// TODO: This is a mess....
-		if ( paths.size() == 1 && paths.get( paths.keySet().iterator().next() ).size() == 1 )
+//		if ( paths.size() == 1 && paths.get( paths.keySet().iterator().next() ).size() == 1 )
+//		{
+//			Map< ZPosition, String > zPositionStringMap = paths.get( paths.keySet().iterator().next() );
+//			String path = zPositionStringMap.get( zPositionStringMap.keySet().iterator().next() );
+//			AbstractSpimData< ? > spimData = openSpimData( path, site.getImageDataFormat(), sharedQueue );
+//			return spimData;
+//		}
+//		else
+//		{
+		final ArrayList< TPosition > tPositions = new ArrayList<>( paths.keySet() );
+		Collections.sort( tPositions );
+		int nT = tPositions.size();
+		int nZ = 1;
+		for ( TPosition t : tPositions )
 		{
-			Map< ZPosition, String > zPositionStringMap = paths.get( paths.keySet().iterator().next() );
-			String path = zPositionStringMap.get( zPositionStringMap.keySet().iterator().next() );
-			return openSpimData(  path, site.getImageDataFormat(), sharedQueue );
-		}
-		else
-		{
-			final ArrayList< TPosition > tPositions = new ArrayList<>( paths.keySet() );
-			Collections.sort( tPositions );
-			int nT = tPositions.size();
-			int nZ = 1;
-			for ( TPosition t : tPositions )
+			final Set< ZPosition > zPositions = paths.get( t ).keySet();
+			nZ = zPositions.size();
+			for ( ZPosition z : zPositions )
 			{
-				final Set< ZPosition > zPositions = paths.get( t ).keySet();
-				nZ = zPositions.size();
-				for ( ZPosition z : zPositions )
+				if ( virtualStack == null )
 				{
-					if ( virtualStack == null )
-					{
-						final int[] dimensions = site.getDimensions();
-						virtualStack = new VirtualStack( dimensions[ 0 ], dimensions[ 1 ], null, "" );
-					}
-
-					virtualStack.addSlice( paths.get( t ).get( z ) );
+					final int[] dimensions = site.getDimensions();
+					virtualStack = new VirtualBioFormatsStack( dimensions[ 0 ], dimensions[ 1 ], null, "" );
 				}
+
+				virtualStack.addSlice( paths.get( t ).get( z ) );
 			}
-
-			final ImagePlus imagePlus = new ImagePlus( site.getId(), virtualStack );
-
-			final Calibration calibration = new Calibration();
-			final VoxelDimensions voxelDimensions = site.getVoxelDimensions();
-			calibration.setUnit( voxelDimensions.unit() );
-			calibration.pixelWidth = voxelDimensions.dimension( 0 );
-			calibration.pixelHeight = voxelDimensions.dimension( 1 );
-			calibration.pixelDepth = voxelDimensions.dimension( 2 );
-			imagePlus.setCalibration( calibration );
-
-			// TODO: is could be zSlices!
-			imagePlus.setDimensions( 1, nZ, nT );
-
-			final AbstractSpimData< ? > spimData = ImagePlusToSpimData.getSpimData( imagePlus );
-			SpimDataOpener.setSharedQueue( sharedQueue, spimData );
-			return spimData;
 		}
+
+		final ImagePlus imagePlus = new ImagePlus( site.getId(), virtualStack );
+
+		final Calibration calibration = new Calibration();
+		final VoxelDimensions voxelDimensions = site.getVoxelDimensions();
+		calibration.setUnit( voxelDimensions.unit() );
+		calibration.pixelWidth = voxelDimensions.dimension( 0 );
+		calibration.pixelHeight = voxelDimensions.dimension( 1 );
+		calibration.pixelDepth = voxelDimensions.dimension( 2 );
+		imagePlus.setCalibration( calibration );
+
+		// TODO: is could be zSlices!
+		imagePlus.setDimensions( 1, nZ, nT );
+
+		final AbstractSpimData< ? > spimData = ImagePlusToSpimData.getSpimData( imagePlus );
+		SpimDataOpener.setSharedQueue( sharedQueue, spimData );
+		return spimData;
 	}
 }
