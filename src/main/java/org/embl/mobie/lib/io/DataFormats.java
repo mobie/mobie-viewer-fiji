@@ -43,17 +43,16 @@ public class DataFormats
 
 	static List< ImageDataFormat > remote = new ArrayList< ImageDataFormat >() {
 		{
-			// remote
 			add( ImageDataFormat.OmeZarrS3 );
 			add( ImageDataFormat.BdvOmeZarrS3 );
 			add( ImageDataFormat.BdvN5S3 );
 			add( ImageDataFormat.OpenOrganelleS3 );
+			add( ImageDataFormat.BioFormatsS3 );
 		}
 	};
 
 	static List< ImageDataFormat > local = new ArrayList< ImageDataFormat >() {
 		{
-			// local
 			add( ImageDataFormat.SpimData );
 			add( ImageDataFormat.OmeZarr );
 			add( ImageDataFormat.BdvOmeZarr );

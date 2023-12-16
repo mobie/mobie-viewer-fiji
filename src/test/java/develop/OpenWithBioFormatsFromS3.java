@@ -28,7 +28,7 @@ public class OpenWithBioFormatsFromS3
             in.readFully( inBytes );
             //System.out.println( fileSize + " bytes read from File." );
             Location.mapFile( "file.tif", new ByteArrayHandle( inBytes ) );
-            ImagePlus imagePlusMapped = MoBIEHelper.openWithBioFormats( "file.tif", 0 );
+            ImagePlus imagePlusMapped = IOHelper.openWithBioFormats( "file.tif", 0 );
             System.out.println( "Mapped File [ms]: " + ( System.currentTimeMillis() - start ) );
 
             // S3
@@ -43,7 +43,7 @@ public class OpenWithBioFormatsFromS3
             byte[] byteArray = buffer.toByteArray();
             //System.out.println( byteArray.length + " bytes read from S3." );
             Location.mapFile( "s3.tif", new ByteArrayHandle( byteArray ) );
-            ImagePlus imagePlusS3 = MoBIEHelper.openWithBioFormats( "s3.tif", 0 );
+            ImagePlus imagePlusS3 = IOHelper.openWithBioFormats( "s3.tif", 0 );
             System.out.println( "S3 [ms]: " + ( System.currentTimeMillis() - start ) );
         }
     }

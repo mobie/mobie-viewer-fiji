@@ -40,6 +40,7 @@ class HCSIncuyteRaw
 	public static void main( String[] args ) throws SpimDataException, IOException
 	{
 		new ImageJ().ui().showUI();
-		new MoBIE( "/Users/tischer/Downloads/incu-test-data/2207/19", new MoBIESettings(), 0.1, 0.0  );
+		//new MoBIE( "/Users/tischer/Downloads/incu-test-data/2207/19", new MoBIESettings(), 0.1, 0.0  );
+		new MoBIE( "https://s3.embl.de/i2k-2020/incu-test-data/2207/19", new MoBIESettings(), 0.1, 0.0  );
 	}
 }

@@ -42,6 +42,7 @@ import org.embl.mobie.DataStore;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.toml.TPosition;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.color.ColorHelper;
@@ -86,8 +87,10 @@ public class Plate
 
 		// FIXME: fetch operetta paths from XML?!
 		// FIXME: fetch OME-Zarr paths entry point JSON?!
-		List< String > imageSitePaths;
 
+		IJ.log( "Fetching paths..." );
+		long start = System.currentTimeMillis();
+		List< String > imageSitePaths;
 		if ( hcsDirectory.endsWith( ".zarr" ) )
 		{
 			hcsPattern = HCSPattern.OMEZarr;
@@ -112,15 +115,23 @@ public class Plate
 		}
 		else
 		{
-			imageSitePaths = Files.walk( Paths.get( hcsDirectory ), 3 )
-					.map( p -> p.toString() )
-					.collect( Collectors.toList() );
+			if( IOHelper.getType( hcsDirectory ).equals( IOHelper.ResourceType.S3 ) )
+			{
+				imageDataFormat = ImageDataFormat.BioFormatsS3;
+				imageSitePaths = S3Utils.getS3FilePaths( hcsDirectory );
+			}
+			else
+			{
+				imageDataFormat = ImageDataFormat.BioFormats;
+				imageSitePaths = Files.walk( Paths.get( hcsDirectory ), 3 )
+						.map( p -> p.toString() )
+						.collect( Collectors.toList() );
+			}
+
 			hcsPattern = determineHCSPattern( hcsDirectory, imageSitePaths );
 			imageSitePaths = imageSitePaths.stream()
 					.filter( path -> hcsPattern.setMatcher( path ) ) // skip files like .DS_Store a.s.o.
 					.collect( Collectors.toList() );
-
-			imageDataFormat = ImageDataFormat.BioFormats;
 
 			if ( hcsPattern == HCSPattern.Operetta )
 			{
@@ -133,6 +144,7 @@ public class Plate
 						.collect( Collectors.toList() );
 			}
 		}
+		IJ.log( "Done fetching " + imageSitePaths.size() + " paths in " + ( System.currentTimeMillis() - start ) + " ms." );
 
 		buildPlateMap( imageSitePaths );
 	}
@@ -164,7 +176,7 @@ public class Plate
 
 					// FIXME Replace with MoBIEHelper.getMetadataFromImageFile
 					IJ.log( "Fetching metadata for setup " + channelName + " from " + sitePath );
-					ImagePlus singleChannelImagePlus = operettaMetadata == null ? openImagePlus( sitePath, channel.getChannelIndex() ) : null;
+					ImagePlus singleChannelImagePlus = operettaMetadata == null ? MoBIEHelper.openAsImagePlus( sitePath, channel.getChannelIndex(), imageDataFormat ) : null;
 					if ( singleChannelImagePlus.getNSlices() > 1 )
 						is2d = false;
 
@@ -308,9 +320,6 @@ public class Plate
 		else
 		{
 			return MoBIEHelper.openAsImagePlus( path, channelID, imageDataFormat );
-
-			//return IJ.openImage( path ); // <- this does not auto-fetch using Bio-Formats, maybe because it is not on the class path?
-
 		}
 	}
 
@@ -358,7 +367,6 @@ public class Plate
 			final HCSPattern hcsPattern = HCSPattern.fromPath( path );
 			if ( hcsPattern != null )
 			{
-				IJ.log( "HCS Pattern: " + hcsPattern );
 				return hcsPattern;
 			}
 		}

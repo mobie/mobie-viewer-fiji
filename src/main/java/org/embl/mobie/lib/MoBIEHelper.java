@@ -41,6 +41,7 @@ import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.io.toml.TOMLOpener;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.ImageDataSource;
@@ -149,25 +150,7 @@ public abstract class MoBIEHelper
 		return resultStr;
 	}
 
-	public static ImagePlus openWithBioFormats( String path, int seriesIndex )
-	{
-		try
-		{
-			ImporterOptions opts = new ImporterOptions();
-			opts.setId( path );
-			opts.setVirtual( true );
-			opts.setSeriesOn( seriesIndex, true );
-			ImportProcess process = new ImportProcess( opts );
-			process.execute();
-			ImagePlusReader impReader = new ImagePlusReader( process );
-			ImagePlus[] imps = impReader.openImagePlus();
-			return imps[ 0 ];
-		}
-		catch ( Exception e )
-		{
-			throw new RuntimeException("Could not open " + path );
-		}
-	}
+
 
 	public static boolean is2D( AbstractSpimData< ? > spimData, int setupIndex )
 	{
@@ -223,8 +206,7 @@ public abstract class MoBIEHelper
 		}
 		else
 		{
-			final ImagePlus imagePlus = MoBIEHelper.openWithBioFormats( path, 0 );
-			// final ImagePlus imagePlus = IJ.openVirtual( path );
+			final ImagePlus imagePlus = IOHelper.openWithBioFormats( path, 0 );
 			imagePlus.setC( channelIndex + 1 );
 			return new Metadata( imagePlus );
 		}

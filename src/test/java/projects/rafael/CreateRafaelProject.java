@@ -34,12 +34,14 @@ import ij.gui.Roi;
 import ij.plugin.ChannelSplitter;
 import ij.plugin.Duplicator;
 import ij.plugin.frame.RoiManager;
+import io.scif.img.IO;
 import mpicbg.spim.data.SpimDataException;
 import net.imagej.ImageJ;
 import net.imagej.patcher.LegacyInjector;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.create.DatasetsCreator;
 import org.embl.mobie.lib.create.ImagesCreator;
@@ -71,7 +73,7 @@ public class CreateRafaelProject
 		// The second argument of below function selects the resolution level.
 		// 0 refers to the highest resolutions level.
 		// To make testing faster one can choose another level.
-		final ImagePlus imp = MoBIEHelper.openWithBioFormats( sectionsPath, 3 );
+		final ImagePlus imp = IOHelper.openWithBioFormats( sectionsPath, 3 );
 		imp.getCalibration().pixelDepth = sectionThicknessMicrometer;
 		imp.show();
 		IJ.run( imp, "Enhance Contrast", "saturated=0.35" );

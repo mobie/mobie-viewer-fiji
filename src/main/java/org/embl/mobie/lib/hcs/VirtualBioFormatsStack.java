@@ -8,6 +8,9 @@ import ij.io.Opener;
 import ij.plugin.FolderOpener;
 import ij.process.*;
 import ij.util.Tools;
+import io.scif.img.IO;
+import loci.formats.in.CellSensReader;
+import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.MoBIEHelper;
 
@@ -183,8 +186,14 @@ public class VirtualBioFormatsStack extends ImageStack
             return ip;
         }
         n = translate(n);  // update n for hyperstacks not in the default CZT order
-        ImagePlus imp = MoBIEHelper.openWithBioFormats(getFileName(n), 0);
-        //imp.setTitle( names[n-1] );
+        String path = getFileName( n );
+        ImagePlus imp;
+        // FIXME: Do the resourceTyping in IOHelper!
+        IOHelper.ResourceType resourceType = IOHelper.getType( path );
+        if ( resourceType.equals( IOHelper.ResourceType.S3 ) )
+            imp = IOHelper.openWithBioformatsFromS3( path, 0 );
+        else
+            imp = IOHelper.openWithBioFormats( path, 0);
         ImageProcessor ip = null;
         int depthThisImage = 0;
         if (imp!=null) {
@@ -206,7 +215,7 @@ public class VirtualBioFormatsStack extends ImageStack
             ip.setOverlay(imp.getOverlay());
             properties = imp.getProperty("FHT")!=null?imp.getProperties():null;
         } else {
-            File f = new File(path, names[n-1]);
+            File f = new File( this.path, names[n-1]);
             String msg = f.exists()?"Error opening ":"File not found: ";
             ip = new ByteProcessor(getWidth(), getHeight());
             ip.invert();
