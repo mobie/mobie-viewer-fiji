@@ -265,7 +265,6 @@ public class MoBIE
 	{
 		initProject( "HCS" );
 		final Plate plate = new Plate( projectLocation );
-		IJ.log( "HCS Pattern: " + plate.getHcsPattern() );
 		new HCSDataAdder( plate, wellMargin, siteMargin ).addData( dataset );
 		initUIandShowView( dataset.views().keySet().iterator().next() );
 	}

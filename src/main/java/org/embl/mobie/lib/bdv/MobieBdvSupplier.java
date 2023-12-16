@@ -49,9 +49,7 @@ import sc.fiji.bdvpg.bdv.supplier.IBdvSupplier;
 import java.awt.*;
 
 public class MobieBdvSupplier implements IBdvSupplier {
-
     public final MobieSerializableBdvOptions sOptions;
-
     public MobieBdvSupplier( MobieSerializableBdvOptions sOptions )
     {
         this.sOptions = sOptions;

@@ -31,6 +31,7 @@ package org.embl.mobie.lib.bdv;
 import bdv.util.AxisOrder;
 import bdv.util.BdvOptions;
 import bdv.viewer.render.AccumulateProjectorFactory;
+import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.bdv.blend.AccumulateAlphaBlendingProjectorARGBFactory;
 import net.imglib2.type.numeric.ARGBType;
 
@@ -59,21 +60,21 @@ public class MobieSerializableBdvOptions {
     public AccumulateProjectorFactory<ARGBType> accumulateProjectorFactory = new AccumulateAlphaBlendingProjectorARGBFactory();
 
     public BdvOptions getBdvOptions() {
-        BdvOptions o =
+        BdvOptions bdvOptions =
                 BdvOptions.options()
                         .screenScales(this.screenScales)
                         .targetRenderNanos(this.targetRenderNanos)
-                        .numRenderingThreads(this.numRenderingThreads)
+                        .numRenderingThreads(ThreadHelper.getNumIoThreads())
                         .numSourceGroups(this.numSourceGroups)
                         .axisOrder(this.axisOrder)
                         .preferredSize(this.width, this.height)
                         .frameTitle(this.frameTitle);
         if (this.accumulateProjectorFactory!=null) {
-            o = o.accumulateProjectorFactory(this.accumulateProjectorFactory);
+            bdvOptions = bdvOptions.accumulateProjectorFactory(this.accumulateProjectorFactory);
         }
-        if (this.is2D) o = o.is2D();
+        if (this.is2D) bdvOptions = bdvOptions.is2D();
 
-        return o;
+        return bdvOptions;
     }
 
 }

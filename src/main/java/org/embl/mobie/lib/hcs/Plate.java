@@ -88,9 +88,10 @@ public class Plate
 		// FIXME: fetch operetta paths from XML?!
 		// FIXME: fetch OME-Zarr paths entry point JSON?!
 
-		IJ.log( "Fetching paths..." );
+		IJ.log( "Looking for image files..." );
 		long start = System.currentTimeMillis();
-		List< String > imageSitePaths;
+		List< String > imagePaths;
+
 		if ( hcsDirectory.endsWith( ".zarr" ) )
 		{
 			hcsPattern = HCSPattern.OMEZarr;
@@ -105,9 +106,9 @@ public class Plate
 				imageDataFormat = ImageDataFormat.OmeZarr;
 			}
 
-			imageSitePaths = OMEZarrHCSHelper.sitePathsFromMetadata( hcsDirectory );
+			imagePaths = OMEZarrHCSHelper.sitePathsFromMetadata( hcsDirectory );
 
-			final String firstImagePath = imageSitePaths.get( 0 );
+			final String firstImagePath = imagePaths.get( 0 );
 			AbstractSpimData< ? > spimData = DataStore.fetchSpimData( firstImagePath, imageDataFormat, ThreadHelper.sharedQueue );
 			List< ViewSetup > viewSetupsOrdered = ( List< ViewSetup > ) spimData.getSequenceDescription().getViewSetupsOrdered();
 			List< String > channels = viewSetupsOrdered.stream().map( vs -> vs.getChannel().getName() ).collect( Collectors.toList() );
@@ -118,19 +119,19 @@ public class Plate
 			if( IOHelper.getType( hcsDirectory ).equals( IOHelper.ResourceType.S3 ) )
 			{
 				imageDataFormat = ImageDataFormat.BioFormatsS3;
-				imageSitePaths = S3Utils.getS3FilePaths( hcsDirectory );
+				imagePaths = S3Utils.getS3FilePaths( hcsDirectory );
 				ThreadHelper.setNumIoThreads( Math.max( 16, ThreadHelper.getNumIoThreads() ) );
 			}
 			else
 			{
 				imageDataFormat = ImageDataFormat.BioFormats;
-				imageSitePaths = Files.walk( Paths.get( hcsDirectory ), 3 )
+				imagePaths = Files.walk( Paths.get( hcsDirectory ), 3 )
 						.map( p -> p.toString() )
 						.collect( Collectors.toList() );
 			}
 
-			hcsPattern = determineHCSPattern( hcsDirectory, imageSitePaths );
-			imageSitePaths = imageSitePaths.stream()
+			hcsPattern = determineHCSPattern( hcsDirectory, imagePaths );
+			imagePaths = imagePaths.stream()
 					.filter( path -> hcsPattern.setMatcher( path ) ) // skip files like .DS_Store a.s.o.
 					.collect( Collectors.toList() );
 
@@ -140,26 +141,27 @@ public class Plate
 				//final File xml = new File( hcsDirectory, "Index.idx.xml" );
 				final File xml = new File( hcsDirectory, "Index.xml" );
 				operettaMetadata = new OperettaMetadata( xml );
-				imageSitePaths = imageSitePaths.stream()
+				imagePaths = imagePaths.stream()
 						.filter( path -> operettaMetadata.contains( path ) ) // skip files like .DS_Store a.s.o.
 						.collect( Collectors.toList() );
 			}
 		}
-		IJ.log( "Done fetching " + imageSitePaths.size() + " paths in " + ( System.currentTimeMillis() - start ) + " ms." );
+		IJ.log( "Found " + imagePaths.size() + " image files in " + ( System.currentTimeMillis() - start ) + " ms." );
+		IJ.log( "HCS pattern: " + getHcsPattern() );
 
-		buildPlateMap( imageSitePaths );
+		buildPlateMap( imagePaths );
 	}
 
-	private void buildPlateMap( List< String > sitePaths )
+	private void buildPlateMap( List< String > imagePaths )
 	{
 		channelWellSites = new HashMap<>();
 		tPositions = new HashSet<>();
 
-		IJ.log("Parsing " + sitePaths.size() + " sites...");
+		IJ.log("Parsing metadata...");
 
-		for ( String sitePath : sitePaths )
+		for ( String imagePath : imagePaths )
 		{
-			hcsPattern.setMatcher( sitePath );
+			hcsPattern.setMatcher( imagePath );
 
 			// some formats contain multiple channels in one file
 			List< String > channelNames = hcsPattern.getChannels();
@@ -176,8 +178,8 @@ public class Plate
 					channelWellSites.put( channel, new HashMap<>() );
 
 					// FIXME Replace with MoBIEHelper.getMetadataFromImageFile
-					IJ.log( "Fetching metadata for setup " + channelName + " from " + sitePath );
-					ImagePlus singleChannelImagePlus = operettaMetadata == null ? MoBIEHelper.openAsImagePlus( sitePath, channel.getChannelIndex(), imageDataFormat ) : null;
+					IJ.log( "Fetching metadata for setup " + channelName + " from " + imagePath );
+					ImagePlus singleChannelImagePlus = operettaMetadata == null ? MoBIEHelper.openAsImagePlus( imagePath, channel.getChannelIndex(), imageDataFormat ) : null;
 					if ( singleChannelImagePlus.getNSlices() > 1 )
 						is2d = false;
 
@@ -185,13 +187,13 @@ public class Plate
 					//
 					if ( operettaMetadata != null )
 					{
-						final String color = operettaMetadata.getColor( sitePath );
+						final String color = operettaMetadata.getColor( imagePath );
 						channel.setColor( color );
 
 						// TODO: There does not always seem to be enough metadata for the
 						//   contrast limits, thus opening one image may be worth it
 						//   then convert to image plus and run once auto contrast on it
-						final double[] contrastLimits = operettaMetadata.getContrastLimits( sitePath );
+						final double[] contrastLimits = operettaMetadata.getContrastLimits( imagePath );
 						channel.setContrastLimits( contrastLimits );
 					}
 					else // from image file
@@ -213,8 +215,8 @@ public class Plate
 					{
 						if ( operettaMetadata != null )
 						{
-							voxelDimensions = operettaMetadata.getVoxelDimensions( sitePath );
-							siteDimensions = operettaMetadata.getSiteDimensions( sitePath );
+							voxelDimensions = operettaMetadata.getVoxelDimensions( imagePath );
+							siteDimensions = operettaMetadata.getSiteDimensions( imagePath );
 						}
 						else // from image file
 						{
@@ -256,14 +258,14 @@ public class Plate
 				{
 					if ( imageDataFormat.equals( ImageDataFormat.SpimData ) )
 					{
-						final int imageIndex = operettaMetadata.getImageIndex( sitePath );
+						final int imageIndex = operettaMetadata.getImageIndex( imagePath );
 						final BasicViewSetup viewSetup = spimDataPlate.getSequenceDescription().getViewSetupsOrdered().get( imageIndex );
 						IJ.log( "" );
 						final Map< String, Entity > attributes = viewSetup.getAttributes();
 						IJ.log( "Image index:" + imageIndex );
 						IJ.log( "Series index: " + ( ( SeriesIndex ) attributes.get( "seriesindex" ) ).getId() );
 						IJ.log( "Setup name: " + viewSetup.getName() );
-						IJ.log( "File name: " + new File( sitePath ).getName() );
+						IJ.log( "File name: " + new File( imagePath ).getName() );
 						site = new Site( siteGroup, imageDataFormat, spimDataPlate, imageIndex );
 					}
 					else
@@ -282,14 +284,14 @@ public class Plate
 
 				if ( hcsPattern.equals( hcsPattern.OMEZarr ) )
 				{
-					site.absolutePath = sitePath;
+					site.absolutePath = imagePath;
 					site.channelIndex = channel.getChannelIndex();
 				}
 				else
 				{
 					final String t = hcsPattern.getT();
 					final String z = hcsPattern.getZ();
-					site.addPath( t, z, sitePath );
+					site.addPath( t, z, imagePath );
 					tPositions.add( new TPosition( t ) );
 				}
 			}
@@ -298,8 +300,8 @@ public class Plate
 		IJ.log( "Initialised HCS plate: " + getName() );
 		IJ.log( "Wells: " + wellsPerPlate );
 		IJ.log( "Sites per well: " + sitesPerWell );
-		IJ.log( "Sites: " + sitePaths.size() );
 		IJ.log( "Channels: " + channelWellSites.keySet().size() );
+		IJ.log( "Frames: " + tPositions.size() );
 	}
 
 	private ImagePlus openImagePlus( String path, int channelID )
