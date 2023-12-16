@@ -32,6 +32,7 @@ import mpicbg.spim.data.SpimDataException;
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.lib.ThreadHelper;
 
 import java.io.IOException;
 

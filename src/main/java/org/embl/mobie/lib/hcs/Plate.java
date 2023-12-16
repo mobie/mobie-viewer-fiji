@@ -119,6 +119,7 @@ public class Plate
 			{
 				imageDataFormat = ImageDataFormat.BioFormatsS3;
 				imageSitePaths = S3Utils.getS3FilePaths( hcsDirectory );
+				ThreadHelper.setNumIoThreads( Math.max( 16, ThreadHelper.getNumIoThreads() ) );
 			}
 			else
 			{

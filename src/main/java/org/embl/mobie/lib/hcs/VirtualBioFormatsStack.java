@@ -187,13 +187,7 @@ public class VirtualBioFormatsStack extends ImageStack
         }
         n = translate(n);  // update n for hyperstacks not in the default CZT order
         String path = getFileName( n );
-        ImagePlus imp;
-        // FIXME: Do the resourceTyping in IOHelper!
-        IOHelper.ResourceType resourceType = IOHelper.getType( path );
-        if ( resourceType.equals( IOHelper.ResourceType.S3 ) )
-            imp = IOHelper.openWithBioformatsFromS3( path, 0 );
-        else
-            imp = IOHelper.openWithBioFormats( path, 0);
+        ImagePlus imp = IOHelper.openWithBioFormats( path, 0 );
         ImageProcessor ip = null;
         int depthThisImage = 0;
         if (imp!=null) {

@@ -85,7 +85,7 @@
 
         <bigdataviewer-playground.version>0.8.0</bigdataviewer-playground.version>
         <imagej-utils.version>0.6.9</imagej-utils.version>
-        <mobie-io.version>2.2.3-SNAPSHOT</mobie-io.version>
+        <mobie-io.version>2.2.3</mobie-io.version>
         <trove.version>1.0.2</trove.version>
         <annotations.version>16.0.2</annotations.version>
 
@@ -104,9 +104,6 @@
         <!-- TableSaw -->
         <tablesaw-core.version>0.43.1</tablesaw-core.version>
         <tablesaw-parquet.version>0.10.0</tablesaw-parquet.version>
-
-        <!-- AutoMicTools -->
-        <AutoMicoTools_.version>1.1.66-SNAPSHOT</AutoMicoTools_.version>
 
         <!-- NB: Deploy releases to the SciJava Maven repository. -->
         <releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
