@@ -40,6 +40,7 @@ import org.embl.mobie.lib.table.AnnotationListener;
 import org.embl.mobie.lib.table.DefaultValues;
 import org.embl.mobie.lib.table.TableDataFormat;
 import tech.tablesaw.api.ColumnType;
+import tech.tablesaw.api.DoubleColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 
@@ -347,6 +348,23 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		Arrays.fill( strings, DefaultValues.NONE );
 		final StringColumn stringColumn = StringColumn.create( columnName, strings );
 		table.addColumns( stringColumn );
+
+		for ( AnnotationListener< A > listener : listeners.list )
+			listener.columnsAdded( Collections.singleton( columnName ) );
+	}
+
+	@Override
+	public void addNumericColumn( String columnName )
+	{
+		update();
+
+		if ( table.containsColumn( columnName ) )
+			throw new UnsupportedOperationException("Column " + columnName + " exists already.");
+
+		final double[] doubles = new double[ table.rowCount() ];
+		Arrays.fill( doubles, 0.0 );
+		final DoubleColumn doubleColumn = DoubleColumn.create( columnName, doubles );
+		table.addColumns( doubleColumn );
 
 		for ( AnnotationListener< A > listener : listeners.list )
 			listener.columnsAdded( Collections.singleton( columnName ) );

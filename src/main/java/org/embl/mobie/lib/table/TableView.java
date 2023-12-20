@@ -32,7 +32,6 @@ import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.TableUIs;
 import ij.IJ;
 import ij.gui.GenericDialog;
-import loci.poi.hssf.extractor.ExcelExtractor;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.annotation.AnnotationUI;
 import org.embl.mobie.lib.annotation.Annotation;
@@ -53,10 +52,7 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.ui.UserInterfaceHelper;
 
 import javax.swing.*;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -169,6 +165,8 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 			// menuBar.add( createPlotMenu() ); we have this already in the MoBIE UI
 		}
 
+		menuBar.add( createComputeMenu() );
+
 		return menuBar;
 	}
 
@@ -179,6 +177,13 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		menu.add( createSelectEqualToMenuItem() );
 		menu.add( createSelectLessThanMenuItem() );
 		menu.add( createSelectGreaterThanMenuItem() );
+		return menu;
+	}
+
+	private JMenu createComputeMenu()
+	{
+		JMenu menu = new JMenu( "Compute" );
+		menu.add( createComputeDistanceMenuItem() );
 		return menu;
 	}
 
@@ -241,9 +246,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		final JMenuItem menuItem = new JMenuItem( "Add Text Column..." );
 		menuItem.addActionListener( e ->
-				new Thread( () -> {
-					showAddStringColumnDialog();
-				}).start()
+				new Thread( this::showAddStringColumnDialog ).start()
 		);
 		return menuItem;
 	}
@@ -318,12 +321,20 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		return menuItem;
 	}
 
+	private JMenuItem createComputeDistanceMenuItem()
+	{
+		final JMenuItem menuItem = new JMenuItem( "Compute Distance to Selected Rows..." );
+		menuItem.addActionListener( e ->
+				SwingUtilities.invokeLater( ()
+						-> DistanceComputer.showUI( tableModel, selectionModel ) ) );
+		return menuItem;
+	}
+
 	private JMenuItem createSelectEqualToMenuItem()
 	{
 		final JMenuItem menuItem = new JMenuItem( "Select Equal To..." );
 		menuItem.addActionListener( e ->
-				SwingUtilities.invokeLater( () ->
-						selectEqualTo() ) );
+				SwingUtilities.invokeLater( this::selectEqualTo ) );
 		return menuItem;
 	}
 

@@ -139,6 +139,12 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	}
 
 	@Override
+	public void addNumericColumn( String columnName )
+	{
+		throw new UnsupportedOperationException( this.getClass().getName() + " does not support adding table columns." );
+	}
+
+	@Override
 	public StorageLocation getStorageLocation()
 	{
 		return null;
@@ -154,7 +160,7 @@ public class LazyAnnotatedSegmentTableModel extends AbstractAnnotationTableModel
 	public void addAnnotationListener( AnnotationListener< AnnotatedSegment > listener )
 	{
 		listeners.add( listener );
-		if ( annotations.size() > 0 )
+		if ( ! annotations.isEmpty() )
 			listener.annotationsAdded( annotations );
 	}
 

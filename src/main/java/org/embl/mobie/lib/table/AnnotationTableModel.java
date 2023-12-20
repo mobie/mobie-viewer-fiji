@@ -73,6 +73,7 @@ public interface AnnotationTableModel< A extends Annotation >
 	Pair< Double, Double > getMinMax( String columnName ); // for contrast limits during rendering
 	ArrayList< A > annotations();
 	void addStringColumn( String columnName );
+	void addNumericColumn( String columnName );
 	StorageLocation getStorageLocation();
 	void transform( AffineTransform3D affineTransform3D );
 	void addAnnotationListener(  AnnotationListener< A > listener );

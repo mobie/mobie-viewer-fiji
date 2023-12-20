@@ -51,8 +51,7 @@ public abstract class AbstractTableSawAnnotation implements Annotation
 	{
 		try
 		{
-			final Object object = model.getTable().get( rowIndex, model.getTable().columnIndex( feature ) );
-			return object;
+            return model.getTable().get( rowIndex, model.getTable().columnIndex( feature ) );
 		}
 		catch ( Exception e )
 		{
@@ -70,6 +69,12 @@ public abstract class AbstractTableSawAnnotation implements Annotation
 	public void setString( String columnName, String value )
 	{
 		model.getTable().stringColumn( columnName ).set( rowIndex, value );
+	}
+
+	@Override
+	public void setNumber( String columnName, double value )
+	{
+		model.getTable().doubleColumn( columnName ).set( rowIndex, value );
 	}
 
 }

@@ -159,6 +159,24 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	}
 
 	@Override
+	public void addNumericColumn( String columnName )
+	{
+		if ( columnNames().contains( columnName ) )
+			return;
+
+		for ( AnnotationTableModel< A > tableModel : tableModels )
+		{
+			if ( ! tableModel.columnNames().contains( columnName ) )
+			{
+				tableModel.addNumericColumn( columnName );
+			}
+		}
+
+		for ( AnnotationListener< A > listener : listeners.list )
+			listener.columnsAdded( null );
+	}
+
+	@Override
 	public StorageLocation getStorageLocation()
 	{
 		return referenceTable.getStorageLocation();

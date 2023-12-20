@@ -152,8 +152,14 @@ public class DefaultAnnotatedSegment implements AnnotatedSegment
 		// TODO current implementation would require making
 		//  the static field mutable, which would not
 		//  work for multiple tables using the DefaultAnnotatedSegment
-//		columnToValue.put( columnName, value );
-//		columnToClass.put( columnName, String.class );
+		//	columnToValue.put( columnName, value );
+		//	columnToClass.put( columnName, String.class );
+		throw new UnsupportedOperationException( "Adding values to " + this.getClass() + " is not implemented." );
+	}
+
+	@Override
+	public void setNumber( String columnName, double value )
+	{
 		throw new UnsupportedOperationException( "Adding values to " + this.getClass() + " is not implemented." );
 	}
 

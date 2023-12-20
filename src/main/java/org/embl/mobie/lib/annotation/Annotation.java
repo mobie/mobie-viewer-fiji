@@ -49,8 +49,11 @@ public interface Annotation extends Location
 	// (typically: feature = column in an annotation table)
 	Double getNumber( String feature );
 
-	// For adding manual annotations
+	// For adding text annotations
 	void setString( String columnName, String value );
+
+	// For adding numeric annotations
+	void setNumber( String columnName, double value );
 
 	// Transform the spatial coordinates of this annotation.
 	// Note that there are also methods to transform annotations,

@@ -152,6 +152,12 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	}
 
 	@Override
+	public void addNumericColumn( String columnName )
+	{
+		tableModel.addNumericColumn( columnName );
+	}
+
+	@Override
 	public StorageLocation getStorageLocation()
 	{
 		return tableModel.getStorageLocation();

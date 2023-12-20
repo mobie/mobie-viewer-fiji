@@ -145,6 +145,12 @@ public class AffineTransformedAnnotatedSegment< AS extends AnnotatedSegment > im
 	}
 
 	@Override
+	public void setNumber( String columnName, double value )
+	{
+		annotatedSegment.setNumber( columnName, value );
+	}
+
+	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
 		if ( position != null )

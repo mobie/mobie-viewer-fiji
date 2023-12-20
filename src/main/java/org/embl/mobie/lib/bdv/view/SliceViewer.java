@@ -149,13 +149,13 @@ public class SliceViewer
 		final Set< String > actionsKeys = sacService.getActionsKeys();
 
 		final ArrayList< String > actions = new ArrayList< String >();
-		actions.add( sacService.getCommandName( ScreenShotMakerCommand.class ) );
-		actions.add( sacService.getCommandName( ShowRasterImagesCommand.class ) );
-		actions.add( sacService.getCommandName( ViewerTransformLoggerCommand.class ) );
-		actions.add( sacService.getCommandName( SourceInfoLoggerCommand.class ) );
-		actions.add( sacService.getCommandName( BigWarpRegistrationCommand.class ) );
-		actions.add( sacService.getCommandName( ManualRegistrationCommand.class ) );
-		actions.add( sacService.getCommandName( FlipCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( ScreenShotMakerCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( ShowRasterImagesCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( ViewerTransformLoggerCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( SourceInfoLoggerCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( BigWarpRegistrationCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( ManualRegistrationCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( FlipCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );
 		actions.add( LOAD_ADDITIONAL_VIEWS );
 		actions.add( SAVE_CURRENT_SETTINGS_AS_VIEW );
