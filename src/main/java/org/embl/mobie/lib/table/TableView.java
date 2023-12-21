@@ -182,7 +182,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private JMenu createComputeMenu()
 	{
-		JMenu menu = new JMenu( "Compute" );
+		JMenu menu = new JMenu( "Analyse" );
 		menu.add( createComputeDistanceMenuItem() );
 		return menu;
 	}

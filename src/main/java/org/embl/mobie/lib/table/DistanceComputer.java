@@ -3,8 +3,6 @@ package org.embl.mobie.lib.table;
 import ij.IJ;
 import ij.gui.GenericDialog;
 import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.util.Pair;
-import net.imglib2.util.ValuePair;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.color.ColoringModels;
 import org.embl.mobie.lib.color.MobieColoringModel;
@@ -12,58 +10,80 @@ import org.embl.mobie.lib.color.NumericAnnotationColoringModel;
 import org.embl.mobie.lib.color.lut.LUTs;
 import org.embl.mobie.lib.select.SelectionModel;
 import org.jetbrains.annotations.NotNull;
-import org.scijava.util.ColorRGB;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class DistanceComputer
 {
+    enum Average
+    {
+        Mean,
+        Median;
+
+        public static String[] asArray()
+        {
+            return Arrays.stream(Average.values()).map(Enum::name).toArray(String[]::new);
+        }
+
+    }
+
+    enum Metric {
+        Euclidian,
+        Cosine;
+
+        public static String[] asArray()
+        {
+            return Arrays.stream(Metric.values()).map(Enum::name).toArray(String[]::new);
+        }
+    }
+
     public static < A extends Annotation > void showUI( AnnotationTableModel< A > tableModel, SelectionModel< A > selectionModel, MobieColoringModel< A > coloringModel )
     {
+        Set< A > referenceRows = selectionModel.getSelected();
+        if ( referenceRows.isEmpty() )
+        {
+            IJ.showMessage( "Please select at least one table row as a reference." );
+            return;
+        }
+
         // show dialog
         //
         final GenericDialog gd = new GenericDialog( "" );
         gd.addStringField( "Distance Columns RegEx", "anchor_.*" );
+        gd.addChoice( "Distance Metric", Metric.asArray(), Metric.Euclidian.toString() );
+        gd.addChoice( "Averaging Method", Average.asArray(), Average.Median.toString() );
         gd.addStringField( "Results Column Name", "distance" );
-        gd.addCheckbox( "Color by Distances", true );
+        gd.addCheckbox( "Color by Results", true );
         gd.showDialog();
         if( gd.wasCanceled() ) return;
+
+        // parse user input
+        //
         final String columnNamesRegEx = gd.getNextString();
+        Metric metric = Metric.valueOf( gd.getNextChoice() );
+        Average average = Average.valueOf( gd.getNextChoice() );
         final String resultColumnName = gd.getNextString();
         boolean colorByDistances = gd.getNextBoolean();
 
-        List< String > selectedColumnNames = tableModel.columnNames().stream()
+        List< String > distanceFeatures = tableModel.columnNames().stream()
                 .filter( columnName -> columnName.matches( columnNamesRegEx ) )
                 .collect( Collectors.toList() );
-
-        if ( selectedColumnNames.isEmpty() )
+        if ( distanceFeatures.isEmpty() )
         {
-            IJ.log( "The regular expression " + columnNamesRegEx + " did not match any column names." );
+            IJ.showMessage( "The regular expression " + columnNamesRegEx + " did not match any column names." );
             return;
         }
 
-        // for all selected selectedColumns compute the average or median value
-        // of all selectedAnnotations and store this in a Map< ColumnName, double >
-        Set< A > selectedAnnotations = selectionModel.getSelected();
+        // compute
+        //
 
-        // TODO provide options for other averaging methods, e.g. median
-        Map< String, Double > columnAverages = averageSelectedAnnotations( selectedColumnNames, selectedAnnotations );
+        Map< String, Double > referenceValues = computeReferenceValues( average, distanceFeatures, referenceRows );
 
-        // for all annotations compute the Euclidean distance
-        // to the above computed average of the selected annotations
-        tableModel.addNumericColumn( resultColumnName );
+        computeDistancesAndAddToTable( tableModel, resultColumnName, metric, distanceFeatures, referenceValues );
 
-        long start = System.currentTimeMillis();
-        computeEuclidanDistances( tableModel, selectedColumnNames, columnAverages, resultColumnName );
-        String distanceMetric = "Euclidan";
-        IJ.log( "Computed the " + distanceMetric + " distance of " + selectedColumnNames.size()
-                + " features for " + tableModel.annotations().size() + " annotations in " +
-                ( System.currentTimeMillis() - start ) + " ms.");
-
+        // visualise
+        //
         if ( colorByDistances )
         {
             NumericAnnotationColoringModel< A > numericModel =
@@ -77,6 +97,48 @@ public class DistanceComputer
             coloringModel.setSelectionColor( new ARGBType( ARGBType.rgba( 255, 255, 0, 255 ) ) );
         }
 
+    }
+
+    // TODO: multi-thread the computations if they become too slow
+    private static < A extends Annotation > void computeDistancesAndAddToTable( AnnotationTableModel< A > tableModel, String resultColumnName, Metric metric, List< String > selectedColumnNames, Map< String, Double > columnAverages )
+    {
+        if ( tableModel.columnNames().contains( resultColumnName ) )
+        {
+            IJ.log( "Overwriting values in existing column: " + resultColumnName );
+        }
+        else
+        {
+            IJ.log( "Adding new column: " + resultColumnName );
+            tableModel.addNumericColumn( resultColumnName );
+        }
+
+        long start = System.currentTimeMillis();
+        switch ( metric )
+        {
+            case Euclidian:
+                computeEuclidanDistances( tableModel, selectedColumnNames, columnAverages, resultColumnName );
+                break;
+            case Cosine:
+            default:
+                computeCosineDistances( tableModel, selectedColumnNames, columnAverages, resultColumnName );
+                break;
+        }
+        IJ.log( "Computed the " + metric + " distance of " + selectedColumnNames.size()
+                + " features for " + tableModel.annotations().size() + " annotations in " +
+                ( System.currentTimeMillis() - start ) + " ms.");
+    }
+
+    @NotNull
+    private static < A extends Annotation > Map< String, Double > computeReferenceValues( Average average, List< String > selectedColumnNames, Set< A > selectedAnnotations )
+    {
+        switch ( average )
+        {
+            case Mean:
+                return averageSelectedAnnotations( selectedColumnNames, selectedAnnotations );
+            case Median:
+            default:
+               return medianSelectedAnnotations( selectedColumnNames, selectedAnnotations );
+        }
     }
 
     @NotNull
@@ -114,22 +176,53 @@ public class DistanceComputer
         return columnMedians;
     }
 
-    private static < A extends Annotation > void computeEuclidanDistances( AnnotationTableModel< A > tableModel, List< String > selectedColumnNames, Map< String, Double > columnAverages, String resultColumnName )
+    private static < A extends Annotation > void computeEuclidanDistances( AnnotationTableModel< A > tableModel, List< String > selectedColumnNames, Map< String, Double > originCoordinates, String resultColumnName )
     {
         // Compute Euclidean distances
         List< A > annotations = tableModel.annotations();
 
-        for ( A annotation : annotations )
-        {
+        annotations.parallelStream().forEach(annotation -> {
             double sumOfSquares = 0.0;
-            for ( String column : selectedColumnNames ) {
+            for (String column : selectedColumnNames) {
                 final double value = annotation.getNumber(column).doubleValue();
-                final double average = columnAverages.get(column);
-                sumOfSquares += Math.pow(value - average, 2);
+                final double origin = originCoordinates.get(column);
+                sumOfSquares += Math.pow(value - origin, 2);
             }
-            final double euclideanDistance = Math.sqrt( sumOfSquares );
-            annotation.setNumber( resultColumnName, euclideanDistance);
-        }
+            final double euclideanDistance = Math.sqrt(sumOfSquares);
+            annotation.setNumber(resultColumnName, euclideanDistance);
+        });
 
+    }
+
+    private static <A extends Annotation> void computeCosineDistances(AnnotationTableModel<A> tableModel, List<String>
+            selectedColumnNames, Map<String, Double> originCoordinates, String resultColumnName)
+    {
+        List< A > annotations = tableModel.annotations();
+
+        annotations.parallelStream().forEach( annotation ->
+        {
+            double dotProduct = 0.0;
+            double normA = 0.0;
+            double normB = 0.0;
+
+            for ( String column : selectedColumnNames )
+            {
+                final double value = annotation.getNumber( column ).doubleValue();
+                final double origin = originCoordinates.get( column );
+
+                dotProduct += value * origin;
+                normA += Math.pow( value, 2 );
+                normB += Math.pow( origin, 2 );
+            }
+
+            normA = Math.sqrt( normA );
+            normB = Math.sqrt( normB );
+
+            final double cosineSimilarity = dotProduct / ( normA * normB );
+            // Cosine distance is defined as 1 - cosine similarity
+            final double cosineDistance = 1 - cosineSimilarity;
+
+            annotation.setNumber( resultColumnName, cosineDistance );
+        } );
     }
 }
