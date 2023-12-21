@@ -16,25 +16,25 @@ import java.util.stream.Collectors;
 
 public class DistanceComputer
 {
-    enum Average
+    enum AverageMethod
     {
         Mean,
         Median;
 
         public static String[] asArray()
         {
-            return Arrays.stream(Average.values()).map(Enum::name).toArray(String[]::new);
+            return Arrays.stream( AverageMethod.values()).map(Enum::name).toArray(String[]::new);
         }
-
     }
 
-    enum Metric {
+    enum DistanceMetric
+    {
         Euclidian,
         Cosine;
 
         public static String[] asArray()
         {
-            return Arrays.stream(Metric.values()).map(Enum::name).toArray(String[]::new);
+            return Arrays.stream( DistanceMetric.values()).map(Enum::name).toArray(String[]::new);
         }
     }
 
@@ -51,8 +51,8 @@ public class DistanceComputer
         //
         final GenericDialog gd = new GenericDialog( "" );
         gd.addStringField( "Distance Columns RegEx", "anchor_.*" );
-        gd.addChoice( "Distance Metric", Metric.asArray(), Metric.Euclidian.toString() );
-        gd.addChoice( "Averaging Method", Average.asArray(), Average.Median.toString() );
+        gd.addChoice( "Distance Metric", DistanceMetric.asArray(), DistanceMetric.Euclidian.toString() );
+        gd.addChoice( "Averaging Method", AverageMethod.asArray(), AverageMethod.Median.toString() );
         gd.addStringField( "Results Column Name", "distance" );
         gd.addCheckbox( "Color by Results", true );
         gd.showDialog();
@@ -61,8 +61,8 @@ public class DistanceComputer
         // parse user input
         //
         final String columnNamesRegEx = gd.getNextString();
-        Metric metric = Metric.valueOf( gd.getNextChoice() );
-        Average average = Average.valueOf( gd.getNextChoice() );
+        DistanceMetric distanceMetric = DistanceMetric.valueOf( gd.getNextChoice() );
+        AverageMethod averageMethod = AverageMethod.valueOf( gd.getNextChoice() );
         final String resultColumnName = gd.getNextString();
         boolean colorByDistances = gd.getNextBoolean();
 
@@ -75,12 +75,11 @@ public class DistanceComputer
             return;
         }
 
-        // compute
+        // compute distances
         //
 
-        Map< String, Double > referenceValues = computeReferenceValues( average, distanceFeatures, referenceRows );
-
-        computeDistancesAndAddToTable( tableModel, resultColumnName, metric, distanceFeatures, referenceValues );
+        Map< String, Double > referenceValues = computeReferenceValues( averageMethod, distanceFeatures, referenceRows );
+        computeDistancesAndAddToTable( tableModel, resultColumnName, distanceMetric, distanceFeatures, referenceValues );
 
         // visualise
         //
@@ -99,8 +98,7 @@ public class DistanceComputer
 
     }
 
-    // TODO: multi-thread the computations if they become too slow
-    private static < A extends Annotation > void computeDistancesAndAddToTable( AnnotationTableModel< A > tableModel, String resultColumnName, Metric metric, List< String > selectedColumnNames, Map< String, Double > columnAverages )
+    private static < A extends Annotation > void computeDistancesAndAddToTable( AnnotationTableModel< A > tableModel, String resultColumnName, DistanceMetric distanceMetric, List< String > selectedColumnNames, Map< String, Double > columnAverages )
     {
         if ( tableModel.columnNames().contains( resultColumnName ) )
         {
@@ -113,7 +111,7 @@ public class DistanceComputer
         }
 
         long start = System.currentTimeMillis();
-        switch ( metric )
+        switch ( distanceMetric )
         {
             case Euclidian:
                 computeEuclidanDistances( tableModel, selectedColumnNames, columnAverages, resultColumnName );
@@ -123,26 +121,26 @@ public class DistanceComputer
                 computeCosineDistances( tableModel, selectedColumnNames, columnAverages, resultColumnName );
                 break;
         }
-        IJ.log( "Computed the " + metric + " distance of " + selectedColumnNames.size()
+        IJ.log( "Computed the " + distanceMetric + " distance of " + selectedColumnNames.size()
                 + " features for " + tableModel.annotations().size() + " annotations in " +
                 ( System.currentTimeMillis() - start ) + " ms.");
     }
 
     @NotNull
-    private static < A extends Annotation > Map< String, Double > computeReferenceValues( Average average, List< String > selectedColumnNames, Set< A > selectedAnnotations )
+    private static < A extends Annotation > Map< String, Double > computeReferenceValues( AverageMethod averageMethod, List< String > selectedColumnNames, Set< A > selectedAnnotations )
     {
-        switch ( average )
+        switch ( averageMethod )
         {
             case Mean:
-                return averageSelectedAnnotations( selectedColumnNames, selectedAnnotations );
+                return computeMeanOfSelectedAnnotations( selectedColumnNames, selectedAnnotations );
             case Median:
             default:
-               return medianSelectedAnnotations( selectedColumnNames, selectedAnnotations );
+               return computeMedianOfSelectedAnnotations( selectedColumnNames, selectedAnnotations );
         }
     }
 
     @NotNull
-    private static < A extends Annotation > Map< String, Double > averageSelectedAnnotations( List< String > selectedColumnNames, Set< A > selectedAnnotations )
+    private static < A extends Annotation > Map< String, Double > computeMeanOfSelectedAnnotations( List< String > selectedColumnNames, Set< A > selectedAnnotations )
     {
         Map<String, Double> columnAverages = new HashMap<>();
         for (String column : selectedColumnNames ) {
@@ -156,7 +154,7 @@ public class DistanceComputer
     }
 
     @NotNull
-    private static < A extends Annotation > Map< String, Double > medianSelectedAnnotations( List< String > selectedColumnNames, Set< A > selectedAnnotations )
+    private static < A extends Annotation > Map< String, Double > computeMedianOfSelectedAnnotations( List< String > selectedColumnNames, Set< A > selectedAnnotations )
     {
         Map<String, Double> columnMedians = new HashMap<>();
         for (String column : selectedColumnNames) {
