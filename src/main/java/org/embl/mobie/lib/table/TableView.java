@@ -326,7 +326,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		final JMenuItem menuItem = new JMenuItem( "Compute Distance to Selected Rows..." );
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( ()
-						-> DistanceComputer.showUI( tableModel, selectionModel ) ) );
+						-> DistanceComputer.showUI( tableModel, selectionModel, coloringModel ) ) );
 		return menuItem;
 	}
 

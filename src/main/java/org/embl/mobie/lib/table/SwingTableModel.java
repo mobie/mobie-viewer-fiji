@@ -101,11 +101,15 @@ public class SwingTableModel implements TableModel
 	@Override
 	public void setValueAt( Object aValue, int rowIndex, int columnIndex )
 	{
+		final String columnName = getColumnName( columnIndex );
 		final Class< ? > columnClass = getColumnClass( columnIndex );
 		if ( columnClass.equals( String.class ) )
 		{
-			final String columnName = getColumnName( columnIndex );
 			tableModel.annotations().get( rowIndex ).setString( columnName, aValue.toString() );
+		}
+		else if ( columnClass.isAssignableFrom( Number.class ) )
+		{
+			tableModel.annotations().get( rowIndex ).setNumber( columnName, ( Double ) aValue );
 		}
 	}
 
