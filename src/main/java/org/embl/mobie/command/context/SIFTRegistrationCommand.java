@@ -39,6 +39,7 @@ import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.ISourceAndConverterService;
@@ -58,8 +59,7 @@ public class SIFTRegistrationCommand implements BdvPlaygroundActionCommand
 	@Override
 	public void run()
 	{
-		SIFTPointsExtractor pointsExtractor = new SIFTPointsExtractor();
-		List< SourceAndConverter< ? > > sourceAndConverters = MoBIEHelper.getVisibleSacs( bdvHandle );
-		pointsExtractor.run( sourceAndConverters );
+		SIFTPointsExtractor pointsExtractor = new SIFTPointsExtractor( );
+		pointsExtractor.run( BdvHandleHelper.getViewerVoxelSpacing( bdvHandle ), MoBIEHelper.getVisibleSacs( bdvHandle ) );
 	}
 }

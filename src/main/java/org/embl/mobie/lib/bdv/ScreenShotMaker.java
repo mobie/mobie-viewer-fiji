@@ -84,7 +84,7 @@ public class ScreenShotMaker
     private CompositeImage compositeImagePlus = null;
     private long[] screenshotDimensions = new long[2];
 
-    public ScreenShotMaker( BdvHandle bdvHandle) {
+    public ScreenShotMaker( BdvHandle bdvHandle ) {
         this.bdvHandle = bdvHandle;
         this.sacService = SourceAndConverterServices.getSourceAndConverterService();
     }

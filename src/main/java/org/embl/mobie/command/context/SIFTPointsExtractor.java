@@ -3,13 +3,14 @@ package org.embl.mobie.command.context;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import ij.ImagePlus;
-import ij.WindowManager;
 import ij.gui.GenericDialog;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import mpicbg.ij.FeatureTransform;
 import mpicbg.ij.SIFT;
@@ -25,6 +26,7 @@ import mpicbg.models.PointMatch;
 import mpicbg.models.RigidModel2D;
 import mpicbg.models.SimilarityModel2D;
 import mpicbg.models.TranslationModel2D;
+import org.embl.mobie.lib.bdv.ScreenShotMaker;
 
 /**
  * Extract landmark correspondences in two images as PointRoi.
@@ -80,6 +82,8 @@ public class SIFTPointsExtractor
     {
         final public FloatArray2DSIFT.Param sift = new FloatArray2DSIFT.Param();
 
+        public Double pixelSize = null;
+
         /**
          * Closest/next closest neighbour distance ratio
          */
@@ -111,7 +115,7 @@ public class SIFTPointsExtractor
 
     final static private Param p = new Param();
 
-    public SIFTPointsExtractor()
+    public SIFTPointsExtractor( )
     {
         decimalFormatSymbols.setGroupingSeparator( ',' );
         decimalFormatSymbols.setDecimalSeparator( '.' );
@@ -120,11 +124,14 @@ public class SIFTPointsExtractor
         decimalFormat.setMinimumFractionDigits( 3 );
     }
 
-    public void run( final List< SourceAndConverter< ? > > sourceAndConverters )
+    public void run( double viewerVoxelSpacing, final List< SourceAndConverter< ? > > sourceAndConverters )
     {
         // cleanup
         fs1.clear();
         fs2.clear();
+
+        if( p.pixelSize == null )
+            p.pixelSize = viewerVoxelSpacing;
 
         if ( sourceAndConverters == null || sourceAndConverters.size() < 2 )
         {
@@ -132,18 +139,23 @@ public class SIFTPointsExtractor
             return;
         }
 
-        final String[] titles = new String[ sourceAndConverters.size() ];
-        for ( int i = 0; i < sourceAndConverters.size(); ++i )
-        {
-            titles[ i ] = sourceAndConverters.get( i ).getSpimSource().getName();
-        }
+        final String[] titles = sourceAndConverters.stream()
+                .map( sac -> sac.getSpimSource().getName() )
+                .toArray( String[]::new );
 
         final GenericDialog gd = new GenericDialog( "Extract SIFT Landmark Correspondences" );
 
-        gd.addMessage( "Image Selection:" );
+        gd.addMessage( "Images:" );
         final String current = titles[ 0 ];
-        gd.addChoice( "source_image", titles, current );
-        gd.addChoice( "target_image", titles, current.equals( titles[ 0 ] ) ? titles[ 1 ] : titles[ 0 ] );
+        gd.addChoice( "fixed_image", titles, current );
+        gd.addChoice( "moving_image", titles, current.equals( titles[ 0 ] ) ? titles[ 1 ] : titles[ 0 ] );
+        String voxelUnit = sourceAndConverters.get( 0 ).getSpimSource().getVoxelDimensions().unit();
+
+        gd.addMessage( "Scale:" );
+        gd.addNumericField( "Pixel Size :", p.pixelSize, 2, 6, voxelUnit );
+
+        gd.addMessage( "Transformation:" );
+        gd.addChoice( "expected_transformation :", Param.modelStrings, Param.modelStrings[ p.modelIndex ] );
 
         gd.addMessage( "Scale Invariant Interest Point Detector:" );
         gd.addNumericField( "initial_gaussian_blur :", p.sift.initialSigma, 2, 6, "px" );
@@ -161,15 +173,30 @@ public class SIFTPointsExtractor
         gd.addNumericField( "maximal_alignment_error :", p.maxEpsilon, 2, 6, "px" );
         gd.addNumericField( "minimal_inlier_ratio :", p.minInlierRatio, 2 );
         gd.addNumericField( "minimal_number_of_inliers :", p.minNumInliers, 0 );
-        gd.addChoice( "expected_transformation :", Param.modelStrings, Param.modelStrings[ p.modelIndex ] );
 
         gd.showDialog();
 
         if (gd.wasCanceled()) return;
 
-        // FIXME Call ScreenshotMaker to create the Imps
+        String fixedImage = gd.getNextString();
+        SourceAndConverter< ? > fixedSac = sourceAndConverters.stream()
+                .filter( sac -> sac.getSpimSource().getName().equals( fixedImage ) )
+                .findFirst().get();
+
+        String movingImage = gd.getNextString();
+        SourceAndConverter< ? > movingSac = sourceAndConverters.stream()
+                .filter( sac -> sac.getSpimSource().getName().equals( movingImage ) )
+                .findFirst().get();
+
+        // TODO Refactor ScreenshotMaker to make it useable here.
+        new ScreenShotMaker(  )
+
         imp1 = null; //WindowManager.getImage( ids[ gd.getNextChoiceIndex() ] );
         imp2 = null; //WindowManager.getImage( ids[ gd.getNextChoiceIndex() ] );
+
+        p.pixelSize = gd.getNextNumber();
+
+        p.modelIndex = gd.getNextChoiceIndex();
 
         p.sift.initialSigma = ( float )gd.getNextNumber();
         p.sift.steps = ( int )gd.getNextNumber();
@@ -184,7 +211,6 @@ public class SIFTPointsExtractor
         p.maxEpsilon = ( float )gd.getNextNumber();
         p.minInlierRatio = ( float )gd.getNextNumber();
         p.minNumInliers = ( int )gd.getNextNumber();
-        p.modelIndex = gd.getNextChoiceIndex();
 
         exec(imp1, imp2);
     }
