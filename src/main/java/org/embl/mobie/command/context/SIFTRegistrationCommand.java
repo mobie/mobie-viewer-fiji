@@ -26,58 +26,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.source;
+package org.embl.mobie.command.context;
 
-import bdv.util.RealRandomAccessibleSource;
-import mpicbg.spim.data.sequence.FinalVoxelDimensions;
-import net.imglib2.Interval;
-import net.imglib2.RealRandomAccessible;
+import bdv.util.BdvHandle;
+import bdv.viewer.SourceAndConverter;
+import bdv.viewer.TransformListener;
+import bigwarp.BigWarp;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.Type;
+import net.imglib2.realtransform.InvertibleRealTransform;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.MoBIEHelper;
+import org.scijava.plugin.Parameter;
+import org.scijava.plugin.Plugin;
+import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
+import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
+import sc.fiji.bdvpg.services.ISourceAndConverterService;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 
-public class RealRandomAccessibleIntervalTimelapseSource< T extends Type< T > > extends RealRandomAccessibleSource< T >
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - SIFT")
+public class SIFTRegistrationCommand implements BdvPlaygroundActionCommand
 {
-	private final Interval interval;
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	private final AffineTransform3D sourceTransform;
-	private final Set< Integer > timePoints;
-
-	public RealRandomAccessibleIntervalTimelapseSource(
-			final RealRandomAccessible< T > accessible,
-			final Interval interval,
-			final T type,
-			final AffineTransform3D sourceTransform,
-			final String name,
-			final boolean doBoundingBoxIntersectionCheck,
-			final Set< Integer > timePoints,
-			FinalVoxelDimensions voxelDimensions )
-	{
-		super( accessible, type, name, voxelDimensions, doBoundingBoxIntersectionCheck );
-		this.interval = interval;
-		this.sourceTransform = sourceTransform;
-		this.timePoints = timePoints;
-	}
+	@Parameter
+	BdvHandle bdvHandle;
 
 	@Override
-	public synchronized void getSourceTransform( final int t, final int level, final AffineTransform3D transform )
+	public void run()
 	{
-		transform.set( sourceTransform );
-	}
-
-	@Override
-	public Interval getInterval( final int t, final int level )
-	{
-		return interval;
-	}
-
-	@Override
-	public boolean isPresent( final int t )
-	{
-		if ( timePoints == null )
-			return t == 0;
-
-		return timePoints.contains( t );
+		SIFTPointsExtractor pointsExtractor = new SIFTPointsExtractor();
+		List< SourceAndConverter< ? > > sourceAndConverters = MoBIEHelper.getVisibleSacs( bdvHandle );
+		pointsExtractor.run( sourceAndConverters );
 	}
 }

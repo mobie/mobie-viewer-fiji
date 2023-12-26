@@ -154,6 +154,7 @@ public class SliceViewer
 		actions.add( SourceAndConverterService.getCommandName( ViewerTransformLoggerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( SourceInfoLoggerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( BigWarpRegistrationCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( SIFTRegistrationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ManualRegistrationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( FlipCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );

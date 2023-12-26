@@ -64,6 +64,7 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 	@Parameter
 	BdvHandle bdvHandle;
 
+	// FIXME: Replace UI by GenericDialog, filtering out the non-image sources
 	@Parameter(label = "Fixed Source(s)")
 	SourceAndConverter< ? >[] fixedSources;
 

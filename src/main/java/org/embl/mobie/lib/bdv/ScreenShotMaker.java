@@ -42,6 +42,7 @@ import net.imglib2.*;
 import net.imglib2.Cursor;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.real.FloatType;
+import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.bdv.blend.AccumulateAlphaBlendingProjectorARGB;
@@ -52,13 +53,11 @@ import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import org.embl.mobie.lib.source.AnnotatedLabelSource;
 import org.embl.mobie.lib.source.AnnotationType;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
@@ -151,7 +150,7 @@ public class ScreenShotMaker
 
         final ArrayList< double[] > displayRanges = new ArrayList<>();
 
-        final List< SourceAndConverter <?> > visibleSacs = getVisibleSacs( bdvHandle );
+        final List< SourceAndConverter <?> > visibleSacs = MoBIEHelper.getVisibleSacs( bdvHandle );
         if ( visibleSacs.size() == 0 ) return;
 
         List< SourceAndConverter< ? > > sacs = new ArrayList<>();
@@ -292,25 +291,6 @@ public class ScreenShotMaker
             rgbImagePlus = createImagePlus( physicalUnit, argbSources, voxelSpacing, sacs );
             compositeImagePlus = createCompositeImage( voxelSpacing, physicalUnit, floatCaptures, colors, displayRanges );
         }
-    }
-
-    private List< SourceAndConverter< ? > > getVisibleSacs( BdvHandle bdv )
-    {
-        final SourceAndConverterBdvDisplayService displayService = SourceAndConverterServices.getBdvDisplayService();
-
-        final List< SourceAndConverter< ? > > sacs = displayService.getSourceAndConverterOf( bdvHandle );
-        List< SourceAndConverter< ? > > visibleSacs = new ArrayList<>(  );
-        for ( SourceAndConverter sac : sacs )
-        {
-            // TODO: this does not evaluate to true for all visible sources
-            if ( displayService.isVisible( sac, bdv ) )
-            {
-                if ( sac.getSpimSource().getSource(0,0) != null ) // TODO improve this hack that allows to discard overlays source from screenshot
-                    visibleSacs.add( sac );
-            }
-        }
-
-        return visibleSacs;
     }
 
     private void setArgbPixelValue( Converter converter, RealRandomAccess< ? > access, RandomAccess< ARGBType > argbCaptureAccess, ARGBType argbType )
