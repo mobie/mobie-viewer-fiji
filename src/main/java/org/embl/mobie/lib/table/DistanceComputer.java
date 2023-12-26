@@ -95,7 +95,6 @@ public class DistanceComputer
             coloringModel.setOpacityNotSelected( 1.0 );
             coloringModel.setSelectionColor( new ARGBType( ARGBType.rgba( 255, 255, 0, 255 ) ) );
         }
-
     }
 
     private static < A extends Annotation > void computeDistancesAndAddToTable( AnnotationTableModel< A > tableModel, String resultColumnName, DistanceMetric distanceMetric, List< String > selectedColumnNames, Map< String, Double > columnAverages )
