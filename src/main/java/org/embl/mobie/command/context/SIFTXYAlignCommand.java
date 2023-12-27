@@ -28,38 +28,46 @@
  */
 package org.embl.mobie.command.context;
 
+import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import bdv.viewer.TransformListener;
-import bigwarp.BigWarp;
+import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.realtransform.InvertibleRealTransform;
-import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.MoBIEHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
-import sc.fiji.bdvpg.services.ISourceAndConverterService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-import java.util.List;
-import java.util.Map;
-
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - SIFT")
-public class SIFTRegistrationCommand implements BdvPlaygroundActionCommand
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - SIFT XY")
+public class SIFTXYAlignCommand implements BdvPlaygroundActionCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	@Parameter
-	BdvHandle bdvHandle;
+	public BdvHandle bdvHandle;
 
 	@Override
 	public void run()
 	{
-		SIFTPointsExtractor pointsExtractor = new SIFTPointsExtractor( bdvHandle );
-		pointsExtractor.run( );
+		IJ.log("# SIFT XY Aligner" +
+				"\nCurrently, only aligns along the XY axis." +
+				"\nPress Shift+Z to align current view along Z axis to avoid surprising results.");
+		// start the alignment, which has its own GUI
+		SIFT2DAligner aligner = new SIFT2DAligner( bdvHandle );
+		if( ! aligner.run() ) return;
+
+		// apply transformation
+		SourceAndConverter< ? > movingSac = aligner.getMovingSac();
+		if ( movingSac.getSpimSource() instanceof TransformedSource )
+		{
+			AffineTransform3D affineTransform3D = aligner.getAffineTransform3D();
+			( ( TransformedSource< ? > ) movingSac.getSpimSource() ).setFixedTransform( affineTransform3D );
+			bdvHandle.getViewerPanel().requestRepaint();
+			IJ.log( "Transformed " + movingSac.getSpimSource().getName() + " with " + affineTransform3D );
+		}
+		else
+		{
+			IJ.log("Cannot apply transformation to image of type " + movingSac.getSpimSource().getClass() );
+		}
 	}
 }

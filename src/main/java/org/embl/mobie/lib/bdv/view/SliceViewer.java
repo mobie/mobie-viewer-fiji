@@ -30,8 +30,7 @@ package org.embl.mobie.lib.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import net.imglib2.converter.Converter;
-import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.context.*;
 import org.embl.mobie.command.view.ViewerTransformLoggerCommand;
@@ -44,7 +43,6 @@ import org.embl.mobie.lib.bdv.SourcesAtMousePositionSupplier;
 import org.embl.mobie.lib.bdv.blend.AccumulateAlphaBlendingProjectorARGB;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.color.OpacityHelper;
-import org.embl.mobie.lib.color.opacity.MoBIEColorConverter;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.serialize.display.AbstractDisplay;
@@ -154,7 +152,7 @@ public class SliceViewer
 		actions.add( SourceAndConverterService.getCommandName( ViewerTransformLoggerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( SourceInfoLoggerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( BigWarpRegistrationCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( SIFTRegistrationCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( SIFTXYAlignCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ManualRegistrationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( FlipCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );
@@ -176,6 +174,15 @@ public class SliceViewer
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.behaviour( contextMenu, "Context menu", "button3", "shift P");
 		behaviours.install( bdvHandle.getTriggerbindings(), "MoBIE" );
+
+
+		behaviours.behaviour(
+				( ClickBehaviour ) ( x, y ) ->
+						new Thread( () -> {
+							AffineTransform3D affineTransform3D = bdvHandle.getViewerPanel().state().getViewerTransform();
+							System.out.println( "Viewer transform " + affineTransform3D );
+						}).start(),
+				"Log viewer transform", "ctrl 1" ) ;
 
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->

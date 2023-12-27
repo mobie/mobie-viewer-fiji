@@ -78,16 +78,17 @@ public class ScreenShotMaker
 
     private final BdvHandle bdvHandle;
     private final ISourceAndConverterService sacService;
-    private double samplingXY = 1;
+    private double targetVoxelSpacing = 1;
     private String physicalUnit = "Pixels";
     private ImagePlus rgbImagePlus = null;
     private CompositeImage compositeImagePlus = null;
     private long[] screenshotDimensions = new long[2];
+    private AffineTransform3D targetCanvasToGlobalTransform;
 
     public ScreenShotMaker( BdvHandle bdvHandle, Double pixelSize, String pixelUnit ) {
         this.bdvHandle = bdvHandle;
         this.sacService = SourceAndConverterServices.getSourceAndConverterService();
-        this.samplingXY = pixelSize;
+        this.targetVoxelSpacing = pixelSize;
         this.physicalUnit = pixelUnit;
     }
 
@@ -118,7 +119,7 @@ public class ScreenShotMaker
         final AffineTransform3D viewerTransform = new AffineTransform3D();
         bdvHandle.getViewerPanel().state().getViewerTransform( viewerTransform );
 
-        screenshotDimensions = getCaptureImageSizeInPixels( bdvHandle, samplingXY );
+        screenshotDimensions = getCaptureImageSizeInPixels( bdvHandle, targetVoxelSpacing );
 
         final ArrayList< RandomAccessibleInterval< FloatType > > floatCaptures = new ArrayList<>();
         final ArrayList< RandomAccessibleInterval< ARGBType > > argbSources = new ArrayList<>();
@@ -137,13 +138,18 @@ public class ScreenShotMaker
         List< Interval > intervals = Grids.collectAllContainedIntervals(
                 screenshotDimensions,
                 blockSize );
-        final double canvasStepSize = samplingXY / getViewerVoxelSpacing( bdvHandle );
+
+        targetCanvasToGlobalTransform = new AffineTransform3D();
+        // target canvas to viewer canvas
+        double targetToViewer = getViewerVoxelSpacing( bdvHandle ) / targetVoxelSpacing;
+        targetCanvasToGlobalTransform.scale( 1 / targetToViewer, 1 / targetToViewer, 1.0 );
+        // viewer canvas to global
+        AffineTransform3D viewerToGlobal = viewerTransform.inverse();
+        targetCanvasToGlobalTransform.preConcatenate( viewerToGlobal );
 
         IJ.log( "Number of threads: " + ThreadHelper.getNumIoThreads() );
         IJ.log( "Block per thread: " + Arrays.toString( blockSize ) );
-
         final long currentTimeMillis = System.currentTimeMillis();
-
         for ( SourceAndConverter< ?  > sac : sacs )
         {
             final RandomAccessibleInterval< FloatType > rawCapture
@@ -154,13 +160,13 @@ public class ScreenShotMaker
             Source< ? > source = sac.getSpimSource();
             final Converter< ?, ? > converter = sac.getConverter();
 
-            final int level = getLevel( source, samplingXY );
-            final AffineTransform3D sourceTransform =
-                    BdvHandleHelper.getSourceTransform( source, t, level );
+            final int level = getLevel( source, targetVoxelSpacing );
+            final AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( source, t, level );
 
-            AffineTransform3D viewerToSourceTransform = new AffineTransform3D();
-            viewerToSourceTransform.preConcatenate( viewerTransform.inverse() );
-            viewerToSourceTransform.preConcatenate( sourceTransform.inverse() );
+            // global to source
+            AffineTransform3D targetCanvasToSourceTransform = targetCanvasToGlobalTransform.copy();
+            AffineTransform3D globalToSource = sourceTransform.inverse();
+            targetCanvasToSourceTransform.preConcatenate( globalToSource );
 
             boolean interpolate = ! ( source.getType() instanceof AnnotationType );
 
@@ -197,13 +203,7 @@ public class ScreenShotMaker
                             floatCaptureAccess.setPosition( floatCaptureCursor );
                             argbCaptureAccess.setPosition( floatCaptureCursor );
 
-                            // canvasPosition is in calibrated units
-                            // canvasStepSize is the step size that is needed to get
-                            // the desired resolution in the output image
-                            canvasPosition[ 0 ] *= canvasStepSize;
-                            canvasPosition[ 1 ] *= canvasStepSize;
-
-                            viewerToSourceTransform.apply( canvasPosition, sourceRealPosition );
+                            targetCanvasToSourceTransform.apply( canvasPosition, sourceRealPosition );
                             access.setPosition( sourceRealPosition );
                             setFloatPixelValue( access, floatCaptureAccess );
                             setArgbPixelValue( converter, access, argbCaptureAccess, argbType );
@@ -239,10 +239,7 @@ public class ScreenShotMaker
         IJ.log( "Fetched data in " + ( System.currentTimeMillis() - currentTimeMillis ) + " ms." );
 
         final double[] voxelSpacing = new double[ 3 ];
-        for ( int d = 0; d < 2; d++ )
-            voxelSpacing[ d ] = samplingXY;
-
-        voxelSpacing[ 2 ] = getViewerVoxelSpacing( bdvHandle ); // TODO: What to put here?
+        Arrays.fill( voxelSpacing, targetVoxelSpacing );
 
         if ( ! floatCaptures.isEmpty() )
         {
@@ -460,7 +457,6 @@ public class ScreenShotMaker
 
         for ( int channel = 1; channel <= compositeImage.getNChannels(); ++channel )
         {
-            // TODO: Maybe put different LUTs there?
             final LUT lut = compositeImage.createLutFromColor( Color.WHITE );
             compositeImage.setC( channel );
             compositeImage.setChannelLut( lut );

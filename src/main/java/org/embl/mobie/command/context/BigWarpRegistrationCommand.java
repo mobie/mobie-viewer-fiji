@@ -181,12 +181,12 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 
 	private void setMovingTransforms()
 	{
-		final BigWarpTransform bwTransform = bigWarp.getBwTransform();
-		final AffineTransform3D bwAffineTransform = bwTransform.affine3d();
+		final BigWarpTransform bigWarpTransform = bigWarp.getBwTransform();
+		final AffineTransform3D bigWarpAffineTransform = bigWarpTransform.affine3d();
 		for ( SourceAndConverter< ? > movingSource : movingSacs )
 		{
 			final AffineTransform3D combinedTransform = sacToOriginalFixedTransform.get( movingSource ).copy();
-			combinedTransform.preConcatenate( bwAffineTransform.copy().inverse() );
+			combinedTransform.preConcatenate( bigWarpAffineTransform.copy().inverse() );
 			final TransformedSource< ? > transformedSource = ( TransformedSource< ? > ) movingSource.getSpimSource();
 			transformedSource.setFixedTransform( combinedTransform );
 		}

@@ -54,10 +54,10 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     @Parameter
     public BdvHandle bdvh;
 
-    @Parameter(label="Sampling (in below units)", callback = "showNumPixels", min = "0.0", style="format:#.00000", stepSize = "0.01")
+    @Parameter(label="Sampling (in below units)", persist = false, callback = "showNumPixels", min = "0.0", style="format:#.00000", stepSize = "0.01")
     public Double targetSamplingInXY = 1D;
 
-    @Parameter(label="Pixel unit", choices = {"micrometer"} )
+    @Parameter(label="Pixel unit", persist = false, choices = {"micrometer"} )
     public String pixelUnit;
 
     @Parameter(label="Show RGB Image")
@@ -86,7 +86,7 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     @Override
     public void initialize() {
 
-        IJ.log( "ScreenShotMaker:" );
+        IJ.log( "# ScreenShotMaker" );
 
         // set pixel unit choices
         //
@@ -97,8 +97,12 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
         units.add( pixelUnit );
         pixelUnitItem.setChoices( units );
 
-        IJ.log( "Viewer sampling: " + BdvHandleHelper.getViewerVoxelSpacing( bdvh ) + " " + pixelUnit );
-        IJ.log( "Choosing smaller sampling than the above may result in long waiting times." );
+        // set screenshot sampling
+        //
+        final MutableModuleItem< Double > targetSamplingItem = //
+                getInfo().getMutableInput("targetSamplingInXY", Double.class);
+        double viewerVoxelSpacing = BdvHandleHelper.getViewerVoxelSpacing( bdvh );
+        targetSamplingItem.setValue( this, 2 * viewerVoxelSpacing );
     }
 
     // callback

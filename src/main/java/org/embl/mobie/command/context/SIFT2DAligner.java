@@ -19,15 +19,8 @@ import mpicbg.ij.SIFT;
 import mpicbg.ij.util.Util;
 import mpicbg.imagefeatures.Feature;
 import mpicbg.imagefeatures.FloatArray2DSIFT;
-import mpicbg.models.AbstractModel;
-import mpicbg.models.AffineModel2D;
-import mpicbg.models.HomographyModel2D;
-import mpicbg.models.NotEnoughDataPointsException;
-import mpicbg.models.Point;
-import mpicbg.models.PointMatch;
-import mpicbg.models.RigidModel2D;
-import mpicbg.models.SimilarityModel2D;
-import mpicbg.models.TranslationModel2D;
+import mpicbg.models.*;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
@@ -71,7 +64,7 @@ import sc.fiji.bdvpg.bdv.BdvHandleHelper;
  *
  * Modified by Christian Tischer
  */
-public class SIFTPointsExtractor
+public class SIFT2DAligner
 {
     final static private DecimalFormat decimalFormat = new DecimalFormat();
     final static private DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
@@ -82,6 +75,9 @@ public class SIFTPointsExtractor
 
     final private List< Feature > fs1 = new ArrayList< Feature >();
     final private List< Feature > fs2 = new ArrayList< Feature >();;
+    private AffineTransform3D affineTransform3D;
+    private SourceAndConverter< ? > fixedSac;
+    private SourceAndConverter< ? > movingSac;
 
     static private class Param
     {
@@ -115,12 +111,12 @@ public class SIFTPointsExtractor
          * Implemeted transformation models for choice
          */
         final static public String[] modelStrings = new String[]{ "Translation", "Rigid", "Similarity", "Affine", "Perspective" };
-        public int modelIndex = 1;
+        public int modelIndex = 3;
     }
 
     final static private Param p = new Param();
 
-    public SIFTPointsExtractor( BdvHandle bdvHandle )
+    public SIFT2DAligner( BdvHandle bdvHandle )
     {
         this.bdvHandle = bdvHandle;
 
@@ -131,7 +127,7 @@ public class SIFTPointsExtractor
         decimalFormat.setMinimumFractionDigits( 3 );
     }
 
-    public void run()
+    public boolean run()
     {
         // cleanup
         fs1.clear();
@@ -144,39 +140,31 @@ public class SIFTPointsExtractor
         if ( sourceAndConverters.size() < 2 )
         {
             IJ.showMessage( "There must be at least two images visible." );
-            return;
+            return false;
         }
 
         final String[] titles = sourceAndConverters.stream()
                 .map( sac -> sac.getSpimSource().getName() )
                 .toArray( String[]::new );
 
-        final GenericDialog gd = new GenericDialog( "Extract SIFT Landmark Correspondences" );
+        final GenericDialog gd = new GenericDialog( "SIFT 2D Aligner" );
 
-        gd.addMessage( "Images:" );
-        final String current = titles[ 0 ];
-        gd.addChoice( "fixed_image", titles, current );
-        gd.addChoice( "moving_image", titles, current.equals( titles[ 0 ] ) ? titles[ 1 ] : titles[ 0 ] );
+        gd.addChoice( "fixed_image :", titles, titles[ 0 ] );
+        gd.addChoice( "moving_image :", titles, titles[ 1 ] );
         String voxelUnit = sourceAndConverters.get( 0 ).getSpimSource().getVoxelDimensions().unit();
 
-        gd.addMessage( "Scale:" );
-        gd.addNumericField( "Pixel Size :", p.pixelSize, 2, 6, voxelUnit );
-
-        gd.addMessage( "Transformation:" );
+        gd.addNumericField( "pixel_size :", p.pixelSize, 2, 6, voxelUnit );
         gd.addChoice( "expected_transformation :", Param.modelStrings, Param.modelStrings[ p.modelIndex ] );
 
-        gd.addMessage( "Scale Invariant Interest Point Detector:" );
         gd.addNumericField( "initial_gaussian_blur :", p.sift.initialSigma, 2, 6, "px" );
         gd.addNumericField( "steps_per_scale_octave :", p.sift.steps, 0 );
         gd.addNumericField( "minimum_image_size :", p.sift.minOctaveSize, 0, 6, "px" );
         gd.addNumericField( "maximum_image_size :", p.sift.maxOctaveSize, 0, 6, "px" );
 
-        gd.addMessage( "Feature Descriptor:" );
         gd.addNumericField( "feature_descriptor_size :", p.sift.fdSize, 0 );
         gd.addNumericField( "feature_descriptor_orientation_bins :", p.sift.fdBins, 0 );
         gd.addNumericField( "closest/next_closest_ratio :", p.rod, 2 );
 
-        gd.addMessage( "Geometric Consensus Filter:" );
         gd.addCheckbox( "filter matches by geometric consensus", p.useGeometricConsensusFilter );
         gd.addNumericField( "maximal_alignment_error :", p.maxEpsilon, 2, 6, "px" );
         gd.addNumericField( "minimal_inlier_ratio :", p.minInlierRatio, 2 );
@@ -184,7 +172,7 @@ public class SIFTPointsExtractor
 
         gd.showDialog();
 
-        if (gd.wasCanceled()) return;
+        if (gd.wasCanceled()) return false;
 
         String fixedImageName = gd.getNextChoice();
         String movingImageName = gd.getNextChoice();
@@ -206,18 +194,18 @@ public class SIFTPointsExtractor
         p.minInlierRatio = ( float )gd.getNextNumber();
         p.minNumInliers = ( int )gd.getNextNumber();
 
-        fetchImages( sourceAndConverters, fixedImageName, movingImageName );
+        extractImages( sourceAndConverters, fixedImageName, movingImageName );
 
-        exec(imp1, imp2);
+        return exec( imp1, imp2 );
     }
 
-    private void fetchImages( List< SourceAndConverter< ? > > sourceAndConverters, String fixedImageName, String movingImageName )
+    private void extractImages( List< SourceAndConverter< ? > > sourceAndConverters, String fixedImageName, String movingImageName )
     {
-        SourceAndConverter< ? > fixedSac = sourceAndConverters.stream()
+        fixedSac = sourceAndConverters.stream()
                 .filter( sac -> sac.getSpimSource().getName().equals( fixedImageName ) )
                 .findFirst().get();
 
-        SourceAndConverter< ? > movingSac = sourceAndConverters.stream()
+        movingSac = sourceAndConverters.stream()
                 .filter( sac -> sac.getSpimSource().getName().equals( movingImageName ) )
                 .findFirst().get();
 
@@ -227,11 +215,10 @@ public class SIFTPointsExtractor
 
         ImageStack stack = compositeImage.getStack();
         imp1 = new ImagePlus( "fixed", stack.getProcessor( 1 ) );
-        compositeImage.setC( 2 );
         imp2 = new ImagePlus( "moving", stack.getProcessor( 2 ) );
 
-        // Set the display ranges
-        // This is important as those will be used by the SIFT for normalising the pixel values
+        // Setting the display ranges is important
+        // as those will be used by the SIFT for normalising the pixel values
         compositeImage.setPosition( 1 );
         imp1.getProcessor().setMinAndMax( compositeImage.getDisplayRangeMin(), compositeImage.getDisplayRangeMax() );
         compositeImage.setPosition( 2 );
@@ -241,45 +228,13 @@ public class SIFTPointsExtractor
         imp2.show();
     }
 
-    /** If unsure, just use default parameters by using exec(ImagePlus, ImagePlus, int) method, where only the model is specified. */
-    public void exec(final ImagePlus imp1, final ImagePlus imp2,
-                     final float initialSigma, final int steps,
-                     final int minOctaveSize, final int maxOctaveSize,
-                     final int fdSize, final int fdBins,
-                     final float rod, final float maxEpsilon,
-                     final float minInlierRatio, final int modelIndex) {
-
-        p.sift.initialSigma = initialSigma;
-        p.sift.steps = steps;
-        p.sift.minOctaveSize = minOctaveSize;
-        p.sift.maxOctaveSize = maxOctaveSize;
-
-        p.sift.fdSize = fdSize;
-        p.sift.fdBins = fdBins;
-        p.rod = rod;
-
-        p.useGeometricConsensusFilter = true;
-        p.maxEpsilon = maxEpsilon;
-        p.minInlierRatio = minInlierRatio;
-        p.minNumInliers = 7;
-        p.modelIndex = modelIndex;
-
-        exec( imp1, imp2 );
-    }
-
-    /** Execute with default parameters, except the model.
-     *  @param modelIndex: 0=Translation, 1=Rigid, 2=Similarity, 3=Affine */
-    public void exec(final ImagePlus imp1, final ImagePlus imp2, final int modelIndex) {
-        if ( modelIndex < 0 || modelIndex > 3 ) {
-            IJ.log("Invalid model index: " + modelIndex);
-            return;
-        }
-        p.modelIndex = modelIndex;
-        exec( imp1, imp2 );
-    }
-
-    /** Execute with default parameters (model is Rigid) */
-    public void exec(final ImagePlus imp1, final ImagePlus imp2) {
+    /**
+     * Execute with default parameters (model is Rigid)
+     *
+     * @return
+     *        boolean whether a model was found
+     */
+    private boolean exec( final ImagePlus imp1, final ImagePlus imp2) {
 
         final FloatArray2DSIFT sift = new FloatArray2DSIFT( p.sift );
         final SIFT ijSIFT = new SIFT( sift );
@@ -306,6 +261,8 @@ public class SIFTPointsExtractor
         final ArrayList< Point > p2 = new ArrayList< Point >();
         final List< PointMatch > inliers;
 
+        boolean modelFound = false;
+
         if ( p.useGeometricConsensusFilter )
         {
             IJ.log( candidates.size() + " potentially corresponding features identified." );
@@ -330,13 +287,14 @@ public class SIFTPointsExtractor
                     model = new AffineModel2D();
                     break;
                 case 4:
+                    // TODO: What is this?
                     model = new HomographyModel2D();
                     break;
                 default:
-                    return;
+                    return modelFound;
             }
 
-            boolean modelFound;
+
             try
             {
                 modelFound = model.filterRansac(
@@ -346,6 +304,21 @@ public class SIFTPointsExtractor
                         p.maxEpsilon,
                         p.minInlierRatio,
                         p.minNumInliers );
+
+                if ( model instanceof AbstractAffineModel2D )
+                {
+                    final double[] a = new double[6];
+                    ( ( AbstractAffineModel2D< ? > ) model ).toArray( a );
+                    affineTransform3D = new AffineTransform3D();
+                    affineTransform3D.set(
+                            a[0], a[2], 0, a[4] *  p.pixelSize,
+                            a[1], a[3], 0, a[5] *  p.pixelSize,
+                            0, 0, 1, 0);
+                    affineTransform3D = affineTransform3D.inverse();
+                }
+                else
+                    IJ.showMessage( "Cannot apply " + model );
+
             }
             catch ( final NotEnoughDataPointsException e )
             {
@@ -360,6 +333,7 @@ public class SIFTPointsExtractor
 
                 IJ.log( inliers.size() + " corresponding features with an average displacement of " + decimalFormat.format( PointMatch.meanDistance( inliers ) ) + "px identified." );
                 IJ.log( "Estimated transformation model: " + model );
+
             }
             else
                 IJ.log( "No correspondences found." );
@@ -370,12 +344,24 @@ public class SIFTPointsExtractor
             IJ.log( candidates.size() + " corresponding features identified." );
         }
 
-        if ( inliers.size() > 0 )
+        if ( ! inliers.isEmpty() )
         {
             PointMatch.sourcePoints( inliers, p1 );
             PointMatch.targetPoints( inliers, p2 );
             imp1.setRoi( Util.pointsToPointRoi( p1 ) );
             imp2.setRoi( Util.pointsToPointRoi( p2 ) );
         }
+
+        return modelFound;
+    }
+
+    public AffineTransform3D getAffineTransform3D()
+    {
+        return affineTransform3D;
+    }
+
+    public SourceAndConverter< ? > getMovingSac()
+    {
+        return movingSac;
     }
 }
