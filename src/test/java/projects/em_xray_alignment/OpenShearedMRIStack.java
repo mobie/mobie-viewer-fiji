@@ -2,8 +2,6 @@ package projects.em_xray_alignment;
 
 import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.command.context.SIFTXYAlignCommand;
 import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsCommand;
 
 import java.io.File;

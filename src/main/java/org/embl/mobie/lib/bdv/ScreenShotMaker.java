@@ -83,7 +83,7 @@ public class ScreenShotMaker
     private ImagePlus rgbImagePlus = null;
     private CompositeImage compositeImagePlus = null;
     private long[] screenshotDimensions = new long[2];
-    private AffineTransform3D targetCanvasToGlobalTransform;
+    private AffineTransform3D canvasToGlobalTransform;
 
     public ScreenShotMaker( BdvHandle bdvHandle, Double pixelSize, String pixelUnit ) {
         this.bdvHandle = bdvHandle;
@@ -118,8 +118,18 @@ public class ScreenShotMaker
 
         final AffineTransform3D viewerTransform = new AffineTransform3D();
         bdvHandle.getViewerPanel().state().getViewerTransform( viewerTransform );
+        final int currentTimepoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
 
-        screenshotDimensions = getCaptureImageSizeInPixels( bdvHandle, targetVoxelSpacing );
+        canvasToGlobalTransform = new AffineTransform3D();
+        // target canvas to viewer canvas...
+        double targetToViewer = targetVoxelSpacing / getViewerVoxelSpacing( bdvHandle );
+        canvasToGlobalTransform.scale( targetToViewer, targetToViewer, 1.0 );
+        // ...viewer canvas to global
+        AffineTransform3D viewerToGlobal = viewerTransform.inverse();
+        canvasToGlobalTransform.preConcatenate( viewerToGlobal );
+        IJ.log( "Canvas to global transform: " + canvasToGlobalTransform );
+
+        IJ.log( "Fetching data from " + sacs.size() + " images..."  );
 
         final ArrayList< RandomAccessibleInterval< FloatType > > floatCaptures = new ArrayList<>();
         final ArrayList< RandomAccessibleInterval< ARGBType > > argbSources = new ArrayList<>();
@@ -127,10 +137,7 @@ public class ScreenShotMaker
 
         final ArrayList< double[] > displayRanges = new ArrayList<>();
 
-        final int t = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
-
-        IJ.log( "Fetching data from " + sacs.size() + " images..."  );
-
+        screenshotDimensions = getCaptureImageSizeInPixels( bdvHandle, targetVoxelSpacing );
         final long numPixels = screenshotDimensions[ 0 ] * screenshotDimensions[ 1 ];
         long pixelsPerThread = numPixels / ThreadHelper.getNumIoThreads();
         int dimensionsPerThread = (int) Math.sqrt( pixelsPerThread );
@@ -138,14 +145,6 @@ public class ScreenShotMaker
         List< Interval > intervals = Grids.collectAllContainedIntervals(
                 screenshotDimensions,
                 blockSize );
-
-        targetCanvasToGlobalTransform = new AffineTransform3D();
-        // target canvas to viewer canvas
-        double targetToViewer = getViewerVoxelSpacing( bdvHandle ) / targetVoxelSpacing;
-        targetCanvasToGlobalTransform.scale( 1 / targetToViewer, 1 / targetToViewer, 1.0 );
-        // viewer canvas to global
-        AffineTransform3D viewerToGlobal = viewerTransform.inverse();
-        targetCanvasToGlobalTransform.preConcatenate( viewerToGlobal );
 
         IJ.log( "Number of threads: " + ThreadHelper.getNumIoThreads() );
         IJ.log( "Block per thread: " + Arrays.toString( blockSize ) );
@@ -161,10 +160,10 @@ public class ScreenShotMaker
             final Converter< ?, ? > converter = sac.getConverter();
 
             final int level = getLevel( source, targetVoxelSpacing );
-            final AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( source, t, level );
+            final AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( source, currentTimepoint, level );
 
             // global to source
-            AffineTransform3D targetCanvasToSourceTransform = targetCanvasToGlobalTransform.copy();
+            AffineTransform3D targetCanvasToSourceTransform = canvasToGlobalTransform.copy();
             AffineTransform3D globalToSource = sourceTransform.inverse();
             targetCanvasToSourceTransform.preConcatenate( globalToSource );
 
@@ -179,7 +178,7 @@ public class ScreenShotMaker
                 (
                     ThreadHelper.ioExecutorService.submit( () ->
                     {
-                        RealRandomAccess< ? extends Type< ? > > access = getRealRandomAccess( ( Source< Type< ? > > ) source, t, level, interpolate );
+                        RealRandomAccess< ? extends Type< ? > > access = getRealRandomAccess( ( Source< Type< ? > > ) source, currentTimepoint, level, interpolate );
 
                         // to collect raw data
                         final IntervalView< FloatType > floatCrop = Views.interval( rawCapture, interval );
@@ -246,6 +245,11 @@ public class ScreenShotMaker
             rgbImagePlus = createRGBImagePlus( physicalUnit, argbSources, voxelSpacing, sacs );
             compositeImagePlus = createCompositeImagePlus( voxelSpacing, physicalUnit, floatCaptures, colors, displayRanges );
         }
+    }
+
+    public AffineTransform3D getCanvasToGlobalTransform()
+    {
+        return canvasToGlobalTransform;
     }
 
     private List< SourceAndConverter< ? > > getVisibleSourceAndConverters()

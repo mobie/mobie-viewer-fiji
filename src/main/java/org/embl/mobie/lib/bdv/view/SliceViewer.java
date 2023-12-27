@@ -152,7 +152,7 @@ public class SliceViewer
 		actions.add( SourceAndConverterService.getCommandName( ViewerTransformLoggerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( SourceInfoLoggerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( BigWarpRegistrationCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( SIFTXYAlignCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( SIFT2DAlignCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ManualRegistrationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( FlipCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );

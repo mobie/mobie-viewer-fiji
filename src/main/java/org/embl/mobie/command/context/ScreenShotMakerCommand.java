@@ -60,24 +60,13 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     @Parameter(label="Pixel unit", persist = false, choices = {"micrometer"} )
     public String pixelUnit;
 
-    @Parameter(label="Show RGB Image")
-    public boolean showRGB = true;
-
-    @Parameter(label="Show Multi-Channel Image")
-    public boolean showMultiChannel = true;
-
-
     @Override
     public void run()
     {
         ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvh, targetSamplingInXY, pixelUnit );
         screenShotMaker.run();
-
-        if( showRGB )
-            screenShotMaker.getRGBImagePlus().show();
-
-        if( showMultiChannel )
-            screenShotMaker.getCompositeImagePlus().show();
+        screenShotMaker.getRGBImagePlus().show();
+        screenShotMaker.getCompositeImagePlus().show();
 
         if ( MoBIE.getInstance().getSettings().values.isOpenedFromCLI() )
             MoBIE.imageJ.ui().showUI();

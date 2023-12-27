@@ -78,6 +78,7 @@ public class SIFT2DAligner
     private AffineTransform3D affineTransform3D;
     private SourceAndConverter< ? > fixedSac;
     private SourceAndConverter< ? > movingSac;
+    private ScreenShotMaker screenShotMaker;
 
     static private class Param
     {
@@ -209,7 +210,7 @@ public class SIFT2DAligner
                 .filter( sac -> sac.getSpimSource().getName().equals( movingImageName ) )
                 .findFirst().get();
 
-        ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, p.pixelSize, fixedSac.getSpimSource().getVoxelDimensions().unit() );
+        screenShotMaker = new ScreenShotMaker( bdvHandle, p.pixelSize, fixedSac.getSpimSource().getVoxelDimensions().unit() );
         screenShotMaker.run( Arrays.asList( fixedSac, movingSac ) );
         CompositeImage compositeImage = screenShotMaker.getCompositeImagePlus();
 
@@ -307,14 +308,24 @@ public class SIFT2DAligner
 
                 if ( model instanceof AbstractAffineModel2D )
                 {
+                    affineTransform3D = new AffineTransform3D();
+
+                    // global to target canvas
+                    AffineTransform3D canvasToGlobalTransform = screenShotMaker.getCanvasToGlobalTransform();
+                    affineTransform3D.preConcatenate( canvasToGlobalTransform.inverse() );
+
+                    // sift within canvas
                     final double[] a = new double[6];
                     ( ( AbstractAffineModel2D< ? > ) model ).toArray( a );
-                    affineTransform3D = new AffineTransform3D();
-                    affineTransform3D.set(
-                            a[0], a[2], 0, a[4] *  p.pixelSize,
-                            a[1], a[3], 0, a[5] *  p.pixelSize,
+                    AffineTransform3D canvasSiftTransform = new AffineTransform3D();
+                    canvasSiftTransform.set(
+                            a[0], a[2], 0, a[4],
+                            a[1], a[3], 0, a[5],
                             0, 0, 1, 0);
-                    affineTransform3D = affineTransform3D.inverse();
+                    affineTransform3D.preConcatenate( canvasSiftTransform.inverse() );
+
+                    // canvas to global
+                    affineTransform3D.preConcatenate( canvasToGlobalTransform );
                 }
                 else
                     IJ.showMessage( "Cannot apply " + model );
@@ -355,7 +366,7 @@ public class SIFT2DAligner
         return modelFound;
     }
 
-    public AffineTransform3D getAffineTransform3D()
+    public AffineTransform3D getSiftTransform3D()
     {
         return affineTransform3D;
     }

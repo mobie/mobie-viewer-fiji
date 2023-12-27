@@ -38,8 +38,8 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - SIFT XY")
-public class SIFTXYAlignCommand implements BdvPlaygroundActionCommand
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - SIFT")
+public class SIFT2DAlignCommand implements BdvPlaygroundActionCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -49,9 +49,9 @@ public class SIFTXYAlignCommand implements BdvPlaygroundActionCommand
 	@Override
 	public void run()
 	{
-		IJ.log("# SIFT XY Aligner" +
-				"\nCurrently, only aligns along the XY axis." +
-				"\nPress Shift+Z to align current view along Z axis to avoid surprising results.");
+		IJ.log("# SIFT registration" +
+				"\nThe registration is computed in the currently visible 2D plane" +
+				"\nbut then applied to the full image in 3D.");
 		// start the alignment, which has its own GUI
 		SIFT2DAligner aligner = new SIFT2DAligner( bdvHandle );
 		if( ! aligner.run() ) return;
@@ -60,10 +60,14 @@ public class SIFTXYAlignCommand implements BdvPlaygroundActionCommand
 		SourceAndConverter< ? > movingSac = aligner.getMovingSac();
 		if ( movingSac.getSpimSource() instanceof TransformedSource )
 		{
-			AffineTransform3D affineTransform3D = aligner.getAffineTransform3D();
-			( ( TransformedSource< ? > ) movingSac.getSpimSource() ).setFixedTransform( affineTransform3D );
+			AffineTransform3D siftTransform3D = aligner.getSiftTransform3D();
+			TransformedSource< ? > transformedSource = ( TransformedSource< ? > ) movingSac.getSpimSource();
+			AffineTransform3D fixedTransform = new AffineTransform3D();
+			transformedSource.getFixedTransform( fixedTransform );
+			fixedTransform.preConcatenate( siftTransform3D );
+			transformedSource.setFixedTransform( fixedTransform );
 			bdvHandle.getViewerPanel().requestRepaint();
-			IJ.log( "Transformed " + movingSac.getSpimSource().getName() + " with " + affineTransform3D );
+			IJ.log( "Transformed " + movingSac.getSpimSource().getName() + " with " + siftTransform3D );
 		}
 		else
 		{
