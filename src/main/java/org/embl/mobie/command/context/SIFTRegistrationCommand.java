@@ -59,7 +59,7 @@ public class SIFTRegistrationCommand implements BdvPlaygroundActionCommand
 	@Override
 	public void run()
 	{
-		SIFTPointsExtractor pointsExtractor = new SIFTPointsExtractor( );
-		pointsExtractor.run( BdvHandleHelper.getViewerVoxelSpacing( bdvHandle ), MoBIEHelper.getVisibleSacs( bdvHandle ) );
+		SIFTPointsExtractor pointsExtractor = new SIFTPointsExtractor( bdvHandle );
+		pointsExtractor.run( );
 	}
 }

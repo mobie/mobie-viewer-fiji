@@ -29,7 +29,6 @@
 package org.embl.mobie.command.context;
 
 import bdv.util.BdvHandle;
-import de.embl.cba.bdv.utils.BdvUtils;
 import ij.IJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
@@ -71,14 +70,14 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     @Override
     public void run()
     {
-        ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvh );
-        screenShotMaker.setPhysicalPixelSpacingInXY( targetSamplingInXY, pixelUnit );
+        ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvh, targetSamplingInXY, pixelUnit );
+        screenShotMaker.run();
 
         if( showRGB )
-            screenShotMaker.getRgbScreenShot().show();
+            screenShotMaker.getRGBImagePlus().show();
 
         if( showMultiChannel )
-            screenShotMaker.getRawScreenShot().show();
+            screenShotMaker.getCompositeImagePlus().show();
 
         if ( MoBIE.getInstance().getSettings().values.isOpenedFromCLI() )
             MoBIE.imageJ.ui().showUI();

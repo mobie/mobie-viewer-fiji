@@ -1,16 +1,18 @@
 package org.embl.mobie.command.context;
 
+import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.gui.GenericDialog;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import mpicbg.ij.FeatureTransform;
 import mpicbg.ij.SIFT;
@@ -26,7 +28,9 @@ import mpicbg.models.PointMatch;
 import mpicbg.models.RigidModel2D;
 import mpicbg.models.SimilarityModel2D;
 import mpicbg.models.TranslationModel2D;
+import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
+import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 
 /**
  * Extract landmark correspondences in two images as PointRoi.
@@ -71,6 +75,7 @@ public class SIFTPointsExtractor
 {
     final static private DecimalFormat decimalFormat = new DecimalFormat();
     final static private DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
+    private final BdvHandle bdvHandle;
 
     private ImagePlus imp1;
     private ImagePlus imp2;
@@ -115,8 +120,10 @@ public class SIFTPointsExtractor
 
     final static private Param p = new Param();
 
-    public SIFTPointsExtractor( )
+    public SIFTPointsExtractor( BdvHandle bdvHandle )
     {
+        this.bdvHandle = bdvHandle;
+
         decimalFormatSymbols.setGroupingSeparator( ',' );
         decimalFormatSymbols.setDecimalSeparator( '.' );
         decimalFormat.setDecimalFormatSymbols( decimalFormatSymbols );
@@ -124,18 +131,19 @@ public class SIFTPointsExtractor
         decimalFormat.setMinimumFractionDigits( 3 );
     }
 
-    public void run( double viewerVoxelSpacing, final List< SourceAndConverter< ? > > sourceAndConverters )
+    public void run()
     {
         // cleanup
         fs1.clear();
         fs2.clear();
 
         if( p.pixelSize == null )
-            p.pixelSize = viewerVoxelSpacing;
+            p.pixelSize = BdvHandleHelper.getViewerVoxelSpacing( bdvHandle );
 
-        if ( sourceAndConverters == null || sourceAndConverters.size() < 2 )
+        List< SourceAndConverter< ? > > sourceAndConverters = MoBIEHelper.getVisibleSacs( bdvHandle );
+        if ( sourceAndConverters.size() < 2 )
         {
-            IJ.showMessage( "You should have at least two images shown." );
+            IJ.showMessage( "There must be at least two images visible." );
             return;
         }
 
@@ -178,24 +186,10 @@ public class SIFTPointsExtractor
 
         if (gd.wasCanceled()) return;
 
-        String fixedImage = gd.getNextString();
-        SourceAndConverter< ? > fixedSac = sourceAndConverters.stream()
-                .filter( sac -> sac.getSpimSource().getName().equals( fixedImage ) )
-                .findFirst().get();
-
-        String movingImage = gd.getNextString();
-        SourceAndConverter< ? > movingSac = sourceAndConverters.stream()
-                .filter( sac -> sac.getSpimSource().getName().equals( movingImage ) )
-                .findFirst().get();
-
-        // TODO Refactor ScreenshotMaker to make it useable here.
-        new ScreenShotMaker(  )
-
-        imp1 = null; //WindowManager.getImage( ids[ gd.getNextChoiceIndex() ] );
-        imp2 = null; //WindowManager.getImage( ids[ gd.getNextChoiceIndex() ] );
+        String fixedImageName = gd.getNextChoice();
+        String movingImageName = gd.getNextChoice();
 
         p.pixelSize = gd.getNextNumber();
-
         p.modelIndex = gd.getNextChoiceIndex();
 
         p.sift.initialSigma = ( float )gd.getNextNumber();
@@ -212,7 +206,39 @@ public class SIFTPointsExtractor
         p.minInlierRatio = ( float )gd.getNextNumber();
         p.minNumInliers = ( int )gd.getNextNumber();
 
+        fetchImages( sourceAndConverters, fixedImageName, movingImageName );
+
         exec(imp1, imp2);
+    }
+
+    private void fetchImages( List< SourceAndConverter< ? > > sourceAndConverters, String fixedImageName, String movingImageName )
+    {
+        SourceAndConverter< ? > fixedSac = sourceAndConverters.stream()
+                .filter( sac -> sac.getSpimSource().getName().equals( fixedImageName ) )
+                .findFirst().get();
+
+        SourceAndConverter< ? > movingSac = sourceAndConverters.stream()
+                .filter( sac -> sac.getSpimSource().getName().equals( movingImageName ) )
+                .findFirst().get();
+
+        ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, p.pixelSize, fixedSac.getSpimSource().getVoxelDimensions().unit() );
+        screenShotMaker.run( Arrays.asList( fixedSac, movingSac ) );
+        CompositeImage compositeImage = screenShotMaker.getCompositeImagePlus();
+
+        ImageStack stack = compositeImage.getStack();
+        imp1 = new ImagePlus( "fixed", stack.getProcessor( 1 ) );
+        compositeImage.setC( 2 );
+        imp2 = new ImagePlus( "moving", stack.getProcessor( 2 ) );
+
+        // Set the display ranges
+        // This is important as those will be used by the SIFT for normalising the pixel values
+        compositeImage.setPosition( 1 );
+        imp1.getProcessor().setMinAndMax( compositeImage.getDisplayRangeMin(), compositeImage.getDisplayRangeMax() );
+        compositeImage.setPosition( 2 );
+        imp2.getProcessor().setMinAndMax( compositeImage.getDisplayRangeMin(), compositeImage.getDisplayRangeMax() );
+
+        imp1.show();
+        imp2.show();
     }
 
     /** If unsure, just use default parameters by using exec(ImagePlus, ImagePlus, int) method, where only the model is specified. */

@@ -72,7 +72,7 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 	public BdvHandle bdvHandle;
 
 	@Parameter( label = "Source(s)" )
-	public SourceAndConverter[] sourceAndConverterArray;
+	public SourceAndConverter< ? >[] sourceAndConverterArray;
 
 	@Override
 	public void run()

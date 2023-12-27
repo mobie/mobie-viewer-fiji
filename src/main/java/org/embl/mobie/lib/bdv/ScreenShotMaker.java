@@ -84,61 +84,37 @@ public class ScreenShotMaker
     private CompositeImage compositeImagePlus = null;
     private long[] screenshotDimensions = new long[2];
 
-    public ScreenShotMaker( BdvHandle bdvHandle ) {
+    public ScreenShotMaker( BdvHandle bdvHandle, Double pixelSize, String pixelUnit ) {
         this.bdvHandle = bdvHandle;
         this.sacService = SourceAndConverterServices.getSourceAndConverterService();
+        this.samplingXY = pixelSize;
+        this.physicalUnit = pixelUnit;
     }
 
-    public void setPhysicalPixelSpacingInXY( double spacing, String unit ) {
-        this.rgbImagePlus = null;
-        this.samplingXY = spacing;
-        this.physicalUnit = unit;
-    }
-
-    private void process() {
-        if ( rgbImagePlus != null)
-            return;
-        createScreenShot();
-    }
-
-    public ImagePlus getRgbScreenShot() {
-        process();
+    public ImagePlus getRGBImagePlus()
+    {
         return rgbImagePlus;
     }
 
-    public CompositeImage getRawScreenShot()
+    public CompositeImage getCompositeImagePlus()
     {
-        process();
         return compositeImagePlus;
     }
 
-    public static long[] getCaptureImageSizeInPixels( BdvHandle bdvHandle, double samplingXY )
+    public void run()
     {
-        final double viewerVoxelSpacing = getViewerVoxelSpacing( bdvHandle );
+        List< SourceAndConverter< ? > > sacs = getVisibleSourceAndConverters();
+        run( sacs );
+    }
 
-        final double[] bdvWindowPhysicalSize = getBdvWindowPhysicalSize( bdvHandle, viewerVoxelSpacing );
-
-        final long[] capturePixelSize = new long[ 2 ];
-        for ( int d = 0; d < 2; d++ )
+    public void run( List< SourceAndConverter< ? > > sacs  )
+    {
+        if ( sacs.isEmpty() )
         {
-            capturePixelSize[ d ] = ( long ) ( Math.ceil( bdvWindowPhysicalSize[ d ] / samplingXY ) );
+            IJ.log( "No screen shot taken, as there were no images." );
+            return;
         }
 
-        return capturePixelSize;
-    }
-
-    private static double[] getBdvWindowPhysicalSize( BdvHandle bdvHandle, double viewerVoxelSpacing )
-    {
-        final double[] bdvWindowPhysicalSize = new double[ 2 ];
-        final int w = bdvHandle.getViewerPanel().getWidth();
-        final int h = bdvHandle.getViewerPanel().getHeight();
-        bdvWindowPhysicalSize[ 0 ] = w * viewerVoxelSpacing;
-        bdvWindowPhysicalSize[ 1 ] = h * viewerVoxelSpacing;
-        return bdvWindowPhysicalSize;
-    }
-
-    private void createScreenShot()
-    {
         final AffineTransform3D viewerTransform = new AffineTransform3D();
         bdvHandle.getViewerPanel().state().getViewerTransform( viewerTransform );
 
@@ -150,24 +126,9 @@ public class ScreenShotMaker
 
         final ArrayList< double[] > displayRanges = new ArrayList<>();
 
-        final List< SourceAndConverter <?> > visibleSacs = MoBIEHelper.getVisibleSacs( bdvHandle );
-        if ( visibleSacs.size() == 0 ) return;
-
-        List< SourceAndConverter< ? > > sacs = new ArrayList<>();
-        for ( SourceAndConverter< ?  > sac : visibleSacs )
-        {
-            // TODO: can we determine from BDV whether a source is intersecting viewer plane?
-            //       why do we need is2D=false ?
-            if ( ! isSourceIntersectingCurrentView( bdvHandle, sac.getSpimSource(), false ) )
-                continue;
-            sacs.add( sac );
-        }
-
-        if ( sacs.isEmpty() ) return;
-
         final int t = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
 
-        IJ.log( "Fetching data from " + sacs.size() + " sources..."  );
+        IJ.log( "Fetching data from " + sacs.size() + " images..."  );
 
         final long numPixels = screenshotDimensions[ 0 ] * screenshotDimensions[ 1 ];
         long pixelsPerThread = numPixels / ThreadHelper.getNumIoThreads();
@@ -205,9 +166,6 @@ public class ScreenShotMaker
 
             final AtomicInteger pixelCount = new AtomicInteger();
             final AtomicDouble fractionDone = new AtomicDouble( 0.2 );
-
-            IJ.log( "Fetching data from " + sac.getSpimSource().getName()  );
-
             ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
             for ( Interval interval : intervals )
             {
@@ -268,7 +226,7 @@ public class ScreenShotMaker
                         }
                     } )
                 );
-            } // for interval
+            }
 
             ThreadHelper.waitUntilFinished( futures );
 
@@ -286,11 +244,27 @@ public class ScreenShotMaker
 
         voxelSpacing[ 2 ] = getViewerVoxelSpacing( bdvHandle ); // TODO: What to put here?
 
-        if ( floatCaptures.size() > 0 )
+        if ( ! floatCaptures.isEmpty() )
         {
-            rgbImagePlus = createImagePlus( physicalUnit, argbSources, voxelSpacing, sacs );
-            compositeImagePlus = createCompositeImage( voxelSpacing, physicalUnit, floatCaptures, colors, displayRanges );
+            rgbImagePlus = createRGBImagePlus( physicalUnit, argbSources, voxelSpacing, sacs );
+            compositeImagePlus = createCompositeImagePlus( voxelSpacing, physicalUnit, floatCaptures, colors, displayRanges );
         }
+    }
+
+    private List< SourceAndConverter< ? > > getVisibleSourceAndConverters()
+    {
+        final List< SourceAndConverter <?> > visibleSacs = MoBIEHelper.getVisibleSacs( bdvHandle );
+
+        List< SourceAndConverter< ? > > sacs = new ArrayList<>();
+        for ( SourceAndConverter< ?  > sac : visibleSacs )
+        {
+            // TODO: can we determine from BDV whether a source is intersecting viewer plane?
+            //       why do we need is2D=false ?
+            if ( ! isSourceIntersectingCurrentView( bdvHandle, sac.getSpimSource(), false ) )
+                continue;
+            sacs.add( sac );
+        }
+        return sacs;
     }
 
     private void setArgbPixelValue( Converter converter, RealRandomAccess< ? > access, RandomAccess< ARGBType > argbCaptureAccess, ARGBType argbType )
@@ -339,16 +313,14 @@ public class ScreenShotMaker
             return source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR ).realRandomAccess();
     }
 
-    private ImagePlus createImagePlus(
+    private ImagePlus createRGBImagePlus(
             String physicalUnit,
             ArrayList< RandomAccessibleInterval< ARGBType > > argbSources,
             double[] voxelSpacing,
             List< SourceAndConverter< ? > > sacs )
     {
         final RandomAccessibleInterval< ARGBType > argbTarget = ArrayImgs.argbs( screenshotDimensions[ 0 ], screenshotDimensions[ 1 ]  );
-
         createARGBprojection( argbSources, argbTarget, sacs );
-
         return asImagePlus( argbTarget, physicalUnit, voxelSpacing );
     }
 
@@ -413,6 +385,33 @@ public class ScreenShotMaker
 //        }
 //    }
 //
+
+
+    public static long[] getCaptureImageSizeInPixels( BdvHandle bdvHandle, double samplingXY )
+    {
+        final double viewerVoxelSpacing = getViewerVoxelSpacing( bdvHandle );
+
+        final double[] bdvWindowPhysicalSize = getBdvWindowPhysicalSize( bdvHandle, viewerVoxelSpacing );
+
+        final long[] capturePixelSize = new long[ 2 ];
+        for ( int d = 0; d < 2; d++ )
+        {
+            capturePixelSize[ d ] = ( long ) ( Math.ceil( bdvWindowPhysicalSize[ d ] / samplingXY ) );
+        }
+
+        return capturePixelSize;
+    }
+
+    private static double[] getBdvWindowPhysicalSize( BdvHandle bdvHandle, double viewerVoxelSpacing )
+    {
+        final double[] bdvWindowPhysicalSize = new double[ 2 ];
+        final int w = bdvHandle.getViewerPanel().getWidth();
+        final int h = bdvHandle.getViewerPanel().getHeight();
+        bdvWindowPhysicalSize[ 0 ] = w * viewerVoxelSpacing;
+        bdvWindowPhysicalSize[ 1 ] = h * viewerVoxelSpacing;
+        return bdvWindowPhysicalSize;
+    }
+
     private Cursor< ARGBType >[] getCursors( ArrayList< RandomAccessibleInterval< ARGBType > > argbCaptures, int numVisibleSources )
     {
         Cursor< ARGBType >[] cursors = new Cursor[ numVisibleSources ];
@@ -435,7 +434,7 @@ public class ScreenShotMaker
         return rgbImage;
     }
 
-    public static CompositeImage createCompositeImage(
+    public static CompositeImage createCompositeImagePlus(
             double[] voxelSpacing,
             String voxelUnit,
             ArrayList< RandomAccessibleInterval< FloatType > > rais,
