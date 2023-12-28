@@ -79,6 +79,8 @@ public class SIFT2DAligner
     private SourceAndConverter< ? > fixedSac;
     private SourceAndConverter< ? > movingSac;
     private ScreenShotMaker screenShotMaker;
+    private static String fixedImageName;
+    private static String movingImageName;
 
     static private class Param
     {
@@ -135,8 +137,9 @@ public class SIFT2DAligner
 
     public boolean showUI()
     {
-        if( p.pixelSize == null )
-            p.pixelSize = BdvHandleHelper.getViewerVoxelSpacing( bdvHandle );
+        double viewerVoxelSpacing = BdvHandleHelper.getViewerVoxelSpacing( bdvHandle );
+
+        p.pixelSize = 2 * viewerVoxelSpacing;
 
         List< SourceAndConverter< ? > > sourceAndConverters = MoBIEHelper.getVisibleSacs( bdvHandle );
         if ( sourceAndConverters.size() < 2 )
@@ -151,8 +154,11 @@ public class SIFT2DAligner
 
         final GenericDialog gd = new GenericDialog( "SIFT 2D Aligner" );
 
-        gd.addChoice( "fixed_image :", titles, titles[ 0 ] );
-        gd.addChoice( "moving_image :", titles, titles[ 1 ] );
+        String fixedDefault = Arrays.asList( titles ).contains( fixedImageName ) ? fixedImageName : titles[ 0 ];
+        gd.addChoice( "fixed_image :", titles, fixedDefault );
+
+        String movingDefault = Arrays.asList( titles ).contains( movingImageName ) ? movingImageName : titles[ 1 ];
+        gd.addChoice( "moving_image :", titles, movingDefault );
         String voxelUnit = sourceAndConverters.get( 0 ).getSpimSource().getVoxelDimensions().unit();
 
         gd.addNumericField( "pixel_size :", p.pixelSize, 2, 6, voxelUnit );
@@ -178,8 +184,8 @@ public class SIFT2DAligner
 
         if (gd.wasCanceled()) return false;
 
-        String fixedImageName = gd.getNextChoice();
-        String movingImageName = gd.getNextChoice();
+        fixedImageName = gd.getNextChoice();
+        movingImageName = gd.getNextChoice();
 
         p.pixelSize = gd.getNextNumber();
         p.modelIndex = gd.getNextChoiceIndex();

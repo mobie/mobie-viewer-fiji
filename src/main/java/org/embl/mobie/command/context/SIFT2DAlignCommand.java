@@ -32,24 +32,61 @@ import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import ij.gui.NonBlockingGenericDialog;
-import ij.gui.YesNoCancelDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.CommandConstants;
+import org.scijava.command.Interactive;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.widget.Button;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - SIFT")
-public class SIFT2DAlignCommand implements BdvPlaygroundActionCommand
+public class SIFT2DAlignCommand implements BdvPlaygroundActionCommand, Interactive
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	@Parameter
 	public BdvHandle bdvHandle;
 
+	@Parameter ( label = "Compute Alignment", callback = "compute")
+	private Button compute;
+
+	@Parameter ( label = "Toggle Alignment", callback = "toggle")
+	private Button toggle;
+
+	private AffineTransform3D previousTransform;
+	private AffineTransform3D newTransform;
+	private TransformedSource< ? > transformedSource;
+	private boolean isAligned;
+
 	@Override
 	public void run()
+	{
+		//
+	}
+
+	private void toggle()
+	{
+		if ( transformedSource == null )
+		{
+			IJ.showMessage( "Please first [ Compute Alignment ]." );
+			return;
+		}
+
+		if ( isAligned )
+		{
+			transformedSource.setFixedTransform( previousTransform );
+		}
+		else
+		{
+			transformedSource.setFixedTransform( newTransform );
+		}
+
+		bdvHandle.getViewerPanel().requestRepaint();
+		isAligned = ! isAligned;
+	}
+
+	private void compute()
 	{
 		IJ.log("# SIFT registration" +
 				"\nThe registration is computed in the currently visible 2D plane" +
@@ -63,33 +100,26 @@ public class SIFT2DAlignCommand implements BdvPlaygroundActionCommand
 		if ( movingSac.getSpimSource() instanceof TransformedSource )
 		{
 			// apply the transformation
-			AffineTransform3D siftTransform3D = aligner.getSiftTransform3D();
-			TransformedSource< ? > transformedSource = ( TransformedSource< ? > ) movingSac.getSpimSource();
-			AffineTransform3D previousFixedTransform = new AffineTransform3D();
-			transformedSource.getFixedTransform( previousFixedTransform );
-			AffineTransform3D newFixedTransform = previousFixedTransform.copy();
-			newFixedTransform.preConcatenate( siftTransform3D );
-			transformedSource.setFixedTransform( newFixedTransform );
-			bdvHandle.getViewerPanel().requestRepaint();
+			AffineTransform3D siftTransform = aligner.getSiftTransform3D();
+			transformedSource = ( TransformedSource< ? > ) movingSac.getSpimSource();
+			previousTransform = new AffineTransform3D();
+			transformedSource.getFixedTransform( previousTransform );
+			newTransform = previousTransform.copy();
+			newTransform.preConcatenate( siftTransform );
+			transformedSource.setFixedTransform( newTransform );
+			IJ.showMessage( "Transforming " + transformedSource.getName() );
+			IJ.showMessage( "Previous Transform: " + previousTransform );
+			IJ.showMessage( "Additional SIFT Transform: " + siftTransform );
+			IJ.showMessage( "Combined Transform: " + newTransform );
 
-			// ask user whether to accept the transformation
-			NonBlockingGenericDialog dialog = new NonBlockingGenericDialog( "SIFT Alignment" );
-			dialog.addMessage( "Press OK to keep the transformation" );
-			dialog.addMessage( "Press Cancel to discard the transformation" );
-			dialog.showDialog();
-			if ( dialog.wasOKed() )
-			{
-				IJ.log( "Transformed " + movingSac.getSpimSource().getName() + " with " + siftTransform3D );
-			}
-			else if ( dialog.wasCanceled() )
-			{
-				transformedSource.setFixedTransform( previousFixedTransform );
-				bdvHandle.getViewerPanel().requestRepaint();
-			}
+			isAligned = true;
+			bdvHandle.getViewerPanel().requestRepaint();
 		}
 		else
 		{
 			IJ.log("Cannot apply transformation to image of type " + movingSac.getSpimSource().getClass() );
 		}
 	}
+
+
 }

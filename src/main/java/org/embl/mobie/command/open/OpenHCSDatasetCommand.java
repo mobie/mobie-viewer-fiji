@@ -37,7 +37,6 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
 
-import java.io.File;
 import java.io.IOException;
 
 

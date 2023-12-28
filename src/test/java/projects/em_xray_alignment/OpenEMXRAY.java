@@ -10,7 +10,7 @@ public class OpenEMXRAY
 {
     public static void main( String[] args ) throws IOException
     {
-        OpenerLogging.setLogging( true );
+//        OpenerLogging.setLogging( true );
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
         new MoBIE("/Volumes/cba/exchange/em-xray-alignment/mobie" );
