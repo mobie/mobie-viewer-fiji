@@ -32,6 +32,8 @@ import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import ij.gui.NonBlockingGenericDialog;
+import ij.gui.YesNoCancelDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.CommandConstants;
 import org.scijava.plugin.Parameter;
@@ -51,23 +53,39 @@ public class SIFT2DAlignCommand implements BdvPlaygroundActionCommand
 	{
 		IJ.log("# SIFT registration" +
 				"\nThe registration is computed in the currently visible 2D plane" +
-				"\nbut then applied to the full image in 3D.");
+				"\nand then applied to the full image in 3D.");
 		// start the alignment, which has its own GUI
 		SIFT2DAligner aligner = new SIFT2DAligner( bdvHandle );
-		if( ! aligner.run() ) return;
+		if( ! aligner.showUI() ) return;
 
 		// apply transformation
 		SourceAndConverter< ? > movingSac = aligner.getMovingSac();
 		if ( movingSac.getSpimSource() instanceof TransformedSource )
 		{
+			// apply the transformation
 			AffineTransform3D siftTransform3D = aligner.getSiftTransform3D();
 			TransformedSource< ? > transformedSource = ( TransformedSource< ? > ) movingSac.getSpimSource();
-			AffineTransform3D fixedTransform = new AffineTransform3D();
-			transformedSource.getFixedTransform( fixedTransform );
-			fixedTransform.preConcatenate( siftTransform3D );
-			transformedSource.setFixedTransform( fixedTransform );
+			AffineTransform3D previousFixedTransform = new AffineTransform3D();
+			transformedSource.getFixedTransform( previousFixedTransform );
+			AffineTransform3D newFixedTransform = previousFixedTransform.copy();
+			newFixedTransform.preConcatenate( siftTransform3D );
+			transformedSource.setFixedTransform( newFixedTransform );
 			bdvHandle.getViewerPanel().requestRepaint();
-			IJ.log( "Transformed " + movingSac.getSpimSource().getName() + " with " + siftTransform3D );
+
+			// ask user whether to accept the transformation
+			NonBlockingGenericDialog dialog = new NonBlockingGenericDialog( "SIFT Alignment" );
+			dialog.addMessage( "Press OK to keep the transformation" );
+			dialog.addMessage( "Press Cancel to discard the transformation" );
+			dialog.showDialog();
+			if ( dialog.wasOKed() )
+			{
+				IJ.log( "Transformed " + movingSac.getSpimSource().getName() + " with " + siftTransform3D );
+			}
+			else if ( dialog.wasCanceled() )
+			{
+				transformedSource.setFixedTransform( previousFixedTransform );
+				bdvHandle.getViewerPanel().requestRepaint();
+			}
 		}
 		else
 		{

@@ -109,6 +109,11 @@ public class SIFT2DAligner
         public int minNumInliers = 7;
 
         /**
+         * Whether to show the detected landmarks
+         */
+        public boolean showLandmarks = false;
+
+        /**
          * Implemeted transformation models for choice
          */
         final static public String[] modelStrings = new String[]{ "Translation", "Rigid", "Similarity", "Affine", "Perspective" };
@@ -128,12 +133,8 @@ public class SIFT2DAligner
         decimalFormat.setMinimumFractionDigits( 3 );
     }
 
-    public boolean run()
+    public boolean showUI()
     {
-        // cleanup
-        fs1.clear();
-        fs2.clear();
-
         if( p.pixelSize == null )
             p.pixelSize = BdvHandleHelper.getViewerVoxelSpacing( bdvHandle );
 
@@ -171,6 +172,8 @@ public class SIFT2DAligner
         gd.addNumericField( "minimal_inlier_ratio :", p.minInlierRatio, 2 );
         gd.addNumericField( "minimal_number_of_inliers :", p.minNumInliers, 0 );
 
+        gd.addCheckbox( "show images with detected landmarks", false );
+
         gd.showDialog();
 
         if (gd.wasCanceled()) return false;
@@ -195,9 +198,16 @@ public class SIFT2DAligner
         p.minInlierRatio = ( float )gd.getNextNumber();
         p.minNumInliers = ( int )gd.getNextNumber();
 
+        p.showLandmarks = gd.getNextBoolean();
+
+        return run( sourceAndConverters, fixedImageName, movingImageName );
+    }
+
+    public boolean run( List< SourceAndConverter< ? > > sourceAndConverters, String fixedImageName, String movingImageName )
+    {
         extractImages( sourceAndConverters, fixedImageName, movingImageName );
 
-        return exec( imp1, imp2 );
+        return run( imp1, imp2 );
     }
 
     private void extractImages( List< SourceAndConverter< ? > > sourceAndConverters, String fixedImageName, String movingImageName )
@@ -224,18 +234,19 @@ public class SIFT2DAligner
         imp1.getProcessor().setMinAndMax( compositeImage.getDisplayRangeMin(), compositeImage.getDisplayRangeMax() );
         compositeImage.setPosition( 2 );
         imp2.getProcessor().setMinAndMax( compositeImage.getDisplayRangeMin(), compositeImage.getDisplayRangeMax() );
-
-        imp1.show();
-        imp2.show();
     }
 
     /**
-     * Execute with default parameters (model is Rigid)
+     * Execute with current parameters
      *
      * @return
      *        boolean whether a model was found
      */
-    private boolean exec( final ImagePlus imp1, final ImagePlus imp2) {
+    private boolean run( final ImagePlus imp1, final ImagePlus imp2) {
+
+        // cleanup
+        fs1.clear();
+        fs2.clear();
 
         final FloatArray2DSIFT sift = new FloatArray2DSIFT( p.sift );
         final SIFT ijSIFT = new SIFT( sift );
@@ -344,7 +355,6 @@ public class SIFT2DAligner
 
                 IJ.log( inliers.size() + " corresponding features with an average displacement of " + decimalFormat.format( PointMatch.meanDistance( inliers ) ) + "px identified." );
                 IJ.log( "Estimated transformation model: " + model );
-
             }
             else
                 IJ.log( "No correspondences found." );
@@ -355,8 +365,10 @@ public class SIFT2DAligner
             IJ.log( candidates.size() + " corresponding features identified." );
         }
 
-        if ( ! inliers.isEmpty() )
+        if ( ! inliers.isEmpty() && p.showLandmarks )
         {
+            imp1.show();
+            imp2.show();
             PointMatch.sourcePoints( inliers, p1 );
             PointMatch.targetPoints( inliers, p2 );
             imp1.setRoi( Util.pointsToPointRoi( p1 ) );
