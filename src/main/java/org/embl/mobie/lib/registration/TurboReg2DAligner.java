@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.context;
+package org.embl.mobie.lib.registration;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
@@ -41,7 +41,7 @@ import org.scijava.widget.Button;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - SIFT")
-public class SIFT2DAlignCommand implements BdvPlaygroundActionCommand, Interactive
+public class TurboReg2DAligner implements BdvPlaygroundActionCommand, Interactive
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -92,7 +92,7 @@ public class SIFT2DAlignCommand implements BdvPlaygroundActionCommand, Interacti
 				"\nThe registration is computed in the currently visible 2D plane" +
 				"\nand then applied to the full image in 3D.");
 		// start the alignment, which has its own GUI
-		SIFT2DAligner aligner = new SIFT2DAligner( bdvHandle );
+		SIFT2DAligner aligner = new SIFT2DAligner( bdvHandle, sacA, sacB, method );
 		if( ! aligner.showUI() ) return;
 
 		// apply transformation
@@ -107,10 +107,10 @@ public class SIFT2DAlignCommand implements BdvPlaygroundActionCommand, Interacti
 			newTransform = previousTransform.copy();
 			newTransform.preConcatenate( siftTransform );
 			transformedSource.setFixedTransform( newTransform );
-			IJ.showMessage( "Transforming " + transformedSource.getName() );
-			IJ.showMessage( "Previous Transform: " + previousTransform );
-			IJ.showMessage( "Additional SIFT Transform: " + siftTransform );
-			IJ.showMessage( "Combined Transform: " + newTransform );
+			IJ.log( "Transforming " + transformedSource.getName() );
+			IJ.log( "Previous Transform: " + previousTransform );
+			IJ.log( "Additional SIFT Transform: " + siftTransform );
+			IJ.log( "Combined Transform: " + newTransform );
 
 			isAligned = true;
 			bdvHandle.getViewerPanel().requestRepaint();
@@ -120,6 +120,4 @@ public class SIFT2DAlignCommand implements BdvPlaygroundActionCommand, Interacti
 			IJ.log("Cannot apply transformation to image of type " + movingSac.getSpimSource().getClass() );
 		}
 	}
-
-
 }

@@ -58,7 +58,6 @@ import net.imglib2.view.Views;
 import org.embl.mobie.lib.source.AnnotatedLabelSource;
 import org.embl.mobie.lib.source.AnnotationType;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
-import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.awt.*;
@@ -77,19 +76,15 @@ public class ScreenShotMaker
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     private final BdvHandle bdvHandle;
-    private final ISourceAndConverterService sacService;
-    private double targetVoxelSpacing = 1;
-    private String physicalUnit = "Pixels";
+    private String voxelUnit = "Pixels";
     private ImagePlus rgbImagePlus = null;
     private CompositeImage compositeImagePlus = null;
     private long[] screenshotDimensions = new long[2];
     private AffineTransform3D canvasToGlobalTransform;
 
-    public ScreenShotMaker( BdvHandle bdvHandle, Double pixelSize, String pixelUnit ) {
+    public ScreenShotMaker( BdvHandle bdvHandle, String voxelUnit ) {
         this.bdvHandle = bdvHandle;
-        this.sacService = SourceAndConverterServices.getSourceAndConverterService();
-        this.targetVoxelSpacing = pixelSize;
-        this.physicalUnit = pixelUnit;
+        this.voxelUnit = voxelUnit;
     }
 
     public ImagePlus getRGBImagePlus()
@@ -102,13 +97,13 @@ public class ScreenShotMaker
         return compositeImagePlus;
     }
 
-    public void run()
+    public void run( Double targetSamplingInXY )
     {
         List< SourceAndConverter< ? > > sacs = getVisibleSourceAndConverters();
-        run( sacs );
+        run( sacs, targetSamplingInXY );
     }
 
-    public void run( List< SourceAndConverter< ? > > sacs  )
+    public void run( List< SourceAndConverter< ? > > sacs, double targetVoxelSpacing  )
     {
         if ( sacs.isEmpty() )
         {
@@ -231,8 +226,7 @@ public class ScreenShotMaker
 
             floatCaptures.add( rawCapture );
             argbSources.add( argbCapture );
-            // colors.add( getSourceColor( bdv, sourceIndex ) ); Not used, show GrayScale
-            displayRanges.add( BdvHandleHelper.getDisplayRange( sacService.getConverterSetup( sac ) ) );
+            displayRanges.add( BdvHandleHelper.getDisplayRange( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ) ) );
         }
 
         IJ.log( "Fetched data in " + ( System.currentTimeMillis() - currentTimeMillis ) + " ms." );
@@ -242,8 +236,8 @@ public class ScreenShotMaker
 
         if ( ! floatCaptures.isEmpty() )
         {
-            rgbImagePlus = createRGBImagePlus( physicalUnit, argbSources, voxelSpacing, sacs );
-            compositeImagePlus = createCompositeImagePlus( voxelSpacing, physicalUnit, floatCaptures, colors, displayRanges );
+            rgbImagePlus = createRGBImagePlus( voxelUnit, argbSources, voxelSpacing, sacs );
+            compositeImagePlus = createCompositeImagePlus( voxelSpacing, voxelUnit, floatCaptures, colors, displayRanges );
         }
     }
 
@@ -350,44 +344,6 @@ public class ScreenShotMaker
         }
     }
 
-//    private void projectUsingSumProjector( ArrayList< RandomAccessibleInterval< ARGBType > > argbCaptures, RandomAccessibleInterval< ARGBType > argbCapture )
-//    {
-//        final Cursor< ARGBType > argbCursor = Views.iterable( argbCapture ).localizingCursor();
-//        final int numVisibleSources = argbCaptures.size();
-//
-//        Cursor< ARGBType >[] cursors = getCursors( argbCaptures, numVisibleSources );
-//
-//        while ( argbCursor.hasNext() )
-//        {
-//            argbCursor.fwd();
-//            for ( int i = 0; i < numVisibleSources; i++ )
-//                cursors[ i ].fwd();
-//
-//            final int argbIndex = AccumulateSumProjectorARGB.getArgbIndex( cursors );
-//            argbCursor.get().set( argbIndex );
-//        }
-//    }
-//
-//    private void projectUsingAverageProjector( ArrayList< RandomAccessibleInterval< ARGBType > > argbCaptures, RandomAccessibleInterval< ARGBType > argbCapture )
-//    {
-//        final Cursor< ARGBType > argbCursor = Views.iterable( argbCapture ).localizingCursor();
-//        final int numVisibleSources = argbCaptures.size();
-//
-//        Cursor< ARGBType >[] cursors = getCursors( argbCaptures, numVisibleSources );
-//
-//        while ( argbCursor.hasNext() )
-//        {
-//            argbCursor.fwd();
-//            for ( int i = 0; i < numVisibleSources; i++ )
-//                cursors[ i ].fwd();
-//
-//            final int argbIndex = AccumulateAverageProjectorARGB.getArgbIndex( cursors );
-//            argbCursor.get().set( argbIndex );
-//        }
-//    }
-//
-
-
     public static long[] getCaptureImageSizeInPixels( BdvHandle bdvHandle, double samplingXY )
     {
         final double viewerVoxelSpacing = getViewerVoxelSpacing( bdvHandle );
@@ -413,9 +369,9 @@ public class ScreenShotMaker
         return bdvWindowPhysicalSize;
     }
 
-    private Cursor< ARGBType >[] getCursors( ArrayList< RandomAccessibleInterval< ARGBType > > argbCaptures, int numVisibleSources )
+    private static Cursor< ARGBType >[] getCursors( ArrayList< RandomAccessibleInterval< ARGBType > > argbCaptures, int numVisibleSources )
     {
-        Cursor< ARGBType >[] cursors = new Cursor[ numVisibleSources ];
+        Cursor[] cursors = new Cursor[ numVisibleSources ];
         for ( int i = 0; i < numVisibleSources; i++ )
             cursors[ i ] = Views.iterable( argbCaptures.get( i ) ).cursor();
         return cursors;

@@ -1,11 +1,8 @@
-package org.embl.mobie.command.context;
+package org.embl.mobie.lib.registration;
 
 import bdv.util.BdvHandle;
-import bdv.viewer.SourceAndConverter;
-import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
-import ij.ImageStack;
 import ij.gui.GenericDialog;
 
 import java.text.DecimalFormat;
@@ -21,9 +18,7 @@ import mpicbg.imagefeatures.Feature;
 import mpicbg.imagefeatures.FloatArray2DSIFT;
 import mpicbg.models.*;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.lib.MoBIEHelper;
-import org.embl.mobie.lib.bdv.ScreenShotMaker;
-import sc.fiji.bdvpg.bdv.BdvHandleHelper;
+import org.embl.mobie.command.context.AutomaticRegistrationCommand;
 
 /**
  * Extract landmark correspondences in two images as PointRoi.
@@ -69,18 +64,11 @@ public class SIFT2DAligner
     final static private DecimalFormat decimalFormat = new DecimalFormat();
     final static private DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
     private final BdvHandle bdvHandle;
-
-    private ImagePlus imp1;
-    private ImagePlus imp2;
-
+    private final ImagePlus impA;
+    private final ImagePlus impB;
     final private List< Feature > fs1 = new ArrayList< Feature >();
     final private List< Feature > fs2 = new ArrayList< Feature >();;
-    private AffineTransform3D affineTransform3D;
-    private SourceAndConverter< ? > fixedSac;
-    private SourceAndConverter< ? > movingSac;
-    private ScreenShotMaker screenShotMaker;
-    private static String fixedImageName;
-    private static String movingImageName;
+    private AffineTransform3D siftTransform;
 
     static private class Param
     {
@@ -118,51 +106,29 @@ public class SIFT2DAligner
         /**
          * Implemeted transformation models for choice
          */
-        final static public String[] modelStrings = new String[]{ "Translation", "Rigid", "Similarity", "Affine", "Perspective" };
-        public int modelIndex = 3;
+        public String transformationType;
     }
 
     final static private Param p = new Param();
 
-    public SIFT2DAligner( BdvHandle bdvHandle )
+    public SIFT2DAligner( BdvHandle bdvHandle, ImagePlus impA, ImagePlus impB, String transformationType )
     {
         this.bdvHandle = bdvHandle;
+        this.impA = impA;
+        this.impB = impB;
 
         decimalFormatSymbols.setGroupingSeparator( ',' );
         decimalFormatSymbols.setDecimalSeparator( '.' );
         decimalFormat.setDecimalFormatSymbols( decimalFormatSymbols );
         decimalFormat.setMaximumFractionDigits( 3 );
         decimalFormat.setMinimumFractionDigits( 3 );
+
+        p.transformationType = transformationType;
     }
 
     public boolean showUI()
     {
-        double viewerVoxelSpacing = BdvHandleHelper.getViewerVoxelSpacing( bdvHandle );
-
-        p.pixelSize = 2 * viewerVoxelSpacing;
-
-        List< SourceAndConverter< ? > > sourceAndConverters = MoBIEHelper.getVisibleSacs( bdvHandle );
-        if ( sourceAndConverters.size() < 2 )
-        {
-            IJ.showMessage( "There must be at least two images visible." );
-            return false;
-        }
-
-        final String[] titles = sourceAndConverters.stream()
-                .map( sac -> sac.getSpimSource().getName() )
-                .toArray( String[]::new );
-
         final GenericDialog gd = new GenericDialog( "SIFT 2D Aligner" );
-
-        String fixedDefault = Arrays.asList( titles ).contains( fixedImageName ) ? fixedImageName : titles[ 0 ];
-        gd.addChoice( "fixed_image :", titles, fixedDefault );
-
-        String movingDefault = Arrays.asList( titles ).contains( movingImageName ) ? movingImageName : titles[ 1 ];
-        gd.addChoice( "moving_image :", titles, movingDefault );
-        String voxelUnit = sourceAndConverters.get( 0 ).getSpimSource().getVoxelDimensions().unit();
-
-        gd.addNumericField( "pixel_size :", p.pixelSize, 2, 6, voxelUnit );
-        gd.addChoice( "expected_transformation :", Param.modelStrings, Param.modelStrings[ p.modelIndex ] );
 
         gd.addNumericField( "initial_gaussian_blur :", p.sift.initialSigma, 2, 6, "px" );
         gd.addNumericField( "steps_per_scale_octave :", p.sift.steps, 0 );
@@ -178,17 +144,9 @@ public class SIFT2DAligner
         gd.addNumericField( "minimal_inlier_ratio :", p.minInlierRatio, 2 );
         gd.addNumericField( "minimal_number_of_inliers :", p.minNumInliers, 0 );
 
-        gd.addCheckbox( "show images with detected landmarks", false );
-
         gd.showDialog();
 
         if (gd.wasCanceled()) return false;
-
-        fixedImageName = gd.getNextChoice();
-        movingImageName = gd.getNextChoice();
-
-        p.pixelSize = gd.getNextNumber();
-        p.modelIndex = gd.getNextChoiceIndex();
 
         p.sift.initialSigma = ( float )gd.getNextNumber();
         p.sift.steps = ( int )gd.getNextNumber();
@@ -205,50 +163,17 @@ public class SIFT2DAligner
         p.minNumInliers = ( int )gd.getNextNumber();
 
         p.showLandmarks = gd.getNextBoolean();
-
-        return run( sourceAndConverters, fixedImageName, movingImageName );
+        
+        return run( impA, impB );
     }
-
-    public boolean run( List< SourceAndConverter< ? > > sourceAndConverters, String fixedImageName, String movingImageName )
-    {
-        extractImages( sourceAndConverters, fixedImageName, movingImageName );
-
-        return run( imp1, imp2 );
-    }
-
-    private void extractImages( List< SourceAndConverter< ? > > sourceAndConverters, String fixedImageName, String movingImageName )
-    {
-        fixedSac = sourceAndConverters.stream()
-                .filter( sac -> sac.getSpimSource().getName().equals( fixedImageName ) )
-                .findFirst().get();
-
-        movingSac = sourceAndConverters.stream()
-                .filter( sac -> sac.getSpimSource().getName().equals( movingImageName ) )
-                .findFirst().get();
-
-        screenShotMaker = new ScreenShotMaker( bdvHandle, p.pixelSize, fixedSac.getSpimSource().getVoxelDimensions().unit() );
-        screenShotMaker.run( Arrays.asList( fixedSac, movingSac ) );
-        CompositeImage compositeImage = screenShotMaker.getCompositeImagePlus();
-
-        ImageStack stack = compositeImage.getStack();
-        imp1 = new ImagePlus( "fixed", stack.getProcessor( 1 ) );
-        imp2 = new ImagePlus( "moving", stack.getProcessor( 2 ) );
-
-        // Setting the display ranges is important
-        // as those will be used by the SIFT for normalising the pixel values
-        compositeImage.setPosition( 1 );
-        imp1.getProcessor().setMinAndMax( compositeImage.getDisplayRangeMin(), compositeImage.getDisplayRangeMax() );
-        compositeImage.setPosition( 2 );
-        imp2.getProcessor().setMinAndMax( compositeImage.getDisplayRangeMin(), compositeImage.getDisplayRangeMax() );
-    }
-
+    
     /**
      * Execute with current parameters
      *
      * @return
      *        boolean whether a model was found
      */
-    private boolean run( final ImagePlus imp1, final ImagePlus imp2) {
+    private boolean run( final ImagePlus imp1, final ImagePlus imp2 ) {
 
         // cleanup
         fs1.clear();
@@ -290,24 +215,24 @@ public class SIFT2DAligner
             inliers = new ArrayList< PointMatch >();
 
             AbstractModel< ? > model;
-            switch ( p.modelIndex )
+            switch ( p.transformationType )
             {
-                case 0:
+                case AutomaticRegistrationCommand.TRANSLATION:
                     model = new TranslationModel2D();
                     break;
-                case 1:
+                case AutomaticRegistrationCommand.RIGID:
                     model = new RigidModel2D();
                     break;
-                case 2:
+                case AutomaticRegistrationCommand.SIMILARITY:
                     model = new SimilarityModel2D();
                     break;
-                case 3:
+                case AutomaticRegistrationCommand.AFFINE:
                     model = new AffineModel2D();
                     break;
-                case 4:
-                    // TODO: What is this?
-                    model = new HomographyModel2D();
-                    break;
+//                case 4:
+//                    // TODO: What is this?
+//                    model = new HomographyModel2D();
+//                    break;
                 default:
                     return modelFound;
             }
@@ -325,24 +250,14 @@ public class SIFT2DAligner
 
                 if ( model instanceof AbstractAffineModel2D )
                 {
-                    affineTransform3D = new AffineTransform3D();
-
-                    // global to target canvas
-                    AffineTransform3D canvasToGlobalTransform = screenShotMaker.getCanvasToGlobalTransform();
-                    affineTransform3D.preConcatenate( canvasToGlobalTransform.inverse() );
-
-                    // sift within canvas
                     final double[] a = new double[6];
                     ( ( AbstractAffineModel2D< ? > ) model ).toArray( a );
-                    AffineTransform3D canvasSiftTransform = new AffineTransform3D();
-                    canvasSiftTransform.set(
+                    siftTransform = new AffineTransform3D();
+                    siftTransform.set(
                             a[0], a[2], 0, a[4],
                             a[1], a[3], 0, a[5],
                             0, 0, 1, 0);
-                    affineTransform3D.preConcatenate( canvasSiftTransform.inverse() );
-
-                    // canvas to global
-                    affineTransform3D.preConcatenate( canvasToGlobalTransform );
+                    siftTransform = siftTransform.inverse();
                 }
                 else
                     IJ.showMessage( "Cannot apply " + model );
@@ -384,13 +299,8 @@ public class SIFT2DAligner
         return modelFound;
     }
 
-    public AffineTransform3D getSiftTransform3D()
+    public AffineTransform3D getSIFTAlignmentTransform()
     {
-        return affineTransform3D;
-    }
-
-    public SourceAndConverter< ? > getMovingSac()
-    {
-        return movingSac;
+        return siftTransform;
     }
 }

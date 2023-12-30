@@ -52,7 +52,7 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     public static final String CAPTURE_SIZE_PIXELS = "Capture size [pixels]: ";
 
     @Parameter
-    public BdvHandle bdvh;
+    public BdvHandle bdvHandle;
 
     @Parameter(label="Sampling (in below units)", persist = false, callback = "showNumPixels", min = "0.0", style="format:#.00000", stepSize = "0.01")
     public Double targetSamplingInXY = 1D;
@@ -63,8 +63,8 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     @Override
     public void run()
     {
-        ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvh, targetSamplingInXY, pixelUnit );
-        screenShotMaker.run();
+        ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, pixelUnit );
+        screenShotMaker.run( targetSamplingInXY );
         screenShotMaker.getRGBImagePlus().show();
         screenShotMaker.getCompositeImagePlus().show();
 
@@ -81,23 +81,23 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
         //
         final MutableModuleItem< String > pixelUnitItem = //
                 getInfo().getMutableInput("pixelUnit", String.class);
-        String pixelUnit = bdvh.getViewerPanel().state().getCurrentSource().getSpimSource().getVoxelDimensions().unit();
+        String pixelUnit = bdvHandle.getViewerPanel().state().getCurrentSource().getSpimSource().getVoxelDimensions().unit();
         final ArrayList< String > units = new ArrayList<>();
         units.add( pixelUnit );
         pixelUnitItem.setChoices( units );
 
-        // set screenshot sampling
+        // init screenshot sampling
         //
         final MutableModuleItem< Double > targetSamplingItem = //
                 getInfo().getMutableInput("targetSamplingInXY", Double.class);
-        double viewerVoxelSpacing = BdvHandleHelper.getViewerVoxelSpacing( bdvh );
+        double viewerVoxelSpacing = BdvHandleHelper.getViewerVoxelSpacing( bdvHandle );
         targetSamplingItem.setValue( this, 2 * viewerVoxelSpacing );
     }
 
     // callback
     private void showNumPixels()
     {
-        final long[] sizeInPixels = ScreenShotMaker.getCaptureImageSizeInPixels( bdvh, targetSamplingInXY );
+        final long[] sizeInPixels = ScreenShotMaker.getCaptureImageSizeInPixels( bdvHandle, targetSamplingInXY );
         IJ.log( CAPTURE_SIZE_PIXELS + Arrays.toString( sizeInPixels ) );
 //        final MutableModuleItem< String > message = getInfo().getMutableInput("message", String.class);
 //        message.setValue( this, CAPTURE_SIZE_PIXELS + sizeInPixels[ 0 ] + ", " + sizeInPixels[ 1 ] );
