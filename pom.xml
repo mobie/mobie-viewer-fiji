@@ -123,9 +123,15 @@
             <artifactId>imagej-legacy</artifactId>
         </dependency>
         <dependency>
+            <!-- SIFT Registration, TODO: does this ship with Fiji anyway? -->
             <groupId>mpicbg</groupId>
             <artifactId>mpicbg</artifactId>
-<!--            <version>1.5.0</version>-->
+        </dependency>
+        <dependency>
+            <!-- TurboReg Registration, TODO: could come from update site BIG-EPFL -->
+            <groupId>sc.fiji</groupId>
+            <artifactId>TurboReg_</artifactId>
+            <version>2.0.0</version>
         </dependency>
         <dependency>
             <groupId>sc.fiji</groupId>

@@ -38,8 +38,9 @@ import ij.ImageStack;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.align.TurboReg2DAligner;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
-import org.embl.mobie.lib.registration.SIFT2DAligner;
+import org.embl.mobie.lib.align.SIFT2DAligner;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
 import org.scijava.command.Interactive;
@@ -67,20 +68,23 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 	@Parameter
 	public BdvHandle bdvHandle;
 
-	@Parameter ( label = "Registration method", choices = {"TurboReg", "SIFT"})
-	private String registrationMethod;
+	@Parameter ( label = "Registration Method", choices = {"TurboReg", "SIFT"} )
+	private String registrationMethod = "SIFT";
 
-	@Parameter(label="Registration voxel size", persist = false, min = "0.0", style="format:#.00000")
+	@Parameter(label="Registration Voxel Size", persist = false, min = "0.0", style="format:#.00000")
 	public Double voxelSize = 1D;
 
-	@Parameter ( label = "Transformation", choices = { TRANSLATION, RIGID, SIMILARITY, AFFINE })
-	private String transformationType;
+	@Parameter ( label = "Transformation", choices = { TRANSLATION, RIGID, SIMILARITY, AFFINE } )
+	private String transformationType = TRANSLATION;
 
 	@Parameter ( label = "Image A (fixed)", choices = {""} )
 	private String imageA;
 
 	@Parameter ( label = "Image B (transformed)", choices = {""} )
 	private String imageB;
+
+	@Parameter ( label = "Show Intermediates" )
+	private Boolean showIntermediates = false;
 
 	@Parameter ( label = "Compute Alignment", callback = "compute")
 	private Button compute;
@@ -142,6 +146,8 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 			return;
 		}
 
+		// create two 2D ImagePlus that are to be aligned
+		//
 		ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, sacA.getSpimSource().getVoxelDimensions().unit() );
 		screenShotMaker.run( Arrays.asList( sacA, sacB ), voxelSize );
 		CompositeImage compositeImage = screenShotMaker.getCompositeImagePlus();
@@ -151,56 +157,57 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 		ImagePlus impA = new ImagePlus( imageA + " (fixed)", stack.getProcessor( 1 ) );
 		ImagePlus impB = new ImagePlus( imageB + " (moving)", stack.getProcessor( 2 ) );
 
-		// Setting the display ranges is important
+		// set the display ranges
 		// as those will be used by the SIFT for normalising the pixel values
 		compositeImage.setPosition( 1 );
 		impA.getProcessor().setMinAndMax( compositeImage.getDisplayRangeMin(), compositeImage.getDisplayRangeMax() );
 		compositeImage.setPosition( 2 );
 		impB.getProcessor().setMinAndMax( compositeImage.getDisplayRangeMin(), compositeImage.getDisplayRangeMax() );
 
-		// the transformation the aligns the two images in 2D
-		AffineTransform3D canvasTransformation = new AffineTransform3D();
+		// compute the transformation that aligns the two images in 2D
+		//
+		AffineTransform3D localRegistration = new AffineTransform3D();
 		if ( registrationMethod.equals( "SIFT" ) )
 		{
-			SIFT2DAligner sift2DAligner = new SIFT2DAligner( bdvHandle, impA, impB, transformationType );
-			if ( ! sift2DAligner.showUI() ) return;
-			canvasTransformation = sift2DAligner.getSIFTAlignmentTransform();
+			SIFT2DAligner sift2DAligner = new SIFT2DAligner( impA, impB, transformationType );
+			if ( ! sift2DAligner.run( showIntermediates ) ) return;
+			localRegistration = sift2DAligner.getAlignmentTransform();
 		}
 		else if ( registrationMethod.equals( "TurboReg" ) )
 		{
-			// TODO
+			TurboReg2DAligner turboReg2DAligner = new TurboReg2DAligner( impA, impB, transformationType );
+			turboReg2DAligner.run( showIntermediates );
+			localRegistration = turboReg2DAligner.getAlignmentTransform();
 		}
 
-		// convert the transformation that aligns the images
-		// within the screenshot canvas to the global 3D coordinate system
-		AffineTransform3D globalAlignmentTransform = new AffineTransform3D();
+		// convert the transformation that aligns the images in 2D
+		// to the global 3D coordinate system
+		AffineTransform3D globalRegistration = new AffineTransform3D();
 
 		// global to target canvas...
-		globalAlignmentTransform.preConcatenate( canvasToGlobalTransform.inverse() );
+		globalRegistration.preConcatenate( canvasToGlobalTransform.inverse() );
 
 		// ...registration within canvas...
-		globalAlignmentTransform.preConcatenate( canvasTransformation );
+		globalRegistration.preConcatenate( localRegistration );
 
 		// ...canvas back to global
-		globalAlignmentTransform.preConcatenate( canvasToGlobalTransform );
+		globalRegistration.preConcatenate( canvasToGlobalTransform );
 
-		// apply transformation
+		// apply the transformation to imageB
 		//
 		transformedSource = ( TransformedSource< ? > ) sacB.getSpimSource();
 		previousTransform = new AffineTransform3D();
 		transformedSource.getFixedTransform( previousTransform );
 		newTransform = previousTransform.copy();
-		newTransform.preConcatenate( globalAlignmentTransform );
+		newTransform.preConcatenate( globalRegistration );
 		transformedSource.setFixedTransform( newTransform );
 		IJ.log( "Transforming " + transformedSource.getName() );
 		IJ.log( "Previous Transform: " + previousTransform );
-		IJ.log( "Additional SIFT Transform: " + globalAlignmentTransform );
+		IJ.log( "Additional SIFT Transform: " + globalRegistration );
 		IJ.log( "Combined Transform: " + newTransform );
-
 		isAligned = true;
 		bdvHandle.getViewerPanel().requestRepaint();
 	}
-
 
 	private void toggle()
 	{

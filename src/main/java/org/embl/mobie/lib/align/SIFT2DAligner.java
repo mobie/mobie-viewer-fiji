@@ -1,6 +1,5 @@
-package org.embl.mobie.lib.registration;
+package org.embl.mobie.lib.align;
 
-import bdv.util.BdvHandle;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
@@ -8,7 +7,6 @@ import ij.gui.GenericDialog;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import mpicbg.ij.FeatureTransform;
@@ -63,7 +61,6 @@ public class SIFT2DAligner
 {
     final static private DecimalFormat decimalFormat = new DecimalFormat();
     final static private DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
-    private final BdvHandle bdvHandle;
     private final ImagePlus impA;
     private final ImagePlus impB;
     final private List< Feature > fs1 = new ArrayList< Feature >();
@@ -99,11 +96,6 @@ public class SIFT2DAligner
         public int minNumInliers = 7;
 
         /**
-         * Whether to show the detected landmarks
-         */
-        public boolean showLandmarks = false;
-
-        /**
          * Implemeted transformation models for choice
          */
         public String transformationType;
@@ -111,9 +103,8 @@ public class SIFT2DAligner
 
     final static private Param p = new Param();
 
-    public SIFT2DAligner( BdvHandle bdvHandle, ImagePlus impA, ImagePlus impB, String transformationType )
+    public SIFT2DAligner( ImagePlus impA, ImagePlus impB, String transformationType )
     {
-        this.bdvHandle = bdvHandle;
         this.impA = impA;
         this.impB = impB;
 
@@ -126,7 +117,8 @@ public class SIFT2DAligner
         p.transformationType = transformationType;
     }
 
-    public boolean showUI()
+    // TODO: make it an extra optional step to adapt the parameters
+    public boolean run( Boolean showIntermediates )
     {
         final GenericDialog gd = new GenericDialog( "SIFT 2D Aligner" );
 
@@ -161,10 +153,8 @@ public class SIFT2DAligner
         p.maxEpsilon = ( float )gd.getNextNumber();
         p.minInlierRatio = ( float )gd.getNextNumber();
         p.minNumInliers = ( int )gd.getNextNumber();
-
-        p.showLandmarks = gd.getNextBoolean();
         
-        return run( impA, impB );
+        return run( impA, impB, showIntermediates );
     }
     
     /**
@@ -173,7 +163,7 @@ public class SIFT2DAligner
      * @return
      *        boolean whether a model was found
      */
-    private boolean run( final ImagePlus imp1, final ImagePlus imp2 ) {
+    private boolean run( final ImagePlus imp1, final ImagePlus imp2, Boolean showIntermediates ) {
 
         // cleanup
         fs1.clear();
@@ -286,7 +276,7 @@ public class SIFT2DAligner
             IJ.log( candidates.size() + " corresponding features identified." );
         }
 
-        if ( ! inliers.isEmpty() && p.showLandmarks )
+        if ( ! inliers.isEmpty() && showIntermediates  )
         {
             imp1.show();
             imp2.show();
@@ -299,7 +289,7 @@ public class SIFT2DAligner
         return modelFound;
     }
 
-    public AffineTransform3D getSIFTAlignmentTransform()
+    public AffineTransform3D getAlignmentTransform()
     {
         return siftTransform;
     }
