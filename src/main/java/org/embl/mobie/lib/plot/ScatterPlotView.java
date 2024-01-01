@@ -57,7 +57,7 @@ import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.table.AnnotationTableModel;
 import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
 import org.embl.mobie.lib.transform.TransformHelper;
-import org.embl.mobie.lib.ui.ColumnColoringModelDialog;
+import org.embl.mobie.ui.ColumnColoringModelDialog;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;

@@ -35,6 +35,7 @@ import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.process.ImageConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.MoBIEHelper;
@@ -52,12 +53,12 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Automatic")
 public class AutomaticRegistrationCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Interactive, Initializable
 {
-
 	public static final String TRANSLATION = "Translation";
 	public static final String RIGID = "Rigid";
 	public static final String SIMILARITY = "Similarity";
@@ -73,6 +74,9 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 
 	@Parameter(label="Registration Voxel Size", persist = false, min = "0.0", style="format:#.00000")
 	public Double voxelSize = 1D;
+
+	@Parameter(label="Out of Bounds Value")
+	public String outOfBoundsValue = "Do not use";
 
 	@Parameter ( label = "Transformation", choices = { TRANSLATION, RIGID, SIMILARITY, AFFINE } )
 	private String transformationType = TRANSLATION;
@@ -149,6 +153,15 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 		// create two 2D ImagePlus that are to be aligned
 		//
 		ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, sacA.getSpimSource().getVoxelDimensions().unit() );
+		try
+		{
+			// useful for images with bright background
+			// to avoid an edge with the black background of BDV
+			screenShotMaker.setOutOfBoundsValue( Float.parseFloat( this.outOfBoundsValue ) );
+		} catch ( Exception e )
+		{
+			// don't set an out-of-bounds value.
+		}
 		screenShotMaker.run( Arrays.asList( sacA, sacB ), voxelSize );
 		CompositeImage compositeImage = screenShotMaker.getCompositeImagePlus();
 		AffineTransform3D canvasToGlobalTransform = screenShotMaker.getCanvasToGlobalTransform();
@@ -157,12 +170,16 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 		ImagePlus impA = new ImagePlus( imageA + " (fixed)", stack.getProcessor( 1 ) );
 		ImagePlus impB = new ImagePlus( imageB + " (moving)", stack.getProcessor( 2 ) );
 
-		// set the display ranges
-		// as those will be used by the SIFT for normalising the pixel values
+		// set the display ranges and burn them in by converting to unit8
+		// this is important for the intensity based registration methods
 		compositeImage.setPosition( 1 );
 		impA.getProcessor().setMinAndMax( compositeImage.getDisplayRangeMin(), compositeImage.getDisplayRangeMax() );
 		compositeImage.setPosition( 2 );
 		impB.getProcessor().setMinAndMax( compositeImage.getDisplayRangeMin(), compositeImage.getDisplayRangeMax() );
+		new ImageConverter( impA ).convertToGray8();
+		new ImageConverter( impB ).convertToGray8();
+		double min = impA.getProcessor().getMax();
+		double max = impA.getProcessor().getMax();
 
 		// compute the transformation that aligns the two images in 2D
 		//
@@ -178,6 +195,11 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 			TurboReg2DAligner turboReg2DAligner = new TurboReg2DAligner( impA, impB, transformationType );
 			turboReg2DAligner.run( showIntermediates );
 			localRegistration = turboReg2DAligner.getAlignmentTransform();
+			if ( showIntermediates )
+			{
+				impA.show();
+				impB.show();
+			}
 		}
 
 		// convert the transformation that aligns the images in 2D

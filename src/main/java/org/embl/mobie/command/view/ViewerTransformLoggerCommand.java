@@ -81,7 +81,7 @@ public class ViewerTransformLoggerCommand implements BdvPlaygroundActionCommand
 
 			// print
 			final Gson gson = JsonHelper.buildGson( false );
-			Logger.log( "# Current view " );
+			Logger.log( "# Current location " );
 			Logger.log( "To restore the view, any of below lines can be pasted into the \'location\' text field." );
 			Logger.log( "To share views with other people we recommend \'normalizedAffine\'." );
 

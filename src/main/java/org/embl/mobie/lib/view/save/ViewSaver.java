@@ -37,7 +37,7 @@ import org.embl.mobie.lib.create.ProjectCreatorHelper;
 import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.DatasetJsonParser;
-import org.embl.mobie.lib.ui.UserInterfaceHelper;
+import org.embl.mobie.ui.UserInterfaceHelper;
 import org.embl.mobie.lib.view.AdditionalViews;
 import org.embl.mobie.lib.serialize.View;
 import org.apache.commons.io.FilenameUtils;

@@ -47,7 +47,7 @@ import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.serialize.display.AbstractDisplay;
 import org.embl.mobie.lib.source.SourceHelper;
-import org.embl.mobie.lib.ui.WindowArrangementHelper;
+import org.embl.mobie.ui.WindowArrangementHelper;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -147,6 +147,7 @@ public class SliceViewer
 		final Set< String > actionsKeys = sacService.getActionsKeys();
 
 		final ArrayList< String > actions = new ArrayList< String >();
+		actions.add( SourceAndConverterService.getCommandName( SourcesInfoCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ScreenShotMakerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ShowRasterImagesCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ViewerTransformLoggerCommand.class ) );
@@ -154,6 +155,7 @@ public class SliceViewer
 		actions.add( SourceAndConverterService.getCommandName( BigWarpRegistrationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( AutomaticRegistrationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ManualRegistrationCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( SetTransformationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( FlipCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );
 		actions.add( LOAD_ADDITIONAL_VIEWS );

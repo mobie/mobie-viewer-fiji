@@ -60,7 +60,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.embl.mobie.lib.ui.UserInterfaceHelper.tidyString;
+import static org.embl.mobie.ui.UserInterfaceHelper.tidyString;
 
 /**
  * Utility class for helper functions used during project creation

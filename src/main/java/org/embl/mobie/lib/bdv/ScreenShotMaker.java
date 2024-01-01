@@ -42,6 +42,7 @@ import net.imglib2.*;
 import net.imglib2.Cursor;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.annotation.Annotation;
@@ -82,6 +83,8 @@ public class ScreenShotMaker
     private long[] screenshotDimensions = new long[2];
     private AffineTransform3D canvasToGlobalTransform;
 
+    private Float outOfBoundsValue = null;
+
     public ScreenShotMaker( BdvHandle bdvHandle, String voxelUnit ) {
         this.bdvHandle = bdvHandle;
         this.voxelUnit = voxelUnit;
@@ -95,6 +98,11 @@ public class ScreenShotMaker
     public CompositeImage getCompositeImagePlus()
     {
         return compositeImagePlus;
+    }
+
+    public void setOutOfBoundsValue( Float outOfBoundsValue )
+    {
+        this.outOfBoundsValue = outOfBoundsValue;
     }
 
     public void run( Double targetSamplingInXY )
@@ -174,6 +182,7 @@ public class ScreenShotMaker
                     ThreadHelper.ioExecutorService.submit( () ->
                     {
                         RealRandomAccess< ? extends Type< ? > > access = getRealRandomAccess( ( Source< Type< ? > > ) source, currentTimepoint, level, interpolate );
+                        RandomAccessibleInterval< ? > sourceInterval = source.getSource( currentTimepoint, level );
 
                         // to collect raw data
                         final IntervalView< FloatType > floatCrop = Views.interval( rawCapture, interval );
@@ -199,10 +208,20 @@ public class ScreenShotMaker
 
                             targetCanvasToSourceTransform.apply( canvasPosition, sourceRealPosition );
                             access.setPosition( sourceRealPosition );
-                            setFloatPixelValue( access, floatCaptureAccess );
-                            setArgbPixelValue( converter, access, argbCaptureAccess, argbType );
-                            pixelCount.incrementAndGet();
 
+                            boolean contains = Intervals.contains( sourceInterval, new RealPoint( sourceRealPosition ) );
+                            if ( ! contains  &&  outOfBoundsValue != null )
+                            {
+                                floatCaptureAccess.get().setReal( outOfBoundsValue );
+                                // TODO how to set the ARGB value?
+                            }
+                            else
+                            {
+                                setFloatPixelValue( access, floatCaptureAccess );
+                                setArgbPixelValue( converter, access, argbCaptureAccess, argbType );
+                            }
+
+                            pixelCount.incrementAndGet();
                             final double currentFractionDone = 1.0 * pixelCount.get() / numPixels;
                             if ( currentFractionDone >= fractionDone.get() )
                             {
@@ -274,12 +293,12 @@ public class ScreenShotMaker
         argbCaptureAccess.get().set( argbType.get() );
     }
 
-    private void setFloatPixelValue( RealRandomAccess< ? extends Type< ? > > access, RandomAccess< FloatType > realCaptureAccess )
+    private void setFloatPixelValue( RealRandomAccess< ? extends Type< ? > > access, RandomAccess< FloatType > floatCaptureAccess )
     {
         final Type< ? > type = access.get();
         if ( type instanceof RealType )
         {
-            realCaptureAccess.get().setReal( ( ( RealType ) type ).getRealDouble() );
+            floatCaptureAccess.get().setReal( ( ( RealType ) type ).getRealDouble() );
         }
         else if ( type instanceof AnnotationType )
         {
@@ -287,7 +306,7 @@ public class ScreenShotMaker
             {
                 final Annotation annotation = ( Annotation ) ( ( AnnotationType< ? > ) type ).getAnnotation();
                 if ( annotation != null )
-                    realCaptureAccess.get().setReal( annotation.label() );
+                    floatCaptureAccess.get().setReal( annotation.label() );
             }
             catch ( Exception e )
             {
@@ -303,9 +322,15 @@ public class ScreenShotMaker
     private RealRandomAccess< ? extends Type< ? > > getRealRandomAccess( Source< Type< ? > > source, int t, int level, boolean interpolate )
     {
         if ( interpolate )
-           return source.getInterpolatedSource( t, level, Interpolation.NLINEAR ).realRandomAccess();
+        {
+            Interpolation interpolation = bdvHandle.getViewerPanel().state().getInterpolation();
+            return source.getInterpolatedSource( t, level, interpolation ).realRandomAccess();
+        }
         else
+        {
+            // e.g., for label masks we do not want to interpolate
             return source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR ).realRandomAccess();
+        }
     }
 
     private ImagePlus createRGBImagePlus(
