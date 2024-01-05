@@ -67,8 +67,8 @@ import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
 import org.embl.mobie.lib.transform.viewer.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
-import org.embl.mobie.lib.ui.UserInterface;
-import org.embl.mobie.lib.ui.WindowArrangementHelper;
+import org.embl.mobie.ui.UserInterface;
+import org.embl.mobie.ui.WindowArrangementHelper;
 import org.embl.mobie.lib.view.save.ViewSaver;
 import org.embl.mobie.lib.volume.ImageVolumeViewer;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
@@ -156,7 +156,7 @@ public class ViewManager
         }
     }
 
-	public View createCurrentView( String uiSelectionGroup, boolean isExclusive, boolean includeViewerTransform )
+	public View createViewFromCurrentState( String uiSelectionGroup, boolean isExclusive, boolean includeViewerTransform, String description )
 	{
 		// Create serialisable copies of the current displays
 		List< Display< ? > > displays = new ArrayList<>();
@@ -178,17 +178,9 @@ public class ViewManager
 			addImageTransforms( transformations, display.sourceAndConverters() );
 		}
 
-		if ( includeViewerTransform )
-		{
-			final BdvHandle bdvHandle = sliceViewer.getBdvHandle();
-			AffineTransform3D normalisedViewTransform = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
-			final NormalizedAffineViewerTransform transform = new NormalizedAffineViewerTransform( normalisedViewTransform.getRowPackedCopy(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() );
-			return new View( "", uiSelectionGroup, displays, transformations, transform, isExclusive);
-		}
-		else
-		{
-			return new View( "", uiSelectionGroup, displays, transformations, isExclusive );
-		}
+		NormalizedAffineViewerTransform normalizedAffineViewerTransform = includeViewerTransform ?
+			new NormalizedAffineViewerTransform( sliceViewer.getBdvHandle() ) : null;
+		return new View( "", uiSelectionGroup, displays, transformations, normalizedAffineViewerTransform, isExclusive, description );
 	}
 
 	public synchronized void show( String viewName )
@@ -202,6 +194,8 @@ public class ViewManager
 	{
 		final long startTime = System.currentTimeMillis();
 		IJ.log( "Opening view: " + view.getName() );
+		if ( view.getDescription() != null )
+			IJ.log( "Description: " + view.getDescription() );
 
 		if ( view.isExclusive() )
 		{

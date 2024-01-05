@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.ui;
+package org.embl.mobie.ui;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.SliderPanelDouble;
@@ -94,9 +94,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-
-import static org.embl.mobie.lib.ui.SwingHelper.TEXT_FIELD_HEIGHT;
-import static org.embl.mobie.lib.ui.SwingHelper.selectionDialog;
 
 public class UserInterfaceHelper
 {
@@ -211,7 +208,7 @@ public class UserInterfaceHelper
 		}
 
 		String[] fileNames = IOHelper.getFileNames( directory );
-		String fileName = selectionDialog( fileNames, objectName );
+		String fileName = SwingHelper.selectionDialog( fileNames, objectName );
 		if ( fileName != null ) {
 			return IOHelper.combinePath( directory, fileName );
 		} else {
@@ -237,7 +234,7 @@ public class UserInterfaceHelper
 			String[] fileNames = IOHelper.getFileNames( directory );
 			if ( fileNames == null )
 				throw new RuntimeException("Could not find any files at " + directory );
-			return selectionDialog( fileNames, objectName );
+			return SwingHelper.selectionDialog( fileNames, objectName );
 		}
 	}
 
@@ -248,7 +245,7 @@ public class UserInterfaceHelper
 			for (int i = 0; i < choices.length; i++) {
 				choices[i] = commonFileNames.get(i);
 			}
-			return selectionDialog(choices, objectName);
+			return SwingHelper.selectionDialog(choices, objectName);
 		} else {
 			return null;
 		}
@@ -784,7 +781,7 @@ public class UserInterfaceHelper
 	{
 		final JPanel panel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = SwingHelper.createButton( "clear", new Dimension( 80, TEXT_FIELD_HEIGHT ) );
+		final JButton button = SwingHelper.createButton( "clear", new Dimension( 80, SwingHelper.TEXT_FIELD_HEIGHT ) );
 		button.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
@@ -839,8 +836,8 @@ public class UserInterfaceHelper
 		final JPanel panel = SwingUtils.horizontalLayoutPanel();
 		final JButton button = SwingHelper.createButton( MOVE );
 		final JTextField jTextField = new JTextField( ViewerTransform.toString( transform ) );
-		jTextField.setPreferredSize( new Dimension( SwingHelper.COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
-		jTextField.setMaximumSize( new Dimension( SwingHelper.COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
+		jTextField.setPreferredSize( new Dimension( SwingHelper.COMBOBOX_WIDTH - 3, SwingHelper.TEXT_FIELD_HEIGHT ) );
+		jTextField.setMaximumSize( new Dimension( SwingHelper.COMBOBOX_WIDTH - 3, SwingHelper.TEXT_FIELD_HEIGHT ) );
 		button.addActionListener( e ->
 		{
 			ViewerTransform viewerTransform = ViewerTransform.toViewerTransform( jTextField.getText() );

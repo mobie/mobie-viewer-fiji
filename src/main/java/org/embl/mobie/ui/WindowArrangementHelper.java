@@ -26,15 +26,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.ui;
-
-import bdv.util.BdvHandle;
-import de.embl.cba.bdv.utils.BdvUtils;
-import ij.WindowManager;
+package org.embl.mobie.ui;
 
 import java.awt.*;
 
-import static org.embl.mobie.lib.ui.UserInterfaceHelper.*;
+import static org.embl.mobie.ui.UserInterfaceHelper.*;
 
 public class WindowArrangementHelper
 {

@@ -29,10 +29,9 @@
 package org.embl.mobie.lib;
 
 import bdv.SpimSource;
+import bdv.util.BdvHandle;
+import bdv.viewer.SourceAndConverter;
 import ij.ImagePlus;
-import loci.plugins.in.ImagePlusReader;
-import loci.plugins.in.ImportProcess;
-import loci.plugins.in.ImporterOptions;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.Dimensions;
@@ -42,16 +41,19 @@ import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.io.toml.TOMLOpener;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.ImageDataSource;
+import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.source.SourceToImagePlusConverter;
+import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import spimdata.util.Displaysettings;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -65,6 +67,12 @@ import static org.embl.mobie.io.util.IOHelper.combinePath;
 public abstract class MoBIEHelper
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
+	public static <E extends Enum<E>> String[] enumAsStringArray(Class<E> enumClass) {
+		return Arrays.stream(enumClass.getEnumConstants())
+				.map(Enum::name)
+				.toArray(String[]::new);
+	}
 
 	public static int[] asInts( long[] longs) {
 		int[] ints = new int[longs.length];
@@ -304,7 +312,26 @@ public abstract class MoBIEHelper
 		}
 	}
 
-	public enum FileLocation
+    public static List< SourceAndConverter< ? > > getVisibleSacs( BdvHandle bdv )
+    {
+        final SourceAndConverterBdvDisplayService displayService = SourceAndConverterServices.getBdvDisplayService();
+
+        final List< SourceAndConverter< ? > > sacs = displayService.getSourceAndConverterOf( bdv );
+        List< SourceAndConverter< ? > > visibleSacs = new ArrayList<>(  );
+        for ( SourceAndConverter< ? > sac : sacs )
+        {
+            // TODO: this does not evaluate to true for all visible sources
+            if ( displayService.isVisible( sac, bdv ) )
+            {
+                if ( sac.getSpimSource().getSource(0,0) != null ) // TODO improve this hack that allows to discard overlays source from screenshot
+                    visibleSacs.add( sac );
+            }
+        }
+
+        return visibleSacs;
+    }
+
+    public enum FileLocation
 	{
 		Project,
 		FileSystem

@@ -39,7 +39,7 @@ import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.select.SelectionModel;
 import org.embl.mobie.lib.table.AnnotationTableModel;
 import org.embl.mobie.lib.table.DefaultValues;
-import org.embl.mobie.lib.ui.MoBIELaf;
+import org.embl.mobie.ui.MoBIELaf;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;

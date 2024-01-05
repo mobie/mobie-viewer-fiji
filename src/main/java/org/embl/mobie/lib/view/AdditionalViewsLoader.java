@@ -33,7 +33,7 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.lib.serialize.View;
-import org.embl.mobie.lib.ui.UserInterfaceHelper;
+import org.embl.mobie.ui.UserInterfaceHelper;
 
 import java.io.IOException;
 import java.util.Map;

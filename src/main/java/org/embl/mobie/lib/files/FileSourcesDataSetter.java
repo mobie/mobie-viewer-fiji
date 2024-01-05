@@ -157,8 +157,6 @@ public class FileSourcesDataSetter
 					String regionName = regionTable.getString( regionIndex, ColumnNames.REGION_ID );
 					regionDisplay.sources.put( regionName, new ArrayList<>() );
 				}
-
-				displays.add( regionDisplay );
 			}
 
 			// add the images of this source to the respective region
@@ -236,11 +234,16 @@ public class FileSourcesDataSetter
 			}
 		}
 
+		// Add the region display last, because this currently
+		// does not have any voxel unit, which would cause BDV not to
+		// show any voxel unit.
+		displays.add( regionDisplay );
+
 		// construct and add the view
 		//
 		// FIXME: Maybe the viewerTransform could be something else?
 		final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( transformations.get( 0 ).getSources().get( 0 ), 0 );
-		final View gridView = new View( "all images", "data", displays, transformations, viewerTransform, false );
+		final View gridView = new View( "all images", "data", displays, transformations, viewerTransform, false, null );
 		//gridView.overlayNames( true ); // FIXME: Timepoint bug!
 		dataset.views().put( gridView.getName(), gridView );
 	}

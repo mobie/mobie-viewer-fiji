@@ -54,7 +54,6 @@ public interface ViewerTransform
 		{
 			final Gson gson = JsonHelper.buildGson( false );
 			return gson.fromJson( s, ViewerTransform.class );
-
 		}
 		catch ( Exception gsonException )
 		{

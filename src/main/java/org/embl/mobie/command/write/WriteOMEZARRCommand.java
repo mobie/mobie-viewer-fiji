@@ -43,7 +43,7 @@ import org.scijava.plugin.Plugin;
 
 import java.io.File;
 
-import static org.embl.mobie.lib.ui.UserInterfaceHelper.tidyString;
+import static org.embl.mobie.ui.UserInterfaceHelper.tidyString;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Create>Save Current Image as OME-ZARR...")
 public class WriteOMEZARRCommand implements Command {

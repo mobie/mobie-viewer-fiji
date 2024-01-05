@@ -57,23 +57,30 @@ public class View
 
 	private boolean isExclusive = false;
 
-	// Runtime
+	private String description = null; // TODO: make part of the spec
 
+
+	// Runtime
+	//
 	private transient String name;
 
 	private transient boolean overlayNames = false; // TODO add to JSON spec?
-	
-	public View( String name, String uiSelectionGroup, List< Display< ? > > sourceDisplays, List< Transformation > sourceTransforms, boolean isExclusive ) {
-		this( name, uiSelectionGroup, sourceDisplays, sourceTransforms, null, isExclusive);
-	}
 
-	public View( String name, String uiSelectionGroup, List< Display< ? > > sourceDisplays, List< Transformation > sourceTransforms, @Nullable ViewerTransform viewerTransform, boolean isExclusive ) {
+	public View( String name,
+				 String uiSelectionGroup,
+				 List< Display< ? > > sourceDisplays,
+				 List< Transformation > sourceTransforms,
+				 @Nullable ViewerTransform viewerTransform,
+				 boolean isExclusive,
+				 @Nullable String description
+	) {
 		this.name = name;
 		this.uiSelectionGroup = uiSelectionGroup;
 		this.sourceDisplays = sourceDisplays;
 		this.sourceTransforms = sourceTransforms;
 		this.viewerTransform = viewerTransform;
 		this.isExclusive = isExclusive;
+		this.description = description;
 	}
 
 	// map of data source name to the
@@ -175,5 +182,10 @@ public class View
 	public void overlayNames( boolean overlayNames )
 	{
 		this.overlayNames = overlayNames;
+	}
+
+	public String getDescription()
+	{
+		return description;
 	}
 }
