@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.playground;
 
+import bdv.util.Affine3DHelpers;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.ViewerPanel;
@@ -36,15 +37,41 @@ import net.imglib2.util.Intervals;
 
 import java.util.ArrayList;
 
-import static de.embl.cba.tables.Utils.getVoxelSpacings;
-
 
 /**
+ * TODO: Check with Nico which functions could be removed here
  * These helper functions either exist already in bdv-playground,
- * but in a too recent version, or should be moved to bdv-playground.
+ * but in a too recent version, or could be moved to bdv-playground.
  */
 public class BdvPlaygroundHelper
 {
+	public static ArrayList< double[] > getVoxelSpacings( Source<?> source, int t )
+	{
+		ArrayList<double[]> voxelSpacings = new ArrayList<>();
+		int numMipmapLevels = source.getNumMipmapLevels();
+
+		for(int level = 0; level < numMipmapLevels; ++level)
+			voxelSpacings.add( getVoxelSpacing(source, t, level));
+
+		return voxelSpacings;
+	}
+
+	public static double[] getVoxelSpacing( Source< ? > source, int t, int level )
+	{
+		AffineTransform3D sourceTransform = new AffineTransform3D();
+		source.getSourceTransform( t, level, sourceTransform);
+		return getScale( sourceTransform );
+	}
+
+	public static double[] getScale( AffineTransform3D affineTransform3D ) {
+
+		double[] scales = new double[3];
+		for(int d = 0; d < 3; ++d)
+			scales[d] = Affine3DHelpers.extractScale( affineTransform3D, d );
+
+		return scales;
+	}
+
 	public static AffineTransform3D getViewerTransformWithNewCenter( BdvHandle bdvHandle, double[] position )
 	{
 		if ( position.length == 2 )
@@ -100,9 +127,9 @@ public class BdvPlaygroundHelper
 		return centreInCalibratedUnits;
 	}
 
-	public static int getLevel( Source< ? > source, long maxNumVoxels )
+	public static int getLevel( Source< ? > source, int currentTimePoint, long maxNumVoxels )
 	{
-		final ArrayList< double[] > voxelSpacings = getVoxelSpacings( source );
+		final ArrayList< double[] > voxelSpacings = getVoxelSpacings( source, currentTimePoint );
 
 		final int numLevels = voxelSpacings.size();
 
@@ -121,9 +148,9 @@ public class BdvPlaygroundHelper
 		return level;
 	}
 
-	public static int getLevel( Source< ? > source, double[] requestedVoxelSpacing )
+	public static int getLevel( Source< ? > source, int currentTimePoint, double[] requestedVoxelSpacing )
 	{
-		ArrayList< double[] > voxelSpacings = getVoxelSpacings( source );
+		ArrayList< double[] > voxelSpacings = getVoxelSpacings( source, currentTimePoint );
 		return getLevel( voxelSpacings, requestedVoxelSpacing );
 	}
 
@@ -136,13 +163,14 @@ public class BdvPlaygroundHelper
 		for ( level = 0; level < numLevels; level++ )
 		{
 			boolean allLargerOrEqual = true;
+
 			for ( int d = 0; d < numDimensions; d++ )
 			{
-				if ( sourceVoxelSpacings.get( level )[ d ] < requestedVoxelSpacing[ d ] )
-				{
-					allLargerOrEqual = false;
-					continue;
-				}
+                if ( sourceVoxelSpacings.get( level )[ d ] < requestedVoxelSpacing[ d ] )
+                {
+                    allLargerOrEqual = false;
+                    break;
+                }
 			}
 
 			if ( allLargerOrEqual ) break;

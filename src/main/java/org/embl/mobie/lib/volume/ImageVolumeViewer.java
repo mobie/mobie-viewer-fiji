@@ -28,10 +28,8 @@
  */
 package org.embl.mobie.lib.volume;
 
-import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.tables.Logger;
 import de.embl.cba.util.CopyUtils;
 import ij.IJ;
 import ij.ImagePlus;
@@ -55,14 +53,10 @@ import net.imglib2.view.Views;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
-import org.embl.mobie.lib.source.SourceHelper;
 import org.scijava.java3d.Transform3D;
 import org.scijava.java3d.View;
 import org.scijava.vecmath.Color3f;
-import org.scijava.vecmath.Point3f;
-import org.scijava.vecmath.Vector3d;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -72,9 +66,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
-import static de.embl.cba.tables.Utils.getVoxelSpacings;
 
 public class ImageVolumeViewer
 {
@@ -163,6 +154,7 @@ public class ImageVolumeViewer
 		final double[] contrastLimits = { displayRangeMin, displayRangeMax };
 		final ARGBType color = ( ( ColorConverter ) sac.getConverter() ).getColor();
 		final Content content = addSourceToUniverse( universe, sac.getSpimSource(), voxelSpacing, maxNumVoxels, ContentConstants.VOLUME, color, transparency, contrastLimits );
+		universe.adjustView( content );
 		sacToContent.put( sac, content );
 	}
 
@@ -176,49 +168,43 @@ public class ImageVolumeViewer
 			float transparency,
 			double[] contrastLimits )
 	{
-		if ( universe == null )
+		if ( universe == null  )
 		{
-			Logger.warn( "No Universe exists => Cannot show volume." );
+			IJ.log( "[ERROR] No Universe exists => Cannot show volume." );
 			return null;
 		}
 
 		if ( universe.getWindow() == null )
 		{
-			Logger.warn( "No Universe window exists => Cannot show volume." );
+			IJ.log( "[ERROR] No Universe window exists => Cannot show volume." );
 			return null;
 		}
 
 		int resolutionLevel = -1;
 		if ( voxelSpacing != null )
-			resolutionLevel = BdvPlaygroundHelper.getLevel( source, voxelSpacing );
+			resolutionLevel = BdvPlaygroundHelper.getLevel( source, currentTimePoint, voxelSpacing );
 		else
-			resolutionLevel = BdvPlaygroundHelper.getLevel( source, maxNumVoxels );
+			resolutionLevel = BdvPlaygroundHelper.getLevel( source, currentTimePoint, maxNumVoxels );
 
 		if ( resolutionLevel == -1 )
 		{
-			Logger.warn( "Image is too large to be displayed in 3D." );
+			IJ.log( "[ERROR] Image is too large to be displayed in 3D." );
 			return null;
 		}
 
-		final double[] voxelSpacings = getVoxelSpacings( source ).get( resolutionLevel );
-		IJ.log( VOLUME_VIEWER +  source.getName() + " voxel spacings @ resolution level " + resolutionLevel + ": "
+		final double[] voxelSpacings = BdvPlaygroundHelper.getVoxelSpacing( source, currentTimePoint, resolutionLevel );
+		IJ.log( VOLUME_VIEWER +  source.getName() + " voxel spacing @ resolution level " + resolutionLevel + ": "
 				+ Arrays.toString( voxelSpacings ) + " " + source.getVoxelDimensions().unit() );
 
-		final ImagePlus unsignedByteImagePlus = createUnsignedByteImagePlus( source, contrastLimits, resolutionLevel, voxelSpacings );
-		final Content content = universe.addContent( unsignedByteImagePlus, displayType );
+		final ImagePlus imagePlus = createUnsignedByteImagePlus( source, currentTimePoint, resolutionLevel, contrastLimits );
+		final Content content = universe.addContent( imagePlus, displayType );
 
-		// transform
-		// the voxel calibration is already taken care of by the ImagePlus calibration
-		// thus the transform must not contain this
-		// in MoBIE typically the fixedTransform does not include the image calibration
-		// and is thus suited for this purpose
-		// TODO: to be on the save side one could take the full transformation of the source
-		//   and removing the scaling, which is known from the VoxelDimensions
+		// transform (including voxel size)
 		AffineTransform3D affineTransform3D = new AffineTransform3D();
-		( ( TransformedSource ) source ).getFixedTransform( affineTransform3D );
+		source.getSourceTransform( currentTimePoint, resolutionLevel, affineTransform3D );
 		Transform3D transform3D = new Transform3D();
 		double[] rowPackedCopy = affineTransform3D.getRowPackedCopy();
-		double[] newValues = {0, 0, 0, 1}; // add perspective transformation
+		double[] newValues = { 0, 0, 0, 1 }; // add perspective transformation
 		double[] sixteenValues = new double[rowPackedCopy.length + newValues.length];
 		System.arraycopy( rowPackedCopy, 0, sixteenValues, 0, rowPackedCopy.length );
 		System.arraycopy( newValues, 0, sixteenValues, rowPackedCopy.length, newValues.length );
@@ -229,34 +215,31 @@ public class ImageVolumeViewer
 		Color3f color = new Color3f( ColorHelper.getColor( argbType ) );
 		content.setColor( color );
 		content.setTransparency( transparency );
-		universe.adjustView( content );
 		content.setLocked( true );
 
 		return content;
 	}
 
-	private static < R extends RealType< R > & NativeType< R > > ImagePlus createUnsignedByteImagePlus( Source< ? > source, double[] contrastLimits, Integer level, double[] voxelSpacings )
+	private static < R extends RealType< R > & NativeType< R > > ImagePlus createUnsignedByteImagePlus( Source< ? > source, int currentTimePoint, int resolutionLevel, double[] contrastLimits )
 	{
-		RandomAccessibleInterval< R > rai = ( RandomAccessibleInterval )  source.getSource( 0, level );
-
+		RandomAccessibleInterval< R > rai = ( RandomAccessibleInterval< R > ) source.getSource( currentTimePoint, resolutionLevel );
 		IJ.log( VOLUME_VIEWER + source.getName() + " loading... "  );
 		rai = CopyUtils.copyVolumeRaiMultiThreaded( rai, Prefs.getThreads() - 1  ); // TODO: make multi-threading configurable.
-
 		IJ.log( VOLUME_VIEWER + source.getName() + " shape: " + Arrays.toString( rai.dimensionsAsLongArray() ) );
-
 		rai = Views.permute( Views.addDimension( rai, 0, 0 ), 2, 3 );
 
-		final ImagePlus wrap = ImageJFunctions.wrapUnsignedByte(
+		final ImagePlus imagePlus = ImageJFunctions.wrapUnsignedByte(
 				rai,
 				new RealUnsignedByteConverter< R >( contrastLimits[ 0 ], contrastLimits[ 1 ] ),
 				source.getName() );
 
-		wrap.getCalibration().pixelWidth = voxelSpacings[ 0 ];
-		wrap.getCalibration().pixelHeight = voxelSpacings[ 1 ];
-		wrap.getCalibration().pixelDepth = voxelSpacings[ 2 ];
-		wrap.getCalibration().setUnit( source.getVoxelDimensions().unit() );
+		// we don't calibrate here but do this during the content transformation
+		//		wrap.getCalibration().pixelWidth = voxelSpacings[ 0 ];
+		//		wrap.getCalibration().pixelHeight = voxelSpacings[ 1 ];
+		//		wrap.getCalibration().pixelDepth = voxelSpacings[ 2 ];
+		//		wrap.getCalibration().setUnit( source.getVoxelDimensions().unit() );
 
-		return wrap;
+		return imagePlus;
 	}
 
 	private int[] getContrastLimits( SourceAndConverter< ? > sac )

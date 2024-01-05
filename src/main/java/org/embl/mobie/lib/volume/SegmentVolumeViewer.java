@@ -67,7 +67,6 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 	private final ColoringModel< S > coloringModel;
 	private final Collection< ? extends Image< AnnotationType< S > > > images;
 	private final UniverseManager universeManager;
-
 	private ConcurrentHashMap< S, Content > segmentToContent;
 	private ConcurrentHashMap< Content, S > contentToSegment;
 	private double transparency;
