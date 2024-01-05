@@ -55,8 +55,6 @@ public class SourcesInfoCommand implements BdvPlaygroundActionCommand
 {
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    public static final String CAPTURE_SIZE_PIXELS = "Capture size [pixels]: ";
-
     @Parameter
     public BdvHandle bdvHandle;
 
@@ -68,6 +66,8 @@ public class SourcesInfoCommand implements BdvPlaygroundActionCommand
         {
             Source< ? > source = sac.getSpimSource();
             IJ.log( "# " + source.getName() );
+            IJ.log( "Data type: " + source.getType().getClass() );
+            IJ.log( "Shape: " + Arrays.toString( source.getSource( 0,0 ).dimensionsAsLongArray() ) );
             IJ.log( "Number of resolution levels: " + source.getNumMipmapLevels() );
             IJ.log( "Voxel size: " + Arrays.toString( source.getVoxelDimensions().dimensionsAsDoubleArray() ) );
 
@@ -75,9 +75,9 @@ public class SourcesInfoCommand implements BdvPlaygroundActionCommand
             {
                 AffineTransform3D transform3D = new AffineTransform3D();
                 ( ( TransformedSource<?> ) source ).getFixedTransform( transform3D );
-                IJ.log( "Additional transform: " + transform3D );
+                IJ.log( "Additional transform:\n" + Arrays.toString( transform3D.getRowPackedCopy() ) );
                 source.getSourceTransform( 0, 0, transform3D );
-                IJ.log( "Full transform: " + transform3D );
+                IJ.log( "Full transform:\n" + Arrays.toString( transform3D.getRowPackedCopy() ) );
             }
         });
     }

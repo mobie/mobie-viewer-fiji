@@ -148,10 +148,9 @@ public class SliceViewer
 
 		final ArrayList< String > actions = new ArrayList< String >();
 		actions.add( SourceAndConverterService.getCommandName( SourcesInfoCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( ScreenShotMakerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ShowRasterImagesCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( ScreenShotMakerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ViewerTransformLoggerCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( SourceInfoLoggerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( BigWarpRegistrationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( AutomaticRegistrationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ManualRegistrationCommand.class ) );

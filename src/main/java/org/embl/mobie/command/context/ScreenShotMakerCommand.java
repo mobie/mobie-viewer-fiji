@@ -30,6 +30,8 @@ package org.embl.mobie.command.context;
 
 import bdv.util.BdvHandle;
 import ij.IJ;
+import ij.gui.Roi;
+import ij.plugin.frame.RoiManager;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
@@ -63,13 +65,13 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     @Override
     public void run()
     {
+        if ( MoBIE.getInstance().getSettings().values.isOpenedFromCLI() )
+            MoBIE.imageJ.ui().showUI();
+
         ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, pixelUnit );
         screenShotMaker.run( targetSamplingInXY );
         screenShotMaker.getRGBImagePlus().show();
         screenShotMaker.getCompositeImagePlus().show();
-
-        if ( MoBIE.getInstance().getSettings().values.isOpenedFromCLI() )
-            MoBIE.imageJ.ui().showUI();
     }
 
     @Override
@@ -99,7 +101,5 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     {
         final long[] sizeInPixels = ScreenShotMaker.getCaptureImageSizeInPixels( bdvHandle, targetSamplingInXY );
         IJ.log( CAPTURE_SIZE_PIXELS + Arrays.toString( sizeInPixels ) );
-//        final MutableModuleItem< String > message = getInfo().getMutableInput("message", String.class);
-//        message.setValue( this, CAPTURE_SIZE_PIXELS + sizeInPixels[ 0 ] + ", " + sizeInPixels[ 1 ] );
     }
 }

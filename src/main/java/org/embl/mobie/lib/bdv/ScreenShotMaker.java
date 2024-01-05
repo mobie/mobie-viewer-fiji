@@ -36,11 +36,15 @@ import edu.mines.jtk.util.AtomicDouble;
 import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.gui.Overlay;
+import ij.gui.Roi;
 import ij.plugin.Duplicator;
+import ij.plugin.filter.ThresholdToSelection;
 import ij.process.LUT;
 import net.imglib2.*;
 import net.imglib2.Cursor;
 import net.imglib2.type.Type;
+import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.MoBIEHelper;
@@ -83,8 +87,6 @@ public class ScreenShotMaker
     private long[] screenshotDimensions = new long[2];
     private AffineTransform3D canvasToGlobalTransform;
 
-    private Float outOfBoundsValue = null;
-
     public ScreenShotMaker( BdvHandle bdvHandle, String voxelUnit ) {
         this.bdvHandle = bdvHandle;
         this.voxelUnit = voxelUnit;
@@ -100,9 +102,9 @@ public class ScreenShotMaker
         return compositeImagePlus;
     }
 
-    public void setOutOfBoundsValue( Float outOfBoundsValue )
+    public Roi[] getMasks()
     {
-        this.outOfBoundsValue = outOfBoundsValue;
+        return compositeImagePlus.getOverlay().toArray();
     }
 
     public void run( Double targetSamplingInXY )
@@ -135,7 +137,8 @@ public class ScreenShotMaker
         IJ.log( "Fetching data from " + sacs.size() + " images..."  );
 
         final ArrayList< RandomAccessibleInterval< FloatType > > floatCaptures = new ArrayList<>();
-        final ArrayList< RandomAccessibleInterval< ARGBType > > argbSources = new ArrayList<>();
+        final ArrayList< RandomAccessibleInterval< BitType > > maskCaptures = new ArrayList<>();
+        final ArrayList< RandomAccessibleInterval< ARGBType > > argbCaptures = new ArrayList<>();
         final ArrayList< ARGBType > colors = new ArrayList<>();
 
         final ArrayList< double[] > displayRanges = new ArrayList<>();
@@ -154,8 +157,10 @@ public class ScreenShotMaker
         final long currentTimeMillis = System.currentTimeMillis();
         for ( SourceAndConverter< ?  > sac : sacs )
         {
-            final RandomAccessibleInterval< FloatType > rawCapture
+            final RandomAccessibleInterval< FloatType > floatCapture
                     = ArrayImgs.floats( screenshotDimensions[ 0 ], screenshotDimensions[ 1 ] );
+            final RandomAccessibleInterval< BitType > maskCapture
+                    = ArrayImgs.bits( screenshotDimensions[ 0 ], screenshotDimensions[ 1 ] );
             final RandomAccessibleInterval< ARGBType > argbCapture
                     = ArrayImgs.argbs( screenshotDimensions[ 0 ], screenshotDimensions[ 1 ]  );
 
@@ -181,17 +186,19 @@ public class ScreenShotMaker
                 (
                     ThreadHelper.ioExecutorService.submit( () ->
                     {
-                        RealRandomAccess< ? extends Type< ? > > access = getRealRandomAccess( ( Source< Type< ? > > ) source, currentTimepoint, level, interpolate );
+                        RealRandomAccess< ? extends Type< ? > > sourceAccess = getRealRandomAccess( ( Source< Type< ? > > ) source, currentTimepoint, level, interpolate );
                         RandomAccessibleInterval< ? > sourceInterval = source.getSource( currentTimepoint, level );
 
                         // to collect raw data
-                        final IntervalView< FloatType > floatCrop = Views.interval( rawCapture, interval );
-                        final Cursor< FloatType > floatCaptureCursor = Views.iterable( floatCrop ).localizingCursor();
-                        final RandomAccess< FloatType > floatCaptureAccess = floatCrop.randomAccess();
+                        final IntervalView< FloatType > floatCrop = Views.interval( floatCapture, interval );
+                        final Cursor< FloatType > floatCursor = Views.iterable( floatCrop ).localizingCursor();
+                        final RandomAccess< FloatType > floatAccess = floatCrop.randomAccess();
+
+                        // to collect masks
+                        final RandomAccess< BitType > maskAccess = Views.interval( maskCapture, interval ).randomAccess();
 
                         // to collect colored data
-                        final IntervalView< ARGBType > argbCrop = Views.interval( argbCapture, interval );
-                        final RandomAccess< ARGBType > argbCaptureAccess = argbCrop.randomAccess();
+                        final RandomAccess< ARGBType > argbAccess = Views.interval( argbCapture, interval ).randomAccess();
 
                         final double[] canvasPosition = new double[ 3 ];
                         final double[] sourceRealPosition = new double[ 3 ];
@@ -199,28 +206,30 @@ public class ScreenShotMaker
                         final ARGBType argbType = new ARGBType();
 
                         // iterate through the target image in pixel units
-                        while ( floatCaptureCursor.hasNext() )
+                        while ( floatCursor.hasNext() )
                         {
-                            floatCaptureCursor.fwd();
-                            floatCaptureCursor.localize( canvasPosition );
-                            floatCaptureAccess.setPosition( floatCaptureCursor );
-                            argbCaptureAccess.setPosition( floatCaptureCursor );
-
+                            // set the positions
+                            floatCursor.fwd();
+                            floatCursor.localize( canvasPosition );
+                            floatAccess.setPosition( floatCursor );
+                            maskAccess.setPosition( floatCursor );
+                            argbAccess.setPosition( floatCursor );
                             targetCanvasToSourceTransform.apply( canvasPosition, sourceRealPosition );
-                            access.setPosition( sourceRealPosition );
+                            sourceAccess.setPosition( sourceRealPosition );
 
-                            boolean contains = Intervals.contains( sourceInterval, new RealPoint( sourceRealPosition ) );
-                            if ( ! contains  &&  outOfBoundsValue != null )
+                            // set the pixel values
+                            if ( Intervals.contains( sourceInterval, new RealPoint( sourceRealPosition ) ) )
                             {
-                                floatCaptureAccess.get().setReal( outOfBoundsValue );
-                                // TODO how to set the ARGB value?
+                                maskAccess.get().set( true );
+                                setFloatPixelValue( sourceAccess, floatAccess );
+                                setArgbPixelValue( converter, sourceAccess, argbAccess, argbType );
                             }
                             else
                             {
-                                setFloatPixelValue( access, floatCaptureAccess );
-                                setArgbPixelValue( converter, access, argbCaptureAccess, argbType );
+                                maskAccess.get().set( false );
                             }
 
+                            // log progress
                             pixelCount.incrementAndGet();
                             final double currentFractionDone = 1.0 * pixelCount.get() / numPixels;
                             if ( currentFractionDone >= fractionDone.get() )
@@ -243,8 +252,9 @@ public class ScreenShotMaker
 
             ThreadHelper.waitUntilFinished( futures );
 
-            floatCaptures.add( rawCapture );
-            argbSources.add( argbCapture );
+            floatCaptures.add( floatCapture );
+            maskCaptures.add( maskCapture );
+            argbCaptures.add( argbCapture );
             displayRanges.add( BdvHandleHelper.getDisplayRange( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ) ) );
         }
 
@@ -255,8 +265,8 @@ public class ScreenShotMaker
 
         if ( ! floatCaptures.isEmpty() )
         {
-            rgbImagePlus = createRGBImagePlus( voxelUnit, argbSources, voxelSpacing, sacs );
-            compositeImagePlus = createCompositeImagePlus( voxelSpacing, voxelUnit, floatCaptures, colors, displayRanges );
+            rgbImagePlus = createRGBImagePlus( voxelUnit, argbCaptures, voxelSpacing, sacs );
+            compositeImagePlus = createCompositeImagePlus( voxelSpacing, voxelUnit, floatCaptures, maskCaptures, displayRanges );
         }
     }
 
@@ -419,20 +429,19 @@ public class ScreenShotMaker
     public static CompositeImage createCompositeImagePlus(
             double[] voxelSpacing,
             String voxelUnit,
-            ArrayList< RandomAccessibleInterval< FloatType > > rais,
-            ArrayList< ARGBType > colors,
+            ArrayList< RandomAccessibleInterval< FloatType > > floatCaptures,
+            ArrayList< RandomAccessibleInterval< BitType > > maskCaptures,
             ArrayList< double[] > displayRanges )
     {
-        final RandomAccessibleInterval< FloatType > stack = Views.stack( rais );
-
-        final ImagePlus imp = ImageJFunctions.wrap( stack, "Multi-Channel" );
+        final ImagePlus imp = ImageJFunctions.wrap( Views.stack( floatCaptures ), "Floats" );
+        final ImagePlus mask = ImageJFunctions.wrap( Views.stack( maskCaptures ), "Masks" );
 
         // duplicate: otherwise it is virtual and cannot be modified
         final ImagePlus dup = new Duplicator().run( imp );
 
         IJ.run( dup,
                 "Properties...",
-                "channels="+rais.size()
+                "channels="+floatCaptures.size()
                         +" slices=1 frames=1 unit=" + voxelUnit
                         +" pixel_width=" + voxelSpacing[ 0 ]
                         +" pixel_height=" + voxelSpacing[ 1 ]
@@ -440,6 +449,7 @@ public class ScreenShotMaker
 
         final CompositeImage compositeImage = new CompositeImage( dup );
 
+        Overlay rois = new Overlay();
         for ( int channel = 1; channel <= compositeImage.getNChannels(); ++channel )
         {
             final LUT lut = compositeImage.createLutFromColor( Color.WHITE );
@@ -447,8 +457,16 @@ public class ScreenShotMaker
             compositeImage.setChannelLut( lut );
             final double[] range = displayRanges.get( channel - 1 );
             compositeImage.setDisplayRange( range[ 0 ], range[ 1 ] );
+            mask.setPosition( channel );
+            mask.getProcessor().setThreshold( 1.0, 255 );
+            Roi roi = new ThresholdToSelection().convert( mask.getProcessor() );
+            roi.setPosition( channel, 1, 1  );
+            mask.getProcessor().setRoi( roi );
+            rois.add( roi );
         }
 
+        compositeImage.setOverlay( rois );
+        compositeImage.setHideOverlay( true );
         compositeImage.setTitle( "Multi-Channel" );
         return compositeImage;
     }

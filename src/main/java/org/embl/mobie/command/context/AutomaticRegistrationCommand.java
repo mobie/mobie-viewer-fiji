@@ -35,7 +35,11 @@ import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.gui.Roi;
+import ij.plugin.filter.ThresholdToSelection;
+import ij.process.ByteProcessor;
 import ij.process.ImageConverter;
+import ij.process.ImageProcessor;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.MoBIEHelper;
@@ -51,6 +55,7 @@ import org.scijava.widget.Button;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
+import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -74,9 +79,6 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 
 	@Parameter(label="Registration Voxel Size", persist = false, min = "0.0", style="format:#.00000")
 	public Double voxelSize = 1D;
-
-	@Parameter(label="Out of Bounds Value")
-	public String outOfBoundsValue = "Do not use";
 
 	@Parameter ( label = "Transformation", choices = { TRANSLATION, RIGID, SIMILARITY, AFFINE } )
 	private String transformationType = TRANSLATION;
@@ -153,15 +155,7 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 		// create two 2D ImagePlus that are to be aligned
 		//
 		ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, sacA.getSpimSource().getVoxelDimensions().unit() );
-		try
-		{
-			// useful for images with bright background
-			// to avoid an edge with the black background of BDV
-			screenShotMaker.setOutOfBoundsValue( Float.parseFloat( this.outOfBoundsValue ) );
-		} catch ( Exception e )
-		{
-			// don't set an out-of-bounds value.
-		}
+
 		screenShotMaker.run( Arrays.asList( sacA, sacB ), voxelSize );
 		CompositeImage compositeImage = screenShotMaker.getCompositeImagePlus();
 		AffineTransform3D canvasToGlobalTransform = screenShotMaker.getCanvasToGlobalTransform();
@@ -170,16 +164,21 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 		ImagePlus impA = new ImagePlus( imageA + " (fixed)", stack.getProcessor( 1 ) );
 		ImagePlus impB = new ImagePlus( imageB + " (moving)", stack.getProcessor( 2 ) );
 
-		// set the display ranges and burn them in by converting to unit8
+		// set the display ranges and burn them in by converting to uint8
 		// this is important for the intensity based registration methods
 		compositeImage.setPosition( 1 );
 		impA.getProcessor().setMinAndMax( compositeImage.getDisplayRangeMin(), compositeImage.getDisplayRangeMax() );
+		new ImageConverter( impA ).convertToGray8();
+
 		compositeImage.setPosition( 2 );
 		impB.getProcessor().setMinAndMax( compositeImage.getDisplayRangeMin(), compositeImage.getDisplayRangeMax() );
-		new ImageConverter( impA ).convertToGray8();
 		new ImageConverter( impB ).convertToGray8();
-		double min = impA.getProcessor().getMax();
-		double max = impA.getProcessor().getMax();
+
+		// set the rois within which the images contain valid pixel values
+		// those are used by some registration methods, e.g. turboReg
+		Roi[] rois = screenShotMaker.getMasks();
+		impA.setRoi( rois[ 0 ] );
+		impB.setRoi( rois[ 1 ] );
 
 		// compute the transformation that aligns the two images in 2D
 		//

@@ -157,8 +157,9 @@ public class SetTransformationCommand extends DynamicCommand implements BdvPlayg
 		}
 	}
 
-	public static double[] parseStringToDoubleArray(String arrayStr) {
-		arrayStr = arrayStr.replaceAll("[^0-9.,]", "");
+	public static double[] parseStringToDoubleArray(String arrayStr)
+	{
+		arrayStr = arrayStr.replaceAll("\\[|\\]", "");
 		String[] items = arrayStr.split(",\\s*");
 		double[] doubles = Arrays.stream(items).mapToDouble(Double::parseDouble).toArray();
 		return doubles;
