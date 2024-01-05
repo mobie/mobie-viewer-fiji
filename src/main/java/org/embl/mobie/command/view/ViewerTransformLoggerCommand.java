@@ -39,7 +39,6 @@ import org.embl.mobie.lib.transform.viewer.AffineViewerTransform;
 import org.embl.mobie.lib.transform.viewer.NormalVectorViewerTransform;
 import org.embl.mobie.lib.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.lib.transform.viewer.PositionViewerTransform;
-import org.embl.mobie.lib.transform.TransformHelper;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -53,30 +52,29 @@ public class ViewerTransformLoggerCommand implements BdvPlaygroundActionCommand
 	public static final String NAME = "Log Current Location";
 
 	@Parameter
-	BdvHandle bdv;
+	BdvHandle bdvHandle;
 
 	@Override
 	public void run()
 	{
 		new Thread( () -> {
 
-			final int timepoint = bdv.getViewerPanel().state().getCurrentTimepoint();
-			final double[] position = BdvPlaygroundHelper.getWindowCentreInCalibratedUnits( bdv );
+			final int timepoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
+			final double[] position = BdvPlaygroundHelper.getWindowCentreInCalibratedUnits( bdvHandle );
 
 			// position
 			final PositionViewerTransform positionViewerTransform = new PositionViewerTransform( position, timepoint );
 
 			// affine
 			final AffineTransform3D affineTransform3D = new AffineTransform3D();
-			bdv.getViewerPanel().state().getViewerTransform( affineTransform3D );
+			bdvHandle.getViewerPanel().state().getViewerTransform( affineTransform3D );
 			final AffineViewerTransform affineViewerTransform = new AffineViewerTransform( affineTransform3D.getRowPackedCopy(), timepoint );
 
 			// normalized affine
-			final AffineTransform3D normalisedViewerTransform = TransformHelper.createNormalisedViewerTransform( bdv.getViewerPanel() );
-			final NormalizedAffineViewerTransform normalizedAffineViewerTransform = new NormalizedAffineViewerTransform( normalisedViewerTransform.getRowPackedCopy(), timepoint );
+			final NormalizedAffineViewerTransform normalizedAffineViewerTransform = new NormalizedAffineViewerTransform( bdvHandle );
 
 			// normal vector
-			double[] currentNormalVector = BdvUtils.getCurrentViewNormalVector( bdv );
+			double[] currentNormalVector = BdvUtils.getCurrentViewNormalVector( bdvHandle );
 			final NormalVectorViewerTransform normalVectorViewerTransform = new NormalVectorViewerTransform( currentNormalVector, timepoint );
 
 			// print

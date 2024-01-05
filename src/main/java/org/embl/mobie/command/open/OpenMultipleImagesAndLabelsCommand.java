@@ -93,6 +93,9 @@ public class OpenMultipleImagesAndLabelsCommand implements Command {
 
 		final MoBIESettings settings = new MoBIESettings();
 		settings.removeSpatialCalibration( removeSpatialCalibration );
+		String groovyCode = generateGroovyScript();
+		settings.appendGroovyCode( groovyCode );
+//		System.out.println( groovyCode );
 
 		try
 		{
@@ -100,7 +103,43 @@ public class OpenMultipleImagesAndLabelsCommand implements Command {
 		}
 		catch ( IOException e )
 		{
-			e.printStackTrace();
+			throw new RuntimeException( e );
 		}
+	}
+
+	public String generateGroovyScript() {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsCommand\n");
+		sb.append("import java.io.File\n\n");
+
+		sb.append("OpenMultipleImagesAndLabelsCommand command = new OpenMultipleImagesAndLabelsCommand()\n");
+
+		if (image0 != null) sb.append(String.format("command.image0 = new File(\"%s\")\n",
+				image0.getAbsolutePath()));
+		if (image1 != null) sb.append(String.format("command.image1 = new File(\"%s\")\n",
+				image1.getAbsolutePath()));
+		if (image2 != null) sb.append(String.format("command.image2 = new File(\"%s\")\n",
+				image2.getAbsolutePath()));
+		if (image3 != null) sb.append(String.format("command.image3 = new File(\"%s\")\n",
+				image3.getAbsolutePath()));
+
+		if (labels0 != null) sb.append(String.format("command.labels0 = new File(\"%s\")\n",
+				labels0.getAbsolutePath()));
+		if (labels1 != null) sb.append(String.format("command.labels1 = new File(\"%s\")\n",
+				labels1.getAbsolutePath()));
+
+		if (table0 != null) sb.append(String.format("command.table0 = new File(\"%s\")\n",
+				table0.getAbsolutePath()));
+		if (table1 != null) sb.append(String.format("command.table1 = new File(\"%s\")\n",
+				table1.getAbsolutePath()));
+
+		if (removeSpatialCalibration != null) {
+			sb.append("command.removeSpatialCalibration = ").append(removeSpatialCalibration).append("\n");
+		}
+
+		sb.append("\ncommand.run()\n");
+
+		return sb.toString();
 	}
 }

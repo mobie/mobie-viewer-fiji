@@ -107,11 +107,18 @@ public class MoBIESettings
 		return this;
 	}
 
+	public MoBIESettings appendGroovyCode( String groovyCode )
+	{
+		this.values.groovyScript += groovyCode;
+		return this;
+	}
+
 	public MoBIESettings openedFromCLI( Boolean cli )
 	{
 		this.values.openedFromCLI = cli;
 		return this;
 	}
+
 
 	public static class Values
 	{
@@ -126,6 +133,7 @@ public class MoBIESettings
 		private String view = View.DEFAULT;
 		private Boolean removeSpatialCalibration = false;
 		private Boolean openedFromCLI = false; // started from CLI
+		private String groovyScript = "";
 
 		public Boolean getRemoveSpatialCalibration()
 		{
@@ -185,6 +193,11 @@ public class MoBIESettings
 		public Boolean isOpenedFromCLI()
 		{
 			return openedFromCLI;
+		}
+
+		public String getGroovyScript()
+		{
+			return groovyScript;
 		}
 	}
 }

@@ -34,7 +34,6 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Tables;
 import ij.IJ;
 import ij.ImagePlus;
-import ij.gui.Overlay;
 import ij.process.LUT;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
@@ -645,15 +644,15 @@ public class ImagesCreator {
     }
 
     private void updateTableAndJsonsForNewImage ( String imageName, String datasetName, String uiSelectionGroup, ImageDataFormat imageDataFormat, double[] contrastLimits, String colour, boolean exclusive, AffineTransform3D sourceTransform ) {
-        DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
-        datasetJsonCreator.addImage( imageName, datasetName, uiSelectionGroup,
+        DatasetSerializer datasetSerializer = projectCreator.getDatasetJsonCreator();
+        datasetSerializer.addImage( imageName, datasetName, uiSelectionGroup,
                 imageDataFormat, contrastLimits, colour, exclusive, sourceTransform );
     }
 
     private void updateTableAndJsonsForNewSegmentation( String imageName, String datasetName, String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive, AffineTransform3D sourceTransform ) {
         addDefaultTableForImage( imageName, datasetName, imageDataFormat );
-        DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
-        datasetJsonCreator.addSegmentation( imageName, datasetName, uiSelectionGroup, imageDataFormat, exclusive, sourceTransform );
+        DatasetSerializer datasetSerializer = projectCreator.getDatasetJsonCreator();
+        datasetSerializer.addSegmentation( imageName, datasetName, uiSelectionGroup, imageDataFormat, exclusive, sourceTransform );
     }
 
     private void copyImage ( ImageDataFormat imageFormat, SpimData spimData,

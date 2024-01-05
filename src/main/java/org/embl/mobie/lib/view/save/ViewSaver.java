@@ -107,6 +107,7 @@ public class ViewSaver
 
         if ( saveMethod == SaveMethod.saveAsNewView ) {
             gd.addStringField("View name:", "", 25 );
+            gd.addStringField( "View description:", "", 50 );
         }
 
         String[] currentUiSelectionGroups = moBIE.getUserInterface().getUISelectionGroupNames();
@@ -130,8 +131,10 @@ public class ViewSaver
         if (!gd.wasCanceled()) {
 
             String viewName = null;
+            String viewDescription = "";
             if( saveMethod == SaveMethod.saveAsNewView ) {
                 viewName = UserInterfaceHelper.tidyString( gd.getNextString() );
+                viewDescription = gd.getNextString();
                 if ( viewName == null ) {
                     return;
                 }
@@ -155,7 +158,7 @@ public class ViewSaver
                 uiSelectionGroup = ProjectCreatorHelper.makeNewUiSelectionGroup(currentUiSelectionGroups);
             }
 
-            View currentView = moBIE.getViewManager().createCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
+            View currentView = moBIE.getViewManager().createViewFromCurrentState(uiSelectionGroup, exclusive, includeViewerTransform, viewDescription);
 
             if ( uiSelectionGroup != null && currentView != null ) {
                 if ( fileLocation == MoBIEHelper.FileLocation.Project && saveMethod == SaveMethod.saveAsNewView ) {

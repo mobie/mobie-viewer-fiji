@@ -243,7 +243,7 @@ public class FileSourcesDataSetter
 		//
 		// FIXME: Maybe the viewerTransform could be something else?
 		final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( transformations.get( 0 ).getSources().get( 0 ), 0 );
-		final View gridView = new View( "all images", "data", displays, transformations, viewerTransform, false );
+		final View gridView = new View( "all images", "data", displays, transformations, viewerTransform, false, null );
 		//gridView.overlayNames( true ); // FIXME: Timepoint bug!
 		dataset.views().put( gridView.getName(), gridView );
 	}
