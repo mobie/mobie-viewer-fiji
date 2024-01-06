@@ -460,6 +460,8 @@ public class ScreenShotMaker
             mask.setPosition( channel );
             mask.getProcessor().setThreshold( 1.0, 255 );
             Roi roi = new ThresholdToSelection().convert( mask.getProcessor() );
+            if ( roi == null )
+                roi = new Roi( 0, 0, compositeImage.getWidth(), compositeImage.getHeight() );
             roi.setPosition( channel, 1, 1  );
             mask.getProcessor().setRoi( roi );
             rois.add( roi );

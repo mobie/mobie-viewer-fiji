@@ -81,7 +81,7 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 				.map( sac -> sac.getSpimSource().getName() )
 				.toArray( String[]::new );
 
-		final GenericDialog gd = new GenericDialog( "Extract SIFT Landmark Correspondences" );
+		final GenericDialog gd = new GenericDialog( "BigWarp Registration" );
 
 		final String current = titles[ 0 ];
 		gd.addChoice( "Fixed image", titles, current );

@@ -29,23 +29,24 @@
 package org.embl.mobie.command.context;
 
 import bdv.tools.transformation.TransformedSource;
+import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
+import bdv.util.BdvOptions;
 import bdv.viewer.SourceAndConverter;
 import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.Roi;
-import ij.plugin.filter.ThresholdToSelection;
-import ij.process.ByteProcessor;
 import ij.process.ImageConverter;
-import ij.process.ImageProcessor;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.align.TurboReg2DAligner;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
 import org.embl.mobie.lib.align.SIFT2DAligner;
+import org.embl.mobie.lib.source.RealTransformedSource;
+import org.embl.mobie.lib.transform.Interpolated3DAffineRealTransform;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
 import org.scijava.command.Interactive;
@@ -55,15 +56,16 @@ import org.scijava.widget.Button;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Automatic")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Automatic 2D/3D")
 public class AutomaticRegistrationCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Interactive, Initializable
 {
+	// TODO: create enum for this!
 	public static final String TRANSLATION = "Translation";
 	public static final String RIGID = "Rigid";
 	public static final String SIMILARITY = "Similarity";
@@ -92,18 +94,30 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 	@Parameter ( label = "Show Intermediates" )
 	private Boolean showIntermediates = false;
 
-	@Parameter ( label = "Compute Alignment", callback = "compute")
+	@Parameter ( label = "Compute Transformation", callback = "compute")
 	private Button compute;
 
-	@Parameter ( label = "Toggle Alignment", callback = "toggle")
-	private Button toggle;
+	@Parameter ( label = "Apply Transformation", callback = "apply")
+	private Button apply;
 
-	private AffineTransform3D previousTransform;
-	private AffineTransform3D newTransform;
-	private TransformedSource< ? > transformedSource;
-	private boolean isAligned;
+	@Parameter ( label = "Restore Transformation", callback = "remove")
+	private Button remove;
+
+	// FIXME: The below to buttons are very special and maybe should
+	//  only be visible in an child class
+	@Parameter ( label = "Store Transformation", callback = "store")
+	private Button store;
+
+	@Parameter ( label = "Apply Stored Transformations", callback = "applyStored", description = "FIXME")
+	private Button applyStored;
+
+
+	private AffineTransform3D initialTransform;
+	private AffineTransform3D alignmentTransform;
+	private TransformedSource< ? > movingSource;
 	private List< SourceAndConverter< ? > > sourceAndConverters;
-	private AffineTransform3D alignmentTransform3D;
+	private TreeMap< Double, AffineTransform3D > transforms= new TreeMap<>();
+
 
 	@Override
 	public void initialize()
@@ -138,6 +152,8 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 
 	private void compute()
 	{
+		long start = System.currentTimeMillis();
+
 		SourceAndConverter< ? > sacA = sourceAndConverters.stream()
 				.filter( sac -> sac.getSpimSource().getName().equals( imageA ) )
 				.findFirst().get();
@@ -201,55 +217,64 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 			}
 		}
 
-		// convert the transformation that aligns the images in 2D
+		// convert the transformation that aligns
+		// the images in the 2D screenshot canvas
 		// to the global 3D coordinate system
-		AffineTransform3D globalRegistration = new AffineTransform3D();
-
+		alignmentTransform = new AffineTransform3D();
 		// global to target canvas...
-		globalRegistration.preConcatenate( canvasToGlobalTransform.inverse() );
-
+		alignmentTransform.preConcatenate( canvasToGlobalTransform.inverse() );
 		// ...registration within canvas...
-		globalRegistration.preConcatenate( localRegistration );
-
+		alignmentTransform.preConcatenate( localRegistration );
 		// ...canvas back to global
-		globalRegistration.preConcatenate( canvasToGlobalTransform );
+		alignmentTransform.preConcatenate( canvasToGlobalTransform );
 
-		// apply the transformation to imageB
-		//
-		transformedSource = ( TransformedSource< ? > ) sacB.getSpimSource();
-		previousTransform = new AffineTransform3D();
-		transformedSource.getFixedTransform( previousTransform );
-		newTransform = previousTransform.copy();
-		newTransform.preConcatenate( globalRegistration );
-		transformedSource.setFixedTransform( newTransform );
-		IJ.log( "Transforming " + transformedSource.getName() );
-		IJ.log( "Previous Transform: " + previousTransform );
-		IJ.log( "Additional SIFT Transform: " + globalRegistration );
-		IJ.log( "Combined Transform: " + newTransform );
-		isAligned = true;
-		bdvHandle.getViewerPanel().requestRepaint();
+		movingSource = ( TransformedSource< ? > ) sacB.getSpimSource();
+		initialTransform = new AffineTransform3D();
+		movingSource.getFixedTransform( initialTransform );
+
+		IJ.log( "Computed registration in " + ( System.currentTimeMillis() - start ) + " ms." );
+		IJ.log( "Registration transform: " + alignmentTransform );
 	}
 
-	private void toggle()
+	private void apply()
 	{
-		if ( transformedSource == null )
+		if ( alignmentTransform == null )
 		{
 			IJ.showMessage( "Please first [ Compute Alignment ]." );
 			return;
 		}
 
-		if ( isAligned )
-		{
-			transformedSource.setFixedTransform( previousTransform );
-		}
-		else
-		{
-			transformedSource.setFixedTransform( newTransform );
-		}
-
+		AffineTransform3D transform3D = initialTransform.copy();
+		transform3D.preConcatenate( alignmentTransform );
+		movingSource.setFixedTransform( transform3D );
 		bdvHandle.getViewerPanel().requestRepaint();
-		isAligned = ! isAligned;
 	}
 
+	private void store()
+	{
+		double[] windowCentre = BdvHandleHelper.getWindowCentreInCalibratedUnits( bdvHandle );
+		transforms.put( windowCentre[ 2 ], alignmentTransform );
+	}
+
+	private void applyStored()
+	{
+		Interpolated3DAffineRealTransform transform = new Interpolated3DAffineRealTransform( 1.0 );
+		for ( Map.Entry< Double, AffineTransform3D > entry : transforms.entrySet() ) {
+			transform.addTransform( entry.getKey(), entry.getValue().inverse().getRowPackedCopy() );
+		}
+		RealTransformedSource< ? > source = new RealTransformedSource<>( movingSource, transform, movingSource.getName() + "_transformed" );
+		BdvFunctions.show( source, BdvOptions.options().addTo( bdvHandle ) );
+	}
+
+	private void remove()
+	{
+		if ( alignmentTransform == null )
+		{
+			IJ.showMessage( "Please first [ Compute Alignment ]." );
+			return;
+		}
+		movingSource.setFixedTransform( initialTransform );
+		bdvHandle.getViewerPanel().requestRepaint();
+	}
 
 }
