@@ -32,6 +32,7 @@ import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
+import bdv.util.BdvStackSource;
 import bdv.viewer.SourceAndConverter;
 import ij.CompositeImage;
 import ij.IJ;
@@ -88,7 +89,7 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 	@Parameter ( label = "Image A (fixed)", choices = {""} )
 	private String imageA;
 
-	@Parameter ( label = "Image B (transformed)", choices = {""} )
+	@Parameter ( label = "Image B (moving)", choices = {""} )
 	private String imageB;
 
 	@Parameter ( label = "Show Intermediates" )
@@ -117,6 +118,7 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 	private TransformedSource< ? > movingSource;
 	private List< SourceAndConverter< ? > > sourceAndConverters;
 	private TreeMap< Double, AffineTransform3D > transforms= new TreeMap<>();
+	private SourceAndConverter< ? > transformedSac;
 
 
 	@Override
@@ -139,6 +141,9 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 
 		getInfo().getMutableInput( "imageB", String.class )
 				.setChoices( imageNames );
+
+		getInfo().getMutableInput( "imageB", String.class )
+				.setValue( this, imageNames.get( 1 ) );
 
 		getInfo().getMutableInput("voxelSize", Double.class)
 				.setValue( this, 2 * BdvHandleHelper.getViewerVoxelSpacing( bdvHandle ) );
@@ -232,8 +237,8 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 		initialTransform = new AffineTransform3D();
 		movingSource.getFixedTransform( initialTransform );
 
-		IJ.log( "Computed registration in " + ( System.currentTimeMillis() - start ) + " ms." );
-		IJ.log( "Registration transform: " + alignmentTransform );
+		IJ.log( "Computed transform in " + ( System.currentTimeMillis() - start ) + " ms:" );
+		IJ.log( MoBIEHelper.print( alignmentTransform.getRowPackedCopy(), 2 ) );
 	}
 
 	private void apply()
@@ -254,16 +259,26 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 	{
 		double[] windowCentre = BdvHandleHelper.getWindowCentreInCalibratedUnits( bdvHandle );
 		transforms.put( windowCentre[ 2 ], alignmentTransform );
+		IJ.log( "Stored Transformations:" );
+		for ( Map.Entry< Double, AffineTransform3D > entry : transforms.entrySet() ) {
+			IJ.log( "Z = " + entry.getKey().toString() + ", T = " + MoBIEHelper.print( entry.getValue().getRowPackedCopy(), 3 ) );
+		}
 	}
 
 	private void applyStored()
 	{
+		if ( transformedSac != null )
+			bdvHandle.getViewerPanel().state().removeSource( transformedSac );
+
 		Interpolated3DAffineRealTransform transform = new Interpolated3DAffineRealTransform( 1.0 );
 		for ( Map.Entry< Double, AffineTransform3D > entry : transforms.entrySet() ) {
 			transform.addTransform( entry.getKey(), entry.getValue().inverse().getRowPackedCopy() );
 		}
-		RealTransformedSource< ? > source = new RealTransformedSource<>( movingSource, transform, movingSource.getName() + "_transformed" );
-		BdvFunctions.show( source, BdvOptions.options().addTo( bdvHandle ) );
+		// FIXME: add this as an image view to the current data set; maybe just add a button for this.
+		String transformedSourceName = movingSource.getName() + "_transformed";
+		RealTransformedSource< ? > realTransformedSource = new RealTransformedSource<>( movingSource, transform, transformedSourceName );
+		transformedSac = BdvFunctions.show( realTransformedSource, BdvOptions.options().addTo( bdvHandle ) )
+				.getSources().get( 0 );
 	}
 
 	private void remove()

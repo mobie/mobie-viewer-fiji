@@ -52,6 +52,7 @@ import spimdata.util.Displaysettings;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -67,6 +68,19 @@ import static org.embl.mobie.io.util.IOHelper.combinePath;
 public abstract class MoBIEHelper
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
+	public static String print( double[] array, int numSignificantDigits) {
+		StringBuilder pattern = new StringBuilder("#");
+		if (numSignificantDigits > 0) pattern.append(".");
+		for (int i = 0; i < numSignificantDigits; i++) pattern.append("#");
+		DecimalFormat formatter = new DecimalFormat(pattern.toString());
+
+		StringBuilder result = new StringBuilder();
+		for (double value : array) {
+			result.append(formatter.format(value)).append(" ");
+		}
+		return result.toString().trim();
+	}
 
 	public static <E extends Enum<E>> String[] enumAsStringArray(Class<E> enumClass) {
 		return Arrays.stream(enumClass.getEnumConstants())
