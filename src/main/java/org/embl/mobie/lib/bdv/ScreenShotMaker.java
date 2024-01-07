@@ -152,8 +152,7 @@ public class ScreenShotMaker
                 screenshotDimensions,
                 blockSize );
 
-        IJ.log( "Number of threads: " + ThreadHelper.getNumIoThreads() );
-        IJ.log( "Block per thread: " + Arrays.toString( blockSize ) );
+        IJ.log( ThreadHelper.getNumIoThreads() + " threads working on blocks of " + Arrays.toString( blockSize ) );
         final long currentTimeMillis = System.currentTimeMillis();
         for ( SourceAndConverter< ?  > sac : sacs )
         {

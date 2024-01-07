@@ -45,6 +45,7 @@ import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.color.OpacityHelper;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
+import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.AbstractDisplay;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.ui.WindowArrangementHelper;
@@ -135,13 +136,12 @@ public class SliceViewer
 		} );
 
 		sacService.registerAction( LOAD_ADDITIONAL_VIEWS, sourceAndConverters -> {
-			// TODO: Maybe only do this for the sacs at the mouse position
 			moBIE.getViewManager().getAdditionalViewsLoader().loadAdditionalViewsDialog();
 		} );
 
 		sacService.registerAction( SAVE_CURRENT_SETTINGS_AS_VIEW, sourceAndConverters -> {
-			// TODO: Maybe only do this for the sacs at the mouse position
-			moBIE.getViewManager().getViewsSaver().saveCurrentViewDialog();
+			View view = moBIE.getViewManager().createViewFromCurrentState();
+			moBIE.getViewManager().getViewsSaver().saveViewDialog( view );
 		} );
 
 		final Set< String > actionsKeys = sacService.getActionsKeys();
@@ -153,7 +153,7 @@ public class SliceViewer
 		actions.add( SourceAndConverterService.getCommandName( ViewerTransformLoggerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( BigWarpRegistrationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( AutomaticRegistrationCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( ManualRegistrationCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( ManualTransformationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( SetTransformationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( FlipCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );

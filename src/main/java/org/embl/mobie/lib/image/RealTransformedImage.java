@@ -26,37 +26,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.transform.image;
+package org.embl.mobie.lib.image;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.RealTransform;
 import net.imglib2.roi.RealMaskRealInterval;
-import org.embl.mobie.lib.image.DefaultSourcePair;
-import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.image.SourcePair;
-import org.embl.mobie.lib.source.TransformedTimepointSource;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
+import org.checkerframework.checker.units.qual.A;
+import org.embl.mobie.lib.source.RealTransformedSource;
 
-import java.util.HashMap;
-
-public class TimepointsTransformedImage< T > implements Image< T >
+public class RealTransformedImage< T > implements Image< T >
 {
+	protected final RealTransform realTransform;
 	protected final Image< T > image;
-	protected final String transformedImageName;
-	private final HashMap< Integer, Integer > timepointsMap;
-	private final boolean keep;
+	protected final String name;
 	private RealMaskRealInterval mask;
-	private AffineTransform3D affineTransform3D = new AffineTransform3D();
+	private final AffineTransform3D affineTransform3D = new AffineTransform3D();
 
-	public TimepointsTransformedImage( Image< T > image, String name, HashMap< Integer, Integer > timepointsMap, boolean keep )
+	public RealTransformedImage( Image< T > image, String name, RealTransform realTransform )
 	{
 		this.image = image;
-		this.transformedImageName = name;
-		this.timepointsMap = timepointsMap;
-		this.keep = keep;
+		this.name = name;
+		this.realTransform = realTransform;
+	}
+
+	public RealTransform getRealTransform()
+	{
+		return realTransform;
 	}
 
 	@Override
@@ -64,14 +62,15 @@ public class TimepointsTransformedImage< T > implements Image< T >
 	{
 		final SourcePair< T > sourcePair = image.getSourcePair();
 
-		// apply the time point transformation
-		final TransformedTimepointSource< T > transformedTimepointSource = new TransformedTimepointSource( transformedImageName, sourcePair.getSource(), timepointsMap, keep );
-		final TransformedTimepointSource< ? extends Volatile< T >> vTransformedTimepointSource = new TransformedTimepointSource( transformedImageName, sourcePair.getVolatileSource(), timepointsMap, keep );
+		final Source< T > source = sourcePair.getSource();
+		final Source< ? extends Volatile< T > > volatileSource = sourcePair.getVolatileSource();
 
-		// wrap into TransformedSource for applying manual transforms in BDV
-		final TransformedSource transformedSource = new TransformedSource( transformedTimepointSource, transformedImageName );
+		RealTransformedSource< T > realTransformedSource = new RealTransformedSource<>( source, realTransform, name );
+		RealTransformedSource< ? extends Volatile< T > > realTransformedVolatileSource = new RealTransformedSource<>( volatileSource, realTransform, name );
+
+		final TransformedSource< T > transformedSource = new TransformedSource<>( realTransformedSource, name );
+		final TransformedSource< ? extends Volatile< T > > volatileTransformedSource = new TransformedSource<>( realTransformedVolatileSource, transformedSource );
 		transformedSource.setFixedTransform( affineTransform3D );
-		final TransformedSource volatileTransformedSource = new TransformedSource( vTransformedTimepointSource, transformedSource );
 
 		return new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
 	}
@@ -79,7 +78,7 @@ public class TimepointsTransformedImage< T > implements Image< T >
 	@Override
 	public String getName()
 	{
-		return transformedImageName;
+		return name;
 	}
 
 	@Override
@@ -89,10 +88,16 @@ public class TimepointsTransformedImage< T > implements Image< T >
 	}
 
 	@Override
-	public RealMaskRealInterval getMask( )
+	public RealMaskRealInterval getMask()
 	{
 		if ( mask == null )
-			return image.getMask().transform( affineTransform3D.inverse() );
+		{
+			// FIXME: this should be something like
+			//   image.getMask().transform( realTransform.inverse() )
+			//   and probably also include this.affineTransform
+			System.err.println( "Masks for " + this.getClass().getName() + " are not properly implemented" );
+			return image.getMask();
+		}
 		else
 			return mask;
 	}
@@ -102,5 +107,4 @@ public class TimepointsTransformedImage< T > implements Image< T >
 	{
 		this.mask = mask;
 	}
-
 }

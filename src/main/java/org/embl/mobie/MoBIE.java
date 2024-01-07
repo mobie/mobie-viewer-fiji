@@ -673,12 +673,12 @@ public class MoBIE
 			{
 				// label image
 				final AnnotatedLabelImageCreator labelImageCreator = new AnnotatedLabelImageCreator( this, ( SegmentationDataSource ) dataSource, image );
-				DataStore.putImage( labelImageCreator.create() );
+				DataStore.addImage( labelImageCreator.create() );
 			}
 			else
 			{
 				// intensity image
-				DataStore.putImage( image );
+				DataStore.addImage( image );
 			}
 		}
 
@@ -686,7 +686,7 @@ public class MoBIE
 		{
 			// build spots image from spots table
 			final SpotImageCreator spotImageCreator = new SpotImageCreator( ( SpotDataSource ) dataSource, this );
-			DataStore.putImage( spotImageCreator.create() );
+			DataStore.addImage( spotImageCreator.create() );
 		}
 
 		if ( dataSource instanceof RegionTableSource )
@@ -700,7 +700,7 @@ public class MoBIE
 			final StorageLocation tableLocation = getTableLocation( regionTableSource.tableData );
 			final TableDataFormat tableFormat = getTableDataFormat( regionTableSource.tableData );
 			regionTableSource.table = TableOpener.open( tableLocation, tableFormat );
-			DataStore.putRawData( regionTableSource );
+			DataStore.addRawData( regionTableSource );
 		}
 
 		if ( log != null )

@@ -135,7 +135,7 @@ public class FileSourcesDataSetter
 				storageLocation.data = regionTable;
 				final RegionTableSource regionTableSource = new RegionTableSource( regionTable.name() );
 				regionTableSource.addTable( TableDataFormat.Table, storageLocation );
-				DataStore.putRawData( regionTableSource );
+				DataStore.addRawData( regionTableSource );
 
 				// init display
 				regionDisplay.sources = new LinkedHashMap<>();

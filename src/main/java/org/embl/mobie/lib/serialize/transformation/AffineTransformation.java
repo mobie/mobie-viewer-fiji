@@ -53,11 +53,6 @@ public class AffineTransformation< T > extends AbstractImageTransformation< T, T
 		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
 	}
 
-	@Override
-	public List< String > getSources()
-	{
-		return sources;
-	}
 
 	public AffineTransform3D getAffineTransform3D()
 	{

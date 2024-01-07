@@ -29,7 +29,6 @@
 package org.embl.mobie.command.context;
 
 import bdv.tools.transformation.ManualTransformActiveListener;
-import bdv.tools.transformation.ManualTransformationEditor;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import ij.gui.NonBlockingGenericDialog;
@@ -47,7 +46,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Manual")
-public class ManualRegistrationCommand implements BdvPlaygroundActionCommand, ManualTransformActiveListener
+public class ManualTransformationCommand implements BdvPlaygroundActionCommand, ManualTransformActiveListener
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -56,6 +55,7 @@ public class ManualRegistrationCommand implements BdvPlaygroundActionCommand, Ma
 
 	@Parameter
 	protected SourceAndConverter< ? >[] sourceAndConverters;
+
 	private List< Image< ? > > transformableImages;
 
 	@Override
@@ -133,7 +133,7 @@ public class ManualRegistrationCommand implements BdvPlaygroundActionCommand, Ma
 				// transform each image with an identity transform in order to
 				// trigger the update of the transform and notify listeners.
 				// see the {@code SpimDataImage} implementation.
-				transformableImages.stream().forEach( image -> image.transform( new AffineTransform3D() ) );
+				transformableImages.forEach( image -> image.transform( new AffineTransform3D() ) );
 			}
 			else
 			{

@@ -37,7 +37,7 @@ import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
 import org.embl.mobie.lib.serialize.JsonHelper;
 import org.embl.mobie.lib.transform.viewer.AffineViewerTransform;
 import org.embl.mobie.lib.transform.viewer.NormalVectorViewerTransform;
-import org.embl.mobie.lib.transform.NormalizedAffineViewerTransform;
+import org.embl.mobie.lib.serialize.transformation.NormalizedAffineViewerTransform;
 import org.embl.mobie.lib.transform.viewer.PositionViewerTransform;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.scijava.plugin.Parameter;

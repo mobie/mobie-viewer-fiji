@@ -85,10 +85,4 @@ public class TimepointsTransformation< T > extends AbstractImageTransformation< 
 	{
 		return keep;
 	}
-
-	@Override
-	public List< String > getSources()
-	{
-		return sources;
-	}
 }

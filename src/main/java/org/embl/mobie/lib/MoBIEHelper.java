@@ -69,17 +69,28 @@ public abstract class MoBIEHelper
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static String print( double[] array, int numSignificantDigits) {
+	public static String print(double[] array, int numSignificantDigits) {
 		StringBuilder pattern = new StringBuilder("#");
 		if (numSignificantDigits > 0) pattern.append(".");
 		for (int i = 0; i < numSignificantDigits; i++) pattern.append("#");
 		DecimalFormat formatter = new DecimalFormat(pattern.toString());
 
 		StringBuilder result = new StringBuilder();
-		for (double value : array) {
-			result.append(formatter.format(value)).append(" ");
+		for (int i = 0; i < array.length; i++) {
+			result.append(formatter.format(array[i]));
+			if (i < array.length - 1) {
+				result.append(", ");
+			}
 		}
-		return result.toString().trim();
+		return result.toString();
+	}
+
+	public static String print(double value, int numSignificantDigits) {
+		StringBuilder pattern = new StringBuilder("#");
+		if (numSignificantDigits > 0) pattern.append(".");
+		for (int i = 0; i < numSignificantDigits; i++) pattern.append("#");
+		DecimalFormat formatter = new DecimalFormat(pattern.toString());
+		return formatter.format( value );
 	}
 
 	public static <E extends Enum<E>> String[] enumAsStringArray(Class<E> enumClass) {
@@ -345,9 +356,4 @@ public abstract class MoBIEHelper
         return visibleSacs;
     }
 
-    public enum FileLocation
-	{
-		Project,
-		FileSystem
-	}
 }

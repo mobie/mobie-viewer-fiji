@@ -44,7 +44,7 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.command.context.ConfigureSegmentRenderingCommand;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.lib.MoBIEHelper.FileLocation;
+import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.MoBIEInfo;
 import org.embl.mobie.lib.Services;
 import org.embl.mobie.lib.color.ColorHelper;

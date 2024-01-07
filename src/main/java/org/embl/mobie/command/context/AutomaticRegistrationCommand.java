@@ -28,11 +28,9 @@
  */
 package org.embl.mobie.command.context;
 
-import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
-import bdv.util.BdvStackSource;
 import bdv.viewer.SourceAndConverter;
 import ij.CompositeImage;
 import ij.IJ;
@@ -41,11 +39,16 @@ import ij.ImageStack;
 import ij.gui.Roi;
 import ij.process.ImageConverter;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.DataStore;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.align.TurboReg2DAligner;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
 import org.embl.mobie.lib.align.SIFT2DAligner;
+import org.embl.mobie.lib.serialize.View;
+import org.embl.mobie.lib.serialize.display.ImageDisplay;
+import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
 import org.embl.mobie.lib.source.RealTransformedSource;
 import org.embl.mobie.lib.transform.Interpolated3DAffineRealTransform;
 import org.scijava.Initializable;
@@ -57,10 +60,7 @@ import org.scijava.widget.Button;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Automatic 2D/3D")
@@ -86,39 +86,37 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 	@Parameter ( label = "Transformation", choices = { TRANSLATION, RIGID, SIMILARITY, AFFINE } )
 	private String transformationType = TRANSLATION;
 
-	@Parameter ( label = "Image A (fixed)", choices = {""} )
-	private String imageA;
+	@Parameter ( label = "Fixed Image", choices = {""} )
+	private String fixedImageName;
 
-	@Parameter ( label = "Image B (moving)", choices = {""} )
-	private String imageB;
-
-	@Parameter ( label = "Show Intermediates" )
-	private Boolean showIntermediates = false;
+	@Parameter ( label = "Moving Image", choices = {""} )
+	private String movingImageName;
 
 	@Parameter ( label = "Compute Transformation", callback = "compute")
 	private Button compute;
 
-	@Parameter ( label = "Apply Transformation", callback = "apply")
+	@Parameter ( label = "Show Intermediate Images" )
+	private Boolean showIntermediates = false;
+
+	@Parameter ( label = "(Un)apply Transformation", callback = "apply")
 	private Button apply;
 
-	@Parameter ( label = "Restore Transformation", callback = "remove")
-	private Button remove;
+	@Parameter ( label = "Append Transformation to Stack", callback = "append")
+	private Button append;
 
-	// FIXME: The below to buttons are very special and maybe should
-	//  only be visible in an child class
-	@Parameter ( label = "Store Transformation", callback = "store")
-	private Button store;
+	@Parameter ( label = "(Un)apply Stack Transformation", callback = "showInterpolatedAffineImage" )
+	private Button showInterpolatedAffineImage;
 
-	@Parameter ( label = "Apply Stored Transformations", callback = "applyStored", description = "FIXME")
-	private Button applyStored;
+	@Parameter ( label = "Save Stack Transformed Image", callback = "saveInterpolatedAffineImage" )
+	private Button saveInterpolatedAffineImage;
 
-
-	private AffineTransform3D initialTransform;
 	private AffineTransform3D alignmentTransform;
-	private TransformedSource< ? > movingSource;
 	private List< SourceAndConverter< ? > > sourceAndConverters;
-	private TreeMap< Double, AffineTransform3D > transforms= new TreeMap<>();
-	private SourceAndConverter< ? > transformedSac;
+	private final TreeMap< Double, double[] > transforms = new TreeMap<>();
+	private SourceAndConverter< ? > interpolatedTransformsSac;
+	private SourceAndConverter< ? > movingSac;
+	private boolean isSingleAligned;
+	private boolean isMultipleAligned;
 
 
 	@Override
@@ -136,14 +134,14 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 				.map( sac -> sac.getSpimSource().getName() )
 				.collect( Collectors.toList() );
 
-		getInfo().getMutableInput( "imageA", String.class )
+		getInfo().getMutableInput( "fixedImageName", String.class )
 				.setChoices( imageNames );
 
-		getInfo().getMutableInput( "imageB", String.class )
+		getInfo().getMutableInput( "movingImageName", String.class )
 				.setChoices( imageNames );
 
-		getInfo().getMutableInput( "imageB", String.class )
-				.setValue( this, imageNames.get( 1 ) );
+		getInfo().getMutableInput( "movingImageName", String.class )
+				.setDefaultValue( imageNames.get( 1 ) );
 
 		getInfo().getMutableInput("voxelSize", Double.class)
 				.setValue( this, 2 * BdvHandleHelper.getViewerVoxelSpacing( bdvHandle ) );
@@ -159,31 +157,25 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 	{
 		long start = System.currentTimeMillis();
 
-		SourceAndConverter< ? > sacA = sourceAndConverters.stream()
-				.filter( sac -> sac.getSpimSource().getName().equals( imageA ) )
+		SourceAndConverter< ? > fixedSac = sourceAndConverters.stream()
+				.filter( sac -> sac.getSpimSource().getName().equals( fixedImageName ) )
 				.findFirst().get();
 
-		SourceAndConverter< ? > sacB = sourceAndConverters.stream()
-				.filter( sac -> sac.getSpimSource().getName().equals( imageB ) )
+		movingSac = sourceAndConverters.stream()
+				.filter( sac -> sac.getSpimSource().getName().equals( movingImageName ) )
 				.findFirst().get();
-
-		if ( ! ( sacB.getSpimSource() instanceof TransformedSource ) )
-		{
-			IJ.log("Cannot apply transformations to image of type " + sacB.getSpimSource().getClass() );
-			return;
-		}
 
 		// create two 2D ImagePlus that are to be aligned
 		//
-		ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, sacA.getSpimSource().getVoxelDimensions().unit() );
+		ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, fixedSac.getSpimSource().getVoxelDimensions().unit() );
 
-		screenShotMaker.run( Arrays.asList( sacA, sacB ), voxelSize );
+		screenShotMaker.run( Arrays.asList( fixedSac, movingSac ), voxelSize );
 		CompositeImage compositeImage = screenShotMaker.getCompositeImagePlus();
 		AffineTransform3D canvasToGlobalTransform = screenShotMaker.getCanvasToGlobalTransform();
 
 		ImageStack stack = compositeImage.getStack();
-		ImagePlus impA = new ImagePlus( imageA + " (fixed)", stack.getProcessor( 1 ) );
-		ImagePlus impB = new ImagePlus( imageB + " (moving)", stack.getProcessor( 2 ) );
+		ImagePlus impA = new ImagePlus( fixedImageName + " (fixed)", stack.getProcessor( 1 ) );
+		ImagePlus impB = new ImagePlus( movingImageName + " (moving)", stack.getProcessor( 2 ) );
 
 		// set the display ranges and burn them in by converting to uint8
 		// this is important for the intensity based registration methods
@@ -233,10 +225,6 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 		// ...canvas back to global
 		alignmentTransform.preConcatenate( canvasToGlobalTransform );
 
-		movingSource = ( TransformedSource< ? > ) sacB.getSpimSource();
-		initialTransform = new AffineTransform3D();
-		movingSource.getFixedTransform( initialTransform );
-
 		IJ.log( "Computed transform in " + ( System.currentTimeMillis() - start ) + " ms:" );
 		IJ.log( MoBIEHelper.print( alignmentTransform.getRowPackedCopy(), 2 ) );
 	}
@@ -249,47 +237,87 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 			return;
 		}
 
-		AffineTransform3D transform3D = initialTransform.copy();
-		transform3D.preConcatenate( alignmentTransform );
-		movingSource.setFixedTransform( transform3D );
+		if ( isSingleAligned ) {
+			DataStore.sourceToImage().get( movingSac ).transform( alignmentTransform.inverse() );
+		}
+		else {
+			DataStore.sourceToImage().get( movingSac ).transform( alignmentTransform );
+		}
+
 		bdvHandle.getViewerPanel().requestRepaint();
+		isSingleAligned = !isSingleAligned;
 	}
 
-	private void store()
+	private void append()
 	{
 		double[] windowCentre = BdvHandleHelper.getWindowCentreInCalibratedUnits( bdvHandle );
-		transforms.put( windowCentre[ 2 ], alignmentTransform );
-		IJ.log( "Stored Transformations:" );
-		for ( Map.Entry< Double, AffineTransform3D > entry : transforms.entrySet() ) {
-			IJ.log( "Z = " + entry.getKey().toString() + ", T = " + MoBIEHelper.print( entry.getValue().getRowPackedCopy(), 3 ) );
+		transforms.put( windowCentre[ 2 ], alignmentTransform.inverse().getRowPackedCopy() );
+		IJ.log( "Transformation Stack:" );
+		Set< Map.Entry< Double, double[] > > entries = transforms.entrySet();
+		for ( Map.Entry< Double, double[] > entry : entries ) {
+			IJ.log( "z pos: " + MoBIEHelper.print( entry.getKey(), 3 )
+					+ "\n  transform: " + MoBIEHelper.print( entry.getValue(), 3 ) );
 		}
 	}
 
-	private void applyStored()
+	private void showInterpolatedAffineImage( )
 	{
-		if ( transformedSac != null )
-			bdvHandle.getViewerPanel().state().removeSource( transformedSac );
-
-		Interpolated3DAffineRealTransform transform = new Interpolated3DAffineRealTransform( 1.0 );
-		for ( Map.Entry< Double, AffineTransform3D > entry : transforms.entrySet() ) {
-			transform.addTransform( entry.getKey(), entry.getValue().inverse().getRowPackedCopy() );
-		}
-		// FIXME: add this as an image view to the current data set; maybe just add a button for this.
-		String transformedSourceName = movingSource.getName() + "_transformed";
-		RealTransformedSource< ? > realTransformedSource = new RealTransformedSource<>( movingSource, transform, transformedSourceName );
-		transformedSac = BdvFunctions.show( realTransformedSource, BdvOptions.options().addTo( bdvHandle ) )
-				.getSources().get( 0 );
-	}
-
-	private void remove()
-	{
-		if ( alignmentTransform == null )
+		if ( transforms.size() < 2 )
 		{
-			IJ.showMessage( "Please first [ Compute Alignment ]." );
+			IJ.showMessage( "[ Append Current Single Transformation ] at least at two different z positions." );
 			return;
 		}
-		movingSource.setFixedTransform( initialTransform );
-		bdvHandle.getViewerPanel().requestRepaint();
+
+		if ( interpolatedTransformsSac != null )
+			bdvHandle.getViewerPanel().state().removeSource( interpolatedTransformsSac );
+
+		if ( isMultipleAligned )
+		{
+			// nothing to do as the interpolatedTransformsSac has been remove above.
+		}
+		else
+		{
+			// show it (again)
+			double zVoxelSpacing = movingSac.getSpimSource().getVoxelDimensions().dimension( 2 );
+			Interpolated3DAffineRealTransform interpolatedTransform = new Interpolated3DAffineRealTransform();
+			interpolatedTransform.setCachePrecision( zVoxelSpacing );
+			interpolatedTransform.addTransforms( transforms );
+
+			RealTransformedSource< ? > realTransformedSource = new RealTransformedSource<>(
+					movingSac.getSpimSource(),
+					interpolatedTransform,
+					movingSac.getSpimSource().getName() + "_iat" // iat = interpolated affine transformed
+			);
+
+			interpolatedTransformsSac = BdvFunctions.show(
+							realTransformedSource,
+							BdvOptions.options().addTo( bdvHandle ) ).getSources().get( 0 );
+		}
+
+		isMultipleAligned = ! isMultipleAligned;
 	}
 
+	private void saveInterpolatedAffineImage()
+	{
+		String transformedImageName = movingSac.getSpimSource().getName() + "_iat";
+		InterpolatedAffineTransformation< ? > transformation = new InterpolatedAffineTransformation<>(
+				transforms,
+				movingSac.getSpimSource().getVoxelDimensions().dimension( 2 ),
+				movingImageName, // the existing to be transformed image data source
+				transformedImageName
+				);
+		ImageDisplay< ? > imageDisplay = new ImageDisplay<>( transformedImageName, transformedImageName );
+		imageDisplay.setDisplaySettings( movingSac );
+
+		View view = new View(
+				transformedImageName,
+				null,
+				Collections.singletonList( imageDisplay ),
+				Collections.singletonList( transformation ),
+				null,
+				false,
+				"Interpolated affine transformation of " + movingSac.getSpimSource().getName() );
+
+		MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view );
+	}
 }

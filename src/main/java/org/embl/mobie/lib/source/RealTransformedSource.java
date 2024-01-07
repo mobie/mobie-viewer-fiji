@@ -44,7 +44,7 @@ import net.imglib2.realtransform.RealViews;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.Views;
 
-public class RealTransformedSource<T> implements Source<T>, MipmapOrdering
+public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, SourceWrapper< T >
 {
     private final Source<T> source;
 
@@ -147,5 +147,11 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering
                 screenTransform,
                 timepoint,
                 previousTimepoint);
+    }
+
+    @Override
+    public Source< T > getWrappedSource()
+    {
+        return source;
     }
 }

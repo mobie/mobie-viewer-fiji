@@ -33,8 +33,10 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
@@ -88,7 +90,6 @@ public class SetTransformationCommand extends DynamicCommand implements BdvPlayg
 
 		getInfo().getMutableInput( "sourceName", String.class )
 				.setChoices( imageNames );
-
 	}
 
 	@Override
@@ -121,6 +122,12 @@ public class SetTransformationCommand extends DynamicCommand implements BdvPlayg
 		SourceAndConverter< ? > sourceAndConverter = sourceAndConverters.stream()
 				.filter( sac -> sac.getSpimSource().getName().equals( sourceName ) )
 				.findFirst().get();
+
+		// FIXME: not sure I should transform the image?
+		//   The issue is that I cannot undo it?
+		//   Maybe I can by transforming it with the inverse?
+//		Image< ? > image = DataStore.sourceToImage().get( sourceAndConverter );
+//		image.transform(  );
 
 		if ( sourceAndConverter.getSpimSource() instanceof TransformedSource )
 		{

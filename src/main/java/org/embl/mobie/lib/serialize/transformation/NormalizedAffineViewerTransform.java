@@ -26,32 +26,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package develop;
+package org.embl.mobie.lib.serialize.transformation;
 
-import com.google.gson.Gson;
+import bdv.util.BdvHandle;
+import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.lib.transform.TransformHelper;
+import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 
-import java.util.ArrayList;
-
-public class ExploreJsonToClass
+public class NormalizedAffineViewerTransform implements ViewerTransform
 {
-	public class Test
+	// Serialization
+	private double[] normalizedAffine;
+	private Integer timepoint;
+
+	public NormalizedAffineViewerTransform( BdvHandle bdvHandle )
 	{
-		public ArrayList< String > datasets;
-		public String defaultDataset;
+		normalizedAffine = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() ).getRowPackedCopy();
+		timepoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
 	}
 
-	public static void main( String[] args )
+	public NormalizedAffineViewerTransform( double[] parameters, int timepoint )
 	{
-		String json = "{\n" +
-				"  \"datasets\": [\n" +
-				"    \"10spd\",\n" +
-				"    \"10spdbaf\"\n" +
-				"  ],\n" +
-				"  \"defaultDataset\": \"10spdbaf\"\n" +
-				"}";
+		this.normalizedAffine = parameters;
+		this.timepoint = timepoint;
+	}
 
-		Gson g = new Gson();
-		Test p = (Test) g.fromJson(json, Test.class);
-		final ArrayList< String > datasets = p.datasets;
+	public double[] getParameters()
+	{
+		return normalizedAffine;
+	}
+
+	@Override
+	public Integer getTimepoint()
+	{
+		return timepoint;
 	}
 }

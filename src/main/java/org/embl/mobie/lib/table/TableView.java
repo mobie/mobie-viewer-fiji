@@ -62,7 +62,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static org.embl.mobie.lib.MoBIEHelper.FileLocation;
+import org.embl.mobie.lib.io.FileLocation;
 import static org.embl.mobie.ui.UserInterfaceHelper.loadFromProjectOrFileSystemDialog;
 
 public class TableView< A extends Annotation > implements SelectionListener< A >, ColoringListener, AnnotationListener< A >

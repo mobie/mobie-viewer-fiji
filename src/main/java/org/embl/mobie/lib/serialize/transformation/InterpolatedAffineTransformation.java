@@ -26,38 +26,36 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.transform;
+package org.embl.mobie.lib.serialize.transformation;
 
-import bdv.util.BdvHandle;
-import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.lib.transform.viewer.ViewerTransform;
+import java.util.Collections;
+import java.util.TreeMap;
 
-public class NormalizedAffineViewerTransform implements ViewerTransform
+public class InterpolatedAffineTransformation< T > extends AbstractImageTransformation< T, T >
 {
 	// Serialization
-	private double[] normalizedAffine;
-	private Integer timepoint;
+	private TreeMap<Double, double[]> transforms;
+	private Double precision; // TODO: Discuss with Constantin whether we need this here
 
-	public NormalizedAffineViewerTransform( BdvHandle bdvHandle )
+	public InterpolatedAffineTransformation()
 	{
-		normalizedAffine = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() ).getRowPackedCopy();
-		timepoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
 	}
 
-	public NormalizedAffineViewerTransform( double[] parameters, int timepoint )
+	public InterpolatedAffineTransformation( TreeMap< Double, double[] > transforms, Double precision, String sourceName, String transformedSourceName )
 	{
-		this.normalizedAffine = parameters;
-		this.timepoint = timepoint;
+		this.transforms = transforms;
+		this.precision = precision;
+		this.sources = Collections.singletonList( sourceName );
+		this.sourceNamesAfterTransform = Collections.singletonList( transformedSourceName );
 	}
 
-	public double[] getParameters()
+	public TreeMap< Double, double[] > getTransforms()
 	{
-		return normalizedAffine;
+		return transforms;
 	}
 
-	@Override
-	public Integer getTimepoint()
+	public Double getPrecision()
 	{
-		return timepoint;
+		return precision;
 	}
 }

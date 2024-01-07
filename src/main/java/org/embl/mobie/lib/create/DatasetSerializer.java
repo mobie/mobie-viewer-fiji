@@ -250,7 +250,7 @@ public class DatasetSerializer
         ArrayList< String > sources = new ArrayList<>();
         sources.add( imageName );
 
-        ImageDisplay imageDisplay = new ImageDisplay( imageName, 1.0, sources, colour, contrastLimits, null, false );
+        ImageDisplay<?> imageDisplay = new ImageDisplay<>( imageName, 1.0, sources, colour, contrastLimits, null, false );
         displays.add( imageDisplay );
 
         View view;

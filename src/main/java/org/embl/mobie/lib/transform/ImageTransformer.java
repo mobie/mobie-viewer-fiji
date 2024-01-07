@@ -26,31 +26,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.transform.image;
+package org.embl.mobie.lib.transform;
 
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
-import org.embl.mobie.lib.image.AnnotationLabelImage;
-import org.embl.mobie.lib.image.AnnotationImage;
-import org.embl.mobie.lib.image.DefaultAnnotationLabelImage;
-import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.image.*;
+import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
+import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
+import org.embl.mobie.lib.serialize.transformation.TimepointsTransformation;
 import org.embl.mobie.lib.table.AnnData;
-import org.embl.mobie.lib.transform.AnnotationAffineTransformer;
-import org.embl.mobie.lib.transform.TransformHelper;
-import org.embl.mobie.lib.transform.TransformedAnnData;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
 public class ImageTransformer
 {
+	public static Image< ? > affineTransform( Image< ? > image, AffineTransformation affineTransformation )
+	{
+		return affineTransform( image,
+				affineTransformation.getAffineTransform3D(),
+				affineTransformation.getTransformedImageName( image.getName() ) );
+	}
+
 	public static Image< ? > affineTransform( Image< ? > image, AffineTransform3D affineTransform3D, String transformedImageName )
 	{
 		if( transformedImageName == null || image.getName().equals( transformedImageName ) )
@@ -74,13 +77,29 @@ public class ImageTransformer
 		}
 	}
 
-	public static Image< ? > applyTimepointsTransform( Image< ? > image, HashMap< Integer, Integer > timepointsMap, boolean keep, @Nullable String transformedImageName )
+	public static Image< ? > timeTransform( Image< ? > image, TimepointsTransformation transformation )
 	{
-		String name = transformedImageName == null ? image.getName() : transformedImageName;
+		String transformedImageName = transformation.getTransformedImageName( image.getName() );
 
-		final TimepointsTransformedImage< ? > timepointsTransformedImage = new TimepointsTransformedImage<>( image, name, timepointsMap, keep );
+		return new TimepointsTransformedImage<>(
+				image,
+				transformedImageName == null ? image.getName() : transformedImageName,
+				transformation.getTimepointsMapping(),
+				transformation.isKeep() );
+	}
 
-		return timepointsTransformedImage;
+	public static Image< ? > interpolatedAffineTransform( Image< ? > image, InterpolatedAffineTransformation transformation )
+	{
+		String transformedImageName = transformation.getTransformedImageName( image.getName() );
+
+		Interpolated3DAffineRealTransform interpolatedTransform = new Interpolated3DAffineRealTransform();
+		interpolatedTransform.setCachePrecision( transformation.getPrecision() );
+		interpolatedTransform.addTransforms( transformation.getTransforms() );
+
+		return new RealTransformedImage<>(
+				image,
+				transformedImageName == null ? image.getName() : transformedImageName,
+				interpolatedTransform );
 	}
 
 	private static < A extends Annotation, TA extends A > DefaultAnnotationLabelImage< TA > createTransformedAnnotatedLabelImage( AnnotationLabelImage< A > annotatedLabelImage, AffineTransform3D affineTransform3D, String transformedImageName )

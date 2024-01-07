@@ -45,6 +45,11 @@ public abstract class AbstractImageTransformation< A, B > implements ImageTransf
 			return null;
 
 		return sourceNamesAfterTransform.get( sources.indexOf( imageName ) );
+	}
 
+	@Override
+	public List< String > getSources()
+	{
+		return sources;
 	}
 }

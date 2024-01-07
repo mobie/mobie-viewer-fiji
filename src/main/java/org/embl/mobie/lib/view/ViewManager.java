@@ -60,9 +60,9 @@ import org.embl.mobie.lib.serialize.transformation.*;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.table.*;
-import org.embl.mobie.lib.transform.NormalizedAffineViewerTransform;
+import org.embl.mobie.lib.serialize.transformation.NormalizedAffineViewerTransform;
 import org.embl.mobie.lib.transform.TransformHelper;
-import org.embl.mobie.lib.transform.image.ImageTransformer;
+import org.embl.mobie.lib.transform.ImageTransformer;
 import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
 import org.embl.mobie.lib.transform.viewer.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.lib.transform.viewer.ViewerTransform;
@@ -139,7 +139,6 @@ public class ViewManager
 		{
 			Source< ? > source = sourceAndConverter.getSpimSource();
 
-			// TODO: we could also refer to the Image here, not sure whether this would be better?
 			final TransformedSource< ? > transformedSource = SourceHelper.unwrapSource( source, TransformedSource.class );
 
 			if ( transformedSource != null )
@@ -153,12 +152,14 @@ public class ViewManager
 					imageTransforms.add( new AffineTransformation( "manualTransform", fixedTransform.getRowPackedCopy(), sources ) );
 				}
 			}
+
+			// FIXME: Add the RealTransformed Sources
         }
     }
 
-	public View createViewFromCurrentState( String uiSelectionGroup, boolean isExclusive, boolean includeViewerTransform, String description )
+	public View createViewFromCurrentState()
 	{
-		// Create serialisable copies of the current displays
+		// Create serializable copies of the current displays
 		List< Display< ? > > displays = new ArrayList<>();
 		List< Transformation > transformations = new ArrayList<>();
 		for ( Display< ? > display : currentDisplays )
@@ -174,13 +175,11 @@ public class ViewManager
 			else
 				throw new UnsupportedOperationException( "Serialisation of a " + display.getClass().getName() + " is not yet supported." );
 
-			// Add image transforms
 			addImageTransforms( transformations, display.sourceAndConverters() );
 		}
 
-		NormalizedAffineViewerTransform normalizedAffineViewerTransform = includeViewerTransform ?
-			new NormalizedAffineViewerTransform( sliceViewer.getBdvHandle() ) : null;
-		return new View( "", uiSelectionGroup, displays, transformations, normalizedAffineViewerTransform, isExclusive, description );
+		// note that some of the parameters that are null should be later  set via the view's setter methods
+		return new View( "", null, displays, transformations, null, true, "" );
 	}
 
 	public synchronized void show( String viewName )
@@ -318,133 +317,151 @@ public class ViewManager
 		{
 			for ( Transformation transformation : transformations )
 			{
-				if ( transformation instanceof AffineTransformation )
+				if ( transformation instanceof ImageTransformation )
 				{
-					final AffineTransformation< ? > affineTransformation = ( AffineTransformation< ? > ) transformation;
+					final List< ? extends Image< ? > > images = DataStore.getImageList( transformation.getSources() );
 
-					final Set< Image< ? > > images = DataStore.getImageSet( transformation.getSources() );
-
-					for ( Image< ? > image : images )
+					if ( transformation instanceof AffineTransformation )
 					{
-						final Image< ? > transformedImage =
-								ImageTransformer.affineTransform(
-										image,
-										affineTransformation.getAffineTransform3D(),
-										affineTransformation.getTransformedImageName( image.getName() ) );
-						DataStore.putImage( transformedImage );
-					}
-				}
-				else if ( transformation instanceof CropTransformation )
-				{
-					final CropTransformation< ? > cropTransformation = ( CropTransformation< ? > ) transformation;
-					final List< String > targetImageNames = transformation.getSources();
-					for ( String imageName : targetImageNames )
-					{
-						final CroppedImage< ? > croppedImage = new CroppedImage<>(
-								DataStore.getImage( imageName ),
-								cropTransformation.getTransformedImageName( imageName ),
-								cropTransformation.min,
-								cropTransformation.max,
-								cropTransformation.centerAtOrigin );
-						DataStore.putImage( croppedImage );
-					}
-				}
-				else if ( transformation instanceof MergedGridTransformation )
-				{
-					final MergedGridTransformation mergedGridTransformation = ( MergedGridTransformation ) transformation;
-					final List< String > targetImageNames = transformation.getSources();
-					final List< ? extends Image< ? > > gridImages = DataStore.getImageList( targetImageNames );
+						final AffineTransformation< ? > affineTransformation = ( AffineTransformation< ? > ) transformation;
 
-					// Fetch grid metadata image
-					Image< ? > metadataImage = ( mergedGridTransformation.metadataSource == null ) ? gridImages.get( 0 ) : DataStore.getImage( mergedGridTransformation.metadataSource );
-
-					// Create the stitched grid image
-					//
-					if ( gridImages.get( 0 ) instanceof AnnotationImage )
-					{
-						final StitchedAnnotationImage< ? extends Annotation > annotatedStitchedImage = new StitchedAnnotationImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.getName(), mergedGridTransformation.margin );
-
-						if ( ! mergedGridTransformation.lazyLoadTables
-								&& annotatedStitchedImage.getAnnData().getTable() instanceof ConcatenatedAnnotationTableModel )
+						for ( Image< ? > image : images )
 						{
-							// force loading of all tables to enable meaningful
-							// row sorting and creating a meaningful scatterplot
-							final ConcatenatedAnnotationTableModel< ? extends Annotation > concatenatedTableModel = ( ConcatenatedAnnotationTableModel ) annotatedStitchedImage.getAnnData().getTable();
-							concatenatedTableModel.loadAllTables();
+							DataStore.addImage( ImageTransformer.affineTransform( image, affineTransformation ) );
 						}
+					} else if ( transformation instanceof CropTransformation )
+					{
+						final CropTransformation< ? > cropTransformation = ( CropTransformation< ? > ) transformation;
 
-						DataStore.putImage( annotatedStitchedImage );
+						for ( Image< ? > image : images )
+						{
+							// FIXME: move this into the ImageTransformer class
+							final CroppedImage< ? > croppedImage = new CroppedImage<>(
+									image,
+									cropTransformation.getTransformedImageName( image.getName() ),
+									cropTransformation.min,
+									cropTransformation.max,
+									cropTransformation.centerAtOrigin );
+							DataStore.addImage( croppedImage );
+						}
+					} else if ( transformation instanceof TimepointsTransformation )
+					{
+						final TimepointsTransformation< ? > timepointsTransformation = ( TimepointsTransformation< ? > ) transformation;
+
+						for ( Image< ? > image : images )
+						{
+							DataStore.addImage( ImageTransformer.timeTransform( image, timepointsTransformation ) );
+						}
+					}
+					else if ( transformation instanceof InterpolatedAffineTransformation )
+					{
+						InterpolatedAffineTransformation< ? > interpolatedAffineTransformation = ( InterpolatedAffineTransformation< ? > ) transformation;
+
+						for ( Image< ? > image : images )
+						{
+							DataStore.addImage( ImageTransformer.interpolatedAffineTransform( image, interpolatedAffineTransformation ) );
+						}
 					}
 					else
 					{
-						final StitchedImage stitchedImage = new StitchedImage( gridImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.getName(), mergedGridTransformation.margin );
-						DataStore.putImage( stitchedImage );
+						throw new UnsupportedOperationException( "Transformations of type " + transformation.getClass().getName() + " are not yet implemented.");
 					}
 				}
-				else if ( transformation instanceof GridTransformation )
+				else // not an ImageTransformation
 				{
-					final GridTransformation gridTransformation = ( GridTransformation ) transformation;
-
-					final List< List< String > > nestedSources = gridTransformation.nestedSources;
-					final List< List< ? extends Image< ? > > > nestedImages = new ArrayList<>();
-					for ( List< String > sources : nestedSources )
+					if ( transformation instanceof MergedGridTransformation )
 					{
-						final List< ? extends Image< ? > > images = DataStore.getImageList( sources );
-						nestedImages.add( images );
+						// FIXME: move this into the ImageTransformer class
+						final MergedGridTransformation mergedGridTransformation = ( MergedGridTransformation ) transformation;
+
+						List< ? extends Image< ? > > images = DataStore.getImageList( mergedGridTransformation.getSources() );
+
+						// Fetch grid metadata image
+						Image< ? > metadataImage = ( mergedGridTransformation.metadataSource == null ) ? images.get( 0 ) : DataStore.getImage( mergedGridTransformation.metadataSource );
+
+						// Create the stitched grid image
+						//
+						if ( images.get( 0 ) instanceof AnnotationImage )
+						{
+							final StitchedAnnotationImage< ? extends Annotation > annotatedStitchedImage
+									= new StitchedAnnotationImage<>(
+											( List ) images,
+											( Image ) metadataImage,
+											mergedGridTransformation.positions,
+											mergedGridTransformation.getName(),
+											mergedGridTransformation.margin );
+
+							if ( ! mergedGridTransformation.lazyLoadTables
+									&& annotatedStitchedImage.getAnnData().getTable() instanceof ConcatenatedAnnotationTableModel )
+							{
+								// force loading of all tables to enable meaningful
+								// row sorting and creating a meaningful scatterplot
+								final ConcatenatedAnnotationTableModel< ? extends Annotation > concatenatedTableModel = ( ConcatenatedAnnotationTableModel ) annotatedStitchedImage.getAnnData().getTable();
+								concatenatedTableModel.loadAllTables();
+							}
+
+							DataStore.addImage( annotatedStitchedImage );
+						}
+						else
+						{
+							DataStore.addImage( new StitchedImage<>(
+									( List ) images,
+									( Image ) metadataImage,
+									mergedGridTransformation.positions,
+									mergedGridTransformation.getName(),
+									mergedGridTransformation.margin )
+							 );
+						}
 					}
-
-					// The size of the tile of the grid is the size of the
-					// largest union mask of the images at
-					// the grid positions.
-					double[] tileRealDimensions = new double[ 2 ];
-					for ( List< ? extends Image< ? > > images : nestedImages )
+					else if ( transformation instanceof GridTransformation )
 					{
-						final RealMaskRealInterval unionMask = TransformHelper.union( images );
-						final double[] realDimensions = TransformHelper.getRealDimensions( unionMask );
+						// FIXME: move this into the ImageTransformer class
+						final GridTransformation gridTransformation = ( GridTransformation ) transformation;
+
+						final List< List< String > > nestedSources = gridTransformation.nestedSources;
+						final List< List< ? extends Image< ? > > > nestedImages = new ArrayList<>();
+						for ( List< String > sources : nestedSources )
+						{
+							final List< ? extends Image< ? > > images = DataStore.getImageList( sources );
+							nestedImages.add( images );
+						}
+
+						// The size of the tile of the grid is the size of the
+						// largest union mask of the images at
+						// the grid positions.
+						double[] tileRealDimensions = new double[ 2 ];
+						for ( List< ? extends Image< ? > > images : nestedImages )
+						{
+							final RealMaskRealInterval unionMask = TransformHelper.union( images );
+							final double[] realDimensions = TransformHelper.getRealDimensions( unionMask );
+							for ( int d = 0; d < 2; d++ )
+								tileRealDimensions[ d ] = Math.max( realDimensions[ d ], tileRealDimensions[ d ] );
+						}
+
+						// Add a margin to the tiles
 						for ( int d = 0; d < 2; d++ )
-							tileRealDimensions[ d ] = Math.max( realDimensions[ d ], tileRealDimensions[ d ] );
-					}
+						{
+							tileRealDimensions[ d ] = tileRealDimensions[ d ] * ( 1.0 + 2 * gridTransformation.margin );
+						}
 
-					// Add a margin to the tiles
-					for ( int d = 0; d < 2; d++ )
+						// Compute the corresponding offset of where to place
+						// the images within the tile
+						final double[] offset = new double[ 2 ];
+						for ( int d = 0; d < 2; d++ )
+						{
+							offset[ d ] = tileRealDimensions[ d ] * gridTransformation.margin;
+						}
+
+						final List< int[] > gridPositions = gridTransformation.positions == null ? TransformHelper.createGridPositions( nestedSources.size() ) : gridTransformation.positions;
+
+						final List< ? extends Image< ? > > transformedImages = ImageTransformer.gridTransform( nestedImages, gridTransformation.transformedNames, gridPositions, tileRealDimensions, gridTransformation.centerAtOrigin, offset );
+
+						DataStore.putImages( transformedImages );
+					}
+					else
 					{
-						tileRealDimensions[ d ] = tileRealDimensions[ d ] * ( 1.0 + 2 * gridTransformation.margin );
+						throw new UnsupportedOperationException( "Transformations of type " + transformation.getClass().getName() + " are not yet implemented.");
 					}
-
-					// Compute the corresponding offset of where to place
-					// the images within the tile
-					final double[] offset = new double[ 2 ];
-					for ( int d = 0; d < 2; d++ )
-					{
-						offset[ d ] = tileRealDimensions[ d ] * gridTransformation.margin;
-					}
-
-					final List< int[] > gridPositions = gridTransformation.positions == null ? TransformHelper.createGridPositions( nestedSources.size() ) : gridTransformation.positions;
-
-					final List< ? extends Image< ? > > transformedImages = ImageTransformer.gridTransform( nestedImages, gridTransformation.transformedNames, gridPositions, tileRealDimensions, gridTransformation.centerAtOrigin, offset );
-
-					DataStore.putImages( transformedImages );
-				}
-				else if ( transformation instanceof TimepointsTransformation )
-				{
-					final TimepointsTransformation< ? > timepointsTransformation = ( TimepointsTransformation ) transformation;
-
-					final Set< Image< ? > > images = DataStore.getImageSet( timepointsTransformation.getSources() );
-
-					for ( Image< ? > image : images )
-					{
-						final Image< ? > transformedImage =
-								ImageTransformer.applyTimepointsTransform(
-										image,
-										timepointsTransformation.getTimepointsMapping(),
-										timepointsTransformation.isKeep(),
-										timepointsTransformation.getTransformedImageName( image.getName() ) );
-						DataStore.putImage( transformedImage );
-					}
-				}
-				else
-				{
-					throw new UnsupportedOperationException( "Transformations of type " + transformation.getClass().getName() + " are not yet implemented.");
 				}
 			}
 		}
@@ -471,7 +488,7 @@ public class ViewManager
 				// The region image has the same name as the display,
 				// thus it can be identified later to be the image that
 				// will be shown by this display (via {@code regionDisplay.getSources()})
-				DataStore.putImage( regionAnnotationImage );
+				DataStore.addImage( regionAnnotationImage );
 			}
 		}
 	}
@@ -712,6 +729,6 @@ public class ViewManager
 		userInterface.close();
 		// see also https://github.com/mobie/mobie-viewer-fiji/issues/857
 		IJ.log( "Clearing SpimData cache..." );
-		DataStore.clearSpimData();
+		DataStore.clearSpimDataCache();
 	}
 }

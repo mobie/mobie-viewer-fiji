@@ -42,7 +42,6 @@ import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.create.DatasetsCreator;
 import org.embl.mobie.lib.create.ImagesCreator;
 import org.embl.mobie.lib.create.ProjectCreator;

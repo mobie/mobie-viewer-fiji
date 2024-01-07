@@ -42,6 +42,7 @@ import net.imglib2.type.numeric.NumericType;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,7 +57,7 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	protected boolean invert; // FIXME add to spec
 
 	// Runtime
-	public transient ImageSliceView imageSliceView;
+	public transient ImageSliceView< ?> imageSliceView;
 	public transient ImageVolumeViewer imageVolumeViewer;
 
 	public ImageDisplay( String name, List< String > sources, String color, double[] contrastLimits )
@@ -74,42 +75,14 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		this.resolution3dView = resolution3dView;
 	}
 
-	public String getColor()
-	{
-		return color;
-	}
-
-	public double[] getContrastLimits()
-	{
-		return contrastLimits;
-	}
-
-	public boolean invert()
-	{
-		return invert;
-	}
-
-	@Override
-	public BlendingMode getBlendingMode()
-	{
-		return blendingMode != null ? blendingMode : BlendingMode.Sum;
-	}
-
-	public Double[] getResolution3dView() { return resolution3dView; }
-
-	public boolean showImagesIn3d()
-	{
-		return showImagesIn3d;
-	}
-
-	@Override
-	public List< String > getSources()
-	{
-		return sources;
-	}
-
 	// Gson deserialization
 	public ImageDisplay() {}
+
+	public ImageDisplay( String name, String sourceName )
+	{
+		this.name = name;
+		this.sources = Collections.singletonList( sourceName );
+	}
 
 	// Project creator serialization
 	public ImageDisplay( String name, double opacity, List< String > sources, String color, double[] contrastLimits, BlendingMode blendingMode, boolean showImagesIn3d ) {
@@ -151,7 +124,43 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		}
 	}
 
-	private void setDisplaySettings( SourceAndConverter< ? > sourceAndConverter )
+
+	public String getColor()
+	{
+		return color;
+	}
+
+	public double[] getContrastLimits()
+	{
+		return contrastLimits;
+	}
+
+	public boolean invert()
+	{
+		return invert;
+	}
+
+	@Override
+	public BlendingMode getBlendingMode()
+	{
+		return blendingMode != null ? blendingMode : BlendingMode.Sum;
+	}
+
+	public Double[] getResolution3dView() { return resolution3dView; }
+
+	public boolean showImagesIn3d()
+	{
+		return showImagesIn3d;
+	}
+
+	@Override
+	public List< String > getSources()
+	{
+		return sources;
+	}
+
+
+	public void setDisplaySettings( SourceAndConverter< ? > sourceAndConverter )
 	{
 		final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter );
 

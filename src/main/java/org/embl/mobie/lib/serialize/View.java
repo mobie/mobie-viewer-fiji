@@ -42,9 +42,6 @@ import java.util.Map;
 
 public class View
 {
-	// Static
-	public static transient String DEFAULT = "default";
-
 	// Serialisation (do not change names of fields!)
 	//
 	private String uiSelectionGroup;
@@ -55,24 +52,30 @@ public class View
 
 	private ViewerTransform viewerTransform;
 
-	private boolean isExclusive = false;
+	private Boolean isExclusive = null;
 
-	private String description = null; // TODO: make part of the spec
-
+	private String description; // TODO: make part of the spec
 
 	// Runtime
 	//
+	public static String DEFAULT = "default";
+
 	private transient String name;
 
 	private transient boolean overlayNames = false; // TODO add to JSON spec?
+
+	public View() // deserialization
+	{
+		if ( isExclusive == null ) isExclusive = false;
+	}
 
 	public View( String name,
 				 String uiSelectionGroup,
 				 List< Display< ? > > sourceDisplays,
 				 List< Transformation > sourceTransforms,
-				 @Nullable ViewerTransform viewerTransform,
+				 ViewerTransform viewerTransform,
 				 boolean isExclusive,
-				 @Nullable String description
+				 String description
 	) {
 		this.name = name;
 		this.uiSelectionGroup = uiSelectionGroup;
@@ -127,7 +130,7 @@ public class View
 		return sources;
 	}
 
-	public boolean isExclusive()
+	public Boolean isExclusive()
 	{
 		return isExclusive;
 	}
@@ -187,5 +190,25 @@ public class View
 	public String getDescription()
 	{
 		return description;
+	}
+
+	public void setViewerTransform( ViewerTransform viewerTransform )
+	{
+		this.viewerTransform = viewerTransform;
+	}
+
+	public void setExclusive( boolean exclusive )
+	{
+		isExclusive = exclusive;
+	}
+
+	public void setUiSelectionGroup( String uiSelectionGroup )
+	{
+		this.uiSelectionGroup = uiSelectionGroup;
+	}
+
+	public void setDescription( String description )
+	{
+		this.description = description;
 	}
 }

@@ -29,37 +29,45 @@
 package org.embl.mobie.lib.image;
 
 import bdv.tools.transformation.TransformedSource;
+import bdv.viewer.Source;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
+import org.embl.mobie.lib.image.DefaultSourcePair;
+import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.image.SourcePair;
 
-import javax.annotation.Nullable;
-
-public class DefaultImage< T > implements Image< T >
+public class AffineTransformedImage< T > implements Image< T >
 {
-	private final String name;
-	private final SourcePair< T > sourcePair;
-	private final TransformedSource< T > transformedSource;
-	private AffineTransform3D affineTransform3D;
+	protected final AffineTransform3D affineTransform3D;
+	protected final Image< T > image;
+	protected final String name;
 	private RealMaskRealInterval mask;
 
-	public DefaultImage( String name, SourcePair< T > sourcePair, @Nullable RealMaskRealInterval mask )
+	public AffineTransformedImage( Image< T > image, String name, AffineTransform3D affineTransform3D )
 	{
+		this.image = image;
 		this.name = name;
-		this.mask = mask;
+		this.affineTransform3D = affineTransform3D;
+	}
 
-		// Wrap into a transformed source to allow additional
-		// transformations.
-		affineTransform3D = new AffineTransform3D();
-		transformedSource = new TransformedSource<>( sourcePair.getSource() );
-		final TransformedSource< ? extends Volatile< T > > volatileTransformedSource = new TransformedSource<>( sourcePair.getVolatileSource(), transformedSource );
-		this.sourcePair = new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
+	public AffineTransform3D getAffineTransform3D()
+	{
+		return affineTransform3D;
 	}
 
 	@Override
-	public SourcePair< T > getSourcePair()
+	public synchronized SourcePair< T > getSourcePair()
 	{
-		return sourcePair;
+		final SourcePair< T > sourcePair = image.getSourcePair();
+		final Source< T > source = sourcePair.getSource();
+		final Source< ? extends Volatile< T > > volatileSource = sourcePair.getVolatileSource();
+
+		final TransformedSource< T > transformedSource = new TransformedSource<>( source, name );
+		transformedSource.setFixedTransform( affineTransform3D );
+		final TransformedSource< ? extends Volatile< T > > volatileTransformedSource = new TransformedSource<>( volatileSource, transformedSource );
+
+		return new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
 	}
 
 	@Override
@@ -71,27 +79,16 @@ public class DefaultImage< T > implements Image< T >
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		// FIXME: This should probably be the same code as in SpimDataImage
-		//   Probably they (and maybe other image implementations)
-		//   should inherit from an AbstractImage
-		if ( mask != null )
-		{
-			// The mask contains potential previous transforms already,
-			// thus we add the new transform on top.
-			mask = mask.transform( affineTransform3D.inverse() );
-		}
-
 		this.affineTransform3D.preConcatenate( affineTransform3D );
-		transformedSource.setFixedTransform( this.affineTransform3D );
-
-		for ( ImageListener listener : listeners.list )
-			listener.imageChanged();
 	}
 
 	@Override
-	public RealMaskRealInterval getMask()
+	public RealMaskRealInterval getMask( )
 	{
-		return mask;
+		if ( mask == null )
+			return image.getMask().transform( affineTransform3D.inverse() );
+		else
+			return mask;
 	}
 
 	@Override
