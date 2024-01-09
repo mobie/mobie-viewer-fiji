@@ -41,14 +41,15 @@ public enum HCSPattern
 	IncuCyte,
 	IncuCyteRaw,
 	InCell, // https://github.com/embl-cba/plateviewer/issues/45
-	MolecularDevices;
+	MolecularDevices,
+	Moritz;
 
 	public static final String WELL = "W";
 	public static final String SITE = "S";
 	public static final String CHANNEL = "C";
 
-	public static final String T = "T";
-	public static final String Z = "Z";
+	public static final String TIME = "T";
+	public static final String SLICE = "Z";
 
 	/*
 	example:
@@ -70,14 +71,14 @@ public enum HCSPattern
 	MiaPaCa2-PhaseOriginal_A2_1_03d06h40m.tif
 	well = A2, site = 1, frame = 03d06h40m
 	 */
-	private static final String INCUCYTE = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{1,2})_(?<"+SITE+">[0-9]{1,2})_(?<"+ T +">[0-9]{2}d[0-9]{2}h[0-9]{2}m).tif$";
+	private static final String INCUCYTE = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{1,2})_(?<"+SITE+">[0-9]{1,2})_(?<"+TIME+">[0-9]{2}d[0-9]{2}h[0-9]{2}m).tif$";
 
 	/*
 	example:
 	B3-3-C2.tif
 	well = B3, site = 3, channel = C2
 	 */
-	private static final String INCUCYTE_RAW = ".*[/\\\\](?<"+T+">\\d+)[/\\\\]\\d+[/\\\\](?<"+WELL+">[A-Z]{1}[0-9]{1,2})-(?<"+SITE+">[0-9]{1,2})-(?<"+CHANNEL+">.*).tif$";
+	private static final String INCUCYTE_RAW = ".*[/\\\\](?<"+ TIME +">\\d+)[/\\\\]\\d+[/\\\\](?<"+WELL+">[A-Z]{1}[0-9]{1,2})-(?<"+SITE+">[0-9]{1,2})-(?<"+CHANNEL+">.*).tif$";
 
 
 	/*
@@ -87,7 +88,7 @@ public enum HCSPattern
 	Plate10x4sites_A01_s1_w1.TIF
 	well = A01, site = 1, channel = 1
 	 */
-	private static final String MOLDEV_WELL_SITE_CHANNEL = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">.*)_w(?<"+CHANNEL+">[0-9])[^_thumb].*";
+	private static final String MOLDEV = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">.*)_w(?<"+CHANNEL+">[0-9])[^_thumb].*";
 
 
 	/*
@@ -95,8 +96,16 @@ public enum HCSPattern
 	A - 01(fld 1 wv Green - dsRed z 3).tif
 	well = A - 01, site = 1, channel = 1
  	*/
+	public static final String INCELL = ".*(?<"+WELL+">[A-Z]{1} - [0-9]{2})\\(fld (?<"+SITE+">[0-9]{1}) (?<"+CHANNEL+">.*)\\).tif";
 
-	public static final String INCELL_WELL_SITE_CHANNEL = ".*(?<"+WELL+">[A-Z]{1} - [0-9]{2})\\(fld (?<"+SITE+">[0-9]{1}) (?<"+CHANNEL+">.*)\\).tif";
+
+	/*
+	example:
+	W0018F0001T0001Z001C1.tif
+	well = A - 01, site = 1, channel = 1
+	 */
+	public static final String MORITZ = ".*[/\\\\]W(?<"+WELL+">[0-9]+)F(?<"+SITE+">[0-9]+)T(?<"+TIME+">[0-9]+)(?<"+SLICE+">Z[0-9]+)C(?<"+CHANNEL+">[0-9]+).tif";
+
 
 	private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -131,11 +140,13 @@ public enum HCSPattern
 			case Operetta:
 				return Pattern.compile( OPERETTA ).matcher( path );
 			case MolecularDevices:
-				return Pattern.compile( MOLDEV_WELL_SITE_CHANNEL ).matcher( path );
+				return Pattern.compile( MOLDEV ).matcher( path );
 			case InCell:
-				return Pattern.compile( INCELL_WELL_SITE_CHANNEL ).matcher( path );
+				return Pattern.compile( INCELL ).matcher( path );
 			case IncuCyteRaw:
 				return Pattern.compile( INCUCYTE_RAW ).matcher( path );
+			case Moritz:
+				return Pattern.compile( MORITZ ).matcher( path );
 			default:
 			case IncuCyte:
 				return Pattern.compile( INCUCYTE ).matcher( path );
@@ -272,7 +283,7 @@ public enum HCSPattern
 	public String getT()
 	{
 		if ( hasT() )
-			return matcher.group( HCSPattern.T );
+			return matcher.group( HCSPattern.TIME );
 		else
 			return "1";
 	}
@@ -280,7 +291,7 @@ public enum HCSPattern
 	public String getZ()
 	{
 		if ( hasZ() )
-			return matcher.group( HCSPattern.T );
+			return matcher.group( HCSPattern.TIME );
 		else
 			return "1";
 	}
