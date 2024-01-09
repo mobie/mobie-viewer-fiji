@@ -31,6 +31,7 @@ package org.embl.mobie.command.context;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.CompositeImage;
 import ij.IJ;
@@ -48,7 +49,9 @@ import org.embl.mobie.lib.bdv.ScreenShotMaker;
 import org.embl.mobie.lib.align.SIFT2DAligner;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
+import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
+import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.source.RealTransformedSource;
 import org.embl.mobie.lib.transform.Interpolated3DAffineRealTransform;
 import org.scijava.Initializable;
@@ -296,10 +299,8 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 		else
 		{
 			// show it (again)
-			double zVoxelSpacing = movingSac.getSpimSource().getVoxelDimensions().dimension( 2 );
 			AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( movingSac.getSpimSource(), 0, 0 );
-			Interpolated3DAffineRealTransform interpolatedTransform = new Interpolated3DAffineRealTransform( sourceTransform );
-			interpolatedTransform.setCachePrecision( zVoxelSpacing );
+			Interpolated3DAffineRealTransform interpolatedTransform = new Interpolated3DAffineRealTransform( sourceTransform.inverse() );
 			interpolatedTransform.addTransforms( transforms );
 
 			RealTransformedSource< ? > realTransformedSource = new RealTransformedSource<>(
@@ -318,13 +319,22 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 
 	private void saveInterpolatedAffineImage()
 	{
-		String transformedImageName = movingSac.getSpimSource().getName() + "_iat";
-		InterpolatedAffineTransformation< ? > transformation = new InterpolatedAffineTransformation<>(
+		Source< ? > source = movingSac.getSpimSource();
+		AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( source, 0, 0 );
+
+		ArrayList< Transformation > transformations = new ArrayList<>();
+		AffineTransformation< Object > affineTransformation = new AffineTransformation<>( source.getName() + "_affine", sourceTransform, Collections.singletonList( source.getName() ) );
+		transformations.add( affineTransformation );
+
+		String transformedImageName = source.getName() + "_iat";
+		InterpolatedAffineTransformation< ? > interpolatedAffineTransformation = new InterpolatedAffineTransformation<>(
 				transforms,
-				movingSac.getSpimSource().getVoxelDimensions().dimension( 2 ),
+				source.getVoxelDimensions().dimension( 2 ),
 				movingImageName, // the existing to be transformed image data source
 				transformedImageName
 				);
+		transformations.add( interpolatedAffineTransformation );
+
 		ImageDisplay< ? > imageDisplay = new ImageDisplay<>( transformedImageName, transformedImageName );
 		imageDisplay.setDisplaySettings( movingSac );
 
@@ -332,10 +342,10 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 				transformedImageName,
 				null,
 				Collections.singletonList( imageDisplay ),
-				Collections.singletonList( transformation ),
+				transformations,
 				null,
 				false,
-				"Interpolated affine transformation of " + movingSac.getSpimSource().getName() );
+				"Interpolated affine transformation of " + source.getName() );
 
 		MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view );
 	}

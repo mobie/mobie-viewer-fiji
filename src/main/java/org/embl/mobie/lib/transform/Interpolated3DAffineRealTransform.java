@@ -14,19 +14,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class Interpolated3DAffineRealTransform implements RealTransform {
     private final AffineTransform3D globalToSource;
-    private TreeMap<Double, double[]> transforms = new TreeMap<>();
-    private Double cachePrecision;
-    private transient final Map<Double, AffineTransform3D> cache = new ConcurrentHashMap<>();
+    private TreeMap<Double, double[]> transforms;
+    private transient final Map<Integer, AffineTransform3D> cache;
 
-    public Interpolated3DAffineRealTransform( AffineTransform3D sourceTransform ) {
-        // needed to know to which z-position in the source the given global position corresponds
-        // which is the position that is referred to in the {@code transforms}
-        this.globalToSource = sourceTransform.inverse();
-    }
-
-    public void setCachePrecision( Double cachePrecision )
-    {
-        this.cachePrecision = cachePrecision;
+    public Interpolated3DAffineRealTransform( AffineTransform3D globalToSource ) {
+        // globalToSource is needed to know which z-position in the source corresponds
+        // to the given global position in the {@code apply( ... )} method
+        // because the z-position in the source is the key in the {@code transforms}
+        this.globalToSource = globalToSource;
+        transforms = new TreeMap<>();
+        cache = new ConcurrentHashMap<>();
     }
 
     public void addTransform( double z, double[] transform ) {
@@ -52,10 +49,9 @@ public class Interpolated3DAffineRealTransform implements RealTransform {
     Interpolates the stored transformations along the z coordinate of the source.
      */
     @Override
-    public void apply(double[] source, double[] target) {
+    public void apply( double[] source, double[] target ) {
         if (transforms.isEmpty()) throw new IllegalStateException("No transforms added.");
-        final double[] voxelPositionInSource = new double[ 3 ];
-        globalToSource.apply( source, voxelPositionInSource );
+        final double[] voxelPositionInSource = getVoxelPositionInSource( source );
         final AffineTransform3D interpolatedTransform = getInterpolatedTransform( voxelPositionInSource[2] );
         interpolatedTransform.apply(source, target);
     }
@@ -64,17 +60,28 @@ public class Interpolated3DAffineRealTransform implements RealTransform {
     public void apply( RealLocalizable source, RealPositionable target )
     {
         if (transforms.isEmpty()) throw new IllegalStateException("No transforms added.");
-        final AffineTransform3D interpolatedTransform = getInterpolatedTransform( source.getDoublePosition(2 ) );
+        final double[] voxelPositionInSource = getVoxelPositionInSource( source.positionAsDoubleArray() );
+        final AffineTransform3D interpolatedTransform = getInterpolatedTransform( voxelPositionInSource[ 2 ] );
         interpolatedTransform.apply(source, target);
     }
 
+    @NotNull
+    private double[] getVoxelPositionInSource( double[] source )
+    {
+        final double[] voxelPositionInSource = new double[ 3 ];
+        globalToSource.apply( source, voxelPositionInSource );
+        return voxelPositionInSource;
+    }
+
     @Override
-    public RealTransform copy() {
-        Interpolated3DAffineRealTransform copy = new Interpolated3DAffineRealTransform( globalToSource );
+    public RealTransform copy()
+    {
+        Interpolated3DAffineRealTransform copy = new Interpolated3DAffineRealTransform( globalToSource.copy() );
         for (Entry<Double, double[]> entry : transforms.entrySet())
         {
             copy.addTransform( entry.getKey(), entry.getValue() );
         }
+
         return copy;
     }
 
@@ -84,17 +91,9 @@ public class Interpolated3DAffineRealTransform implements RealTransform {
         return false;
     }
 
-    private AffineTransform3D getInterpolatedTransform( double z ) {
-
-        if ( cachePrecision != null )
-        {
-            double cacheKey = Math.round(z / cachePrecision ) * cachePrecision;
-            return cache.computeIfAbsent(cacheKey, k -> computeInterpolatedAffineTransform3D( z ) );
-        }
-        else
-        {
-            return computeInterpolatedAffineTransform3D( z );
-        }
+    private AffineTransform3D getInterpolatedTransform( double z )
+    {
+        return cache.computeIfAbsent( (int) z, k -> computeInterpolatedAffineTransform3D( z ) );
     }
 
     @NotNull
@@ -111,7 +110,8 @@ public class Interpolated3DAffineRealTransform implements RealTransform {
             else
                 affineTransform3D.set( ceil.getValue() );
             return affineTransform3D;
-        } else
+        }
+        else
         {
             double t = ( z - floor.getKey() ) / ( ceil.getKey() - floor.getKey() );
             return interpolateTransforms( floor.getValue(), ceil.getValue(), t );
@@ -139,20 +139,6 @@ public class Interpolated3DAffineRealTransform implements RealTransform {
     public TreeMap< Double, double[] > getTransforms()
     {
         return transforms;
-    }
-
-    public Double getCachePrecision()
-    {
-        return cachePrecision;
-    }
-
-    public static void main( String[] args )
-    {
-        Interpolated3DAffineRealTransform transform = new Interpolated3DAffineRealTransform( globalToSource );
-        transform.setCachePrecision( 1.0 );
-        transform.addTransform( 1.0, new double[]{1.0,2.0,3.0} );
-        transform.addTransform( 2.0, new double[]{2.0,3.0,3.0} );
-        System.out.printf( transform.toJSON() );
     }
 
 }
