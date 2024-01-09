@@ -104,7 +104,7 @@ public enum HCSPattern
 	W0018F0001T0001Z001C1.tif
 	well = A - 01, site = 1, channel = 1
 	 */
-	public static final String MORITZ = ".*[/\\\\]W(?<"+WELL+">[0-9]+)F(?<"+SITE+">[0-9]+)T(?<"+TIME+">[0-9]+)(?<"+SLICE+">Z[0-9]+)C(?<"+CHANNEL+">[0-9]+).tif";
+	public static final String MORITZ = ".*W(?<"+WELL+">[0-9]+)F(?<"+SITE+">[0-9]+)T(?<"+TIME+">[0-9]+)(?<"+SLICE+">Z[0-9]+)C(?<"+CHANNEL+">[0-9]+).tif";
 
 
 	private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -173,6 +173,8 @@ public enum HCSPattern
 				return decodeOperettaWellPosition( well );
 			case InCell:
 				return decodeInCellWellPosition( well );
+			case Moritz:
+				return decodeMoritzWellPosition( well );
 			default:
 				return decodeA01WellPosition( well );
 		}
@@ -184,6 +186,17 @@ public enum HCSPattern
 		matcher.matches();
 		final int x = Integer.parseInt( matcher.group( "col" ) ) - 1;
 		final int y = ALPHABET.indexOf( matcher.group("row") );
+		return new int[]{ x, y };
+	}
+
+	private static int[] decodeMoritzWellPosition( String well )
+	{
+		final int wellIndex = Integer.parseInt( well );
+		final int numColumns = 12;
+		// FIXME: do we have to subtract 1?
+		// FIXME: where to get the number of columns from?
+		final int x = wellIndex / numColumns;
+		final int y = wellIndex % numColumns;
 		return new int[]{ x, y };
 	}
 
@@ -223,8 +236,6 @@ public enum HCSPattern
 			case IncuCyteRaw:
 				return true;
 			default:
-			case OMEZarr:
-			case IncuCyte:
 				return false;
 		}
 	}
@@ -239,8 +250,6 @@ public enum HCSPattern
 			case InCell:
 				return false;
 			default:
-			case IncuCyteRaw:
-			case IncuCyte:
 				return true;
 		}
 	}
@@ -249,6 +258,8 @@ public enum HCSPattern
 	{
 		switch ( this )
 		{
+			case Moritz:
+				return true;
 			default:
 				return false;
 		}
