@@ -195,8 +195,8 @@ public enum HCSPattern
 		final int numColumns = 12;
 		// FIXME: do we have to subtract 1?
 		// FIXME: where to get the number of columns from?
-		final int x = wellIndex / numColumns;
-		final int y = wellIndex % numColumns;
+		final int x = wellIndex % numColumns;
+		final int y = wellIndex / numColumns;
 		return new int[]{ x, y };
 	}
 
