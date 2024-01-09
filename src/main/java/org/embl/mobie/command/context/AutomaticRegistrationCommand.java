@@ -63,6 +63,8 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getWindowCentreInPixelUnits;
+
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Automatic 2D/3D")
 public class AutomaticRegistrationCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Interactive, Initializable
 {
@@ -250,13 +252,29 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 
 	private void append()
 	{
-		double[] windowCentre = BdvHandleHelper.getWindowCentreInCalibratedUnits( bdvHandle );
-		transforms.put( windowCentre[ 2 ], alignmentTransform.inverse().getRowPackedCopy() );
+		AffineTransform3D globalToSource = BdvHandleHelper.getSourceTransform( movingSac.getSpimSource(), 0, 0 ).inverse();
+		double[] sourceVoxels = new double[ 3 ];
+
+		final AffineTransform3D viewerTransform = new AffineTransform3D();
+		bdvHandle.getViewerPanel().state().getViewerTransform(viewerTransform);
+		double[] canvasVoxels = getWindowCentreInPixelUnits(bdvHandle);
+		double[] canvasCalibrated = new double[3];
+
+		viewerTransform.inverse().apply( canvasVoxels, canvasCalibrated );
+		globalToSource.apply( canvasCalibrated, sourceVoxels );
+		System.out.println( Arrays.toString( sourceVoxels ));
+
+		canvasVoxels[0] -= 500;
+		viewerTransform.inverse().apply( canvasVoxels, canvasCalibrated );
+		globalToSource.apply( canvasCalibrated, sourceVoxels );
+		System.out.println( Arrays.toString( sourceVoxels ));
+
+		transforms.put( sourceVoxels[ 2 ], alignmentTransform.inverse().getRowPackedCopy() );
 		IJ.log( "Transformation Stack:" );
 		Set< Map.Entry< Double, double[] > > entries = transforms.entrySet();
 		for ( Map.Entry< Double, double[] > entry : entries ) {
-			IJ.log( "z pos: " + MoBIEHelper.print( entry.getKey(), 3 )
-					+ "\n  transform: " + MoBIEHelper.print( entry.getValue(), 3 ) );
+			IJ.log( "Z position in source stack: " + MoBIEHelper.print( entry.getKey(), 3 )
+					+ "\n  Transform: " + MoBIEHelper.print( entry.getValue(), 3 ) );
 		}
 	}
 
@@ -279,12 +297,13 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 		{
 			// show it (again)
 			double zVoxelSpacing = movingSac.getSpimSource().getVoxelDimensions().dimension( 2 );
-			Interpolated3DAffineRealTransform interpolatedTransform = new Interpolated3DAffineRealTransform();
+			AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( movingSac.getSpimSource(), 0, 0 );
+			Interpolated3DAffineRealTransform interpolatedTransform = new Interpolated3DAffineRealTransform( sourceTransform );
 			interpolatedTransform.setCachePrecision( zVoxelSpacing );
 			interpolatedTransform.addTransforms( transforms );
 
 			RealTransformedSource< ? > realTransformedSource = new RealTransformedSource<>(
-					movingSac.getSpimSource(),
+					movingSac.asVolatile().getSpimSource(),
 					interpolatedTransform,
 					movingSac.getSpimSource().getName() + "_iat" // iat = interpolated affine transformed
 			);

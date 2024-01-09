@@ -33,7 +33,6 @@ import bdv.viewer.Source;
 import bdv.viewer.render.DefaultMipmapOrdering;
 import bdv.viewer.render.MipmapOrdering;
 import mpicbg.spim.data.sequence.VoxelDimensions;
-import net.imglib2.FinalRealInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
@@ -52,16 +51,16 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
 
     private final MipmapOrdering sourceMipmapOrdering;
 
-    private final RealTransform transform;
+    private final RealTransform realTransform;
 
     public RealTransformedSource(
             final Source<T> source,
-            final RealTransform transform,
+            final RealTransform realTransform,
             final String name) {
 
         this.source = source;
         this.name = name;
-        this.transform = transform;
+        this.realTransform = realTransform;
         sourceMipmapOrdering =
                 MipmapOrdering.class.isInstance(source) ?
                         (MipmapOrdering)source : new DefaultMipmapOrdering(source);
@@ -102,9 +101,13 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
 
         final AffineTransform3D affine = new AffineTransform3D();
         source.getSourceTransform( t, level, affine );
-        final RealRandomAccessible< T > srcRaTransformed = RealViews.affineReal(source.getInterpolatedSource(t, level, method), affine);
+        RealRandomAccessible< T > interpolatedSource = source.getInterpolatedSource( t, level, method );
 
-        return new RealTransformRealRandomAccessible<>(srcRaTransformed, transform);
+        // This is the source already in real space
+        final RealRandomAccessible< T > srcRaTransformed = RealViews.affineReal( interpolatedSource, affine );
+
+        // On top of this we apply the {@code realTransform}
+        return new RealTransformRealRandomAccessible<>( srcRaTransformed, realTransform );
     }
 
     @Override

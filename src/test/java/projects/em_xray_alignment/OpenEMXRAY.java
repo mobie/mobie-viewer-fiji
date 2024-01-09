@@ -14,7 +14,7 @@ public class OpenEMXRAY
 //        OpenerLogging.setLogging( true );
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        MoBIESettings settings = new MoBIESettings().view( "em-xray-manual" );
+        MoBIESettings settings = new MoBIESettings().view( "em-xray-bigwarp" );
         new MoBIE("/Volumes/cba/exchange/em-xray-alignment/mobie", settings );
     }
 }

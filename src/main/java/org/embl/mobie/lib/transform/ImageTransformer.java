@@ -38,6 +38,7 @@ import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.TimepointsTransformation;
 import org.embl.mobie.lib.table.AnnData;
+import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -92,7 +93,8 @@ public class ImageTransformer
 	{
 		String transformedImageName = transformation.getTransformedImageName( image.getName() );
 
-		Interpolated3DAffineRealTransform interpolatedTransform = new Interpolated3DAffineRealTransform();
+		AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( image.getSourcePair().getSource(), 0, 0 );
+		Interpolated3DAffineRealTransform interpolatedTransform = new Interpolated3DAffineRealTransform( sourceTransform );
 		interpolatedTransform.setCachePrecision( transformation.getPrecision() );
 		interpolatedTransform.addTransforms( transformation.getTransforms() );
 

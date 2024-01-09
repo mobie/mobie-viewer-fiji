@@ -117,6 +117,8 @@ public class ViewSaver
             gd.addStringField( "View description:", description, 50 );
         }
 
+        // FIXME: If one overwrites an existing view it should not be necessary to ask for the UI selection group
+        //        One should rather fetch it from the view that is to be overwritten.
         String[] currentUiSelectionGroups = moBIE.getUserInterface().getUISelectionGroupNames();
         String[] choices = new String[currentUiSelectionGroups.length + 1];
         choices[0] = "Make New Ui Selection Group";

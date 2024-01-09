@@ -13,11 +13,15 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Interpolated3DAffineRealTransform implements RealTransform {
+    private final AffineTransform3D globalToSource;
     private TreeMap<Double, double[]> transforms = new TreeMap<>();
     private Double cachePrecision;
     private transient final Map<Double, AffineTransform3D> cache = new ConcurrentHashMap<>();
 
-    public Interpolated3DAffineRealTransform( ) {
+    public Interpolated3DAffineRealTransform( AffineTransform3D sourceTransform ) {
+        // needed to know to which z-position in the source the given global position corresponds
+        // which is the position that is referred to in the {@code transforms}
+        this.globalToSource = sourceTransform.inverse();
     }
 
     public void setCachePrecision( Double cachePrecision )
@@ -50,7 +54,9 @@ public class Interpolated3DAffineRealTransform implements RealTransform {
     @Override
     public void apply(double[] source, double[] target) {
         if (transforms.isEmpty()) throw new IllegalStateException("No transforms added.");
-        final AffineTransform3D interpolatedTransform = getInterpolatedTransform( source[2] );
+        final double[] voxelPositionInSource = new double[ 3 ];
+        globalToSource.apply( source, voxelPositionInSource );
+        final AffineTransform3D interpolatedTransform = getInterpolatedTransform( voxelPositionInSource[2] );
         interpolatedTransform.apply(source, target);
     }
 
@@ -64,7 +70,7 @@ public class Interpolated3DAffineRealTransform implements RealTransform {
 
     @Override
     public RealTransform copy() {
-        Interpolated3DAffineRealTransform copy = new Interpolated3DAffineRealTransform();
+        Interpolated3DAffineRealTransform copy = new Interpolated3DAffineRealTransform( globalToSource );
         for (Entry<Double, double[]> entry : transforms.entrySet())
         {
             copy.addTransform( entry.getKey(), entry.getValue() );
@@ -142,7 +148,7 @@ public class Interpolated3DAffineRealTransform implements RealTransform {
 
     public static void main( String[] args )
     {
-        Interpolated3DAffineRealTransform transform = new Interpolated3DAffineRealTransform();
+        Interpolated3DAffineRealTransform transform = new Interpolated3DAffineRealTransform( globalToSource );
         transform.setCachePrecision( 1.0 );
         transform.addTransform( 1.0, new double[]{1.0,2.0,3.0} );
         transform.addTransform( 2.0, new double[]{2.0,3.0,3.0} );
