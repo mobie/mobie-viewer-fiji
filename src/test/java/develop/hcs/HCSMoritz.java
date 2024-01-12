@@ -19,6 +19,8 @@ public class HCSMoritz
         // - What are the time lines? I cannot really commit to delivery dates...
         // TODO:
         // - Replace the name of the HCSPattern: Moritz -> real name
+        // - Create a GitLab repo with python code
+        //    - Add conda env and instructions (astrocyte-diff could be good starting point)
 
         new ImageJ().ui().showUI();
         new MoBIE( "/Users/tischer/Desktop/moritz/CQ1_testfiles",
