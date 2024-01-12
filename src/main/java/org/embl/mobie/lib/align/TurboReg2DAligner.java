@@ -3,22 +3,20 @@ package org.embl.mobie.lib.align;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.io.FileSaver;
-import mpicbg.imagefeatures.Feature;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.context.AutomaticRegistrationCommand;
+import org.embl.mobie.lib.transform.Transform;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
 public class TurboReg2DAligner
 {
     private final ImagePlus source;
     private final ImagePlus target;
-    private final String transformationType;
+    private final Transform transformationType;
     private double[][] transformationMatrix;
 
-    public TurboReg2DAligner( ImagePlus source, ImagePlus target, String transformationType )
+    public TurboReg2DAligner( ImagePlus source, ImagePlus target, Transform transformationType )
     {
         this.source = source;
         this.target = target;
@@ -42,7 +40,7 @@ public class TurboReg2DAligner
         Object turboReg;
         Method method;
         switch (transformationType) {
-            case AutomaticRegistrationCommand.TRANSLATION: {
+            case Translation: {
                 turboReg = IJ.runPlugIn("TurboReg_", "-align"
                         + " -file " + sourcePathAndFileName
                         + " 0 0 " + (width - 1) + " " + (height - 1)
@@ -55,7 +53,7 @@ public class TurboReg2DAligner
                 );
                 break;
             }
-            case AutomaticRegistrationCommand.RIGID: {
+            case Rigid: {
                 turboReg = IJ.runPlugIn("TurboReg_", "-align"
                         + " -file " + sourcePathAndFileName
                         + " 0 0 " + (width - 1) + " " + (height - 1)
@@ -72,7 +70,7 @@ public class TurboReg2DAligner
                 );
                 break;
             }
-            case AutomaticRegistrationCommand.SIMILARITY: {
+            case Similarity: {
                 turboReg = IJ.runPlugIn("TurboReg_", "-align"
                         + " -file " + sourcePathAndFileName
                         + " 0 0 " + (width - 1) + " " + (height - 1)
@@ -87,7 +85,7 @@ public class TurboReg2DAligner
                 );
                 break;
             }
-            case AutomaticRegistrationCommand.AFFINE: {
+            case Affine: {
                 turboReg = IJ.runPlugIn("TurboReg_", "-align"
                         + " -file " + sourcePathAndFileName
                         + " 0 0 " + (width - 1) + " " + (height - 1)
@@ -128,7 +126,7 @@ public class TurboReg2DAligner
 
     // Code copied and slightly adapted from
     // https://github.com/fiji-BIG/StackReg/blob/master/src/main/java/StackReg_.java#L1021C1-L1104C20
-    private double[][] getTransformationMatrix(double[][] fromCoord, double[][] toCoord, String transformation) {
+    private double[][] getTransformationMatrix( double[][] fromCoord, double[][] toCoord, Transform transformation) {
         double[][] matrix;
         matrix = new double[3][3];
         double[][] a;
@@ -137,7 +135,7 @@ public class TurboReg2DAligner
         int j;
         label81:
         switch (transformation) {
-            case AutomaticRegistrationCommand.TRANSLATION:
+            case Translation:
                 matrix[0][0] = 1.0;
                 matrix[0][1] = 0.0;
                 matrix[0][2] = toCoord[0][0] - fromCoord[0][0];
@@ -145,7 +143,7 @@ public class TurboReg2DAligner
                 matrix[1][1] = 1.0;
                 matrix[1][2] = toCoord[0][1] - fromCoord[0][1];
                 break;
-            case AutomaticRegistrationCommand.RIGID:
+            case Rigid:
                 double angle = Math.atan2(fromCoord[2][0] - fromCoord[1][0], fromCoord[2][1] - fromCoord[1][1]) - Math.atan2(toCoord[2][0] - toCoord[1][0], toCoord[2][1] - toCoord[1][1]);
                 double c = Math.cos(angle);
                 double s = Math.sin(angle);
@@ -156,7 +154,7 @@ public class TurboReg2DAligner
                 matrix[1][1] = c;
                 matrix[1][2] = toCoord[0][1] - s * fromCoord[0][0] - c * fromCoord[0][1];
                 break;
-            case AutomaticRegistrationCommand.SIMILARITY:
+            case Similarity:
                 a = new double[3][3];
                 v = new double[3];
                 a[0][0] = fromCoord[0][0];
@@ -199,7 +197,7 @@ public class TurboReg2DAligner
 
                     ++i;
                 }
-            case AutomaticRegistrationCommand.AFFINE:
+            case Affine:
                 a = new double[3][3];
                 v = new double[3];
                 a[0][0] = fromCoord[0][0];

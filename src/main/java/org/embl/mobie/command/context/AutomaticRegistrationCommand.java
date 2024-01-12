@@ -39,6 +39,7 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.Roi;
 import ij.process.ImageConverter;
+import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.MoBIE;
@@ -54,6 +55,7 @@ import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformat
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.source.RealTransformedSource;
 import org.embl.mobie.lib.transform.Interpolated3DAffineRealTransform;
+import org.embl.mobie.lib.transform.Transform;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
 import org.scijava.command.Interactive;
@@ -71,11 +73,6 @@ import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getWindowCentreInPixelUnits;
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Automatic 2D/3D")
 public class AutomaticRegistrationCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Interactive, Initializable
 {
-	// TODO: create enum for this!
-	public static final String TRANSLATION = "Translation";
-	public static final String RIGID = "Rigid";
-	public static final String SIMILARITY = "Similarity";
-	public static final String AFFINE = "Affine";
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -88,8 +85,8 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 	@Parameter(label="Registration Voxel Size", persist = false, min = "0.0", style="format:#.00000")
 	public Double voxelSize = 1D;
 
-	@Parameter ( label = "Transformation", choices = { TRANSLATION, RIGID, SIMILARITY, AFFINE } )
-	private String transformationType = TRANSLATION;
+	@Parameter ( label = "Transformation" )
+	private Transform transformationType = Transform.Affine;
 
 	@Parameter ( label = "Fixed Image", choices = {""} )
 	private String fixedImageName;
@@ -103,14 +100,14 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 	@Parameter ( label = "Show Intermediate Images" )
 	private Boolean showIntermediates = false;
 
-	@Parameter ( label = "(Un)apply Transformation", callback = "apply")
-	private Button apply;
+	@Parameter ( label = "Apply Transformation", callback = "apply")
+	private Boolean apply = false;
 
 	@Parameter ( label = "Append Transformation to Stack", callback = "append")
 	private Button append;
 
-	@Parameter ( label = "(Un)apply Stack Transformation", callback = "showInterpolatedAffineImage" )
-	private Button showInterpolatedAffineImage;
+	@Parameter ( label = "Preview Stack Transformed Image", callback = "showInterpolatedAffineImage" )
+	private Boolean showInterpolatedAffineImage = false;
 
 	@Parameter ( label = "Save Stack Transformed Image", callback = "saveInterpolatedAffineImage" )
 	private Button saveInterpolatedAffineImage;
@@ -120,8 +117,6 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 	private final TreeMap< Double, double[] > transforms = new TreeMap<>();
 	private SourceAndConverter< ? > interpolatedTransformsSac;
 	private SourceAndConverter< ? > movingSac;
-	private boolean isSingleAligned;
-	private boolean isMultipleAligned;
 
 
 	@Override
@@ -155,7 +150,13 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 	@Override
 	public void run()
 	{
-		//
+		removeInterpolatedPreview();
+	}
+
+	@Override
+	public void cancel()
+	{
+		removeInterpolatedPreview();
 	}
 
 	private void compute()
@@ -239,18 +240,18 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 		if ( alignmentTransform == null )
 		{
 			IJ.showMessage( "Please first [ Compute Alignment ]." );
+			apply = false;
 			return;
 		}
 
-		if ( isSingleAligned ) {
-			DataStore.sourceToImage().get( movingSac ).transform( alignmentTransform.inverse() );
+		if ( apply ) {
+			DataStore.sourceToImage().get( movingSac ).transform( alignmentTransform );
 		}
 		else {
-			DataStore.sourceToImage().get( movingSac ).transform( alignmentTransform );
+			DataStore.sourceToImage().get( movingSac ).transform( alignmentTransform.inverse() );
 		}
 
 		bdvHandle.getViewerPanel().requestRepaint();
-		isSingleAligned = !isSingleAligned;
 	}
 
 	private void append()
@@ -285,20 +286,15 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 	{
 		if ( transforms.size() < 2 )
 		{
-			IJ.showMessage( "[ Append Current Single Transformation ] at least at two different z positions." );
+			IJ.showMessage( "Please append transformations for at least at two different z positions." );
+			showInterpolatedAffineImage = false;
 			return;
 		}
 
-		if ( interpolatedTransformsSac != null )
-			bdvHandle.getViewerPanel().state().removeSource( interpolatedTransformsSac );
+		removeInterpolatedPreview();
 
-		if ( isMultipleAligned )
+		if( showInterpolatedAffineImage )
 		{
-			// nothing to do as the interpolatedTransformsSac has been remove above.
-		}
-		else
-		{
-			// show it (again)
 			AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( movingSac.getSpimSource(), 0, 0 );
 			Interpolated3DAffineRealTransform interpolatedTransform = new Interpolated3DAffineRealTransform( sourceTransform.inverse() );
 			interpolatedTransform.addTransforms( transforms );
@@ -312,9 +308,18 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 			interpolatedTransformsSac = BdvFunctions.show(
 							realTransformedSource,
 							BdvOptions.options().addTo( bdvHandle ) ).getSources().get( 0 );
-		}
 
-		isMultipleAligned = ! isMultipleAligned;
+			if ( movingSac.getConverter() instanceof ColorConverter &&
+					interpolatedTransformsSac.getConverter() instanceof ColorConverter )
+			{
+				ColorConverter newConverter = ( ColorConverter ) interpolatedTransformsSac.getConverter();
+				ColorConverter oldConverter = ( ColorConverter ) movingSac.getConverter();
+				newConverter.setColor( oldConverter.getColor() );
+				newConverter.setMin( oldConverter.getMin() );
+				newConverter.setMax( oldConverter.getMax() );
+			}
+
+		}
 	}
 
 	private void saveInterpolatedAffineImage()
@@ -348,5 +353,13 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 				"Interpolated affine transformation of " + source.getName() );
 
 		MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view );
+
+		removeInterpolatedPreview();
+	}
+
+	private void removeInterpolatedPreview()
+	{
+		if ( interpolatedTransformsSac != null )
+			bdvHandle.getViewerPanel().state().removeSource( interpolatedTransformsSac );
 	}
 }

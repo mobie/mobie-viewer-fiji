@@ -17,6 +17,7 @@ import mpicbg.imagefeatures.FloatArray2DSIFT;
 import mpicbg.models.*;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.context.AutomaticRegistrationCommand;
+import org.embl.mobie.lib.transform.Transform;
 
 /**
  * Extract landmark correspondences in two images as PointRoi.
@@ -98,12 +99,12 @@ public class SIFT2DAligner
         /**
          * Implemeted transformation models for choice
          */
-        public String transformationType;
+        public Transform transformationType;
     }
 
     final static private Param p = new Param();
 
-    public SIFT2DAligner( ImagePlus impA, ImagePlus impB, String transformationType )
+    public SIFT2DAligner( ImagePlus impA, ImagePlus impB, Transform transformationType )
     {
         this.impA = impA;
         this.impB = impB;
@@ -204,19 +205,19 @@ public class SIFT2DAligner
             IJ.log( "Filtering correspondence candidates by geometric consensus ..." );
             inliers = new ArrayList< PointMatch >();
 
-            AbstractModel< ? > model;
+            AbstractAffineModel2D< ? > model;
             switch ( p.transformationType )
             {
-                case AutomaticRegistrationCommand.TRANSLATION:
+                case Translation:
                     model = new TranslationModel2D();
                     break;
-                case AutomaticRegistrationCommand.RIGID:
+                case Rigid:
                     model = new RigidModel2D();
                     break;
-                case AutomaticRegistrationCommand.SIMILARITY:
+                case Similarity:
                     model = new SimilarityModel2D();
                     break;
-                case AutomaticRegistrationCommand.AFFINE:
+                case Affine:
                     model = new AffineModel2D();
                     break;
 //                case 4:
@@ -238,19 +239,14 @@ public class SIFT2DAligner
                         p.minInlierRatio,
                         p.minNumInliers );
 
-                if ( model instanceof AbstractAffineModel2D )
-                {
-                    final double[] a = new double[6];
-                    ( ( AbstractAffineModel2D< ? > ) model ).toArray( a );
-                    siftTransform = new AffineTransform3D();
-                    siftTransform.set(
-                            a[0], a[2], 0, a[4],
-                            a[1], a[3], 0, a[5],
-                            0, 0, 1, 0);
-                    siftTransform = siftTransform.inverse();
-                }
-                else
-                    IJ.showMessage( "Cannot apply " + model );
+                final double[] a = new double[ 6 ];
+                model.toArray( a );
+                siftTransform = new AffineTransform3D();
+                siftTransform.set(
+                        a[0], a[2], 0, a[4],
+                        a[1], a[3], 0, a[5],
+                        0, 0, 1, 0);
+                siftTransform = siftTransform.inverse();
 
             }
             catch ( final NotEnoughDataPointsException e )
