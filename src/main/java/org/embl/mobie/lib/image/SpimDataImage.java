@@ -81,12 +81,13 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		this.removeSpatialCalibration = removeSpatialCalibration;
 	}
 
-	public SpimDataImage( Site site, String name, SharedQueue sharedQueue )
+	public SpimDataImage( Site site, String name, SharedQueue sharedQueue, Boolean removeSpatialCalibration )
 	{
 		this.setupId = site.getChannel();
 		this.name = name;
 		this.site = site;
 		this.sharedQueue = sharedQueue;
+		this.removeSpatialCalibration = removeSpatialCalibration;
 	}
 
 	@Override

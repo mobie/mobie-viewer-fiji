@@ -246,8 +246,6 @@ public abstract class DataStore
 		calibration.pixelHeight = voxelDimensions.dimension( 1 );
 		calibration.pixelDepth = voxelDimensions.dimension( 2 );
 		imagePlus.setCalibration( calibration );
-
-		// TODO: is could be zSlices!
 		imagePlus.setDimensions( 1, nZ, nT );
 
 		final AbstractSpimData< ? > spimData = ImagePlusToSpimData.getSpimData( imagePlus );

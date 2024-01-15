@@ -35,6 +35,7 @@ import org.embl.mobie.io.toml.TPosition;
 import org.embl.mobie.io.toml.ZPosition;
 import org.embl.mobie.lib.io.StorageLocation;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -49,6 +50,7 @@ public class Site extends StorageLocation
 	private VoxelDimensions voxelDimensions;
 	private ImageDataFormat imageDataFormat;
 	private AbstractSpimData< ? > spimData; // data store if all data
+	private HashSet< ZPosition > zPositions = new HashSet<>();;
 
 	public Site( String id, ImageDataFormat imageDataFormat )
 	{
@@ -94,6 +96,7 @@ public class Site extends StorageLocation
 	{
 		final TPosition tPosition = new TPosition( t );
 		final ZPosition zPosition = new ZPosition( z );
+		zPositions.add( zPosition );
 		addPath( tPosition, zPosition, path );
 	}
 
@@ -120,5 +123,10 @@ public class Site extends StorageLocation
 	public AbstractSpimData< ? > getSpimData()
 	{
 		return spimData;
+	}
+
+	public HashSet< ZPosition > getZPositions()
+	{
+		return zPositions;
 	}
 }

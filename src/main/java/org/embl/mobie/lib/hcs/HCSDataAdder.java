@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.hcs;
 
+import ij.IJ;
 import net.thisptr.jackson.jq.internal.misc.Strings;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
@@ -65,7 +66,8 @@ public class HCSDataAdder
 
 	public void addData( Dataset dataset )
 	{
-		if ( dataset.is2D() ) dataset.is2D( plate.is2D() );
+		boolean is2D = plate.is2D();
+		dataset.is2D( is2D );
 
 		final Set< Channel > channels = plate.getChannels();
 		final Channel firstChannel = channels.iterator().next();

@@ -728,20 +728,20 @@ public class MoBIE
 			{
 				// the whole plate is already initialised as one big SpimData
 				// note that channel <=> setupID
-				return new SpimDataImage( site.getSpimData(), site.channelIndex, name, false );
+				return new SpimDataImage( site.getSpimData(), site.channelIndex, name, settings.values.getRemoveSpatialCalibration() );
 			}
 
 			if ( site.getImageDataFormat().equals( ImageDataFormat.OmeZarr ) )
 			{
-				return new SpimDataImage( ImageDataFormat.OmeZarr, site.absolutePath, site.channelIndex, name, ThreadHelper.sharedQueue, false );
+				return new SpimDataImage( ImageDataFormat.OmeZarr, site.absolutePath, site.channelIndex, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
 			}
 
 			if ( site.getImageDataFormat().equals( ImageDataFormat.OmeZarrS3 ) )
 			{
-				return new SpimDataImage( ImageDataFormat.OmeZarrS3, site.absolutePath, site.channelIndex, name, ThreadHelper.sharedQueue, false );
+				return new SpimDataImage( ImageDataFormat.OmeZarrS3, site.absolutePath, site.channelIndex, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
 			}
 
-			return new SpimDataImage( site, name, ThreadHelper.sharedQueue );
+			return new SpimDataImage( site, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration()  );
 		}
 
 		final String imagePath = getImageLocation( imageDataFormat, storageLocation );

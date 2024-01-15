@@ -41,6 +41,7 @@ import mpicbg.spim.data.generic.base.Entity;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.toml.TPosition;
+import org.embl.mobie.io.toml.ZPosition;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.lib.MoBIEHelper;
@@ -73,12 +74,14 @@ public class Plate
 	private int[] siteDimensions;
 	private VoxelDimensions voxelDimensions;
 	private Set< TPosition > tPositions;
+	private Set< ZPosition > zPositions;
 	private int wellsPerPlate;
 	private ImageDataFormat imageDataFormat;
 	private OperettaMetadata operettaMetadata;
 	private AbstractSpimData< ? > spimDataPlate;
 	private boolean siteIDsAreOneBased = true;
 	private boolean is2d = true;
+	private int numSlices;
 
 
 	public Plate( String hcsDirectory ) throws IOException
@@ -156,6 +159,7 @@ public class Plate
 	{
 		channelWellSites = new HashMap<>();
 		tPositions = new HashSet<>();
+		zPositions = new HashSet<>();
 
 		IJ.log("Parsing metadata...");
 
@@ -180,8 +184,7 @@ public class Plate
 					// FIXME Replace with MoBIEHelper.getMetadataFromImageFile
 					IJ.log( "Fetching metadata for setup " + channelName + " from " + imagePath );
 					ImagePlus singleChannelImagePlus = operettaMetadata == null ? MoBIEHelper.openAsImagePlus( imagePath, channel.getChannelIndex(), imageDataFormat ) : null;
-					if ( singleChannelImagePlus.getNSlices() > 1 )
-						is2d = false;
+					numSlices = singleChannelImagePlus.getNSlices();
 
 					// set channel metadata
 					//
@@ -293,6 +296,7 @@ public class Plate
 					final String z = hcsPattern.getZ();
 					site.addPath( t, z, imagePath );
 					tPositions.add( new TPosition( t ) );
+					numSlices = Math.max( numSlices, site.getZPositions().size() );
 				}
 			}
 		}
@@ -302,6 +306,10 @@ public class Plate
 		IJ.log( "Sites per well: " + sitesPerWell );
 		IJ.log( "Channels: " + channelWellSites.keySet().size() );
 		IJ.log( "Frames: " + tPositions.size() );
+		IJ.log( "Slices: " + numSlices ); // one file per slice, many slices in one file
+
+		if ( numSlices > 1 )
+			is2d = false;
 	}
 
 	private ImagePlus openImagePlus( String path, int channelID )
