@@ -224,6 +224,9 @@ public class Plate
 						else // from image file
 						{
 							final Calibration calibration = singleChannelImagePlus.getCalibration();
+							// FIXME: the z dimension may not be in the image file in case
+							//   the images are distributed over several files
+							//   in this case this needs to be fetched from the user
 							voxelDimensions = new FinalVoxelDimensions( calibration.getUnit(), calibration.pixelWidth, calibration.pixelHeight, calibration.pixelDepth );
 							siteDimensions = new int[]{ singleChannelImagePlus.getWidth(), singleChannelImagePlus.getHeight() };
 						}
