@@ -29,7 +29,10 @@
 package org.embl.mobie.lib.serialize.transformation;
 
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.lib.MoBIEHelper;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class AffineTransformation< T > extends AbstractImageTransformation< T, T >
@@ -60,4 +63,22 @@ public class AffineTransformation< T > extends AbstractImageTransformation< T, T
 		affineTransform3D.set( parameters );
 		return affineTransform3D;
 	}
+
+	@Override
+	public String toString()
+	{
+		List<String> lines = new ArrayList<>();
+
+		lines.add( "Affine transformation:" );
+
+		addDescription( lines );
+
+		lines.add( MoBIEHelper.print( parameters, 3 ) );
+
+		addSources( lines );
+
+		return String.join( "\n", lines );
+	}
+
+
 }

@@ -29,12 +29,14 @@
 package org.embl.mobie.lib.serialize.transformation;
 
 
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class AbstractImageTransformation< A, B > implements ImageTransformation< A, B >
 {
 	// Serialisation
 	protected String name;
+	protected String description; // FIXME: Add to spec
 	protected List< String > sources;
 	protected List< String > sourceNamesAfterTransform;
 
@@ -51,5 +53,25 @@ public abstract class AbstractImageTransformation< A, B > implements ImageTransf
 	public List< String > getSources()
 	{
 		return sources;
+	}
+
+	protected void addDescription( List< String > lines )
+	{
+		if(name != null)
+			lines.add("Name: " + name);
+
+		if(description != null)
+			lines.add("Description: " + name);
+	}
+
+	protected void addSources( List< String > lines )
+	{
+		if (sources != null)
+			lines.add("Input source(s): " + Arrays.toString(sources.toArray()));
+
+		if (sourceNamesAfterTransform != null)
+			lines.add("Output source(s): " + Arrays.toString(sourceNamesAfterTransform.toArray()));
+		else
+			lines.add("Output source(s): " + Arrays.toString(sources.toArray()));
 	}
 }

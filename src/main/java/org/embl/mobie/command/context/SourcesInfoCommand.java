@@ -34,10 +34,17 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.RealTransform;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
+import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
+import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
+import org.embl.mobie.lib.serialize.transformation.Transformation;
+import org.embl.mobie.lib.source.RealTransformedSource;
+import org.embl.mobie.lib.source.SourceHelper;
+import org.embl.mobie.lib.transform.InterpolatedAffineRealTransform;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
@@ -65,20 +72,22 @@ public class SourcesInfoCommand implements BdvPlaygroundActionCommand
         visibleSacs.forEach( sac ->
         {
             Source< ? > source = sac.getSpimSource();
+            IJ.log( "" );
             IJ.log( "# " + source.getName() );
-            IJ.log( "Data type: " + source.getType().getClass() );
+            IJ.log( "Data type: " + source.getType().getClass().getSimpleName() );
             IJ.log( "Shape: " + Arrays.toString( source.getSource( 0,0 ).dimensionsAsLongArray() ) );
             IJ.log( "Number of resolution levels: " + source.getNumMipmapLevels() );
             IJ.log( "Voxel size: " + Arrays.toString( source.getVoxelDimensions().dimensionsAsDoubleArray() ) );
 
-            if ( source instanceof TransformedSource )
+            ArrayList< Transformation > transformations = SourceHelper.fetchTransformations( source );
+
+            transformations.forEach( transformation ->
             {
-                AffineTransform3D transform3D = new AffineTransform3D();
-                ( ( TransformedSource<?> ) source ).getFixedTransform( transform3D );
-                IJ.log( "Additional transform:\n" + Arrays.toString( transform3D.getRowPackedCopy() ) );
-                source.getSourceTransform( 0, 0, transform3D );
-                IJ.log( "Full transform:\n" + Arrays.toString( transform3D.getRowPackedCopy() ) );
-            }
+                IJ.log( "" );
+                IJ.log( transformation.toString() );
+            });
+
+            IJ.log( "" );
         });
     }
 }

@@ -28,23 +28,23 @@
  */
 package org.embl.mobie.lib.serialize.transformation;
 
-import java.util.Collections;
-import java.util.TreeMap;
+import ij.IJ;
+import org.embl.mobie.lib.MoBIEHelper;
+
+import java.util.*;
 
 public class InterpolatedAffineTransformation< T > extends AbstractImageTransformation< T, T >
 {
 	// Serialization
 	private TreeMap<Double, double[]> transforms;
-	private Double precision; // TODO: Discuss with Constantin whether we need this here
 
 	public InterpolatedAffineTransformation()
 	{
 	}
 
-	public InterpolatedAffineTransformation( TreeMap< Double, double[] > transforms, Double precision, String sourceName, String transformedSourceName )
+	public InterpolatedAffineTransformation( String name, TreeMap< Double, double[] > transforms, String sourceName, String transformedSourceName )
 	{
 		this.transforms = transforms;
-		this.precision = precision;
 		this.sources = Collections.singletonList( sourceName );
 		this.sourceNamesAfterTransform = Collections.singletonList( transformedSourceName );
 	}
@@ -54,8 +54,22 @@ public class InterpolatedAffineTransformation< T > extends AbstractImageTransfor
 		return transforms;
 	}
 
-	public Double getPrecision()
+	@Override
+	public String toString()
 	{
-		return precision;
+		List<String> lines = new ArrayList<>();
+
+		lines.add("Interpolated affine transformation:");
+
+		addDescription( lines );
+
+		transforms.forEach((z, affine) ->
+				lines.add("Affine (z=" + MoBIEHelper.print(z, 3) + "): " + MoBIEHelper.print(affine, 3))
+		);
+
+		addSources( lines );
+
+		return String.join("\n", lines);
 	}
+
 }

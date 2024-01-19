@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.lib.view;
 
-import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
@@ -39,6 +38,7 @@ import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.annotation.Annotation;
@@ -60,7 +60,6 @@ import org.embl.mobie.lib.serialize.transformation.*;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.table.*;
-import org.embl.mobie.lib.serialize.transformation.NormalizedAffineViewerTransform;
 import org.embl.mobie.lib.transform.TransformHelper;
 import org.embl.mobie.lib.transform.ImageTransformer;
 import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
@@ -133,27 +132,14 @@ public class ViewManager
 
 	public ViewSaver getViewsSaver() { return viewSaver; }
 
-	private void addImageTransforms( List< Transformation > imageTransforms, List< ? extends SourceAndConverter< ? >> sourceAndConverters )
+	private void addImageTransforms( List< Transformation > transformations, List< ? extends SourceAndConverter< ? >> sourceAndConverters )
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			Source< ? > source = sourceAndConverter.getSpimSource();
-
-			final TransformedSource< ? > transformedSource = SourceHelper.unwrapSource( source, TransformedSource.class );
-
-			if ( transformedSource != null )
-			{
-				AffineTransform3D fixedTransform = new AffineTransform3D();
-				transformedSource.getFixedTransform( fixedTransform );
-				if ( ! fixedTransform.isIdentity() )
-				{
-					List< String > sources = new ArrayList<>();
-					sources.add( source.getName() );
-					imageTransforms.add( new AffineTransformation( "manualTransform", fixedTransform.getRowPackedCopy(), sources ) );
-				}
-			}
-
-			// FIXME: Add the RealTransformed Sources
+			ArrayList< Transformation > fetchedTransformations = SourceHelper.fetchTransformations( source );
+			fetchedTransformations.remove( 0 ); // this is part of the raw image itself
+			transformations.addAll( fetchedTransformations );
         }
     }
 
@@ -269,7 +255,7 @@ public class ViewManager
 	public void initData( View view )
 	{
 		// fetch names of all data sources that are
-		// either to be shown or to be transformed
+		// either to be shown directly or to be transformed
 		final Map< String, Object > sourceToTransformOrDisplay = view.getSources();
 		if ( sourceToTransformOrDisplay.size() == 0 ) return;
 
@@ -329,7 +315,8 @@ public class ViewManager
 						{
 							DataStore.addImage( ImageTransformer.affineTransform( image, affineTransformation ) );
 						}
-					} else if ( transformation instanceof CropTransformation )
+					}
+					else if ( transformation instanceof CropTransformation )
 					{
 						final CropTransformation< ? > cropTransformation = ( CropTransformation< ? > ) transformation;
 
@@ -344,7 +331,8 @@ public class ViewManager
 									cropTransformation.centerAtOrigin );
 							DataStore.addImage( croppedImage );
 						}
-					} else if ( transformation instanceof TimepointsTransformation )
+					}
+					else if ( transformation instanceof TimepointsTransformation )
 					{
 						final TimepointsTransformation< ? > timepointsTransformation = ( TimepointsTransformation< ? > ) transformation;
 

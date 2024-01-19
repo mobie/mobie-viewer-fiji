@@ -34,7 +34,6 @@ import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.RealTransform;
 import net.imglib2.roi.RealMaskRealInterval;
-import org.checkerframework.checker.units.qual.A;
 import org.embl.mobie.lib.source.RealTransformedSource;
 
 public class RealTransformedImage< T > implements Image< T >

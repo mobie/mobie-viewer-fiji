@@ -45,16 +45,19 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.RealTransform;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.roi.geom.real.WritableBox;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
+import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
+import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
+import org.embl.mobie.lib.serialize.transformation.Transformation;
+import org.embl.mobie.lib.transform.InterpolatedAffineRealTransform;
 
 import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper.getVoxelPositionInSource;
@@ -111,7 +114,7 @@ public abstract class SourceHelper
 		return numSourceTimepoints;
 	}
 
-	public static void fetchRootSources( Source< ? > source, Set< Source< ? > > rootSources )
+	public static void fetchRootSources( Source< ? > source, Collection< Source< ? > > rootSources )
 	{
 		if ( source instanceof SpimSource )
 		{
@@ -157,6 +160,97 @@ public abstract class SourceHelper
 		else
 		{
 			throw new IllegalArgumentException("For sources of type " + source.getClass().getName() + " the root source currently cannot be determined.");
+		}
+	}
+
+	public static ArrayList< Transformation > fetchTransformations( Source< ? > source )
+	{
+		ArrayList< Transformation > transformations = new ArrayList<>();
+		collectTransformations( source, transformations );
+		Collections.reverse( transformations ); // first transformation first
+		return transformations;
+	}
+
+	private static void collectTransformations( Source< ? > source, Collection< Transformation > transformations )
+	{
+		if ( source instanceof SpimSource )
+		{
+			AffineTransform3D affineTransform3D = new AffineTransform3D();
+			source.getSourceTransform( 0, 0, affineTransform3D );
+			AffineTransformation< Object > affineTransformation = new AffineTransformation<>(
+					"SpimSource",
+					affineTransform3D,
+					Collections.singletonList( source.getName() ) );
+			transformations.add( affineTransformation );
+		}
+		else if ( source instanceof TransformedSource )
+		{
+			TransformedSource transformedSource = ( TransformedSource ) source;
+			final Source< ? > wrappedSource = transformedSource.getWrappedSource();
+			AffineTransform3D fixedTransform = new AffineTransform3D();
+			transformedSource.getFixedTransform( fixedTransform );
+			if ( ! fixedTransform.isIdentity() )
+			{
+				AffineTransformation affineTransformation = new AffineTransformation(
+						"TransformedSource",
+						fixedTransform,
+						Collections.singletonList( wrappedSource.getName() ) );
+				transformations.add( affineTransformation );
+			}
+			collectTransformations( wrappedSource, transformations );
+		}
+		else if ( source instanceof RealTransformedSource )
+		{
+			RealTransformedSource realTransformedSource = ( RealTransformedSource ) source;
+			RealTransform realTransform = realTransformedSource.getRealTransform();
+			if ( realTransform instanceof InterpolatedAffineRealTransform )
+			{
+				Source< ? > wrappedSource = realTransformedSource.getWrappedSource();
+				InterpolatedAffineTransformation< ? > interpolatedAffineTransformation =
+						new InterpolatedAffineTransformation<>(
+								"RealTransformedSource",
+								( ( InterpolatedAffineRealTransform ) realTransform ).getTransforms(),
+								wrappedSource.getName(),
+								source.getName()
+						);
+				transformations.add( interpolatedAffineTransformation );
+				collectTransformations( wrappedSource, transformations );
+			}
+			else
+			{
+				throw new IllegalArgumentException("Fetching transformations from " + source.getClass().getName() + " is not implemented.");
+			}
+		}
+//		else if (  source instanceof MergedGridSource )
+//		{
+//			throw new IllegalArgumentException("Fetching transformations from " + source.getClass().getName() + " is not implemented.");
+////			final MergedGridSource< ? > mergedGridSource = ( MergedGridSource ) source;
+////			final List< ? extends SourceAndConverter< ? > > gridSources = mergedGridSource.getGridSources();
+////			for ( SourceAndConverter< ? > gridSource : gridSources )
+////			{
+////				fetchRootSources( gridSource.getSpimSource(), transformations );
+////			}
+//		}
+//		else if ( source instanceof StitchedSource )
+//		{
+//			throw new IllegalArgumentException("Fetching transformations from " + source.getClass().getName() + " is not implemented.");
+//			final StitchedImage< ?, ? > stitchedImage = ( StitchedImage ) source;
+//			final List< ? extends Source< ? > > gridSources = stitchedImage.getImages().stream().map( image -> image.getSourcePair().getSource() ).collect( Collectors.toList() );
+//			for ( Source< ? > gridSource : gridSources )
+//			{
+//				fetchRootSources( gridSource, transformations );
+//			}
+//		}
+//		else if ( source instanceof ResampledSource )
+//		{
+//			throw new IllegalArgumentException("Fetching transformations from " + source.getClass().getName() + " is not implemented.");
+////			final ResampledSource resampledSource = ( ResampledSource ) source;
+////			final Source< ? > wrappedSource = resampledSource.getOriginalSource();
+////			fetchRootSources( wrappedSource, transformations );
+//		}
+		else
+		{
+			throw new IllegalArgumentException("Fetching transformations from " + source.getClass().getName() + " is not implemented.");
 		}
 	}
 

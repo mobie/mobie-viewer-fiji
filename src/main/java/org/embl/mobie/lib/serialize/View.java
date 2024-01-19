@@ -118,12 +118,13 @@ public class View
 			}
 		}
 
-		for ( Transformation imageTransformation : getTransformations() )
+		List< Transformation > transformations = getTransformations();
+		for ( Transformation transformation : transformations )
 		{
-			final List< String > sourceTransformerSources = imageTransformation.getSources();
-			for ( String source : sourceTransformerSources )
+			final List< String > transformationSources = transformation.getSources();
+			for ( String source : transformationSources )
 			{
-				sources.put( source, imageTransformation );
+				sources.put( source, transformation );
 			}
 		}
 

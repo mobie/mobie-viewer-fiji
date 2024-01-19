@@ -78,7 +78,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private RowSelectionMode selectionMode = RowSelectionMode.FocusOnly;
 	private JFrame frame;
 	private SwingTableModel swingTableModel;
-
 	private boolean controlKeyPressed;
 	private boolean doubleClick;
 

@@ -43,6 +43,8 @@ import net.imglib2.realtransform.RealViews;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.Views;
 
+
+
 public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, SourceWrapper< T >
 {
     private final Source<T> source;
@@ -99,15 +101,16 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
             final int level,
             final Interpolation method) {
 
-        final AffineTransform3D affine = new AffineTransform3D();
-        source.getSourceTransform( t, level, affine );
+        // Interpolated source in voxel space
         RealRandomAccessible< T > interpolatedSource = source.getInterpolatedSource( t, level, method );
 
-        // This is the source already in real space
-        final RealRandomAccessible< T > srcRaTransformed = RealViews.affineReal( interpolatedSource, affine );
+        // Transform into real space
+        final AffineTransform3D sourceTransform = new AffineTransform3D();
+        source.getSourceTransform( t, level, sourceTransform );
+        final RealRandomAccessible< T > rra = RealViews.affineReal( interpolatedSource, sourceTransform );
 
-        // On top of this we apply the {@code realTransform}
-        return new RealTransformRealRandomAccessible<>( srcRaTransformed, realTransform );
+        // On top of this apply the {@code realTransform}
+        return new RealTransformRealRandomAccessible<>( rra, realTransform );
     }
 
     @Override
@@ -156,5 +159,10 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
     public Source< T > getWrappedSource()
     {
         return source;
+    }
+
+    public RealTransform getRealTransform()
+    {
+        return realTransform;
     }
 }

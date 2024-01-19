@@ -33,11 +33,8 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.MoBIEHelper;
-import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
 import org.scijava.plugin.Parameter;
@@ -49,8 +46,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Set Transformation")
-public class SetTransformationCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Enter Transformation")
+public class EnterTransformationCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
