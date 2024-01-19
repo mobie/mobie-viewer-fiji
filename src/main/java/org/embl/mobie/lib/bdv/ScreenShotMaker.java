@@ -165,6 +165,9 @@ public class ScreenShotMaker
 
             Source< ? > source = sac.getSpimSource();
             final Converter< ?, ? > converter = sac.getConverter();
+            double[] displayRange = BdvHandleHelper.getDisplayRange( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ) );
+
+            // MoBIEColorConverter
 
             final int level = getLevel( source, targetVoxelSpacing );
             final AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( source, currentTimepoint, level );
@@ -254,7 +257,7 @@ public class ScreenShotMaker
             floatCaptures.add( floatCapture );
             maskCaptures.add( maskCapture );
             argbCaptures.add( argbCapture );
-            displayRanges.add( BdvHandleHelper.getDisplayRange( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ) ) );
+            displayRanges.add( displayRange );
         }
 
         IJ.log( "Fetched data in " + ( System.currentTimeMillis() - currentTimeMillis ) + " ms." );
@@ -265,7 +268,12 @@ public class ScreenShotMaker
         if ( ! floatCaptures.isEmpty() )
         {
             rgbImagePlus = createRGBImagePlus( voxelUnit, argbCaptures, voxelSpacing, sacs );
-            compositeImagePlus = createCompositeImagePlus( voxelSpacing, voxelUnit, floatCaptures, maskCaptures, displayRanges );
+            compositeImagePlus = createCompositeImagePlus(
+                    voxelSpacing,
+                    voxelUnit,
+                    floatCaptures,
+                    maskCaptures,
+                    displayRanges );
         }
     }
 

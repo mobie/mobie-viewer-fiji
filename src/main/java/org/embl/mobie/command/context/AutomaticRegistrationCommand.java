@@ -48,6 +48,7 @@ import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.align.TurboReg2DAligner;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
 import org.embl.mobie.lib.align.SIFT2DAligner;
+import org.embl.mobie.lib.color.opacity.MoBIEColorConverter;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
@@ -180,43 +181,49 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 		AffineTransform3D canvasToGlobalTransform = screenShotMaker.getCanvasToGlobalTransform();
 
 		ImageStack stack = compositeImage.getStack();
-		ImagePlus impA = new ImagePlus( fixedImageName + " (fixed)", stack.getProcessor( 1 ) );
-		ImagePlus impB = new ImagePlus( movingImageName + " (moving)", stack.getProcessor( 2 ) );
 
 		// set the display ranges and burn them in by converting to uint8
 		// this is important for the intensity based registration methods
+		ImagePlus fixedImp = new ImagePlus( fixedImageName + " (fixed)", stack.getProcessor( 1 ) );
 		compositeImage.setPosition( 1 );
-		impA.getProcessor().setMinAndMax( compositeImage.getDisplayRangeMin(), compositeImage.getDisplayRangeMax() );
-		new ImageConverter( impA ).convertToGray8();
+		fixedImp.getProcessor().setMinAndMax( compositeImage.getDisplayRangeMin(), compositeImage.getDisplayRangeMax() );
+		if ( fixedSac.getConverter() instanceof MoBIEColorConverter &&
+			( ( MoBIEColorConverter ) fixedSac.getConverter() ).invert() )
+			fixedImp.getProcessor().invert();
+		new ImageConverter( fixedImp ).convertToGray8();
 
+		ImagePlus movingImp = new ImagePlus( movingImageName + " (moving)", stack.getProcessor( 2 ) );
 		compositeImage.setPosition( 2 );
-		impB.getProcessor().setMinAndMax( compositeImage.getDisplayRangeMin(), compositeImage.getDisplayRangeMax() );
-		new ImageConverter( impB ).convertToGray8();
+		movingImp.getProcessor().setMinAndMax( compositeImage.getDisplayRangeMin(), compositeImage.getDisplayRangeMax() );
+		if ( movingSac.getConverter() instanceof MoBIEColorConverter &&
+				( ( MoBIEColorConverter ) movingSac.getConverter() ).invert() )
+			movingImp.getProcessor().invert();
+		new ImageConverter( movingImp ).convertToGray8();
 
 		// set the rois within which the images contain valid pixel values
 		// those are used by some registration methods, e.g. turboReg
 		Roi[] rois = screenShotMaker.getMasks();
-		impA.setRoi( rois[ 0 ] );
-		impB.setRoi( rois[ 1 ] );
+		fixedImp.setRoi( rois[ 0 ] );
+		movingImp.setRoi( rois[ 1 ] );
 
 		// compute the transformation that aligns the two images in 2D
 		//
 		AffineTransform3D localRegistration = new AffineTransform3D();
 		if ( registrationMethod.equals( "SIFT" ) )
 		{
-			SIFT2DAligner sift2DAligner = new SIFT2DAligner( impA, impB, transformationType );
+			SIFT2DAligner sift2DAligner = new SIFT2DAligner( fixedImp, movingImp, transformationType );
 			if ( ! sift2DAligner.run( showIntermediates ) ) return;
 			localRegistration = sift2DAligner.getAlignmentTransform();
 		}
 		else if ( registrationMethod.equals( "TurboReg" ) )
 		{
-			TurboReg2DAligner turboReg2DAligner = new TurboReg2DAligner( impA, impB, transformationType );
+			TurboReg2DAligner turboReg2DAligner = new TurboReg2DAligner( fixedImp, movingImp, transformationType );
 			turboReg2DAligner.run( showIntermediates );
 			localRegistration = turboReg2DAligner.getAlignmentTransform();
 			if ( showIntermediates )
 			{
-				impA.show();
-				impB.show();
+				fixedImp.show();
+				movingImp.show();
 			}
 		}
 

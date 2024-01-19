@@ -16,7 +16,6 @@ import mpicbg.imagefeatures.Feature;
 import mpicbg.imagefeatures.FloatArray2DSIFT;
 import mpicbg.models.*;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.command.context.AutomaticRegistrationCommand;
 import org.embl.mobie.lib.transform.Transform;
 
 /**
