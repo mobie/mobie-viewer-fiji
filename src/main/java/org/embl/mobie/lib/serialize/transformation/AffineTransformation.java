@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class AffineTransformation< T > extends AbstractImageTransformation< T, T >
+public class AffineTransformation extends AbstractImageTransformation
 {
 	// Serialisation
 	protected double[] parameters;

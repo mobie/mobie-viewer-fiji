@@ -187,7 +187,7 @@ public abstract class SourceHelper
 		{
 			AffineTransform3D affineTransform3D = new AffineTransform3D();
 			source.getSourceTransform( 0, 0, affineTransform3D );
-			AffineTransformation< Object > affineTransformation = new AffineTransformation<>(
+			AffineTransformation affineTransformation = new AffineTransformation(
 					"SpimSource",
 					affineTransform3D,
 					Collections.singletonList( source.getName() ) );
@@ -201,7 +201,7 @@ public abstract class SourceHelper
 			transformedSource.getFixedTransform( fixedTransform );
 			if ( ! fixedTransform.isIdentity() )
 			{
-				AffineTransformation< ? > affineTransformation = new AffineTransformation<>(
+				AffineTransformation affineTransformation = new AffineTransformation(
 						"TransformedSource",
 						fixedTransform,
 						Collections.singletonList( wrappedSource.getName() ) );
@@ -216,8 +216,8 @@ public abstract class SourceHelper
 			if ( realTransform instanceof InterpolatedAffineRealTransform )
 			{
 				Source< ? > wrappedSource = realTransformedSource.getWrappedSource();
-				InterpolatedAffineTransformation< ? > interpolatedAffineTransformation =
-						new InterpolatedAffineTransformation<>(
+				InterpolatedAffineTransformation interpolatedAffineTransformation =
+						new InterpolatedAffineTransformation(
 								"RealTransformedSource",
 								( ( InterpolatedAffineRealTransform ) realTransform ).getTransforms(),
 								wrappedSource.getName(),

@@ -276,7 +276,7 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 
 		transforms.put( sourceVoxels[ 2 ], alignmentTransform.inverse().getRowPackedCopy() );
 
-		IJ.log( new InterpolatedAffineTransformation<>( "AutomaticRegistration", transforms, null, null).toString() );
+		IJ.log( new InterpolatedAffineTransformation( "AutomaticRegistration", transforms, null, null).toString() );
 	}
 
 	private void showInterpolatedAffineImage( )
@@ -326,7 +326,7 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 		ArrayList< Transformation > transformations = SourceHelper.fetchAddedTransformations( source );
 
 		String transformedImageName = source.getName() + "_iat";
-		InterpolatedAffineTransformation< ? > interpolatedAffineTransformation = new InterpolatedAffineTransformation<>(
+		InterpolatedAffineTransformation interpolatedAffineTransformation = new InterpolatedAffineTransformation(
 				transformationType.toString(),
 				transforms,
 				movingImageName, // the existing, to be transformed image data source

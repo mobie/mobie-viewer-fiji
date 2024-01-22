@@ -33,7 +33,7 @@ import org.embl.mobie.lib.MoBIEHelper;
 
 import java.util.*;
 
-public class InterpolatedAffineTransformation< T > extends AbstractImageTransformation< T, T >
+public class InterpolatedAffineTransformation extends AbstractImageTransformation
 {
 	// Serialization
 	private TreeMap<Double, double[]> transforms;

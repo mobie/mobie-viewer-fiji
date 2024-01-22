@@ -32,7 +32,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-public class TimepointsTransformation< T > extends AbstractImageTransformation< T, T >
+public class TimepointsTransformation extends AbstractImageTransformation
 {
 	// Serialisation
 

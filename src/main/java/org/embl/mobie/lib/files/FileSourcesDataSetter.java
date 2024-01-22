@@ -220,7 +220,7 @@ public class FileSourcesDataSetter
 				{
 					if ( sources.getTransform( sourceName ) != null )
 					{
-						AffineTransformation affineTransformation = new AffineTransformation<>( sourceName, sources.getTransform( sourceName ), Collections.singletonList( sourceName ) );
+						AffineTransformation affineTransformation = new AffineTransformation( sourceName, sources.getTransform( sourceName ), Collections.singletonList( sourceName ) );
 						transformations.add( affineTransformation );
 					}
 				}

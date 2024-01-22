@@ -307,7 +307,7 @@ public class ViewManager
 
 					if ( transformation instanceof AffineTransformation )
 					{
-						final AffineTransformation< ? > affineTransformation = ( AffineTransformation< ? > ) transformation;
+						final AffineTransformation affineTransformation = ( AffineTransformation ) transformation;
 
 						for ( Image< ? > image : images )
 						{
@@ -316,7 +316,7 @@ public class ViewManager
 					}
 					else if ( transformation instanceof CropTransformation )
 					{
-						final CropTransformation< ? > cropTransformation = ( CropTransformation< ? > ) transformation;
+						final CropTransformation cropTransformation = ( CropTransformation ) transformation;
 
 						for ( Image< ? > image : images )
 						{
@@ -332,7 +332,7 @@ public class ViewManager
 					}
 					else if ( transformation instanceof TimepointsTransformation )
 					{
-						final TimepointsTransformation< ? > timepointsTransformation = ( TimepointsTransformation< ? > ) transformation;
+						final TimepointsTransformation timepointsTransformation = ( TimepointsTransformation ) transformation;
 
 						for ( Image< ? > image : images )
 						{
@@ -341,7 +341,7 @@ public class ViewManager
 					}
 					else if ( transformation instanceof InterpolatedAffineTransformation )
 					{
-						InterpolatedAffineTransformation< ? > interpolatedAffineTransformation = ( InterpolatedAffineTransformation< ? > ) transformation;
+						InterpolatedAffineTransformation interpolatedAffineTransformation = ( InterpolatedAffineTransformation ) transformation;
 
 						for ( Image< ? > image : images )
 						{

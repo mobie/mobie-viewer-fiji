@@ -32,7 +32,7 @@ package org.embl.mobie.lib.serialize.transformation;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class AbstractImageTransformation< A, B > implements ImageTransformation< A, B >
+public abstract class AbstractImageTransformation implements ImageTransformation
 {
 	// Serialisation
 	protected String name;
