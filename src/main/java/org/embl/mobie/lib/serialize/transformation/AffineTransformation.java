@@ -79,6 +79,4 @@ public class AffineTransformation< T > extends AbstractImageTransformation< T, T
 
 		return String.join( "\n", lines );
 	}
-
-
 }

@@ -62,6 +62,8 @@ import org.embl.mobie.lib.source.MoBIEVolatileTypeMatcher;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.transform.TransformHelper;
 import org.embl.mobie.lib.transform.ImageTransformer;
+import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -103,7 +105,6 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private RealMaskRealInterval referenceMask;
 	private AffineTransform3D sourceTransform;
 	private int numTimepoints;
-
 	private final boolean debug = false;
 	private RealMaskRealInterval mask;
 	private Source< T > metadataSource;
@@ -386,7 +387,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		sourcePair = new DefaultSourcePair<>( transformedSource, transformedVolatileSource );
 	}
 
-	class StitchedSource< T extends Type< T > > implements Source< T >
+	static class StitchedSource< T extends Type< T > > implements Source< T >
 	{
 		private final Map< Integer, List< RandomAccessibleInterval< T > > > mipmapSources;
 		private final AffineTransform3D[] mipmapTransforms;

@@ -37,6 +37,7 @@ public abstract class AbstractImageTransformation< A, B > implements ImageTransf
 	// Serialisation
 	protected String name;
 	protected String description; // FIXME: Add to spec
+
 	protected List< String > sources;
 	protected List< String > sourceNamesAfterTransform;
 
@@ -66,12 +67,12 @@ public abstract class AbstractImageTransformation< A, B > implements ImageTransf
 
 	protected void addSources( List< String > lines )
 	{
-		if (sources != null)
+		if ( sources != null )
 			lines.add("Input source(s): " + Arrays.toString(sources.toArray()));
 
-		if (sourceNamesAfterTransform != null)
+		if ( sourceNamesAfterTransform != null )
 			lines.add("Output source(s): " + Arrays.toString(sourceNamesAfterTransform.toArray()));
-		else
+		else if ( sources != null )
 			lines.add("Output source(s): " + Arrays.toString(sources.toArray()));
 	}
 }

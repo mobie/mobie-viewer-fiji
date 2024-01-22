@@ -263,26 +263,20 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 
 	private void append()
 	{
+		// compute where in the source stack the current transformation should be anchored
 		AffineTransform3D globalToSource = BdvHandleHelper.getSourceTransform( movingSac.getSpimSource(), 0, 0 ).inverse();
 		double[] sourceVoxels = new double[ 3 ];
 
 		final AffineTransform3D viewerTransform = new AffineTransform3D();
 		bdvHandle.getViewerPanel().state().getViewerTransform(viewerTransform);
-		double[] canvasVoxels = getWindowCentreInPixelUnits(bdvHandle);
-		double[] canvasCalibrated = new double[3];
-
-		viewerTransform.inverse().apply( canvasVoxels, canvasCalibrated );
-		globalToSource.apply( canvasCalibrated, sourceVoxels );
-		System.out.println( Arrays.toString( sourceVoxels ));
-
-		canvasVoxels[0] -= 500;
-		viewerTransform.inverse().apply( canvasVoxels, canvasCalibrated );
-		globalToSource.apply( canvasCalibrated, sourceVoxels );
-		System.out.println( Arrays.toString( sourceVoxels ));
+		double[] canvasCenterVoxels = getWindowCentreInPixelUnits(bdvHandle);
+		double[] canvasCenterCalibrated = new double[3];
+		viewerTransform.inverse().apply( canvasCenterVoxels, canvasCenterCalibrated );
+		globalToSource.apply( canvasCenterCalibrated, sourceVoxels );
 
 		transforms.put( sourceVoxels[ 2 ], alignmentTransform.inverse().getRowPackedCopy() );
 
-		IJ.log( new InterpolatedAffineTransformation<>( null, transforms, null, null).toString() );
+		IJ.log( new InterpolatedAffineTransformation<>( "AutomaticRegistration", transforms, null, null).toString() );
 	}
 
 	private void showInterpolatedAffineImage( )
@@ -329,7 +323,7 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 	{
 		Source< ? > source = movingSac.getSpimSource();
 
-		ArrayList< Transformation > transformations = SourceHelper.fetchTransformations( source );
+		ArrayList< Transformation > transformations = SourceHelper.fetchAddedTransformations( source );
 
 		String transformedImageName = source.getName() + "_iat";
 		InterpolatedAffineTransformation< ? > interpolatedAffineTransformation = new InterpolatedAffineTransformation<>(

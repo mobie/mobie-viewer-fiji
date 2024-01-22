@@ -44,9 +44,10 @@ public class InterpolatedAffineTransformation< T > extends AbstractImageTransfor
 
 	public InterpolatedAffineTransformation( String name, TreeMap< Double, double[] > transforms, String sourceName, String transformedSourceName )
 	{
+		this.name = name;
 		this.transforms = transforms;
-		this.sources = Collections.singletonList( sourceName );
-		this.sourceNamesAfterTransform = Collections.singletonList( transformedSourceName );
+		this.sources = sourceName == null ? null : Collections.singletonList( sourceName );
+		this.sourceNamesAfterTransform = transformedSourceName == null ? null : Collections.singletonList( transformedSourceName );
 	}
 
 	public TreeMap< Double, double[] > getTransforms()

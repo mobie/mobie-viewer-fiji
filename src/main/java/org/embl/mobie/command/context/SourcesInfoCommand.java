@@ -28,29 +28,16 @@
  */
 package org.embl.mobie.command.context;
 
-import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.realtransform.RealTransform;
-import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.MoBIEHelper;
-import org.embl.mobie.lib.bdv.ScreenShotMaker;
-import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
-import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
-import org.embl.mobie.lib.source.RealTransformedSource;
 import org.embl.mobie.lib.source.SourceHelper;
-import org.embl.mobie.lib.transform.InterpolatedAffineRealTransform;
-import org.scijava.Initializable;
-import org.scijava.command.DynamicCommand;
-import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.ArrayList;
@@ -79,7 +66,7 @@ public class SourcesInfoCommand implements BdvPlaygroundActionCommand
             IJ.log( "Number of resolution levels: " + source.getNumMipmapLevels() );
             IJ.log( "Voxel size: " + Arrays.toString( source.getVoxelDimensions().dimensionsAsDoubleArray() ) );
 
-            ArrayList< Transformation > transformations = SourceHelper.fetchTransformations( source );
+            ArrayList< Transformation > transformations = SourceHelper.fetchAllTransformations( source );
 
             transformations.forEach( transformation ->
             {

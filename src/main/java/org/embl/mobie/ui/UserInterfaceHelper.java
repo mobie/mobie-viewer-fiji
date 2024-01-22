@@ -106,7 +106,6 @@ public class UserInterfaceHelper
 	private static final String VIEW = "view";
 	public static final int SPACING = 10;
 	public static File lastSelectedDir;
-
 	private final MoBIE moBIE;
 	private int viewsSelectionPanelHeight;
 	private JPanel viewSelectionPanel;
@@ -317,7 +316,6 @@ public class UserInterfaceHelper
 				.stream()
 				.map( sac -> sac.getConverter() )
 				.collect( Collectors.toList() );
-
 
 		JFrame frame = new JFrame( name );
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );

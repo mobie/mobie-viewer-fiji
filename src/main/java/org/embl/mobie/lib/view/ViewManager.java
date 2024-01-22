@@ -38,7 +38,6 @@ import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.DataStore;
-import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.annotation.Annotation;
@@ -137,8 +136,7 @@ public class ViewManager
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			Source< ? > source = sourceAndConverter.getSpimSource();
-			ArrayList< Transformation > fetchedTransformations = SourceHelper.fetchTransformations( source );
-			fetchedTransformations.remove( 0 ); // this is part of the raw image itself
+			ArrayList< Transformation > fetchedTransformations = SourceHelper.fetchAddedTransformations( source );
 			transformations.addAll( fetchedTransformations );
         }
     }

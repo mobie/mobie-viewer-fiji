@@ -36,10 +36,7 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
-import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.realtransform.RealTransform;
-import net.imglib2.realtransform.RealTransformRealRandomAccessible;
-import net.imglib2.realtransform.RealViews;
+import net.imglib2.realtransform.*;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.Views;
 
@@ -88,10 +85,11 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
 
     private Interval estimateBoundingInterval( final int t, final int level ) {
 
+        // TODO: this is currently ignoring the real transform, which may or may not be ok....
         final Interval wrappedInterval = source.getSource(t, level);
-        AffineTransform3D affineTransform3D = new AffineTransform3D();
-        source.getSourceTransform( t, level, affineTransform3D );
-        Interval interval = Intervals.smallestContainingInterval( affineTransform3D.estimateBounds( wrappedInterval ) );
+        AffineTransform3D sourceTransform = new AffineTransform3D();
+        source.getSourceTransform( t, level, sourceTransform );
+        Interval interval = Intervals.smallestContainingInterval( sourceTransform.estimateBounds( wrappedInterval ) );
         return interval;
     }
 
@@ -99,24 +97,29 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
     public RealRandomAccessible<T> getInterpolatedSource(
             final int t,
             final int level,
-            final Interpolation method) {
-
-        // Interpolated source in voxel space
+            final Interpolation method)
+    {
         RealRandomAccessible< T > interpolatedSource = source.getInterpolatedSource( t, level, method );
 
-        // Transform into real space
         final AffineTransform3D sourceTransform = new AffineTransform3D();
         source.getSourceTransform( t, level, sourceTransform );
-        final RealRandomAccessible< T > rra = RealViews.affineReal( interpolatedSource, sourceTransform );
 
-        // On top of this apply the {@code realTransform}
-        return new RealTransformRealRandomAccessible<>( rra, realTransform );
+        final RealTransformSequence totalTransform = new RealTransformSequence();
+        totalTransform.add( sourceTransform );
+        totalTransform.add( realTransform );
+        totalTransform.add( sourceTransform.inverse() );
+
+        return new RealTransformRealRandomAccessible<>( interpolatedSource, totalTransform );
     }
 
     @Override
-    public void getSourceTransform(final int t, final int level, final AffineTransform3D transform) {
-
-        transform.identity();
+    public void getSourceTransform(final int t, final int level, final AffineTransform3D transform)
+    {
+        source.getSourceTransform( t, level, transform );
+        if ( level == 0 )
+        {
+            int a = 1;
+        }
     }
 
     @Override

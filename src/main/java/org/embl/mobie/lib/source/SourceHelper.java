@@ -30,6 +30,7 @@ package org.embl.mobie.lib.source;
 
 import bdv.AbstractSpimSource;
 import bdv.SpimSource;
+import bdv.VolatileSpimSource;
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.AbstractSource;
 import bdv.util.Affine3DHelpers;
@@ -51,6 +52,7 @@ import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.roi.geom.real.WritableBox;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
+import org.embl.mobie.lib.image.StitchedImage;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
@@ -163,7 +165,15 @@ public abstract class SourceHelper
 		}
 	}
 
-	public static ArrayList< Transformation > fetchTransformations( Source< ? > source )
+	public static ArrayList< Transformation > fetchAddedTransformations( Source< ? > source )
+	{
+		ArrayList< Transformation > allTransformations = fetchAllTransformations( source );
+		allTransformations.remove( 0 ); // in MoBIE this is part of the raw image itself
+		return allTransformations;
+	}
+
+
+	public static ArrayList< Transformation > fetchAllTransformations( Source< ? > source )
 	{
 		ArrayList< Transformation > transformations = new ArrayList<>();
 		collectTransformations( source, transformations );
@@ -173,7 +183,7 @@ public abstract class SourceHelper
 
 	private static void collectTransformations( Source< ? > source, Collection< Transformation > transformations )
 	{
-		if ( source instanceof SpimSource )
+		if ( source instanceof AbstractSpimSource )
 		{
 			AffineTransform3D affineTransform3D = new AffineTransform3D();
 			source.getSourceTransform( 0, 0, affineTransform3D );
@@ -185,13 +195,13 @@ public abstract class SourceHelper
 		}
 		else if ( source instanceof TransformedSource )
 		{
-			TransformedSource transformedSource = ( TransformedSource ) source;
+			TransformedSource< ? > transformedSource = ( TransformedSource< ? > ) source;
 			final Source< ? > wrappedSource = transformedSource.getWrappedSource();
 			AffineTransform3D fixedTransform = new AffineTransform3D();
 			transformedSource.getFixedTransform( fixedTransform );
 			if ( ! fixedTransform.isIdentity() )
 			{
-				AffineTransformation affineTransformation = new AffineTransformation(
+				AffineTransformation< ? > affineTransformation = new AffineTransformation<>(
 						"TransformedSource",
 						fixedTransform,
 						Collections.singletonList( wrappedSource.getName() ) );
@@ -201,7 +211,7 @@ public abstract class SourceHelper
 		}
 		else if ( source instanceof RealTransformedSource )
 		{
-			RealTransformedSource realTransformedSource = ( RealTransformedSource ) source;
+			RealTransformedSource< ? > realTransformedSource = ( RealTransformedSource< ? > ) source;
 			RealTransform realTransform = realTransformedSource.getRealTransform();
 			if ( realTransform instanceof InterpolatedAffineRealTransform )
 			{
@@ -221,33 +231,6 @@ public abstract class SourceHelper
 				throw new IllegalArgumentException("Fetching transformations from " + source.getClass().getName() + " is not implemented.");
 			}
 		}
-//		else if (  source instanceof MergedGridSource )
-//		{
-//			throw new IllegalArgumentException("Fetching transformations from " + source.getClass().getName() + " is not implemented.");
-////			final MergedGridSource< ? > mergedGridSource = ( MergedGridSource ) source;
-////			final List< ? extends SourceAndConverter< ? > > gridSources = mergedGridSource.getGridSources();
-////			for ( SourceAndConverter< ? > gridSource : gridSources )
-////			{
-////				fetchRootSources( gridSource.getSpimSource(), transformations );
-////			}
-//		}
-//		else if ( source instanceof StitchedSource )
-//		{
-//			throw new IllegalArgumentException("Fetching transformations from " + source.getClass().getName() + " is not implemented.");
-//			final StitchedImage< ?, ? > stitchedImage = ( StitchedImage ) source;
-//			final List< ? extends Source< ? > > gridSources = stitchedImage.getImages().stream().map( image -> image.getSourcePair().getSource() ).collect( Collectors.toList() );
-//			for ( Source< ? > gridSource : gridSources )
-//			{
-//				fetchRootSources( gridSource, transformations );
-//			}
-//		}
-//		else if ( source instanceof ResampledSource )
-//		{
-//			throw new IllegalArgumentException("Fetching transformations from " + source.getClass().getName() + " is not implemented.");
-////			final ResampledSource resampledSource = ( ResampledSource ) source;
-////			final Source< ? > wrappedSource = resampledSource.getOriginalSource();
-////			fetchRootSources( wrappedSource, transformations );
-//		}
 		else
 		{
 			throw new IllegalArgumentException("Fetching transformations from " + source.getClass().getName() + " is not implemented.");
