@@ -42,7 +42,7 @@ public enum HCSPattern
 	IncuCyteRaw,
 	InCell, // https://github.com/embl-cba/plateviewer/issues/45
 	MolecularDevices,
-	Moritz;
+	YokogawaCQ1;
 
 	public static final String WELL = "W";
 	public static final String SITE = "S";
@@ -104,7 +104,7 @@ public enum HCSPattern
 	W0018F0001T0001Z001C1.tif
 	well = A - 01, site = 1, channel = 1
 	 */
-	public static final String MORITZ = ".*W(?<"+WELL+">[0-9]+)F(?<"+SITE+">[0-9]+)T(?<"+TIME+">[0-9]+)(?<"+SLICE+">Z[0-9]+)C(?<"+CHANNEL+">[0-9]+).tif";
+	public static final String YOKOGAWACQ1 = ".*W(?<"+WELL+">[0-9]+)F(?<"+SITE+">[0-9]+)T(?<"+TIME+">[0-9]+)(?<"+SLICE+">Z[0-9]+)C(?<"+CHANNEL+">[0-9]+).tif";
 
 
 	private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -145,8 +145,8 @@ public enum HCSPattern
 				return Pattern.compile( INCELL ).matcher( path );
 			case IncuCyteRaw:
 				return Pattern.compile( INCUCYTE_RAW ).matcher( path );
-			case Moritz:
-				return Pattern.compile( MORITZ ).matcher( path );
+			case YokogawaCQ1:
+				return Pattern.compile( YOKOGAWACQ1 ).matcher( path );
 			default:
 			case IncuCyte:
 				return Pattern.compile( INCUCYTE ).matcher( path );
@@ -173,8 +173,8 @@ public enum HCSPattern
 				return decodeOperettaWellPosition( well );
 			case InCell:
 				return decodeInCellWellPosition( well );
-			case Moritz:
-				return decodeMoritzWellPosition( well );
+			case YokogawaCQ1:
+				return decodeYokogawaQC1WellPosition( well );
 			default:
 				return decodeA01WellPosition( well );
 		}
@@ -189,14 +189,12 @@ public enum HCSPattern
 		return new int[]{ x, y };
 	}
 
-	private static int[] decodeMoritzWellPosition( String well )
+	private static int[] decodeYokogawaQC1WellPosition( String well )
 	{
 		final int wellIndex = Integer.parseInt( well );
-		final int numColumns = 12;
-		// FIXME: do we have to subtract 1?
-		// FIXME: where to get the number of columns from?
-		final int x = wellIndex % numColumns;
-		final int y = wellIndex / numColumns;
+		final int numColumns = 24; // 384 well plate FIXME: it could be also another plate type?
+		final int x = (wellIndex - 1) % numColumns;
+		final int y = (wellIndex - 1) / numColumns;
 		return new int[]{ x, y };
 	}
 
@@ -258,7 +256,7 @@ public enum HCSPattern
 	{
 		switch ( this )
 		{
-			case Moritz:
+			case YokogawaCQ1:
 				return true;
 			default:
 				return false;

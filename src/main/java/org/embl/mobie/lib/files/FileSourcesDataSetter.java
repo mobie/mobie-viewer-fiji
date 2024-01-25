@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FileSourcesDataSetter
 {
@@ -111,10 +112,10 @@ public class FileSourcesDataSetter
 			}
 		}
 
-		addGridView( dataset, allSources );
+		addGridView( dataset, allSources, regionTable );
 	}
 
-	private void addGridView( Dataset dataset, ArrayList< ImageFileSources > allSources )
+	private void addGridView( Dataset dataset, ArrayList< ImageFileSources > allSources, Table regionTable )
 	{
 		RegionDisplay< AnnotatedRegion > regionDisplay = null;
 		final List< Display< ? > > displays = new ArrayList<>();
@@ -128,12 +129,12 @@ public class FileSourcesDataSetter
 			if ( regionDisplay == null )
 			{
 				// init RegionDisplay
-				regionDisplay = new RegionDisplay<>( regionTable.name() );
+				regionDisplay = new RegionDisplay<>( this.regionTable.name() );
 
 				// add table
 				final StorageLocation storageLocation = new StorageLocation();
-				storageLocation.data = regionTable;
-				final RegionTableSource regionTableSource = new RegionTableSource( regionTable.name() );
+				storageLocation.data = this.regionTable;
+				final RegionTableSource regionTableSource = new RegionTableSource( this.regionTable.name() );
 				regionTableSource.addTable( TableDataFormat.Table, storageLocation );
 				DataStore.addRawData( regionTableSource );
 
@@ -154,7 +155,7 @@ public class FileSourcesDataSetter
 
 				for ( int regionIndex = 0; regionIndex < numRegions; regionIndex++ )
 				{
-					String regionName = regionTable.getString( regionIndex, ColumnNames.REGION_ID );
+					String regionName = this.regionTable.getString( regionIndex, ColumnNames.REGION_ID );
 					regionDisplay.sources.put( regionName, new ArrayList<>() );
 				}
 			}
@@ -164,7 +165,7 @@ public class FileSourcesDataSetter
 			{
 				// TODO: This is brittle as it requires that the sourceNames have the same
 				//   order as the regions in the regionTable
-				String regionName = regionTable.getString( regionIndex, ColumnNames.REGION_ID );
+				String regionName = this.regionTable.getString( regionIndex, ColumnNames.REGION_ID );
 				regionDisplay.sources.get( regionName ).add( sourceNames.get( regionIndex ) );
 				//System.out.println("Region: " +  regionName + "; source: " + sourceNames.get( regionIndex ) );
 			}
@@ -203,6 +204,10 @@ public class FileSourcesDataSetter
 				grid.sources = sourceNames;
 				grid.metadataSource = sources.getMetadataSource();
 				grid.lazyLoadTables = false; // TODO https://github.com/mobie/mobie-viewer-fiji/issues/1035
+				if ( regionTable.containsColumn( ColumnNames.ROW_INDEX ) && regionTable.containsColumn( ColumnNames.COLUMN_INDEX ))
+					grid.positions = regionTable.stream()
+						.map(row -> new int[]{row.getInt(ColumnNames.COLUMN_INDEX), row.getInt(ColumnNames.ROW_INDEX)})
+						.collect( Collectors.toList());
 
 				if ( sources instanceof LabelFileSources )
 				{

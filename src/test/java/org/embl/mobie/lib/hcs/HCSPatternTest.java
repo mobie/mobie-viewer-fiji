@@ -40,7 +40,7 @@ class HCSPatternTest
 	private static String incucyteRaw = "/Users/tischer/Downloads/incu-test-data/2207/19/1110/262/B3-1-C2.tif";
 	private static  String incell = "A - 01(fld 1 wv Green - dsRed z 3).tif";
 
-	private static String moritz = "W0018F0001T0001Z001C1.tif";
+	private static String yokogawaCQ1 = "W0018F0001T0001Z001C1.tif";
 
 	@Test
 	void fromPath()
@@ -57,7 +57,7 @@ class HCSPatternTest
 		final HCSPattern incucyteRaw = HCSPattern.fromPath( HCSPatternTest.incucyteRaw );
         assertEquals( incucyteRaw, HCSPattern.IncuCyteRaw );
 
-		final HCSPattern moritz = HCSPattern.fromPath( HCSPatternTest.moritz );
-        assertEquals( moritz, HCSPattern.Moritz );
+		final HCSPattern yokogawaCQ1 = HCSPattern.fromPath( HCSPatternTest.yokogawaCQ1 );
+        assertEquals( yokogawaCQ1, HCSPattern.YokogawaCQ1 );
 	}
 }

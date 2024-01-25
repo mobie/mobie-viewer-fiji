@@ -53,4 +53,9 @@ public class ColumnNames
 	public static final String SPOT_Y = "y";
 	public static final String SPOT_Z = "z";
 	public static final String SPOT_ID = "spot_id";
+
+	// for multi-well plates
+	public static final String ROW_INDEX = "row_index";
+	public static final String COLUMN_INDEX = "column_index";
+
 }

@@ -64,6 +64,10 @@ public class OpenTableCommand implements Command {
 	@Parameter( label = "Remove Spatial Calibration", required = false )
 	public Boolean removeSpatialCalibration = false;
 
+	@Parameter( label = "Grid Layout (\"auto\" or \"rows,columns\" ", required = false)
+	public String gridLayout = "auto";
+
+
 	@Override
 	public void run()
 	{
