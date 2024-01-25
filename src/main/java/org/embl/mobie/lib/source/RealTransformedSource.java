@@ -74,13 +74,15 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
     @Override
     public RandomAccessibleInterval<T> getSource( final int t, final int level ) {
 
-        return Views.interval(
-                Views.raster(
-                        getInterpolatedSource(
-                                t,
-                                level,
-                                Interpolation.NEARESTNEIGHBOR)),
-                estimateBoundingInterval(t, level));
+        return source.getSource( 0, 0 );
+
+//        return Views.interval(
+//                Views.raster(
+//                        getInterpolatedSource(
+//                                t,
+//                                level,
+//                                Interpolation.NEARESTNEIGHBOR)),
+//                estimateBoundingInterval(t, level));
     }
 
     private Interval estimateBoundingInterval( final int t, final int level ) {

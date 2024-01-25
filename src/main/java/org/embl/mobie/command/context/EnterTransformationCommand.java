@@ -145,11 +145,11 @@ public class EnterTransformationCommand extends DynamicCommand implements BdvPla
 
 			if ( mode.equals( AdditionMode.Replace ) )
 			{
-				transformedSource.setFixedTransform( additionalTransform );
+				transformedSource.setFixedTransform( additionalTransform.copy() );
 			}
 			else if ( mode.equals( AdditionMode.Concatenate ) )
 			{
-				AffineTransform3D newTransform = previousTransform.copy().preConcatenate( additionalTransform );
+				AffineTransform3D newTransform = previousTransform.copy().preConcatenate( additionalTransform.copy() );
 				transformedSource.setFixedTransform( newTransform );
 			}
 

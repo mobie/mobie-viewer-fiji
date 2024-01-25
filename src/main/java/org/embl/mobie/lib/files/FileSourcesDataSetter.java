@@ -169,10 +169,36 @@ public class FileSourcesDataSetter
 				//System.out.println("Region: " +  regionName + "; source: " + sourceNames.get( regionIndex ) );
 			}
 
+			if ( sources.getSources().size() == 1 )
+			{
+				String source = sources.getSources().get( 0 );
+				// no need to build a grid view
+				if ( sources instanceof LabelFileSources )
+				{
+					// SegmentationDisplay
+					final SegmentationDisplay< AnnotatedSegment > segmentationDisplay
+							= new SegmentationDisplay<>( source, Collections.singletonList( source ) );
+					final int numLabelTables = ( ( LabelFileSources ) sources ).getNumLabelTables();
+					segmentationDisplay.setShowTable( numLabelTables > 0 );
+					displays.add( segmentationDisplay );
+				}
+				else
+				{
+					// ImageDisplay
+					final Metadata metadata = sources.getMetadata();
+					displays.add( new ImageDisplay<>( source, Collections.singletonList( source ), metadata.color, metadata.contrastLimits ) );
+				}
+
+				continue; // no need to build a grid view
+			}
+
 			// create grid transformations
 			//
 			if ( sources.getGridType().equals( GridType.Stitched ) )
 			{
+				// the MergedGridTransformation will trigger the creation of
+				// a new StitchedImage with name sources.getName(),
+				// which can be displayed in an ImageDisplay
 				MergedGridTransformation grid = new MergedGridTransformation( sources.getName() );
 				grid.sources = sourceNames;
 				grid.metadataSource = sources.getMetadataSource();
@@ -242,9 +268,14 @@ public class FileSourcesDataSetter
 		// construct and add the view
 		//
 		// FIXME: Maybe the viewerTransform could be something else?
-		final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( transformations.get( 0 ).getSources().get( 0 ), 0 );
-		final View gridView = new View( "all images", "data", displays, transformations, viewerTransform, false, null );
+
+		final ImageZoomViewerTransform viewerTransform =
+				new ImageZoomViewerTransform( allSources.get( 0 ).getSources().get( 0 ), 0 );
+		final View view =
+				new View( "all images", "data", displays, transformations, viewerTransform, false, null );
+
 		//gridView.overlayNames( true ); // FIXME: Timepoint bug!
-		dataset.views().put( gridView.getName(), gridView );
+
+		dataset.views().put( view.getName(), view );
 	}
 }

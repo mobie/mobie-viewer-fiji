@@ -75,6 +75,8 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 	@Override
 	public void run()
 	{
+		// FIXME: We should somewhere store the information that this was a BigWarp transformation and of which type!
+
 		List< SourceAndConverter< ? > > sourceAndConverters = MoBIEHelper.getVisibleSacs( bdvHandle );
 
 		final String[] titles = sourceAndConverters.stream()

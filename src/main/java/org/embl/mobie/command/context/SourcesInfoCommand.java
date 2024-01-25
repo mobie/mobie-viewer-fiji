@@ -61,6 +61,7 @@ public class SourcesInfoCommand implements BdvPlaygroundActionCommand
             Source< ? > source = sac.getSpimSource();
             IJ.log( "" );
             IJ.log( "# " + source.getName() );
+            IJ.log( "" );
             IJ.log( "Data type: " + source.getType().getClass().getSimpleName() );
             IJ.log( "Shape: " + Arrays.toString( source.getSource( 0,0 ).dimensionsAsLongArray() ) );
             IJ.log( "Number of resolution levels: " + source.getNumMipmapLevels() );
