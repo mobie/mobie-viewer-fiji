@@ -30,7 +30,7 @@ package develop;
 
 import com.google.gson.Gson;
 import org.embl.mobie.lib.serialize.JsonHelper;
-import org.embl.mobie.lib.transform.NormalizedAffineViewerTransform;
+import org.embl.mobie.lib.serialize.transformation.NormalizedAffineViewerTransform;
 import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 
 public class DevelopViewsLogging

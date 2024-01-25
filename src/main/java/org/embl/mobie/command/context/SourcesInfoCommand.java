@@ -32,53 +32,50 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import mpicbg.spim.data.sequence.VoxelDimensions;
-import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.serialize.transformation.Transformation;
+import org.embl.mobie.lib.source.SourceHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-@Plugin( type = BdvPlaygroundActionCommand.class, name = SourceInfoLoggerCommand.NAME, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + SourceInfoLoggerCommand.NAME )
-public class SourceInfoLoggerCommand implements BdvPlaygroundActionCommand
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Log Images Info")
+public class SourcesInfoCommand implements BdvPlaygroundActionCommand
 {
-	static { net.imagej.patcher.LegacyInjector.preinit(); }
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static final String NAME = "Log Source(s) Info";
+    @Parameter
+    public BdvHandle bdvHandle;
 
-	@Parameter
-	BdvHandle bdvHandle;
+    @Override
+    public void run()
+    {
+        List< SourceAndConverter< ? > > visibleSacs = MoBIEHelper.getVisibleSacs( bdvHandle );
+        visibleSacs.forEach( sac ->
+        {
+            Source< ? > source = sac.getSpimSource();
+            IJ.log( "" );
+            IJ.log( "# " + source.getName() );
+            IJ.log( "" );
+            IJ.log( "Data type: " + source.getType().getClass().getSimpleName() );
+            IJ.log( "Shape: " + Arrays.toString( source.getSource( 0,0 ).dimensionsAsLongArray() ) );
+            IJ.log( "Number of resolution levels: " + source.getNumMipmapLevels() );
+            IJ.log( "Voxel size: " + Arrays.toString( source.getVoxelDimensions().dimensionsAsDoubleArray() ) );
 
-	@Override
-	public void run()
-	{
-		new Thread( () -> {
-			final int t = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
+            ArrayList< Transformation > transformations = SourceHelper.fetchAllTransformations( source );
 
-			final Set< SourceAndConverter< ? > > sourceAndConverters = bdvHandle.getViewerPanel().state().getVisibleAndPresentSources();
+            transformations.forEach( transformation ->
+            {
+                IJ.log( "" );
+                IJ.log( transformation.toString() );
+            });
 
-			final List< ? extends Source< ? > > sources = sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).sorted( Comparator.comparing(  s -> s.getName() ) ).collect( Collectors.toList() );
-
-			for ( Source< ? > source : sources )
-			{
-				IJ.log( "\n## " + source.getName()  );
-				final AffineTransform3D affineTransform3D = new AffineTransform3D();
-				source.getSourceTransform( t, 0, affineTransform3D );
-				final VoxelDimensions voxelDimensions = source.getVoxelDimensions();
-				if ( voxelDimensions.numDimensions() > 0 )
-					IJ.log( voxelDimensions.toString() );
-				IJ.log( "Resolution levels: " + source.getNumMipmapLevels() );
-				IJ.log( "Data type: " + source.getType().getClass() );
-				IJ.log( "Shape: " + Arrays.toString( source.getSource( 0,0 ).dimensionsAsLongArray() ) );
-				IJ.log( "Transform from array to global space: " + affineTransform3D );
-
-			}
-		} ).start();
-	}
+            IJ.log( "" );
+        });
+    }
 }

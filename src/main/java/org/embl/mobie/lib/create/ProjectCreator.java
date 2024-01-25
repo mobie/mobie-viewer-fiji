@@ -68,7 +68,7 @@ public class ProjectCreator {
 
     private final DatasetsCreator datasetsCreator;
     private final ImagesCreator imagesCreator;
-    private final DatasetJsonCreator datasetJsonCreator;
+    private final DatasetSerializer datasetSerializer;
     private final ProjectJsonCreator projectJsonCreator;
     private final RemoteMetadataCreator remoteMetadataCreator;
 
@@ -103,7 +103,7 @@ public class ProjectCreator {
         }
 
         this.datasetsCreator = new DatasetsCreator( this );
-        this.datasetJsonCreator = new DatasetJsonCreator( this );
+        this.datasetSerializer = new DatasetSerializer( this );
         this.projectJsonCreator = new ProjectJsonCreator( this );
         this.imagesCreator = new ImagesCreator( this );
         this.remoteMetadataCreator = new RemoteMetadataCreator( this );
@@ -216,8 +216,8 @@ public class ProjectCreator {
         return imagesCreator;
     }
 
-    public DatasetJsonCreator getDatasetJsonCreator() {
-        return datasetJsonCreator;
+    public DatasetSerializer getDatasetJsonCreator() {
+        return datasetSerializer;
     }
 
     public ProjectJsonCreator getProjectJsonCreator() { return projectJsonCreator; }

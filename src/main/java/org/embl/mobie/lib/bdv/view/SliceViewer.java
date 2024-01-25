@@ -30,8 +30,7 @@ package org.embl.mobie.lib.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import net.imglib2.converter.Converter;
-import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.context.*;
 import org.embl.mobie.command.view.ViewerTransformLoggerCommand;
@@ -44,12 +43,12 @@ import org.embl.mobie.lib.bdv.SourcesAtMousePositionSupplier;
 import org.embl.mobie.lib.bdv.blend.AccumulateAlphaBlendingProjectorARGB;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.color.OpacityHelper;
-import org.embl.mobie.lib.color.opacity.MoBIEColorConverter;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
+import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.AbstractDisplay;
 import org.embl.mobie.lib.source.SourceHelper;
-import org.embl.mobie.lib.ui.WindowArrangementHelper;
+import org.embl.mobie.ui.WindowArrangementHelper;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -137,24 +136,25 @@ public class SliceViewer
 		} );
 
 		sacService.registerAction( LOAD_ADDITIONAL_VIEWS, sourceAndConverters -> {
-			// TODO: Maybe only do this for the sacs at the mouse position
 			moBIE.getViewManager().getAdditionalViewsLoader().loadAdditionalViewsDialog();
 		} );
 
 		sacService.registerAction( SAVE_CURRENT_SETTINGS_AS_VIEW, sourceAndConverters -> {
-			// TODO: Maybe only do this for the sacs at the mouse position
-			moBIE.getViewManager().getViewsSaver().saveCurrentViewDialog();
+			View view = moBIE.getViewManager().createViewFromCurrentState();
+			moBIE.getViewManager().getViewsSaver().saveViewDialog( view );
 		} );
 
 		final Set< String > actionsKeys = sacService.getActionsKeys();
 
 		final ArrayList< String > actions = new ArrayList< String >();
-		actions.add( SourceAndConverterService.getCommandName( ScreenShotMakerCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( SourcesInfoCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ShowRasterImagesCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( ScreenShotMakerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ViewerTransformLoggerCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( SourceInfoLoggerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( BigWarpRegistrationCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( ManualRegistrationCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( AutomaticRegistrationCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( ManualTransformationCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( EnterTransformationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( FlipCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );
 		actions.add( LOAD_ADDITIONAL_VIEWS );
@@ -175,6 +175,15 @@ public class SliceViewer
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.behaviour( contextMenu, "Context menu", "button3", "shift P");
 		behaviours.install( bdvHandle.getTriggerbindings(), "MoBIE" );
+
+
+		behaviours.behaviour(
+				( ClickBehaviour ) ( x, y ) ->
+						new Thread( () -> {
+							AffineTransform3D affineTransform3D = bdvHandle.getViewerPanel().state().getViewerTransform();
+							System.out.println( "Viewer transform " + affineTransform3D );
+						}).start(),
+				"Log viewer transform", "ctrl 1" ) ;
 
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->

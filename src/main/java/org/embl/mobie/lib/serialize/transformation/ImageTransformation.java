@@ -28,7 +28,7 @@
  */
 package org.embl.mobie.lib.serialize.transformation;
 
-public interface ImageTransformation< A, B > extends Transformation
+public interface ImageTransformation extends Transformation
 {
 	String getTransformedImageName( String imageName );
 }

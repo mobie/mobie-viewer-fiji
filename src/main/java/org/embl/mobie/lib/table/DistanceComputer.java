@@ -3,6 +3,7 @@ package org.embl.mobie.lib.table;
 import ij.IJ;
 import ij.gui.GenericDialog;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.color.ColoringModels;
 import org.embl.mobie.lib.color.MobieColoringModel;
@@ -20,22 +21,12 @@ public class DistanceComputer
     {
         Mean,
         Median;
-
-        public static String[] asArray()
-        {
-            return Arrays.stream( AverageMethod.values()).map(Enum::name).toArray(String[]::new);
-        }
     }
 
     enum DistanceMetric
     {
         Euclidian,
         Cosine;
-
-        public static String[] asArray()
-        {
-            return Arrays.stream( DistanceMetric.values()).map(Enum::name).toArray(String[]::new);
-        }
     }
 
     public static < A extends Annotation > void showUI( AnnotationTableModel< A > tableModel, SelectionModel< A > selectionModel, MobieColoringModel< A > coloringModel )
@@ -51,8 +42,8 @@ public class DistanceComputer
         //
         final GenericDialog gd = new GenericDialog( "" );
         gd.addStringField( "Distance Columns RegEx", "anchor_.*" );
-        gd.addChoice( "Distance Metric", DistanceMetric.asArray(), DistanceMetric.Euclidian.toString() );
-        gd.addChoice( "Averaging Method", AverageMethod.asArray(), AverageMethod.Median.toString() );
+        gd.addChoice( "Distance Metric", MoBIEHelper.enumAsStringArray( DistanceMetric.class ), DistanceMetric.Euclidian.toString() );
+        gd.addChoice( "Averaging Method", MoBIEHelper.enumAsStringArray( AverageMethod.class ), AverageMethod.Median.toString() );
         gd.addStringField( "Results Column Name", "distance" );
         gd.addCheckbox( "Color by Results", true );
         gd.showDialog();

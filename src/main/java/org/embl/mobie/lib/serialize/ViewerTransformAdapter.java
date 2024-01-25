@@ -36,7 +36,7 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import org.embl.mobie.lib.transform.viewer.AffineViewerTransform;
 import org.embl.mobie.lib.transform.viewer.NormalVectorViewerTransform;
-import org.embl.mobie.lib.transform.NormalizedAffineViewerTransform;
+import org.embl.mobie.lib.serialize.transformation.NormalizedAffineViewerTransform;
 import org.embl.mobie.lib.transform.viewer.PositionViewerTransform;
 import org.embl.mobie.lib.transform.viewer.TimepointViewerTransform;
 import org.embl.mobie.lib.transform.viewer.ViewerTransform;

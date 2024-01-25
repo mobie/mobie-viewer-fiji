@@ -30,16 +30,11 @@ package org.embl.mobie.lib.serialize.transformation;
 
 import java.util.List;
 
-public class CropTransformation< T > extends AbstractImageTransformation< T, T >
+public class CropTransformation extends AbstractImageTransformation
 {
 	// Serialisation
 	public double[] min;
 	public double[] max;
 	public boolean centerAtOrigin = false;
 
-	@Override
-	public List< String > getSources()
-	{
-		return sources;
-	}
 }

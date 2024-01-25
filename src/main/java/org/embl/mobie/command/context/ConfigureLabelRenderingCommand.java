@@ -55,9 +55,6 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 public class ConfigureLabelRenderingCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
-
-	protected static ISourceAndConverterService sourceAndConverterService = SourceAndConverterServices.getSourceAndConverterService();
-
 	protected static final String SEGMENT_COLOR = "Keep current color";
 	protected static final String SELECTION_COLOR = "Use below selection color";
 

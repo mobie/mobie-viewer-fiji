@@ -32,7 +32,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-public class TimepointsTransformation< T > extends AbstractImageTransformation< T, T >
+public class TimepointsTransformation extends AbstractImageTransformation
 {
 	// Serialisation
 
@@ -84,11 +84,5 @@ public class TimepointsTransformation< T > extends AbstractImageTransformation< 
 	public boolean isKeep()
 	{
 		return keep;
-	}
-
-	@Override
-	public List< String > getSources()
-	{
-		return sources;
 	}
 }

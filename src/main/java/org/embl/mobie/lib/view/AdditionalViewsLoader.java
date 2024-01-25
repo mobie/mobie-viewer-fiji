@@ -30,10 +30,10 @@ package org.embl.mobie.lib.view;
 
 import ij.IJ;
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.lib.serialize.View;
-import org.embl.mobie.lib.ui.UserInterfaceHelper;
+import org.embl.mobie.ui.UserInterfaceHelper;
 
 import java.io.IOException;
 import java.util.Map;
@@ -52,10 +52,10 @@ public class AdditionalViewsLoader {
         new Thread( () -> {
             try {
                 String selectedFilePath = null;
-                MoBIEHelper.FileLocation fileLocation = UserInterfaceHelper.loadFromProjectOrFileSystemDialog();
+                FileLocation fileLocation = UserInterfaceHelper.loadFromProjectOrFileSystemDialog();
                 if ( fileLocation == null )
                     return;
-                if ( fileLocation == MoBIEHelper.FileLocation.Project ) {
+                if ( fileLocation == FileLocation.Project ) {
                     selectedFilePath = UserInterfaceHelper.selectPathFromProject( moBIE.absolutePath("misc", "views" ), "View" );
                 } else {
                     selectedFilePath = UserInterfaceHelper.selectFilePath( "json", "View", true );

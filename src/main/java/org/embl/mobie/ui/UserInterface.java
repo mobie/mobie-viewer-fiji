@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.ui;
+package org.embl.mobie.ui;
 
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.bdv.ImageNameOverlay;

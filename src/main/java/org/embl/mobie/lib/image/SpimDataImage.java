@@ -57,7 +57,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	private Boolean removeSpatialCalibration = false;
 	@Nullable
 	private RealMaskRealInterval mask;
-	private TransformedSource transformedSource;
+	private TransformedSource< T > transformedSource;
 	private AffineTransform3D currentTransform = new AffineTransform3D();
 
 	public SpimDataImage( AbstractSpimData< ? > spimData, Integer setupId, String name, Boolean removeSpatialCalibration  )
@@ -152,12 +152,12 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 
 	private void open()
 	{
-		final AbstractSpimData spimData = openSpimData();
+		final AbstractSpimData< ? > spimData = openSpimData();
 
 		createSourcePair( spimData, setupId, name );
 	}
 
-	private void createSourcePair( AbstractSpimData spimData, int setupId, String name )
+	private void createSourcePair( AbstractSpimData< ? > spimData, int setupId, String name )
 	{
 		final SpimSource< T > source = new SpimSource<>( spimData, setupId, name );
 		final VolatileSpimSource< ? extends Volatile< T > > vSource = new VolatileSpimSource<>( spimData, setupId, name );
@@ -170,10 +170,10 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 			SourceHelper.setVoxelDimensionsToPixels( vSource );
 		}
 
-		transformedSource = new TransformedSource( source );
+		transformedSource = new TransformedSource<>( source );
 		transformedSource.setFixedTransform( currentTransform );
 
-		sourcePair = new DefaultSourcePair( transformedSource, new TransformedSource( vSource, transformedSource ) );
+		sourcePair = new DefaultSourcePair<>( transformedSource, new TransformedSource<>( vSource, transformedSource ) );
 	}
 
 	private AbstractSpimData openSpimData( )

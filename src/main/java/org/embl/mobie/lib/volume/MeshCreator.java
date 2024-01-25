@@ -56,8 +56,8 @@ import java.util.Arrays;
 
 public class MeshCreator< S extends Segment >
 {
-	private int meshSmoothingIterations;
-	private double maxNumSegmentVoxels;
+	private final int meshSmoothingIterations;
+	private final double maxNumSegmentVoxels;
 
 	public MeshCreator( int meshSmoothingIterations, double maxNumSegmentVoxels )
 	{
@@ -67,10 +67,10 @@ public class MeshCreator< S extends Segment >
 
 	private float[] createMesh( S segment, @Nullable double[] targetVoxelSpacing, Source< AnnotationType< S > > source )
 	{
-		Integer renderingLevel = getLevel( segment, source, targetVoxelSpacing );
+		int renderingLevel = getLevel( segment, source, targetVoxelSpacing );
 
 		final AffineTransform3D sourceTransform = new AffineTransform3D();
-		final Integer timePoint = segment.timePoint() == null ? 0 : segment.timePoint();
+		final int timePoint = segment.timePoint() == null ? 0 : segment.timePoint();
 		source.getSourceTransform( timePoint, renderingLevel, sourceTransform );
 
 		final RandomAccessibleInterval< AnnotationType< S > >  rai = source.getSource( timePoint, renderingLevel );
@@ -134,6 +134,12 @@ public class MeshCreator< S extends Segment >
 		if ( mesh.length == 0 )
 			throw new RuntimeException("The mesh has zero vertices.");
 
+		// TODO: instead of transformation the mesh, one could
+		//  also transform the universe content that is created
+		//  from this mesh
+		//  Note that for the image volume rendering (@code ImageVolumeViewer)
+		//  we need to transform the images as content,
+		//  and thus it may be more consistent do to the same for the meshes?!
 		final float[] transformedMesh = MeshTransformer.transform( mesh, sourceTransform );
 
 		return transformedMesh;
@@ -188,7 +194,7 @@ public class MeshCreator< S extends Segment >
 	{
 		if ( voxelSpacing != null ) // user determined resolution
 		{
-			return BdvPlaygroundHelper.getLevel( labelSource, voxelSpacing );
+			return BdvPlaygroundHelper.getLevel( labelSource, 0, voxelSpacing );
 		}
 		else // auto-resolution, uses maxNumSegmentVoxels
 		{

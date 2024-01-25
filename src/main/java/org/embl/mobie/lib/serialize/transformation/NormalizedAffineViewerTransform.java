@@ -26,8 +26,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.transform;
+package org.embl.mobie.lib.serialize.transformation;
 
+import bdv.util.BdvHandle;
+import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.lib.transform.TransformHelper;
 import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 
 public class NormalizedAffineViewerTransform implements ViewerTransform
@@ -35,6 +38,12 @@ public class NormalizedAffineViewerTransform implements ViewerTransform
 	// Serialization
 	private double[] normalizedAffine;
 	private Integer timepoint;
+
+	public NormalizedAffineViewerTransform( BdvHandle bdvHandle )
+	{
+		normalizedAffine = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() ).getRowPackedCopy();
+		timepoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
+	}
 
 	public NormalizedAffineViewerTransform( double[] parameters, int timepoint )
 	{

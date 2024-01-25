@@ -57,7 +57,8 @@ import static org.embl.mobie.lib.create.ProjectCreatorHelper.imageFormatToFolder
 /**
  * Class to create and modify the metadata stored in dataset Json files
  */
-public class DatasetJsonCreator {
+public class DatasetSerializer
+{
 
     ProjectCreator projectCreator;
 
@@ -66,7 +67,7 @@ public class DatasetJsonCreator {
      * stored in dataset Json files
      * @param projectCreator projectCreator
      */
-    public DatasetJsonCreator( ProjectCreator projectCreator ) {
+    public DatasetSerializer( ProjectCreator projectCreator ) {
         this.projectCreator = projectCreator;
     }
 
@@ -94,9 +95,15 @@ public class DatasetJsonCreator {
      *                  images from the viewer?
      * @param sourceTransform affine transform of image view
      */
-    public void addImage(String imageName, String datasetName,
+    public void addImage(String imageName,
+                         String datasetName,
                          String uiSelectionGroup,
-                         ImageDataFormat imageDataFormat, double[] contrastLimits, String colour, boolean exclusive, AffineTransform3D sourceTransform ) {
+                         ImageDataFormat imageDataFormat,
+                         double[] contrastLimits,
+                         String colour,
+                         boolean exclusive,
+                         AffineTransform3D sourceTransform )
+    {
         Dataset dataset = fetchDataset( datasetName );
 
         addNewImageSource( dataset, imageName, imageDataFormat );
@@ -146,7 +153,8 @@ public class DatasetJsonCreator {
      * @param datasetName dataset name
      * @param is2D whether dataset only contains 2D images
      */
-    public void makeDataset2D( String datasetName, boolean is2D ) {
+    public void makeDataset2D( String datasetName, boolean is2D )
+    {
         Dataset dataset = projectCreator.getDataset( datasetName );
         dataset.is2D( is2D );
         writeDatasetJson( datasetName, dataset );
@@ -158,7 +166,8 @@ public class DatasetJsonCreator {
         return dataset;
     }
 
-    private void addNewImageSource( Dataset dataset, String imageName, ImageDataFormat imageDataFormat ) {
+    private void addNewImageSource( Dataset dataset, String imageName, ImageDataFormat imageDataFormat )
+    {
         Map< ImageDataFormat, StorageLocation > imageDataLocations;
         ImageDataSource imageSource = new ImageDataSource();
         imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
@@ -166,7 +175,8 @@ public class DatasetJsonCreator {
         dataset.sources().put( imageName, imageSource );
     }
 
-    private void addNewSegmentationSource( Dataset dataset, String imageName, ImageDataFormat imageDataFormat ) {
+    private void addNewSegmentationSource( Dataset dataset, String imageName, ImageDataFormat imageDataFormat )
+    {
         Map< ImageDataFormat, StorageLocation > imageDataLocations;
 
         SegmentationDataSource annotatedLabelMaskSource = new SegmentationDataSource();
@@ -182,7 +192,8 @@ public class DatasetJsonCreator {
     }
 
     private Map< ImageDataFormat, StorageLocation > makeImageDataLocations( ImageDataFormat imageDataFormat,
-																			String imageName ) {
+																			String imageName )
+    {
         Map< ImageDataFormat, StorageLocation > imageDataLocations = new HashMap<>();
         StorageLocation imageStorageLocation = new StorageLocation();
         if ( imageDataFormat == ImageDataFormat.OmeZarr ) {
@@ -199,29 +210,34 @@ public class DatasetJsonCreator {
 
     private void addNewImageView( Dataset dataset, String imageName, String uiSelectionGroup,
 								  double[] contrastLimits, String colour, boolean exclusive,
-								  AffineTransform3D sourceTransform ) {
+								  AffineTransform3D sourceTransform )
+    {
         View view = createImageView( imageName, uiSelectionGroup, exclusive, contrastLimits, colour, sourceTransform );
         dataset.views().put( imageName, view );
     }
 
-    private void addNewSegmentationView( Dataset dataset, String imageName, String uiSelectionGroup, boolean exclusive, AffineTransform3D sourceTransform ) {
+    private void addNewSegmentationView( Dataset dataset, String imageName, String uiSelectionGroup, boolean exclusive, AffineTransform3D sourceTransform )
+    {
         View view = createSegmentationView( imageName, uiSelectionGroup, exclusive, sourceTransform );
         dataset.views().put( imageName, view );
     }
 
     private void addNewDefaultImageView( Dataset dataset, String imageName, double[] contrastLimits, String colour,
-										 AffineTransform3D sourceTransform ) {
+										 AffineTransform3D sourceTransform )
+    {
         View view = createImageView( imageName, "bookmark", true, contrastLimits, colour,
                 sourceTransform );
         dataset.views().put( View.DEFAULT, view );
     }
 
-    private void addNewDefaultSegmentationView( Dataset dataset, String imageName, AffineTransform3D sourceTransform ) {
+    private void addNewDefaultSegmentationView( Dataset dataset, String imageName, AffineTransform3D sourceTransform )
+    {
         View view = createSegmentationView( imageName, "bookmark", true, sourceTransform );
         dataset.views().put( View.DEFAULT, view );
     }
 
-    private List< Transformation > createSourceTransformerList( AffineTransform3D sourceTransform, List<String> sources ) {
+    private List< Transformation > createSourceTransformerList( AffineTransform3D sourceTransform, List<String> sources )
+    {
         List< Transformation > imageTransformationList = new ArrayList<>();
         Transformation imageTransformation = new AffineTransformation( "affine", sourceTransform.getRowPackedCopy(), sources );
         imageTransformationList.add( imageTransformation );
@@ -234,21 +250,22 @@ public class DatasetJsonCreator {
         ArrayList< String > sources = new ArrayList<>();
         sources.add( imageName );
 
-        ImageDisplay imageDisplay = new ImageDisplay( imageName, 1.0, sources, colour, contrastLimits, null, false );
+        ImageDisplay<?> imageDisplay = new ImageDisplay<>( imageName, 1.0, sources, colour, contrastLimits, null, false );
         displays.add( imageDisplay );
 
         View view;
         if ( sourceTransform.isIdentity() ) {
-            view = new View( imageName, uiSelectionGroup, displays, null, null, isExclusive);
+            view = new View( imageName, uiSelectionGroup, displays, null, null, isExclusive, null );
         } else {
             List< Transformation > imageTransformationList = createSourceTransformerList( sourceTransform, sources );
-            view = new View( imageName, uiSelectionGroup, displays, imageTransformationList, null, isExclusive );
+            view = new View( imageName, uiSelectionGroup, displays, imageTransformationList, null, isExclusive, null );
         }
 
         return view;
     }
 
-    private View createSegmentationView( String imageName, String uiSelectionGroup, boolean isExclusive, AffineTransform3D sourceTransform ) {
+    private View createSegmentationView( String imageName, String uiSelectionGroup, boolean isExclusive, AffineTransform3D sourceTransform )
+    {
         ArrayList< Display< ? > > displays = new ArrayList<>();
         ArrayList<String> sources = new ArrayList<>();
         sources.add( imageName );
@@ -257,10 +274,10 @@ public class DatasetJsonCreator {
         displays.add( segmentationDisplay );
 
         if ( sourceTransform.isIdentity() ) {
-            return new View( imageName, uiSelectionGroup, displays, null, null, isExclusive );
+            return new View( imageName, uiSelectionGroup, displays, null, null, isExclusive, null );
         } else {
             List< Transformation > imageTransformationList = createSourceTransformerList( sourceTransform, sources );
-            return new View( imageName, uiSelectionGroup, displays, imageTransformationList, null, isExclusive );
+            return new View( imageName, uiSelectionGroup, displays, imageTransformationList, null, isExclusive, null );
         }
     }
 
@@ -269,7 +286,8 @@ public class DatasetJsonCreator {
      * @param datasetName dataset name
      * @param dataset dataset
      */
-    public void writeDatasetJson ( String datasetName, Dataset dataset ) {
+    public void writeDatasetJson ( String datasetName, Dataset dataset )
+    {
         try {
             String datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                     datasetName, "dataset.json" );

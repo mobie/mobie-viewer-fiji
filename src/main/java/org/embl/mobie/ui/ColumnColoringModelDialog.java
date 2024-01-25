@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.ui;
+package org.embl.mobie.ui;
 
 import ij.IJ;
 import ij.gui.GenericDialog;

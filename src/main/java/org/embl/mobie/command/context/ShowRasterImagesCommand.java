@@ -61,7 +61,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Show " + ShowRasterImagesCommand.RAW + " Image(s)" )
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Show " + ShowRasterImagesCommand.RAW + " Images" )
 public class ShowRasterImagesCommand< T extends NumericType< T > > implements BdvPlaygroundActionCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
@@ -72,7 +72,7 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 	public BdvHandle bdvHandle;
 
 	@Parameter( label = "Source(s)" )
-	public SourceAndConverter[] sourceAndConverterArray;
+	public SourceAndConverter< ? >[] sourceAndConverterArray;
 
 	@Override
 	public void run()

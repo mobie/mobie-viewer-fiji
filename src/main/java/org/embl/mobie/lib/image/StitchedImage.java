@@ -50,7 +50,6 @@ import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.NumericType;
-import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
@@ -62,7 +61,9 @@ import org.embl.mobie.lib.io.Status;
 import org.embl.mobie.lib.source.MoBIEVolatileTypeMatcher;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.transform.TransformHelper;
-import org.embl.mobie.lib.transform.image.ImageTransformer;
+import org.embl.mobie.lib.transform.ImageTransformer;
+import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -74,7 +75,6 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -105,7 +105,6 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private RealMaskRealInterval referenceMask;
 	private AffineTransform3D sourceTransform;
 	private int numTimepoints;
-
 	private final boolean debug = false;
 	private RealMaskRealInterval mask;
 	private Source< T > metadataSource;
@@ -388,7 +387,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		sourcePair = new DefaultSourcePair<>( transformedSource, transformedVolatileSource );
 	}
 
-	class StitchedSource< T extends Type< T > > implements Source< T >
+	static class StitchedSource< T extends Type< T > > implements Source< T >
 	{
 		private final Map< Integer, List< RandomAccessibleInterval< T > > > mipmapSources;
 		private final AffineTransform3D[] mipmapTransforms;

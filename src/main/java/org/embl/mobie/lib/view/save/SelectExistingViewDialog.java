@@ -31,9 +31,9 @@ package org.embl.mobie.lib.view.save;
 import de.embl.cba.tables.SwingUtils;
 import org.embl.mobie.lib.create.ProjectCreatorHelper;
 import org.embl.mobie.lib.serialize.Dataset;
-import org.embl.mobie.lib.ui.MoBIELaf;
-import org.embl.mobie.lib.ui.SwingHelper;
-import org.embl.mobie.lib.ui.UserInterfaceHelper;
+import org.embl.mobie.ui.MoBIELaf;
+import org.embl.mobie.ui.SwingHelper;
+import org.embl.mobie.ui.UserInterfaceHelper;
 import org.embl.mobie.lib.view.AdditionalViews;
 
 import javax.swing.*;

@@ -30,6 +30,7 @@ package org.embl.mobie.lib.source;
 
 import bdv.AbstractSpimSource;
 import bdv.SpimSource;
+import bdv.VolatileSpimSource;
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.AbstractSource;
 import bdv.util.Affine3DHelpers;
@@ -45,16 +46,20 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.RealTransform;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.roi.geom.real.WritableBox;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
+import org.embl.mobie.lib.image.StitchedImage;
+import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
+import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
+import org.embl.mobie.lib.serialize.transformation.Transformation;
+import org.embl.mobie.lib.transform.InterpolatedAffineRealTransform;
 
 import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper.getVoxelPositionInSource;
@@ -111,7 +116,7 @@ public abstract class SourceHelper
 		return numSourceTimepoints;
 	}
 
-	public static void fetchRootSources( Source< ? > source, Set< Source< ? > > rootSources )
+	public static void fetchRootSources( Source< ? > source, Collection< Source< ? > > rootSources )
 	{
 		if ( source instanceof SpimSource )
 		{
@@ -157,6 +162,78 @@ public abstract class SourceHelper
 		else
 		{
 			throw new IllegalArgumentException("For sources of type " + source.getClass().getName() + " the root source currently cannot be determined.");
+		}
+	}
+
+	public static ArrayList< Transformation > fetchAddedTransformations( Source< ? > source )
+	{
+		ArrayList< Transformation > allTransformations = fetchAllTransformations( source );
+		allTransformations.remove( 0 ); // in MoBIE this is part of the raw image itself
+		return allTransformations;
+	}
+
+
+	public static ArrayList< Transformation > fetchAllTransformations( Source< ? > source )
+	{
+		ArrayList< Transformation > transformations = new ArrayList<>();
+		collectTransformations( source, transformations );
+		Collections.reverse( transformations ); // first transformation first
+		return transformations;
+	}
+
+	private static void collectTransformations( Source< ? > source, Collection< Transformation > transformations )
+	{
+		if ( source instanceof AbstractSpimSource )
+		{
+			AffineTransform3D affineTransform3D = new AffineTransform3D();
+			source.getSourceTransform( 0, 0, affineTransform3D );
+			AffineTransformation affineTransformation = new AffineTransformation(
+					"SpimSource",
+					affineTransform3D,
+					Collections.singletonList( source.getName() ) );
+			transformations.add( affineTransformation );
+		}
+		else if ( source instanceof TransformedSource )
+		{
+			TransformedSource< ? > transformedSource = ( TransformedSource< ? > ) source;
+			final Source< ? > wrappedSource = transformedSource.getWrappedSource();
+			AffineTransform3D fixedTransform = new AffineTransform3D();
+			transformedSource.getFixedTransform( fixedTransform );
+			if ( ! fixedTransform.isIdentity() )
+			{
+				AffineTransformation affineTransformation = new AffineTransformation(
+						"TransformedSource",
+						fixedTransform,
+						Collections.singletonList( wrappedSource.getName() ) );
+				transformations.add( affineTransformation );
+			}
+			collectTransformations( wrappedSource, transformations );
+		}
+		else if ( source instanceof RealTransformedSource )
+		{
+			RealTransformedSource< ? > realTransformedSource = ( RealTransformedSource< ? > ) source;
+			RealTransform realTransform = realTransformedSource.getRealTransform();
+			if ( realTransform instanceof InterpolatedAffineRealTransform )
+			{
+				Source< ? > wrappedSource = realTransformedSource.getWrappedSource();
+				InterpolatedAffineTransformation interpolatedAffineTransformation =
+						new InterpolatedAffineTransformation(
+								"RealTransformedSource",
+								( ( InterpolatedAffineRealTransform ) realTransform ).getTransforms(),
+								wrappedSource.getName(),
+								source.getName()
+						);
+				transformations.add( interpolatedAffineTransformation );
+				collectTransformations( wrappedSource, transformations );
+			}
+			else
+			{
+				throw new IllegalArgumentException("Fetching transformations from " + source.getClass().getName() + " is not implemented.");
+			}
+		}
+		else
+		{
+			throw new IllegalArgumentException("Fetching transformations from " + source.getClass().getName() + " is not implemented.");
 		}
 	}
 

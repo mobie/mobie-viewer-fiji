@@ -31,13 +31,14 @@ package org.embl.mobie.lib.view.save;
 import ij.IJ;
 import ij.gui.GenericDialog;
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.lib.create.ProjectCreatorHelper;
+import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.DatasetJsonParser;
-import org.embl.mobie.lib.ui.UserInterfaceHelper;
+import org.embl.mobie.lib.serialize.transformation.NormalizedAffineViewerTransform;
+import org.embl.mobie.ui.UserInterfaceHelper;
 import org.embl.mobie.lib.view.AdditionalViews;
 import org.embl.mobie.lib.serialize.View;
 import org.apache.commons.io.FilenameUtils;
@@ -79,36 +80,45 @@ public class ViewSaver
         this.settings = moBIE.getSettings();
     }
 
-    public void saveCurrentViewDialog()
+    public void saveViewDialog( View view )
     {
-        final GenericDialog gd = new GenericDialog("Save current view");
+        final GenericDialog gd = new GenericDialog("Save view");
 
         String[] choices = new String[]{ "Save as new view", "Overwrite existing view" };
         gd.addChoice("Save method:", choices, choices[0] );
-        gd.addChoice("Save to", new String[]{ MoBIEHelper.FileLocation.Project.toString(), MoBIEHelper.FileLocation.FileSystem.toString()}, MoBIEHelper.FileLocation.Project.toString());
+        gd.addChoice("Save to", new String[]{ FileLocation.Project.toString(), FileLocation.FileSystem.toString()}, FileLocation.Project.toString());
         gd.showDialog();
 
-        if (!gd.wasCanceled()) {
-            String saveMethodString = gd.getNextChoice();
-            MoBIEHelper.FileLocation fileLocation = MoBIEHelper.FileLocation.valueOf(gd.getNextChoice());
+        if( gd.wasCanceled() ) return;
 
-            SaveMethod saveMethod;
-            if (saveMethodString.equals("Save as new view")) {
-                saveMethod = SaveMethod.saveAsNewView;
-            } else {
-                saveMethod = SaveMethod.overwriteExistingView;
-            }
-            viewSettingsDialog( saveMethod, fileLocation );
+        String saveMethodString = gd.getNextChoice();
+        FileLocation fileLocation = FileLocation.valueOf(gd.getNextChoice());
+
+        SaveMethod saveMethod;
+        if (saveMethodString.equals("Save as new view")) {
+            saveMethod = SaveMethod.saveAsNewView;
+        } else {
+            saveMethod = SaveMethod.overwriteExistingView;
         }
+
+        viewSettingsDialog(
+                saveMethod,
+                fileLocation,
+                view );
     }
 
-    public void viewSettingsDialog( SaveMethod saveMethod, MoBIEHelper.FileLocation fileLocation ) {
+    private void viewSettingsDialog( SaveMethod saveMethod, FileLocation fileLocation, View view ) {
         final GenericDialog gd = new GenericDialog("View settings");
 
         if ( saveMethod == SaveMethod.saveAsNewView ) {
-            gd.addStringField("View name:", "", 25 );
+            String name = view.getName() != null ? view.getName() : "";
+            gd.addStringField("View name:", name, 25 );
+            String description = view.getDescription() != null ? view.getDescription() : "" ;
+            gd.addStringField( "View description:", description, 50 );
         }
 
+        // FIXME: If one overwrites an existing view it should not be necessary to ask for the UI selection group
+        //        One should rather fetch it from the view that is to be overwritten.
         String[] currentUiSelectionGroups = moBIE.getUserInterface().getUISelectionGroupNames();
         String[] choices = new String[currentUiSelectionGroups.length + 1];
         choices[0] = "Make New Ui Selection Group";
@@ -117,57 +127,60 @@ public class ViewSaver
         }
         gd.addChoice("Ui Selection Group", choices, choices[0]);
 
-        if ( fileLocation == MoBIEHelper.FileLocation.Project ) {
+        if ( fileLocation == FileLocation.Project ) {
             String[] jsonChoices = new String[]{"dataset.json", "views.json"};
             gd.addChoice("Save location:", jsonChoices, jsonChoices[0]);
         }
 
-        gd.addCheckbox("exclusive", true);
+        if ( view.isExclusive() == null )
+            gd.addCheckbox("Exclusive view?", true);
+
         gd.addCheckbox("Include viewer transform?", true );
 
         gd.showDialog();
 
-        if (!gd.wasCanceled()) {
+        if ( gd.wasCanceled() ) return;
 
-            String viewName = null;
-            if( saveMethod == SaveMethod.saveAsNewView ) {
-                viewName = UserInterfaceHelper.tidyString( gd.getNextString() );
-                if ( viewName == null ) {
-                    return;
-                }
+        String viewName = null;
+        if( saveMethod == SaveMethod.saveAsNewView ) {
+            viewName = UserInterfaceHelper.tidyString( gd.getNextString() );
+            if ( viewName == null ) {
+                throw new RuntimeException("The name of the view could not be determined.");
             }
+            view.setDescription( gd.getNextString()  );
+        }
 
-            String uiSelectionGroup = gd.getNextChoice();
-            ProjectSaveLocation projectSaveLocation = null;
-            if ( fileLocation == MoBIEHelper.FileLocation.Project ) {
-                String projectSaveLocationString = gd.getNextChoice();
-                if ( projectSaveLocationString.equals("dataset.json") ) {
-                    projectSaveLocation =  ProjectSaveLocation.datasetJson;
-                } else if ( projectSaveLocationString.equals("views.json") ) {
-                    projectSaveLocation =  ProjectSaveLocation.viewsJson;
-                }
+        String uiSelectionGroup = gd.getNextChoice();
+        ProjectSaveLocation projectSaveLocation = null;
+        if ( fileLocation == FileLocation.Project ) {
+            String projectSaveLocationString = gd.getNextChoice();
+            if ( projectSaveLocationString.equals("dataset.json") ) {
+                projectSaveLocation =  ProjectSaveLocation.datasetJson;
+            } else if ( projectSaveLocationString.equals("views.json") ) {
+                projectSaveLocation =  ProjectSaveLocation.viewsJson;
             }
+        }
 
-            boolean exclusive = gd.getNextBoolean();
-            boolean includeViewerTransform = gd.getNextBoolean();
+        if ( view.isExclusive() == null )
+            view.setExclusive( gd.getNextBoolean() );
 
-            if (uiSelectionGroup.equals("Make New Ui Selection Group")) {
-                uiSelectionGroup = ProjectCreatorHelper.makeNewUiSelectionGroup(currentUiSelectionGroups);
-            }
+        if ( gd.getNextBoolean() ) {
+            view.setViewerTransform(  new NormalizedAffineViewerTransform(  moBIE.getViewManager().getSliceViewer().getBdvHandle() ) );
+        }
 
-            View currentView = moBIE.getViewManager().createCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
+        if (uiSelectionGroup.equals("Make New Ui Selection Group")) {
+            uiSelectionGroup = ProjectCreatorHelper.makeNewUiSelectionGroup(currentUiSelectionGroups);
+        }
+        view.setUiSelectionGroup( uiSelectionGroup );
 
-            if ( uiSelectionGroup != null && currentView != null ) {
-                if ( fileLocation == MoBIEHelper.FileLocation.Project && saveMethod == SaveMethod.saveAsNewView ) {
-                    saveNewViewToProject( currentView, viewName, projectSaveLocation );
-                } else if ( fileLocation == MoBIEHelper.FileLocation.Project && saveMethod == SaveMethod.overwriteExistingView ) {
-                    overwriteExistingViewInProject( currentView, projectSaveLocation );
-                } else if ( fileLocation == MoBIEHelper.FileLocation.FileSystem && saveMethod == SaveMethod.saveAsNewView ) {
-                    saveNewViewToFileSystem( currentView, viewName );
-                } else if ( fileLocation == MoBIEHelper.FileLocation.FileSystem && saveMethod == SaveMethod.overwriteExistingView ) {
-                    overwriteExistingViewOnFileSystem( currentView );
-                }
-            }
+        if ( fileLocation == FileLocation.Project && saveMethod == SaveMethod.saveAsNewView ) {
+            saveNewViewToProject( view, viewName, projectSaveLocation );
+        } else if ( fileLocation == FileLocation.Project && saveMethod == SaveMethod.overwriteExistingView ) {
+            overwriteExistingViewInProject( view, projectSaveLocation );
+        } else if ( fileLocation == FileLocation.FileSystem && saveMethod == SaveMethod.saveAsNewView ) {
+            saveNewViewToFileSystem( view, viewName );
+        } else if ( fileLocation == FileLocation.FileSystem && saveMethod == SaveMethod.overwriteExistingView ) {
+            overwriteExistingViewOnFileSystem( view );
         }
     }
 

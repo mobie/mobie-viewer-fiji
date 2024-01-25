@@ -202,7 +202,7 @@ public class HCSDataAdder
 		final ArrayList< String > wells = new ArrayList<>( wellDisplay.sources.keySet() );
 		Collections.sort( wells );
 		final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( wells.get( 0 ), 0 );
-		final View view = new View( plate.getName(), "plate", displays, imageTransforms, viewerTransform, true );
+		final View view = new View( plate.getName(), "plate", displays, imageTransforms, viewerTransform, true, null );
 		dataset.views().put( view.getName(), view );
 	}
 

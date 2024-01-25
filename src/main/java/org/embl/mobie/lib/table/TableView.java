@@ -47,9 +47,9 @@ import org.embl.mobie.lib.plot.ScatterPlotDialog;
 import org.embl.mobie.lib.plot.ScatterPlotView;
 import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.select.SelectionModel;
-import org.embl.mobie.lib.ui.ColumnColoringModelDialog;
+import org.embl.mobie.ui.ColumnColoringModelDialog;
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.lib.ui.UserInterfaceHelper;
+import org.embl.mobie.ui.UserInterfaceHelper;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -62,8 +62,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static org.embl.mobie.lib.MoBIEHelper.FileLocation;
-import static org.embl.mobie.lib.ui.UserInterfaceHelper.loadFromProjectOrFileSystemDialog;
+import org.embl.mobie.lib.io.FileLocation;
+import static org.embl.mobie.ui.UserInterfaceHelper.loadFromProjectOrFileSystemDialog;
 
 public class TableView< A extends Annotation > implements SelectionListener< A >, ColoringListener, AnnotationListener< A >
 {
@@ -78,7 +78,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private RowSelectionMode selectionMode = RowSelectionMode.FocusOnly;
 	private JFrame frame;
 	private SwingTableModel swingTableModel;
-
 	private boolean controlKeyPressed;
 	private boolean doubleClick;
 

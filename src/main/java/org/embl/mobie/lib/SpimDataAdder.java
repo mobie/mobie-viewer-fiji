@@ -143,7 +143,7 @@ public class SpimDataAdder
 		}
 
 		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, Arrays.asList( imageName ), color, contrastLimits );
-		final View view = new View( imageName, "images", Arrays.asList( imageDisplay ), null, false );
+		final View view = new View( imageName, "images", Arrays.asList( imageDisplay ), null, null, false, null );
 		dataset.views().put( view.getName(), view );
 	}
 
@@ -155,7 +155,7 @@ public class SpimDataAdder
 		final double pixelWidth = viewSetup.getVoxelSize().dimension( 0 );
 		display.setResolution3dView( new Double[]{ pixelWidth, pixelWidth, pixelWidth } );
 
-		final View view = new View( name, "segmentations", Arrays.asList( display ), null, false );
+		final View view = new View( name, "segmentations", Arrays.asList( display ), null, null, false, null );
 		dataset.views().put( view.getName(), view );
 	}
 

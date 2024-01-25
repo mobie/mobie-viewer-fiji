@@ -26,46 +26,50 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.transform.image;
+package org.embl.mobie.lib.image;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.RealTransform;
 import net.imglib2.roi.RealMaskRealInterval;
-import org.embl.mobie.lib.image.DefaultSourcePair;
-import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.image.SourcePair;
+import org.embl.mobie.lib.source.RealTransformedSource;
 
-public class AffineTransformedImage< T > implements Image< T >
+public class RealTransformedImage< T > implements Image< T >
 {
-	protected final AffineTransform3D affineTransform3D;
+	protected final RealTransform realTransform;
 	protected final Image< T > image;
 	protected final String name;
 	private RealMaskRealInterval mask;
+	private final AffineTransform3D affineTransform3D = new AffineTransform3D();
 
-	public AffineTransformedImage( Image< T > image, String name, AffineTransform3D affineTransform3D )
+	public RealTransformedImage( Image< T > image, String name, RealTransform realTransform )
 	{
 		this.image = image;
 		this.name = name;
-		this.affineTransform3D = affineTransform3D;
+		this.realTransform = realTransform;
 	}
 
-	public AffineTransform3D getAffineTransform3D()
+	public RealTransform getRealTransform()
 	{
-		return affineTransform3D;
+		return realTransform;
 	}
 
 	@Override
 	public synchronized SourcePair< T > getSourcePair()
 	{
 		final SourcePair< T > sourcePair = image.getSourcePair();
+
 		final Source< T > source = sourcePair.getSource();
 		final Source< ? extends Volatile< T > > volatileSource = sourcePair.getVolatileSource();
 
-		final TransformedSource transformedSource = new TransformedSource( source, name );
+		RealTransformedSource< T > realTransformedSource = new RealTransformedSource<>( source, realTransform, name );
+		RealTransformedSource< ? extends Volatile< T > > realTransformedVolatileSource = new RealTransformedSource<>( volatileSource, realTransform, name );
+
+		final TransformedSource< T > transformedSource = new TransformedSource<>( realTransformedSource, name );
+		final TransformedSource< ? extends Volatile< T > > volatileTransformedSource = new TransformedSource<>( realTransformedVolatileSource, transformedSource );
 		transformedSource.setFixedTransform( affineTransform3D );
-		final TransformedSource volatileTransformedSource = new TransformedSource( volatileSource, transformedSource );
 
 		return new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
 	}
@@ -83,10 +87,16 @@ public class AffineTransformedImage< T > implements Image< T >
 	}
 
 	@Override
-	public RealMaskRealInterval getMask( )
+	public RealMaskRealInterval getMask()
 	{
 		if ( mask == null )
-			return image.getMask().transform( affineTransform3D.inverse() );
+		{
+			// FIXME: this should be something like
+			//   image.getMask().transform( realTransform.inverse() )
+			//   and probably also include this.affineTransform
+			System.err.println( "Masks for " + this.getClass().getName() + " are not properly implemented" );
+			return image.getMask();
+		}
 		else
 			return mask;
 	}

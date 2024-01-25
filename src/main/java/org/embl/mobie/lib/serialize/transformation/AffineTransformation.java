@@ -29,10 +29,13 @@
 package org.embl.mobie.lib.serialize.transformation;
 
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.lib.MoBIEHelper;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-public class AffineTransformation< T > extends AbstractImageTransformation< T, T >
+public class AffineTransformation extends AbstractImageTransformation
 {
 	// Serialisation
 	protected double[] parameters;
@@ -53,16 +56,27 @@ public class AffineTransformation< T > extends AbstractImageTransformation< T, T
 		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
 	}
 
-	@Override
-	public List< String > getSources()
-	{
-		return sources;
-	}
 
 	public AffineTransform3D getAffineTransform3D()
 	{
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 		affineTransform3D.set( parameters );
 		return affineTransform3D;
+	}
+
+	@Override
+	public String toString()
+	{
+		List<String> lines = new ArrayList<>();
+
+		lines.add( "Affine transformation:" );
+
+		addDescription( lines );
+
+		lines.add( MoBIEHelper.print( parameters, 3 ) );
+
+		addSources( lines );
+
+		return String.join( "\n", lines );
 	}
 }

@@ -29,8 +29,9 @@
 package org.embl.mobie.command.context;
 
 import bdv.util.BdvHandle;
-import de.embl.cba.bdv.utils.BdvUtils;
 import ij.IJ;
+import ij.gui.Roi;
+import ij.plugin.frame.RoiManager;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
@@ -53,61 +54,52 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     public static final String CAPTURE_SIZE_PIXELS = "Capture size [pixels]: ";
 
     @Parameter
-    public BdvHandle bdvh;
+    public BdvHandle bdvHandle;
 
-    @Parameter(label="Sampling (in below units)", callback = "showNumPixels", min = "0.0", style="format:#.00000", stepSize = "0.01")
+    @Parameter(label="Sampling (in below units)", persist = false, callback = "showNumPixels", min = "0.0", style="format:#.00000", stepSize = "0.01")
     public Double targetSamplingInXY = 1D;
 
-    @Parameter(label="Pixel unit", choices = {"micrometer"} )
+    @Parameter(label="Pixel unit", persist = false, choices = {"micrometer"} )
     public String pixelUnit;
-
-    @Parameter(label="Show RGB Image")
-    public boolean showRGB = true;
-
-    @Parameter(label="Show Multi-Channel Image")
-    public boolean showMultiChannel = true;
-
 
     @Override
     public void run()
     {
-        ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvh );
-        screenShotMaker.setPhysicalPixelSpacingInXY( targetSamplingInXY, pixelUnit );
-
-        if( showRGB )
-            screenShotMaker.getRgbScreenShot().show();
-
-        if( showMultiChannel )
-            screenShotMaker.getRawScreenShot().show();
-
         if ( MoBIE.getInstance().getSettings().values.isOpenedFromCLI() )
             MoBIE.imageJ.ui().showUI();
+
+        ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, pixelUnit );
+        screenShotMaker.run( targetSamplingInXY );
+        screenShotMaker.getRGBImagePlus().show();
+        screenShotMaker.getCompositeImagePlus().show();
     }
 
     @Override
     public void initialize() {
 
-        IJ.log( "ScreenShotMaker:" );
+        IJ.log( "# ScreenShotMaker" );
 
         // set pixel unit choices
         //
         final MutableModuleItem< String > pixelUnitItem = //
                 getInfo().getMutableInput("pixelUnit", String.class);
-        String pixelUnit = bdvh.getViewerPanel().state().getCurrentSource().getSpimSource().getVoxelDimensions().unit();
+        String pixelUnit = bdvHandle.getViewerPanel().state().getCurrentSource().getSpimSource().getVoxelDimensions().unit();
         final ArrayList< String > units = new ArrayList<>();
         units.add( pixelUnit );
         pixelUnitItem.setChoices( units );
 
-        IJ.log( "Viewer sampling: " + BdvHandleHelper.getViewerVoxelSpacing( bdvh ) + " " + pixelUnit );
-        IJ.log( "Choosing smaller sampling than the above may result in long waiting times." );
+        // init screenshot sampling
+        //
+        final MutableModuleItem< Double > targetSamplingItem = //
+                getInfo().getMutableInput("targetSamplingInXY", Double.class);
+        double viewerVoxelSpacing = BdvHandleHelper.getViewerVoxelSpacing( bdvHandle );
+        targetSamplingItem.setValue( this, 2 * viewerVoxelSpacing );
     }
 
     // callback
     private void showNumPixels()
     {
-        final long[] sizeInPixels = ScreenShotMaker.getCaptureImageSizeInPixels( bdvh, targetSamplingInXY );
+        final long[] sizeInPixels = ScreenShotMaker.getCaptureImageSizeInPixels( bdvHandle, targetSamplingInXY );
         IJ.log( CAPTURE_SIZE_PIXELS + Arrays.toString( sizeInPixels ) );
-//        final MutableModuleItem< String > message = getInfo().getMutableInput("message", String.class);
-//        message.setValue( this, CAPTURE_SIZE_PIXELS + sizeInPixels[ 0 ] + ", " + sizeInPixels[ 1 ] );
     }
 }

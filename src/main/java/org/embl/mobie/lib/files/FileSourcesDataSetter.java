@@ -135,7 +135,7 @@ public class FileSourcesDataSetter
 				storageLocation.data = regionTable;
 				final RegionTableSource regionTableSource = new RegionTableSource( regionTable.name() );
 				regionTableSource.addTable( TableDataFormat.Table, storageLocation );
-				DataStore.putRawData( regionTableSource );
+				DataStore.addRawData( regionTableSource );
 
 				// init display
 				regionDisplay.sources = new LinkedHashMap<>();
@@ -157,8 +157,6 @@ public class FileSourcesDataSetter
 					String regionName = regionTable.getString( regionIndex, ColumnNames.REGION_ID );
 					regionDisplay.sources.put( regionName, new ArrayList<>() );
 				}
-
-				displays.add( regionDisplay );
 			}
 
 			// add the images of this source to the respective region
@@ -171,10 +169,36 @@ public class FileSourcesDataSetter
 				//System.out.println("Region: " +  regionName + "; source: " + sourceNames.get( regionIndex ) );
 			}
 
+			if ( sources.getSources().size() == 1 )
+			{
+				String source = sources.getSources().get( 0 );
+				// no need to build a grid view
+				if ( sources instanceof LabelFileSources )
+				{
+					// SegmentationDisplay
+					final SegmentationDisplay< AnnotatedSegment > segmentationDisplay
+							= new SegmentationDisplay<>( source, Collections.singletonList( source ) );
+					final int numLabelTables = ( ( LabelFileSources ) sources ).getNumLabelTables();
+					segmentationDisplay.setShowTable( numLabelTables > 0 );
+					displays.add( segmentationDisplay );
+				}
+				else
+				{
+					// ImageDisplay
+					final Metadata metadata = sources.getMetadata();
+					displays.add( new ImageDisplay<>( source, Collections.singletonList( source ), metadata.color, metadata.contrastLimits ) );
+				}
+
+				continue; // no need to build a grid view
+			}
+
 			// create grid transformations
 			//
 			if ( sources.getGridType().equals( GridType.Stitched ) )
 			{
+				// the MergedGridTransformation will trigger the creation of
+				// a new StitchedImage with name sources.getName(),
+				// which can be displayed in an ImageDisplay
 				MergedGridTransformation grid = new MergedGridTransformation( sources.getName() );
 				grid.sources = sourceNames;
 				grid.metadataSource = sources.getMetadataSource();
@@ -222,7 +246,7 @@ public class FileSourcesDataSetter
 				{
 					if ( sources.getTransform( sourceName ) != null )
 					{
-						AffineTransformation affineTransformation = new AffineTransformation<>( sourceName, sources.getTransform( sourceName ), Collections.singletonList( sourceName ) );
+						AffineTransformation affineTransformation = new AffineTransformation( sourceName, sources.getTransform( sourceName ), Collections.singletonList( sourceName ) );
 						transformations.add( affineTransformation );
 					}
 				}
@@ -236,12 +260,22 @@ public class FileSourcesDataSetter
 			}
 		}
 
+		// Add the region display last, because this currently
+		// does not have any voxel unit, which would cause BDV not to
+		// show any voxel unit.
+		displays.add( regionDisplay );
+
 		// construct and add the view
 		//
 		// FIXME: Maybe the viewerTransform could be something else?
-		final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( transformations.get( 0 ).getSources().get( 0 ), 0 );
-		final View gridView = new View( "all images", "data", displays, transformations, viewerTransform, false );
+
+		final ImageZoomViewerTransform viewerTransform =
+				new ImageZoomViewerTransform( allSources.get( 0 ).getSources().get( 0 ), 0 );
+		final View view =
+				new View( "all images", "data", displays, transformations, viewerTransform, false, null );
+
 		//gridView.overlayNames( true ); // FIXME: Timepoint bug!
-		dataset.views().put( gridView.getName(), gridView );
+
+		dataset.views().put( view.getName(), view );
 	}
 }

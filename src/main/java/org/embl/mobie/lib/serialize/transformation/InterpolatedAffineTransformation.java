@@ -26,25 +26,51 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open;
+package org.embl.mobie.lib.serialize.transformation;
 
-import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.transform.GridType;
-import org.scijava.command.Command;
-import org.scijava.plugin.Parameter;
-import org.scijava.plugin.Plugin;
+import ij.IJ;
+import org.embl.mobie.lib.MoBIEHelper;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Table (Advanced)..." )
-public class OpenTableAdvancedCommand extends OpenTableCommand {
+import java.util.*;
 
-	static { net.imagej.patcher.LegacyInjector.preinit(); }
+public class InterpolatedAffineTransformation extends AbstractImageTransformation
+{
+	// Serialization
+	private TreeMap<Double, double[]> transforms;
 
-	@Parameter( label = "Grid type" )
-	public GridType gridType = GridType.Transformed;
+	public InterpolatedAffineTransformation()
+	{
+	}
+
+	public InterpolatedAffineTransformation( String name, TreeMap< Double, double[] > transforms, String sourceName, String transformedSourceName )
+	{
+		this.name = name;
+		this.transforms = transforms;
+		this.sources = sourceName == null ? null : Collections.singletonList( sourceName );
+		this.sourceNamesAfterTransform = transformedSourceName == null ? null : Collections.singletonList( transformedSourceName );
+	}
+
+	public TreeMap< Double, double[] > getTransforms()
+	{
+		return transforms;
+	}
 
 	@Override
-	public void run()
+	public String toString()
 	{
-		super.run( gridType );
+		List<String> lines = new ArrayList<>();
+
+		lines.add("Interpolated affine transformation:");
+
+		addDescription( lines );
+
+		transforms.forEach((z, affine) ->
+				lines.add("Affine (z=" + MoBIEHelper.print(z, 3) + "): " + MoBIEHelper.print(affine, 3))
+		);
+
+		addSources( lines );
+
+		return String.join("\n", lines);
 	}
+
 }

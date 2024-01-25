@@ -34,10 +34,8 @@ import ch.epfl.biop.bdv.img.imageplus.ImagePlusToSpimData;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import ij.ImagePlus;
-import ij.VirtualStack;
 import ij.measure.Calibration;
 import mpicbg.spim.data.generic.AbstractSpimData;
-import mpicbg.spim.data.sequence.ViewSetup;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
@@ -48,7 +46,6 @@ import org.embl.mobie.lib.hcs.VirtualBioFormatsStack;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.serialize.DataSource;
 
-import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -132,12 +129,12 @@ public abstract class DataStore
 		}
 	}
 
-	public static void clearSpimData( )
+	public static void clearSpimDataCache( )
 	{
 		spimDataCache = new ConcurrentHashMap<>();
 	}
 
-	public static void putRawData( DataSource dataSource )
+	public static void addRawData( DataSource dataSource )
 	{
 		rawData.put( dataSource.getName(), dataSource );
 	}
@@ -181,7 +178,7 @@ public abstract class DataStore
 		return images;
 	}
 
-	public static void putImage( Image< ? > image )
+	public static void addImage( Image< ? > image )
 	{
 		if ( image.getName() == null )
 			throw new UnsupportedOperationException( "The image " + image.getClass().getSimpleName() + " does not have a name." );

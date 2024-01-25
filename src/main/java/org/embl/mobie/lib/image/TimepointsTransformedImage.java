@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.transform.image;
+package org.embl.mobie.lib.image;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;

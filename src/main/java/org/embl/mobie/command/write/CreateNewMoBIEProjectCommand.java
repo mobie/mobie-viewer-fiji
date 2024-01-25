@@ -38,7 +38,7 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 
-import static org.embl.mobie.lib.ui.UserInterfaceHelper.tidyString;
+import static org.embl.mobie.ui.UserInterfaceHelper.tidyString;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Create>Create New MoBIE Project..." )
 public class CreateNewMoBIEProjectCommand implements Command {

@@ -29,6 +29,7 @@
 package org.embl.mobie.lib.image;
 
 import bdv.viewer.Source;
+import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imglib2.Interval;
 import net.imglib2.RealLocalizable;
 import net.imglib2.position.FunctionRealRandomAccessible;
@@ -57,14 +58,12 @@ import java.util.stream.Collectors;
 public class RegionAnnotationImage< AR extends AnnotatedRegion > implements AnnotationImage< AR >
 {
 	private final String name;
-
 	private final AnnData< AR > annData;
 	private final Set< Integer > timepoints;
 	private final SelectionModel< ? > selectionModel;
 	private Source< AnnotationType< AR > > source;
 	private SourcePair< AnnotationType< AR > > sourcePair;
 	private RealMaskRealInterval mask;
-
 	private boolean debug = false;
 	private List< AR > annotations;
 
@@ -180,10 +179,18 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 			// and then make a Map< Timepoint, regions > and modify RealRandomAccessibleIntervalTimelapseSource to consume this map
 			final FunctionRealRandomAccessible< AnnotationType< AR > > regions = new FunctionRealRandomAccessible( 3, new LocationToAnnotatedRegionSupplier(), () -> new AnnotationType<>( annotations.get( 0 ) ) );
 
-			// TODO it would be nice if this Source had the same voxel unit
+			// TODO This Source should have the same voxel unit
 			//   as the other sources, but that would mean touching one of the
 			//   annotated images which could be expensive.
-			source = new RealRandomAccessibleIntervalTimelapseSource<>( regions, interval, new AnnotationType<>( annotations.get( 0 ) ), new AffineTransform3D(), name, true, timepoints );
+			source = new RealRandomAccessibleIntervalTimelapseSource<>(
+					regions,
+					interval,
+					new AnnotationType<>( annotations.get( 0 ) ),
+					new AffineTransform3D(),
+					name,
+					true,
+					timepoints,
+					new FinalVoxelDimensions( "", 1, 1, 1 ) );
 
 			// There is no volatile implementation (yet), because the
 			// {@code Source} should be fast enough,

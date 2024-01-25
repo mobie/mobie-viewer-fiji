@@ -2,7 +2,7 @@ package develop;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.command.open.OpenTableAdvancedCommand;
-import org.embl.mobie.command.open.OpenTableCommand;
+import org.embl.mobie.lib.transform.GridType;
 
 import java.io.File;
 
@@ -21,7 +21,7 @@ public class OpenAutoMicTable
         //command.images = "Result.Image.Zarr"; // Result.Image.Zarr
         command.root = command.table.getParentFile();
         command.images = "FileName_Result.Image_IMG"; // Result.Image.Zarr
-        command.gridTypeString = "Transformable"; // FIXME: not working with Stitched!
+        command.gridType = GridType.Transformed; // FIXME: not working with Stitched!
         command.run();
     }
 }
