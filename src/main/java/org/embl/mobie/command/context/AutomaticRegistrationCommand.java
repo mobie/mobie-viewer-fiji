@@ -29,7 +29,6 @@
 package org.embl.mobie.command.context;
 
 import bdv.util.BdvFunctions;
-import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.viewer.SourceAndConverter;
 import ij.CompositeImage;
@@ -52,9 +51,6 @@ import org.embl.mobie.lib.source.RealTransformedSource;
 import org.embl.mobie.lib.transform.InterpolatedAffineRealTransform;
 import org.embl.mobie.lib.transform.Transform;
 import org.embl.mobie.lib.view.ViewManager;
-import org.scijava.Initializable;
-import org.scijava.command.DynamicCommand;
-import org.scijava.command.Interactive;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
@@ -62,7 +58,6 @@ import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getWindowCentreInPixelUnits;
 
@@ -261,7 +256,7 @@ public class AutomaticRegistrationCommand extends AbstractRegistrationCommand
 		if( showInterpolatedAffineImage )
 		{
 			AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( movingSac.getSpimSource(), 0, 0 );
-			InterpolatedAffineRealTransform interpolatedTransform = new InterpolatedAffineRealTransform( name, sourceTransform.inverse() );
+			InterpolatedAffineRealTransform interpolatedTransform = new InterpolatedAffineRealTransform( transformationName, sourceTransform.inverse() );
 			interpolatedTransform.addTransforms( transforms );
 
 			RealTransformedSource< ? > realTransformedSource = new RealTransformedSource<>(
@@ -290,7 +285,7 @@ public class AutomaticRegistrationCommand extends AbstractRegistrationCommand
 	private void saveInterpolatedAffineImage()
 	{
 		InterpolatedAffineTransformation interpolatedAffineTransformation = new InterpolatedAffineTransformation(
-				name,
+				transformationName,
 				transforms,
 				movingImageName, // the existing, to be transformed image data source
 				movingSac.getSpimSource().getName() + "_iat"
