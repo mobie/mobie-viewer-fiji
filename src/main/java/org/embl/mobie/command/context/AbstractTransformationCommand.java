@@ -30,10 +30,10 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     @Parameter ( label = "Transformation name" )
     public String transformationName = "Some transformation";
 
-    @Parameter ( label = "Transformed image name" )
+    @Parameter ( label = "Transformed image name")
     public String transformedImageName = "Transformed image";
 
-    @Parameter ( label = "Moving Image", choices = {""} )
+    @Parameter ( label = "Moving Image", choices = {""}, callback = "setMovingImage" )
     public String movingImageName;
 
 
@@ -70,15 +70,12 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         getInfo().getMutableInput( "movingImageName", String.class )
                 .setChoices( imageNames );
 
+        movingImageName = imageNames.get( 0 );
+
         getInfo().getMutableInput( "movingImageName", String.class )
-                .setDefaultValue( imageNames.get( 0 ) );
+                .setDefaultValue( movingImageName );
 
-    }
-
-    @Override
-    public void run()
-    {
-        super.run();
+        setMovingImage();
     }
 
     protected void createTransformedImage( AffineTransform3D affineTransform3D, String description )
@@ -96,6 +93,23 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
                 affineTransformation,
                 description + " transformation of " + movingSac.getSpimSource().getName()
         );
+    }
+
+    protected void setMovingImage()
+    {
+        if ( movingSource != null )
+        {
+            // reset transform of previously selected image
+            movingSource.setFixedTransform( originalTransform );
+        }
+
+        // fetch the new moving image
+        movingSac = sourceAndConverters.stream()
+                .filter( sac -> sac.getSpimSource().getName().equals( movingImageName ) )
+                .findFirst().get();
+        movingSource = ( TransformedSource< ? > ) movingSac.getSpimSource();
+        originalTransform = new AffineTransform3D();
+        movingSac.getSpimSource().getSourceTransform( 0, 0, originalTransform );
     }
 
 }

@@ -96,10 +96,8 @@ public class AutomaticRegistrationCommand extends AbstractRegistrationCommand
 	private Button saveInterpolatedAffineImage;
 
 	private AffineTransform3D alignmentTransform;
-	private List< SourceAndConverter< ? > > sourceAndConverters;
 	private final TreeMap< Double, double[] > transforms = new TreeMap<>();
 	private SourceAndConverter< ? > interpolatedTransformsSac;
-	private SourceAndConverter< ? > movingSac;
 
 
 	@Override
@@ -111,11 +109,6 @@ public class AutomaticRegistrationCommand extends AbstractRegistrationCommand
 				.setValue( this, 2 * BdvHandleHelper.getViewerVoxelSpacing( bdvHandle ) );
 	}
 
-	@Override
-	public void run()
-	{
-		removeInterpolatedPreview();
-	}
 
 	@Override
 	public void cancel()
@@ -127,13 +120,12 @@ public class AutomaticRegistrationCommand extends AbstractRegistrationCommand
 	{
 		long start = System.currentTimeMillis();
 
+		//setMovingImage();
+
 		SourceAndConverter< ? > fixedSac = sourceAndConverters.stream()
 				.filter( sac -> sac.getSpimSource().getName().equals( fixedImageName ) )
 				.findFirst().get();
 
-		movingSac = sourceAndConverters.stream()
-				.filter( sac -> sac.getSpimSource().getName().equals( movingImageName ) )
-				.findFirst().get();
 
 		// create two 2D ImagePlus that are to be aligned
 		//

@@ -74,11 +74,6 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 		super.initialize();
 	}
 
-	@Override
-	public void run()
-	{
-	}
-
 	public void preview()
 	{
 		concatenateCurrentBigWarpTransformInPlace();
@@ -116,17 +111,11 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 		ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();
 		SourceAndConverterBdvDisplayService bdvDisplayService = SourceAndConverterServices.getBdvDisplayService();
 
-		movingSac = sourceAndConverters.stream()
-				.filter( sac -> sac.getSpimSource().getName().equals( movingImageName ) )
-				.findFirst().get();
+		setMovingImage();
 
 		SourceAndConverter< ? > fixedSac = sourceAndConverters.stream()
 				.filter( sac -> sac.getSpimSource().getName().equals( fixedImageName ) )
 				.findFirst().get();
-
-		originalTransform = new AffineTransform3D();
-		movingSac.getSpimSource().getSourceTransform( 0, 0, originalTransform );
-		movingSource = ( TransformedSource< ? > ) movingSac.getSpimSource();
 
 		List< ConverterSetup > converterSetups = new ArrayList<>();
 		converterSetups.add( sacService.getConverterSetup( movingSac ) );
@@ -149,6 +138,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 		bigWarp.setTransformType( TransformTypeSelectDialog.AFFINE );
 		bigWarp.addTransformListener( this );
 	}
+
 
 	private void applyViewerTransform( AffineTransform3D normalisedViewerTransform, BigWarpViewerPanel viewerPanel )
 	{

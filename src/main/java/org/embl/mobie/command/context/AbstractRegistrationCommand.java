@@ -30,11 +30,4 @@ public abstract class AbstractRegistrationCommand extends AbstractTransformation
                 .setDefaultValue( imageNames.get( 1 ) );
     }
 
-    @Override
-    public void run()
-    {
-        super.run();
-    }
-
-
 }

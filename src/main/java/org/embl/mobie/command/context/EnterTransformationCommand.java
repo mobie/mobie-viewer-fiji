@@ -49,51 +49,41 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Enter Transformation")
-public class EnterTransformationCommand extends AbstractRegistrationCommand
+public class EnterTransformationCommand extends AbstractTransformationCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
-
-	@Parameter
-	public BdvHandle bdvHandle;
 
 	@Parameter ( label = "Transformation 3D affine" )
 	public String transformation = Arrays.toString( new AffineTransform3D().getRowPackedCopy() );
 
-	@Parameter ( label = "Preview", callback = "preview" )
-	public Button preview;
+	@Parameter ( label = "Preview", callback = "previewTransform" )
+	public Button previewTransform;
+
+	@Parameter ( label = "Apply", callback = "applyTransform" )
+	public Button applyTransform;
 
 
-	@Override
-	public void initialize()
-	{
-		super.initialize();
-	}
-
-	@Override
-	public void run()
-	{
-		transform( false );
-	}
-
-	private void apply()
-	{
-		transform( true );
-	}
-
-	private void transform( boolean preview )
+	private void previewTransform()
 	{
 		AffineTransform3D affineTransform3D = new AffineTransform3D();
 		affineTransform3D.set( parseStringToDoubleArray( transformation ) );
+		AffineTransform3D newTransform = originalTransform.copy().preConcatenate( affineTransform3D );
+		movingSource.setFixedTransform( newTransform );
+		bdvHandle.getViewerPanel().requestRepaint();
+	}
 
-		if ( preview || mode.equals( TransformationMode.InPlace ) )
+	private void applyTransform()
+	{
+
+		if ( mode.equals( TransformationMode.NewImage ) )
 		{
-			AffineTransform3D newTransform = originalTransform.copy().preConcatenate( affineTransform3D.copy() );
-			movingSource.setFixedTransform( newTransform );
-			bdvHandle.getViewerPanel().requestRepaint();
-		}
-		else if ( mode.equals( TransformationMode.NewImage ) )
-		{
+			AffineTransform3D affineTransform3D = new AffineTransform3D();
+			affineTransform3D.set( parseStringToDoubleArray( transformation ) );
 			createTransformedImage( affineTransform3D, "Entered affine" );
+		}
+		else
+		{
+			previewTransform();
 		}
 	}
 
