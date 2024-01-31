@@ -35,6 +35,9 @@ import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
+import org.embl.mobie.lib.transform.TransformationMode;
+import org.embl.mobie.lib.view.ViewManager;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
 import org.scijava.plugin.Parameter;
@@ -43,6 +46,7 @@ import org.scijava.widget.Button;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,27 +57,25 @@ public class EnterTransformationCommand extends DynamicCommand implements BdvPla
 
 	@Parameter
 	public BdvHandle bdvHandle;
-
 	@Parameter ( label = "Image", choices = {""} )
-	private String sourceName;
+	public String sourceName;
 
-	@Parameter ( label = "3D Affine" )
-	private String transformation = Arrays.toString( new AffineTransform3D().getRowPackedCopy() );
+	@Parameter ( label = "Transformation Nnme" )
+	public String transformationName = "Some transformation";
+
+	@Parameter ( label = "Transformation 3D affine" )
+	public String transformation = Arrays.toString( new AffineTransform3D().getRowPackedCopy() );
+
+	@Parameter ( label = "Transformation mode" )
+	public TransformationMode mode = TransformationMode.ReplaceCurrentInPlace;
+	@Parameter ( label = "New image name" )
+	public String newImageName = "transformed_image";
+	@Parameter ( label = "Preview", callback = "apply" )
+	public Button preview;
+
+
 	private AffineTransform3D previousTransform;
 	private TransformedSource< ? > transformedSource;
-
-	public enum AdditionMode
-	{
-		Concatenate,
-		Replace;
-	}
-
-	@Parameter ( label = "Addition Mode" )
-	private AdditionMode mode = AdditionMode.Replace;
-
-	@Parameter ( label = "Preview", callback = "apply" )
-	private Button preview;
-
 	private List< SourceAndConverter< ? > > sourceAndConverters;
 
 	@Override
@@ -92,7 +94,7 @@ public class EnterTransformationCommand extends DynamicCommand implements BdvPla
 	@Override
 	public void run()
 	{
-		apply();
+		transform( false );
 	}
 
 	@Override
@@ -107,28 +109,50 @@ public class EnterTransformationCommand extends DynamicCommand implements BdvPla
 
 	private void apply()
 	{
-		double[] doubles = parseStringToDoubleArray( transformation );
-		AffineTransform3D additionalTransform = new AffineTransform3D();
-		additionalTransform.set( doubles );
+		transform( true );
+	}
 
-		if ( additionalTransform.isIdentity() )
+	// FIXME: Test this!!
+
+	private void transform( boolean preview )
+	{
+		if ( preview && mode.equals( TransformationMode.CreateNewImageView ) )
+		{
+			IJ.showMessage( "Please choose another transformation mode." );
 			return;
+		}
+
+		double[] affineParameters = parseStringToDoubleArray( transformation );
+		AffineTransform3D affineTransform3D = new AffineTransform3D();
+		affineTransform3D.set( affineParameters );
 
 		// TODO: the below logic will break when the
 		// 	user decides to change the source name
-		SourceAndConverter< ? > sourceAndConverter = sourceAndConverters.stream()
-				.filter( sac -> sac.getSpimSource().getName().equals( sourceName ) )
+		SourceAndConverter< ? > sac = sourceAndConverters.stream()
+				.filter( s -> s.getSpimSource().getName().equals( sourceName ) )
 				.findFirst().get();
 
-		// FIXME: not sure I should transform the image?
-		//   The issue is that I cannot undo it?
-		//   Maybe I can by transforming it with the inverse?
-//		Image< ? > image = DataStore.sourceToImage().get( sourceAndConverter );
-//		image.transform(  );
-
-		if ( sourceAndConverter.getSpimSource() instanceof TransformedSource )
+		if ( mode.equals( TransformationMode.CreateNewImageView ) )
 		{
-			transformedSource = ( TransformedSource< ? > ) sourceAndConverter.getSpimSource();
+			AffineTransformation affineTransformation = new AffineTransformation(
+					transformationName,
+					affineParameters,
+					Collections.singletonList( sac.getSpimSource().getName() ),
+					Collections.singletonList( newImageName )
+			);
+
+			ViewManager.createTransformedSourceView(
+					sac,
+					newImageName,
+					affineTransformation,
+					"Affine transformation of " + sac.getSpimSource().getName()
+			);
+			return;
+		}
+
+		if ( sac.getSpimSource() instanceof TransformedSource )
+		{
+			transformedSource = ( TransformedSource< ? > ) sac.getSpimSource();
 
 			if ( previousTransform != null )
 			{
@@ -143,22 +167,23 @@ public class EnterTransformationCommand extends DynamicCommand implements BdvPla
 				transformedSource.getFixedTransform( previousTransform );
 			}
 
-			if ( mode.equals( AdditionMode.Replace ) )
+			if ( mode.equals( TransformationMode.ReplaceCurrentInPlace ) )
 			{
-				transformedSource.setFixedTransform( additionalTransform.copy() );
+				transformedSource.setFixedTransform( affineTransform3D.copy() );
 			}
-			else if ( mode.equals( AdditionMode.Concatenate ) )
+			else if ( mode.equals( TransformationMode.ConcatenateInPlace ) )
 			{
-				AffineTransform3D newTransform = previousTransform.copy().preConcatenate( additionalTransform.copy() );
+				AffineTransform3D newTransform = previousTransform.copy().preConcatenate( affineTransform3D.copy() );
 				transformedSource.setFixedTransform( newTransform );
 			}
-
 			bdvHandle.getViewerPanel().requestRepaint();
 		}
 		else
 		{
-			IJ.error( "Cannot set the transformation of a " + sourceAndConverter.getSpimSource().getClass() );
+			IJ.error( "Cannot set the transformation of a " + sac.getSpimSource().getClass() );
 		}
+
+
 	}
 
 	public static double[] parseStringToDoubleArray(String arrayStr)

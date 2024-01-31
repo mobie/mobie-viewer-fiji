@@ -94,7 +94,7 @@ public class ImageTransformer
 		String transformedImageName = transformation.getTransformedImageName( image.getName() );
 
 		AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( image.getSourcePair().getSource(), 0, 0 );
-		InterpolatedAffineRealTransform interpolatedTransform = new InterpolatedAffineRealTransform( sourceTransform.inverse() );
+		InterpolatedAffineRealTransform interpolatedTransform = new InterpolatedAffineRealTransform( transformation.getName(), sourceTransform.inverse() );
 		interpolatedTransform.addTransforms( transformation.getTransforms() );
 
 		return new RealTransformedImage<>(
@@ -180,4 +180,5 @@ public class ImageTransformer
 
 		return translatedImages;
 	}
+
 }

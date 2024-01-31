@@ -53,6 +53,7 @@ public class OpenMoBIEProjectCommand implements Command
 
 	protected MoBIESettings settings = MoBIESettings.settings();
 
+
 	@Override
 	public void run()
 	{

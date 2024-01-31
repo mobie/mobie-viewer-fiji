@@ -105,6 +105,30 @@ public class ViewManager
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 	}
 
+	public static void createTransformedSourceView(
+			SourceAndConverter< ? > sac,
+			String newImageName,
+			Transformation transformation,
+			String viewDescription )
+	{
+		ArrayList< Transformation > transformations = SourceHelper.fetchAddedTransformations( sac.getSpimSource() );
+		transformations.add( transformation );
+
+		ImageDisplay< ? > imageDisplay = new ImageDisplay<>( newImageName, newImageName );
+		imageDisplay.setDisplaySettings( sac );
+
+		View view = new View(
+				newImageName,
+				null, // to be determined by the user in below dialog
+				Collections.singletonList( imageDisplay ),
+				transformations,
+				null,
+				false,
+				viewDescription );
+
+		MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view );
+	}
+
 	private void initScatterPlotView( AbstractAnnotationDisplay< ? > display )
 	{
 		final ScatterPlotSettings settings = new ScatterPlotSettings( display.getScatterPlotAxes() );

@@ -13,11 +13,13 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class InterpolatedAffineRealTransform implements RealTransform {
+    private final String name;
     private final AffineTransform3D globalToSource;
     private TreeMap<Double, double[]> transforms;
     private transient final Map<Integer, AffineTransform3D> cache;
 
-    public InterpolatedAffineRealTransform( AffineTransform3D globalToSource ) {
+    public InterpolatedAffineRealTransform( String name, AffineTransform3D globalToSource ) {
+        this.name = name;
         // globalToSource is needed to know which z-position in the source corresponds
         // to the given global position in the {@code apply( ... )} method
         // because the z-position in the source is the key in the {@code transforms}
@@ -76,7 +78,7 @@ public class InterpolatedAffineRealTransform implements RealTransform {
     @Override
     public RealTransform copy()
     {
-        InterpolatedAffineRealTransform copy = new InterpolatedAffineRealTransform( globalToSource.copy() );
+        InterpolatedAffineRealTransform copy = new InterpolatedAffineRealTransform( name, globalToSource.copy() );
         for (Entry<Double, double[]> entry : transforms.entrySet())
         {
             copy.addTransform( entry.getKey(), entry.getValue() );
@@ -141,5 +143,9 @@ public class InterpolatedAffineRealTransform implements RealTransform {
         return transforms;
     }
 
+    public String getName()
+    {
+        return name;
+    }
 }
 

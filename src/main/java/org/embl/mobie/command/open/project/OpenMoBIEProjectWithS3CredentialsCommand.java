@@ -39,12 +39,9 @@ import org.scijava.plugin.Plugin;
 import java.io.IOException;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open MoBIE Project With S3 Credentials..." )
-public class OpenMoBIEProjectWithS3CredentialsCommand implements Command
+public class OpenMoBIEProjectWithS3CredentialsCommand extends OpenMoBIEProjectCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
-
-	@Parameter ( label = "S3 Project Location" )
-	public String projectLocation = "https://s3.embl.de/comulis";
 
 	@Parameter ( label = "S3 Access Key" )
 	public String s3AccessKey = "";
@@ -55,17 +52,7 @@ public class OpenMoBIEProjectWithS3CredentialsCommand implements Command
 	@Override
 	public void run()
 	{
-		try
-		{
-			new MoBIE(
-					projectLocation,
-					MoBIESettings.settings()
-							.s3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } )
-			);
-		}
-		catch ( IOException e )
-		{
-			e.printStackTrace();
-		}
+		settings.s3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } );
+		super.run();
 	}
 }

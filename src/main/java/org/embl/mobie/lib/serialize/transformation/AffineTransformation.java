@@ -32,7 +32,6 @@ import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.MoBIEHelper;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class AffineTransformation extends AbstractImageTransformation
@@ -71,7 +70,7 @@ public class AffineTransformation extends AbstractImageTransformation
 
 		lines.add( "Affine transformation:" );
 
-		addDescription( lines );
+		addNameAndDescription( lines );
 
 		lines.add( MoBIEHelper.print( parameters, 3 ) );
 

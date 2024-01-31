@@ -64,10 +64,6 @@ public class OpenTableCommand implements Command {
 	@Parameter( label = "Remove Spatial Calibration", required = false )
 	public Boolean removeSpatialCalibration = false;
 
-	@Parameter( label = "Grid Layout (\"auto\" or \"rows,columns\" ", required = false)
-	public String gridLayout = "auto";
-
-
 	@Override
 	public void run()
 	{
@@ -82,14 +78,14 @@ public class OpenTableCommand implements Command {
 		settings.removeSpatialCalibration( removeSpatialCalibration );
 
 		List< String > imageList = new ArrayList<>();
-		if ( images != null )
+		if ( images != null && ! images.equals( "" ) )
 		{
 			imageList = Arrays.asList( images.split( "," ) );
 			imageList = imageList.stream().map( s -> s.trim() ).collect( Collectors.toList() );
 		}
 
 		List< String > labelList = new ArrayList<>();
-		if ( labels != null )
+		if ( labels != null && ! labels.equals( "" ) )
 		{
 			labelList = Arrays.asList( labels.split( "," ) );
 			labelList = labelList.stream().map( s -> s.trim() ).collect( Collectors.toList() );

@@ -56,13 +56,10 @@ public abstract class AbstractImageTransformation implements ImageTransformation
 		return sources;
 	}
 
-	protected void addDescription( List< String > lines )
+	protected void addNameAndDescription( List< String > lines )
 	{
-		if(name != null)
-			lines.add("Name: " + name);
-
-		if(description != null)
-			lines.add("Description: " + name);
+		lines.add("Name: " + name);
+		lines.add("Description: " + description);
 	}
 
 	protected void addSources( List< String > lines )
@@ -74,5 +71,20 @@ public abstract class AbstractImageTransformation implements ImageTransformation
 			lines.add("Output source(s): " + Arrays.toString(sourceNamesAfterTransform.toArray()));
 		else if ( sources != null )
 			lines.add("Output source(s): " + Arrays.toString(sources.toArray()));
+	}
+
+	public String getName()
+	{
+		return name;
+	}
+
+	public String getDescription()
+	{
+		return description;
+	}
+
+	public List< String > getSourceNamesAfterTransform()
+	{
+		return sourceNamesAfterTransform;
 	}
 }

@@ -38,7 +38,6 @@ import org.scijava.plugin.Plugin;
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open MoBIE Project Expert Mode..." )
 public class OpenMoBIEProjectExpertCommand extends OpenMoBIEProjectBranchCommand
 {
-
 	@Parameter ( label = "Image Data Location" )
 	public String imageDataLocation = "https://github.com/platybrowser/platybrowser";
 

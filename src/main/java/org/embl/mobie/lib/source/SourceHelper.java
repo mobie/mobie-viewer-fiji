@@ -202,7 +202,7 @@ public abstract class SourceHelper
 			if ( ! fixedTransform.isIdentity() )
 			{
 				AffineTransformation affineTransformation = new AffineTransformation(
-						"TransformedSource",
+						transformedSource.getName(),
 						fixedTransform,
 						Collections.singletonList( wrappedSource.getName() ) );
 				transformations.add( affineTransformation );
@@ -216,10 +216,11 @@ public abstract class SourceHelper
 			if ( realTransform instanceof InterpolatedAffineRealTransform )
 			{
 				Source< ? > wrappedSource = realTransformedSource.getWrappedSource();
+				InterpolatedAffineRealTransform interpolatedAffineRealTransform = ( InterpolatedAffineRealTransform ) realTransform;
 				InterpolatedAffineTransformation interpolatedAffineTransformation =
 						new InterpolatedAffineTransformation(
-								"RealTransformedSource",
-								( ( InterpolatedAffineRealTransform ) realTransform ).getTransforms(),
+								interpolatedAffineRealTransform.getName(),
+								interpolatedAffineRealTransform.getTransforms(),
 								wrappedSource.getName(),
 								source.getName()
 						);

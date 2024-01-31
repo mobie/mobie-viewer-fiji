@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.lib.serialize.transformation;
 
-import ij.IJ;
 import org.embl.mobie.lib.MoBIEHelper;
 
 import java.util.*;
@@ -62,7 +61,7 @@ public class InterpolatedAffineTransformation extends AbstractImageTransformatio
 
 		lines.add("Interpolated affine transformation:");
 
-		addDescription( lines );
+		addNameAndDescription( lines );
 
 		transforms.forEach((z, affine) ->
 				lines.add("Affine (z=" + MoBIEHelper.print(z, 3) + "): " + MoBIEHelper.print(affine, 3))
