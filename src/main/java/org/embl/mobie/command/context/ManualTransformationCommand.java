@@ -61,6 +61,8 @@ public class ManualTransformationCommand implements BdvPlaygroundActionCommand, 
 	@Override
 	public void run()
 	{
+		// FIXME: Give the option to create a new image, extending AbstractTransformationCommand
+
 		SourceAndConverter< ? > currentSource = bdvh.getViewerPanel().state().getCurrentSource();
 		Image< ? > image = DataStore.sourceToImage().get( currentSource );
 

@@ -57,8 +57,9 @@ public class EnterTransformationCommand extends DynamicCommand implements BdvPla
 
 	@Parameter
 	public BdvHandle bdvHandle;
+
 	@Parameter ( label = "Image", choices = {""} )
-	public String sourceName;
+	public String imageName;
 
 	@Parameter ( label = "Transformation Nnme" )
 	public String transformationName = "Some transformation";
@@ -68,8 +69,8 @@ public class EnterTransformationCommand extends DynamicCommand implements BdvPla
 
 	@Parameter ( label = "Transformation mode" )
 	public TransformationMode mode = TransformationMode.ReplaceCurrentInPlace;
-	@Parameter ( label = "New image name" )
-	public String newImageName = "transformed_image";
+	@Parameter ( label = "Transformed image name" )
+	public String transformedImageName = "Transformed image";
 	@Parameter ( label = "Preview", callback = "apply" )
 	public Button preview;
 
@@ -126,10 +127,8 @@ public class EnterTransformationCommand extends DynamicCommand implements BdvPla
 		AffineTransform3D affineTransform3D = new AffineTransform3D();
 		affineTransform3D.set( affineParameters );
 
-		// TODO: the below logic will break when the
-		// 	user decides to change the source name
 		SourceAndConverter< ? > sac = sourceAndConverters.stream()
-				.filter( s -> s.getSpimSource().getName().equals( sourceName ) )
+				.filter( s -> s.getSpimSource().getName().equals( imageName ) )
 				.findFirst().get();
 
 		if ( mode.equals( TransformationMode.CreateNewImageView ) )
@@ -138,17 +137,19 @@ public class EnterTransformationCommand extends DynamicCommand implements BdvPla
 					transformationName,
 					affineParameters,
 					Collections.singletonList( sac.getSpimSource().getName() ),
-					Collections.singletonList( newImageName )
+					Collections.singletonList( transformedImageName )
 			);
 
 			ViewManager.createTransformedSourceView(
 					sac,
-					newImageName,
+					transformedImageName,
 					affineTransformation,
 					"Affine transformation of " + sac.getSpimSource().getName()
 			);
 			return;
 		}
+
+		// preview
 
 		if ( sac.getSpimSource() instanceof TransformedSource )
 		{

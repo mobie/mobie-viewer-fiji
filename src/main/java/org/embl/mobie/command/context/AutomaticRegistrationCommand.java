@@ -67,31 +67,20 @@ import java.util.stream.Collectors;
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getWindowCentreInPixelUnits;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Automatic 2D/3D")
-public class AutomaticRegistrationCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Interactive, Initializable
+public class AutomaticRegistrationCommand extends AbstractRegistrationCommand
 {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter
-	public BdvHandle bdvHandle;
 
 	@Parameter ( label = "Registration Method", choices = {"TurboReg", "SIFT"} )
 	private String registrationMethod = "SIFT";
 
-	@Parameter(label="Registration Voxel Size", persist = false, min = "0.0", style="format:#.00000")
+	@Parameter(label = "Registration Voxel Size", persist = false, min = "0.0", style="format:#.00000")
 	public Double voxelSize = 1D;
 
 	@Parameter ( label = "Transformation" )
 	private Transform transformationType = Transform.Affine;
-
-	@Parameter ( label = "Transformation name" )
-	private String name = "Some automatic transformation";
-
-	@Parameter ( label = "Fixed Image", choices = {""} )
-	private String fixedImageName;
-
-	@Parameter ( label = "Moving Image", choices = {""} )
-	private String movingImageName;
 
 	@Parameter ( label = "Compute Transformation", callback = "compute")
 	private Button compute;
@@ -121,26 +110,7 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 	@Override
 	public void initialize()
 	{
-		sourceAndConverters = MoBIEHelper.getVisibleSacs( bdvHandle );
-
-		if ( sourceAndConverters.size() < 2 )
-		{
-			IJ.showMessage( "There must be at least two images visible." );
-			return;
-		}
-
-		final List< String > imageNames = sourceAndConverters.stream()
-				.map( sac -> sac.getSpimSource().getName() )
-				.collect( Collectors.toList() );
-
-		getInfo().getMutableInput( "fixedImageName", String.class )
-				.setChoices( imageNames );
-
-		getInfo().getMutableInput( "movingImageName", String.class )
-				.setChoices( imageNames );
-
-		getInfo().getMutableInput( "movingImageName", String.class )
-				.setDefaultValue( imageNames.get( 1 ) );
+		super.initialize();
 
 		getInfo().getMutableInput("voxelSize", Double.class)
 				.setValue( this, 2 * BdvHandleHelper.getViewerVoxelSpacing( bdvHandle ) );
