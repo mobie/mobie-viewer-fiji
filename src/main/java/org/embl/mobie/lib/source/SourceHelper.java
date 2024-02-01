@@ -37,6 +37,7 @@ import bdv.util.Affine3DHelpers;
 import bdv.util.BdvHandle;
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
+import ij.IJ;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalRealInterval;
@@ -229,12 +230,12 @@ public abstract class SourceHelper
 			}
 			else
 			{
-				throw new IllegalArgumentException("Fetching transformations from " + source.getClass().getName() + " is not implemented.");
+				IJ.log( "Fetching transformations from " + source.getClass().getName() + " is not implemented." );
 			}
 		}
 		else
 		{
-			throw new IllegalArgumentException("Fetching transformations from " + source.getClass().getName() + " is not implemented.");
+			IJ.log("Fetching transformations from " + source.getClass().getName() + " is not implemented.");
 		}
 	}
 

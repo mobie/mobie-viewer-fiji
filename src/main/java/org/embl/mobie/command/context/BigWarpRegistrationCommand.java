@@ -30,7 +30,6 @@ package org.embl.mobie.command.context;
 
 import bdv.gui.TransformTypeSelectDialog;
 import bdv.tools.brightness.ConverterSetup;
-import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.BigWarpViewerPanel;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TransformListener;
@@ -39,7 +38,7 @@ import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.transform.TransformHelper;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.InvertibleRealTransform;
-import org.embl.mobie.lib.transform.TransformationMode;
+import org.embl.mobie.lib.transform.TransformationOutput;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
@@ -59,13 +58,13 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 	@Parameter ( label = "Launch BigWarp", callback = "launchBigWarp")
 	private Button launchBigWarp;
 
-	@Parameter ( label = "Preview current transform", callback = "preview")
-	private Button preview;
+	@Parameter ( label = "Preview current transform", callback = "previewTransform")
+	private Button previewTransform;
 
-	@Parameter ( label = "Apply current transform and exit", callback = "apply")
-	private Button apply;
+	@Parameter ( label = "Apply current transform and exit", callback = "applyTransform")
+	private Button applyTransform;
 
-	private BigWarp bigWarp;
+	private BigWarp< ? >bigWarp;
 
 
 	@Override
@@ -74,29 +73,22 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 		super.initialize();
 	}
 
-	public void preview()
+	public void previewTransform()
 	{
-		concatenateCurrentBigWarpTransformInPlace();
+		applyTransformInPlace( bigWarp.getBwTransform().affine3d() );
 		bdvHandle.getViewerPanel().requestRepaint();
 	}
 
-	private void concatenateCurrentBigWarpTransformInPlace()
-	{
-		final AffineTransform3D bigWarpAffineTransform = bigWarp.getBwTransform().affine3d();
-		final AffineTransform3D combinedTransform = originalTransform.copy();
-		combinedTransform.preConcatenate( bigWarpAffineTransform.copy().inverse() );
-		movingSource.setFixedTransform( combinedTransform );
-	}
 
-	public void apply()
+	public void applyTransform()
 	{
-		movingSource.setFixedTransform( originalTransform );
+		movingSource.setFixedTransform( previousFixedTransform );
 
-		if ( mode.equals( TransformationMode.InPlace ) )
+		if ( mode.equals( TransformationOutput.TransformMovingImage ) )
 		{
-			concatenateCurrentBigWarpTransformInPlace();
+			applyTransformInPlace( bigWarp.getBwTransform().affine3d() );
 		}
-		else if ( mode.equals( TransformationMode.NewImage ) )
+		else if ( mode.equals( TransformationOutput.CreateNewImage ) )
 		{
 			createTransformedImage( bigWarp.getBwTransform().affine3d(), "BigWarp " + bigWarp.getTransformType() );
 		}
@@ -110,8 +102,6 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 	{
 		ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();
 		SourceAndConverterBdvDisplayService bdvDisplayService = SourceAndConverterServices.getBdvDisplayService();
-
-		setMovingImage();
 
 		SourceAndConverter< ? > fixedSac = sourceAndConverters.stream()
 				.filter( sac -> sac.getSpimSource().getName().equals( fixedImageName ) )
@@ -148,7 +138,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 	@Override
 	public void cancel()
 	{
-		movingSource.setFixedTransform( originalTransform );
+		movingSource.setFixedTransform( previousFixedTransform );
 		bigWarp.closeAll();
 	}
 

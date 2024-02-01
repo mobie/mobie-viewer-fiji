@@ -28,25 +28,15 @@
  */
 package org.embl.mobie.command.context;
 
-import bdv.tools.transformation.TransformedSource;
-import bdv.util.BdvHandle;
-import bdv.viewer.SourceAndConverter;
-import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.MoBIEHelper;
-import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
-import org.embl.mobie.lib.transform.TransformationMode;
-import org.embl.mobie.lib.view.ViewManager;
+import org.embl.mobie.lib.transform.TransformationOutput;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Enter Transformation")
 public class EnterTransformationCommand extends AbstractTransformationCommand
@@ -67,23 +57,23 @@ public class EnterTransformationCommand extends AbstractTransformationCommand
 	{
 		AffineTransform3D affineTransform3D = new AffineTransform3D();
 		affineTransform3D.set( parseStringToDoubleArray( transformation ) );
-		AffineTransform3D newTransform = originalTransform.copy().preConcatenate( affineTransform3D );
+		AffineTransform3D newTransform = previousFixedTransform.copy().preConcatenate( affineTransform3D );
 		movingSource.setFixedTransform( newTransform );
 		bdvHandle.getViewerPanel().requestRepaint();
 	}
 
 	private void applyTransform()
 	{
+		AffineTransform3D affineTransform3D = new AffineTransform3D();
+		affineTransform3D.set( parseStringToDoubleArray( transformation ) );
 
-		if ( mode.equals( TransformationMode.NewImage ) )
+		if ( mode.equals( TransformationOutput.CreateNewImage ) )
 		{
-			AffineTransform3D affineTransform3D = new AffineTransform3D();
-			affineTransform3D.set( parseStringToDoubleArray( transformation ) );
 			createTransformedImage( affineTransform3D, "Entered affine" );
 		}
 		else
 		{
-			previewTransform();
+			applyTransformInPlace( affineTransform3D );
 		}
 	}
 

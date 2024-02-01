@@ -61,7 +61,7 @@ public class ConfigureImageRenderingCommand extends DynamicCommand implements Bd
 	@Parameter
 	protected ImageVolumeViewer volumeViewer;
 
-	@Parameter( label = "Blending Mode", choices = { BlendingMode.SUM, BlendingMode.ALPHA }, persist = false )
+	@Parameter( label = "Blending mode", choices = { BlendingMode.SUM, BlendingMode.ALPHA }, persist = false )
 	String blendingMode = BlendingMode.SUM;
 
 	@Parameter ( label = "Volume rendering", choices = { AUTO, USE_BELOW_RESOLUTION } )
