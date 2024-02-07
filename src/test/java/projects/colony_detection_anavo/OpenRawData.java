@@ -1,10 +1,7 @@
-package projects.colony_detection_anova;
+package projects.colony_detection_anavo;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.command.open.OpenHCSDatasetCommand;
-import org.embl.mobie.command.open.OpenTableCommand;
-
-import java.io.File;
 
 public class OpenRawData
 {
@@ -13,6 +10,7 @@ public class OpenRawData
         new ImageJ().ui().showUI();
         final OpenHCSDatasetCommand command = new OpenHCSDatasetCommand();
         command.hcsDirectory = "/Users/tischer/Desktop/moritz/U2OS_subset";
+        command.hcsDirectory = "/Users/tischer/Desktop/moritz/CQ1_testfiles";
         command.run();
     }
 }

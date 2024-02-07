@@ -26,21 +26,20 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package projects.platybrowser;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.MoBIESettings;
 
 import java.io.IOException;
 
-public class OpenRemotePlatynereisFigure2B
+public class OpenLocalPlatynereis
 {
 	public static void main( String[] args ) throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		final MoBIE moBIE = new MoBIE( "https://github.com/platybrowser/platybrowser", new MoBIESettings().view( "Figure 2B: Epithelial cell segmentation" ) );
+		final MoBIE moBIE = new MoBIE( "/Volumes/cba/exchange/buglakova/platybrowser-smfish-project");
 	}
 }

@@ -26,45 +26,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open.project;
+package projects.platybrowser;
 
-import mpicbg.spim.data.SpimDataException;
+import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.io.DataFormats;
-import org.scijava.command.Command;
-import org.scijava.plugin.Parameter;
-import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
-
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open MoBIE Project..." )
-public class OpenMoBIEProjectCommand implements Command
+public class OpenRemotePlatynereisFigure2B
 {
-	static { net.imagej.patcher.LegacyInjector.preinit(); }
-
-	@Parameter ( label = "Project Location" )
-	public String projectLocation = "https://github.com/mobie/platybrowser-datasets";
-
-	@Parameter ( label = "Preferentially Fetch Data From", choices = {"Remote", "Local"} )
-	public String location = "Remote";
-
-	protected MoBIESettings settings = MoBIESettings.settings();
-
-	@Override
-	public void run()
+	public static void main( String[] args ) throws IOException
 	{
-		settings.preferentialDataLocation( DataFormats.Location.valueOf( location ) );
+		final ImageJ imageJ = new ImageJ();
+		imageJ.ui().showUI();
 
-		try
-		{
-			new MoBIE( projectLocation, settings );
-		}
-		catch ( IOException e )
-		{
-			e.printStackTrace();
-		}
+		final MoBIE moBIE = new MoBIE( "https://github.com/platybrowser/platybrowser", new MoBIESettings().view( "Figure 2B: Epithelial cell segmentation" ) );
 	}
 }
