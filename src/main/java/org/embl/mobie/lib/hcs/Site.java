@@ -56,7 +56,7 @@ public class Site extends StorageLocation
 	{
 		this.id = id;
 		this.imageDataFormat = imageDataFormat;
-		this.channelIndex = 0;
+		this.channel = 0;
 	}
 
 	public Site( String id, ImageDataFormat imageDataFormat, AbstractSpimData< ? > spimData, int imageIndex )
@@ -64,7 +64,7 @@ public class Site extends StorageLocation
 		this.id = id;
 		this.imageDataFormat = imageDataFormat;
 		this.spimData = spimData;
-		this.channelIndex = imageIndex;
+		this.channel = imageIndex;
 	}
 
 	public String getId()

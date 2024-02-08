@@ -291,7 +291,7 @@ public class Plate
 				if ( hcsPattern.equals( hcsPattern.OMEZarr ) )
 				{
 					site.absolutePath = imagePath;
-					site.channelIndex = channel.getChannelIndex();
+					site.channel = channel.getChannelIndex();
 				}
 				else
 				{
