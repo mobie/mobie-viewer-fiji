@@ -138,7 +138,7 @@ public class Plate
 					.filter( path -> hcsPattern.setMatcher( path ) ) // skip files like .DS_Store a.s.o.
 					.collect( Collectors.toList() );
 
-			if ( hcsPattern == HCSPattern.Operetta )
+			if ( hcsPattern.equals( HCSPattern.Operetta ) )
 			{
 				// only keep paths that are also in the XML
 				//final File xml = new File( hcsDirectory, "Index.idx.xml" );
@@ -148,9 +148,14 @@ public class Plate
 						.filter( path -> operettaMetadata.contains( path ) ) // skip files like .DS_Store a.s.o.
 						.collect( Collectors.toList() );
 			}
+			else if ( hcsPattern.equals( HCSPattern.YokogawaCQ1 ) )
+			{
+				imageDataFormat = ImageDataFormat.Tiff;
+			}
 		}
 		IJ.log( "Found " + imagePaths.size() + " image files in " + ( System.currentTimeMillis() - start ) + " ms." );
 		IJ.log( "HCS pattern: " + getHcsPattern() );
+		IJ.log( "Image data format: " + imageDataFormat );
 
 		buildPlateMap( imagePaths );
 	}
