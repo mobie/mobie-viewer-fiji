@@ -410,6 +410,8 @@ public class UserInterfaceHelper
 	{
 		JFrame frame = new JFrame( name );
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+		JPanel panel = new JPanel();
+		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
 
 		// TODO: This cast requires that the sourceAndConverter implements
 		//   an OpacityAdjuster; how to do this more cleanly?
@@ -425,17 +427,15 @@ public class UserInterfaceHelper
 
 		double spinnerStepSize = 0.05;
 
-		JPanel panel = new JPanel();
-		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
-		final SliderPanelDouble slider = new SliderPanelDouble( "Opacity", selection, spinnerStepSize );
-		slider.setNumColummns( 3 );
-		slider.setDecimalFormat( "#.##" );
+		final SliderPanelDouble opacitySlider = new SliderPanelDouble( "Opacity", selection, spinnerStepSize );
+		opacitySlider.setNumColummns( 3 );
+		opacitySlider.setDecimalFormat( "#.##" );
 
 		final OpacityUpdateListener opacityUpdateListener =
-				new OpacityUpdateListener( selection, slider, sourceAndConverters, bdvHandle );
+				new OpacityUpdateListener( selection, opacitySlider, sourceAndConverters, bdvHandle );
 
 		selection.setUpdateListener( opacityUpdateListener );
-		panel.add( slider );
+		panel.add( opacitySlider );
 
 		frame.setContentPane( panel );
 
@@ -448,6 +448,140 @@ public class UserInterfaceHelper
 		frame.setVisible( true );
 	}
 
+	public static void showOpacityAndContrastLimitsDialog(
+			String name,
+			List< ? extends SourceAndConverter< ? > > sacs,
+			BdvHandle bdvHandle,
+			boolean addContrastLimitUI )
+	{
+		JFrame frame = new JFrame( name );
+		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+		JPanel panel = new JPanel();
+		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
+
+		ISourceAndConverterService service = SourceAndConverterServices.getSourceAndConverterService();
+
+		// Opacity Slider
+		//
+		// TODO: This cast requires that the sourceAndConverter implements
+		//   an OpacityAdjuster; how to do this more cleanly?
+		//   Maybe we should rather operate on the coloring model that is
+		//   wrapped in the converter?
+		final double current = ( ( OpacityAdjuster ) sacs.get( 0 ).getConverter()).getOpacity();
+
+		final BoundedValueDouble selection =
+				new BoundedValueDouble(
+						0.0,
+						1.0,
+						current );
+
+		final SliderPanelDouble opacitySlider = new SliderPanelDouble( "Opacity", selection, 0.05 );
+		opacitySlider.setNumColummns( 3 );
+		opacitySlider.setDecimalFormat( "#.##" );
+
+		final OpacityUpdateListener opacityUpdateListener =
+				new OpacityUpdateListener( selection, opacitySlider, sacs, bdvHandle );
+
+		selection.setUpdateListener( opacityUpdateListener );
+		panel.add( opacitySlider );
+
+
+		if ( addContrastLimitUI )
+		{
+			// Contrast Limits
+			//
+			List< ConverterSetup > converterSetups = sacs
+					.stream()
+					.map( sac -> service.getConverterSetup( sac ) )
+					.collect( Collectors.toList() );
+
+			List< ? extends Converter< ?, ARGBType > > converters = sacs
+					.stream()
+					.map( sac -> sac.getConverter() )
+					.collect( Collectors.toList() );
+
+
+			final double currentContrastLimitsMin = converterSetups.get( 0 ).getDisplayRangeMin();
+			final double currentContrastLimitsMax = converterSetups.get( 0 ).getDisplayRangeMax();
+			final double absCurrentRange = Math.abs( currentContrastLimitsMax - currentContrastLimitsMin );
+
+			final double rangeFactor = 1.0; // could be changed...
+
+			final double rangeMin = currentContrastLimitsMin - rangeFactor * absCurrentRange;
+			final double rangeMax = currentContrastLimitsMax + rangeFactor * absCurrentRange;
+
+			final BoundedValueDouble min =
+					new BoundedValueDouble(
+							rangeMin,
+							rangeMax,
+							currentContrastLimitsMin );
+
+			final BoundedValueDouble max =
+					new BoundedValueDouble(
+							rangeMin,
+							rangeMax,
+							currentContrastLimitsMax );
+
+			double spinnerStepSize = absCurrentRange / 100.0;
+
+			final SliderPanelDouble minSlider =
+					new SliderPanelDouble( "Min", min, spinnerStepSize );
+			minSlider.setNumColummns( 10 );
+
+			// TODO: adapt the number of decimal places to the current range
+			minSlider.setDecimalFormat( "#####.####" );
+
+			final SliderPanelDouble maxSlider =
+					new SliderPanelDouble( "Max", max, spinnerStepSize );
+			maxSlider.setNumColummns( 10 );
+			maxSlider.setDecimalFormat( "#####.####" );
+			//maxSlider.setDecimalFormat( "####E0" );
+
+			final BrightnessUpdateListener brightnessUpdateListener = new BrightnessUpdateListener( min, max, minSlider, maxSlider, converterSetups );
+
+			min.setUpdateListener( brightnessUpdateListener );
+			max.setUpdateListener( brightnessUpdateListener );
+
+			panel.add( minSlider );
+			panel.add( maxSlider );
+
+			boolean isInvert = false;
+			for ( Converter< ?, ARGBType > converter : converters )
+			{
+				if ( converter instanceof MoBIEColorConverter )
+				{
+					isInvert = ( ( MoBIEColorConverter ) converter ).invert();
+					break;
+				}
+			}
+			JCheckBox invertCheckBox = new JCheckBox( "Invert LUT" );
+			invertCheckBox.setSelected( isInvert );
+			invertCheckBox.setToolTipText( "Invert the current LUT" );
+			invertCheckBox.addActionListener( e ->
+			{
+				for ( Converter< ?, ARGBType > converter : converters )
+				{
+					if ( converter instanceof MoBIEColorConverter )
+					{
+						( ( MoBIEColorConverter ) converter ).invert( invertCheckBox.isSelected() );
+					}
+				}
+				bdvHandle.getViewerPanel().requestRepaint();
+			} );
+			panel.add( invertCheckBox );
+		}
+
+		//Display the window.
+		frame.setContentPane( panel );
+		frame.setBounds( MouseInfo.getPointerInfo().getLocation().x,
+				MouseInfo.getPointerInfo().getLocation().y,
+				120, 10);
+		frame.setResizable( false );
+		frame.pack();
+		frame.setVisible( true );
+	}
+
+
 	public JPanel createRegionDisplaySettingsPanel( RegionDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
@@ -456,9 +590,8 @@ public class UserInterfaceHelper
 		// Buttons
 		panel.add( space() );
 		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
-		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
+		panel.add( createOpacityAndContrastLimitsButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle(), false ) );
 		panel.add( createButtonPlaceholder() ); // color
-		panel.add( createButtonPlaceholder() ); // brightness
 		panel.add( createLabelRenderingSettingsButton( sourceAndConverters ) ); // special settings
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
@@ -478,9 +611,8 @@ public class UserInterfaceHelper
 		// Buttons
 		panel.add( space() );
 		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
-		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
+		panel.add( createOpacityAndContrastLimitsButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle(), false ) );
 		panel.add( createButtonPlaceholder() ); // color
-		panel.add( createButtonPlaceholder() ); // brightness
 		panel.add( createSpotSettingsButton( sourceAndConverters ) ); // special settings
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
@@ -566,9 +698,9 @@ public class UserInterfaceHelper
 		// Buttons
 		panel.add( space() );
 		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
-		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
+		panel.add( createOpacityAndContrastLimitsButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle(), true ) );
 		panel.add( createColorButton( panel, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
-		panel.add( createImageDisplayBrightnessButton( display ) );
+		//panel.add( createImageDisplayBrightnessButton( display ) );
 		panel.add( createImageRenderingSettingsButton( sourceAndConverters, display.imageVolumeViewer ) );
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
@@ -612,8 +744,7 @@ public class UserInterfaceHelper
 
 		panel.add( space() );
 		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
-		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
-		panel.add( createButtonPlaceholder() );
+		panel.add( createOpacityAndContrastLimitsButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle(), false ) );
 		panel.add( createButtonPlaceholder() );
 		panel.add( createSegmentRenderingSettingsButton( sourceAndConverters, display.segmentVolumeViewer ) );
 		panel.add( createRemoveButton( display ) );
@@ -1097,7 +1228,39 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-	public static JButton createOpacityButton( List< ? extends SourceAndConverter< ? > > sourceAndConverters, String name, BdvHandle bdvHandle )
+	public static JButton createOpacityAndContrastLimitsButton(
+			List< ? extends SourceAndConverter< ? > > sourceAndConverters,
+			String name,
+			BdvHandle bdvHandle,
+			boolean addContrastLimitUI )
+	{
+		JButton button = new JButton( "B" );
+		button.setToolTipText( "Change opacity and contrast limits" );
+		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
+
+		button.addActionListener( e ->
+		{
+			showOpacityAndContrastLimitsDialog(
+					name,
+					sourceAndConverters,
+					bdvHandle,
+					addContrastLimitUI
+			);
+
+//			showOpacityDialog(
+//					name,
+//					sourceAndConverters,
+//					bdvHandle );
+		} );
+
+		return button;
+	}
+
+
+	public static JButton createOpacityButton(
+			List< ? extends SourceAndConverter< ? > > sourceAndConverters,
+			String name,
+			BdvHandle bdvHandle )
 	{
 		JButton button = new JButton( "O" );
 		button.setToolTipText( "Change opacity" );
@@ -1105,10 +1268,17 @@ public class UserInterfaceHelper
 
 		button.addActionListener( e ->
 		{
-			UserInterfaceHelper.showOpacityDialog(
+			showOpacityAndContrastLimitsDialog(
 					name,
 					sourceAndConverters,
-					bdvHandle );
+					bdvHandle,
+					true
+			);
+
+//			showOpacityDialog(
+//					name,
+//					sourceAndConverters,
+//					bdvHandle );
 		} );
 
 		return button;
