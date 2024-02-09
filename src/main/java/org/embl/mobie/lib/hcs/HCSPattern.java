@@ -252,6 +252,10 @@ public enum HCSPattern
 		}
 	}
 
+	/**
+	 *
+	 * @return boolean indicating whether there are multiple z-positions distributed over multiple files
+	 */
 	public boolean hasZ()
 	{
 		switch ( this )
@@ -300,7 +304,7 @@ public enum HCSPattern
 	public String getZ()
 	{
 		if ( hasZ() )
-			return matcher.group( HCSPattern.TIME );
+			return matcher.group( HCSPattern.SLICE );
 		else
 			return "1";
 	}
