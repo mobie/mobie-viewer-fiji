@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.ui;
 
+import ij.IJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.bdv.ImageNameOverlay;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
@@ -234,6 +235,7 @@ public class UserInterface
 
 	public void close()
 	{
+		MoBIEWindowManager.closeAllWindows();
 		frame.dispose();
 	}
 

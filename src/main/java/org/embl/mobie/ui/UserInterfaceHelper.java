@@ -300,7 +300,7 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	public static void showContrastLimitsDialog(
+	public static JFrame showContrastLimitsDialog(
 			String name,
 			List< ? extends SourceAndConverter< ? > > sacs,
 			BdvHandle bdvHandle )
@@ -401,6 +401,8 @@ public class UserInterfaceHelper
 		frame.setResizable( false );
 		frame.pack();
 		frame.setVisible( true );
+
+		return frame;
 	}
 
 	public static void showOpacityDialog(
@@ -448,7 +450,7 @@ public class UserInterfaceHelper
 		frame.setVisible( true );
 	}
 
-	public static void showOpacityAndContrastLimitsDialog(
+	public static JFrame showOpacityAndContrastLimitsDialog(
 			String name,
 			List< ? extends SourceAndConverter< ? > > sacs,
 			BdvHandle bdvHandle,
@@ -579,6 +581,8 @@ public class UserInterfaceHelper
 		frame.setResizable( false );
 		frame.pack();
 		frame.setVisible( true );
+
+		return frame;
 	}
 
 
@@ -1219,10 +1223,11 @@ public class UserInterfaceHelper
 
 		button.addActionListener( e ->
 		{
-			UserInterfaceHelper.showContrastLimitsDialog(
+			JFrame jFrame = UserInterfaceHelper.showContrastLimitsDialog(
 					imageDisplay.getName(),
 					imageDisplay.sourceAndConverters(),
 					imageDisplay.imageSliceView.getSliceViewer().getBdvHandle() );
+			MoBIEWindowManager.addWindow( jFrame );
 		} );
 
 		return button;
@@ -1240,45 +1245,13 @@ public class UserInterfaceHelper
 
 		button.addActionListener( e ->
 		{
-			showOpacityAndContrastLimitsDialog(
+			JFrame jFrame = showOpacityAndContrastLimitsDialog(
 					name,
 					sourceAndConverters,
 					bdvHandle,
 					addContrastLimitUI
 			);
-
-//			showOpacityDialog(
-//					name,
-//					sourceAndConverters,
-//					bdvHandle );
-		} );
-
-		return button;
-	}
-
-
-	public static JButton createOpacityButton(
-			List< ? extends SourceAndConverter< ? > > sourceAndConverters,
-			String name,
-			BdvHandle bdvHandle )
-	{
-		JButton button = new JButton( "O" );
-		button.setToolTipText( "Change opacity" );
-		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
-
-		button.addActionListener( e ->
-		{
-			showOpacityAndContrastLimitsDialog(
-					name,
-					sourceAndConverters,
-					bdvHandle,
-					true
-			);
-
-//			showOpacityDialog(
-//					name,
-//					sourceAndConverters,
-//					bdvHandle );
+			MoBIEWindowManager.addWindow( jFrame );
 		} );
 
 		return button;

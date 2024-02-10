@@ -31,6 +31,7 @@ package org.embl.mobie.lib.color;
 import org.embl.mobie.lib.annotation.Annotation;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.util.Pair;
+import org.embl.mobie.ui.MoBIEWindowManager;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
@@ -80,8 +81,7 @@ public class ColoringModels
 			String columnName,
 			String lutName,
 			Pair< Double, Double > contrastLimits,
-			boolean showUI
-	)
+			boolean showUI )
 	{
 		final NumericAnnotationColoringModel< A > coloringModel
 				= new NumericAnnotationColoringModel<>(
@@ -91,7 +91,10 @@ public class ColoringModels
 
 		if ( showUI )
 			SwingUtilities.invokeLater( () ->
-				new NumericAnnotationColoringModelContrastDialog( columnName, coloringModel ) );
+			{
+				NumericAnnotationColoringModelContrastDialog dialog = new NumericAnnotationColoringModelContrastDialog( columnName, coloringModel );
+				MoBIEWindowManager.addWindow( dialog );
+			});
 
 		return coloringModel;
 	}
