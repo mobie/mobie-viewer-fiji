@@ -229,6 +229,7 @@ public enum HCSPattern
 	{
 		switch ( this )
 		{
+			case OMEZarr:
 			case Operetta:
 			case MolecularDevices:
 			case IncuCyteRaw:
@@ -278,7 +279,10 @@ public enum HCSPattern
 	public List< String > getChannels()
 	{
 		if ( hasChannels() )
-			return Collections.singletonList( matcher.group( HCSPattern.CHANNEL ) );
+			if (this == OMEZarr)
+				return channels;
+			else
+				return Collections.singletonList( matcher.group( HCSPattern.CHANNEL ) );
 		else
 			return Collections.singletonList( "1" );
 	}
