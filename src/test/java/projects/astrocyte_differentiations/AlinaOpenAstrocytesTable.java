@@ -26,20 +26,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package develop;
+package projects.astrocyte_differentiations;
 
-import org.embl.mobie.cmd.TableCmd;
+import net.imagej.ImageJ;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.command.open.OpenTableCommand;
 
-class OpenCellProfilerObjectTableCmd
+import java.io.File;
+
+class AlinaOpenAstrocytesTable
 {
 	public static void main( String[] args ) throws Exception
 	{
-		final TableCmd cmd = new TableCmd();
-		cmd.root = "/Users/tischer/Desktop/Agata/analysed";
-		cmd.table = "/Users/tischer/Desktop/Agata/analysed/Nuclei.txt";
-		cmd.images = new String[]{"Image_FileName_DNA=DAPI;0","Image_FileName_DNA=RPAC1;1"};
-		cmd.labels = new String[]{"Image_FileName_CytoplasmLabels=CytoSeg"};
-		cmd.removeSpatialCalibration = true;
-		cmd.call();
+		new ImageJ().ui().showUI();
+		final OpenTableCommand command = new OpenTableCommand();
+		command.root = new File( "/Volumes/20231101_CR_AD_IF_GFAPki67/analysis" );
+		command.table = new File( "/Volumes/20231101_CR_AD_IF_GFAPki67/analysis/concatenated.tsv" );
+		command.images = "DAPI_Path=DAPI,ki67_Path=ki67,GFAP_Path=GFAP";
+		command.labels = "Nuclei_Labels_Path=Nuclei"; // Nuclei_Periphery_Labels_Path=Periphery
+		command.removeSpatialCalibration = true;
+		command.run();
 	}
 }

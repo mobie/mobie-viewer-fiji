@@ -424,7 +424,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 					selectedRows.add( row );
 		}
 
-		if ( selectedRows.size() > 0 )
+		if ( !selectedRows.isEmpty() )
 			selectRows( selectedRows, keepCurrentSelection );
 		else
 			Logger.error( selectedValue + " does not exist in column " + columnName + ", please choose another value." );
@@ -454,7 +454,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 					row.getNumber( columnName ) < value )
 				selectedRows.add( row );
 
-		if ( selectedRows.size() > 0 )
+		if ( !selectedRows.isEmpty() )
 			selectRows( selectedRows, keepCurrentSelection );
 		else
 			if ( greaterThan )
@@ -567,12 +567,12 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				{
 					selectionModel.focus( object, this );
 				}
-				else if ( selectionMode.equals( RowSelectionMode.ToggleSelectionAndFocusIfSelected ) )
-				{
-					selectionModel.toggle( object );
-					if ( selectionModel.isSelected( object ) )
-						selectionModel.focus( object, this );
-				}
+				else
+                {
+                    selectionModel.toggle( object );
+                    if ( selectionModel.isSelected( object ) )
+                        selectionModel.focus( object, this );
+                }
 			})
 		);
 	}
