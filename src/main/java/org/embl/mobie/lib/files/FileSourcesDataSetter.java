@@ -129,12 +129,12 @@ public class FileSourcesDataSetter
 			if ( regionDisplay == null )
 			{
 				// init RegionDisplay
-				regionDisplay = new RegionDisplay<>( this.regionTable.name() );
+				regionDisplay = new RegionDisplay<>( regionTable.name() );
 
 				// add table
 				final StorageLocation storageLocation = new StorageLocation();
-				storageLocation.data = this.regionTable;
-				final RegionTableSource regionTableSource = new RegionTableSource( this.regionTable.name() );
+				storageLocation.data = regionTable;
+				final RegionTableSource regionTableSource = new RegionTableSource( regionTable.name() );
 				regionTableSource.addTable( TableDataFormat.Table, storageLocation );
 				DataStore.addRawData( regionTableSource );
 
@@ -155,7 +155,7 @@ public class FileSourcesDataSetter
 
 				for ( int regionIndex = 0; regionIndex < numRegions; regionIndex++ )
 				{
-					String regionName = this.regionTable.getString( regionIndex, ColumnNames.REGION_ID );
+					String regionName = regionTable.getString( regionIndex, ColumnNames.REGION_ID );
 					regionDisplay.sources.put( regionName, new ArrayList<>() );
 				}
 			}
@@ -165,7 +165,7 @@ public class FileSourcesDataSetter
 			{
 				// TODO: This is brittle as it requires that the sourceNames have the same
 				//   order as the regions in the regionTable
-				String regionName = this.regionTable.getString( regionIndex, ColumnNames.REGION_ID );
+				String regionName = regionTable.getString( regionIndex, ColumnNames.REGION_ID );
 				regionDisplay.sources.get( regionName ).add( sourceNames.get( regionIndex ) );
 				//System.out.println("Region: " +  regionName + "; source: " + sourceNames.get( regionIndex ) );
 			}

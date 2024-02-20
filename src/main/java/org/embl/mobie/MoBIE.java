@@ -168,11 +168,11 @@ public class MoBIE
 
 		final SourcesFromPathsCreator sourcesCreator = new SourcesFromPathsCreator( imagePaths, labelPaths, labelTablePaths, root, grid );
 
-		final List< ImageFileSources > imageFileSources = sourcesCreator.getImageSources();
+		final List< ImageFileSources > imageSources = sourcesCreator.getImageSources();
 		final List< LabelFileSources > labelSources = sourcesCreator.getLabelSources();
 		Table regionTable = sourcesCreator.getRegionTable();
 
-		openImagesAndLabels( imageFileSources, labelSources, regionTable );
+		openImagesAndLabels( imageSources, labelSources, regionTable );
 	}
 
 	// open an image or object table
