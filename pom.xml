@@ -4,12 +4,12 @@
     <parent>
         <groupId>org.scijava</groupId>
         <artifactId>pom-scijava</artifactId>
-        <version>36.0.0</version>
+        <version>37.0.0</version>
     </parent>
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>4.2.4-SNAPSHOT</version>
+    <version>5.0.0-SNAPSHOT</version>
 
     <!-- force javadoc generation to fetch errors:    -->
     <!-- mvn javadoc:javadoc | grep error -->
@@ -83,9 +83,9 @@
         <license.copyrightOwners>EMBL</license.copyrightOwners>
         <enforcer.skip>true</enforcer.skip>
 
+        <mobie-io.version>3.0.0-SNAPSHOT</mobie-io.version>
         <bigdataviewer-playground.version>0.8.0</bigdataviewer-playground.version>
         <imagej-utils.version>0.6.9</imagej-utils.version>
-        <mobie-io.version>2.2.3</mobie-io.version>
         <trove.version>1.0.2</trove.version>
         <annotations.version>16.0.2</annotations.version>
 
@@ -155,7 +155,6 @@
         <dependency>
             <groupId>sc.fiji</groupId>
             <artifactId>bigdataviewer-core</artifactId>
-<!--            <version>10.4.12-SNAPSHOT</version>-->
         </dependency>
         <dependency>
             <groupId>sc.fiji</groupId>

@@ -28,11 +28,11 @@
  */
 package org.embl.mobie.lib;
 
-import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.DataSource;
 import org.embl.mobie.lib.serialize.Dataset;
@@ -47,16 +47,16 @@ import spimdata.util.Displaysettings;
 import java.io.File;
 import java.util.Arrays;
 
-public class SpimDataAdder
+public class ImageDataAdder
 {
-	private final AbstractSpimData< ? > image;
-	private final AbstractSpimData< ? > labels;
+	private final ImageData< ? > image;
+	private final ImageData< ? > labels;
 	private final StorageLocation tableStorageLocation;
 	private final TableDataFormat tableDataFormat;
 	private Dataset dataset;
 	private MoBIESettings settings;
 
-	public SpimDataAdder( AbstractSpimData< ? > image, AbstractSpimData< ? > labels, StorageLocation tableStorageLocation, TableDataFormat tableDataFormat )
+	public ImageDataAdder( ImageData< ? > image, ImageData< ? > labels, StorageLocation tableStorageLocation, TableDataFormat tableDataFormat )
 	{
 		this.image = image;
 		this.labels = labels;
@@ -69,44 +69,44 @@ public class SpimDataAdder
 		this.dataset = dataset;
 		this.settings = settings;
 
-		addSpimData( image, false );
+		addData( image, false );
 
 		if ( labels != null )
-			addSpimData( labels, true );
+			addData( labels, true );
 	}
 
-	private void addSpimData( AbstractSpimData< ? > spimData, boolean isSegmentation )
+	private void addData( ImageData< ? > imageData, boolean isSegmentation )
 	{
 		final ImageDataFormat imageDataFormat = ImageDataFormat.SpimData;
 
 		if ( tableDataFormat != null )
 			settings.addTableDataFormat( tableDataFormat );
 
-		final int numSetups = spimData.getSequenceDescription().getViewSetupsOrdered().size();
+		final int numSetups = imageData.getSequenceDescription().getViewSetupsOrdered().size();
 
 		for ( int setupIndex = 0; setupIndex < numSetups; setupIndex++ )
 		{
 			final StorageLocation storageLocation = new StorageLocation();
-			storageLocation.data = spimData;
+			storageLocation.data = imageData;
 			storageLocation.setChannel( setupIndex );
-			final String setupName = spimData.getSequenceDescription().getViewSetupsOrdered().get( setupIndex ).getName();
+			final String setupName = imageData.getSequenceDescription().getViewSetupsOrdered().get( setupIndex ).getName();
 			String imageName = getImageName( setupName, numSetups, setupIndex );
 
 			DataSource dataSource;
 			if ( isSegmentation )
 			{
 				dataSource = new SegmentationDataSource( imageName, imageDataFormat, storageLocation, tableDataFormat, tableStorageLocation );
-				addSegmentationView( spimData, setupIndex, imageName );
+				addSegmentationView( imageData, setupIndex, imageName );
 			}
 			else
 			{
 				dataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
-				addImageView( spimData, setupIndex, imageName );
+				addImageView( imageData, setupIndex, imageName );
 			}
 
 			dataSource.preInit( true );
 			dataset.addDataSource( dataSource );
-			dataset.is2D( MoBIEHelper.is2D( spimData, setupIndex ) );
+			dataset.is2D( MoBIEHelper.is2D( imageData, setupIndex ) );
 		}
 	}
 
@@ -125,9 +125,9 @@ public class SpimDataAdder
 		return imageName;
 	}
 
-	private void addImageView( AbstractSpimData< ? > spimData, int imageIndex, String imageName )
+	private void addImageView( ImageData< ? > imageData, int imageIndex, String imageName )
 	{
-		final Displaysettings displaysettings = spimData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex ).getAttribute( Displaysettings.class );
+		final Displaysettings displaysettings = imageData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex ).getAttribute( Displaysettings.class );
 
 		String color = "White";
 		double[] contrastLimits = null;
@@ -147,11 +147,11 @@ public class SpimDataAdder
 		dataset.views().put( view.getName(), view );
 	}
 
-	private void addSegmentationView( AbstractSpimData< ? > spimData, int setupId, String name  )
+	private void addSegmentationView( ImageData< ? > imageData, int setupId, String name  )
 	{
 		final SegmentationDisplay< ? > display = new SegmentationDisplay<>( name, Arrays.asList( name ) );
 
-		final BasicViewSetup viewSetup = spimData.getSequenceDescription().getViewSetupsOrdered().get( setupId );
+		final BasicViewSetup viewSetup = imageData.getSequenceDescription().getViewSetupsOrdered().get( setupId );
 		final double pixelWidth = viewSetup.getVoxelSize().dimension( 0 );
 		display.setResolution3dView( new Double[]{ pixelWidth, pixelWidth, pixelWidth } );
 

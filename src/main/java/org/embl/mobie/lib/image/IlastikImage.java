@@ -30,23 +30,23 @@ package org.embl.mobie.lib.image;
 
 import bdv.cache.SharedQueue;
 import bdv.tools.transformation.TransformedSource;
-import bdv.util.RandomAccessibleIntervalSource;
 import bdv.util.RandomAccessibleIntervalSource4D;
 import bdv.viewer.Source;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.util.Util;
 import net.imglib2.view.Views;
-import org.embl.mobie.io.CachedCellImgOpener;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.ilastik.IlastikOpener;
 import org.embl.mobie.lib.source.SourceHelper;
 
 import javax.annotation.Nullable;
 
-public class CachedCellImage< T > implements Image< T >
+public class IlastikImage< T > implements Image< T >
 {
 	private final String path;
 	private final Integer channel;
@@ -58,7 +58,7 @@ public class CachedCellImage< T > implements Image< T >
 	private AffineTransform3D affineTransform3D;
 	private RealMaskRealInterval mask;
 
-	public CachedCellImage( String name, String path, Integer channel, ImageDataFormat imageDataFormat, @Nullable SharedQueue sharedQueue )
+	public IlastikImage( String name, String path, Integer channel, ImageDataFormat imageDataFormat, @Nullable SharedQueue sharedQueue )
 	{
 		this.path = path;
 		this.channel = channel;
@@ -77,7 +77,7 @@ public class CachedCellImage< T > implements Image< T >
 
 	private void open()
 	{
-		final CachedCellImgOpener< ? > opener = new CachedCellImgOpener<>( path, imageDataFormat, sharedQueue );
+		final IlastikOpener< ? > opener = new IlastikOpener<>( path, imageDataFormat, sharedQueue );
 
 		Source< T > source = getSource( opener );
 		Source< ? extends Volatile< T > > volatileSource = getVolatileSource( opener );
@@ -87,14 +87,14 @@ public class CachedCellImage< T > implements Image< T >
 		sourcePair = new DefaultSourcePair( transformedSource, new TransformedSource( volatileSource, transformedSource ) );
 	}
 
-	private Source< T > getSource( CachedCellImgOpener< ? > opener )
+	private Source< T > getSource( IlastikOpener< ? > opener )
 	{
 		final RandomAccessibleInterval< ? > rai = opener.getRAI( channel );
 		Source< ? > source = asSource( rai );
 		return ( Source< T > ) source;
 	}
 
-	private Source< ? extends Volatile< T > > getVolatileSource( CachedCellImgOpener< ? > opener )
+	private Source< ? extends Volatile< T > > getVolatileSource( IlastikOpener< ? > opener )
 	{
 		final RandomAccessibleInterval< ? > rai = opener.getVolatileRAI( channel );
 		Source< ? > source = asSource( rai );

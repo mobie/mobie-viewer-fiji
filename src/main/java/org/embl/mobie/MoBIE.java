@@ -38,6 +38,7 @@ import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
 import net.imagej.ImageJ;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.lib.*;
@@ -48,7 +49,7 @@ import org.embl.mobie.lib.files.SourcesFromPathsCreator;
 import org.embl.mobie.lib.hcs.HCSDataAdder;
 import org.embl.mobie.lib.hcs.Plate;
 import org.embl.mobie.lib.hcs.Site;
-import org.embl.mobie.lib.image.CachedCellImage;
+import org.embl.mobie.lib.image.IlastikImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.ImageDataImage;
 import org.embl.mobie.lib.io.DataFormats;
@@ -223,7 +224,7 @@ public class MoBIE
 		initUIandShowView( null ); //dataset.views().keySet().iterator().next() );
 	}
 
-	public MoBIE( String projectName, AbstractSpimData< ? > image, @Nullable AbstractSpimData< ? > labels, @Nullable StorageLocation tableStorageLocation, @Nullable TableDataFormat tableDataFormat )
+	public MoBIE( String projectName, ImageData< ? > imageData, ImageData< ? > labelData, @Nullable StorageLocation tableStorageLocation, @Nullable TableDataFormat tableDataFormat )
 	{
 		settings = new MoBIESettings();
 
@@ -231,10 +232,8 @@ public class MoBIE
 
 		initProject( projectName );
 
-		final SpimDataAdder spimDataAdder = new SpimDataAdder( image, labels, tableStorageLocation, tableDataFormat );
-
-		// TODO: Do I really need the settings here?
-		spimDataAdder.addData( dataset, settings );
+		new ImageDataAdder( imageData, labelData, tableStorageLocation, tableDataFormat )
+				.addData( dataset, settings );
 
 		initUIandShowView( null );
 	}
@@ -717,7 +716,7 @@ public class MoBIE
 
 		if ( imageDataFormat.equals( ImageDataFormat.IlastikHDF5 ) )
 		{
-			return new CachedCellImage<>( name, storageLocation.absolutePath, storageLocation.getChannel(), imageDataFormat, ThreadHelper.sharedQueue );
+			return new IlastikImage<>( name, storageLocation.absolutePath, storageLocation.getChannel(), imageDataFormat, ThreadHelper.sharedQueue );
 		}
 
 		if ( storageLocation instanceof Site ) // HCS data

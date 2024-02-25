@@ -125,19 +125,17 @@ public abstract class ColorHelper
 								));
 	}
 
-	public static ARGBType getARGBType( int[] color )
+	public static ARGBType getARGBType( int[] rgba )
 	{
-		final int rgba = ARGBType.rgba( color[ 0 ], color[ 1 ], color[ 2 ], color[ 3 ] );
-		final ARGBType argbType = new ARGBType( rgba );
-		return argbType;
+		return new ARGBType( ARGBType.rgba( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] ) );
 	}
 
 	public static ARGBType getARGBType( LUT lut )
 	{
-		return getARGBType( getInts( lut ) );
+		return getARGBType( getRGBA( lut ) );
 	}
 
-	private static int[] getInts( LUT lut )
+	private static int[] getRGBA( LUT lut )
 	{
 		return new int[]{ lut.getRed( 255 ), lut.getGreen( 255 ), lut.getBlue( 255 ), lut.getAlpha( 255 ) };
 	}

@@ -28,7 +28,7 @@
  */
 package org.embl.mobie.lib.source;
 
-import IceInternal.Ex;
+import ch.epfl.biop.bdv.img.imageplus.ImagePlusToSpimData;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.ContrastEnhancer;
@@ -36,6 +36,7 @@ import ij.process.ImageStatistics;
 
 import static ij.measure.Measurements.MIN_MAX;
 
+// FIXME: move this to mobie-io
 public class Metadata
 {
 	public String color = "White";
@@ -53,6 +54,8 @@ public class Metadata
 	public Metadata( ImagePlus imagePlus )
 	{
 		color = "White"; // TODO: why not also extract the color?
+
+		ImagePlusToSpimData
 
 		try
 		{

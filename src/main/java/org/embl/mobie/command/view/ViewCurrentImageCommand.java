@@ -33,6 +33,9 @@ import mpicbg.spim.data.generic.AbstractSpimData;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.io.SpimDataOpener;
+import org.embl.mobie.io.imagedata.ImageData;
+import org.embl.mobie.io.imagedata.ImagePlusImageData;
+import org.embl.mobie.lib.ThreadHelper;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -43,12 +46,12 @@ public class ViewCurrentImageCommand implements Command
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	@Parameter ( label = "Current Image", required = true )
-	public ImagePlus image;
+	public ImagePlus imagePlus;
 
 	@Override
 	public void run()
 	{
-		final AbstractSpimData< ? > imageData = new SpimDataOpener().open( image );
+		ImageData< ? > imageData = new ImagePlusImageData( imagePlus, ThreadHelper.sharedQueue );
 		new MoBIE( "ImageJ", imageData, null, null, null );
 	}
 }
