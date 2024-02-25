@@ -45,7 +45,10 @@ import org.embl.mobie.lib.source.SourceHelper;
 
 import javax.annotation.Nullable;
 
-public class SpimDataImage< T extends NumericType< T > & RealType< T > > implements Image< T >
+/**
+ * Converts various input resources into an {@code Image}.
+ */
+public class ImageDataImage< T extends NumericType< T > & RealType< T > > implements Image< T >
 {
 	private ImageDataFormat imageDataFormat;
 	private String path;
@@ -60,7 +63,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	private TransformedSource< T > transformedSource;
 	private AffineTransform3D currentTransform = new AffineTransform3D();
 
-	public SpimDataImage( AbstractSpimData< ? > spimData, Integer setupId, String name, Boolean removeSpatialCalibration  )
+	public ImageDataImage( AbstractSpimData< ? > spimData, Integer setupId, String name, Boolean removeSpatialCalibration  )
 	{
 		this.imageDataFormat = null;
 		this.path = null;
@@ -71,7 +74,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		createSourcePair( spimData, setupId, name );
 	}
 
-	public SpimDataImage( ImageDataFormat imageDataFormat, String path, int setupId, String name, @Nullable SharedQueue sharedQueue, Boolean removeSpatialCalibration )
+	public ImageDataImage( ImageDataFormat imageDataFormat, String path, int setupId, String name, @Nullable SharedQueue sharedQueue, Boolean removeSpatialCalibration )
 	{
 		this.imageDataFormat = imageDataFormat;
 		this.path = path;
@@ -81,7 +84,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		this.removeSpatialCalibration = removeSpatialCalibration;
 	}
 
-	public SpimDataImage( Site site, String name, SharedQueue sharedQueue, Boolean removeSpatialCalibration )
+	public ImageDataImage( Site site, String name, SharedQueue sharedQueue, Boolean removeSpatialCalibration )
 	{
 		this.setupId = site.getChannel();
 		this.name = name;
@@ -153,7 +156,6 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	private void open()
 	{
 		final AbstractSpimData< ? > spimData = openSpimData();
-
 		createSourcePair( spimData, setupId, name );
 	}
 
