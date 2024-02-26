@@ -30,14 +30,12 @@ package org.embl.mobie.lib.source;
 
 import bdv.AbstractSpimSource;
 import bdv.SpimSource;
-import bdv.VolatileSpimSource;
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.AbstractSource;
 import bdv.util.Affine3DHelpers;
 import bdv.util.BdvHandle;
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
-import ij.IJ;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalRealInterval;
@@ -47,17 +45,11 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.realtransform.RealTransform;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.roi.geom.real.WritableBox;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
-import org.embl.mobie.lib.image.StitchedImage;
-import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
-import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
-import org.embl.mobie.lib.serialize.transformation.Transformation;
-import org.embl.mobie.lib.transform.InterpolatedAffineRealTransform;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -166,80 +158,6 @@ public abstract class SourceHelper
 		}
 	}
 
-	public static ArrayList< Transformation > fetchAddedTransformations( Source< ? > source )
-	{
-		ArrayList< Transformation > allTransformations = fetchAllTransformations( source );
-		allTransformations.remove( 0 ); // in MoBIE this is part of the raw image itself
-		return allTransformations;
-	}
-
-
-	public static ArrayList< Transformation > fetchAllTransformations( Source< ? > source )
-	{
-		ArrayList< Transformation > transformations = new ArrayList<>();
-		collectTransformations( source, transformations );
-		Collections.reverse( transformations ); // first transformation first
-		return transformations;
-	}
-
-	private static void collectTransformations( Source< ? > source, Collection< Transformation > transformations )
-	{
-		if ( source instanceof AbstractSpimSource )
-		{
-			AffineTransform3D affineTransform3D = new AffineTransform3D();
-			source.getSourceTransform( 0, 0, affineTransform3D );
-			AffineTransformation affineTransformation = new AffineTransformation(
-					"Input transformation", // FIXME: Those are not the names in the JSON
-					affineTransform3D,
-					Collections.singletonList( source.getName() ) );
-			transformations.add( affineTransformation );
-		}
-		else if ( source instanceof TransformedSource )
-		{
-			TransformedSource< ? > transformedSource = ( TransformedSource< ? > ) source;
-			final Source< ? > wrappedSource = transformedSource.getWrappedSource();
-			AffineTransform3D fixedTransform = new AffineTransform3D();
-			transformedSource.getFixedTransform( fixedTransform );
-			// FIXME: how to get the names?
-			//  We could extend TransformedSource and add a field for the name of the transformation
-			if ( ! fixedTransform.isIdentity() )
-			{
-				AffineTransformation affineTransformation = new AffineTransformation(
-						"Additional transformation", // FIXME: Those are not the names in the JSON
-						fixedTransform,
-						Collections.singletonList( wrappedSource.getName() ) );
-				transformations.add( affineTransformation );
-			}
-			collectTransformations( wrappedSource, transformations );
-		}
-		else if ( source instanceof RealTransformedSource )
-		{
-			RealTransformedSource< ? > realTransformedSource = ( RealTransformedSource< ? > ) source;
-			RealTransform realTransform = realTransformedSource.getRealTransform();
-			if ( realTransform instanceof InterpolatedAffineRealTransform )
-			{
-				Source< ? > wrappedSource = realTransformedSource.getWrappedSource();
-				InterpolatedAffineRealTransform interpolatedAffineRealTransform = ( InterpolatedAffineRealTransform ) realTransform;
-				InterpolatedAffineTransformation interpolatedAffineTransformation =
-						new InterpolatedAffineTransformation(
-								interpolatedAffineRealTransform.getName(),
-								interpolatedAffineRealTransform.getTransforms(),
-								wrappedSource.getName(),
-								source.getName()
-						);
-				transformations.add( interpolatedAffineTransformation );
-				collectTransformations( wrappedSource, transformations );
-			}
-			else
-			{
-				IJ.log( "Fetching transformations from " + source.getClass().getName() + " is not implemented." );
-			}
-		}
-		else
-		{
-			IJ.log("Fetching transformations from " + source.getClass().getName() + " is not implemented.");
-		}
-	}
 
 	public static RealMaskRealInterval getMask( Source< ? > source, int t )
 	{

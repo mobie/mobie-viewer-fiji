@@ -42,6 +42,7 @@ import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
@@ -50,23 +51,18 @@ public class ImageTransformer
 {
 	public static Image< ? > affineTransform( Image< ? > image, AffineTransformation affineTransformation )
 	{
-		return affineTransform( image,
-				affineTransformation.getAffineTransform3D(),
-				affineTransformation.getTransformedImageName( image.getName() ) );
-	}
+		String transformedImageName = affineTransformation.getTransformedImageName( image.getName() );
 
-	public static Image< ? > affineTransform( Image< ? > image, AffineTransform3D affineTransform3D, String transformedImageName )
-	{
 		if( transformedImageName == null || image.getName().equals( transformedImageName ) )
 		{
 			// in place transformation
-			image.transform( affineTransform3D  );
+			image.transform( affineTransformation.getAffineTransform3D()  );
 			return image;
 		}
 
 		if ( image instanceof AnnotationLabelImage )
 		{
-			return createTransformedAnnotatedLabelImage( ( AnnotationLabelImage ) image, affineTransform3D, transformedImageName );
+			return createTransformedAnnotatedLabelImage( ( AnnotationLabelImage ) image, affineTransformation );
 		}
 		else if ( image instanceof AnnotationImage )
 		{
@@ -74,7 +70,9 @@ public class ImageTransformer
 		}
 		else
 		{
-			return new AffineTransformedImage<>( image, transformedImageName, affineTransform3D );
+			AffineTransformedImage< ? > affineTransformedImage = new AffineTransformedImage<>( image, affineTransformation.getTransformedImageName( image.getName() ), affineTransformation.getAffineTransform3D().copy() );
+			affineTransformedImage.setTransformation( affineTransformation );
+			return affineTransformedImage;
 		}
 	}
 
@@ -82,11 +80,15 @@ public class ImageTransformer
 	{
 		String transformedImageName = transformation.getTransformedImageName( image.getName() );
 
-		return new TimepointsTransformedImage<>(
+		TimepointsTransformedImage< ? > transformedImage = new TimepointsTransformedImage<>(
 				image,
 				transformedImageName == null ? image.getName() : transformedImageName,
 				transformation.getTimepointsMapping(),
 				transformation.isKeep() );
+
+		transformedImage.setTransformation( transformation );
+		return transformedImage;
+
 	}
 
 	public static Image< ? > interpolatedAffineTransform( Image< ? > image, InterpolatedAffineTransformation transformation )
@@ -97,29 +99,31 @@ public class ImageTransformer
 		InterpolatedAffineRealTransform interpolatedTransform = new InterpolatedAffineRealTransform( transformation.getName(), sourceTransform.inverse() );
 		interpolatedTransform.addTransforms( transformation.getTransforms() );
 
-		return new RealTransformedImage<>(
+		RealTransformedImage< ? > realTransformedImage = new RealTransformedImage<>(
 				image,
 				transformedImageName == null ? image.getName() : transformedImageName,
 				interpolatedTransform );
+
+		realTransformedImage.setTransformation( transformation );
+
+		return realTransformedImage;
 	}
 
-	private static < A extends Annotation, TA extends A > DefaultAnnotationLabelImage< TA > createTransformedAnnotatedLabelImage( AnnotationLabelImage< A > annotatedLabelImage, AffineTransform3D affineTransform3D, String transformedImageName )
+	private static < A extends Annotation, TA extends A > DefaultAnnotationLabelImage< TA > createTransformedAnnotatedLabelImage( AnnotationLabelImage< A > annotatedLabelImage, AffineTransformation affineTransformation )
 	{
 		final Image< ? extends IntegerType< ? > > labelImage = annotatedLabelImage.getLabelImage();
 
 		final AnnData< A > annData = annotatedLabelImage.getAnnData();
 
-		final AnnotationAffineTransformer< A, TA > affineTransformer = new AnnotationAffineTransformer<>( affineTransform3D );
+		final AnnotationAffineTransformer< A, TA > affineTransformer = new AnnotationAffineTransformer<>( affineTransformation.getAffineTransform3D() );
 
 		TransformedAnnData< A, TA > transformedAnnData = new TransformedAnnData<>( annData, affineTransformer );
 
 		final DefaultAnnotationAdapter< TA > annotationAdapter = new DefaultAnnotationAdapter<>( transformedAnnData );
 
-		final Image< ? extends IntegerType< ? > > transformedLabelImage = ( Image< ? extends IntegerType< ? > > ) affineTransform( labelImage, affineTransform3D, transformedImageName );
+		final Image< ? extends IntegerType< ? > > transformedLabelImage = ( Image< ? extends IntegerType< ? > > ) affineTransform( labelImage, affineTransformation );
 
-		final DefaultAnnotationLabelImage< TA > transformedAnnotatedImage = new DefaultAnnotationLabelImage< TA >( transformedLabelImage, transformedAnnData, annotationAdapter );
-
-		return transformedAnnotatedImage;
+        return new DefaultAnnotationLabelImage< TA >( transformedLabelImage, transformedAnnData, annotationAdapter );
 	}
 
 	public static List< ? extends Image< ? > > gridTransform( List< List< ? extends Image< ? > > > nestedImages, @Nullable List< List< String > > nestedTransformedNames, List< int[] > positions, double[] tileRealDimensions, boolean centerAtOrigin, double[] withinTileOffset )
@@ -173,7 +177,13 @@ public class ImageTransformer
 			else
 			{
 				// create a new transformed image
-				final Image< ? > transformedImage = affineTransform( image, translationTransform, transformedNames.get( images.indexOf( image ) ) );
+				AffineTransformation affineTransformation = new AffineTransformation(
+						"Translation",
+						translationTransform.getRowPackedCopy(),
+						Collections.singletonList( image.getName() ),
+						Collections.singletonList( transformedNames.get( images.indexOf( image ) ) )
+						);
+				final Image< ? > transformedImage = affineTransform( image, affineTransformation );
 				translatedImages.add( transformedImage );
 			}
 		}

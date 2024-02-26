@@ -37,19 +37,21 @@ import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.lib.image.DefaultSourcePair;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.SourcePair;
+import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.source.TransformedTimepointSource;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.util.HashMap;
 
-public class TimepointsTransformedImage< T > implements Image< T >
+public class TimepointsTransformedImage< T > implements Image< T >, TransformedImage
 {
 	protected final Image< T > image;
 	protected final String transformedImageName;
 	private final HashMap< Integer, Integer > timepointsMap;
 	private final boolean keep;
 	private RealMaskRealInterval mask;
-	private AffineTransform3D affineTransform3D = new AffineTransform3D();
+	private final AffineTransform3D affineTransform3D = new AffineTransform3D();
+	private Transformation transformation;
 
 	public TimepointsTransformedImage( Image< T > image, String name, HashMap< Integer, Integer > timepointsMap, boolean keep )
 	{
@@ -103,4 +105,21 @@ public class TimepointsTransformedImage< T > implements Image< T >
 		this.mask = mask;
 	}
 
+	@Override
+	public Image< ? > getWrappedImage()
+	{
+		return image;
+	}
+
+	@Override
+	public Transformation getTransformation()
+	{
+		return transformation;
+	}
+
+	@Override
+	public void setTransformation( Transformation transformation )
+	{
+		this.transformation = transformation;
+	}
 }

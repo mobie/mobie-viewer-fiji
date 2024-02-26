@@ -32,10 +32,12 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
-import org.embl.mobie.lib.source.SourceHelper;
+import org.embl.mobie.lib.transform.TransformHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
@@ -67,7 +69,8 @@ public class SourcesInfoCommand implements BdvPlaygroundActionCommand
             IJ.log( "Number of resolution levels: " + source.getNumMipmapLevels() );
             IJ.log( "Voxel size: " + Arrays.toString( source.getVoxelDimensions().dimensionsAsDoubleArray() ) );
 
-            ArrayList< Transformation > transformations = SourceHelper.fetchAllTransformations( source );
+            Image< ? > image = DataStore.sourceToImage().get( sac );
+            ArrayList< Transformation > transformations = TransformHelper.fetchAllTransformations( image );
 
             transformations.forEach( transformation ->
             {

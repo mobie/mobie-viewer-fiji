@@ -32,7 +32,6 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import ij.WindowManager;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
@@ -58,7 +57,6 @@ import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.*;
 import org.embl.mobie.lib.serialize.transformation.*;
 import org.embl.mobie.lib.source.AnnotationType;
-import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.table.*;
 import org.embl.mobie.lib.transform.TransformHelper;
 import org.embl.mobie.lib.transform.ImageTransformer;
@@ -113,7 +111,7 @@ public class ViewManager
 			Transformation transformation,
 			String viewDescription )
 	{
-		ArrayList< Transformation > transformations = SourceHelper.fetchAddedTransformations( sac.getSpimSource() );
+		ArrayList< Transformation > transformations = TransformHelper.fetchAddedTransformations( sac.getSpimSource() );
 		transformations.add( transformation );
 
 		ImageDisplay< ? > imageDisplay = new ImageDisplay<>( newImageName, newImageName );
@@ -162,7 +160,7 @@ public class ViewManager
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			Source< ? > source = sourceAndConverter.getSpimSource();
-			ArrayList< Transformation > fetchedTransformations = SourceHelper.fetchAddedTransformations( source );
+			ArrayList< Transformation > fetchedTransformations = TransformHelper.fetchAddedTransformations( source );
 			transformations.addAll( fetchedTransformations );
         }
     }

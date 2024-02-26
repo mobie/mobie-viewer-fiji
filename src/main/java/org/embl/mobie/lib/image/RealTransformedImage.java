@@ -34,26 +34,24 @@ import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.RealTransform;
 import net.imglib2.roi.RealMaskRealInterval;
+import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
+import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.source.RealTransformedSource;
 
-public class RealTransformedImage< T > implements Image< T >
+public class RealTransformedImage< T > implements Image< T >, TransformedImage
 {
 	protected final RealTransform realTransform;
 	protected final Image< T > image;
 	protected final String name;
 	private RealMaskRealInterval mask;
 	private final AffineTransform3D affineTransform3D = new AffineTransform3D();
+	private Transformation transformation;
 
 	public RealTransformedImage( Image< T > image, String name, RealTransform realTransform )
 	{
 		this.image = image;
 		this.name = name;
 		this.realTransform = realTransform;
-	}
-
-	public RealTransform getRealTransform()
-	{
-		return realTransform;
 	}
 
 	@Override
@@ -105,5 +103,21 @@ public class RealTransformedImage< T > implements Image< T >
 	public void setMask( RealMaskRealInterval mask )
 	{
 		this.mask = mask;
+	}
+
+	@Override
+	public Image< ? > getWrappedImage()
+	{
+		return image;
+	}
+
+	public void setTransformation( Transformation transformation )
+	{
+		this.transformation = transformation;
+	}
+
+	public Transformation getTransformation()
+	{
+		return transformation;
 	}
 }
