@@ -84,14 +84,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 	{
 		movingSource.setFixedTransform( previousFixedTransform );
 
-		if ( mode.equals( TransformationOutput.TransformMovingImage ) )
-		{
-			applyTransformInPlace( bigWarp.getBwTransform().affine3d() );
-		}
-		else if ( mode.equals( TransformationOutput.CreateNewImage ) )
-		{
-			createTransformedImage( bigWarp.getBwTransform().affine3d(), "BigWarp " + bigWarp.getTransformType() );
-		}
+		applyTransform( bigWarp.getBwTransform().affine3d(), "BigWarp " + bigWarp.getTransformType() );
 
 		bdvHandle.getViewerPanel().requestRepaint();
 		bigWarp.closeAll();

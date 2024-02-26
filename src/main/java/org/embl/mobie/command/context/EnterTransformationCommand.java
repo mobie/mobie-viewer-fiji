@@ -30,7 +30,6 @@ package org.embl.mobie.command.context;
 
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.transform.TransformationOutput;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
@@ -67,15 +66,9 @@ public class EnterTransformationCommand extends AbstractTransformationCommand
 		AffineTransform3D affineTransform3D = new AffineTransform3D();
 		affineTransform3D.set( parseStringToDoubleArray( transformation ) );
 
-		if ( mode.equals( TransformationOutput.CreateNewImage ) )
-		{
-			createTransformedImage( affineTransform3D, "Entered affine" );
-		}
-		else
-		{
-			applyTransformInPlace( affineTransform3D );
-		}
+		applyTransform( affineTransform3D, "Entered affine" );
 	}
+
 
 	public static double[] parseStringToDoubleArray(String arrayStr)
 	{

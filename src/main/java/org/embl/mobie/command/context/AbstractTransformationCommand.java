@@ -26,7 +26,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     @Parameter ( label = "Transformation target" )
     public TransformationOutput mode = TransformationOutput.CreateNewImage;
 
-    @Parameter ( label = "Transformation name" )
+    @Parameter ( label = "Transformation name", persist = false )
     public String transformationName = "Some transformation";
 
     @Parameter ( label = "Transformed image name")
@@ -70,6 +70,18 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         setMovingImage();
     }
 
+    protected void applyTransform( AffineTransform3D affineTransform3D, String description )
+    {
+        if ( mode.equals( TransformationOutput.CreateNewImage ) )
+        {
+            createTransformedImage( affineTransform3D, description );
+        }
+        else if ( mode.equals( TransformationOutput.TransformMovingImage ))
+        {
+            applyTransformInPlace( affineTransform3D );
+        }
+    }
+    
     protected void createTransformedImage( AffineTransform3D affineTransform3D, String description )
     {
         AffineTransformation affineTransformation = new AffineTransformation(
