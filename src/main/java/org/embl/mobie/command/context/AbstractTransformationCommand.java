@@ -4,7 +4,10 @@ import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.transform.TransformationOutput;
 import org.embl.mobie.lib.view.ViewManager;
@@ -23,14 +26,14 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     @Parameter
     public BdvHandle bdvHandle;
 
-    @Parameter ( label = "Transformation target" )
+    //@Parameter ( label = "Transformation target" )
     public TransformationOutput mode = TransformationOutput.CreateNewImage;
 
     @Parameter ( label = "Transformation name", persist = false )
-    public String transformationName = "Some transformation";
+    public String transformationName = "transformation";
 
     @Parameter ( label = "Transformed image name")
-    public String transformedImageName = "Transformed image";
+    public String transformedImageName = "transformed-image";
 
     @Parameter ( label = "Moving image", choices = {""}, callback = "setMovingImage" )
     public String movingImageName;
@@ -72,6 +75,15 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
 
     protected void applyTransform( AffineTransform3D affineTransform3D, String description )
     {
+        Image< ? > movingImage = DataStore.sourceToImage().get( movingSac );
+
+        if ( movingImage instanceof RegionAnnotationImage )
+        {
+            // TODO: handle multiple selections?!
+            movingImage = ( ( RegionAnnotationImage< ? > ) movingImage ).getSelectedImages().get( 0 );
+            movingSac = DataStore.sourceToImage().inverse().get( movingImage );
+        }
+
         if ( mode.equals( TransformationOutput.CreateNewImage ) )
         {
             createTransformedImage( affineTransform3D, description );

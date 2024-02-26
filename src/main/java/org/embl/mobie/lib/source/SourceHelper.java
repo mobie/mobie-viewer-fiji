@@ -189,7 +189,7 @@ public abstract class SourceHelper
 			AffineTransform3D affineTransform3D = new AffineTransform3D();
 			source.getSourceTransform( 0, 0, affineTransform3D );
 			AffineTransformation affineTransformation = new AffineTransformation(
-					"SpimSource",
+					"Input transformation", // FIXME: Those are not the names in the JSON
 					affineTransform3D,
 					Collections.singletonList( source.getName() ) );
 			transformations.add( affineTransformation );
@@ -200,10 +200,12 @@ public abstract class SourceHelper
 			final Source< ? > wrappedSource = transformedSource.getWrappedSource();
 			AffineTransform3D fixedTransform = new AffineTransform3D();
 			transformedSource.getFixedTransform( fixedTransform );
+			// FIXME: how to get the names?
+			//  We could extend TransformedSource and add a field for the name of the transformation
 			if ( ! fixedTransform.isIdentity() )
 			{
 				AffineTransformation affineTransformation = new AffineTransformation(
-						transformedSource.getName(),
+						"Additional transformation", // FIXME: Those are not the names in the JSON
 						fixedTransform,
 						Collections.singletonList( wrappedSource.getName() ) );
 				transformations.add( affineTransformation );

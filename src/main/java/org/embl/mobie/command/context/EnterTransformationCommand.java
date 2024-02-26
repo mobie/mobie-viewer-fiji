@@ -66,7 +66,7 @@ public class EnterTransformationCommand extends AbstractTransformationCommand
 		AffineTransform3D affineTransform3D = new AffineTransform3D();
 		affineTransform3D.set( parseStringToDoubleArray( transformation ) );
 
-		applyTransform( affineTransform3D, "Entered affine" );
+		applyTransform( affineTransform3D, "Custom affine" );
 	}
 
 

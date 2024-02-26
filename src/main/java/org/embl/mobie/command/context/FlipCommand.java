@@ -28,63 +28,48 @@
  */
 package org.embl.mobie.command.context;
 
-import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.transform.TransformHelper;
 import org.jetbrains.annotations.NotNull;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.widget.Button;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.Arrays;
-import java.util.List;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Flip")
-public class FlipCommand implements BdvPlaygroundActionCommand
+public class FlipCommand extends AbstractTransformationCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
-
-	@Parameter
-	protected BdvHandle bdvh;
-
-	@Parameter
-	protected SourceAndConverter< ? >[] sourceAndConverters;
 
 	@Parameter( label = "Axis", choices = {"X", "Y", "Z"} )
 	public String axis;
 
+	@Parameter ( label = "Apply", callback = "applyTransform" )
+	public Button applyTransform;
+
 	@Override
-	public void run()
+	public void initialize()
 	{
-		SourceAndConverter< ? > currentSource = bdvh.getViewerPanel().state().getCurrentSource();
-		Image< ? > image = DataStore.sourceToImage().get( currentSource );
+		super.initialize();
 
-		if ( image instanceof RegionAnnotationImage )
-		{
-			List< Image< ? > > selectedImages = ( ( RegionAnnotationImage< ? > ) image ).getSelectedImages();
-			for ( Image< ? > selectedImage : selectedImages )
-			{
-				AffineTransform3D flipTransform = createFlipTransform( selectedImage );
-				selectedImage.transform( flipTransform );
-			}
-		}
-		else
-		{
-			AffineTransform3D flipTransform = createFlipTransform( image );
-			image.transform( flipTransform );
-		}
+		getInfo().getMutableInput( "transformationName", String.class )
+				.setValue( this, "Flip transformation" );
+	}
 
-		bdvh.getViewerPanel().requestRepaint();
+	public void applyTransform()
+	{
+		AffineTransform3D transform = createFlipTransform( movingSac );
+		applyTransform( transform, "Flip " + axis );
 	}
 
 	@NotNull
-	private AffineTransform3D createFlipTransform( Image< ? > image )
+	private AffineTransform3D createFlipTransform( SourceAndConverter< ? > sourceAndConverter )
 	{
 		AffineTransform3D flip = new AffineTransform3D();
 		switch ( axis )
@@ -101,7 +86,7 @@ public class FlipCommand implements BdvPlaygroundActionCommand
 		}
 
 		AffineTransform3D transform = new AffineTransform3D();
-		double[] center = TransformHelper.getCenter( image, 0 );
+		double[] center = TransformHelper.getCenter( DataStore.sourceToImage().get( sourceAndConverter ), 0 );
 		transform.translate( Arrays.stream( center ).map( x -> -x ).toArray() );
 		transform.preConcatenate( flip );
 		transform.translate( center );

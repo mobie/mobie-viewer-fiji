@@ -96,7 +96,6 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 
 
 		transformationEditor = new MoBIEManualTransformationEditor( bdvHandle.getViewerPanel(), bdvHandle.getKeybindings() );
-		transformationEditor.manualTransformActiveListeners().add( this );
 		transformationEditor.setTransformableSources( movingSACs );
 		transformationEditor.setActive( true );
 	}

@@ -36,6 +36,7 @@ public abstract class AbstractImageTransformation implements ImageTransformation
 {
 	// Serialisation
 	protected String name;
+
 	protected String description; // FIXME: Add to spec
 
 	protected List< String > sources;
