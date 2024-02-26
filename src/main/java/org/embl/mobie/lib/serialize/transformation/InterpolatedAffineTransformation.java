@@ -59,9 +59,7 @@ public class InterpolatedAffineTransformation extends AbstractImageTransformatio
 	{
 		List<String> lines = new ArrayList<>();
 
-		lines.add("Interpolated affine transformation:");
-
-		addNameAndDescription( lines );
+		lines.add("## Interpolated affine transformation - " + getName());
 
 		transforms.forEach((z, affine) ->
 				lines.add("Affine (z=" + MoBIEHelper.print(z, 3) + "): " + MoBIEHelper.print(affine, 3))

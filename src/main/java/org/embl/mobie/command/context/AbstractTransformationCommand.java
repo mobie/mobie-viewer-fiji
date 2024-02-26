@@ -73,7 +73,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         setMovingImage();
     }
 
-    protected void applyTransform( AffineTransform3D affineTransform3D, String description )
+    protected void applyTransform( AffineTransform3D affineTransform3D, String transformationType )
     {
         Image< ? > movingImage = DataStore.sourceToImage().get( movingSac );
 
@@ -86,7 +86,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
 
         if ( mode.equals( TransformationOutput.CreateNewImage ) )
         {
-            createTransformedImage( affineTransform3D, description );
+            createTransformedImage( affineTransform3D, transformationType );
         }
         else if ( mode.equals( TransformationOutput.TransformMovingImage ))
         {
@@ -94,7 +94,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         }
     }
     
-    protected void createTransformedImage( AffineTransform3D affineTransform3D, String description )
+    protected void createTransformedImage( AffineTransform3D affineTransform3D, String transformationType )
     {
         AffineTransformation affineTransformation = new AffineTransformation(
                 transformationName,
@@ -107,7 +107,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
                 movingSac,
                 transformedImageName,
                 affineTransformation,
-                description + " transformation of " + movingSac.getSpimSource().getName()
+                transformationType + " transformation of " + movingSac.getSpimSource().getName()
         );
     }
 

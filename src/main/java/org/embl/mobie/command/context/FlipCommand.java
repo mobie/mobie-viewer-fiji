@@ -65,7 +65,7 @@ public class FlipCommand extends AbstractTransformationCommand
 	public void applyTransform()
 	{
 		AffineTransform3D transform = createFlipTransform( movingSac );
-		applyTransform( transform, "Flip " + axis );
+		applyTransform( transform, "Flip " + axis + " axis" );
 	}
 
 	@NotNull

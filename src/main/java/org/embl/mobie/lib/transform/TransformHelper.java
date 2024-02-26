@@ -403,7 +403,7 @@ public class TransformHelper
 			AffineTransform3D affineTransform3D = new AffineTransform3D();
 			image.getSourcePair().getSource().getSourceTransform( 0, 0, affineTransform3D  );
 			AffineTransformation affineTransformation = new AffineTransformation(
-					"Image transformation",
+					"Calibration",
 					affineTransform3D,
 					Collections.singletonList( image.getName() ) );
 			transformations.add( affineTransformation );

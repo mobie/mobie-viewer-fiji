@@ -200,9 +200,6 @@ public class ViewManager
 	public synchronized void show( View view )
 	{
 		final long startTime = System.currentTimeMillis();
-		IJ.log( "Opening view: " + view.getName() );
-		if ( view.getDescription() != null )
-			IJ.log( "Description: " + view.getDescription() );
 
 		if ( view.isExclusive() )
 		{
@@ -272,6 +269,9 @@ public class ViewManager
 		imageNameOverlay.setActive( view.overlayNames() );
 
 		IJ.log("Opened view: " + view.getName() + " in " + (System.currentTimeMillis() - startTime) + " ms." );
+		if ( view.getDescription() != null )
+			IJ.log( "Description: " + view.getDescription() );
+
 	}
 
 	// initialize and transform
