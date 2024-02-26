@@ -26,21 +26,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package projects.astrocyte_differentiations;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.command.open.OpenTableCommand;
 
-import java.io.IOException;
+import java.io.File;
 
-public class OpenRemotePlatynereis
+class AlinaOpenAstrocytesTable
 {
-	public static void main( String[] args ) throws IOException
+	public static void main( String[] args ) throws Exception
 	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
-
-		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/platybrowser-project");
-		moBIE.getViewManager().show( "cells" );
+		new ImageJ().ui().showUI();
+		final OpenTableCommand command = new OpenTableCommand();
+		command.root = new File( "/Volumes/20231101_CR_AD_IF_GFAPki67/analysis" );
+		command.table = new File( "/Volumes/20231101_CR_AD_IF_GFAPki67/analysis/concatenated.tsv" );
+		command.images = "DAPI_Path=DAPI,ki67_Path=ki67,GFAP_Path=GFAP";
+		command.labels = "Nuclei_Labels_Path=Nuclei"; // Nuclei_Periphery_Labels_Path=Periphery
+		command.removeSpatialCalibration = true;
+		command.run();
 	}
 }

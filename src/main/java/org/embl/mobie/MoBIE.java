@@ -50,7 +50,7 @@ import org.embl.mobie.lib.hcs.Plate;
 import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.image.CachedCellImage;
 import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.image.SpimDataImage;
+import org.embl.mobie.lib.image.ImageDataImage;
 import org.embl.mobie.lib.io.DataFormats;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.plugins.platybrowser.GeneSearchCommand;
@@ -168,11 +168,11 @@ public class MoBIE
 
 		final SourcesFromPathsCreator sourcesCreator = new SourcesFromPathsCreator( imagePaths, labelPaths, labelTablePaths, root, grid );
 
-		final List< ImageFileSources > imageFileSources = sourcesCreator.getImageSources();
+		final List< ImageFileSources > imageSources = sourcesCreator.getImageSources();
 		final List< LabelFileSources > labelSources = sourcesCreator.getLabelSources();
 		Table regionTable = sourcesCreator.getRegionTable();
 
-		openImagesAndLabels( imageFileSources, labelSources, regionTable );
+		openImagesAndLabels( imageSources, labelSources, regionTable );
 	}
 
 	// open an image or object table
@@ -712,7 +712,7 @@ public class MoBIE
 	{
 		if ( imageDataFormat.equals( ImageDataFormat.SpimData ) )
 		{
-			return new SpimDataImage<>( ( AbstractSpimData ) storageLocation.data, storageLocation.getChannel(), name, settings.values.getRemoveSpatialCalibration() );
+			return new ImageDataImage<>( ( AbstractSpimData ) storageLocation.data, storageLocation.getChannel(), name, settings.values.getRemoveSpatialCalibration() );
 		}
 
 		if ( imageDataFormat.equals( ImageDataFormat.IlastikHDF5 ) )
@@ -728,25 +728,26 @@ public class MoBIE
 			{
 				// the whole plate is already initialised as one big SpimData
 				// note that channel <=> setupID
-				return new SpimDataImage( site.getSpimData(), site.channelIndex, name, settings.values.getRemoveSpatialCalibration() );
+				return new ImageDataImage( site.getSpimData(), site.channel, name, settings.values.getRemoveSpatialCalibration() );
 			}
 
 			if ( site.getImageDataFormat().equals( ImageDataFormat.OmeZarr ) )
 			{
-				return new SpimDataImage( ImageDataFormat.OmeZarr, site.absolutePath, site.channelIndex, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
+				return new ImageDataImage( ImageDataFormat.OmeZarr, site.absolutePath, site.channel, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
 			}
 
 			if ( site.getImageDataFormat().equals( ImageDataFormat.OmeZarrS3 ) )
 			{
-				return new SpimDataImage( ImageDataFormat.OmeZarrS3, site.absolutePath, site.channelIndex, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
+				return new ImageDataImage( ImageDataFormat.OmeZarrS3, site.absolutePath, site.channel, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
 			}
 
-			return new SpimDataImage( site, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration()  );
+			return new ImageDataImage( site, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration()  );
 		}
 
+		// FIXME: The image below should not be called SpimDataImage
 		final String imagePath = getImageLocation( imageDataFormat, storageLocation );
-		final SpimDataImage spimDataImage = new SpimDataImage( imageDataFormat, imagePath, storageLocation.getChannel(), name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
-		return spimDataImage;
+		final ImageDataImage imageDataImage = new ImageDataImage( imageDataFormat, imagePath, storageLocation.getChannel(), name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
+		return imageDataImage;
 	}
 
 	public List< DataSource > getDataSources( Set< String > names )

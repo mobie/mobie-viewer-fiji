@@ -26,20 +26,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package projects.platybrowser;
 
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.MoBIESettings;
 import net.imagej.ImageJ;
+import org.embl.mobie.MoBIE;
 
 import java.io.IOException;
 
-public class OpenRemotePlatynereisBranch
+public class OpenRemotePlatynereis
 {
 	public static void main( String[] args ) throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE( "https://github.com/mobie/platybrowser-datasets", MoBIESettings.settings().gitProjectBranch( "main" ).view( "cells" ) ); //"Figure 3B: Morphology clustering full body"
+
+		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/platybrowser-project");
+		moBIE.getViewManager().show( "cells" );
 	}
 }

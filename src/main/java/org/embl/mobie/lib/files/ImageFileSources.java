@@ -83,7 +83,7 @@ public class ImageFileSources
 		this.metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ), channelIndex );
 
 		// FIXME: move this out to a separate function
-		regionTable = Table.create( this.name );
+		regionTable = Table.create( name + " table" );
 		regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, new ArrayList<>( nameToFullPath.keySet() ) ) );
 		regionTable.addColumns( StringColumn.create( "source_path", new ArrayList<>( nameToFullPath.values() ) ) );
 	}

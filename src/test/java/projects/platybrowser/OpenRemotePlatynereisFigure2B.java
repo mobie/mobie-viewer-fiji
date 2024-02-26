@@ -26,20 +26,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package develop;
+package projects.platybrowser;
 
-import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.lib.ThreadHelper;
-import org.embl.mobie.lib.image.CachedCellImage;
-import org.embl.mobie.lib.image.SourcePair;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
+import net.imagej.ImageJ;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 
-public class OpenIlastikHDF5
+import java.io.IOException;
+
+public class OpenRemotePlatynereisFigure2B
 {
-	public static void main( String[] args )
+	public static void main( String[] args ) throws IOException
 	{
-		final CachedCellImage< ? > test = new CachedCellImage( "test", "/Users/tischer/Desktop/C5_2022-07-12-165037-0000--0.4.0-0-1.4.0--tracking-oids.h5", 0, ImageDataFormat.IlastikHDF5, ThreadHelper.sharedQueue );
-		final SourcePair< ? > sourcePair = test.getSourcePair();
+		final ImageJ imageJ = new ImageJ();
+		imageJ.ui().showUI();
 
+		final MoBIE moBIE = new MoBIE( "https://github.com/platybrowser/platybrowser", new MoBIESettings().view( "Figure 2B: Epithelial cell segmentation" ) );
 	}
 }

@@ -26,20 +26,20 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package develop;
+package projects.platybrowser;
 
-import org.embl.mobie.cmd.TableCmd;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
+import net.imagej.ImageJ;
 
-class OpenCellProfilerObjectTableCmd
+import java.io.IOException;
+
+public class OpenRemotePlatynereisBranch
 {
-	public static void main( String[] args ) throws Exception
+	public static void main( String[] args ) throws IOException
 	{
-		final TableCmd cmd = new TableCmd();
-		cmd.root = "/Users/tischer/Desktop/Agata/analysed";
-		cmd.table = "/Users/tischer/Desktop/Agata/analysed/Nuclei.txt";
-		cmd.images = new String[]{"Image_FileName_DNA=DAPI;0","Image_FileName_DNA=RPAC1;1"};
-		cmd.labels = new String[]{"Image_FileName_CytoplasmLabels=CytoSeg"};
-		cmd.removeSpatialCalibration = true;
-		cmd.call();
+		final ImageJ imageJ = new ImageJ();
+		imageJ.ui().showUI();
+		new MoBIE( "https://github.com/mobie/platybrowser-datasets", MoBIESettings.settings().gitProjectBranch( "main" ).view( "cells" ) ); //"Figure 3B: Morphology clustering full body"
 	}
 }

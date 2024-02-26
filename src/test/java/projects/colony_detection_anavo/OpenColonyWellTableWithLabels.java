@@ -1,4 +1,4 @@
-package projects.colony_detection_anova;
+package projects.colony_detection_anavo;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.command.open.OpenTableCommand;

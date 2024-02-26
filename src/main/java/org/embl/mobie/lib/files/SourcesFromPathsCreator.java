@@ -28,21 +28,16 @@
  */
 package org.embl.mobie.lib.files;
 
-import org.apache.commons.compress.utils.FileNameUtils;
 import org.embl.mobie.lib.io.FileImageSource;
-import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.transform.GridType;
-import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class SourcesFromPathsCreator
 {
-	private List< ImageFileSources > imageFileSources;
+	private List< ImageFileSources > imageSources;
 	private List< LabelFileSources > labelSources;
 	private Table regionTable;
 
@@ -50,11 +45,11 @@ public class SourcesFromPathsCreator
 	{
 		// images
 		//
-		imageFileSources = new ArrayList<>();
+		imageSources = new ArrayList<>();
 		for ( String imagePath : imagePaths )
 		{
 			final FileImageSource fileImageSource = new FileImageSource( imagePath );
-			imageFileSources.add( new ImageFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
+			imageSources.add( new ImageFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
 		}
 
 		// segmentation images
@@ -74,47 +69,11 @@ public class SourcesFromPathsCreator
 				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
 			}
 		}
-
-		// region table
-		//
-		regionTable = Table.create( "image table" );
-		final List< String > regions = imagePaths.stream().map( path -> FileNameUtils.getBaseName(  path  ) ).collect( Collectors.toList() );
-		regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) );
 	}
-
-	// TODO consider adding back the functionality of groups for sorting the grid
-	//			final List< String > groups = MoBIEHelper.getGroupNames( regex );
-	//			if ( groups.size() > 0 )
-	//			{
-	//				final Pattern pattern = Pattern.compile( regex );
-	//				final Set< String > set = new LinkedHashSet<>();
-	//				for ( String path : paths )
-	//				{
-	//					final Matcher matcher = pattern.matcher( path );
-	//					matcher.matches();
-	//					set.add( matcher.group( 1 ) );
-	//				}
-	//
-	//				final ArrayList< String > categories = new ArrayList<>( set );
-	//				final int[] numSources = new int[ categories.size() ];
-	//				grid.positions = new ArrayList<>();
-	//				for ( String source : sources )
-	//				{
-	//					final Matcher matcher = pattern.matcher( source );
-	//					matcher.matches();
-	//					final int row = categories.indexOf( matcher.group( rowGroup ) );
-	//					final int column = numSources[ row ];
-	//					numSources[ row ]++;
-	//					grid.positions.add( new int[]{ column, row } );
-	//				}
-	//			}
-	//			}
-	//			else
-	//			{
 
 	public List< ImageFileSources > getImageSources()
 	{
-		return imageFileSources;
+		return imageSources;
 	}
 
 	public List< LabelFileSources > getLabelSources()
@@ -124,6 +83,11 @@ public class SourcesFromPathsCreator
 
 	public Table getRegionTable()
 	{
-		return regionTable;
+		// all images should be shown on the same grid,
+		// thus we just return one of the region tables
+		if ( ! imageSources.isEmpty() )
+			return imageSources.get( 0 ).getRegionTable();
+		else
+			return labelSources.get( 0 ).getRegionTable();
 	}
 }

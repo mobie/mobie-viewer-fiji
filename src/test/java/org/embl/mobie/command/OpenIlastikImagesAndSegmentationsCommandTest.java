@@ -26,25 +26,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects.alina;
+package org.embl.mobie.command;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.command.open.OpenTableCommand;
+import org.embl.mobie.command.open.OpenImageAndLabelsCommand;
+import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsCommand;
 
 import java.io.File;
 
-class AlinaOpenAstrocytesTable
+public class OpenIlastikImagesAndSegmentationsCommandTest
 {
-	public static void main( String[] args ) throws Exception
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
+	public static void main( String[] args )
 	{
-		new ImageJ().ui().showUI();
-		final OpenTableCommand command = new OpenTableCommand();
-		command.root = new File( "/Volumes/20231101_CR_AD_IF_GFAPki67/analysis" );
-		command.table = new File( "/Volumes/20231101_CR_AD_IF_GFAPki67/analysis/concatenated.tsv" );
-		command.images = "DAPI_Path=DAPI,ki67_Path=ki67,GFAP_Path=GFAP";
-		command.labels = "Nuclei_Labels_Path=Nuclei"; // Nuclei_Periphery_Labels_Path=Periphery
-		command.removeSpatialCalibration = true;
+		new ImageJ().ui().showUI(); // initialise SciJava Services
+
+		final OpenMultipleImagesAndLabelsCommand command = new OpenMultipleImagesAndLabelsCommand();
+		command.image0 = new File( "src/test/resources/ilastik-multiple/raw/iso.*.png" );
+		command.image1 = new File( "src/test/resources/ilastik-multiple/pc/iso..*_Probabilities.h5" );
+		command.labels0 = new File( "src/test/resources/ilastik-multiple/oc/iso..*_Object Identities.h5" );
+		command.table0 = new File( "src/test/resources/ilastik-multiple/oc/iso..*_table.csv" );
 		command.run();
 	}
 }

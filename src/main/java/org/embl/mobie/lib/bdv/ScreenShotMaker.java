@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.bdv;
 
+import bdv.SpimSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
@@ -110,6 +111,7 @@ public class ScreenShotMaker
     public void run( Double targetSamplingInXY )
     {
         List< SourceAndConverter< ? > > sacs = getVisibleSourceAndConverters();
+
         run( sacs, targetSamplingInXY );
     }
 

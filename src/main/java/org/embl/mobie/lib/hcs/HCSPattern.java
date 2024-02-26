@@ -229,6 +229,7 @@ public enum HCSPattern
 	{
 		switch ( this )
 		{
+			case OMEZarr:
 			case Operetta:
 			case MolecularDevices:
 			case IncuCyteRaw:
@@ -252,6 +253,10 @@ public enum HCSPattern
 		}
 	}
 
+	/**
+	 *
+	 * @return boolean indicating whether there are multiple z-positions distributed over multiple files
+	 */
 	public boolean hasZ()
 	{
 		switch ( this )
@@ -274,7 +279,10 @@ public enum HCSPattern
 	public List< String > getChannels()
 	{
 		if ( hasChannels() )
-			return Collections.singletonList( matcher.group( HCSPattern.CHANNEL ) );
+			if (this == OMEZarr)
+				return channels;
+			else
+				return Collections.singletonList( matcher.group( HCSPattern.CHANNEL ) );
 		else
 			return Collections.singletonList( "1" );
 	}
@@ -300,7 +308,7 @@ public enum HCSPattern
 	public String getZ()
 	{
 		if ( hasZ() )
-			return matcher.group( HCSPattern.TIME );
+			return matcher.group( HCSPattern.SLICE );
 		else
 			return "1";
 	}

@@ -4,15 +4,10 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.WindowManager;
-import ij.io.Opener;
 import ij.plugin.FolderOpener;
 import ij.process.*;
 import ij.util.Tools;
-import io.scif.img.IO;
-import loci.formats.in.CellSensReader;
-import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.lib.MoBIEHelper;
 
 import java.awt.*;
 import java.awt.image.ColorModel;

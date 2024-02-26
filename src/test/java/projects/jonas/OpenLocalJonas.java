@@ -26,20 +26,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package develop;
+package projects.jonas;
 
-import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.lib.ThreadHelper;
-import org.embl.mobie.lib.image.CachedCellImage;
-import org.embl.mobie.lib.image.SourcePair;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
+import net.imagej.ImageJ;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.lib.io.DataFormats;
 
-public class OpenIlastikHDF5
+import java.io.IOException;
+
+public class OpenLocalJonas
 {
-	public static void main( String[] args )
+	public static void main( String[] args ) throws IOException
 	{
-		final CachedCellImage< ? > test = new CachedCellImage( "test", "/Users/tischer/Desktop/C5_2022-07-12-165037-0000--0.4.0-0-1.4.0--tracking-oids.h5", 0, ImageDataFormat.IlastikHDF5, ThreadHelper.sharedQueue );
-		final SourcePair< ? > sourcePair = test.getSourcePair();
+		final ImageJ imageJ = new ImageJ();
+		imageJ.ui().showUI();
 
+		MoBIESettings settings = new MoBIESettings();
+		settings.preferentialDataLocation( DataFormats.Location.Local );
+		settings.view( "5488_5533" );
+		final MoBIE moBIE = new MoBIE( "/Volumes/kreshuk/hellgoth/mobie_project_shared/culture-collections/data/", settings);
 	}
 }

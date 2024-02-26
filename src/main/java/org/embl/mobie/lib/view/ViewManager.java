@@ -32,6 +32,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import ij.WindowManager;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
@@ -71,6 +72,7 @@ import org.embl.mobie.lib.view.save.ViewSaver;
 import org.embl.mobie.lib.volume.ImageVolumeViewer;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.embl.mobie.lib.volume.UniverseManager;
+import org.embl.mobie.ui.MoBIEWindowManager;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
@@ -208,6 +210,7 @@ public class ViewManager
 		{
 			removeAllSourceDisplays( true );
 			DataStore.clearImages();
+			MoBIEWindowManager.closeAllWindows();
 		}
 
 		final boolean viewerWasEmpty = currentDisplays.size() == 0;

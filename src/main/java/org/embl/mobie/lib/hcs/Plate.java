@@ -138,7 +138,7 @@ public class Plate
 					.filter( path -> hcsPattern.setMatcher( path ) ) // skip files like .DS_Store a.s.o.
 					.collect( Collectors.toList() );
 
-			if ( hcsPattern == HCSPattern.Operetta )
+			if ( hcsPattern.equals( HCSPattern.Operetta ) )
 			{
 				// only keep paths that are also in the XML
 				//final File xml = new File( hcsDirectory, "Index.idx.xml" );
@@ -148,9 +148,14 @@ public class Plate
 						.filter( path -> operettaMetadata.contains( path ) ) // skip files like .DS_Store a.s.o.
 						.collect( Collectors.toList() );
 			}
+			else if ( hcsPattern.equals( HCSPattern.YokogawaCQ1 ) )
+			{
+				imageDataFormat = ImageDataFormat.Tiff;
+			}
 		}
 		IJ.log( "Found " + imagePaths.size() + " image files in " + ( System.currentTimeMillis() - start ) + " ms." );
 		IJ.log( "HCS pattern: " + getHcsPattern() );
+		IJ.log( "Image data format: " + imageDataFormat );
 
 		buildPlateMap( imagePaths );
 	}
@@ -224,10 +229,30 @@ public class Plate
 						else // from image file
 						{
 							final Calibration calibration = singleChannelImagePlus.getCalibration();
-							// FIXME: the z dimension may not be in the image file in case
-							//   the images are distributed over several files
-							//   in this case this needs to be fetched from the user
-							voxelDimensions = new FinalVoxelDimensions( calibration.getUnit(), calibration.pixelWidth, calibration.pixelHeight, calibration.pixelDepth );
+
+							if ( hcsPattern.hasZ() )
+							{
+								/*
+								If the z-positions are distributed over multiple files
+								typically the z-calibration metadata in the individual files is wrong.
+								We thus just put something sensible here such that browsing in BDV along the
+								z-axis is convenient
+								 */
+								voxelDimensions = new FinalVoxelDimensions(
+										calibration.getUnit(),
+										calibration.pixelWidth,
+										calibration.pixelHeight,
+										10 * calibration.pixelHeight );
+							}
+							else
+							{
+								voxelDimensions = new FinalVoxelDimensions(
+										calibration.getUnit(),
+										calibration.pixelWidth,
+										calibration.pixelHeight,
+										calibration.pixelDepth );
+							}
+
 							siteDimensions = new int[]{ singleChannelImagePlus.getWidth(), singleChannelImagePlus.getHeight() };
 						}
 
@@ -291,7 +316,7 @@ public class Plate
 				if ( hcsPattern.equals( hcsPattern.OMEZarr ) )
 				{
 					site.absolutePath = imagePath;
-					site.channelIndex = channel.getChannelIndex();
+					site.channel = channel.getChannelIndex();
 				}
 				else
 				{
