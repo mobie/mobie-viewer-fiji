@@ -32,6 +32,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import ij.gui.GenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
@@ -127,6 +128,8 @@ public class ViewManager
 				viewDescription );
 
 		MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view );
+
+		MoBIE.getInstance().getViewManager().show( view );
 	}
 
 	private void initScatterPlotView( AbstractAnnotationDisplay< ? > display )
@@ -186,8 +189,8 @@ public class ViewManager
 			addImageTransforms( transformations, display.sourceAndConverters() );
 		}
 
-		// note that some of the parameters that are null should be later  set via the view's setter methods
-		return new View( "", null, displays, transformations, null, true, "" );
+		// the parameters that are null must be later set via the view's setter methods
+		return new View( null, null, displays, transformations, null, true, "" );
 	}
 
 	public synchronized void show( String viewName )

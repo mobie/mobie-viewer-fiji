@@ -287,7 +287,7 @@ public class AutomaticRegistrationCommand extends AbstractRegistrationCommand
 
 	private void createInterpolatedAffineImage()
 	{
-		String transformedImageName = movingSac.getSpimSource().getName() + "-interpolated-affine";
+		String transformedImageName = askForTransformedImageName(  "-interpolated-affine" );
 
 		InterpolatedAffineTransformation interpolatedAffineTransformation = new InterpolatedAffineTransformation(
 				"interpolated-affine-of-" + movingImageName,

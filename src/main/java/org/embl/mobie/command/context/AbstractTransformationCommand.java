@@ -3,6 +3,7 @@ package org.embl.mobie.command.context;
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import ij.gui.GenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.MoBIEHelper;
@@ -89,7 +90,8 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     
     protected void createAffineTransformedImage( AffineTransform3D affineTransform3D, String transformationType )
     {
-        String transformedImageName = movingImageName + "-" + transformationType;
+        String transformedImageName = askForTransformedImageName( transformationType );
+        if ( transformedImageName == null ) return;
 
         AffineTransformation affineTransformation = new AffineTransformation(
                 transformationType,
@@ -104,6 +106,17 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
                 affineTransformation,
                 transformationType + " transformation of " + movingImageName
         );
+    }
+
+    protected String askForTransformedImageName( String transformationType )
+    {
+        String transformedImageName = movingImageName + "-" + transformationType;
+
+        final GenericDialog gd = new GenericDialog("Transformed Image Name");
+        gd.addStringField( "Transformed Image Name", transformedImageName, 40 );
+        gd.showDialog();
+        if ( gd.wasCanceled() ) return null;
+        return gd.getNextString();
     }
 
     protected void setMovingImage()

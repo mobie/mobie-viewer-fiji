@@ -113,8 +113,8 @@ public class ViewSaver
         final GenericDialog gd = new GenericDialog("View settings");
 
         if ( saveMethod == SaveMethod.saveAsNewView ) {
-            String name = view.getName() != null ? view.getName() : "";
-            gd.addStringField("View name:", name, 25 );
+            if ( view.getName() == null )
+                gd.addStringField("View name:", "", 25 );
             String description = view.getDescription() != null ? view.getDescription() : "" ;
             gd.addStringField( "View description:", description, 50 );
         }
@@ -124,9 +124,7 @@ public class ViewSaver
         String[] currentUiSelectionGroups = moBIE.getUserInterface().getUISelectionGroupNames();
         String[] choices = new String[currentUiSelectionGroups.length + 1];
         choices[0] = "Make New Ui Selection Group";
-        for (int i = 0; i < currentUiSelectionGroups.length; i++) {
-            choices[i + 1] = currentUiSelectionGroups[i];
-        }
+        System.arraycopy( currentUiSelectionGroups, 0, choices, 1, currentUiSelectionGroups.length );
         gd.addChoice("Ui Selection Group", choices, uiSelectionChoice);
 
         if ( fileLocation == FileLocation.Project ) {
@@ -144,11 +142,14 @@ public class ViewSaver
         if ( gd.wasCanceled() ) return;
 
         String viewName = null;
-        if( saveMethod == SaveMethod.saveAsNewView ) {
-            viewName = UserInterfaceHelper.tidyString( gd.getNextString() );
-            if ( viewName == null ) {
-                throw new RuntimeException("The name of the view could not be determined.");
-            }
+        if( saveMethod == SaveMethod.saveAsNewView )
+        {
+
+            if ( view.getName() == null )
+                viewName = UserInterfaceHelper.tidyString( gd.getNextString() );
+            else
+                viewName = UserInterfaceHelper.tidyString( view.getName() );
+
             view.setDescription( gd.getNextString()  );
         }
 
