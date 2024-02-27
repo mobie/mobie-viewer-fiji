@@ -35,6 +35,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerPanel;
 import ij.IJ;
+import net.imglib2.Volatile;
 import net.imglib2.realtransform.*;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
@@ -403,7 +404,7 @@ public class TransformHelper
 			AffineTransform3D affineTransform3D = new AffineTransform3D();
 			image.getSourcePair().getSource().getSourceTransform( 0, 0, affineTransform3D  );
 			AffineTransformation affineTransformation = new AffineTransformation(
-					"Calibration",
+					"calibration",
 					affineTransform3D,
 					Collections.singletonList( image.getName() ) );
 			transformations.add( affineTransformation );
@@ -494,5 +495,22 @@ public class TransformHelper
 		ArrayList< Transformation > allTransformations = fetchAllTransformations( source );
 		allTransformations.remove( 0 ); // in MoBIE this is part of the raw image itself
 		return allTransformations;
+	}
+
+	// Wrap the input sourcePair into new TransformedSources,
+	// because otherwise, if the incremental transformations of the input TransformedSources
+	// are changed, e.g. by the current logic of how the ManualTransformEditor works,
+	// this would create a mess.
+	public static < T > SourcePair< T > getSourcePairWithNewTransformedSources( SourcePair< T > sourcePair )
+	{
+		TransformedSource< T > inputTransformedSource = ( TransformedSource< T > ) sourcePair.getSource();
+		Source< T > inputSource = inputTransformedSource.getWrappedSource();
+		TransformedSource< ? > wrappedTransformedSource = new TransformedSource<>( inputSource, inputSource.getName() );
+		AffineTransform3D transform3D = new AffineTransform3D();
+		inputTransformedSource.getFixedTransform( transform3D );
+		wrappedTransformedSource.setFixedTransform( transform3D );
+		Source< ? extends Volatile< T > > inputVolatileSource = ( ( TransformedSource< ? extends Volatile< T > > ) sourcePair.getVolatileSource() ).getWrappedSource();
+		TransformedSource wrappedTransformedVolatileSource = new TransformedSource<>( inputVolatileSource, wrappedTransformedSource );
+		return new DefaultSourcePair<>( wrappedTransformedSource, wrappedTransformedVolatileSource );
 	}
 }

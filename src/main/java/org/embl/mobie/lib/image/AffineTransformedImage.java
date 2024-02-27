@@ -29,12 +29,11 @@
 package org.embl.mobie.lib.image;
 
 import bdv.tools.transformation.TransformedSource;
-import bdv.viewer.Source;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
-import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
+import org.embl.mobie.lib.transform.TransformHelper;
 
 public class AffineTransformedImage< T > implements Image< T >, TransformedImage
 {
@@ -45,6 +44,7 @@ public class AffineTransformedImage< T > implements Image< T >, TransformedImage
 	private Transformation transformation;
 
 	private RealMaskRealInterval mask;
+	private DefaultSourcePair< T > sourcePair;
 
 
 	public AffineTransformedImage( Image< T > image,  String transformedImageName, AffineTransform3D affineTransform3D )
@@ -68,15 +68,21 @@ public class AffineTransformedImage< T > implements Image< T >, TransformedImage
 	@Override
 	public synchronized SourcePair< T > getSourcePair()
 	{
-		final SourcePair< T > sourcePair = image.getSourcePair();
-		final Source< T > source = sourcePair.getSource();
-		final Source< ? extends Volatile< T > > volatileSource = sourcePair.getVolatileSource();
+		if ( sourcePair == null )
+			createSourcePair();
 
-		final TransformedSource< T > transformedSource = new TransformedSource<>( source, name );
+		return sourcePair;
+	}
+
+	private void createSourcePair()
+	{
+		SourcePair< T > defaultSourcePair = TransformHelper.getSourcePairWithNewTransformedSources( image.getSourcePair() );
+
+		final TransformedSource< T > transformedSource = new TransformedSource<>( defaultSourcePair.getSource(), name );
 		transformedSource.setFixedTransform( affineTransform3D );
-		final TransformedSource< ? extends Volatile< T > > volatileTransformedSource = new TransformedSource<>( volatileSource, transformedSource );
+		final TransformedSource< ? extends Volatile< T > > volatileTransformedSource = new TransformedSource<>(  defaultSourcePair.getVolatileSource(), transformedSource, name );
 
-		return new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
+		this.sourcePair = new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
 	}
 
 	@Override

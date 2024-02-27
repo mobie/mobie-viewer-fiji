@@ -28,11 +28,7 @@
  */
 package org.embl.mobie.command.context;
 
-import bdv.tools.transformation.ManualTransformActiveListener;
-import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import ij.gui.NonBlockingGenericDialog;
-import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.MoBIEManualTransformationEditor;
@@ -68,9 +64,6 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 	public void initialize()
 	{
 		super.initialize();
-
-		getInfo().getMutableInput( "transformationName", String.class )
-				.setValue( this, "Manual transformation" );
 	}
 
 
@@ -106,7 +99,7 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 
 		transformationEditor.setActive( false );
 
-		applyTransform( transformationEditor.getManualTransform(), "Manual affine" );
+		applyAffineTransform3D( transformationEditor.getManualTransform(), "manual-affine" );
 	}
 
 	private void cancelManualTransform()

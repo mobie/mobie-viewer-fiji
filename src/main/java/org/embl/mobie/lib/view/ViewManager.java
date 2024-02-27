@@ -107,18 +107,18 @@ public class ViewManager
 
 	public static void createTransformedSourceView(
 			SourceAndConverter< ? > sac,
-			String newImageName,
+			String imageName,
 			Transformation transformation,
 			String viewDescription )
 	{
 		ArrayList< Transformation > transformations = TransformHelper.fetchAddedTransformations( sac.getSpimSource() );
 		transformations.add( transformation );
 
-		ImageDisplay< ? > imageDisplay = new ImageDisplay<>( newImageName, newImageName );
+		ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, imageName );
 		imageDisplay.setDisplaySettings( sac );
 
 		View view = new View(
-				newImageName,
+				imageName,
 				null, // to be determined by the user in below dialog
 				Collections.singletonList( imageDisplay ),
 				transformations,

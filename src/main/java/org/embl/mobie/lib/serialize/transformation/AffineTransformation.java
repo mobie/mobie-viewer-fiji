@@ -68,7 +68,7 @@ public class AffineTransformation extends AbstractImageTransformation
 	{
 		List<String> lines = new ArrayList<>();
 
-		lines.add( "## Affine transformation - " + getName() );
+		lines.add( "## Affine transformation: " + getName() );
 
 		lines.add( MoBIEHelper.print( parameters, 3 ) );
 

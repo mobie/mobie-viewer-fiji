@@ -32,7 +32,6 @@ import bdv.viewer.SourceAndConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.transform.TransformHelper;
 import org.jetbrains.annotations.NotNull;
 import org.scijava.plugin.Parameter;
@@ -47,7 +46,7 @@ public class FlipCommand extends AbstractTransformationCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter( label = "Axis", choices = {"X", "Y", "Z"} )
+	@Parameter( label = "Axis", choices = {"x", "y", "z"} )
 	public String axis;
 
 	@Parameter ( label = "Apply", callback = "applyTransform" )
@@ -57,15 +56,12 @@ public class FlipCommand extends AbstractTransformationCommand
 	public void initialize()
 	{
 		super.initialize();
-
-		getInfo().getMutableInput( "transformationName", String.class )
-				.setValue( this, "Flip transformation" );
 	}
 
 	public void applyTransform()
 	{
 		AffineTransform3D transform = createFlipTransform( movingSac );
-		applyTransform( transform, "Flip " + axis + " axis" );
+		applyAffineTransform3D( transform, "flip-" + axis + "-axis" );
 	}
 
 	@NotNull
@@ -74,13 +70,13 @@ public class FlipCommand extends AbstractTransformationCommand
 		AffineTransform3D flip = new AffineTransform3D();
 		switch ( axis )
 		{
-			case "X":
+			case "x":
 				flip.set(-1, 0, 0);
 				break;
-			case "Y":
+			case "y":
 				flip.set(-1, 1, 1);
 				break;
-			case "Z":
+			case "z":
 				flip.set(-1, 2, 2);
 				break;
 		}

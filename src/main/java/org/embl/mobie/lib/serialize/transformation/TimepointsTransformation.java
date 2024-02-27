@@ -94,7 +94,7 @@ public class TimepointsTransformation extends AbstractImageTransformation
 	{
 		List<String> lines = new ArrayList<>();
 
-		lines.add( "## Timepoints transformation - " + getName() );
+		lines.add( "## Timepoints transformation: " + getName() );
 
 		lines.add( "Parameters: " + "TODO" ); // TODO
 

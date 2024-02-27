@@ -31,7 +31,6 @@ package org.embl.mobie.lib.view.save;
 import ij.IJ;
 import ij.gui.GenericDialog;
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.lib.create.ProjectCreatorHelper;
 import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
@@ -58,12 +57,15 @@ import static org.embl.mobie.io.util.S3Utils.isS3;
 
 public class ViewSaver
 {
-    public static final String NEW_VIEWS_JSON_FILE = "Make new views json file";
+    public static final String MAKE_NEW_VIEWS_JSON_FILE = "Make New Views JSON file";
+    public static final String MAKE_NEW_UI_SELECTION_GROUP = "Make New Ui Selection Group";
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     private MoBIE moBIE;
-    private MoBIESettings settings;
+
+    private static String saveToChoice = FileLocation.Project.toString();;
+    private static String uiSelectionChoice = MAKE_NEW_UI_SELECTION_GROUP;
 
     enum ProjectSaveLocation {
         datasetJson,
@@ -77,7 +79,6 @@ public class ViewSaver
 
     public ViewSaver( MoBIE moBIE) {
         this.moBIE = moBIE;
-        this.settings = moBIE.getSettings();
     }
 
     public void saveViewDialog( View view )
@@ -86,13 +87,14 @@ public class ViewSaver
 
         String[] choices = new String[]{ "Save as new view", "Overwrite existing view" };
         gd.addChoice("Save method:", choices, choices[0] );
-        gd.addChoice("Save to", new String[]{ FileLocation.Project.toString(), FileLocation.FileSystem.toString()}, FileLocation.Project.toString());
+        gd.addChoice("Save to", new String[]{ FileLocation.Project.toString(), FileLocation.FileSystem.toString()}, saveToChoice );
         gd.showDialog();
 
         if( gd.wasCanceled() ) return;
 
         String saveMethodString = gd.getNextChoice();
-        FileLocation fileLocation = FileLocation.valueOf(gd.getNextChoice());
+        saveToChoice = gd.getNextChoice();
+        FileLocation fileLocation = FileLocation.valueOf( saveToChoice );
 
         SaveMethod saveMethod;
         if (saveMethodString.equals("Save as new view")) {
@@ -125,7 +127,7 @@ public class ViewSaver
         for (int i = 0; i < currentUiSelectionGroups.length; i++) {
             choices[i + 1] = currentUiSelectionGroups[i];
         }
-        gd.addChoice("Ui Selection Group", choices, choices[0]);
+        gd.addChoice("Ui Selection Group", choices, uiSelectionChoice);
 
         if ( fileLocation == FileLocation.Project ) {
             String[] jsonChoices = new String[]{"dataset.json", "views.json"};
@@ -150,7 +152,7 @@ public class ViewSaver
             view.setDescription( gd.getNextString()  );
         }
 
-        String uiSelectionGroup = gd.getNextChoice();
+        uiSelectionChoice = gd.getNextChoice();
         ProjectSaveLocation projectSaveLocation = null;
         if ( fileLocation == FileLocation.Project ) {
             String projectSaveLocationString = gd.getNextChoice();
@@ -168,10 +170,10 @@ public class ViewSaver
             view.setViewerTransform(  new NormalizedAffineViewerTransform(  moBIE.getViewManager().getSliceViewer().getBdvHandle() ) );
         }
 
-        if (uiSelectionGroup.equals("Make New Ui Selection Group")) {
-            uiSelectionGroup = ProjectCreatorHelper.makeNewUiSelectionGroup(currentUiSelectionGroups);
+        if (uiSelectionChoice.equals("Make New Ui Selection Group")) {
+            uiSelectionChoice = ProjectCreatorHelper.makeNewUiSelectionGroup(currentUiSelectionGroups);
         }
-        view.setUiSelectionGroup( uiSelectionGroup );
+        view.setUiSelectionGroup( uiSelectionChoice );
 
         if ( fileLocation == FileLocation.Project && saveMethod == SaveMethod.saveAsNewView ) {
             saveNewViewToProject( view, viewName, projectSaveLocation );
@@ -365,7 +367,7 @@ public class ViewSaver
         String[] choices;
         if ( includeOptionToMakeNewViewJson ) {
             choices = new String[viewFileNames.length + 1];
-            choices[0] = NEW_VIEWS_JSON_FILE;
+            choices[0] = MAKE_NEW_VIEWS_JSON_FILE;
             for (int i = 0; i < viewFileNames.length; i++) {
                 choices[i + 1] = viewFileNames[i];
             }
@@ -378,7 +380,7 @@ public class ViewSaver
 
         if (!gd.wasCanceled()) {
             String choice = gd.getNextChoice();
-            if ( includeOptionToMakeNewViewJson && choice.equals( NEW_VIEWS_JSON_FILE ) ) {
+            if ( includeOptionToMakeNewViewJson && choice.equals( MAKE_NEW_VIEWS_JSON_FILE ) ) {
                 choice = makeNewViewFile( viewFileNames );
             }
             return choice;

@@ -43,6 +43,8 @@ import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.util.HashMap;
 
+import static org.embl.mobie.lib.transform.TransformHelper.getSourcePairWithNewTransformedSources;
+
 public class TimepointsTransformedImage< T > implements Image< T >, TransformedImage
 {
 	protected final Image< T > image;
@@ -52,6 +54,7 @@ public class TimepointsTransformedImage< T > implements Image< T >, TransformedI
 	private RealMaskRealInterval mask;
 	private final AffineTransform3D affineTransform3D = new AffineTransform3D();
 	private Transformation transformation;
+	private SourcePair< T > sourcePair;
 
 	public TimepointsTransformedImage( Image< T > image, String name, HashMap< Integer, Integer > timepointsMap, boolean keep )
 	{
@@ -64,18 +67,24 @@ public class TimepointsTransformedImage< T > implements Image< T >, TransformedI
 	@Override
 	public synchronized SourcePair< T > getSourcePair()
 	{
-		final SourcePair< T > sourcePair = image.getSourcePair();
+		if ( sourcePair == null ) createSourcePair();
+		return sourcePair;
+	}
+
+	private void createSourcePair()
+	{
+		final SourcePair< T > sourcePair = getSourcePairWithNewTransformedSources( image.getSourcePair() );
 
 		// apply the time point transformation
 		final TransformedTimepointSource< T > transformedTimepointSource = new TransformedTimepointSource( transformedImageName, sourcePair.getSource(), timepointsMap, keep );
-		final TransformedTimepointSource< ? extends Volatile< T >> vTransformedTimepointSource = new TransformedTimepointSource( transformedImageName, sourcePair.getVolatileSource(), timepointsMap, keep );
+		final TransformedTimepointSource< ? extends Volatile< T > > vTransformedTimepointSource = new TransformedTimepointSource( transformedImageName, sourcePair.getVolatileSource(), timepointsMap, keep );
 
 		// wrap into TransformedSource for applying manual transforms in BDV
 		final TransformedSource transformedSource = new TransformedSource( transformedTimepointSource, transformedImageName );
 		transformedSource.setFixedTransform( affineTransform3D );
 		final TransformedSource volatileTransformedSource = new TransformedSource( vTransformedTimepointSource, transformedSource );
 
-		return new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
+		this.sourcePair = new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
 	}
 
 	@Override

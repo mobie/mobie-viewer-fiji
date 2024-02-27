@@ -38,7 +38,6 @@ import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.transform.TransformHelper;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.InvertibleRealTransform;
-import org.embl.mobie.lib.transform.TransformationOutput;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
@@ -84,7 +83,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 	{
 		movingSource.setFixedTransform( previousFixedTransform );
 
-		applyTransform( bigWarp.getBwTransform().affine3d(), "BigWarp " + bigWarp.getTransformType() );
+		applyAffineTransform3D( bigWarp.getBwTransform().affine3d(), "bigwarp-" + bigWarp.getTransformType().toLowerCase().replace(" ", "-") );
 
 		bdvHandle.getViewerPanel().requestRepaint();
 		bigWarp.closeAll();

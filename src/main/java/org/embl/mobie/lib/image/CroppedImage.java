@@ -39,6 +39,7 @@ import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
+import org.embl.mobie.lib.transform.TransformHelper;
 import sc.fiji.bdvpg.sourceandconverter.importer.EmptySourceAndConverterCreator;
 
 public class CroppedImage< T > implements Image< T >
@@ -64,8 +65,9 @@ public class CroppedImage< T > implements Image< T >
 	{
 		if ( sourcePair != null ) return;
 
-		final Source< T > source = image.getSourcePair().getSource();
-		final Source< ? extends Volatile< T > > volatileSource = image.getSourcePair().getVolatileSource();
+		SourcePair< T > inputSourcePair = TransformHelper.getSourcePairWithNewTransformedSources( image.getSourcePair() );
+		final Source< T > source = inputSourcePair.getSource();
+		final Source< ? extends Volatile< T > > volatileSource = inputSourcePair.getVolatileSource();
 
 		// determine number of voxels for resampling
 		// the current method may over-sample quite a bit

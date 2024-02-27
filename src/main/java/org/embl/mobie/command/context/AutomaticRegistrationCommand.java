@@ -39,7 +39,6 @@ import ij.gui.Roi;
 import ij.process.ImageConverter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.align.TurboReg2DAligner;
@@ -260,7 +259,7 @@ public class AutomaticRegistrationCommand extends AbstractRegistrationCommand
 		if( showInterpolatedAffineImage )
 		{
 			AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( movingSac.getSpimSource(), 0, 0 );
-			InterpolatedAffineRealTransform interpolatedTransform = new InterpolatedAffineRealTransform( transformationName, sourceTransform.inverse() );
+			InterpolatedAffineRealTransform interpolatedTransform = new InterpolatedAffineRealTransform( "interpolated-affine-of-" + movingImageName, sourceTransform.inverse() );
 			interpolatedTransform.addTransforms( transforms );
 
 			RealTransformedSource< ? > realTransformedSource = new RealTransformedSource<>(
@@ -286,18 +285,20 @@ public class AutomaticRegistrationCommand extends AbstractRegistrationCommand
 		}
 	}
 
-	private void saveInterpolatedAffineImage()
+	private void createInterpolatedAffineImage()
 	{
+		String transformedImageName = movingSac.getSpimSource().getName() + "-interpolated-affine";
+
 		InterpolatedAffineTransformation interpolatedAffineTransformation = new InterpolatedAffineTransformation(
-				transformationName,
+				"interpolated-affine-of-" + movingImageName,
 				transforms,
 				movingImageName, // the existing, to be transformed image data source
-				movingSac.getSpimSource().getName() + "_iat"
+				transformedImageName
 		);
 
 		ViewManager.createTransformedSourceView(
 						movingSac,
-						movingSac.getSpimSource().getName() + "_iat",
+						transformedImageName,
 						interpolatedAffineTransformation,
 				"Interpolated affine transformation of " + movingSac.getSpimSource().getName() );
 
