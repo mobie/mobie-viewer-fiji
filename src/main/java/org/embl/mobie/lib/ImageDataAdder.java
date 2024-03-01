@@ -77,40 +77,42 @@ public class ImageDataAdder
 
 	private void addData( ImageData< ? > imageData, boolean isSegmentation )
 	{
-		final ImageDataFormat imageDataFormat = ImageDataFormat.SpimData;
+
+		final ImageDataFormat imageDataFormat = ImageDataFormat.ImageData;
 
 		if ( tableDataFormat != null )
 			settings.addTableDataFormat( tableDataFormat );
 
-		final int numSetups = imageData.getSequenceDescription().getViewSetupsOrdered().size();
+		// I need numSetups and setupNames
+		final int numDatasets = imageData.getNumDatasets();
 
-		for ( int setupIndex = 0; setupIndex < numSetups; setupIndex++ )
+		for ( int datasetIndex = 0; datasetIndex < numDatasets; datasetIndex++ )
 		{
 			final StorageLocation storageLocation = new StorageLocation();
 			storageLocation.data = imageData;
-			storageLocation.setChannel( setupIndex );
-			final String setupName = imageData.getSequenceDescription().getViewSetupsOrdered().get( setupIndex ).getName();
-			String imageName = getImageName( setupName, numSetups, setupIndex );
+			storageLocation.setChannel( datasetIndex );
+			final String datasetName = imageData.getSourcePair( datasetIndex ).getB().getName();
+			String imageName = getImageName( datasetName, numDatasets );
 
 			DataSource dataSource;
 			if ( isSegmentation )
 			{
 				dataSource = new SegmentationDataSource( imageName, imageDataFormat, storageLocation, tableDataFormat, tableStorageLocation );
-				addSegmentationView( imageData, setupIndex, imageName );
+				addSegmentationView( imageData, datasetIndex, imageName );
 			}
 			else
 			{
 				dataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
-				addImageView( imageData, setupIndex, imageName );
+				addImageView( imageData, datasetIndex, imageName );
 			}
 
 			dataSource.preInit( true );
 			dataset.addDataSource( dataSource );
-			dataset.is2D( MoBIEHelper.is2D( imageData, setupIndex ) );
+			dataset.is2D( MoBIEHelper.is2D( imageData, datasetIndex ) );
 		}
 	}
 
-	private String getImageName( String setupName, int numImages, int setupIndex )
+	private String getImageName( String setupName, int numImages )
 	{
 		String imageName = FilenameUtils.removeExtension( new File( setupName ).getName() );
 		if ( numImages == 1)
@@ -127,6 +129,7 @@ public class ImageDataAdder
 
 	private void addImageView( ImageData< ? > imageData, int imageIndex, String imageName )
 	{
+		// FIXME: Metadata
 		final Displaysettings displaysettings = imageData.getSequenceDescription().getViewSetupsOrdered().get( imageIndex ).getAttribute( Displaysettings.class );
 
 		String color = "White";

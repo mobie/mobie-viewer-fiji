@@ -55,8 +55,6 @@ public class Metadata
 	{
 		color = "White"; // TODO: why not also extract the color?
 
-		ImagePlusToSpimData
-
 		try
 		{
 			ImageStatistics statistics = ImageStatistics.getStatistics( imagePlus.getProcessor(), MIN_MAX, null );

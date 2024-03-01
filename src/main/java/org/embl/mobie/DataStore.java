@@ -30,15 +30,18 @@ package org.embl.mobie;
 
 import bdv.cache.SharedQueue;
 import bdv.viewer.SourceAndConverter;
-import ch.epfl.biop.bdv.img.imageplus.ImagePlusToSpimData;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import ij.ImagePlus;
 import ij.measure.Calibration;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.NumericType;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.io.SpimDataOpener;
+import org.embl.mobie.io.ImageDataOpener;
+import org.embl.mobie.io.imagedata.ImageData;
+import org.embl.mobie.io.imagedata.ImagePlusImageData;
 import org.embl.mobie.io.toml.TPosition;
 import org.embl.mobie.io.toml.ZPosition;
 import org.embl.mobie.lib.hcs.Site;
@@ -61,29 +64,24 @@ public abstract class DataStore
 	// Currently, only used to pre-load tables for region annotations
 	private static Map< String, DataSource > rawData = new ConcurrentHashMap<>();
 
+	private static BiMap< SourceAndConverter< ? >, Image< ? > > sourceToImage = HashBiMap.create();
+
+	// TODO: replace by some soft ref cache? How to free the memory?
+	private static Map< Object, CompletableFuture< ImageData< ? > > > imageDataCache = new ConcurrentHashMap<>();
+
 	public static BiMap< SourceAndConverter< ? >, Image< ? > > sourceToImage()
 	{
 		return sourceToImage;
 	}
 
-	private static BiMap<SourceAndConverter<?>, Image<?>> sourceToImage = HashBiMap.create();
-
-	// TODO: replace by some soft ref cache? How to free the memory?
-	private static Map< Object, CompletableFuture< AbstractSpimData< ? > > > spimDataCache = new ConcurrentHashMap<>();
-
-	public static void putSpimData( String path, AbstractSpimData< ? > spimData )
-	{
-		spimDataCache.put( path, CompletableFuture.completedFuture( spimData ) );
-	}
-
-	public static AbstractSpimData< ? > fetchSpimData( String path, ImageDataFormat imageDataFormat, SharedQueue sharedQueue )
+	public static ImageData< ? > fetchImageData( String path, ImageDataFormat imageDataFormat, SharedQueue sharedQueue )
 	{
 		try
 		{
-			return spimDataCache
+			return imageDataCache
 					.computeIfAbsent( path,
 							p -> CompletableFuture.supplyAsync( ()
-							-> openSpimData( (String) p, imageDataFormat, sharedQueue ) ) )
+							-> openImageData( (String) p, imageDataFormat, sharedQueue ) ) )
 					.get();
 		}
 		catch ( InterruptedException e )
@@ -96,14 +94,14 @@ public abstract class DataStore
 		}
 	}
 
-	public static AbstractSpimData< ? > fetchSpimData( Site site, SharedQueue sharedQueue )
+	public static ImageData< ? > fetchImageData( Site site, SharedQueue sharedQueue )
 	{
 		try
 		{
-			return spimDataCache
+			return imageDataCache
 					.computeIfAbsent(site,
 							s -> CompletableFuture.supplyAsync(()
-									-> openSpimData( (Site) s, sharedQueue )))
+									-> openImageData( (Site) s, sharedQueue )))
 					.get();
 		}
 		catch ( InterruptedException e )
@@ -116,12 +114,11 @@ public abstract class DataStore
 		}
 	}
 
-	private static AbstractSpimData< ? > openSpimData( String path, ImageDataFormat imageDataFormat, SharedQueue sharedQueue )
+	private static ImageData< ? > openImageData( String path, ImageDataFormat imageDataFormat, SharedQueue sharedQueue )
 	{
 		try
 		{
-			AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, imageDataFormat, sharedQueue );
-			return spimData;
+			return new ImageDataOpener().open( path, imageDataFormat, sharedQueue );
 		}
 		catch ( Exception e )
 		{
@@ -131,7 +128,7 @@ public abstract class DataStore
 
 	public static void clearSpimDataCache( )
 	{
-		spimDataCache = new ConcurrentHashMap<>();
+		imageDataCache = new ConcurrentHashMap<>();
 	}
 
 	public static void addRawData( DataSource dataSource )
@@ -198,7 +195,7 @@ public abstract class DataStore
 		images.clear();
 	}
 
-	private static AbstractSpimData< ? > openSpimData( Site site, SharedQueue sharedQueue )
+	private static ImageData< ? > openImageData( Site site, SharedQueue sharedQueue )
 	{
 		VirtualBioFormatsStack virtualStack = null;
 
@@ -245,8 +242,6 @@ public abstract class DataStore
 		imagePlus.setCalibration( calibration );
 		imagePlus.setDimensions( 1, nZ, nT );
 
-		final AbstractSpimData< ? > spimData = ImagePlusToSpimData.getSpimData( imagePlus );
-		SpimDataOpener.setSharedQueue( sharedQueue, spimData );
-		return spimData;
+		return new ImagePlusImageData<>( imagePlus, sharedQueue );
 	}
 }

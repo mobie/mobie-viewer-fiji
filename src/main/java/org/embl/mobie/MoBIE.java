@@ -28,22 +28,18 @@
  */
 package org.embl.mobie;
 
-import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import ij.WindowManager;
 import loci.common.DebugTools;
-import mpicbg.spim.data.generic.AbstractSpimData;
-import mpicbg.spim.data.sequence.ImgLoader;
 import net.imagej.ImageJ;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.ImageData;
-import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.lib.*;
-import org.embl.mobie.lib.files.ImageFileSources;
 import org.embl.mobie.lib.files.FileSourcesDataSetter;
+import org.embl.mobie.lib.files.ImageFileSources;
 import org.embl.mobie.lib.files.LabelFileSources;
 import org.embl.mobie.lib.files.SourcesFromPathsCreator;
 import org.embl.mobie.lib.hcs.HCSDataAdder;
@@ -52,25 +48,17 @@ import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.image.IlastikImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.ImageDataImage;
+import org.embl.mobie.lib.image.SpimDataImage;
 import org.embl.mobie.lib.io.DataFormats;
 import org.embl.mobie.lib.io.StorageLocation;
-import org.embl.mobie.plugins.platybrowser.GeneSearchCommand;
-import org.embl.mobie.lib.serialize.DataSource;
-import org.embl.mobie.lib.serialize.Dataset;
-import org.embl.mobie.lib.serialize.DatasetJsonParser;
-import org.embl.mobie.lib.serialize.ImageDataSource;
-import org.embl.mobie.lib.serialize.Project;
-import org.embl.mobie.lib.serialize.ProjectJsonParser;
-import org.embl.mobie.lib.serialize.RegionTableSource;
-import org.embl.mobie.lib.serialize.SegmentationDataSource;
-import org.embl.mobie.lib.serialize.SpotDataSource;
-import org.embl.mobie.lib.serialize.View;
+import org.embl.mobie.lib.serialize.*;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.transform.GridType;
+import org.embl.mobie.lib.view.ViewManager;
+import org.embl.mobie.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.ui.UserInterface;
 import org.embl.mobie.ui.WindowArrangementHelper;
-import org.embl.mobie.lib.view.ViewManager;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -80,13 +68,8 @@ import tech.tablesaw.io.csv.CsvReadOptions;
 import javax.annotation.Nullable;
 import java.awt.*;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -116,7 +99,6 @@ public class MoBIE
 
 	private ViewManager viewManager;
 	private UserInterface userInterface;
-	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 	private final ArrayList< String > projectCommands = new ArrayList<>();
 
 	public MoBIE( String projectLocation ) throws IOException
@@ -412,7 +394,6 @@ public class MoBIE
 
 	private void buildUI()
 	{
-		sourceNameToImgLoader = new HashMap<>();
 		userInterface = new UserInterface( this );
 		adjustLogWindow( userInterface );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D() );
@@ -571,7 +552,7 @@ public class MoBIE
 	}
 
 	@Deprecated
-	// TODO https://github.com/bigdataviewer/bigdataviewer-playground/issues/259#issuecomment-1279705489
+	// FIXME https://github.com/bigdataviewer/bigdataviewer-playground/issues/259#issuecomment-1279705489
 	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, boolean closeImgLoader )
 	{
 		SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
@@ -579,18 +560,9 @@ public class MoBIE
 
 		if ( closeImgLoader )
 		{
-			final ImgLoader imgLoader = sourceNameToImgLoader.get( sourceName );
-			if ( imgLoader instanceof N5ImageLoader )
-			{
-				( ( N5ImageLoader ) imgLoader ).close();
-			}
-			else if ( imgLoader instanceof N5OMEZarrImageLoader )
-			{
-				( ( N5OMEZarrImageLoader ) imgLoader ).close();
-			}
+			// TODO ?
 		}
 
-		sourceNameToImgLoader.remove( sourceName );
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
 	}
 
@@ -709,17 +681,15 @@ public class MoBIE
 
 	private Image< ? > initImage( ImageDataFormat imageDataFormat, StorageLocation storageLocation, String name )
 	{
-		if ( imageDataFormat.equals( ImageDataFormat.SpimData ) )
+		if ( imageDataFormat.equals( ImageDataFormat.ImageData ) )
 		{
-			return new ImageDataImage<>( ( AbstractSpimData ) storageLocation.data, storageLocation.getChannel(), name, settings.values.getRemoveSpatialCalibration() );
+			return new ImageDataImage<>( ( ImageData ) storageLocation.data, storageLocation.getChannel(), name, settings.values.getRemoveSpatialCalibration() );
 		}
-
-		if ( imageDataFormat.equals( ImageDataFormat.IlastikHDF5 ) )
+		else if ( imageDataFormat.equals( ImageDataFormat.IlastikHDF5 ) )
 		{
 			return new IlastikImage<>( name, storageLocation.absolutePath, storageLocation.getChannel(), imageDataFormat, ThreadHelper.sharedQueue );
 		}
-
-		if ( storageLocation instanceof Site ) // HCS data
+		else if ( storageLocation instanceof Site ) // HCS data
 		{
 			final Site site = ( Site ) storageLocation;
 
@@ -727,7 +697,7 @@ public class MoBIE
 			{
 				// the whole plate is already initialised as one big SpimData
 				// note that channel <=> setupID
-				return new ImageDataImage( site.getSpimData(), site.channel, name, settings.values.getRemoveSpatialCalibration() );
+				return new SpimDataImage<>( site.getSpimData(), site.channel, name, settings.values.getRemoveSpatialCalibration() );
 			}
 
 			if ( site.getImageDataFormat().equals( ImageDataFormat.OmeZarr ) )
@@ -740,13 +710,18 @@ public class MoBIE
 				return new ImageDataImage( ImageDataFormat.OmeZarrS3, site.absolutePath, site.channel, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
 			}
 
-			return new ImageDataImage( site, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration()  );
+			return new ImageDataImage( site, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
 		}
-
-		// FIXME: The image below should not be called SpimDataImage
-		final String imagePath = getImageLocation( imageDataFormat, storageLocation );
-		final ImageDataImage imageDataImage = new ImageDataImage( imageDataFormat, imagePath, storageLocation.getChannel(), name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
-		return imageDataImage;
+		else
+		{
+			return new ImageDataImage(
+					imageDataFormat,
+					getImageLocation( imageDataFormat, storageLocation ),
+					storageLocation.getChannel(),
+					name,
+					ThreadHelper.sharedQueue,
+					settings.values.getRemoveSpatialCalibration() );
+		}
 	}
 
 	public List< DataSource > getDataSources( Set< String > names )

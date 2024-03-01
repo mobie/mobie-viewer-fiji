@@ -112,7 +112,7 @@ public class Plate
 			imagePaths = OMEZarrHCSHelper.sitePathsFromMetadata( hcsDirectory );
 
 			final String firstImagePath = imagePaths.get( 0 );
-			AbstractSpimData< ? > spimData = DataStore.fetchSpimData( firstImagePath, imageDataFormat, ThreadHelper.sharedQueue );
+			AbstractSpimData< ? > spimData = DataStore.fetchImageData( firstImagePath, imageDataFormat, ThreadHelper.sharedQueue );
 			List< ViewSetup > viewSetupsOrdered = ( List< ViewSetup > ) spimData.getSequenceDescription().getViewSetupsOrdered();
 			List< String > channels = viewSetupsOrdered.stream().map( vs -> vs.getChannel().getName() ).collect( Collectors.toList() );
 			hcsPattern.setChannelNames( channels );

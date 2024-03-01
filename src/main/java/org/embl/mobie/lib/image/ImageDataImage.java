@@ -32,14 +32,17 @@ import bdv.SpimSource;
 import bdv.VolatileSpimSource;
 import bdv.cache.SharedQueue;
 import bdv.tools.transformation.TransformedSource;
+import bdv.viewer.Source;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.DataStore;
+import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.source.SourceHelper;
 
@@ -48,11 +51,11 @@ import javax.annotation.Nullable;
 /**
  * Converts various input resources into an {@code Image}.
  */
-public class ImageDataImage< T extends NumericType< T > & RealType< T > > implements Image< T >
+public class ImageDataImage< T extends NumericType< T > & NativeType< T > > implements Image< T >
 {
 	private ImageDataFormat imageDataFormat;
 	private String path;
-	private int setupId = 0;
+	private int setupId;
 	private SourcePair< T > sourcePair;
 	private String name;
 	private Site site;
@@ -63,7 +66,7 @@ public class ImageDataImage< T extends NumericType< T > & RealType< T > > implem
 	private TransformedSource< T > transformedSource;
 	private AffineTransform3D currentTransform = new AffineTransform3D();
 
-	public ImageDataImage( AbstractSpimData< ? > spimData, Integer setupId, String name, Boolean removeSpatialCalibration  )
+	public ImageDataImage( ImageData< T > imageData, Integer setupId, String name, Boolean removeSpatialCalibration  )
 	{
 		this.imageDataFormat = null;
 		this.path = null;
@@ -71,7 +74,7 @@ public class ImageDataImage< T extends NumericType< T > & RealType< T > > implem
 		this.setupId = setupId == null ? 0 : setupId;
 		this.name = name;
 		this.removeSpatialCalibration = removeSpatialCalibration;
-		createSourcePair( spimData, setupId, name );
+		createSourcePair( imageData, setupId, name );
 	}
 
 	public ImageDataImage( ImageDataFormat imageDataFormat, String path, int setupId, String name, @Nullable SharedQueue sharedQueue, Boolean removeSpatialCalibration )
@@ -155,37 +158,36 @@ public class ImageDataImage< T extends NumericType< T > & RealType< T > > implem
 
 	private void open()
 	{
-		final AbstractSpimData< ? > spimData = openSpimData();
-		createSourcePair( spimData, setupId, name );
+		createSourcePair( openImageData(), setupId, name );
 	}
 
-	private void createSourcePair( AbstractSpimData< ? > spimData, int setupId, String name )
+	private void createSourcePair( ImageData< T > imageData, int setupId, String name )
 	{
-		final SpimSource< T > source = new SpimSource<>( spimData, setupId, name );
-		final VolatileSpimSource< ? extends Volatile< T > > vSource = new VolatileSpimSource<>( spimData, setupId, name );
+		final Source< T > source = imageData.getSourcePair( setupId ).getA();
+		Source< ? extends Volatile< T > > volatileSource = imageData.getSourcePair( setupId ).getB();
 
 		if ( removeSpatialCalibration )
 		{
 			source.getSourceTransform( 0, 0, currentTransform );
 			currentTransform = currentTransform.inverse();
 			SourceHelper.setVoxelDimensionsToPixels( source );
-			SourceHelper.setVoxelDimensionsToPixels( vSource );
+			SourceHelper.setVoxelDimensionsToPixels( volatileSource );
 		}
 
-		transformedSource = new TransformedSource<>( source );
+		transformedSource = new TransformedSource<>( source, name );
 		transformedSource.setFixedTransform( currentTransform );
 
-		sourcePair = new DefaultSourcePair<>( transformedSource, new TransformedSource<>( vSource, transformedSource ) );
+		sourcePair = new DefaultSourcePair<>( transformedSource, new TransformedSource<>( volatileSource, transformedSource, name ) );
 	}
 
-	private AbstractSpimData openSpimData( )
+	private ImageData< T > openImageData( )
 	{
 		if ( site != null )
 		{
-			return DataStore.fetchSpimData( site, sharedQueue );
+			return ( ImageData< T > ) DataStore.fetchImageData( site, sharedQueue );
 		}
 
-		return DataStore.fetchSpimData( path, imageDataFormat, sharedQueue );
+		return ( ImageData< T > ) DataStore.fetchImageData( path, imageDataFormat, sharedQueue );
 	}
 
 }

@@ -39,6 +39,7 @@ import org.embl.mobie.DataStore;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
+import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.toml.TOMLOpener;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
@@ -185,10 +186,15 @@ public abstract class MoBIEHelper
 
 
 
-	public static boolean is2D( AbstractSpimData< ? > spimData, int setupIndex )
+	public static boolean is2D( ImageData< ? > imageData, int datasetIndex )
 	{
-		final Dimensions size = spimData.getSequenceDescription().getViewSetupsOrdered().get( setupIndex ).getSize();
-		return size.dimension( 2 ) == 1;
+		// TODO: this could be fetched from the metadata if
+		//   we decide to implement this
+		long[] dimensions = imageData.getSourcePair( datasetIndex ).getB().getSource( 0, 0 ).dimensionsAsLongArray();
+		if ( dimensions.length == 2 || dimensions[ 2 ] == 1)
+			return true;
+		else
+			return false;
 	}
 
 	public static List< String > getNamedGroups( String regex )
@@ -206,6 +212,8 @@ public abstract class MoBIEHelper
 
 	public static Metadata getMetadataFromImageFile( String path, int channelIndex )
 	{
+		// FIXME: Metadata
+
 		if ( ! new File( path ).exists() )
 		{
 			throw new RuntimeException( "Path does not exist: " + path );
@@ -215,6 +223,7 @@ public abstract class MoBIEHelper
 		{
 			try
 			{
+
 				AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, ImageDataFormat.OmeZarr );
 				final SpimSource< ? > source = new SpimSource( spimData, channelIndex, "" );
 				final int levels = source.getNumMipmapLevels();
@@ -282,7 +291,7 @@ public abstract class MoBIEHelper
 
 	public static ImagePlus openAsImagePlus( String path, int setupID, ImageDataFormat imageDataFormat )
 	{
-		AbstractSpimData< ? > spimData = DataStore.fetchSpimData( path, imageDataFormat, ThreadHelper.sharedQueue );
+		AbstractSpimData< ? > spimData = DataStore.fetchImageData( path, imageDataFormat, ThreadHelper.sharedQueue );
 		final SpimSource< ? > spimSource = new SpimSource( spimData, setupID, "" );
 		final ImagePlus imagePlus = new SourceToImagePlusConverter<>( spimSource ).getImagePlus( 0 );
 		return imagePlus;

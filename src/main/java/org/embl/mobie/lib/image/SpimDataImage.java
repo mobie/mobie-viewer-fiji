@@ -30,7 +30,6 @@ package org.embl.mobie.lib.image;
 
 import bdv.SpimSource;
 import bdv.VolatileSpimSource;
-import bdv.cache.SharedQueue;
 import bdv.tools.transformation.TransformedSource;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.Volatile;
@@ -38,26 +37,14 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
-import org.embl.mobie.DataStore;
-import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.source.SourceHelper;
 
 import javax.annotation.Nullable;
 
-/**
- * Converts various input resources into an {@code Image}.
- */
 public class SpimDataImage< T extends NumericType< T > & RealType< T > > implements Image< T >
 {
-	private ImageDataFormat imageDataFormat;
-	private String path;
-	private int setupId = 0;
 	private SourcePair< T > sourcePair;
 	private String name;
-	private Site site;
-	private SharedQueue sharedQueue;
-	private Boolean removeSpatialCalibration = false;
 	@Nullable
 	private RealMaskRealInterval mask;
 	private TransformedSource< T > transformedSource;
@@ -65,38 +52,14 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 
 	public SpimDataImage( AbstractSpimData< ? > spimData, Integer setupId, String name, Boolean removeSpatialCalibration  )
 	{
-		this.imageDataFormat = null;
-		this.path = null;
-		this.sharedQueue = null;
-		this.setupId = setupId == null ? 0 : setupId;
 		this.name = name;
-		this.removeSpatialCalibration = removeSpatialCalibration;
-		createSourcePair( spimData, setupId, name );
-	}
-
-	public SpimDataImage( ImageDataFormat imageDataFormat, String path, int setupId, String name, @Nullable SharedQueue sharedQueue, Boolean removeSpatialCalibration )
-	{
-		this.imageDataFormat = imageDataFormat;
-		this.path = path;
-		this.setupId = setupId;
-		this.name = name;
-		this.sharedQueue = sharedQueue;
-		this.removeSpatialCalibration = removeSpatialCalibration;
-	}
-
-	public SpimDataImage( Site site, String name, SharedQueue sharedQueue, Boolean removeSpatialCalibration )
-	{
-		this.setupId = site.getChannel();
-		this.name = name;
-		this.site = site;
-		this.sharedQueue = sharedQueue;
-		this.removeSpatialCalibration = removeSpatialCalibration;
+		setupId = setupId == null ? 0 : setupId;
+		createSourcePair( spimData, setupId, name, removeSpatialCalibration );
 	}
 
 	@Override
 	public SourcePair< T > getSourcePair()
 	{
-		if( sourcePair == null ) open();
 		return sourcePair;
 	}
 
@@ -153,13 +116,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		this.mask = mask;
 	}
 
-	private void open()
-	{
-		final AbstractSpimData< ? > spimData = openSpimData();
-		createSourcePair( spimData, setupId, name );
-	}
-
-	private void createSourcePair( AbstractSpimData< ? > spimData, int setupId, String name )
+	private void createSourcePair( AbstractSpimData< ? > spimData, int setupId, String name, Boolean removeSpatialCalibration )
 	{
 		final SpimSource< T > source = new SpimSource<>( spimData, setupId, name );
 		final VolatileSpimSource< ? extends Volatile< T > > vSource = new VolatileSpimSource<>( spimData, setupId, name );
@@ -177,15 +134,4 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 
 		sourcePair = new DefaultSourcePair<>( transformedSource, new TransformedSource<>( vSource, transformedSource ) );
 	}
-
-	private AbstractSpimData openSpimData( )
-	{
-		if ( site != null )
-		{
-			return DataStore.fetchSpimData( site, sharedQueue );
-		}
-
-		return DataStore.fetchSpimData( path, imageDataFormat, sharedQueue );
-	}
-
 }

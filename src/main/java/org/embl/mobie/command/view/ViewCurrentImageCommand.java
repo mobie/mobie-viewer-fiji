@@ -29,10 +29,8 @@
 package org.embl.mobie.command.view;
 
 import ij.ImagePlus;
-import mpicbg.spim.data.generic.AbstractSpimData;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.imagedata.ImagePlusImageData;
 import org.embl.mobie.lib.ThreadHelper;

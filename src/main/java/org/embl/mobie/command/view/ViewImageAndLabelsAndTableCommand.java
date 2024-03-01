@@ -31,10 +31,11 @@ package org.embl.mobie.command.view;
 import de.embl.cba.tables.results.ResultsTableFetcher;
 import ij.ImagePlus;
 import ij.measure.ResultsTable;
-import mpicbg.spim.data.generic.AbstractSpimData;
-import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.io.imagedata.ImageData;
+import org.embl.mobie.io.imagedata.ImagePlusImageData;
+import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.scijava.Initializable;
@@ -73,8 +74,8 @@ public class ViewImageAndLabelsAndTableCommand extends DynamicCommand implements
 
 	public void view( ImagePlus image, ImagePlus labels, ResultsTable resultsTable )
 	{
-		final AbstractSpimData< ? > imageData = new SpimDataOpener().open( image );
-		final AbstractSpimData< ? > labelData = new SpimDataOpener().open( labels );
+		final ImageData< ? > imageData = new ImagePlusImageData<>( image, ThreadHelper.sharedQueue );
+		final ImageData< ? > labelData = new ImagePlusImageData<>( labels, ThreadHelper.sharedQueue );
 		final TableDataFormat tableDataFormat = TableDataFormat.ResultsTable;
 		final StorageLocation tableStorageLocation = new StorageLocation();
 		tableStorageLocation.data = resultsTable;
