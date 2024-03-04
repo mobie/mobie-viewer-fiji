@@ -58,6 +58,7 @@ import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.ome.zarr.writers.imageplus.WriteImagePlusToN5OmeZarr;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.color.ColorHelper;
+import org.janelia.saalfeldlab.n5.Compression;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 
 import org.embl.mobie.io.n5.loaders.N5FSImageLoader;
@@ -335,7 +336,8 @@ public class ImagesCreator {
         AffineTransform3D sourceTransform = ProjectCreatorHelper.generateDefaultAffine( imp );
 
         // gzip compression by default
-        switch( imageDataFormat ) {
+        switch( imageDataFormat )
+        {
             case BdvN5:
                 new WriteImagePlusToN5().export(imp, filePath, sourceTransform, downsamplingMethod,
                         new GzipCompression(), new String[]{imageName} );

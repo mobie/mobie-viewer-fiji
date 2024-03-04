@@ -34,18 +34,20 @@ import bdv.viewer.SourceAndConverter;
 import ij.ImagePlus;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
-import net.imglib2.Dimensions;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.toml.TOMLOpener;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.ImageDataSource;
 import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.source.SourceToImagePlusConverter;
+import org.janelia.saalfeldlab.n5.universe.metadata.canonical.CanonicalSpatialDatasetMetadata;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import spimdata.util.Displaysettings;
@@ -210,6 +212,13 @@ public abstract class MoBIEHelper
 		return namedGroups;
 	}
 
+	public static CanonicalSpatialDatasetMetadata getMetadata( String uri, int datasetIndex )
+	{
+		ImageData< ? > imageData = ImageDataOpener.open( uri, ThreadHelper.sharedQueue );
+		return imageData.getMetadata( datasetIndex );
+	}
+
+	@Deprecated // use getMetadata instead
 	public static Metadata getMetadataFromImageFile( String path, int channelIndex )
 	{
 		// FIXME: Metadata
@@ -252,41 +261,6 @@ public abstract class MoBIEHelper
 			imagePlus.setC( channelIndex + 1 );
 			return new Metadata( imagePlus );
 		}
-	}
-
-	// Note that this opens the image and thus may be slow!
-	public static Metadata getMetadataFromSource( ImageDataSource imageDataSource )
-	{
-		final ImageDataFormat format = imageDataSource.imageData.keySet().iterator().next();
-		final StorageLocation location = imageDataSource.imageData.get( format );
-
-		AbstractSpimData< ? > spimData;
-		try
-		{
-			spimData = new SpimDataOpener().open( location.absolutePath, format );
-		}
-		catch ( SpimDataException e )
-		{
-			throw new RuntimeException( e );
-		}
-
-		final Metadata metadata = new Metadata();
-		metadata.color = "White";
-		metadata.contrastLimits = null;
-		final Displaysettings settingsFromFile = spimData.getSequenceDescription().getViewSetupsOrdered().get( location.getChannel() ).getAttribute( Displaysettings.class );
-		if ( settingsFromFile != null )
-		{
-			// FIXME: Wrong color from Bio-Formats
-			//    https://forum.image.sc/t/bio-formats-color-wrong-for-imagej-images/76021/15
-			//    https://github.com/BIOP/bigdataviewer-image-loaders/issues/8
-			metadata.color = "White"; // ColorHelper.getString( displaysettings.color );
-			metadata.contrastLimits = new double[]{ settingsFromFile.min, settingsFromFile.max };
-			//System.out.println( imageName + ": contrast limits = " + Arrays.toString( contrastLimits ) );
-		}
-
-		// TODO measure the number of time points
-
-		return metadata;
 	}
 
 	public static ImagePlus openAsImagePlus( String path, int setupID, ImageDataFormat imageDataFormat )

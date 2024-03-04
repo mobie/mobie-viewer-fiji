@@ -28,10 +28,10 @@
  */
 package org.embl.mobie.lib.hcs;
 
+import bdv.viewer.Source;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.io.Opener;
-import ij.measure.Calibration;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
@@ -40,6 +40,8 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 import mpicbg.spim.data.generic.base.Entity;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.ImageDataOpener;
+import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.toml.TPosition;
 import org.embl.mobie.io.toml.ZPosition;
 import org.embl.mobie.io.util.IOHelper;
@@ -55,13 +57,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 
 public class Plate
@@ -112,10 +110,13 @@ public class Plate
 			imagePaths = OMEZarrHCSHelper.sitePathsFromMetadata( hcsDirectory );
 
 			final String firstImagePath = imagePaths.get( 0 );
-			AbstractSpimData< ? > spimData = DataStore.fetchImageData( firstImagePath, imageDataFormat, ThreadHelper.sharedQueue );
-			List< ViewSetup > viewSetupsOrdered = ( List< ViewSetup > ) spimData.getSequenceDescription().getViewSetupsOrdered();
-			List< String > channels = viewSetupsOrdered.stream().map( vs -> vs.getChannel().getName() ).collect( Collectors.toList() );
-			hcsPattern.setChannelNames( channels );
+			ImageData< ? > imageData = ImageDataOpener.open( imagePaths.get( 0 ), imageDataFormat, ThreadHelper.sharedQueue );
+			int numChannels = imageData.getNumDatasets();
+
+			List< String > channelNames = IntStream.range( 0, numChannels )
+					.mapToObj( channelIndex -> imageData.getSourcePair( channelIndex ).getA().getName() )
+					.collect( Collectors.toList() );
+			hcsPattern.setChannelNames( channelNames );
 		}
 		else
 		{
@@ -186,35 +187,36 @@ public class Plate
 					channel = new Channel( channelName, channelNames.indexOf( channelName ) );
 					channelWellSites.put( channel, new HashMap<>() );
 
-					// FIXME Replace with MoBIEHelper.getMetadataFromImageFile
-					IJ.log( "Fetching metadata for setup " + channelName + " from " + imagePath );
-					ImagePlus singleChannelImagePlus = operettaMetadata == null ? MoBIEHelper.openAsImagePlus( imagePath, channel.getChannelIndex(), imageDataFormat ) : null;
-					numSlices = singleChannelImagePlus.getNSlices();
+
+					// Open for metadata only
+					ImageData< ? > imageData = ImageDataOpener.open( imagePath, imageDataFormat, ThreadHelper.sharedQueue );
 
 					// set channel metadata
 					//
-					if ( operettaMetadata != null )
+					if ( operettaMetadata != null ) // Do we still want to support the operetta stuff at all?
 					{
 						final String color = operettaMetadata.getColor( imagePath );
 						channel.setColor( color );
 
 						// TODO: There does not always seem to be enough metadata for the
 						//   contrast limits, thus opening one image may be worth it
-						//   then convert to image plus and run once auto contrast on it
+						//   then convert to imagePlus and run once auto contrast on it
 						final double[] contrastLimits = operettaMetadata.getContrastLimits( imagePath );
 						channel.setContrastLimits( contrastLimits );
 					}
 					else // from image file
 					{
-						final String color = ColorHelper.getString( singleChannelImagePlus.getLuts()[ 0 ] );
-						channel.setColor( color );
+						int datasetIndex = channel.getIndex();
 
-						IJ.run(singleChannelImagePlus, "Enhance Contrast", "saturated=0.35");
-						final double[] contrastLimits = new double[]{
-								singleChannelImagePlus.getDisplayRangeMin(),
-								singleChannelImagePlus.getDisplayRangeMax()
-						};
-						channel.setContrastLimits( contrastLimits );
+						IJ.log( "Fetching metadata for setup " + channelName + " from " + imagePath );
+						numSlices = ( int ) imageData.getSourcePair( datasetIndex ).getB().getSource( 0, 0 ).dimension( 2 );
+
+						channel.setColor( ColorHelper.getString( imageData.getMetadata( datasetIndex ).getColor() ) );
+
+						channel.setContrastLimits( new double[]{
+								imageData.getMetadata( datasetIndex ).minIntensity(),
+								imageData.getMetadata( datasetIndex ).maxIntensity()
+						} );
 					}
 
 					// determine spatial metadata (for all channels the same)
@@ -228,7 +230,9 @@ public class Plate
 						}
 						else // from image file
 						{
-							final Calibration calibration = singleChannelImagePlus.getCalibration();
+							Source< ? > source = imageData.getSourcePair( channel.getIndex() ).getA();
+
+							voxelDimensions = source.getVoxelDimensions();
 
 							if ( hcsPattern.hasZ() )
 							{
@@ -239,21 +243,16 @@ public class Plate
 								z-axis is convenient
 								 */
 								voxelDimensions = new FinalVoxelDimensions(
-										calibration.getUnit(),
-										calibration.pixelWidth,
-										calibration.pixelHeight,
-										10 * calibration.pixelHeight );
-							}
-							else
-							{
-								voxelDimensions = new FinalVoxelDimensions(
-										calibration.getUnit(),
-										calibration.pixelWidth,
-										calibration.pixelHeight,
-										calibration.pixelDepth );
+										voxelDimensions.unit(),
+										voxelDimensions.dimension( 0 ),
+										voxelDimensions.dimension( 1 ),
+										10 * voxelDimensions.dimension( 1 )
+								);
 							}
 
-							siteDimensions = new int[]{ singleChannelImagePlus.getWidth(), singleChannelImagePlus.getHeight() };
+							long width = source.getSource( 0, 0 ).dimension( 0 );
+							long height = source.getSource( 0, 0 ).dimension( 1 );
+							siteDimensions = new int[]{ ( int ) width, ( int ) height };
 						}
 
 						// compute derived spatial metadata
@@ -313,10 +312,10 @@ public class Plate
 						sitesPerWell = numSites; // needed to compute the site position within a well
 				}
 
-				if ( hcsPattern.equals( hcsPattern.OMEZarr ) )
+				if ( hcsPattern.equals( HCSPattern.OMEZarr ) )
 				{
 					site.absolutePath = imagePath;
-					site.channel = channel.getChannelIndex();
+					site.channel = channel.getIndex();
 				}
 				else
 				{

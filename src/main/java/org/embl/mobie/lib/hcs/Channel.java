@@ -33,12 +33,12 @@ public class Channel
 	private final String name;
 	private String color;
 	private double[] contrastLimits;
-	private final int channelIndex;
+	private final int index;
 
-	public Channel( String name, int channelIndex )
+	public Channel( String name, int index )
 	{
 		this.name = name;
-		this.channelIndex = channelIndex; // main use-case is loading from multi-channel files
+		this.index = index; // main use-case is loading from multi-channel files
 	}
 
 	public String getColor()
@@ -66,8 +66,8 @@ public class Channel
 		return name;
 	}
 
-	public int getChannelIndex()
+	public int getIndex()
 	{
-		return channelIndex;
+		return index;
 	}
 }

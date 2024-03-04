@@ -29,6 +29,7 @@
 package org.embl.mobie.lib;
 
 import ij.IJ;
+import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.lib.files.ImageFileSources;
 import org.embl.mobie.lib.files.LabelFileSources;
 import org.embl.mobie.lib.io.TableImageSource;
@@ -72,7 +73,7 @@ public class SourcesFromTableCreator
 				String relativeFolder = table.getString( 0, imageColumn.replace(  "FileName_", "PathName_" ) );
 				String referenceImagePath = MoBIEHelper.createAbsolutePath( root, fileName, relativeFolder );
 				IJ.log( "Determining number of channels of " + imageColumn + " from " + referenceImagePath + "..." );
-				int numChannels = MoBIEHelper.getMetadataFromImageFile( referenceImagePath, 0 ).numChannelsContainer;
+				int numChannels = ImageDataOpener.open( referenceImagePath, ThreadHelper.sharedQueue ).getNumDatasets();
 				IJ.log( "Number of channels: " + numChannels );
 				for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
 				{
