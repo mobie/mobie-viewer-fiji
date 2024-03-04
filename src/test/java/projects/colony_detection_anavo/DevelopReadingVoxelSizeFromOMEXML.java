@@ -1,4 +1,4 @@
-package develop;
+package projects.colony_detection_anavo;
 
 import loci.common.DebugTools;
 import loci.formats.FormatTools;
