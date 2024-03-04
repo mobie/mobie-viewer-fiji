@@ -30,6 +30,7 @@ package projects;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 
 import java.io.IOException;
 
@@ -38,6 +39,6 @@ public class OpenLocalXRay
     public static void main(String[] args) throws IOException {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        new MoBIE( "/Volumes/emcf/Hamburg_XRay/20220522/mobie_demo");
+        new MoBIE( "/Volumes/emcf/Hamburg_XRay/20220522/mobie_demo", new MoBIESettings() );
     }
 }

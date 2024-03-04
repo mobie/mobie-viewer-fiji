@@ -30,6 +30,7 @@ package projects.platybrowser;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 
 import java.io.IOException;
 
@@ -40,7 +41,7 @@ public class OpenRemotePlatynereis
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/platybrowser-project");
+		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/platybrowser-project", new MoBIESettings() );
 		moBIE.getViewManager().show( "cells" );
 	}
 }

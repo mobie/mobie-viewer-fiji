@@ -34,11 +34,11 @@ import ij.gui.Roi;
 import ij.plugin.ChannelSplitter;
 import ij.plugin.Duplicator;
 import ij.plugin.frame.RoiManager;
-import io.scif.img.IO;
 import mpicbg.spim.data.SpimDataException;
 import net.imagej.ImageJ;
 import net.imagej.patcher.LegacyInjector;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.io.util.IOHelper;
@@ -110,7 +110,7 @@ public class CreateRafaelProject
 		}
 
 		// Show the project in MoBIE
-		new MoBIE( projectDirectory);
+		new MoBIE( projectDirectory, new MoBIESettings() );
 	}
 
 	private static ImagePlus cropAndClearOutside( ImagePlus imp, Roi roi )

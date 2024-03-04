@@ -23,6 +23,6 @@ public class HCSYokogawaCQ1
         new MoBIE( "/Users/tischer/Desktop/moritz/CQ1_testfiles",
                 new MoBIESettings().removeSpatialCalibration( true ), // TODO: what is the z-spacing, how to add this?
                 0.1,
-                0.0  );
+                0.0, null  );
     }
 }

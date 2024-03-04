@@ -51,7 +51,9 @@ public class ThreadHelper
 
 	public static ExecutorService ioExecutorService = Executors.newFixedThreadPool( N_IO_THREADS );
 
-	public static final SharedQueue sharedQueue = new SharedQueue( N_IO_THREADS );
+	public static final int NUM_PRIORITIES = 6; // https://imagesc.zulipchat.com/#narrow/stream/327326-BigDataViewer/topic/SharedQueue
+
+	public static final SharedQueue sharedQueue = new SharedQueue( N_IO_THREADS, NUM_PRIORITIES );
 
 	public static ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
 

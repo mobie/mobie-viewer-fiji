@@ -28,15 +28,18 @@
  */
 package org.embl.mobie.command.open;
 
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.lib.hcs.OMEXMLParser;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
 
+import java.io.File;
 import java.io.IOException;
 
 
@@ -57,16 +60,42 @@ public class OpenHCSDatasetCommand implements Command
 	@Parameter ( label = "Help", callback = "help")
 	public Button help;
 
+	public enum VoxelDimensionFetching
+	{
+		FromImageFiles,
+		FromOMEXML
+	}
+
+	@Parameter ( label = "Voxel Dimensions" )
+	public VoxelDimensionFetching voxelDimensionFetching = VoxelDimensionFetching.FromImageFiles;
+
+	@Parameter ( label = "OME-XML (optional)", required = false )
+	public File omeXML;
+
 	@Override
 	public void run()
 	{
+		VoxelDimensions voxelDimensions = initVoxelDimensions();
+
 		try
 		{
-			new MoBIE( hcsDirectory, new MoBIESettings(), wellMargin, siteMargin );
+			new MoBIE( hcsDirectory, new MoBIESettings(), wellMargin, siteMargin, voxelDimensions );
 		}
 		catch ( IOException e )
 		{
-			e.printStackTrace();
+			throw new RuntimeException( e );
+		}
+	}
+
+	private VoxelDimensions initVoxelDimensions()
+	{
+		if ( voxelDimensionFetching.equals( VoxelDimensionFetching.FromOMEXML ) )
+		{
+			return OMEXMLParser.readVoxelDimensions( omeXML );
+		}
+		else
+		{
+			return null;
 		}
 	}
 

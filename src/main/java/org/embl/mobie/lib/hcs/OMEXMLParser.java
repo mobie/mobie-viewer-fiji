@@ -14,13 +14,12 @@ import java.io.File;
 
 public class OMEXMLParser
 {
-    public static VoxelDimensions readVoxelDimensions( String filePath )
+    public static VoxelDimensions readVoxelDimensions( File omeXml )
     {
         try {
-            File inputFile = new File(filePath);
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(inputFile);
+            Document doc = dBuilder.parse(omeXml);
             doc.getDocumentElement().normalize();
 
             // Assuming VoxelDimensions is a class you have that can store these values

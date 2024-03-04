@@ -42,6 +42,6 @@ class HCSInCellAnalyzer6000
 	{
 		new ImageJ().ui().showUI();
 
-		new MoBIE( "/Users/tischer/Downloads/incell", new MoBIESettings(), 0.1, 0.0  );
+		new MoBIE( "/Users/tischer/Downloads/incell", new MoBIESettings(), 0.1, 0.0, null  );
 	}
 }

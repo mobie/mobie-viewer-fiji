@@ -36,6 +36,7 @@ import ij.WindowManager;
 import loci.common.DebugTools;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imagej.ImageJ;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
@@ -118,11 +119,6 @@ public class MoBIE
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 	private final ArrayList< String > projectCommands = new ArrayList<>();
 
-	public MoBIE( String projectLocation ) throws IOException
-	{
-		this( projectLocation, new MoBIESettings() );
-	}
-
 	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
 		this.settings = settings;
@@ -144,7 +140,7 @@ public class MoBIE
 		return moBIE;
 	}
 
-	public MoBIE( String hcsDataLocation, MoBIESettings settings, double relativeWellMargin, double relativeSiteMargin ) throws IOException
+	public MoBIE( String hcsDataLocation, MoBIESettings settings, double relativeWellMargin, double relativeSiteMargin, @Nullable VoxelDimensions voxelDimensions ) throws IOException
 	{
 		this.settings = settings;
 		this.projectLocation = hcsDataLocation;
@@ -154,7 +150,7 @@ public class MoBIE
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening: " + hcsDataLocation );
 
-		openHCSDataset( relativeWellMargin, relativeSiteMargin );
+		openHCSDataset( relativeWellMargin, relativeSiteMargin, voxelDimensions );
 	}
 
 	public MoBIE( List< String > imagePaths, List< String > labelPaths, List< String > labelTablePaths, String root, GridType grid, MoBIESettings settings ) throws IOException
@@ -261,10 +257,10 @@ public class MoBIE
 		moBIE = this;
 	}
 
-	private void openHCSDataset( double wellMargin, double siteMargin ) throws IOException
+	private void openHCSDataset( double wellMargin, double siteMargin, @Nullable VoxelDimensions voxelDimensions ) throws IOException
 	{
 		initProject( "HCS" );
-		final Plate plate = new Plate( projectLocation );
+		final Plate plate = new Plate( projectLocation, voxelDimensions );
 		new HCSDataAdder( plate, wellMargin, siteMargin ).addData( dataset );
 		initUIandShowView( dataset.views().keySet().iterator().next() );
 	}

@@ -41,16 +41,16 @@ class HCSIncuyte
 	{
 		new ImageJ().ui().showUI();
 
-		//new MoBIE( "/Users/tischer/Downloads/Operetta", new MoBIESettings(), 0.1, 0.0  );
+		//new MoBIE( "/Users/tischer/Downloads/Operetta", new MoBIESettings(), 0.1, 0.0, null  );
 
-		//new MoBIE( "/Users/tischer/Downloads/IncuCyte", new MoBIESettings(), 0.1, 0.0 );
+		//new MoBIE( "/Users/tischer/Downloads/IncuCyte", new MoBIESettings(), 0.1, 0.0, null );
 
-		//new MoBIE( "/Users/tischer/Downloads/incu2/", new MoBIESettings(), 0.1, 0.0  );
+		//new MoBIE( "/Users/tischer/Downloads/incu2/", new MoBIESettings(), 0.1, 0.0, null  );
 
-		//new MoBIE( "/g/cba/exchange/mobie-data/incucyte-drug-screen/images", new MoBIESettings(), 0.1, 0.0  );
+		//new MoBIE( "/g/cba/exchange/mobie-data/incucyte-drug-screen/images", new MoBIESettings(), 0.1, 0.0, null  );
 
-		//new MoBIE( "/Users/tischer/Documents/faim-hcs/resources/MIP-2P-2sub/2022-07-05/1075", new MoBIESettings(), 0.1, 0.0  );
+		//new MoBIE( "/Users/tischer/Documents/faim-hcs/resources/MIP-2P-2sub/2022-07-05/1075", new MoBIESettings(), 0.1, 0.0, null  );
 
-		new MoBIE( "/Volumes/cba/exchange/hcs-test/Samples", new MoBIESettings(), 0.1, 0.0  );
+		new MoBIE( "/Volumes/cba/exchange/hcs-test/Samples", new MoBIESettings(), 0.1, 0.0, null  );
 	}
 }

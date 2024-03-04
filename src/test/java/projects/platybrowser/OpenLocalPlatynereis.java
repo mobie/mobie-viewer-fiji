@@ -30,6 +30,7 @@ package projects.platybrowser;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 
 import java.io.IOException;
 
@@ -40,6 +41,6 @@ public class OpenLocalPlatynereis
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		final MoBIE moBIE = new MoBIE( "/Volumes/cba/exchange/buglakova/platybrowser-smfish-project");
+		final MoBIE moBIE = new MoBIE( "/Volumes/cba/exchange/buglakova/platybrowser-smfish-project", new MoBIESettings() );
 	}
 }

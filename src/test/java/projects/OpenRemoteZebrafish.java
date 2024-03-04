@@ -30,6 +30,7 @@ package projects;
 
 import org.embl.mobie.MoBIE;
 import net.imagej.ImageJ;
+import org.embl.mobie.MoBIESettings;
 
 import java.io.IOException;
 
@@ -39,6 +40,6 @@ public class OpenRemoteZebrafish
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE("https://github.com/mobie/zebrafish-lm-datasets" );
+		new MoBIE("https://github.com/mobie/zebrafish-lm-datasets", new MoBIESettings() );
 	}
 }

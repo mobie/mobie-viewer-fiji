@@ -60,7 +60,7 @@ public class HCSCmd implements Callable< Void > {
 				.openedFromCLI( true )
 				.removeSpatialCalibration( removeSpatialCalibration );
 
-		new MoBIE( hcs, settings, wellMargin, siteMargin );
+		new MoBIE( hcs, settings, wellMargin, siteMargin, null );
 
 		return null;
 	}

@@ -51,6 +51,7 @@ import org.embl.mobie.lib.color.ColorHelper;
 import ch.epfl.biop.bdv.img.bioformats.entity.SeriesIndex;
 import org.embl.mobie.lib.hcs.omezarr.OMEZarrHCSHelper;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -82,14 +83,16 @@ public class Plate
 	private boolean siteIDsAreOneBased = true;
 	private boolean is2d = true;
 	private int numSlices;
+	private boolean fetchSpatialMetadata = true;
 
 
-	public Plate( String hcsDirectory ) throws IOException
+	public Plate( String hcsDirectory, @Nullable VoxelDimensions voxelDimensions ) throws IOException
 	{
 		this.hcsDirectory = hcsDirectory;
+		this.voxelDimensions = voxelDimensions;
 
-		// FIXME: fetch operetta paths from XML?!
-		// FIXME: fetch OME-Zarr paths entry point JSON?!
+		// TODO: fetch operetta paths from XML?!
+		// TODO: fetch OME-Zarr paths entry point JSON?!
 
 		IJ.log( "Looking for image files..." );
 		long start = System.currentTimeMillis();
@@ -217,10 +220,10 @@ public class Plate
 						channel.setContrastLimits( contrastLimits );
 					}
 
-					// determine spatial metadata (for all channels the same)
-					//
-					if ( voxelDimensions == null )
+					if ( fetchSpatialMetadata )
 					{
+						fetchSpatialMetadata= false; // should be the same for all files and channels
+
 						if ( operettaMetadata != null )
 						{
 							voxelDimensions = operettaMetadata.getVoxelDimensions( imagePath );
@@ -230,27 +233,30 @@ public class Plate
 						{
 							final Calibration calibration = singleChannelImagePlus.getCalibration();
 
-							if ( hcsPattern.hasZ() )
+							if ( voxelDimensions == null )
 							{
-								/*
-								If the z-positions are distributed over multiple files
-								typically the z-calibration metadata in the individual files is wrong.
-								We thus just put something sensible here such that browsing in BDV along the
-								z-axis is convenient
-								 */
-								voxelDimensions = new FinalVoxelDimensions(
-										calibration.getUnit(),
-										calibration.pixelWidth,
-										calibration.pixelHeight,
-										10 * calibration.pixelHeight );
-							}
-							else
-							{
-								voxelDimensions = new FinalVoxelDimensions(
-										calibration.getUnit(),
-										calibration.pixelWidth,
-										calibration.pixelHeight,
-										calibration.pixelDepth );
+								if ( hcsPattern.hasZ() )
+								{
+									/*
+									If the z-positions are distributed over multiple files
+									typically the z-calibration metadata in the individual files is wrong.
+									We thus just put something sensible here such that browsing in BDV along the
+									z-axis is convenient
+									 */
+									voxelDimensions = new FinalVoxelDimensions(
+											calibration.getUnit(),
+											calibration.pixelWidth,
+											calibration.pixelHeight,
+											10 * calibration.pixelHeight );
+								}
+								else
+								{
+									voxelDimensions = new FinalVoxelDimensions(
+											calibration.getUnit(),
+											calibration.pixelWidth,
+											calibration.pixelHeight,
+											calibration.pixelDepth );
+								}
 							}
 
 							siteDimensions = new int[]{ singleChannelImagePlus.getWidth(), singleChannelImagePlus.getHeight() };
