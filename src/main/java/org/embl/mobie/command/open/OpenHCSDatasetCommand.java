@@ -42,6 +42,8 @@ import org.scijava.widget.Button;
 import java.io.File;
 import java.io.IOException;
 
+import static org.embl.mobie.command.open.OpenHCSDatasetCommand.VoxelDimensionFetching.FromOMEXML;
+
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open HCS Dataset..." )
 public class OpenHCSDatasetCommand implements Command
@@ -69,7 +71,10 @@ public class OpenHCSDatasetCommand implements Command
 	@Parameter ( label = "Voxel Dimensions" )
 	public VoxelDimensionFetching voxelDimensionFetching = VoxelDimensionFetching.FromImageFiles;
 
-	@Parameter ( label = "OME-XML (optional)", required = false )
+	@Parameter ( label = "OME-XML (optional)",
+			description = "This is used if the option FromOMEXML is chosen to for" +
+					" determining the Voxel Dimensions",
+			persist = false )
 	public File omeXML;
 
 	@Override
@@ -89,7 +94,7 @@ public class OpenHCSDatasetCommand implements Command
 
 	private VoxelDimensions initVoxelDimensions()
 	{
-		if ( voxelDimensionFetching.equals( VoxelDimensionFetching.FromOMEXML ) )
+		if ( voxelDimensionFetching.equals( FromOMEXML ) )
 		{
 			return OMEXMLParser.readVoxelDimensions( omeXML );
 		}
