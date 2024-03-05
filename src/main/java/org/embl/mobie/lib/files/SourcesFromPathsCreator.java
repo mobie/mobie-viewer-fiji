@@ -43,6 +43,8 @@ public class SourcesFromPathsCreator
 
 	public SourcesFromPathsCreator( List < String > imagePaths, List < String > labelPaths, List < String > labelTablePaths, String root, GridType grid )
 	{
+		// FIXME: Remove all the pathMapping from the Constructors here!
+
 		// images
 		//
 		imageSources = new ArrayList<>();
@@ -66,7 +68,7 @@ public class SourcesFromPathsCreator
 			}
 			else
 			{
-				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid, label.equals( firstLabel ) ) );
+				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, null, grid ) );
 			}
 		}
 	}

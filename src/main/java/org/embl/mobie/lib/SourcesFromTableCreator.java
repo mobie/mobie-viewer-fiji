@@ -81,32 +81,11 @@ public class SourcesFromTableCreator
 					imageFileSources.add( new ImageFileSources( imageColumn + "_C" + channelIndex, table, imageColumn, channelIndex, pathMapping, root, gridType ) );
 				}
 			}
-			else if ( imageColumn.startsWith( "FileName_" ) )
-			{
-				TableImageSource tableImageSource = new TableImageSource( imageColumn );
-
-				// Deal with CellProfiler tables
-				String postfix = tableImageSource.columnName.substring("FileName_".length());
-				String folderColumn = "PathName_" + postfix;
-				if (table.containsColumn( folderColumn ) ) {
-					StringColumn absolutePathColumn =
-							table.stringColumn( folderColumn )
-									.concatenate( File.separator )
-									.concatenate( table.stringColumn( tableImageSource.columnName ) );
-					absolutePathColumn.setName("AbsolutePath_" + postfix);
-					table.addColumns(absolutePathColumn);
-					root = null; // the paths are now absolute
-					tableImageSource = new TableImageSource( tableImageSource.name, "AbsolutePath_" + postfix, tableImageSource.channelIndex, pathMapping );
-				}
-
-				imageFileSources.add( new ImageFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, pathMapping, root, gridType ) );
-
-			}
 			else
 			{
 				// Default table
 				final TableImageSource tableImageSource = new TableImageSource( imageColumn );
-				imageFileSources.add( new ImageFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, pathMapping, root, gridType ) );
+				imageFileSources.add( new ImageFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, pathMapping, gridType ) );
 			}
 		}
 
@@ -119,7 +98,7 @@ public class SourcesFromTableCreator
 			for ( String label : labelColumns )
 			{
 				final TableImageSource tableImageSource = new TableImageSource( label );
-				labelSources.add( new LabelFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, pathMapping, root, gridType, label.equals( firstLabel ) ) );
+				labelSources.add( new LabelFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, pathMapping, gridType, label.equals( firstLabel ) ) );
 			}
 		}
 

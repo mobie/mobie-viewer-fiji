@@ -49,7 +49,7 @@ public class LabelFileSources extends ImageFileSources
 
 	public LabelFileSources( String name, Table table, String columnName, Integer channelIndex, String root, String pathMapping, GridType gridType, boolean useTableForSegments )
 	{
-		super( name, table, columnName, channelIndex, pathMapping, root, gridType);
+		super( name, table, columnName, channelIndex, root, pathMapping, gridType);
 
 		if ( useTableForSegments )
 		{
@@ -76,6 +76,12 @@ public class LabelFileSources extends ImageFileSources
 			}
 		}
 	}
+
+	public LabelFileSources( String name, String labelsPath, Integer channelIndex, String root, String pathMapping, GridType grid )
+	{
+		super( name, labelsPath, channelIndex, root, pathMapping, grid );
+	}
+
 
 	public LabelFileSources( String name, String path, Integer channelIndex, String labelTablePath, String root, String pathMapping, GridType grid )
 	{

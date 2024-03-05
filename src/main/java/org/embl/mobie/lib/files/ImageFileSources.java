@@ -32,6 +32,7 @@ import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.io.TableImageSource;
 import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
@@ -63,7 +64,7 @@ public class ImageFileSources
 	protected Metadata metadata;
 	private String metadataSource;
 
-	public ImageFileSources( String name, String pathRegex, Integer channelIndex, String root, String pathMapping, GridType gridType )
+	public ImageFileSources( String name, String pathRegex, Integer channelIndex, String root, GridType gridType )
 	{
 		this.gridType = gridType;
 		this.name = name;
@@ -75,7 +76,7 @@ public class ImageFileSources
 		{
 			final String fileName = new File( path ).getName();
 			String imageName = createImageName( channelIndex, fileName );
-			nameToFullPath.put( imageName, applyPathMapping( pathMapping, path ) );
+			nameToFullPath.put( imageName, path );
 		}
 
 		// TODO: how to deal with the inconsistent metadata (e.g. number of time-points)?
@@ -93,13 +94,15 @@ public class ImageFileSources
 		if ( pathMapping != null )
 		{
 			String[] fromTo = pathMapping.split( "," );
-			path.replace( fromTo[ 0 ], fromTo[ 1 ] );
+			String from = fromTo[ 0 ];
+			String to = fromTo[ 1 ];
+			path = path.replace( from, to );
 		}
 
 		return path;
 	}
 
-	public ImageFileSources( String name, Table table, String imageColumn, Integer channelIndex, String pathMapping, String root, GridType gridType )
+	public ImageFileSources( String name, Table table, String imageColumn, Integer channelIndex, String root, String pathMapping, GridType gridType )
 	{
 		this.name = name;
 		this.channelIndex = channelIndex;
@@ -129,6 +132,27 @@ public class ImageFileSources
 				}
 			}
 		}
+		else if ( imageColumn.startsWith( "FileName_" ) )
+		{
+			TableImageSource tableImageSource = new TableImageSource( imageColumn );
+
+			// Deal with CellProfiler tables
+			String postfix = tableImageSource.columnName.substring("FileName_".length());
+			String folderColumn = "PathName_" + postfix;
+			if (table.containsColumn( folderColumn ) ) {
+				StringColumn absolutePathColumn =
+						table.stringColumn( folderColumn )
+								.concatenate( File.separator )
+								.concatenate( table.stringColumn( tableImageSource.columnName ) );
+				absolutePathColumn.setName("AbsolutePath_" + postfix);
+				table.addColumns(absolutePathColumn);
+				root = null; // the paths are now absolute
+				tableImageSource = new TableImageSource( tableImageSource.name, "AbsolutePath_" + postfix, tableImageSource.channelIndex, pathMapping );
+			}
+
+			imageFileSources.add( new ImageFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, pathMapping, gridType ) );
+
+		}
 		else
 		{
 			// Default table
@@ -137,7 +161,7 @@ public class ImageFileSources
 				String path = table.getString( rowIndex, imageColumn );
 				File file = root == null ? new File( path ) : new File( root, path );
 				String imageName = createImageName( channelIndex, file.getName() );
-				nameToFullPath.put( imageName, file.getAbsolutePath() );
+				nameToFullPath.put( imageName, applyPathMapping( pathMapping, file.getAbsolutePath() )  );
 				nameToPath.put( imageName, path );
 			}
 		}
