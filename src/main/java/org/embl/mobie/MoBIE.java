@@ -172,14 +172,14 @@ public class MoBIE
 	}
 
 	// open an image or object table
-	public MoBIE( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, GridType grid, MoBIESettings settings ) throws IOException
+	public MoBIE( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, String pathMapping, GridType grid, MoBIESettings settings ) throws IOException
 	{
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening data from table: " + tablePath );
 
 		this.settings = settings;
 
-		final SourcesFromTableCreator sourcesCreator = new SourcesFromTableCreator( tablePath, imageColumns, labelColumns, root, grid );
+		final SourcesFromTableCreator sourcesCreator = new SourcesFromTableCreator( tablePath, imageColumns, labelColumns, root, pathMapping, grid );
 
 		final List< ImageFileSources > imageSources = sourcesCreator.getImageSources();
 		final List< LabelFileSources > labelSources = sourcesCreator.getLabelSources();

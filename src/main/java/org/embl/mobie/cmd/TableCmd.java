@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.cmd;
 
-import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.lib.transform.GridType;
@@ -82,7 +81,7 @@ public class TableCmd implements Callable< Void > {
 		List< String > labelsList = labels != null ?
 				Arrays.asList( labels ) : new ArrayList<>();
 
-		new MoBIE( table, imageList, labelsList, root, gridType, settings );
+		new MoBIE( table, imageList, labelsList, root, null, gridType, settings );
 
 		return null;
 	}

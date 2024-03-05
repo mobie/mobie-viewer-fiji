@@ -63,4 +63,11 @@ public class TableImageSource
 			columnName = split[ 0 ];
 		}
 	}
+
+	public TableImageSource( String name, String columnName, Integer channelIndex, String pathMapping )
+	{
+		this.name = name;
+		this.columnName = columnName;
+		this.channelIndex = channelIndex;
+	}
 }

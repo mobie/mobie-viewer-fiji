@@ -47,9 +47,9 @@ public class LabelFileSources extends ImageFileSources
 	protected Map< String, TableSource > nameToLabelTable = new LinkedHashMap<>();
 	private static boolean logLabelParsingError = true;
 
-	public LabelFileSources( String name, Table table, String columnName, Integer channelIndex, String root, GridType gridType, boolean useTableForSegments )
+	public LabelFileSources( String name, Table table, String columnName, Integer channelIndex, String root, String pathMapping, GridType gridType, boolean useTableForSegments )
 	{
-		super( name, table, columnName, channelIndex, root, gridType);
+		super( name, table, columnName, channelIndex, pathMapping, root, gridType);
 
 		if ( useTableForSegments )
 		{
@@ -77,14 +77,9 @@ public class LabelFileSources extends ImageFileSources
 		}
 	}
 
-	public LabelFileSources( String name, String labelsPath, Integer channelIndex, String root, GridType grid )
+	public LabelFileSources( String name, String path, Integer channelIndex, String labelTablePath, String root, String pathMapping, GridType grid )
 	{
-		super( name, labelsPath, channelIndex, root, grid );
-	}
-
-	public LabelFileSources( String name, String path, Integer channelIndex, String labelTablePath, String root, GridType grid )
-	{
-		super( name, path, channelIndex, root, grid );
+		super( name, path, channelIndex, root, pathMapping, grid );
 
 		final List< String > labelTablePaths = getFullPaths( labelTablePath, root );
 		final ArrayList< String > labelMaskNames = new ArrayList<>( nameToFullPath.keySet() );

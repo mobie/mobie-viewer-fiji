@@ -49,7 +49,7 @@ public class SourcesFromPathsCreator
 		for ( String imagePath : imagePaths )
 		{
 			final FileImageSource fileImageSource = new FileImageSource( imagePath );
-			imageSources.add( new ImageFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
+			imageSources.add( new ImageFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, null, grid ) );
 		}
 
 		// segmentation images
@@ -62,11 +62,11 @@ public class SourcesFromPathsCreator
 			if ( labelTablePaths.size() > labelSourceIndex )
 			{
 				final String labelTablePath = labelTablePaths.get( labelSourceIndex );
-				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, labelTablePath, root, grid ) );
+				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, labelTablePath, root, null, grid ) );
 			}
 			else
 			{
-				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
+				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid, label.equals( firstLabel ) ) );
 			}
 		}
 	}

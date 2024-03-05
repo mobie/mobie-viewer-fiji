@@ -52,14 +52,22 @@ public class OpenTableCommand implements Command {
 	@Parameter( label = "Table Path", required = true )
 	public File table;
 
-	@Parameter( label = "Root Folder", style = "directory", required = false )
-	public File root;
-
-	@Parameter( label = "Image Columns (Comma Separated)", required = true )
+	@Parameter( label = "Image Path Columns (Comma Separated)", required = true )
 	public String images;
 
-	@Parameter( label = "Labels Columns (Comma Separated)", required = false )
+	@Parameter( label = "Labels Path Columns (Comma Separated)", required = false )
 	public String labels;
+
+	@Parameter( label = "Images & Labels Root Folder",
+			description = "Use this is if the images and labels paths in the table are relative.",
+			required = false )
+	public File root;
+
+	@Parameter( label = "Path Mapping (From,To)",
+			description = "If the data was analysed on a different computer.\n" +
+					"For example from Linux to MacOS: \"/g,/Volumes\"",
+			required = false )
+	public String pathMapping;
 
 	@Parameter( label = "Remove Spatial Calibration", required = false )
 	public Boolean removeSpatialCalibration = false;
@@ -93,7 +101,8 @@ public class OpenTableCommand implements Command {
 
 		try
 		{
-			new MoBIE( table.getAbsolutePath(), imageList, labelList, root.getAbsolutePath(), gridType, settings );
+			String rootPath = root == null ? null : root.getAbsolutePath();
+			new MoBIE( table.getAbsolutePath(), imageList, labelList, rootPath, pathMapping ,gridType, settings );
 		}
 		catch ( IOException e )
 		{

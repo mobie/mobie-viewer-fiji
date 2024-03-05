@@ -39,8 +39,10 @@ import org.embl.mobie.lib.transform.GridType;
 import tech.tablesaw.api.NumberColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
+import tech.tablesaw.api.TextColumn;
 import tech.tablesaw.columns.Column;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -53,7 +55,7 @@ public class SourcesFromTableCreator
 	private final List< LabelFileSources > labelSources;
 	private Table regionTable;
 
-	public SourcesFromTableCreator( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, GridType gridType )
+	public SourcesFromTableCreator( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, String pathMapping, GridType gridType )
 	{
 		final Table table = TableOpener.openDelimitedTextFile( tablePath );
 
@@ -76,14 +78,35 @@ public class SourcesFromTableCreator
 				IJ.log( "Number of channels: " + numChannels );
 				for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
 				{
-					imageFileSources.add( new ImageFileSources( imageColumn + "_C" + channelIndex, table, imageColumn, channelIndex, root, gridType ) );
+					imageFileSources.add( new ImageFileSources( imageColumn + "_C" + channelIndex, table, imageColumn, channelIndex, pathMapping, root, gridType ) );
 				}
+			}
+			else if ( imageColumn.startsWith( "FileName_" ) )
+			{
+				TableImageSource tableImageSource = new TableImageSource( imageColumn );
+
+				// Deal with CellProfiler tables
+				String postfix = tableImageSource.columnName.substring("FileName_".length());
+				String folderColumn = "PathName_" + postfix;
+				if (table.containsColumn( folderColumn ) ) {
+					StringColumn absolutePathColumn =
+							table.stringColumn( folderColumn )
+									.concatenate( File.separator )
+									.concatenate( table.stringColumn( tableImageSource.columnName ) );
+					absolutePathColumn.setName("AbsolutePath_" + postfix);
+					table.addColumns(absolutePathColumn);
+					root = null; // the paths are now absolute
+					tableImageSource = new TableImageSource( tableImageSource.name, "AbsolutePath_" + postfix, tableImageSource.channelIndex, pathMapping );
+				}
+
+				imageFileSources.add( new ImageFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, pathMapping, root, gridType ) );
+
 			}
 			else
 			{
 				// Default table
 				final TableImageSource tableImageSource = new TableImageSource( imageColumn );
-				imageFileSources.add( new ImageFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType ) );
+				imageFileSources.add( new ImageFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, pathMapping, root, gridType ) );
 			}
 		}
 
@@ -96,7 +119,7 @@ public class SourcesFromTableCreator
 			for ( String label : labelColumns )
 			{
 				final TableImageSource tableImageSource = new TableImageSource( label );
-				labelSources.add( new LabelFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType, label.equals( firstLabel ) ) );
+				labelSources.add( new LabelFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, pathMapping, root, gridType, label.equals( firstLabel ) ) );
 			}
 		}
 
@@ -145,9 +168,14 @@ public class SourcesFromTableCreator
 					final Table summary = table.summarize( column, Aggregators.firstString ).by( imageColumn );
 					regionTable = regionTable.joinOn( imageColumnName ).leftOuter( summary );
 				}
+				else if ( column instanceof TextColumn )
+				{
+					final Table summary = table.summarize( column.asStringColumn(), Aggregators.firstString ).by( imageColumn );
+					regionTable = regionTable.joinOn( imageColumnName ).leftOuter( summary );
+				}
 				else
 				{
-					throw new RuntimeException( "Unsupported column type " + column.getClass() );
+					throw new RuntimeException( "Unsupported column type " + column.getClass() + " of column " + column.name() );
 				}
 			}
 		}

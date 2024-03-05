@@ -63,7 +63,7 @@ public class ImageFileSources
 	protected Metadata metadata;
 	private String metadataSource;
 
-	public ImageFileSources( String name, String pathRegex, Integer channelIndex, String root, GridType gridType )
+	public ImageFileSources( String name, String pathRegex, Integer channelIndex, String root, String pathMapping, GridType gridType )
 	{
 		this.gridType = gridType;
 		this.name = name;
@@ -75,7 +75,7 @@ public class ImageFileSources
 		{
 			final String fileName = new File( path ).getName();
 			String imageName = createImageName( channelIndex, fileName );
-			nameToFullPath.put( imageName, path );
+			nameToFullPath.put( imageName, applyPathMapping( pathMapping, path ) );
 		}
 
 		// TODO: how to deal with the inconsistent metadata (e.g. number of time-points)?
@@ -88,7 +88,18 @@ public class ImageFileSources
 		regionTable.addColumns( StringColumn.create( "source_path", new ArrayList<>( nameToFullPath.values() ) ) );
 	}
 
-	public ImageFileSources( String name, Table table, String imageColumn, Integer channelIndex, String root, GridType gridType )
+	private static String applyPathMapping( String pathMapping, String path )
+	{
+		if ( pathMapping != null )
+		{
+			String[] fromTo = pathMapping.split( "," );
+			path.replace( fromTo[ 0 ], fromTo[ 1 ] );
+		}
+
+		return path;
+	}
+
+	public ImageFileSources( String name, Table table, String imageColumn, Integer channelIndex, String pathMapping, String root, GridType gridType )
 	{
 		this.name = name;
 		this.channelIndex = channelIndex;
@@ -106,7 +117,7 @@ public class ImageFileSources
 				String relativeFolderName = table.getString( rowIndex, imageColumn.replace( "FileName_", "PathName_"  ) );
 				String path = MoBIEHelper.createAbsolutePath( root, fileName, relativeFolderName );
 				String imageName = createImageName( channelIndex, fileName );
-				nameToFullPath.put( imageName, path );
+				nameToFullPath.put( imageName, applyPathMapping( pathMapping, path ) );
 				nameToPath.put( imageName, fileName );
 
 				if ( table.columnNames().contains( "Rotation_NUM" ) ) // FIXME can we have this generic?
