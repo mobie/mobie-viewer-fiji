@@ -31,6 +31,7 @@ package org.embl.mobie.lib.color.lut;
 import net.imglib2.type.numeric.ARGBType;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Modified version of Glasbey LUT,
@@ -62,8 +63,15 @@ public class GlasbeyARGBLut implements IndexARGBLut
 	@Override
 	public int getARGB( double x )
 	{
-		final int index = ( int ) Math.ceil( x * ( numColors - 1 ) );
-		return indices.get( index );
+		try
+		{
+			final int index = ( int ) Math.ceil( x * ( numColors - 1 ) );
+			return indices.get( index );
+		}
+		catch ( Exception e )
+		{
+			throw new RuntimeException( e  );
+		}
 	}
 
 	@Override

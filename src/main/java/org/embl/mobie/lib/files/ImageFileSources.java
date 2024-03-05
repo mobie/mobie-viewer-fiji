@@ -31,6 +31,7 @@ package org.embl.mobie.lib.files;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.io.FilenameUtils;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.io.TableImageSource;
 import org.embl.mobie.lib.source.Metadata;
@@ -111,6 +112,7 @@ public class ImageFileSources
 		nameToPath = new LinkedHashMap<>(); // needed for joining the tables below when creating the region table
 
 		int numRows = table.rowCount();
+
 		if ( imageColumn.contains( "_IMG" )  )
 		{
 			// Automic table
@@ -132,26 +134,20 @@ public class ImageFileSources
 				}
 			}
 		}
-		else if ( imageColumn.startsWith( "FileName_" ) )
+		else if ( isCellProfilerColumn( imageColumn, table ) )
 		{
-			TableImageSource tableImageSource = new TableImageSource( imageColumn );
-
-			// Deal with CellProfiler tables
-			String postfix = tableImageSource.columnName.substring("FileName_".length());
+			String postfix = imageColumn.substring("FileName_".length());
 			String folderColumn = "PathName_" + postfix;
-			if (table.containsColumn( folderColumn ) ) {
-				StringColumn absolutePathColumn =
-						table.stringColumn( folderColumn )
-								.concatenate( File.separator )
-								.concatenate( table.stringColumn( tableImageSource.columnName ) );
-				absolutePathColumn.setName("AbsolutePath_" + postfix);
-				table.addColumns(absolutePathColumn);
-				root = null; // the paths are now absolute
-				tableImageSource = new TableImageSource( tableImageSource.name, "AbsolutePath_" + postfix, tableImageSource.channelIndex, pathMapping );
+
+			for ( int rowIndex = 0; rowIndex < numRows; rowIndex++ )
+			{
+				String fileName = table.getString( rowIndex, imageColumn );
+				String folder = table.getString( rowIndex, folderColumn );
+				String path = IOHelper.combinePath( folder, fileName );
+				String imageName = createImageName( channelIndex, fileName );
+				nameToFullPath.put( imageName, applyPathMapping( pathMapping, path ) );
+				nameToPath.put( imageName, fileName );
 			}
-
-			imageFileSources.add( new ImageFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, pathMapping, gridType ) );
-
 		}
 		else
 		{
@@ -169,6 +165,17 @@ public class ImageFileSources
 		metadataSource = nameToFullPath.keySet().iterator().next();
 		metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ), channelIndex );
 		dealWithTimepointsInObjectTableIfNeeded( name, table, imageColumn );
+	}
+
+	protected static boolean isCellProfilerColumn( String column, Table table )
+	{
+		if ( ! column.startsWith( "FileName_" ) ) return false;
+
+		String postfix = column.substring("FileName_".length());
+		String folderColumn = "PathName_" + postfix;
+		boolean containsFolderColumn = table.containsColumn( folderColumn );
+
+		return containsFolderColumn;
 	}
 
 	protected static List< String > getFullPaths( String regex, String root )

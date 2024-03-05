@@ -43,15 +43,13 @@ public class SourcesFromPathsCreator
 
 	public SourcesFromPathsCreator( List < String > imagePaths, List < String > labelPaths, List < String > labelTablePaths, String root, GridType grid )
 	{
-		// FIXME: Remove all the pathMapping from the Constructors here!
-
 		// images
 		//
 		imageSources = new ArrayList<>();
 		for ( String imagePath : imagePaths )
 		{
 			final FileImageSource fileImageSource = new FileImageSource( imagePath );
-			imageSources.add( new ImageFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, null, grid ) );
+			imageSources.add( new ImageFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
 		}
 
 		// segmentation images
@@ -64,11 +62,11 @@ public class SourcesFromPathsCreator
 			if ( labelTablePaths.size() > labelSourceIndex )
 			{
 				final String labelTablePath = labelTablePaths.get( labelSourceIndex );
-				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, labelTablePath, root, null, grid ) );
+				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, labelTablePath, root, grid ) );
 			}
 			else
 			{
-				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, null, grid ) );
+				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
 			}
 		}
 	}

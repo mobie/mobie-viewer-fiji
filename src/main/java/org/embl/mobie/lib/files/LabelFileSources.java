@@ -77,15 +77,15 @@ public class LabelFileSources extends ImageFileSources
 		}
 	}
 
-	public LabelFileSources( String name, String labelsPath, Integer channelIndex, String root, String pathMapping, GridType grid )
+	public LabelFileSources( String name, String labelsPath, Integer channelIndex, String root, GridType grid )
 	{
-		super( name, labelsPath, channelIndex, root, pathMapping, grid );
+		super( name, labelsPath, channelIndex, root, grid );
 	}
 
 
-	public LabelFileSources( String name, String path, Integer channelIndex, String labelTablePath, String root, String pathMapping, GridType grid )
+	public LabelFileSources( String name, String path, Integer channelIndex, String labelTablePath, String root, GridType grid )
 	{
-		super( name, path, channelIndex, root, pathMapping, grid );
+		super( name, path, channelIndex, root, grid );
 
 		final List< String > labelTablePaths = getFullPaths( labelTablePath, root );
 		final ArrayList< String > labelMaskNames = new ArrayList<>( nameToFullPath.keySet() );
