@@ -339,27 +339,6 @@ public class Plate
 			is2d = false;
 	}
 
-	private ImagePlus openImagePlus( String path, int channelID )
-	{
-		if ( this.imageDataFormat.equals( ImageDataFormat.Tiff ) )
-		{
-			final File file = new File( path );
-			if ( ! file.exists() )
-				throw new RuntimeException( file.getAbsolutePath() + " does not exist." );
-
-			ImagePlus imagePlus = ( new Opener() ).openTiff( file.getParent(), file.getName() );
-			return imagePlus;
-		}
-		else if ( this.imageDataFormat.equals( ImageDataFormat.OmeZarr )
-				|| this.imageDataFormat.equals( ImageDataFormat.OmeZarrS3 ) )
-		{
-			return MoBIEHelper.openAsImagePlus( path, channelID, imageDataFormat );
-		}
-		else
-		{
-			return MoBIEHelper.openAsImagePlus( path, channelID, imageDataFormat );
-		}
-	}
 
 	private Channel getChannel( HashMap< Channel, Map< Well, Set< Site > > > channelWellSites, String channelName )
 	{

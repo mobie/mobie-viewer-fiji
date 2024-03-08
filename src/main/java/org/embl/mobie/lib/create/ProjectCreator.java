@@ -28,6 +28,10 @@
  */
 package org.embl.mobie.lib.create;
 
+import org.embl.mobie.DataStore;
+import org.embl.mobie.io.ImageDataOpener;
+import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.serialize.DataSource;
 import org.embl.mobie.lib.serialize.Project;
 import org.embl.mobie.lib.serialize.Dataset;
@@ -238,14 +242,11 @@ public class ProjectCreator {
                 for ( DataSource dataSource : dataset.sources().values() ) {
                     ImageDataSource imageSource = ( ImageDataSource ) dataSource;
                     // open one of the local images
-                    for (ImageDataFormat format : imageSource.imageData.keySet()) {
-                        if (!format.isRemote()) {
+                    for ( ImageDataFormat format : imageSource.imageData.keySet() ) {
+                        if ( ! format.isRemote() ) {
                             String imagePath = IOHelper.combinePath( projectLocation.getAbsolutePath(), datasetName,
                                     imageSource.imageData.get(format).relativePath);
-                            SpimData spimData = (SpimData) new SpimDataOpener().open( imagePath, format );
-                            VoxelDimensions voxelDimensions = spimData.getSequenceDescription().
-                                    getViewSetupsOrdered().get(0).getVoxelSize();
-                            voxelUnit = voxelDimensions.unit();
+                            voxelUnit = MoBIEHelper.fetchVoxelDimensions( imagePath ).unit();
                             return;
                         }
                     }

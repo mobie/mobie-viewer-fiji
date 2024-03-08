@@ -28,31 +28,16 @@
  */
 package org.embl.mobie.lib;
 
-import bdv.SpimSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import ij.ImagePlus;
-import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.generic.AbstractSpimData;
-import org.embl.mobie.DataStore;
-import org.embl.mobie.io.ImageDataFormat;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.io.ImageDataOpener;
-import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.io.imagedata.ImageData;
-import org.embl.mobie.io.toml.TOMLOpener;
-import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.lib.color.ColorHelper;
-import org.embl.mobie.lib.io.StorageLocation;
-import org.embl.mobie.lib.serialize.ImageDataSource;
-import org.embl.mobie.lib.source.Metadata;
-import org.embl.mobie.lib.source.SourceToImagePlusConverter;
-import org.janelia.saalfeldlab.n5.universe.metadata.canonical.CanonicalSpatialDatasetMetadata;
+import org.janelia.saalfeldlab.n5.universe.metadata.canonical.CanonicalDatasetMetadata;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
-import spimdata.util.Displaysettings;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
@@ -212,63 +197,21 @@ public abstract class MoBIEHelper
 		return namedGroups;
 	}
 
-	public static CanonicalSpatialDatasetMetadata getMetadata( String uri, int datasetIndex )
+	public static CanonicalDatasetMetadata fetchMetadata( String uri, int datasetIndex )
 	{
 		ImageData< ? > imageData = ImageDataOpener.open( uri, ThreadHelper.sharedQueue );
 		return imageData.getMetadata( datasetIndex );
 	}
 
-	@Deprecated // use getMetadata instead
-	public static Metadata getMetadataFromImageFile( String path, int channelIndex )
+	public static VoxelDimensions fetchVoxelDimensions( String uri )
 	{
-		// FIXME: Metadata
+		VoxelDimensions voxelDimensions = ImageDataOpener
+				.open( uri, ThreadHelper.sharedQueue )
+				.getSourcePair( 0 )
+				.getB()
+				.getVoxelDimensions();
 
-		if ( ! new File( path ).exists() )
-		{
-			throw new RuntimeException( "Path does not exist: " + path );
-		}
-
-		if ( path.contains( ".zarr" ) )
-		{
-			try
-			{
-
-				AbstractSpimData< ? > spimData = new SpimDataOpener().open( path, ImageDataFormat.OmeZarr );
-				final SpimSource< ? > source = new SpimSource( spimData, channelIndex, "" );
-				final int levels = source.getNumMipmapLevels();
-				final ImagePlus imagePlus = new SourceToImagePlusConverter<>( source ).getImagePlus( levels - 1 );
-				Metadata metadata = new Metadata( imagePlus );
-				metadata.numChannelsContainer = spimData.getSequenceDescription().getViewSetups().size();
-				return metadata;
-			}
-			catch ( SpimDataException e )
-			{
-				throw new RuntimeException( e );
-			}
-		}
-		else if ( path.endsWith( ".h5" ) )
-		{
-			return new Metadata();
-		}
-		else if ( path.endsWith( ".toml" ) )
-		{
-			final ImagePlus imagePlus = new TOMLOpener( path ).asImagePlus();
-			return new Metadata( imagePlus );
-		}
-		else
-		{
-			final ImagePlus imagePlus = IOHelper.openWithBioFormats( path, 0 );
-			imagePlus.setC( channelIndex + 1 );
-			return new Metadata( imagePlus );
-		}
-	}
-
-	public static ImagePlus openAsImagePlus( String path, int setupID, ImageDataFormat imageDataFormat )
-	{
-		AbstractSpimData< ? > spimData = DataStore.fetchImageData( path, imageDataFormat, ThreadHelper.sharedQueue );
-		final SpimSource< ? > spimSource = new SpimSource( spimData, setupID, "" );
-		final ImagePlus imagePlus = new SourceToImagePlusConverter<>( spimSource ).getImagePlus( 0 );
-		return imagePlus;
+		return voxelDimensions;
 	}
 
 	public static String createAbsolutePath( String rootFolder, String fileName, String folderName )

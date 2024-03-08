@@ -283,6 +283,9 @@ public class ImagesCreator {
             deleteImageFiles( datasetName, imageName, imageDataFormat );
         }
 
+        // TODO use mobie-io OMEZarrWriter for that
+        //  - figure out which input arguments are needed
+
         DownsampleBlock.DownsamplingMethod downsamplingMethod = getDownsamplingMethod( imageType );
 
         File imageDir = new File(imageFile.getParent());
