@@ -41,8 +41,8 @@ public class OpenColonyObjectsTable
         final OpenTableCommand command = new OpenTableCommand();
         command.root = new File( "/Users/tischer/Desktop/moritz/HCT116_dataset-wells" );
         command.table = new File( "/Users/tischer/Desktop/moritz/HCT116_dataset-wells/colony_table.csv" );
-        command.images = "file_name";
-        command.labels = "labels_file_name";
+        command.images = "file_name=image";
+        command.labels = "labels_file_name=colonies";
         command.removeSpatialCalibration = true;
         command.run();
     }

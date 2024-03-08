@@ -74,7 +74,7 @@ public class OpenHCSDatasetCommand implements Command
 	@Parameter ( label = "OME-XML (optional)",
 			description = "This is used if the option FromOMEXML is chosen to for" +
 					" determining the Voxel Dimensions",
-			persist = false )
+			persist = false, required = false )
 	public File omeXML;
 
 	@Override
