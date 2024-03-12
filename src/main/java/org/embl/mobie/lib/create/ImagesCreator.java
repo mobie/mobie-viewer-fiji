@@ -39,7 +39,6 @@ import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
 import mpicbg.spim.data.generic.base.Entity;
-import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.sequence.ImgLoader;
 import mpicbg.spim.data.sequence.SequenceDescription;
 import mpicbg.spim.data.sequence.ViewSetup;
@@ -53,18 +52,14 @@ import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.FloatType;
 import org.apache.commons.io.FileUtils;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.io.SpimDataOpener;
-import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
-import org.embl.mobie.io.ome.zarr.writers.imageplus.WriteImagePlusToN5OmeZarr;
+import org.embl.mobie.io.ImageDataOpener;
+import org.embl.mobie.io.OMEZarrWriter;
+import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.janelia.saalfeldlab.n5.Compression;
+import org.jetbrains.annotations.NotNull;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
-
-import org.embl.mobie.io.n5.loaders.N5FSImageLoader;
-import org.embl.mobie.io.n5.util.DownsampleBlock;
-import org.embl.mobie.io.n5.writers.WriteImagePlusToN5;
-import org.embl.mobie.io.n5.shaded.*;
 
 import javax.swing.*;
 import java.io.File;
@@ -77,10 +72,7 @@ import java.util.Iterator;
 
 import static de.embl.cba.morphometry.Utils.labelMapAsImgLabeling;
 import static net.imglib2.util.Util.getTypeFromInterval;
-import static org.embl.mobie.lib.create.ProjectCreatorHelper.getImageLocationFromSequenceDescription;
-import static org.embl.mobie.lib.create.ProjectCreatorHelper.imageFormatToFolderName;
-import static org.embl.mobie.lib.create.ProjectCreatorHelper.isImageValid;
-import static org.embl.mobie.lib.create.ProjectCreatorHelper.isSpimData2D;
+import static org.embl.mobie.lib.create.ProjectCreatorHelper.*;
 
 /**
  * Class to add images and segmentations to MoBIE projects in the correct file formats
@@ -99,33 +91,16 @@ public class ImagesCreator {
         this.projectCreator = projectCreator;
     }
 
-    private String getDefaultLocalImagePath( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
-        if ( imageDataFormat == ImageDataFormat.OmeZarr ) {
-            return getDefaultLocalImageZarrPath( datasetName, imageName, imageDataFormat );
-        } else {
-            return getDefaultLocalImageXmlPath( datasetName, imageName, imageDataFormat );
-        }
+    private String getDefaultLocalImagePath( String datasetName, String imageName ) {
+        return IOHelper.combinePath(getDefaultLocalImageDirPath(datasetName), imageName + ".ome.zarr");
     }
 
-    private String getDefaultLocalImageXmlPath( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
-        return IOHelper.combinePath(getDefaultLocalImageDirPath(datasetName, imageDataFormat), imageName + ".xml");
-    }
-
-    private String getDefaultLocalImageZarrPath( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
-        return IOHelper.combinePath(getDefaultLocalImageDirPath(datasetName, imageDataFormat), imageName + ".ome.zarr");
-    }
-
-    private String getDefaultLocalN5Path( String datasetName, String imageName ) {
-        return IOHelper.combinePath( getDefaultLocalImageDirPath( datasetName, ImageDataFormat.BdvN5), imageName + ".n5" );
-    }
-
-    private String getDefaultLocalImageDirPath( String datasetName, ImageDataFormat imageDataFormat ) {
-        return IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "images", imageFormatToFolderName( imageDataFormat ) );
+    private String getDefaultLocalImageDirPath( String datasetName ) {
+        return IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "images" );
     }
 
     private String getDefaultTableDirPath( String datasetName, String imageName ) {
-        return IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
-                datasetName, "tables", imageName );
+        return IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "tables", imageName );
     }
 
     private String getDefaultTablePath( String datasetName, String imageName ) {
@@ -140,128 +115,23 @@ public class ImagesCreator {
      * @return whether the image exists or not
      */
     public boolean imageExists( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
-        // either xml file path or zarr file path depending on imageDataFormat
-        String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
+        String filePath =  getDefaultLocalImagePath( datasetName, imageName );
         return new File (filePath).exists();
     }
 
-    /**
-     * Add ImagePlus image to MoBIE project. Resolutions, subdivisions and compression of converted image will be
-     * set to sensible defaults.
-     * @param imp ImagePlus image
-     * @param imageName image name
-     * @param datasetName dataset name
-     * @param imageDataFormat image data format to convert to - ImageDataFormat.BdvN5 or ImageDataFormat.OmeZarr
-     * @param imageType image type i.e. image or segmentation
-     * @param sourceTransform Affine transform of image
-     * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
-     *                         menu it will appear in
-     * @throws SpimDataException
-     * @throws IOException
-     */
-    public void addImage ( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, AffineTransform3D sourceTransform, String uiSelectionGroup ) throws SpimDataException, IOException
+    public void addImage( ImagePlus imp,
+                          String imageName,
+                          String datasetName,
+                          ImageDataFormat imageDataFormat,
+                          ProjectCreator.ImageType imageType,
+                          AffineTransform3D sourceTransform,
+                          String uiSelectionGroup,
+                          boolean exclusive )
     {
-        addImage( imp, imageName, datasetName, imageDataFormat, imageType, sourceTransform, uiSelectionGroup, false, null, null, null );
-    }
-
-    /**
-     * Add ImagePlus image to MoBIE project. Resolutions, subdivisions and compression of converted image will be
-     * set to sensible defaults.
-     * @param imp ImagePlus image
-     * @param imageName image name
-     * @param datasetName dataset name
-     * @param imageDataFormat image data format to convert to - ImageDataFormat.BdvN5 or ImageDataFormat.OmeZarr
-     * @param imageType image type i.e. image or segmentation
-     * @param sourceTransform Affine transform of image
-     * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
-     *                         menu it will appear in
-     * @param exclusive whether the image view is exclusive or not i.e. when viewed, does it first remove all current
-     *                  images from the viewer?
-     * @throws SpimDataException
-     * @throws IOException
-     */
-    public void addImage ( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, AffineTransform3D sourceTransform, String uiSelectionGroup, boolean exclusive ) throws SpimDataException, IOException
-    {
-        addImage( imp, imageName, datasetName, imageDataFormat, imageType, sourceTransform, uiSelectionGroup, exclusive, null, null, null );
-    }
-
-    /**
-     * Add ImagePlus image to MoBIE project. Resolutions, subdivisions and compression of converted image will be
-     * set to sensible defaults.
-     * @param imp ImagePlus image
-     * @param imageName image name
-     * @param datasetName dataset name
-     * @param imageDataFormat image data format to convert to - ImageDataFormat.BdvN5 or ImageDataFormat.OmeZarr
-     * @param imageType image type i.e. image or segmentation
-     * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
-     *                         menu it will appear in
-     * @param exclusive whether the image view is exclusive or not i.e. when viewed, does it first remove all current
-     *                  images from the viewer?
-     * @throws SpimDataException
-     * @throws IOException
-     */
-    public void addImage ( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, String uiSelectionGroup, boolean exclusive ) throws SpimDataException, IOException
-    {
-        addImage( imp, imageName, datasetName, imageDataFormat, imageType, new AffineTransform3D(), uiSelectionGroup, exclusive, null, null, null );
-    }
-
-    /**
-     * Add ImagePlus image to MoBIE project. Resolutions, subdivisions and compression of converted image must be
-     * provided directly.
-     * @param imp ImagePlus image
-     * @param imageName image name
-     * @param datasetName dataset name
-     * @param imageDataFormat image data format to convert to - ImageDataFormat.BdvN5 or ImageDataFormat.OmeZarr
-     * @param imageType image type i.e. image or segmentation
-     * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
-     *                         menu it will appear in
-     * @param exclusive whether the image view is exclusive or not i.e. when viewed, does it first remove all current
-     *                  images from the viewer?
-     * @param resolutions Resolution levels to use for converted image e.g. [ [1,1,1], [2,2,2], [4,4,4] ] will
-     *                    write one full resolution level, then one 2x downsampled, and one 4x downsampled.
-     *                    The order is [x, y, z].
-     * @param subdivisions Subdivisions/chunk size to use for converted image. This must have the same number of
-     *                    entries as 'resolutions'. e.g. [ [64,64,64], [64,64,64], [64,64,64] ] will use a chunk size
-     *                    of (64, 64, 64) for all levels. The order is [x, y, z].
-     * @param compression Type of compression to use for converted image.
-     * @throws SpimDataException
-     * @throws IOException
-     */
-    public void addImage ( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, String uiSelectionGroup, boolean exclusive, int[][] resolutions, int[][] subdivisions, Compression compression ) throws SpimDataException, IOException
-    {
-        addImage( imp, imageName, datasetName, imageDataFormat, imageType, new AffineTransform3D(), uiSelectionGroup, exclusive, resolutions, subdivisions, compression );
-    }
-
-    /**
-     * Add ImagePlus image to MoBIE project. Resolutions, subdivisions and compression of converted image must be
-     * provided directly.
-     * @param imp ImagePlus image
-     * @param imageName image name
-     * @param datasetName dataset name
-     * @param imageDataFormat image data format to convert to - ImageDataFormat.BdvN5 or ImageDataFormat.OmeZarr
-     * @param imageType image type i.e. image or segmentation
-     * @param sourceTransform Affine transform of image
-     * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
-     *                         menu it will appear in
-     * @param exclusive whether the image view is exclusive or not i.e. when viewed, does it first remove all current
-     *                  images from the viewer?
-     * @param resolutions Resolution levels to use for converted image e.g. [ [1,1,1], [2,2,2], [4,4,4] ] will
-     *                    write one full resolution level, then one 2x downsampled, and one 4x downsampled.
-     *                    The order is [x, y, z].
-     * @param subdivisions Subdivisions/chunk size to use for converted image. This must have the same number of
-     *                     entries as 'resolutions'. e.g. [ [64,64,64], [64,64,64], [64,64,64] ] will use a chunk size
-     *                     of (64, 64, 64) for all levels. The order is [x, y, z].
-     * @param compression Type of compression to use for converted image.
-     * @throws IOException
-     * @throws SpimDataException
-     */
-    public void addImage( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, AffineTransform3D sourceTransform, String uiSelectionGroup, boolean exclusive, int[][] resolutions, int[][] subdivisions, Compression compression ) throws IOException, SpimDataException
-    {
-        // either xml file path or zarr file path depending on imageDataFormat
-        String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
+        String filePath = getDefaultLocalImagePath( datasetName, imageName );
         File imageFile = new File(filePath);
 
-        if ( !isImageValid( imp.getNChannels(), imp.getCalibration().getUnit(),
+        if ( ! isImageValid( imp.getNChannels(), imp.getCalibration().getUnit(),
                 projectCreator.getVoxelUnit(), false ) )
         {
             return;
@@ -277,33 +147,17 @@ public class ImagesCreator {
             projectCreator.setVoxelUnit( imp.getCalibration().getUnit() );
         }
 
-        if ( imageFile.exists() )
-        {
-            IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
-            deleteImageFiles( datasetName, imageName, imageDataFormat );
-        }
+        // Done by N5?!
+//        File imageDir = new File(imageFile.getParent());
+//        if ( ! imageDir.exists() )
+//        {
+//            imageDir.mkdirs();
+//        }
 
-        // TODO use mobie-io OMEZarrWriter for that
-        //  - figure out which input arguments are needed
 
-        DownsampleBlock.DownsamplingMethod downsamplingMethod = getDownsamplingMethod( imageType );
+        OMEZarrWriter.write( imp, filePath, getImageType( imageType ), true );
 
-        File imageDir = new File(imageFile.getParent());
-        if ( !imageDir.exists() ) {
-            imageDir.mkdirs();
-        }
-
-        if ( resolutions == null || subdivisions == null || compression == null )
-        {
-            writeDefaultImage( imp, filePath, downsamplingMethod, imageName, imageDataFormat );
-        }
-        else
-        {
-            writeDefaultImage( imp, filePath, downsamplingMethod, imageName, imageDataFormat,
-                    resolutions, subdivisions, compression );
-        }
-
-        // check image written successfully, before writing jsons
+        // check image written successfully, before writing JSONs
         if ( imageFile.exists() ) {
             if (imageType == ProjectCreator.ImageType.image) {
                 double[] contrastLimits = new double[]{imp.getDisplayRangeMin(), imp.getDisplayRangeMax()};
@@ -318,42 +172,21 @@ public class ImagesCreator {
 
     }
 
-    private DownsampleBlock.DownsamplingMethod getDownsamplingMethod( ProjectCreator.ImageType imageType ) {
-        DownsampleBlock.DownsamplingMethod downsamplingMethod;
-        switch( imageType ) {
-            case image:
-                downsamplingMethod = DownsampleBlock.DownsamplingMethod.Average;
-                break;
-            default:
-                downsamplingMethod = DownsampleBlock.DownsamplingMethod.Centre;
-        }
-
-        return downsamplingMethod;
+    @NotNull
+    private static OMEZarrWriter.ImageType getImageType( ProjectCreator.ImageType imageType )
+    {
+        OMEZarrWriter.ImageType type = imageType.equals( ProjectCreator.ImageType.segmentation ) ? OMEZarrWriter.ImageType.Labels : OMEZarrWriter.ImageType.Intensities;
+        return type;
     }
 
-    private void writeDefaultImage( ImagePlus imp, String filePath,
-                                    DownsampleBlock.DownsamplingMethod downsamplingMethod,
-                                    String imageName, ImageDataFormat imageDataFormat ) {
+    private void writeDefaultImage( ImagePlus imp,
+                                    String filePath,
+                                    ProjectCreator.ImageType imageType,
+                                    String imageName,
+                                    ImageDataFormat imageDataFormat )
+    {
 
-        // transform only including scaling from image
-        AffineTransform3D sourceTransform = ProjectCreatorHelper.generateDefaultAffine( imp );
 
-        // gzip compression by default
-        switch( imageDataFormat )
-        {
-            case BdvN5:
-                new WriteImagePlusToN5().export(imp, filePath, sourceTransform, downsamplingMethod,
-                        new GzipCompression(), new String[]{imageName} );
-                break;
-
-            case OmeZarr:
-                new WriteImagePlusToN5OmeZarr().export(imp, filePath, sourceTransform, downsamplingMethod, new GzipCompression() );
-                break;
-
-            default:
-                throw new UnsupportedOperationException();
-
-        }
     }
 
     private void writeDefaultImage( ImagePlus imp, String filePath,
@@ -381,40 +214,19 @@ public class ImagesCreator {
         }
     }
 
-    private void deleteImageFiles( String datasetName, String imageName, ImageDataFormat imageDataFormat ) throws IOException {
+    private void deleteImageFiles( String datasetName, String imageName ) throws IOException {
 
-        File xmlFile = null;
-        File n5File = null;
-        File zarrFile = null;
-        switch( imageDataFormat ) {
-            case BdvN5:
-                xmlFile = new File( getDefaultLocalImageXmlPath( datasetName, imageName, imageDataFormat ) );
-                n5File = new File( getDefaultLocalN5Path( datasetName, imageName ) );
-                break;
-
-            case OmeZarr:
-                zarrFile = new File( getDefaultLocalImageZarrPath( datasetName, imageName, imageDataFormat ) );
-                break;
-
-            default:
-                throw new UnsupportedOperationException();
-
-        }
-
+        File zarrFile = new File( getDefaultLocalImagePath( datasetName, imageName ) );
         File tableFile = new File( getDefaultTablePath( datasetName, imageName ) );
 
-        // delete files
-        for ( File file : new File[] {xmlFile, tableFile}) {
-            if ( file != null && file.exists() ) {
-                Files.delete( file.toPath() );
-            }
+        // delete table
+        if ( tableFile != null && file.exists() ) {
+            Files.delete( file.toPath() );
         }
 
-        // delete directories
-        for ( File file : new File[]{ zarrFile, n5File }) {
-            if ( file != null && file.exists() ) {
-                FileUtils.deleteDirectory( file );
-            }
+        // delete image
+        if ( zarrFile != null && file.exists() )  {
+            FileUtils.deleteDirectory( zarrFile );
         }
     }
 
@@ -486,34 +298,22 @@ public class ImagesCreator {
             projectCreator.setVoxelUnit( imageUnit );
         }
 
-        File newImageFile = null;
-        switch( imageDataFormat ) {
-            case BdvN5:
-                newImageFile = new File(imageDirectory, imageName + ".xml");
-                // The view setup name must be the same as the image name
-                spimData = fixSetupName( spimData, imageName );
-                break;
-            case OmeZarr:
-                newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
-                break;
-        }
-
+        File newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
         if ( newImageFile.exists() ) {
             IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
-            deleteImageFiles( datasetName, imageName, imageDataFormat );
+            deleteImageFiles( datasetName, imageName );
         }
 
-        // make directory for that image file format, if doesn't exist already
-        File imageDir = new File( newImageFile.getParent() );
-        if ( !imageDir.exists() ) {
-            imageDir.mkdirs();
-        }
+        // make directory for that image, if doesn't exist already
+        // FIXME: Do we really need this? N5 seems to be doing this....
+//        File imageDir = new File( newImageFile.getParent() );
+//        if ( !imageDir.exists() ) {
+//            imageDir.mkdirs();
+//        }
 
         switch (addMethod) {
             case link:
-                // TODO - linking currently not supported for ome-zarr
-                spimData.setBasePath( imageDir );
-                new XmlIoSpimData().save(spimData, newImageFile.getAbsolutePath());
+                // Do nothing, the absolute path to the linked image will be added to the dataset.json
                 break;
             case copy:
                 copyImage( imageDataFormat, spimData, imageDirectory, imageName);
@@ -530,10 +330,10 @@ public class ImagesCreator {
             updateTableAndJsonsForNewSegmentation( imageName, datasetName, uiSelectionGroup, imageDataFormat, exclusive, new AffineTransform3D() );
         }
 
-        IJ.log( "Bdv format image " + imageName + " added to project" );
+        IJ.log(  imageName + " added to project" );
     }
 
-    private ArrayList<Object[]> makeDefaultTableRowsForTimepoint( Source labelsSource, int timepoint, boolean addTimepointColumn ) {
+    private ArrayList<Object[]> makeDefaultTableRowsForTimepoint( Source< ? > labelsSource, int timepoint, boolean addTimepointColumn ) {
 
         RandomAccessibleInterval rai = labelsSource.getSource( timepoint, 0 );
 
@@ -599,13 +399,11 @@ public class ImagesCreator {
             IJ.log( " Creating default table... 0 label is counted as background" );
 
             // xml file or zarr file, depending on imageDataFormat
-            String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
-            SpimData spimData = tryOpenSpimData( imageDataFormat, filePath );
-            final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
-            final SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
-            final Source labelsSource = sourceAndConverter.getSpimSource();
+            String filePath = getDefaultLocalImagePath( datasetName, imageName );
+            ImageData< ? > imageData = ImageDataOpener.open( filePath );
+            final Source< ? > labelsSource = imageData.getSourcePair( 0 ).getA();
 
-            boolean hasTimeColumn = spimData.getSequenceDescription().getTimePoints().size() > 1;
+            boolean hasMultipleTimepoints = labelsSource.isPresent( 1 ); // 0,1,...
             ArrayList<String> columnNames = new ArrayList<>();
             columnNames.add( "label_id" );
             columnNames.add( "anchor_x" );
@@ -617,14 +415,13 @@ public class ImagesCreator {
             columnNames.add( "bb_max_x" );
             columnNames.add( "bb_max_y" );
             columnNames.add( "bb_max_z" );
-            if ( hasTimeColumn ) {
+            if ( hasMultipleTimepoints ) {
                 columnNames.add("timepoint");
             }
 
             ArrayList<Object[]> rows = new ArrayList<>();
-
             for ( Integer timepoint: spimData.getSequenceDescription().getTimePoints().getTimePoints().keySet() ) {
-                rows.addAll( makeDefaultTableRowsForTimepoint( labelsSource, timepoint, hasTimeColumn ) );
+                rows.addAll( makeDefaultTableRowsForTimepoint( labelsSource, timepoint, hasMultipleTimepoints ) );
             }
 
             Object[][] rowArray = new Object[rows.size()][columnNames.size()];
@@ -637,16 +434,6 @@ public class ImagesCreator {
         }
     }
 
-    private SpimData tryOpenSpimData( ImageDataFormat imageDataFormat, String filePath )
-    {
-        try
-        {
-            return ( SpimData ) new SpimDataOpener().open( filePath, imageDataFormat );
-        } catch ( SpimDataException e )
-        {
-           throw new RuntimeException( e );
-        }
-    }
 
     private void updateTableAndJsonsForNewImage ( String imageName, String datasetName, String uiSelectionGroup, ImageDataFormat imageDataFormat, double[] contrastLimits, String colour, boolean exclusive, AffineTransform3D sourceTransform ) {
         DatasetSerializer datasetSerializer = projectCreator.getDatasetJsonCreator();
@@ -701,25 +488,6 @@ public class ImagesCreator {
         }
     }
 
-    private void closeImgLoader ( SpimData spimData, ImageDataFormat imageFormat ) {
-        BasicImgLoader imgLoader = spimData.getSequenceDescription().getImgLoader();
-
-        switch ( imageFormat ) {
-            case BdvN5:
-                if ( imgLoader instanceof  N5ImageLoader ) {
-                    ( (N5ImageLoader) imgLoader ).close();
-                } else if ( imgLoader instanceof N5FSImageLoader ) {
-                    ( (N5FSImageLoader) imgLoader ).close();
-                }
-                break;
-
-            case OmeZarr:
-                if (imgLoader instanceof N5OMEZarrImageLoader ) {
-                    ( (N5OMEZarrImageLoader) imgLoader ).close();
-                }
-                break;
-        }
-    }
 
     private SpimData fixSetupName( SpimData spimData, String imageName ) {
         // The view setup name must be the same as the image name

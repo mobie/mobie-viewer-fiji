@@ -28,23 +28,12 @@
  */
 package org.embl.mobie.lib.create;
 
-import org.embl.mobie.DataStore;
-import org.embl.mobie.io.ImageDataOpener;
-import org.embl.mobie.lib.MoBIEHelper;
-import org.embl.mobie.lib.ThreadHelper;
-import org.embl.mobie.lib.serialize.DataSource;
-import org.embl.mobie.lib.serialize.Project;
-import org.embl.mobie.lib.serialize.Dataset;
-import org.embl.mobie.lib.serialize.DatasetJsonParser;
-import org.embl.mobie.lib.serialize.ImageDataSource;
-import org.embl.mobie.lib.serialize.ProjectJsonParser;
-import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imagej.patcher.LegacyInjector;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.serialize.*;
 
 import java.io.File;
 import java.io.IOException;
