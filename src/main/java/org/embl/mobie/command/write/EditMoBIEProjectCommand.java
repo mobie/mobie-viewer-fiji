@@ -30,7 +30,7 @@ package org.embl.mobie.command.write;
 
 import ij.IJ;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.create.ui.ProjectsCreatorPanel;
+import org.embl.mobie.lib.create.ui.ProjectsCreatorUI;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -59,7 +59,7 @@ public class EditMoBIEProjectCommand implements Command
             IJ.log( "Edit project failed - MoBIE project does not exist!" );
         } else {
             try {
-                ProjectsCreatorPanel panel = new ProjectsCreatorPanel( projectLocation );
+                ProjectsCreatorUI panel = new ProjectsCreatorUI( projectLocation );
                 panel.showProjectsCreatorPanel();
             } catch (IOException e) {
                 e.printStackTrace();

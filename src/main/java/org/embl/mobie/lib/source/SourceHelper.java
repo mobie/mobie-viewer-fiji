@@ -30,7 +30,6 @@ package org.embl.mobie.lib.source;
 
 import bdv.AbstractSpimSource;
 import bdv.SpimSource;
-import bdv.VolatileSpimSource;
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.AbstractSource;
 import bdv.util.Affine3DHelpers;
@@ -52,7 +51,6 @@ import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.roi.geom.real.WritableBox;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
-import org.embl.mobie.lib.image.StitchedImage;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
@@ -114,6 +112,28 @@ public abstract class SourceHelper
 		}
 
 		return numSourceTimepoints;
+	}
+
+	public static List< Integer > getTimePoints( Source< ? > source )
+	{
+		ArrayList< Integer > timePoints = new ArrayList<>();
+
+		final int maxNumTimePoints = 20000; // TODO: better idea?
+
+		for ( int t = 0; t < maxNumTimePoints; t++ )
+		{
+			if ( source.isPresent( t ) )
+			{
+				timePoints.add( t );
+			}
+		}
+
+		if ( timePoints.size() > maxNumTimePoints / 2 )
+		{
+			System.err.println( source.getName() + " has " + timePoints.size() + " time-points. Is this correct?!" );
+		}
+
+		return timePoints;
 	}
 
 	public static void fetchRootSources( Source< ? > source, Collection< Source< ? > > rootSources )

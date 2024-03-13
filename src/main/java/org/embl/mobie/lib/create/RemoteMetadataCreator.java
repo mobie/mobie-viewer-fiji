@@ -29,27 +29,16 @@
 package org.embl.mobie.lib.create;
 
 import ij.IJ;
-import org.embl.mobie.lib.serialize.Dataset;
-import org.embl.mobie.lib.serialize.ImageDataSource;
-import org.embl.mobie.lib.io.StorageLocation;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.SpimDataIOException;
-import mpicbg.spim.data.XmlIoSpimData;
-import mpicbg.spim.data.generic.AbstractSpimData;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.io.SpimDataOpener;
-import org.embl.mobie.io.n5.loaders.xml.XmlIoN5S3ImageLoader;
-import org.embl.mobie.io.ome.zarr.loaders.xml.XmlN5S3OmeZarrImageLoader;
 import org.embl.mobie.io.util.IOHelper;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
+import org.embl.mobie.lib.io.StorageLocation;
+import org.embl.mobie.lib.serialize.Dataset;
+import org.embl.mobie.lib.serialize.ImageDataSource;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -108,62 +97,8 @@ public class RemoteMetadataCreator {
         }
     }
 
-    private String getRelativeKey( SpimData spimData, String datasetName, String imageName,
-                                  ImageDataFormat imageFormat ) throws IOException {
-        // check image is within the project folder (if people 'link' to bdv format images they may be outside)
-        Path imagePath = Paths.get( ProjectCreatorHelper.getImageLocationFromSequenceDescription( spimData.getSequenceDescription(),
-                imageFormat ).getAbsolutePath() ).normalize();
-        Path projectDataFolder = Paths.get( projectCreator.getProjectLocation().getAbsolutePath() ).normalize();
-
-        if ( !imagePath.startsWith( projectDataFolder )) {
-            String errorMesage = "Image: " + imageName + " for dataset:" + datasetName + " is not in project folder. \n" +
-                    "You can't 'link' to bdv images outside the project folder, when uploading to s3";
-            IJ.log( errorMesage );
-            throw new IOException( errorMesage );
-        }
-
-        Path relativeKey = projectDataFolder.relativize( imagePath );
-
-        return FilenameUtils.separatorsToUnix( relativeKey.toString() );
-    }
-
-    private Element createImageLoaderXmlElement ( SpimData spimData,
-                                                 ImageDataFormat imageFormat,
-                                                 String datasetName, String imageName ) throws IOException {
-        Element element = null;
-        String key = getRelativeKey( spimData, datasetName, imageName, localImageDataFormat );
-        switch ( imageFormat ) {
-            case BdvN5S3:
-                element = new XmlIoN5S3ImageLoader().toXml( serviceEndpoint, signingRegion, bucketName, key );
-                break;
-            case BdvOmeZarrS3:
-                element = new XmlN5S3OmeZarrImageLoader().toXml( serviceEndpoint, signingRegion, bucketName, key );
-                break;
-        }
-
-        return element;
-    }
-
-    private void saveXml( final SpimData spimData, String datasetName, String imagename, final String xmlFile, ImageDataFormat imageFormat ) throws SpimDataException, IOException {
-        XmlIoSpimData io = new XmlIoSpimData();
-        final File xmlFileDirectory = new File( xmlFile ).getParentFile();
-        final Document doc = new Document( io.toXml( spimData, xmlFileDirectory ) );
-        // remove default image loader, and replace with custom one
-        Element imageLoaderElement = createImageLoaderXmlElement( spimData, imageFormat, datasetName, imagename );
-        Element baseElement = (Element) doc.getContent( 0 );
-        ((Element) baseElement.getContent( 1 )).setContent( 0, imageLoaderElement );
-        final XMLOutputter xout = new XMLOutputter( Format.getPrettyFormat() );
-        try( FileOutputStream outputStream = new FileOutputStream( xmlFile ))
-        {
-            xout.output( doc, outputStream );
-        }
-        catch ( final IOException e )
-        {
-            throw new SpimDataIOException( e );
-        }
-    }
-
-    private void addRemoteMetadataForImage( String datasetName, String imageName ) throws SpimDataException, IOException {
+    private void addRemoteMetadataForImage( String datasetName, String imageName )
+    {
         ImageDataSource imageSource = ( ImageDataSource ) projectCreator.getDataset( datasetName ).sources().get( imageName );
         if ( !imageSource.imageData.containsKey( localImageDataFormat ) ) {
             IJ.log( "No images of format " + localImageDataFormat + " for " + imageName +
@@ -171,42 +106,15 @@ public class RemoteMetadataCreator {
             return;
         }
 
-        if ( localImageDataFormat.hasXml() ) {
-
-            // make new xml containing bucket name etc, and give relative path
-            String localXmlLocation = IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
-                    datasetName, imageSource.imageData.get(localImageDataFormat).relativePath);
-
-            String remoteXmlLocation = IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
-                    datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName( remoteImageDataFormat ));
-
-            // make directory for that image file format, if doesn't exist already
-            File remoteDir = new File( remoteXmlLocation );
-            if ( !remoteDir.exists() ) {
-                remoteDir.mkdirs();
-            }
-
-            AbstractSpimData spimData = new SpimDataOpener().open(localXmlLocation, localImageDataFormat);
-            spimData.setBasePath(new File(remoteXmlLocation));
-            saveXml( ( SpimData ) spimData, datasetName, imageName,
-                    new File(remoteXmlLocation, imageName + ".xml").getAbsolutePath(),
-                    remoteImageDataFormat);
-
-            StorageLocation storageLocation = new StorageLocation();
-            storageLocation.relativePath = "images/" + ProjectCreatorHelper.imageFormatToFolderName( remoteImageDataFormat ) + "/" + imageName + ".xml";
-            imageSource.imageData.put( remoteImageDataFormat, storageLocation );
-        } else {
-            // give absolute s3 path to ome.zarr file
-            StorageLocation storageLocation = new StorageLocation();
-            String relativePath = imageSource.imageData.get(localImageDataFormat).relativePath;
-            storageLocation.s3Address = serviceEndpoint + bucketName + "/" + datasetName + "/" + relativePath;
-            storageLocation.signingRegion = signingRegion;
-            imageSource.imageData.put( remoteImageDataFormat, storageLocation );
-        }
-
+        // give absolute s3 path to ome.zarr file
+        StorageLocation storageLocation = new StorageLocation();
+        String relativePath = imageSource.imageData.get(localImageDataFormat).relativePath;
+        storageLocation.s3Address = serviceEndpoint + bucketName + "/" + datasetName + "/" + relativePath;
+        storageLocation.signingRegion = signingRegion;
+        imageSource.imageData.put( remoteImageDataFormat, storageLocation );
     }
 
-    private void addRemoteMetadataForDataset( String datasetName ) throws SpimDataException, IOException {
+    private void addRemoteMetadataForDataset( String datasetName )  {
         Dataset dataset = projectCreator.getDataset( datasetName );
         for ( String imageName: dataset.sources().keySet() ) {
             if ( !imageName.equals("") ) {

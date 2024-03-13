@@ -56,7 +56,8 @@ import static org.embl.mobie.ui.UserInterfaceHelper.tidyString;
 /**
  * Utility class for helper functions used during project creation
  */
-public class ProjectCreatorHelper {
+public class ProjectCreatorHelperWithBDV
+{
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -117,6 +118,42 @@ public class ProjectCreatorHelper {
         defaultAffine.scale( pixelWidth, pixelHeight, pixelDepth );
 
         return defaultAffine;
+    }
+
+    /**
+     * Finds filepath of image from sequence description
+     * @param seq sequence description
+     * @param imageFormat image format - either ImageDataFormat.BdvN5, ImageDataFormat.BdvOmeZarr or
+     *                    ImageDataFormat.OmeZarr
+     * @return Filepath of image
+     */
+    public static File getImageLocationFromSequenceDescription( AbstractSequenceDescription seq, ImageDataFormat imageFormat ) {
+        File imageLocation = null;
+
+        // get image loader to find absolute image location
+        BasicImgLoader imgLoader = seq.getImgLoader();
+        switch ( imageFormat ) {
+            case BdvN5:
+                if (imgLoader instanceof N5ImageLoader) {
+                    N5ImageLoader n5ImageLoader = (N5ImageLoader) imgLoader;
+                    imageLocation = n5ImageLoader.getN5File();
+                } else if (imgLoader instanceof N5FSImageLoader) {
+                    N5FSImageLoader n5ImageLoader = (N5FSImageLoader) imgLoader;
+                    imageLocation = n5ImageLoader.getN5File();
+                }
+                break;
+
+            case BdvOmeZarr:
+
+            case OmeZarr:
+                if (imgLoader instanceof N5OMEZarrImageLoader) {
+                    N5OMEZarrImageLoader zarrLoader = (N5OMEZarrImageLoader) imgLoader;
+                    imageLocation = new File( ((N5OmeZarrReader) zarrLoader.n5).getBasePath() );
+                }
+                break;
+        }
+
+        return imageLocation;
     }
 
     /**

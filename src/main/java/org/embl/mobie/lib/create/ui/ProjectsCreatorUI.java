@@ -32,23 +32,20 @@ import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
-import org.embl.mobie.lib.serialize.Project;
+import mpicbg.spim.data.SpimDataException;
+import net.imglib2.realtransform.AffineTransform3D;
+import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.command.open.project.OpenMoBIEProjectCommand;
+import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.n5.shaded.*;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.create.ImagesCreator;
 import org.embl.mobie.lib.create.ProjectCreator;
 import org.embl.mobie.lib.create.ProjectCreatorHelper;
 import org.embl.mobie.lib.serialize.Dataset;
+import org.embl.mobie.lib.serialize.Project;
 import org.embl.mobie.ui.SwingHelper;
 import org.embl.mobie.ui.UserInterfaceHelper;
-import mpicbg.spim.data.SpimData;
-import mpicbg.spim.data.SpimDataException;
-import net.imglib2.realtransform.AffineTransform3D;
-import org.apache.commons.io.FilenameUtils;
-import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.io.SpimDataOpener;
-import org.embl.mobie.io.util.IOHelper;
-
-import org.embl.mobie.io.n5.shaded.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -62,12 +59,11 @@ import java.util.stream.Collectors;
 
 import static org.embl.mobie.lib.create.ProjectCreatorHelper.getVoxelSizeString;
 import static org.embl.mobie.lib.create.ProjectCreatorHelper.isImageValid;
-import static org.embl.mobie.lib.create.ProjectCreatorHelper.isSpimData2D;
 
 /**
  * Class for the main user interface of the project creator
  */
-public class ProjectsCreatorPanel extends JFrame {
+public class ProjectsCreatorUI extends JFrame {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -81,9 +77,7 @@ public class ProjectsCreatorPanel extends JFrame {
     private final int labelPaddingY = 15;
 
     private static ProjectCreator.ImageType imageType = ProjectCreator.ImageType.image;
-    private static ImageDataFormat imageDataFormat = ImageDataFormat.BdvN5;
     private static ProjectCreator.AddMethod addMethod = ProjectCreator.AddMethod.link;
-    private static boolean useDefaultExportSettings = true;
     private static boolean exclusive = false;
     private static boolean useFileNameAsImageName = true;
     private static String uiSelectionGroup = "Make New Ui Selection Group";
@@ -99,7 +93,7 @@ public class ProjectsCreatorPanel extends JFrame {
      * @param projectLocation project directory
      * @throws IOException
      */
-    public ProjectsCreatorPanel ( File projectLocation ) throws IOException {
+    public ProjectsCreatorUI( File projectLocation ) throws IOException {
 
         // account for projects with and without the top 'data' directory
         File dataDirectory = ProjectCreatorHelper.getDataLocation( projectLocation );
@@ -549,8 +543,6 @@ public class ProjectsCreatorPanel extends JFrame {
             gd.addMessage( "Make sure your voxel size, and unit,\n are set properly under Image > Properties...");
             gd.addStringField( "Image Name", FilenameUtils.removeExtension(currentImage.getTitle()), 35 );
             gd.addChoice( "Image Type", imageTypes, imageType.toString() );
-            gd.addChoice( "Image format", imageFormats, imageDataFormat.toString() );
-            gd.addCheckbox("Use default export settings", useDefaultExportSettings );
             gd.addCheckbox("Make view exclusive", exclusive );
 
             gd.addMessage( getVoxelSizeString( currentImage ) );
@@ -565,8 +557,6 @@ public class ProjectsCreatorPanel extends JFrame {
             if ( !gd.wasCanceled() ) {
                 String imageName = gd.getNextString();
                 imageType = ProjectCreator.ImageType.valueOf( gd.getNextChoice() );
-                imageDataFormat = ImageDataFormat.fromString( gd.getNextChoice() );
-                useDefaultExportSettings = gd.getNextBoolean();
                 exclusive = gd.getNextBoolean();
 
                 String affineRow1 = gd.getNextString().trim();
@@ -582,7 +572,7 @@ public class ProjectsCreatorPanel extends JFrame {
                     ImagesCreator imagesCreator = projectsCreator.getImagesCreator();
 
                     boolean overwriteImage = true;
-                    if ( imagesCreator.imageExists( datasetName, imageName, imageDataFormat ) ) {
+                    if ( imagesCreator.imageExists( datasetName, imageName ) ) {
                         overwriteImage = overwriteImageDialog();
                     }
                     if ( !overwriteImage ) {
@@ -596,27 +586,8 @@ public class ProjectsCreatorPanel extends JFrame {
                         uiSelectionGroup = chosenUiSelectionGroup;
                     }
 
-                    try {
-                        if ( useDefaultExportSettings ) {
-                            imagesCreator.addImage(currentImage, imageName, datasetName, imageDataFormat,
-                                    imageType, sourceTransform, uiSelectionGroup, exclusive);
-                            updateComboBoxesForNewImage(imageName, uiSelectionGroup);
-                        } else {
-                            ManualExportPanel manualExportPanel = new ManualExportPanel( imageDataFormat );
-                            int[][] resolutions = manualExportPanel.getResolutions();
-                            int[][] subdivisions = manualExportPanel.getSubdivisions();
-                            Compression compression = manualExportPanel.getCompression();
-
-                            if ( resolutions != null && subdivisions != null && compression != null ) {
-                                imagesCreator.addImage( currentImage, imageName, datasetName, imageDataFormat, imageType,
-                                        sourceTransform, uiSelectionGroup, exclusive, resolutions, subdivisions,
-                                        compression );
-                                updateComboBoxesForNewImage( imageName, uiSelectionGroup );
-                            }
-                        }
-                    } catch (SpimDataException | IOException e) {
-                        e.printStackTrace();
-                    }
+                    imagesCreator.addImage(currentImage, imageName, datasetName, imageDataFormat, imageType, sourceTransform, uiSelectionGroup, exclusive);
+                    updateComboBoxesForNewImage(imageName, uiSelectionGroup);
                 }
             }
 
@@ -709,56 +680,6 @@ public class ProjectsCreatorPanel extends JFrame {
     private boolean isValidOMEZarr( String filePath )
     {
         return ( new File( IOHelper.combinePath( filePath, ".zgroup" ) ).exists() && new File( IOHelper.combinePath( filePath, ".zattrs" ) ).exists() );
-    }
-
-    private void addBdvFile( String filePath, String datasetName ) throws SpimDataException {
-        SpimData spimData = ( SpimData ) new SpimDataOpener().open( filePath, imageDataFormat );
-
-        int nChannels = spimData.getSequenceDescription().getViewSetupsOrdered().size();
-        String imageUnit = spimData.getSequenceDescription().getViewSetupsOrdered().get(0).getVoxelSize().unit();
-
-        if ( !isImageValid( nChannels, imageUnit, projectsCreator.getVoxelUnit(), true ) ) {
-            return;
-        }
-
-        if ( !isSpimData2D(spimData) && projectsCreator.getDataset( datasetName ).is2D() ) {
-            if ( !changeDatasetDimensionDialog(datasetName) ) {
-                return;
-            }
-        }
-
-        File imageFile = new File( filePath );
-        String imageName = imageFile.getName().split("\\.")[0];
-        if ( !useFileNameAsImageName ) {
-            imageName = imageNameDialog( imageFile );
-            if ( imageName == null ) {
-                return;
-            }
-        }
-
-        ImagesCreator imagesCreator = projectsCreator.getImagesCreator();
-        boolean overwriteImage = true;
-        if ( imagesCreator.imageExists( datasetName, imageName, imageDataFormat ) ) {
-            overwriteImage = overwriteImageDialog();
-        }
-        if ( !overwriteImage ) {
-            return;
-        }
-
-        String chosenUiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
-        if ( chosenUiSelectionGroup == null ) {
-            return;
-        } else {
-            uiSelectionGroup = chosenUiSelectionGroup;
-        }
-
-        try {
-            imagesCreator.addBdvFormatImage(spimData, imageName, datasetName, imageType,
-                    addMethod, uiSelectionGroup, imageDataFormat, exclusive);
-            updateComboBoxesForNewImage(imageName, uiSelectionGroup);
-        } catch (SpimDataException | IOException e) {
-            e.printStackTrace();
-        }
     }
 
     /**

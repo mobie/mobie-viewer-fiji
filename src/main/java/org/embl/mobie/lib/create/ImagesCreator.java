@@ -28,20 +28,11 @@
  */
 package org.embl.mobie.lib.create;
 
-import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Tables;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.process.LUT;
-import mpicbg.spim.data.SpimData;
-import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.XmlIoSpimData;
-import mpicbg.spim.data.generic.base.Entity;
-import mpicbg.spim.data.sequence.ImgLoader;
-import mpicbg.spim.data.sequence.SequenceDescription;
-import mpicbg.spim.data.sequence.ViewSetup;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.RealTypeConverters;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -57,18 +48,16 @@ import org.embl.mobie.io.OMEZarrWriter;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.color.ColorHelper;
-import org.janelia.saalfeldlab.n5.Compression;
+import org.embl.mobie.lib.source.SourceHelper;
 import org.jetbrains.annotations.NotNull;
-import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 
 import javax.swing.*;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import static de.embl.cba.morphometry.Utils.labelMapAsImgLabeling;
 import static net.imglib2.util.Util.getTypeFromInterval;
@@ -111,10 +100,9 @@ public class ImagesCreator {
      * Check if named image exists within dataset
      * @param datasetName dataset name
      * @param imageName image name
-     * @param imageDataFormat image data format - ImageDataFormat.BdvN5 or ImageDataFormat.OmeZarr
      * @return whether the image exists or not
      */
-    public boolean imageExists( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
+    public boolean imageExists( String datasetName, String imageName ) {
         String filePath =  getDefaultLocalImagePath( datasetName, imageName );
         return new File (filePath).exists();
     }
@@ -172,168 +160,29 @@ public class ImagesCreator {
 
     }
 
-    @NotNull
     private static OMEZarrWriter.ImageType getImageType( ProjectCreator.ImageType imageType )
     {
-        OMEZarrWriter.ImageType type = imageType.equals( ProjectCreator.ImageType.segmentation ) ? OMEZarrWriter.ImageType.Labels : OMEZarrWriter.ImageType.Intensities;
-        return type;
+        return imageType.equals( ProjectCreator.ImageType.segmentation ) ? OMEZarrWriter.ImageType.Labels : OMEZarrWriter.ImageType.Intensities;
     }
 
-    private void writeDefaultImage( ImagePlus imp,
-                                    String filePath,
-                                    ProjectCreator.ImageType imageType,
-                                    String imageName,
-                                    ImageDataFormat imageDataFormat )
-    {
-
-
-    }
-
-    private void writeDefaultImage( ImagePlus imp, String filePath,
-                             DownsampleBlock.DownsamplingMethod downsamplingMethod,
-                             String imageName, ImageDataFormat imageDataFormat,
-                             int[][] resolutions, int[][] subdivisions, Compression compression ) {
-
-
-        // transform only including scaling from image
-        AffineTransform3D sourceTransform = ProjectCreatorHelper.generateDefaultAffine( imp );
-
-        switch( imageDataFormat ) {
-            case BdvN5:
-                new WriteImagePlusToN5().export(imp, resolutions, subdivisions, filePath, sourceTransform,
-                        downsamplingMethod, compression, new String[]{imageName});
-                break;
-
-            case OmeZarr:
-                new WriteImagePlusToN5OmeZarr().export(imp, resolutions, subdivisions, filePath, sourceTransform,
-                        downsamplingMethod, compression );
-                break;
-
-            default:
-                throw new UnsupportedOperationException();
-        }
-    }
-
+    // FIXME: why is this not used?
     private void deleteImageFiles( String datasetName, String imageName ) throws IOException {
 
         File zarrFile = new File( getDefaultLocalImagePath( datasetName, imageName ) );
         File tableFile = new File( getDefaultTablePath( datasetName, imageName ) );
 
         // delete table
-        if ( tableFile != null && file.exists() ) {
-            Files.delete( file.toPath() );
+        if ( tableFile != null && tableFile.exists() ) {
+            Files.delete( tableFile.toPath() );
         }
 
         // delete image
-        if ( zarrFile != null && file.exists() )  {
+        if ( zarrFile != null && zarrFile.exists() )  {
             FileUtils.deleteDirectory( zarrFile );
         }
     }
 
-    /**
-     * Add BigDataViewer (Bdv) format image to MoBIE project e.g. one already in n5/ome-zarr.
-     * @param fileLocation image file location - for n5, location of the xml, for ome-zarr,
-     *                     location of the .ome.zarr directory.
-     * @param imageName image name
-     * @param datasetName dataset name
-     * @param imageType image type i.e. image or segmentation
-     * @param addMethod link, copy or move the image - link (leave image as-is, and link to this location. Only
-     *                  supported for N5 and local projects), copy (copy image into project),
-     *                  or move (move image into project - be careful as this will delete the image
-     *                  from its original location!)
-     * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
-     *                         menu it will appear in
-     * @param imageDataFormat  image data format of image - ImageDataFormat.BdvN5 or ImageDataFormat.OmeZarr
-     * @param exclusive whether the image view is exclusive or not i.e. when viewed, does it first remove all current
-     *                  images from the viewer?
-     * @throws SpimDataException
-     * @throws IOException
-     */
-    public void addBdvFormatImage ( File fileLocation, String imageName, String datasetName, ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod, String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
-
-        if ( fileLocation.exists() ) {
-            SpimData spimData = ( SpimData ) new SpimDataOpener().open( fileLocation.getAbsolutePath(), imageDataFormat );
-            addBdvFormatImage( spimData, imageName, datasetName, imageType, addMethod, uiSelectionGroup, imageDataFormat, exclusive );
-        } else {
-            throw new FileNotFoundException(
-                    "Adding image to project failed - " + fileLocation.getAbsolutePath() + " does not exist" );
-        }
-    }
-
-    /**
-     * Add BigDataViewer (Bdv) format image to MoBIE project e.g. one already in n5/ome-zarr.
-     * @param spimData spim data object for image
-     * @param imageName image name
-     * @param datasetName dataset name
-     * @param imageType image type i.e. image or segmentation
-     * @param addMethod link, copy or move the image - link (leave image as-is, and link to this location. Only
-     *                  supported for N5 and local projects), copy (copy image into project),
-     *                  or move (move image into project - be careful as this will delete the image
-     *                  from its original location!)
-     * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
-     *                         menu it will appear in
-     * @param imageDataFormat image data format of image - ImageDataFormat.BdvN5 or ImageDataFormat.OmeZarr
-     * @param exclusive whether the image view is exclusive or not i.e. when viewed, does it first remove all current
-     *                  images from the viewer?
-     * @throws SpimDataException
-     * @throws IOException
-     */
-    public void addBdvFormatImage ( SpimData spimData, String imageName, String datasetName,
-									ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod, String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
-
-        File imageDirectory = new File( getDefaultLocalImageDirPath( datasetName, imageDataFormat ));
-
-        int nChannels = spimData.getSequenceDescription().getViewSetupsOrdered().size();
-        String imageUnit = spimData.getSequenceDescription().getViewSetupsOrdered().get(0).getVoxelSize().unit();
-
-        if ( !isImageValid( nChannels, imageUnit, projectCreator.getVoxelUnit(), true ) ) {
-            return;
-        }
-
-        if ( !isSpimData2D(spimData) && projectCreator.getDataset( datasetName ).is2D() ) {
-            throw new UnsupportedOperationException("Can't add a 3D image to a 2D dataset" );
-        }
-
-        if ( projectCreator.getVoxelUnit() == null ) {
-            projectCreator.setVoxelUnit( imageUnit );
-        }
-
-        File newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
-        if ( newImageFile.exists() ) {
-            IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
-            deleteImageFiles( datasetName, imageName );
-        }
-
-        // make directory for that image, if doesn't exist already
-        // FIXME: Do we really need this? N5 seems to be doing this....
-//        File imageDir = new File( newImageFile.getParent() );
-//        if ( !imageDir.exists() ) {
-//            imageDir.mkdirs();
-//        }
-
-        switch (addMethod) {
-            case link:
-                // Do nothing, the absolute path to the linked image will be added to the dataset.json
-                break;
-            case copy:
-                copyImage( imageDataFormat, spimData, imageDirectory, imageName);
-                break;
-            case move:
-                moveImage( imageDataFormat, spimData, imageDirectory, imageName);
-                break;
-        }
-
-        if (imageType == ProjectCreator.ImageType.image) {
-            updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup, imageDataFormat, new double[]{0.0, 255.0},
-                    "white", exclusive, new AffineTransform3D() );
-        } else {
-            updateTableAndJsonsForNewSegmentation( imageName, datasetName, uiSelectionGroup, imageDataFormat, exclusive, new AffineTransform3D() );
-        }
-
-        IJ.log(  imageName + " added to project" );
-    }
-
-    private ArrayList<Object[]> makeDefaultTableRowsForTimepoint( Source< ? > labelsSource, int timepoint, boolean addTimepointColumn ) {
+    private ArrayList<Object[]> computeObjectFeatures( Source< ? > labelsSource, int timepoint, boolean addTimepointColumn ) {
 
         RandomAccessibleInterval rai = labelsSource.getSource( timepoint, 0 );
 
@@ -386,7 +235,6 @@ public class ImagesCreator {
         return rows;
     }
 
-    // TODO - is this efficient for big images?
     private void addDefaultTableForImage ( String imageName, String datasetName, ImageDataFormat imageDataFormat ) {
         File tableFolder = new File( getDefaultTableDirPath( datasetName, imageName ) );
         File defaultTable = new File( getDefaultTablePath( datasetName, imageName ) );
@@ -419,9 +267,13 @@ public class ImagesCreator {
                 columnNames.add("timepoint");
             }
 
+            // TODO: if not
+
+
+            List< Integer > timePoints = SourceHelper.getTimePoints( labelsSource );
             ArrayList<Object[]> rows = new ArrayList<>();
-            for ( Integer timepoint: spimData.getSequenceDescription().getTimePoints().getTimePoints().keySet() ) {
-                rows.addAll( makeDefaultTableRowsForTimepoint( labelsSource, timepoint, hasMultipleTimepoints ) );
+            for ( Integer timePoint : timePoints ) {
+                rows.addAll( computeObjectFeatures( labelsSource, timePoint, hasMultipleTimepoints ) );
             }
 
             Object[][] rowArray = new Object[rows.size()][columnNames.size()];
@@ -430,7 +282,7 @@ public class ImagesCreator {
             JTable table = new JTable(rowArray, columnNames.toArray() );
             Tables.saveTable( table, defaultTable );
 
-            IJ.log( "Default table complete" );
+            IJ.log( "Default object features have been computed." );
         }
     }
 
@@ -445,93 +297,5 @@ public class ImagesCreator {
         addDefaultTableForImage( imageName, datasetName, imageDataFormat );
         DatasetSerializer datasetSerializer = projectCreator.getDatasetJsonCreator();
         datasetSerializer.addSegmentation( imageName, datasetName, uiSelectionGroup, imageDataFormat, exclusive, sourceTransform );
-    }
-
-    private void copyImage ( ImageDataFormat imageFormat, SpimData spimData,
-                             File imageDirectory, String imageName ) throws IOException, SpimDataException {
-        File newImageFile = null;
-        File imageLocation = getImageLocationFromSequenceDescription(spimData.getSequenceDescription(), imageFormat );
-
-        switch( imageFormat ) {
-            case BdvN5:
-                newImageFile = new File(imageDirectory, imageName + ".n5" );
-                FileUtils.copyDirectory(imageLocation, newImageFile);
-                writeNewBdvXml( spimData, newImageFile, imageDirectory, imageName, imageFormat );
-                break;
-
-            case OmeZarr:
-                newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
-                FileUtils.copyDirectory(imageLocation, newImageFile);
-                break;
-        }
-    }
-
-    private void moveImage ( ImageDataFormat imageFormat, SpimData spimData,
-                             File imageDirectory, String imageName ) throws IOException, SpimDataException {
-        File newImageFile = null;
-        File imageLocation = getImageLocationFromSequenceDescription(spimData.getSequenceDescription(), imageFormat );
-
-        switch( imageFormat ) {
-            case BdvN5:
-                newImageFile = new File(imageDirectory, imageName + ".n5" );
-                // have to explicitly close the image loader, so we can delete the original file
-                closeImgLoader( spimData, imageFormat );
-                FileUtils.moveDirectory( imageLocation, newImageFile );
-                writeNewBdvXml( spimData, newImageFile, imageDirectory, imageName, imageFormat );
-                break;
-
-            case OmeZarr:
-                newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
-                closeImgLoader( spimData, imageFormat );
-                FileUtils.moveDirectory( imageLocation, newImageFile );
-                break;
-        }
-    }
-
-
-    private SpimData fixSetupName( SpimData spimData, String imageName ) {
-        // The view setup name must be the same as the image name
-        ViewSetup firstSetup = spimData.getSequenceDescription().getViewSetupsOrdered().get(0);
-        if ( !firstSetup.getName().equals(imageName) ) {
-
-            int numSetups = spimData.getSequenceDescription().getViewSetups().size();
-            final HashMap< Integer, ViewSetup> setups = new HashMap<>( numSetups );
-            for ( int s = 0; s < numSetups; s++ )
-            {
-                final ViewSetup setup;
-                if ( s == 0 ) {
-                    setup = new ViewSetup( firstSetup.getId(), imageName, firstSetup.getSize(),
-                            firstSetup.getVoxelSize(), firstSetup.getChannel(), firstSetup.getAngle(),
-                            firstSetup.getIllumination() );
-                    for ( Entity attribute: firstSetup.getAttributes().values() ) {
-                        setup.setAttribute( attribute );
-                    }
-                } else {
-                    setup = spimData.getSequenceDescription().getViewSetupsOrdered().get( s );
-                }
-                setups.put( s, setup );
-            }
-
-            final SequenceDescription newSeq = new SequenceDescription(
-                    spimData.getSequenceDescription().getTimePoints(), setups,
-                    spimData.getSequenceDescription().getImgLoader(), null );
-
-            return new SpimData(
-                    spimData.getBasePath(), newSeq, spimData.getViewRegistrations() );
-        } else {
-            return spimData;
-        }
-    }
-
-    private void writeNewBdvXml ( SpimData spimData, File imageFile, File saveDirectory, String imageName, ImageDataFormat imageFormat ) throws SpimDataException {
-
-        ImgLoader imgLoader = null;
-        if (imageFormat == ImageDataFormat.BdvN5) {
-            imgLoader = new N5ImageLoader(imageFile, null);
-        }
-
-        spimData.setBasePath( saveDirectory );
-        spimData.getSequenceDescription().setImgLoader(imgLoader);
-        new XmlIoSpimData().save(spimData, new File( saveDirectory, imageName + ".xml").getAbsolutePath() );
     }
 }

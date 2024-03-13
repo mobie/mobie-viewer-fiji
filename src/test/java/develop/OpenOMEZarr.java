@@ -1,7 +1,6 @@
 package develop;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.omezarr.OpenOMEZARRCommand;
 
 import java.io.File;
 

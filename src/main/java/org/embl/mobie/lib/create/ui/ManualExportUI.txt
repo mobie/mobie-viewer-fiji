@@ -41,7 +41,8 @@ import org.embl.mobie.io.n5.shaded.*;
  * based on https://github.com/bigdataviewer/bigdataviewer_fiji/blob/master/src/main/java/bdv/ij/ExportImagePlusAsN5PlugIn.java
  * removing export path, that shouldn't be set manually
  */
-public class ManualExportPanel {
+public class ManualExportUI
+{
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -58,7 +59,7 @@ public class ManualExportPanel {
      * Create main panel for manual export of images
      * @param imageDataFormat image format to export to
      */
-    public ManualExportPanel( ImageDataFormat imageDataFormat ) {
+    public ManualExportUI( ImageDataFormat imageDataFormat ) {
 
         final GenericDialog manualSettings = new GenericDialog( "Manual Settings for " +
                 imageDataFormat.toString() );
