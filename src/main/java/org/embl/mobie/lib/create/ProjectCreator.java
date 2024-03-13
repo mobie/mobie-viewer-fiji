@@ -73,7 +73,7 @@ public class ProjectCreator {
     public enum AddMethod {
         Link,
         Copy,
-        Move
+        move
     }
 
     /**

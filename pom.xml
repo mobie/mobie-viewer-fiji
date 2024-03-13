@@ -84,10 +84,20 @@
         <enforcer.skip>true</enforcer.skip>
 
         <mobie-io.version>3.0.0-SNAPSHOT</mobie-io.version>
-        <bigdataviewer-playground.version>0.8.0</bigdataviewer-playground.version>
         <imagej-utils.version>0.6.9</imagej-utils.version>
+
+        <bigdataviewer-playground.version>0.9.0</bigdataviewer-playground.version>
+
         <trove.version>1.0.2</trove.version>
         <annotations.version>16.0.2</annotations.version>
+
+        <n5-viewer_fiji.version>6.1.0</n5-viewer_fiji.version>
+        <n5.version>3.1.1</n5.version>
+        <n5-zarr.version>1.2.0</n5-zarr.version>
+        <n5-ij.version>4.1.1</n5-ij.version>
+        <n5-universe.version>1.4.1</n5-universe.version>
+        <bigdataviewer-core.version>10.4.13</bigdataviewer-core.version>
+        <bigdataviewer-vistools.version>1.0.0-beta-34</bigdataviewer-vistools.version>
 
         <!-- Version 1.6.0-scijava-3-SNAPSHOT of j3dcore addresses a minor issue
         https://github.com/fiji/3D_Viewer/issues/26
@@ -118,16 +128,18 @@
     </repositories>
     <dependencies>
         <!--  FIXME: Why do those versions not come transitive with mobie-io ??   -->
-        <dependency>
-            <groupId>org.janelia.saalfeldlab</groupId>
-            <artifactId>n5-universe</artifactId>
-            <version>1.4.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.janelia.saalfeldlab</groupId>
-            <artifactId>n5-ij</artifactId>
-            <version>4.1.1</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.janelia.saalfeldlab</groupId>-->
+<!--            <artifactId>n5-universe</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.janelia.saalfeldlab</groupId>-->
+<!--            <artifactId>n5-ij</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.janelia.saalfeldlab</groupId>-->
+<!--            <artifactId>n5-viewer_fiji</artifactId>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>net.imagej</groupId>
             <artifactId>imagej-legacy</artifactId>

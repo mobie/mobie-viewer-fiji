@@ -30,6 +30,7 @@ package org.embl.mobie.lib.create;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.measure.Calibration;
 import ij.process.ImageProcessor;
 
 public class ProjectCreatorTestHelper {
@@ -38,11 +39,19 @@ public class ProjectCreatorTestHelper {
 
     public static ImagePlus createImage( String imageName, boolean is2D ) {
         // make an image with random values, same size as the imagej sample head image
+        ImagePlus imagePlus;
         if ( !is2D ) {
-            return IJ.createImage(imageName, "8-bit noise", 186, 226, 27);
+            imagePlus = IJ.createImage( imageName, "8-bit noise", 186, 226, 27 );
         } else {
-            return IJ.createImage(imageName, "8-bit noise", 186, 226, 0);
+            imagePlus = IJ.createImage( imageName, "8-bit noise", 186, 226, 0 );
+
         }
+        Calibration calibration = new Calibration();
+        calibration.setUnit( "micrometer" );
+        calibration.pixelWidth = 0.5;
+        calibration.pixelHeight = 0.5;
+        imagePlus.setCalibration( calibration );
+        return imagePlus;
     }
 
     public static ImagePlus createLabels( String imageName ) {

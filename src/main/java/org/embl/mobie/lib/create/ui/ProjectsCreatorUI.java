@@ -448,7 +448,7 @@ public class ProjectsCreatorUI extends JFrame {
             String[] addMethods = new String[]{
                     ProjectCreator.AddMethod.Link.toString(),
                     ProjectCreator.AddMethod.Copy.toString(),
-                    ProjectCreator.AddMethod.Move.toString() }; // FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/1117
+                    ProjectCreator.AddMethod.move.toString() }; // FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/1117
             gd.addChoice( "Add method:", addMethods, addMethod.toString() );
             gd.addChoice( "Image type", imageTypes, imageType.toString() );
             gd.addCheckbox( "Make view exclusive", exclusive );

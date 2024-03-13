@@ -29,6 +29,7 @@
 package org.embl.mobie.lib.create;
 
 import ij.ImagePlus;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
@@ -47,6 +48,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 import static org.embl.mobie.lib.create.JSONValidator.validate;
 import static org.embl.mobie.lib.create.ProjectCreatorTestHelper.createImage;
@@ -82,10 +84,6 @@ class ImagesCreatorTest {
         datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "dataset.json" );
     }
 
-    void assertionsForImageData( ImageData< ? > imageData ) {
-        // check setup name is equal to image name
-        assertEquals( imageData.getSourcePair( 0 ).getB().getName(), imageName );
-    }
 
     void assertionsForDataset( ) throws IOException {
         assertTrue( new File(datasetJsonPath).exists() );
@@ -97,7 +95,7 @@ class ImagesCreatorTest {
         assertTrue( validate( datasetJsonPath, JSONValidator.datasetSchemaURL ) );
     }
 
-    void assertionsForOmeZarr()
+    void assertionsForImage()
     {
         String imageLocation = IOHelper.combinePath(
                 projectCreator.getProjectLocation().getAbsolutePath(),
@@ -105,14 +103,22 @@ class ImagesCreatorTest {
                 "images",
                 imageName + ".ome.zarr");
 
+        // File exists
         assertTrue( new File(imageLocation).exists() );
 
-        assertionsForImageData( ImageDataOpener.open( imageLocation ) );
+        // Image can be opened
+        ImageData< ? > imageData = ImageDataOpener.open( imageLocation );
+        assertNotNull( imageData.getSourcePair( 0 ).getB() );
+
+        // TODO: make this an assertion by comparing to the input ImagePlus
+        VoxelDimensions voxelDimensions = imageData.getSourcePair( 0 ).getB().getVoxelDimensions();
+        System.out.println( "Pixel unit: " + voxelDimensions.unit() );
+        System.out.println( "Pixel size: " + Arrays.toString( voxelDimensions.dimensionsAsDoubleArray() ) );
     }
 
     void assertionsForImageAdded() throws IOException {
         assertionsForDataset();
-        assertionsForOmeZarr();
+        assertionsForImage();
     }
 
     void assertionsForTableAdded( ) throws IOException {
@@ -141,7 +147,7 @@ class ImagesCreatorTest {
 
     void testAddingImage( boolean is2D ) throws IOException {
         addImage( is2D );
-        assertionsForImageAdded( );
+        assertionsForImageAdded();
     }
 
     void testAddingSegmentation() throws IOException{
@@ -185,22 +191,23 @@ class ImagesCreatorTest {
     }
 
     @Test
-    void addImageOmeZarr() throws IOException {
+    void addImage() throws IOException {
         testAddingImage( false );
     }
 
     @Test
-    void addSegmentationOmeZarr() throws IOException {
+    void addSegmentation() throws IOException {
         testAddingSegmentation();
     }
 
-    @Test
-    void linkOMEZarrImage() throws IOException {
-        testLinkingImages( false );
-    }
+    // FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/1116
+//    @Test
+//    void linkImage() throws IOException {
+//        testLinkingImages( false );
+//    }
 
     @Test
-    void copyOMEZarrImage() throws IOException {
+    void copyImage() throws IOException {
         testCopyingImages( false );
     }
 

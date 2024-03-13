@@ -117,8 +117,7 @@ public class ImagesCreator {
         String filePath = getDefaultLocalImagePath( datasetName, imageName );
         File imageFile = new File(filePath);
 
-        if ( ! isImageValid( imp.getNChannels(), imp.getCalibration().getUnit(),
-                projectCreator.getVoxelUnit(), false ) )
+        if ( ! isImageValid( imp.getNChannels(), imp.getCalibration().getUnit(), projectCreator.getVoxelUnit(), false ) )
         {
             return;
         }
@@ -257,8 +256,7 @@ public class ImagesCreator {
         }
 
         if ( ! is2D( imageData ) && projectCreator.getDataset( datasetName ).is2D() ) {
-            // FIXME: why not? Can't we change the project to be 3D
-            //        ask Kimberly in an issue
+            // FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/1119
             throw new UnsupportedOperationException("Can't add a 3D image to a 2D dataset" );
         }
 
@@ -286,9 +284,6 @@ public class ImagesCreator {
             case Copy:
                 copyImage( uri, imagesDirectory, imageName);
                 break;
-//            case move:
-//                moveImage( imageDataFormat, spimData, imageDirectory, imageName);
-//                break;
         }
 
         if ( imageType == ProjectCreator.ImageType.Image ) {
