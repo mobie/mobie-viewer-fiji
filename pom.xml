@@ -116,8 +116,18 @@
             <url>https://maven.scijava.org/content/groups/public</url>
         </repository>
     </repositories>
-
     <dependencies>
+        <!--  FIXME: Why do those versions not come transitive with mobie-io ??   -->
+        <dependency>
+            <groupId>org.janelia.saalfeldlab</groupId>
+            <artifactId>n5-universe</artifactId>
+            <version>1.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.janelia.saalfeldlab</groupId>
+            <artifactId>n5-ij</artifactId>
+            <version>4.1.1</version>
+        </dependency>
         <dependency>
             <groupId>net.imagej</groupId>
             <artifactId>imagej-legacy</artifactId>

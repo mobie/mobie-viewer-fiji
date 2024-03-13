@@ -34,12 +34,10 @@ import ij.gui.Roi;
 import ij.plugin.ChannelSplitter;
 import ij.plugin.Duplicator;
 import ij.plugin.frame.RoiManager;
-import io.scif.img.IO;
 import mpicbg.spim.data.SpimDataException;
 import net.imagej.ImageJ;
 import net.imagej.patcher.LegacyInjector;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.create.DatasetsCreator;
@@ -105,7 +103,7 @@ public class CreateRafaelProject
 			for ( int c = 0; c < channels.length; c++ )
 			{
 				final String imageName = "Sections_B_z" + sectionIndex + "_c" + c;
-				images.addImage( channels[ c ], imageName, datasetName, ImageDataFormat.OmeZarr, ProjectCreator.ImageType.image, affineTransform3D, uiSelectionGroup );
+				images.addImage( channels[ c ], imageName, datasetName, ProjectCreator.ImageType.Image, affineTransform3D, uiSelectionGroup, false );
 			}
 		}
 

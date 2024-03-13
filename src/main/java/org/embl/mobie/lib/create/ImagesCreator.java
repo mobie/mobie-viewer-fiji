@@ -42,14 +42,12 @@ import net.imglib2.roi.labeling.LabelRegions;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.FloatType;
 import org.apache.commons.io.FileUtils;
-import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.OMEZarrWriter;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.source.SourceHelper;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.File;
@@ -61,6 +59,7 @@ import java.util.List;
 
 import static de.embl.cba.morphometry.Utils.labelMapAsImgLabeling;
 import static net.imglib2.util.Util.getTypeFromInterval;
+import static net.imglib2.util.Util.round;
 import static org.embl.mobie.lib.create.ProjectCreatorHelper.*;
 
 /**
@@ -110,7 +109,6 @@ public class ImagesCreator {
     public void addImage( ImagePlus imp,
                           String imageName,
                           String datasetName,
-                          ImageDataFormat imageDataFormat,
                           ProjectCreator.ImageType imageType,
                           AffineTransform3D sourceTransform,
                           String uiSelectionGroup,
@@ -147,14 +145,13 @@ public class ImagesCreator {
 
         // check image written successfully, before writing JSONs
         if ( imageFile.exists() ) {
-            if (imageType == ProjectCreator.ImageType.image) {
+            if (imageType == ProjectCreator.ImageType.Image ) {
                 double[] contrastLimits = new double[]{imp.getDisplayRangeMin(), imp.getDisplayRangeMax()};
                 LUT lut = imp.getLuts()[ 0 ];
                 String colour = ColorHelper.getString( lut );
-                updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup,
-                        imageDataFormat, contrastLimits, colour, exclusive, sourceTransform );
+                updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup, contrastLimits, colour, exclusive, sourceTransform );
             } else {
-                updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup, imageDataFormat, exclusive, sourceTransform );
+                updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup, exclusive, sourceTransform );
             }
         }
 
@@ -162,23 +159,31 @@ public class ImagesCreator {
 
     private static OMEZarrWriter.ImageType getImageType( ProjectCreator.ImageType imageType )
     {
-        return imageType.equals( ProjectCreator.ImageType.segmentation ) ? OMEZarrWriter.ImageType.Labels : OMEZarrWriter.ImageType.Intensities;
+        return imageType.equals( ProjectCreator.ImageType.Segmentation ) ? OMEZarrWriter.ImageType.Labels : OMEZarrWriter.ImageType.Intensities;
     }
 
-    // FIXME: why is this not used?
-    private void deleteImageFiles( String datasetName, String imageName ) throws IOException {
+    private void deleteImageFiles( String datasetName, String imageName )
+    {
+        try
+        {
+            File zarrFile = new File( getDefaultLocalImagePath( datasetName, imageName ) );
+            File tableFile = new File( getDefaultTablePath( datasetName, imageName ) );
 
-        File zarrFile = new File( getDefaultLocalImagePath( datasetName, imageName ) );
-        File tableFile = new File( getDefaultTablePath( datasetName, imageName ) );
+            // delete table
+            if ( tableFile != null && tableFile.exists() )
+            {
+                Files.delete( tableFile.toPath() );
+            }
 
-        // delete table
-        if ( tableFile != null && tableFile.exists() ) {
-            Files.delete( tableFile.toPath() );
+            // delete image
+            if ( zarrFile != null && zarrFile.exists() )
+            {
+                FileUtils.deleteDirectory( zarrFile );
+            }
         }
-
-        // delete image
-        if ( zarrFile != null && zarrFile.exists() )  {
-            FileUtils.deleteDirectory( zarrFile );
+        catch ( IOException e )
+        {
+            throw new RuntimeException( e );
         }
     }
 
@@ -235,7 +240,80 @@ public class ImagesCreator {
         return rows;
     }
 
-    private void addDefaultTableForImage ( String imageName, String datasetName, ImageDataFormat imageDataFormat ) {
+    public void addOMEZarrImage( String uri,
+                                 String imageName,
+                                 String datasetName,
+                                 ProjectCreator.ImageType imageType,
+                                 ProjectCreator.AddMethod addMethod,
+                                 String uiSelectionGroup,
+                                 boolean exclusive )
+    {
+        File imagesDirectory = new File( getDefaultLocalImageDirPath( datasetName ) );
+
+        ImageData< ? > imageData = ImageDataOpener.open( uri );
+
+        if ( ! isImageValid( imageData, projectCreator.getVoxelUnit() ) ) {
+            return;
+        }
+
+        if ( ! is2D( imageData ) && projectCreator.getDataset( datasetName ).is2D() ) {
+            // FIXME: why not? Can't we change the project to be 3D
+            //        ask Kimberly in an issue
+            throw new UnsupportedOperationException("Can't add a 3D image to a 2D dataset" );
+        }
+
+        if ( projectCreator.getVoxelUnit() == null ) {
+            projectCreator.setVoxelUnit( imageData.getSourcePair( 0 ).getB().getVoxelDimensions().unit() );
+        }
+
+        File newImageFile = new File(imagesDirectory, imageName + ".ome.zarr" );
+        if ( newImageFile.exists() ) {
+            IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
+            deleteImageFiles( datasetName, imageName );
+        }
+
+        // make directory for that image, if doesn't exist already
+        // FIXME: Do we really need this? N5 seems to be doing this....
+//        File imageDir = new File( newImageFile.getParent() );
+//        if ( !imageDir.exists() ) {
+//            imageDir.mkdirs();
+//        }
+
+        switch (addMethod) {
+            case Link:
+                // Do nothing, the absolute path to the linked image will be added to the dataset.json
+                break;
+            case Copy:
+                copyImage( uri, imagesDirectory, imageName);
+                break;
+//            case move:
+//                moveImage( imageDataFormat, spimData, imageDirectory, imageName);
+//                break;
+        }
+
+        if ( imageType == ProjectCreator.ImageType.Image ) {
+            updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup, new double[]{0.0, 255.0}, "white", exclusive, new AffineTransform3D() );
+        } else {
+            updateTableAndJsonsForNewSegmentation( imageName, datasetName, uiSelectionGroup, exclusive, new AffineTransform3D() );
+        }
+
+        IJ.log(  imageName + " added to project" );
+    }
+
+    private void copyImage( String uri, File imagesDir, String imageName )
+    {
+        try
+        {
+            File destination = new File( imagesDir, imageName + ".ome.zarr" );
+            FileUtils.copyDirectory( new File( uri ), destination);
+        }
+        catch ( IOException e )
+        {
+            throw new RuntimeException( e );
+        }
+    }
+
+    private void addDefaultTableForImage ( String imageName, String datasetName ) {
         File tableFolder = new File( getDefaultTableDirPath( datasetName, imageName ) );
         File defaultTable = new File( getDefaultTablePath( datasetName, imageName ) );
         if ( !tableFolder.exists() ){
@@ -287,15 +365,14 @@ public class ImagesCreator {
     }
 
 
-    private void updateTableAndJsonsForNewImage ( String imageName, String datasetName, String uiSelectionGroup, ImageDataFormat imageDataFormat, double[] contrastLimits, String colour, boolean exclusive, AffineTransform3D sourceTransform ) {
+    private void updateTableAndJsonsForNewImage ( String imageName, String datasetName, String uiSelectionGroup, double[] contrastLimits, String colour, boolean exclusive, AffineTransform3D sourceTransform ) {
         DatasetSerializer datasetSerializer = projectCreator.getDatasetJsonCreator();
-        datasetSerializer.addImage( imageName, datasetName, uiSelectionGroup,
-                imageDataFormat, contrastLimits, colour, exclusive, sourceTransform );
+        datasetSerializer.addImage( imageName, datasetName, uiSelectionGroup, contrastLimits, colour, exclusive, sourceTransform );
     }
 
-    private void updateTableAndJsonsForNewSegmentation( String imageName, String datasetName, String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive, AffineTransform3D sourceTransform ) {
-        addDefaultTableForImage( imageName, datasetName, imageDataFormat );
+    private void updateTableAndJsonsForNewSegmentation( String imageName, String datasetName, String uiSelectionGroup, boolean exclusive, AffineTransform3D sourceTransform ) {
+        addDefaultTableForImage( imageName, datasetName );
         DatasetSerializer datasetSerializer = projectCreator.getDatasetJsonCreator();
-        datasetSerializer.addSegmentation( imageName, datasetName, uiSelectionGroup, imageDataFormat, exclusive, sourceTransform );
+        datasetSerializer.addSegmentation( imageName, datasetName, uiSelectionGroup, exclusive, sourceTransform );
     }
 }

@@ -33,6 +33,8 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.ContrastEnhancer;
 import ij.process.ImageStatistics;
+import org.embl.mobie.lib.color.ColorHelper;
+import org.janelia.saalfeldlab.n5.universe.metadata.canonical.CanonicalDatasetMetadata;
 
 import static ij.measure.Measurements.MIN_MAX;
 
@@ -49,6 +51,12 @@ public class Metadata
 
 	public Metadata()
 	{
+	}
+
+	public Metadata( CanonicalDatasetMetadata cdm )
+	{
+		this.color = ColorHelper.getString( cdm.getColor() );
+		this.contrastLimits = new double[]{ cdm.minIntensity(), cdm.maxIntensity() };
 	}
 
 	public Metadata( ImagePlus imagePlus )

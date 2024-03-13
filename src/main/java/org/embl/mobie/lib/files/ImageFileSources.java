@@ -31,12 +31,14 @@ package org.embl.mobie.lib.files;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.io.FilenameUtils;
+import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.columns.SegmentColumnNames;
 import org.embl.mobie.lib.transform.GridType;
+import org.janelia.saalfeldlab.n5.universe.metadata.canonical.CanonicalDatasetMetadata;
 import tech.tablesaw.api.NumberColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
@@ -80,7 +82,7 @@ public class ImageFileSources
 
 		// TODO: how to deal with the inconsistent metadata (e.g. number of time-points)?
 		this.metadataSource = nameToFullPath.keySet().iterator().next();
-		this.metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ), channelIndex );
+		this.metadata = new Metadata( ImageDataOpener.open( nameToFullPath.get( metadataSource ) ).getMetadata( channelIndex ) );
 
 		// FIXME: move this out to a separate function
 		regionTable = Table.create( name + " table" );
@@ -132,7 +134,7 @@ public class ImageFileSources
 		}
 
 		metadataSource = nameToFullPath.keySet().iterator().next();
-		metadata = MoBIEHelper.getMetadataFromImageFile( nameToFullPath.get( metadataSource ), channelIndex );
+		metadata = new Metadata( ImageDataOpener.open( nameToFullPath.get( metadataSource ) ).getMetadata( channelIndex ) );
 		dealWithTimepointsInObjectTableIfNeeded( name, table, imageColumn );
 	}
 

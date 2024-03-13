@@ -32,12 +32,11 @@ import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
-import mpicbg.spim.data.SpimDataException;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.command.open.project.OpenMoBIEProjectCommand;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.io.n5.shaded.*;
+import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.create.ImagesCreator;
 import org.embl.mobie.lib.create.ProjectCreator;
@@ -57,8 +56,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.embl.mobie.lib.create.ProjectCreatorHelper.getVoxelSizeString;
-import static org.embl.mobie.lib.create.ProjectCreatorHelper.isImageValid;
+import static org.embl.mobie.lib.create.ProjectCreatorHelper.*;
 
 /**
  * Class for the main user interface of the project creator
@@ -67,7 +65,7 @@ public class ProjectsCreatorUI extends JFrame {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    private ProjectCreator projectsCreator;
+    private ProjectCreator projectCreator;
     private JPanel contentGrid;
     private JComboBox<String> datasetComboBox;
     private JComboBox<String> sourcesComboBox;
@@ -76,8 +74,8 @@ public class ProjectsCreatorUI extends JFrame {
     private final int labelPaddingX = 15;
     private final int labelPaddingY = 15;
 
-    private static ProjectCreator.ImageType imageType = ProjectCreator.ImageType.image;
-    private static ProjectCreator.AddMethod addMethod = ProjectCreator.AddMethod.link;
+    private static ProjectCreator.ImageType imageType = ProjectCreator.ImageType.Image;
+    private static ProjectCreator.AddMethod addMethod = ProjectCreator.AddMethod.Link;
     private static boolean exclusive = false;
     private static boolean useFileNameAsImageName = true;
     private static String uiSelectionGroup = "Make New Ui Selection Group";
@@ -85,7 +83,7 @@ public class ProjectsCreatorUI extends JFrame {
 
     private final String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(),
             ImageDataFormat.OmeZarr.toString() };
-    private final String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(), ProjectCreator.ImageType.segmentation.toString() };
+    private final String[] imageTypes = new String[]{ ProjectCreator.ImageType.Image.toString(), ProjectCreator.ImageType.Segmentation.toString() };
 
 
     /**
@@ -97,7 +95,7 @@ public class ProjectsCreatorUI extends JFrame {
 
         // account for projects with and without the top 'data' directory
         File dataDirectory = ProjectCreatorHelper.getDataLocation( projectLocation );
-        this.projectsCreator = new ProjectCreator( dataDirectory );
+        this.projectCreator = new ProjectCreator( dataDirectory );
 
         this.getContentPane().setLayout( new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS ) );
 
@@ -132,8 +130,8 @@ public class ProjectsCreatorUI extends JFrame {
         this.setVisible( true );
     }
 
-    public ProjectCreator getProjectsCreator() {
-        return projectsCreator;
+    public ProjectCreator getProjectCreator() {
+        return projectCreator;
     }
 
     private void addDatasetsToGrid(int rowIndex ) {
@@ -160,7 +158,7 @@ public class ProjectsCreatorUI extends JFrame {
     }
 
     private String[] getDatasetNames() {
-        Project project = projectsCreator.getProject();
+        Project project = projectCreator.getProject();
         if ( project.datasets() != null && project.datasets().size() > 0 ) {
             String[] datasetNames = new String[project.datasets().size()];
             for ( int i = 0; i < project.datasets().size(); i++) {
@@ -194,9 +192,9 @@ public class ProjectsCreatorUI extends JFrame {
 
     private void createSoucesComboBox() {
         String selectedDataset = (String) datasetComboBox.getSelectedItem();
-        Dataset dataset = projectsCreator.getDataset( selectedDataset );
+        Dataset dataset = projectCreator.getDataset( selectedDataset );
         if ( !selectedDataset.equals("") && dataset != null && dataset.sources().keySet().size() > 0 ) {
-            String[] imageNames = projectsCreator.getDataset( selectedDataset ).sources().keySet().toArray(new String[0]);
+            String[] imageNames = projectCreator.getDataset( selectedDataset ).sources().keySet().toArray(new String[0]);
             sourcesComboBox = new JComboBox<>( imageNames );
             sourcesComboBox.setSelectedItem( imageNames[0] );
         } else {
@@ -211,7 +209,7 @@ public class ProjectsCreatorUI extends JFrame {
         String selectedDataset = (String) datasetComboBox.getSelectedItem();
         String[] groupNames = null;
         if ( !selectedDataset.equals("") ) {
-            groupNames = projectsCreator.getGroups( selectedDataset );
+            groupNames = projectCreator.getGroups( selectedDataset );
         }
 
         if ( groupNames != null && groupNames.length > 0 ) {
@@ -231,7 +229,7 @@ public class ProjectsCreatorUI extends JFrame {
         String selectedGroup = (String) groupsComboBox.getSelectedItem();
         String[] viewNames = null;
         if ( !selectedDataset.equals("") && !selectedGroup.equals("") ) {
-            viewNames = projectsCreator.getViews( selectedDataset, selectedGroup );
+            viewNames = projectCreator.getViews( selectedDataset, selectedGroup );
         }
 
         if ( viewNames != null && viewNames.length > 0 ) {
@@ -345,7 +343,7 @@ public class ProjectsCreatorUI extends JFrame {
         {
             new Thread( () -> {
                 OpenMoBIEProjectCommand openMoBIE = new OpenMoBIEProjectCommand();
-                openMoBIE.projectLocation = this.projectsCreator.getProjectLocation().getAbsolutePath();
+                openMoBIE.projectLocation = this.projectCreator.getProjectLocation().getAbsolutePath();
                 openMoBIE.run();
             } ).start();
         } );
@@ -371,7 +369,7 @@ public class ProjectsCreatorUI extends JFrame {
 
     private void remoteMetadataSettingsDialog()
     {
-        List <String > datasets = projectsCreator.getProject().datasets();
+        List <String > datasets = projectCreator.getProject().datasets();
         if ( datasets == null || datasets.size() == 0 )
         {
             IJ.log( "Remote metadata aborted - there are no datasets in your project!" );
@@ -394,7 +392,7 @@ public class ProjectsCreatorUI extends JFrame {
             String bucketName = gd.getNextString();
 
             if ( continueDialog(format) ) {
-                projectsCreator.getRemoteMetadataCreator().createRemoteMetadata( signingRegion, serviceEndpoint, bucketName, format );
+                projectCreator.getRemoteMetadataCreator().createRemoteMetadata( signingRegion, serviceEndpoint, bucketName, format );
             }
         }
     }
@@ -423,24 +421,124 @@ public class ProjectsCreatorUI extends JFrame {
      */
     public void addImageDialog() {
         final GenericDialog gd = new GenericDialog( "Add..." );
-        String[] addMethods = new String[] {"current open image", "bdv format image"};
-        gd.addChoice("Add:", addMethods, "current open image");
+        String[] addMethods = new String[] {"current displayed image", "stored ome-zarr"};
+        gd.addChoice("Add:", addMethods, "current displayed image");
         gd.showDialog();
 
         if ( !gd.wasCanceled() ) {
             String addMethod = gd.getNextChoice();
-            if (addMethod.equals("current open image")) {
-                addCurrentOpenImageDialog();
-            } else if (addMethod.equals("bdv format image")) {
-                addBdvFormatImageDialog();
+            if (addMethod.equals("current displayed image")) {
+                addCurrentImageDialog();
+            } else if (addMethod.equals("stored ome-zarr")) {
+                addOMEZarrDialog();
             }
 
         }
     }
 
+    /**
+     * Dialog for adding BigDataViewer (bdv) format image to MoBIE project - i.e. N5 or ome-zarr image
+     */
+    public void addOMEZarrDialog() {
+        String datasetName = (String) datasetComboBox.getSelectedItem();
+
+        if (!datasetName.equals(""))
+        {
+            final GenericDialog gd = new GenericDialog( "Add OME-Zarr To Project..." );
+            String[] addMethods = new String[]{
+                    ProjectCreator.AddMethod.Link.toString(),
+                    ProjectCreator.AddMethod.Copy.toString(),
+                    ProjectCreator.AddMethod.Move.toString() }; // FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/1117
+            gd.addChoice( "Add method:", addMethods, addMethod.toString() );
+            gd.addChoice( "Image type", imageTypes, imageType.toString() );
+            gd.addCheckbox( "Make view exclusive", exclusive );
+            gd.addCheckbox( "Use filename as image name", useFileNameAsImageName );
+
+            gd.showDialog();
+            if ( gd.wasCanceled() ) return;
+
+            addMethod = ProjectCreator.AddMethod.valueOf( gd.getNextChoice() );
+            imageType = ProjectCreator.ImageType.valueOf( gd.getNextChoice() );
+            exclusive = gd.getNextBoolean();
+            useFileNameAsImageName = gd.getNextBoolean();
+
+            // FIXME https://github.com/mobie/mobie-viewer-fiji/issues/1117
+//            if ( imageDataFormat == ImageDataFormat.OmeZarr && addMethod == ProjectCreator.AddMethod.link )
+//            {
+//                IJ.log( "link is currently unsupported for ome-zarr. Please choose copy or move instead for this file format." );
+//                return;
+//            }
+
+            String filePath = getOMEZarrImagePathDialog();
+
+            if ( filePath != null )
+            {
+                addOMEZarr( filePath, datasetName );
+            }
+        }
+    }
+
+    private void addOMEZarr( String uri, String datasetName )
+    {
+        if ( ! isImageValid( uri, projectCreator.getVoxelUnit() ) ) {
+            return;
+        }
+
+        if ( ! is2D( ImageDataOpener.open( uri ) ) && projectCreator.getDataset( datasetName ).is2D() ) {
+            if ( ! changeDatasetDimensionDialog (datasetName ) ) {
+                return;
+            }
+        }
+
+        File imageFile = new File( uri );
+        String imageName = imageFile.getName().split("\\.")[0];
+        if ( !useFileNameAsImageName ) {
+            imageName = imageNameDialog( imageFile );
+            if ( imageName == null ) {
+                return;
+            }
+        }
+
+        ImagesCreator imagesCreator = projectCreator.getImagesCreator();
+        boolean overwriteImage = true;
+        if ( imagesCreator.imageExists( datasetName, imageName ) ) {
+            overwriteImage = overwriteImageDialog();
+        }
+        if ( !overwriteImage ) {
+            return;
+        }
+
+        String chosenUiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
+        if ( chosenUiSelectionGroup == null ) {
+            return;
+        } else {
+            uiSelectionGroup = chosenUiSelectionGroup;
+        }
+
+        imagesCreator.addOMEZarrImage( uri, imageName, datasetName, imageType, addMethod, uiSelectionGroup, exclusive );
+        updateComboBoxesForNewImage(imageName, uiSelectionGroup);
+
+    }
+
+
+
+    private String getOMEZarrImagePathDialog()
+    {
+        String filePath = UserInterfaceHelper.selectDirectoryPath( ".ome.zarr file", true );
+        if ( ! isValidOMEZarr( filePath ) )
+        {
+            IJ.log( "This is not a valid OME-Zarr image." );
+            return null;
+        }
+        else
+        {
+            return filePath;
+        }
+    }
+
     private String selectUiSelectionGroupDialog( String datasetName ) {
 
-        String[] currentSelectionGroups = projectsCreator.getGroups( datasetName );
+        String[] currentSelectionGroups = projectCreator.getGroups( datasetName );
 
         String chosenGroup = null;
         if ( currentSelectionGroups == null || currentSelectionGroups.length == 0 ) {
@@ -497,7 +595,7 @@ public class ProjectsCreatorUI extends JFrame {
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE);
         if (result == JOptionPane.YES_OPTION) {
-            projectsCreator.getDatasetsCreator().makeDataset2D( datasetName, false );
+            projectCreator.getDatasetsCreator().makeDataset2D( datasetName, false );
             return true;
         } else {
             IJ.log("Adding image aborted - can't add a 3D image to a 2D dataset" );
@@ -522,18 +620,18 @@ public class ProjectsCreatorUI extends JFrame {
     /**
      * Dialog for adding image currently open in ImageJ to the MoBIE project
      */
-    public void addCurrentOpenImageDialog() {
+    public void addCurrentImageDialog() {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
         if ( !datasetName.equals("") ) {
             ImagePlus currentImage = IJ.getImage();
 
             if ( !isImageValid( currentImage.getNChannels(), currentImage.getCalibration().getUnit(),
-                    projectsCreator.getVoxelUnit(), false ) ) {
+                    projectCreator.getVoxelUnit(), false ) ) {
                 return;
             }
 
-            if ( currentImage.getNDimensions() > 2 && projectsCreator.getDataset( datasetName ).is2D() ) {
+            if ( currentImage.getNDimensions() > 2 && projectCreator.getDataset( datasetName ).is2D() ) {
                 if ( !changeDatasetDimensionDialog(datasetName) ) {
                     return;
                 }
@@ -569,7 +667,7 @@ public class ProjectsCreatorUI extends JFrame {
                 AffineTransform3D sourceTransform = ProjectCreatorHelper.parseAffineString( affineTransform );
 
                 if ( imageName != null && sourceTransform != null ) {
-                    ImagesCreator imagesCreator = projectsCreator.getImagesCreator();
+                    ImagesCreator imagesCreator = projectCreator.getImagesCreator();
 
                     boolean overwriteImage = true;
                     if ( imagesCreator.imageExists( datasetName, imageName ) ) {
@@ -586,7 +684,7 @@ public class ProjectsCreatorUI extends JFrame {
                         uiSelectionGroup = chosenUiSelectionGroup;
                     }
 
-                    imagesCreator.addImage(currentImage, imageName, datasetName, imageDataFormat, imageType, sourceTransform, uiSelectionGroup, exclusive);
+                    imagesCreator.addImage(currentImage, imageName, datasetName, imageType, sourceTransform, uiSelectionGroup, exclusive);
                     updateComboBoxesForNewImage(imageName, uiSelectionGroup);
                 }
             }
@@ -596,90 +694,10 @@ public class ProjectsCreatorUI extends JFrame {
         }
     }
 
-    /**
-     * Dialog for adding BigDataViewer (bdv) format image to MoBIE project - i.e. N5 or ome-zarr image
-     */
-    public void addBdvFormatImageDialog() {
-        String datasetName = (String) datasetComboBox.getSelectedItem();
-
-        if (!datasetName.equals(""))
-        {
-            final GenericDialog gd = new GenericDialog( "Add Bdv Format Image To Project..." );
-
-            gd.addMessage( "Note: You can only 'link' to images outside the project folder \n" +
-                    " for local projects. 'copy' or 'move' if you wish to upload to s3" );
-
-            gd.addChoice( "Image format", imageFormats, imageDataFormat.toString() );
-            String[] addMethods = new String[]{ ProjectCreator.AddMethod.link.toString(),
-                    ProjectCreator.AddMethod.copy.toString(), ProjectCreator.AddMethod.move.toString() };
-            gd.addChoice( "Add method:", addMethods, addMethod.toString() );
-            gd.addChoice( "Image Type", imageTypes, imageType.toString() );
-            gd.addCheckbox( "Make view exclusive", exclusive );
-            gd.addCheckbox( "Use filename as image name", useFileNameAsImageName );
-
-            gd.showDialog();
-
-            if ( gd.wasCanceled() )
-            {
-                IJ.log( "Add image failed - create a dataset first" );
-                return;
-            }
-
-            imageDataFormat = ImageDataFormat.fromString( gd.getNextChoice() );
-            addMethod = ProjectCreator.AddMethod.valueOf( gd.getNextChoice() );
-            imageType = ProjectCreator.ImageType.valueOf( gd.getNextChoice() );
-            exclusive = gd.getNextBoolean();
-            useFileNameAsImageName = gd.getNextBoolean();
-
-            if ( imageDataFormat == ImageDataFormat.OmeZarr && addMethod == ProjectCreator.AddMethod.link )
-            {
-                IJ.log( "link is currently unsupported for ome-zarr. Please choose copy or move instead for this file format." );
-                return;
-            }
-
-            String filePath = getFilePath();
-
-            if ( filePath != null )
-            {
-                try
-                {
-                    addBdvFile( filePath, datasetName );
-                } catch ( SpimDataException e )
-                {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    private String getFilePath()
+    // TODO: this could be moved to mobie-io
+    private boolean isValidOMEZarr( String uri )
     {
-        switch ( imageDataFormat )
-        {
-            case BdvN5:
-                return UserInterfaceHelper.selectFilePath( "xml", "bdv .xml file", true );
-
-            case OmeZarr:
-                String filePath = UserInterfaceHelper.selectDirectoryPath( ".ome.zarr file", true );
-
-                // quick check that basic criteria for ome-zarr are met i.e. contains right files in top of dir
-                if ( ! isValidOMEZarr( filePath ) )
-                {
-                    IJ.log( "Add image failed - not a valid ome.zarr file." );
-                    return null;
-                }
-                else
-                {
-                    return filePath;
-                }
-            default:
-                return null;
-        }
-    }
-
-    private boolean isValidOMEZarr( String filePath )
-    {
-        return ( new File( IOHelper.combinePath( filePath, ".zgroup" ) ).exists() && new File( IOHelper.combinePath( filePath, ".zattrs" ) ).exists() );
+        return ( new File( IOHelper.combinePath( uri, ".zgroup" ) ).exists() && new File( IOHelper.combinePath( uri, ".zattrs" ) ).exists() );
     }
 
     /**
@@ -697,7 +715,7 @@ public class ProjectsCreatorUI extends JFrame {
             is2D = gd.getNextBoolean();
 
             if ( datasetName != null ) {
-                projectsCreator.getDatasetsCreator().addDataset( datasetName, is2D );
+                projectCreator.getDatasetsCreator().addDataset( datasetName, is2D );
                 updateDatasetsComboBox( datasetName );
             }
         }
@@ -707,7 +725,7 @@ public class ProjectsCreatorUI extends JFrame {
         final GenericDialog gd = new GenericDialog( "Edit dataset..." );
         String oldName = (String) datasetComboBox.getSelectedItem();
         if ( !oldName.equals("") ) {
-            boolean isDefault = projectsCreator.getProject().getDefaultDataset().equals(oldName);
+            boolean isDefault = projectCreator.getProject().getDefaultDataset().equals(oldName);
 
             gd.addStringField("Dataset name", oldName, 35);
             if (isDefault) {
@@ -721,14 +739,14 @@ public class ProjectsCreatorUI extends JFrame {
                 String newName = gd.getNextString();
                 newName = UserInterfaceHelper.tidyString( newName );
                 if ( newName != null ) {
-                    projectsCreator.getDatasetsCreator().renameDataset( oldName, newName );
+                    projectCreator.getDatasetsCreator().renameDataset( oldName, newName );
                     updateDatasetsComboBox( newName );
                 }
 
                 if (!isDefault) {
                     boolean makeDefault = gd.getNextBoolean();
                     if (makeDefault) {
-                        projectsCreator.getDatasetsCreator().makeDefaultDataset( newName );
+                        projectCreator.getDatasetsCreator().makeDefaultDataset( newName );
                     }
                 }
 
@@ -738,7 +756,7 @@ public class ProjectsCreatorUI extends JFrame {
 
     private void updateDatasetsComboBox( String selection ) {
         datasetComboBox.removeAllItems();
-        for ( String datasetName : projectsCreator.getProject().datasets() ) {
+        for ( String datasetName : projectCreator.getProject().datasets() ) {
             datasetComboBox.addItem(datasetName);
         }
 
@@ -755,7 +773,7 @@ public class ProjectsCreatorUI extends JFrame {
 
         if ( currentDataset != null && !currentDataset.equals("") ) {
             sourcesComboBox.removeAllItems();
-            Dataset dataset = projectsCreator.getDataset( currentDataset );
+            Dataset dataset = projectCreator.getDataset( currentDataset );
             if ( dataset != null && dataset.sources().keySet().size() > 0 ) {
                 for (String sourceName : dataset.sources().keySet() ) {
                     sourcesComboBox.addItem( sourceName );
@@ -775,7 +793,7 @@ public class ProjectsCreatorUI extends JFrame {
         String currentDataset = (String) datasetComboBox.getSelectedItem();
         if ( currentDataset != null && !currentDataset.equals("") ) {
             groupsComboBox.removeAllItems();
-            String[] groups = projectsCreator.getGroups( currentDataset );
+            String[] groups = projectCreator.getGroups( currentDataset );
             if ( groups != null && groups.length > 0 ) {
                 for ( String group : groups ) {
                     groupsComboBox.addItem( group );
@@ -792,7 +810,7 @@ public class ProjectsCreatorUI extends JFrame {
 
         if ( currentDataset != null && !currentDataset.equals("") ) {
             viewsComboBox.removeAllItems();
-            String[] views = projectsCreator.getViews( currentDataset, currentGroup );
+            String[] views = projectCreator.getViews( currentDataset, currentGroup );
             if ( views != null && views.length > 0 ) {
                 for ( String view: views ) {
                     viewsComboBox.addItem(view);

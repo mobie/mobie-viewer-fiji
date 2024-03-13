@@ -272,15 +272,8 @@ public class FileSourcesDataSetter
 
 		// construct and add the view
 		//
-		// FIXME: Maybe the viewerTransform could be something else?
-
-		final ImageZoomViewerTransform viewerTransform =
-				new ImageZoomViewerTransform( allSources.get( 0 ).getSources().get( 0 ), 0 );
-		final View view =
-				new View( "all images", "data", displays, transformations, viewerTransform, false, null );
-
-		//gridView.overlayNames( true ); // FIXME: Timepoint bug!
-
+		final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( allSources.get( 0 ).getSources().get( 0 ), 0 );
+		final View view = new View( "all images", "data", displays, transformations, viewerTransform, false, null );
 		dataset.views().put( view.getName(), view );
 	}
 }

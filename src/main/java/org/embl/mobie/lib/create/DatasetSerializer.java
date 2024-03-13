@@ -46,20 +46,18 @@ import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.util.IOHelper;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.embl.mobie.lib.create.ProjectCreatorHelper.imageFormatToFolderName;
-
 /**
  * Class to create and modify the metadata stored in dataset Json files
  */
 public class DatasetSerializer
 {
-
     ProjectCreator projectCreator;
 
     /**
@@ -88,7 +86,6 @@ public class DatasetSerializer
      * @param datasetName dataset name
      * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
      *                         menu it will appear in
-     * @param imageDataFormat image data format
      * @param contrastLimits contrast limits for image view
      * @param colour colour for image view
      * @param exclusive whether the image view is exclusive or not i.e. when viewed, does it first remove all current
@@ -98,7 +95,6 @@ public class DatasetSerializer
     public void addImage(String imageName,
                          String datasetName,
                          String uiSelectionGroup,
-                         ImageDataFormat imageDataFormat,
                          double[] contrastLimits,
                          String colour,
                          boolean exclusive,
@@ -106,7 +102,7 @@ public class DatasetSerializer
     {
         Dataset dataset = fetchDataset( datasetName );
 
-        addNewImageSource( dataset, imageName, imageDataFormat );
+        addNewImageSource( dataset, imageName );
         if ( uiSelectionGroup != null ) {
             // add a view with the same name as the image, and sensible defaults
             addNewImageView( dataset, imageName, uiSelectionGroup, contrastLimits, colour, exclusive, sourceTransform );
@@ -126,15 +122,14 @@ public class DatasetSerializer
      * @param datasetName dataset name
      * @param uiSelectionGroup name of ui selection group to add segmentation view to i.e. the name of the MoBIE
      *                         dropdown menu it will appear in
-     * @param imageDataFormat segmentation image data format
      * @param exclusive whether the segmentation view is exclusive or not i.e. when viewed, does it first
      *                  remove all current images from the viewer?
      * @param sourceTransform affine transform of segmentation view
      */
-    public void addSegmentation(String imageName, String datasetName, String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive, AffineTransform3D sourceTransform ) {
+    public void addSegmentation(String imageName, String datasetName, String uiSelectionGroup, boolean exclusive, AffineTransform3D sourceTransform ) {
         Dataset dataset = fetchDataset( datasetName );
 
-        addNewSegmentationSource( dataset, imageName, imageDataFormat );
+        addNewSegmentationSource( dataset, imageName );
         if ( uiSelectionGroup != null ) {
             // add a view with the same name as the image, and sensible defaults
             addNewSegmentationView( dataset, imageName, uiSelectionGroup, exclusive, sourceTransform );
@@ -166,16 +161,16 @@ public class DatasetSerializer
         return dataset;
     }
 
-    private void addNewImageSource( Dataset dataset, String imageName, ImageDataFormat imageDataFormat )
+    private void addNewImageSource( Dataset dataset, String imageName )
     {
         Map< ImageDataFormat, StorageLocation > imageDataLocations;
         ImageDataSource imageSource = new ImageDataSource();
-        imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
+        imageDataLocations = createImageDataLocations( imageName );
         imageSource.imageData = imageDataLocations;
         dataset.sources().put( imageName, imageSource );
     }
 
-    private void addNewSegmentationSource( Dataset dataset, String imageName, ImageDataFormat imageDataFormat )
+    private void addNewSegmentationSource( Dataset dataset, String imageName )
     {
         Map< ImageDataFormat, StorageLocation > imageDataLocations;
 
@@ -185,26 +180,18 @@ public class DatasetSerializer
         tableStorageLocation.relativePath = "tables/" + imageName;
         annotatedLabelMaskSource.tableData.put( TableDataFormat.TSV, tableStorageLocation );
 
-        imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
+        imageDataLocations = createImageDataLocations( imageName );
         annotatedLabelMaskSource.imageData = imageDataLocations;
 
         dataset.sources().put( imageName, annotatedLabelMaskSource );
     }
 
-    private Map< ImageDataFormat, StorageLocation > makeImageDataLocations( ImageDataFormat imageDataFormat,
-																			String imageName )
+    private Map< ImageDataFormat, StorageLocation > createImageDataLocations( String imageName )
     {
         Map< ImageDataFormat, StorageLocation > imageDataLocations = new HashMap<>();
         StorageLocation imageStorageLocation = new StorageLocation();
-        if ( imageDataFormat == ImageDataFormat.OmeZarr ) {
-            imageStorageLocation.relativePath = "images/" + imageFormatToFolderName( imageDataFormat ) +
-                    "/" + imageName + ".ome.zarr";
-        } else {
-            imageStorageLocation.relativePath = "images/" + imageFormatToFolderName(imageDataFormat) +
-                    "/" + imageName + ".xml";
-        }
-        imageDataLocations.put( imageDataFormat, imageStorageLocation );
-
+        imageStorageLocation.relativePath = "images" + File.separator + imageName + ".ome.zarr";
+        imageDataLocations.put( ImageDataFormat.OmeZarr, imageStorageLocation );
         return imageDataLocations;
     }
 

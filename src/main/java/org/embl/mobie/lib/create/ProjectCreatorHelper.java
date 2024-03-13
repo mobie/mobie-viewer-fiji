@@ -28,16 +28,13 @@
  */
 package org.embl.mobie.lib.create;
 
-import bdv.img.n5.N5ImageLoader;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import mpicbg.spim.data.SpimData;
-import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
-import mpicbg.spim.data.generic.sequence.BasicImgLoader;
-import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.ImageDataOpener;
+import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.View;
@@ -134,14 +131,13 @@ public class ProjectCreatorHelper {
         }
     }
 
-    /**
-     * Check if spim data is 2D
-     * @param spimData spim data object
-     * @return whether spimData is 2D or not
-     */
-    public static boolean isSpimData2D( SpimData spimData ) {
-        BasicViewSetup firstSetup = spimData.getSequenceDescription().getViewSetupsOrdered().get(0);
-        long[] dimensions = firstSetup.getSize().dimensionsAsLongArray();
+    public static boolean is2D( String uri )
+    {
+        return is2D( ImageDataOpener.open( uri ) );
+    }
+
+    public static boolean is2D( ImageData< ? > imageData ) {
+        long[] dimensions = imageData.getSourcePair( 0 ).getB().getSource( 0,0  ).dimensionsAsLongArray();;
         if ( dimensions.length < 3 || dimensions[2] == 1 ) {
             return true;
         } else {
@@ -244,14 +240,6 @@ public class ProjectCreatorHelper {
         }
     }
 
-    /**
-     * Convert image format to valid folder name
-     * @param imageFormat image format
-     * @return folder name
-     */
-    public static String imageFormatToFolderName( ImageDataFormat imageFormat ) {
-        return imageFormat.toString().replaceAll("\\.", "-");
-    }
 
     /**
      * Get string stating the voxel dimensions in x/y/z for the given ImagePlus image
@@ -295,23 +283,37 @@ public class ProjectCreatorHelper {
         return parsedUnit1.getCanonicalString().equals(parsedUnit2.getCanonicalString());
     }
 
+    // FIXME: non-matching voxel units should be somehow supported
+    //        ask in Zulip channel in the context of the n5 viewer
+    public static boolean isImageValid( String uri, String projectVoxelUnit )
+    {
+        return isImageValid( ImageDataOpener.open( uri ), projectVoxelUnit );
+    }
+
+    public static boolean isImageValid(  ImageData< ? > imageData, String projectVoxelUnit )
+    {
+        int numSetups = imageData.getNumDatasets();
+        String calibrationUnit = imageData.getSourcePair( 0 ).getB().getVoxelDimensions().unit();
+        return isImageValid( numSetups, calibrationUnit, projectVoxelUnit, true );
+    }
+
     /**
      * Checks if image with given properties is valid for MoBIE project
      * @param nChannels number of channels
      * @param imageUnit voxel unit of image
      * @param projectUnit voxel unit of project
-     * @param bdvFormat whether image is in a BigDataViewer (bdv) compatible format e.g. N5/ome-zarr
+     * @param isFile whether image is in a BigDataViewer (bdv) compatible format e.g. N5/ome-zarr
      * @return whether image is valid for MoBIE project or not
      */
-    public static boolean isImageValid( int nChannels, String imageUnit, String projectUnit, boolean bdvFormat ) {
+    public static boolean isImageValid( int nChannels, String imageUnit, String projectUnit, boolean isFile ) {
         // reject multi-channel images
         if ( nChannels > 1 ) {
-            // for bdv format images, don't print the fiji shortcuts
-            String channelMessage = "Multi-channel images are not supported. \n Please split the channels";
-            if ( !bdvFormat ) {
-                IJ.log( channelMessage + " [ Image > Color > Split Channels], and add each separately.");
+            String channelMessage = "Multi-channel images are not supported.";
+            if ( !isFile ) {
+                IJ.log(  channelMessage + "Please use [ Image > Color > Split Channels], and add each separately.");
             } else {
-                IJ.log(channelMessage + ", and add each separately.");
+                // FIXME: Ask the user which channel to add!
+                IJ.log( channelMessage + "Please add each channel separately.");
             }
             return false;
         }
@@ -321,14 +323,15 @@ public class ProjectCreatorHelper {
             if ( projectUnit != null && !unitsEqual( imageUnit, projectUnit) ) {
                 String unitMessage = "Image has a different unit (" + imageUnit + ") to the rest of the project (" +
                         projectUnit + "). \n Please set your image unit";
-                if (! bdvFormat ) {
+                if (! isFile ) {
                     IJ.log( unitMessage + " under [ Image > Properties... ] to match the project.");
                 } else {
                     IJ.log( unitMessage + " to match the project." );
                 }
                 return false;
             }
-        } catch (PrefixDBException | UnitSystemException | SpecificationException | UnitDBException e) {
+        }
+        catch (PrefixDBException | UnitSystemException | SpecificationException | UnitDBException e) {
             IJ.log("Couldn't parse unit.");
             e.printStackTrace();
             return false;

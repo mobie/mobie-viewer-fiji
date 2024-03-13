@@ -36,7 +36,7 @@ public class ProjectCreatorTestHelper {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    public static ImagePlus makeImage( String imageName, boolean is2D ) {
+    public static ImagePlus createImage( String imageName, boolean is2D ) {
         // make an image with random values, same size as the imagej sample head image
         if ( !is2D ) {
             return IJ.createImage(imageName, "8-bit noise", 186, 226, 27);
@@ -45,7 +45,7 @@ public class ProjectCreatorTestHelper {
         }
     }
 
-    public static ImagePlus makeSegmentation( String imageName ) {
+    public static ImagePlus createLabels( String imageName ) {
         // make an image with 3 boxes with pixel values 1, 2 and 3 as mock segmentation. Same size as imagej sample
         // head image
         int width = 186;

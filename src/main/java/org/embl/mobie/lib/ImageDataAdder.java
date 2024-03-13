@@ -43,6 +43,7 @@ import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.table.TableDataFormat;
+import org.janelia.saalfeldlab.n5.universe.metadata.canonical.CanonicalDatasetMetadata;
 import org.janelia.saalfeldlab.n5.universe.metadata.canonical.CanonicalSpatialDatasetMetadata;
 import spimdata.util.Displaysettings;
 
@@ -132,7 +133,7 @@ public class ImageDataAdder
 
 	private void addImageView( ImageData< ? > imageData, int datasetIndex, String imageName )
 	{
-		CanonicalSpatialDatasetMetadata metadata = imageData.getMetadata( datasetIndex );
+		CanonicalDatasetMetadata metadata = imageData.getMetadata( datasetIndex );
 
 		final ImageDisplay< ? > imageDisplay = new ImageDisplay<>(
 				imageName,
@@ -155,9 +156,7 @@ public class ImageDataAdder
 	private void addSegmentationView( ImageData< ? > imageData, int setupId, String name  )
 	{
 		final SegmentationDisplay< ? > display = new SegmentationDisplay<>( name, Arrays.asList( name ) );
-
-		final BasicViewSetup viewSetup = imageData.getSequenceDescription().getViewSetupsOrdered().get( setupId );
-		final double pixelWidth = viewSetup.getVoxelSize().dimension( 0 );
+		final double pixelWidth = imageData.getSourcePair( setupId ).getB().getVoxelDimensions().dimension( 0 );
 		display.setResolution3dView( new Double[]{ pixelWidth, pixelWidth, pixelWidth } );
 
 		final View view = new View( name, "segmentations", Arrays.asList( display ), null, null, false, null );

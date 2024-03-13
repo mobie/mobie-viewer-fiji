@@ -28,17 +28,14 @@
  */
 package org.embl.mobie.lib.create;
 
-import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.DatasetJsonParser;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.serialize.ImageDataSource;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -73,43 +70,25 @@ class RemoteMetadataCreatorTest {
                 datasetName, "dataset.json" );
     }
 
-    void testAddingRemoteMetadataForCertainFormat( ImageDataFormat imageDataFormat ) throws IOException, SpimDataException {
+    void testAddingRemoteMetadata(  ) throws IOException{
 
         // add image of right type
-        projectCreator.getImagesCreator().addImage( ProjectCreatorTestHelper.makeImage(imageName, false), imageName,
-                datasetName, imageDataFormat, ProjectCreator.ImageType.image, new AffineTransform3D(),
+        projectCreator.getImagesCreator().addImage( ProjectCreatorTestHelper.createImage(imageName, false), imageName,
+                datasetName, ProjectCreator.ImageType.Image, new AffineTransform3D(),
                 uiSelectionGroup, false );
 
-        ImageDataFormat remoteFormat = null;
-        switch( imageDataFormat ) {
-            case BdvN5:
-                remoteFormat = ImageDataFormat.BdvN5S3;
-                break;
-            case OmeZarr:
-                remoteFormat = ImageDataFormat.OmeZarrS3;
-                break;
-        }
+        ImageDataFormat remoteFormat = ImageDataFormat.OmeZarrS3;
 
         // add remote metadata
         remoteMetadataCreator.createRemoteMetadata( signingRegion, serviceEndpoint, bucketName, remoteFormat );
 
-        Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
-        assertTrue( dataset.sources().containsKey(imageName) );
-        assertTrue( (( ImageDataSource ) dataset.sources().get(imageName)).imageData.containsKey(remoteFormat) );
-        if ( imageDataFormat.hasXml() ) {
-            String remoteXmlPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
-                    datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName( remoteFormat ), imageName + ".xml" );
-            assertTrue( new File(remoteXmlPath).exists() );
-        }
+        Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
+        assertTrue( dataset.sources().containsKey( imageName ) );
+        assertTrue( (( ImageDataSource ) dataset.sources().get( imageName )).imageData.containsKey(remoteFormat) );
     }
 
     //@Test
-    void createRemoteMetadataBdvN5() throws IOException, SpimDataException {
-        testAddingRemoteMetadataForCertainFormat( ImageDataFormat.BdvN5 );
-    }
-
-    //@Test
-    void createRemoteMetadataOmeZarr() throws IOException, SpimDataException {
-        testAddingRemoteMetadataForCertainFormat( ImageDataFormat.OmeZarr);
+    void createRemoteMetadataOmeZarr() throws IOException {
+        testAddingRemoteMetadata();
     }
 }

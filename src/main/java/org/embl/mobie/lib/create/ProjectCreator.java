@@ -66,14 +66,14 @@ public class ProjectCreator {
     private final RemoteMetadataCreator remoteMetadataCreator;
 
     public enum ImageType {
-        image,
-        segmentation
+        Image,
+        Segmentation
     }
 
     public enum AddMethod {
-        link,
-        copy,
-        move
+        Link,
+        Copy,
+        Move
     }
 
     /**

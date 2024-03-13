@@ -3,7 +3,6 @@ package projects.em_xray_alignment;
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.io.OpenerLogging;
 
 import java.io.IOException;
 
