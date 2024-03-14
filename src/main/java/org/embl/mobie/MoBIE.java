@@ -687,6 +687,7 @@ public class MoBIE
 		}
 		else if ( imageDataFormat.equals( ImageDataFormat.IlastikHDF5 ) )
 		{
+			// FIXME: Remove this in favor of an IlastikImageData in mobie-io
 			return new IlastikImage<>( name, storageLocation.absolutePath, storageLocation.getChannel(), imageDataFormat, ThreadHelper.sharedQueue );
 		}
 		else if ( storageLocation instanceof Site ) // HCS data
@@ -696,13 +697,13 @@ public class MoBIE
 			if ( site.getImageDataFormat().equals( ImageDataFormat.SpimData ) )
 			{
 				// the whole plate is already initialised as one big SpimData
-				// note that channel <=> setupID
+				// note that channel = setupID
 				return new SpimDataImage<>( site.getSpimData(), site.channel, name, settings.values.getRemoveSpatialCalibration() );
 			}
 
 			if ( site.getImageDataFormat().equals( ImageDataFormat.OmeZarr ) )
 			{
-				return new ImageDataImage( ImageDataFormat.OmeZarr, site.absolutePath, site.channel, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
+				return new ImageDataImage<>( ImageDataFormat.OmeZarr, site.absolutePath, site.channel, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
 			}
 
 			if ( site.getImageDataFormat().equals( ImageDataFormat.OmeZarrS3 ) )
