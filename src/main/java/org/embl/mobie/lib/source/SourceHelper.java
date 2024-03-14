@@ -365,12 +365,10 @@ public abstract class SourceHelper
 
 			voxelDimensions.setAccessible(true);
 			voxelDimensions.set( source, pixelDimensions );
-		} catch ( NoSuchFieldException e )
+		}
+		catch ( Exception e )
 		{
-			e.printStackTrace();
-		} catch ( IllegalAccessException e )
-		{
-			e.printStackTrace();
+			throw new RuntimeException( e );
 		}
 	}
 

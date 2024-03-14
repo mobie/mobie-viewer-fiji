@@ -34,7 +34,6 @@ import ij.IJ;
 import ij.WindowManager;
 import loci.common.DebugTools;
 import net.imagej.ImageJ;
-import net.imglib2.realtransform.InvertibleWrapped2DTransformAs3DRealTransformRunTimeAdapter;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.S3Utils;
@@ -46,7 +45,6 @@ import org.embl.mobie.lib.files.SourcesFromPathsCreator;
 import org.embl.mobie.lib.hcs.HCSDataAdder;
 import org.embl.mobie.lib.hcs.Plate;
 import org.embl.mobie.lib.hcs.Site;
-import org.embl.mobie.lib.image.IlastikImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.ImageDataImage;
 import org.embl.mobie.lib.image.SpimDataImage;
@@ -572,7 +570,10 @@ public class MoBIE
 		switch (imageDataFormat) {
 			case OpenOrganelleS3:
             case OmeZarrS3:
-                return storageLocation.s3Address;
+				if ( storageLocation.s3Address != null )
+                	return storageLocation.s3Address;
+				else
+					return storageLocation.absolutePath; // works now, too
             default:
 				if ( storageLocation.absolutePath != null  )
 					return storageLocation.absolutePath;
@@ -686,11 +687,6 @@ public class MoBIE
 		{
 			return new ImageDataImage<>( ( ImageData ) storageLocation.data, storageLocation.getChannel(), name, settings.values.getRemoveSpatialCalibration() );
 		}
-		else if ( imageDataFormat.equals( ImageDataFormat.IlastikHDF5 ) )
-		{
-			// FIXME: Remove this in favor of an IlastikImageData in mobie-io
-			return new IlastikImage<>( name, storageLocation.absolutePath, storageLocation.getChannel(), imageDataFormat, ThreadHelper.sharedQueue );
-		}
 		else if ( storageLocation instanceof Site ) // HCS data
 		{
 			final Site site = ( Site ) storageLocation;
@@ -709,14 +705,14 @@ public class MoBIE
 
 			if ( site.getImageDataFormat().equals( ImageDataFormat.OmeZarrS3 ) )
 			{
-				return new ImageDataImage( ImageDataFormat.OmeZarrS3, site.absolutePath, site.channel, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
+				return new ImageDataImage<>( ImageDataFormat.OmeZarrS3, site.absolutePath, site.channel, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
 			}
 
-			return new ImageDataImage( site, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
+			return new ImageDataImage<>( site, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
 		}
 		else
 		{
-			return new ImageDataImage(
+			return new ImageDataImage<>(
 					imageDataFormat,
 					getImageLocation( imageDataFormat, storageLocation ),
 					storageLocation.getChannel(),
