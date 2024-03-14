@@ -143,6 +143,10 @@
 <!--            <artifactId>n5-viewer_fiji</artifactId>-->
 <!--        </dependency>-->
         <dependency>
+            <groupId>sc.fiji</groupId>
+            <artifactId>bigwarp_fiji</artifactId>
+        </dependency>
+        <dependency>
             <groupId>net.imagej</groupId>
             <artifactId>imagej-legacy</artifactId>
         </dependency>
@@ -167,10 +171,6 @@
                     <artifactId>imagej</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>sc.fiji</groupId>
-            <artifactId>bigwarp_fiji</artifactId>
         </dependency>
         <dependency>
             <groupId>net.imglib2</groupId>

@@ -34,6 +34,7 @@ import ij.IJ;
 import ij.WindowManager;
 import loci.common.DebugTools;
 import net.imagej.ImageJ;
+import net.imglib2.realtransform.InvertibleWrapped2DTransformAs3DRealTransformRunTimeAdapter;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.S3Utils;
