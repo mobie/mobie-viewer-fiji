@@ -36,6 +36,8 @@ import ij.process.ImageStatistics;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.janelia.saalfeldlab.n5.universe.metadata.canonical.CanonicalDatasetMetadata;
 
+import javax.annotation.Nullable;
+
 import static ij.measure.Measurements.MIN_MAX;
 
 // FIXME: move this to mobie-io
@@ -53,8 +55,10 @@ public class Metadata
 	{
 	}
 
-	public Metadata( CanonicalDatasetMetadata cdm )
+	public Metadata( @Nullable CanonicalDatasetMetadata cdm )
 	{
+		if ( cdm == null ) return;
+
 		this.color = ColorHelper.getString( cdm.getColor() );
 		this.contrastLimits = new double[]{ cdm.minIntensity(), cdm.maxIntensity() };
 	}

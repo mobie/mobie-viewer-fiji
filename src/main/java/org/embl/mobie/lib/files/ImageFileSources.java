@@ -32,6 +32,7 @@ import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataOpener;
+import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.table.ColumnNames;
@@ -82,7 +83,9 @@ public class ImageFileSources
 
 		// TODO: how to deal with the inconsistent metadata (e.g. number of time-points)?
 		this.metadataSource = nameToFullPath.keySet().iterator().next();
-		this.metadata = new Metadata( ImageDataOpener.open( nameToFullPath.get( metadataSource ) ).getMetadata( channelIndex ) );
+		ImageData< ? > imageData = ImageDataOpener.open( nameToFullPath.get( metadataSource ) );
+		CanonicalDatasetMetadata canonicalDatasetMetadata = imageData.getMetadata( channelIndex );
+		this.metadata = new Metadata( canonicalDatasetMetadata );
 
 		// FIXME: move this out to a separate function
 		regionTable = Table.create( name + " table" );
