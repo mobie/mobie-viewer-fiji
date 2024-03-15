@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.source;
 
+import IceInternal.Ex;
 import bdv.AbstractSpimSource;
 import bdv.SpimSource;
 import bdv.tools.transformation.TransformedSource;
@@ -60,6 +61,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper.createConverterARGBType;
 import static sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper.getVoxelPositionInSource;
 
 public abstract class SourceHelper
@@ -310,13 +312,21 @@ public abstract class SourceHelper
 		// extend the bounds in voxel space to include the voxel dimensions
 		if ( includeVoxelDimensions )
 		{
-			final double[] voxelDimensions = source.getVoxelDimensions().dimensionsAsDoubleArray();
-			for ( int d = 0; d < min.length; d++ )
+			try
 			{
-				final double scale = Affine3DHelpers.extractScale( sourceTransform, d );
-				min[ d ] -= voxelDimensions[ d ] / scale;
-				max[ d ] += voxelDimensions[ d ] / scale;
+				final double[] voxelDimensions = source.getVoxelDimensions().dimensionsAsDoubleArray();
+				for ( int d = 0; d < min.length; d++ )
+				{
+					final double scale = Affine3DHelpers.extractScale( sourceTransform, d );
+					min[ d ] -= voxelDimensions[ d ] / scale;
+					max[ d ] += voxelDimensions[ d ] / scale;
+				}
 			}
+			catch ( Exception e  )
+			{
+				throw new RuntimeException( e );
+			}
+
 		}
 		WritableBox box = GeomMasks.closedBox( min, max );
 

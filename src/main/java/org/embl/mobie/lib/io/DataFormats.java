@@ -63,7 +63,7 @@ public class DataFormats
 			add( ImageDataFormat.ImageJ );
 			add( ImageDataFormat.BioFormats );
 			add( ImageDataFormat.Bdv );
-			add( ImageDataFormat.IlastikHDF5 );
+			add( ImageDataFormat.Ilastik );
 		}
 	};
 

@@ -28,13 +28,16 @@
  */
 package org.embl.mobie.lib.files;
 
+import bdv.viewer.Source;
 import ij.IJ;
+import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.source.Metadata;
+import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.columns.SegmentColumnNames;
@@ -82,15 +85,23 @@ public class ImageFileSources
 		}
 
 		// TODO: how to deal with the inconsistent metadata (e.g. number of time-points)?
-		this.metadataSource = nameToFullPath.keySet().iterator().next();
-		ImageData< ? > imageData = ImageDataOpener.open( nameToFullPath.get( metadataSource ) );
-		CanonicalDatasetMetadata canonicalDatasetMetadata = imageData.getMetadata( channelIndex );
-		this.metadata = new Metadata( canonicalDatasetMetadata );
+		setMetadata( channelIndex );
 
 		// FIXME: move this out to a separate function
 		regionTable = Table.create( name + " table" );
 		regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, new ArrayList<>( nameToFullPath.keySet() ) ) );
 		regionTable.addColumns( StringColumn.create( "source_path", new ArrayList<>( nameToFullPath.values() ) ) );
+	}
+
+	private void setMetadata( Integer channelIndex )
+	{
+		metadataSource = nameToFullPath.keySet().iterator().next();
+		ImageData< ? > imageData = ImageDataOpener.open( nameToFullPath.get( metadataSource ) );
+		CanonicalDatasetMetadata canonicalDatasetMetadata = imageData.getMetadata( channelIndex );
+		metadata = new Metadata( canonicalDatasetMetadata );
+		Source< ? extends Volatile< ? > > source = imageData.getSourcePair( channelIndex ).getB();
+		metadata.numZSlices = (int) source.getSource( 0, 0  ).dimension( 2 );
+		metadata.numTimePoints = SourceHelper.getNumTimepoints( source );
 	}
 
 	public ImageFileSources( String name, Table table, String imageColumn, Integer channelIndex, String root, GridType gridType )
@@ -136,8 +147,7 @@ public class ImageFileSources
 			}
 		}
 
-		metadataSource = nameToFullPath.keySet().iterator().next();
-		metadata = new Metadata( ImageDataOpener.open( nameToFullPath.get( metadataSource ) ).getMetadata( channelIndex ) );
+		setMetadata( channelIndex );
 		dealWithTimepointsInObjectTableIfNeeded( name, table, imageColumn );
 	}
 
