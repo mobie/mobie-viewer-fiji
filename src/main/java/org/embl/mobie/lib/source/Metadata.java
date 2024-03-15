@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.lib.source;
 
-import IceInternal.Ex;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.ContrastEnhancer;
@@ -43,7 +42,7 @@ public class Metadata
 	public double[] contrastLimits = null;
 	public Integer numTimePoints = null;
 	public Integer numZSlices = 1;
-	public Integer numChannelsContainer = 1; // in MoBIE each image has jsut one channel, but the container could have multiple
+	public Integer numChannelsContainer = 1; // in MoBIE each image has just one channel, but the container could have multiple
 	private static boolean logBFError = true;
 
 	public Metadata()

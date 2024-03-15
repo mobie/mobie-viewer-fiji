@@ -9,7 +9,7 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>4.4.1</version>
+    <version>4.4.2</version>
 
     <!-- force javadoc generation to fetch errors:    -->
     <!-- mvn javadoc:javadoc | grep error -->
@@ -85,7 +85,7 @@
 
         <bigdataviewer-playground.version>0.8.0</bigdataviewer-playground.version>
         <imagej-utils.version>0.6.9</imagej-utils.version>
-        <mobie-io.version>2.2.5</mobie-io.version>
+        <mobie-io.version>2.2.6</mobie-io.version>
         <trove.version>1.0.2</trove.version>
         <annotations.version>16.0.2</annotations.version>
 

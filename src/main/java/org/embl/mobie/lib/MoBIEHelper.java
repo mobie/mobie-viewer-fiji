@@ -35,7 +35,9 @@ import ij.ImagePlus;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.Dimensions;
+import net.imglib2.RandomAccessibleInterval;
 import org.embl.mobie.DataStore;
+import org.embl.mobie.io.CachedCellImgOpener;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
@@ -211,6 +213,7 @@ public abstract class MoBIEHelper
 			throw new RuntimeException( "Path does not exist: " + path );
 		}
 
+
 		if ( path.contains( ".zarr" ) )
 		{
 			try
@@ -230,9 +233,14 @@ public abstract class MoBIEHelper
 		}
 		else if ( path.endsWith( ".h5" ) )
 		{
-			return new Metadata();
+			CachedCellImgOpener< ? > opener = new CachedCellImgOpener<>( path, ImageDataFormat.IlastikHDF5, ThreadHelper.sharedQueue );
+			RandomAccessibleInterval< ? > rai = opener.getRAI( 0 );
+			Metadata metadata = new Metadata();
+			metadata.numZSlices = (int) rai.dimension( 2 );
+
+			return metadata;
 		}
-		else if ( path.endsWith( ".toml" ) )
+		if ( path.endsWith( ".toml" ) )
 		{
 			final ImagePlus imagePlus = new TOMLOpener( path ).asImagePlus();
 			return new Metadata( imagePlus );
