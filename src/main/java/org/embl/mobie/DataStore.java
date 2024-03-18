@@ -34,10 +34,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import ij.ImagePlus;
 import ij.measure.Calibration;
-import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.VoxelDimensions;
-import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.NumericType;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.imagedata.ImageData;
@@ -81,7 +78,7 @@ public abstract class DataStore
 			return imageDataCache
 					.computeIfAbsent( path,
 							p -> CompletableFuture.supplyAsync( ()
-							-> openImageData( (String) p, imageDataFormat, sharedQueue ) ) )
+							-> addImageData( (String) p, imageDataFormat, sharedQueue ) ) )
 					.get();
 		}
 		catch ( InterruptedException e )
@@ -101,7 +98,7 @@ public abstract class DataStore
 			return imageDataCache
 					.computeIfAbsent(site,
 							s -> CompletableFuture.supplyAsync(()
-									-> openImageData( (Site) s, sharedQueue )))
+									-> addImageData( (Site) s, sharedQueue )))
 					.get();
 		}
 		catch ( InterruptedException e )
@@ -114,7 +111,7 @@ public abstract class DataStore
 		}
 	}
 
-	private static ImageData< ? > openImageData( String path, ImageDataFormat imageDataFormat, SharedQueue sharedQueue )
+	private static ImageData< ? > addImageData( String path, ImageDataFormat imageDataFormat, SharedQueue sharedQueue )
 	{
 		try
 		{
@@ -195,7 +192,7 @@ public abstract class DataStore
 		images.clear();
 	}
 
-	private static ImageData< ? > openImageData( Site site, SharedQueue sharedQueue )
+	private static ImageData< ? > addImageData( Site site, SharedQueue sharedQueue )
 	{
 		VirtualBioFormatsStack virtualStack = null;
 

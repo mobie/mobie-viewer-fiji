@@ -28,11 +28,9 @@
  */
 package org.embl.mobie.command.open.project;
 
-import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.io.ImageDataFormat;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
 
@@ -51,7 +49,7 @@ public class OpenPlatyBrowserCommand implements Command
 
 		try
 		{
-			new MoBIE( "https://github.com/mobie/platybrowser-datasets", settings );
+			new MoBIE( "https://github.com/mobie/platybrowser-project", settings );
 		}
 		catch ( IOException e )
 		{
