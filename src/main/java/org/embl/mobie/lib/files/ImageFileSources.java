@@ -2,17 +2,17 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2024 EMBL
+ * Copyright (C) 2018 - 2023 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -113,7 +113,6 @@ public class ImageFileSources
 		nameToPath = new LinkedHashMap<>(); // needed for joining the tables below when creating the region table
 
 		int numRows = table.rowCount();
-
 		if ( imageColumn.contains( "_IMG" )  )
 		{
 			// Automic table
@@ -123,7 +122,7 @@ public class ImageFileSources
 				String relativeFolderName = table.getString( rowIndex, imageColumn.replace( "FileName_", "PathName_"  ) );
 				String path = MoBIEHelper.createAbsolutePath( root, fileName, relativeFolderName );
 				String imageName = createImageName( channelIndex, fileName );
-				nameToFullPath.put( imageName, applyPathMapping( pathMapping, path ) );
+				nameToFullPath.put( imageName, path );
 				nameToPath.put( imageName, fileName );
 
 				if ( table.columnNames().contains( "Rotation_NUM" ) ) // FIXME can we have this generic?
@@ -135,21 +134,6 @@ public class ImageFileSources
 				}
 			}
 		}
-		else if ( isCellProfilerColumn( imageColumn, table ) )
-		{
-			String postfix = imageColumn.substring("FileName_".length());
-			String folderColumn = "PathName_" + postfix;
-
-			for ( int rowIndex = 0; rowIndex < numRows; rowIndex++ )
-			{
-				String fileName = table.getString( rowIndex, imageColumn );
-				String folder = table.getString( rowIndex, folderColumn );
-				String path = IOHelper.combinePath( folder, fileName );
-				String imageName = createImageName( channelIndex, fileName );
-				nameToFullPath.put( imageName, applyPathMapping( pathMapping, path ) );
-				nameToPath.put( imageName, fileName );
-			}
-		}
 		else
 		{
 			// Default table
@@ -158,24 +142,13 @@ public class ImageFileSources
 				String path = table.getString( rowIndex, imageColumn );
 				File file = root == null ? new File( path ) : new File( root, path );
 				String imageName = createImageName( channelIndex, file.getName() );
-				nameToFullPath.put( imageName, applyPathMapping( pathMapping, file.getAbsolutePath() )  );
+				nameToFullPath.put( imageName, file.getAbsolutePath() );
 				nameToPath.put( imageName, path );
 			}
 		}
 
 		setMetadata( channelIndex );
 		dealWithTimepointsInObjectTableIfNeeded( name, table, imageColumn );
-	}
-
-	protected static boolean isCellProfilerColumn( String column, Table table )
-	{
-		if ( ! column.startsWith( "FileName_" ) ) return false;
-
-		String postfix = column.substring("FileName_".length());
-		String folderColumn = "PathName_" + postfix;
-		boolean containsFolderColumn = table.containsColumn( folderColumn );
-
-		return containsFolderColumn;
 	}
 
 	protected static List< String > getFullPaths( String regex, String root )
@@ -279,8 +252,7 @@ public class ImageFileSources
 
 }
 
-
-//			// TODO also determine the grid position
+//	// TODO also determine the grid position
 //   add a function for this? arrange grid by TableColumn?
 //			final List< String > groupNames = MoBIEHelper.getGroupNames( regex );
 //
