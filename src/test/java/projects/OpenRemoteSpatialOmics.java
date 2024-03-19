@@ -41,6 +41,7 @@ public class OpenRemoteSpatialOmics
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/mouse-embryo-spatial-transcriptomics-project", MoBIESettings.settings().view( "default" ) );
+		// FIXME: does not open in new-n5
+		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/mouse-embryo-spatial-transcriptomics-project" );
 	}
 }

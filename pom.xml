@@ -96,6 +96,7 @@
         <n5.version>3.2.0</n5.version>
         <n5-google-cloud.version>4.1.0</n5-google-cloud.version>
         <n5-zarr.version>1.3.1</n5-zarr.version>
+        <n5-hdf5.version>2.2.0</n5-hdf5.version>
         <n5-ij.version>4.1.1</n5-ij.version>
         <n5-universe.version>1.4.1</n5-universe.version>
         <n5-aws-s3.version>4.1.1</n5-aws-s3.version>
@@ -131,19 +132,6 @@
         </repository>
     </repositories>
     <dependencies>
-        <!--  FIXME: Why do those versions not come transitive with mobie-io ??   -->
-<!--        <dependency>-->
-<!--            <groupId>org.janelia.saalfeldlab</groupId>-->
-<!--            <artifactId>n5-universe</artifactId>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.janelia.saalfeldlab</groupId>-->
-<!--            <artifactId>n5-ij</artifactId>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.janelia.saalfeldlab</groupId>-->
-<!--            <artifactId>n5-viewer_fiji</artifactId>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>sc.fiji</groupId>
             <artifactId>bigwarp_fiji</artifactId>
