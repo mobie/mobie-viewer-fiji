@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -30,92 +30,84 @@ package org.embl.mobie.command.context;
 
 import bdv.gui.TransformTypeSelectDialog;
 import bdv.tools.brightness.ConverterSetup;
-import bdv.tools.transformation.TransformedSource;
-import bdv.util.BdvHandle;
 import bdv.viewer.BigWarpViewerPanel;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TransformListener;
 import bigwarp.BigWarp;
-import bigwarp.transforms.BigWarpTransform;
-import ij.gui.GenericDialog;
-import ij.gui.NonBlockingGenericDialog;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.transform.TransformHelper;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.InvertibleRealTransform;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.widget.Button;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.register.BigWarpLauncher;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - BigWarp")
-public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, TransformListener< InvertibleRealTransform >
+public class BigWarpRegistrationCommand extends AbstractRegistrationCommand implements TransformListener< InvertibleRealTransform >
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter
-	BdvHandle bdvHandle;
+	@Parameter ( label = "Launch BigWarp", callback = "launchBigWarp")
+	private Button launchBigWarp;
 
-	private BigWarp bigWarp;
-	private Map< SourceAndConverter< ? >, AffineTransform3D > sacToOriginalFixedTransform;
-	private List< SourceAndConverter< ? > > movingSacs;
-	private List< SourceAndConverter< ? > > fixedSacs;
-	private ISourceAndConverterService sacService;
-	private SourceAndConverterBdvDisplayService bdvDisplayService;
+	@Parameter ( label = "Preview current transform", callback = "previewTransform")
+	private Button previewTransform;
+
+	@Parameter ( label = "Apply current transform and exit", callback = "applyTransform")
+	private Button applyTransform;
+
+	private BigWarp< ? >bigWarp;
+
 
 	@Override
-	public void run()
+	public void initialize()
 	{
-		// FIXME: We should somewhere store the information that this was a BigWarp transformation and of which type!
+		super.initialize();
+	}
 
-		List< SourceAndConverter< ? > > sourceAndConverters = MoBIEHelper.getVisibleSacs( bdvHandle );
-
-		final String[] titles = sourceAndConverters.stream()
-				.map( sac -> sac.getSpimSource().getName() )
-				.toArray( String[]::new );
-
-		final GenericDialog gd = new GenericDialog( "BigWarp Registration" );
-
-		final String current = titles[ 0 ];
-		gd.addChoice( "Fixed image", titles, current );
-		gd.addChoice( "Moving image", titles, current.equals( titles[ 0 ] ) ? titles[ 1 ] : titles[ 0 ] );
-
-		gd.showDialog();
-
-		if ( gd.wasCanceled() ) return;
-		String fixedImage = gd.getNextChoice();
-		String movingImage = gd.getNextChoice();
-
-		sacService = SourceAndConverterServices.getSourceAndConverterService();
-		bdvDisplayService = SourceAndConverterServices.getBdvDisplayService();
+	public void previewTransform()
+	{
+		applyTransformInPlace( bigWarp.getBwTransform().affine3d() );
+		bdvHandle.getViewerPanel().requestRepaint();
+	}
 
 
-		movingSacs = sourceAndConverters.stream()
-				.filter( sac -> sac.getSpimSource().getName().equals( movingImage ) )
-				.collect( Collectors.toList() );
-		fixedSacs = sourceAndConverters.stream()
-				.filter( sac -> sac.getSpimSource().getName().equals( fixedImage ) )
-				.collect( Collectors.toList() );
+	public void applyTransform()
+	{
+		movingSource.setFixedTransform( previousFixedTransform );
 
-		storeOriginalTransforms( movingSacs );
+		applyAffineTransform3D( bigWarp.getBwTransform().affine3d(), "bigwarp-" + bigWarp.getTransformType().toLowerCase().replace(" ", "-") );
 
-		List< ConverterSetup > converterSetups = movingSacs.stream()
-				.map( sac -> sacService.getConverterSetup(sac))
-				.collect( Collectors.toList() );
-		converterSetups.addAll( fixedSacs.stream()
-				.map( sac -> sacService.getConverterSetup(sac) )
-				.collect( Collectors.toList() ) );
+		bdvHandle.getViewerPanel().requestRepaint();
+		bigWarp.closeAll();
+	}
 
-		BigWarpLauncher bigWarpLauncher = new BigWarpLauncher( movingSacs, fixedSacs, "Big Warp", converterSetups);
+
+	public void launchBigWarp()
+	{
+		ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();
+		SourceAndConverterBdvDisplayService bdvDisplayService = SourceAndConverterServices.getBdvDisplayService();
+
+		SourceAndConverter< ? > fixedSac = sourceAndConverters.stream()
+				.filter( sac -> sac.getSpimSource().getName().equals( fixedImageName ) )
+				.findFirst().get();
+
+		List< ConverterSetup > converterSetups = new ArrayList<>();
+		converterSetups.add( sacService.getConverterSetup( movingSac ) );
+		converterSetups.add( sacService.getConverterSetup( fixedSac ) );
+
+		BigWarpLauncher bigWarpLauncher = new BigWarpLauncher(
+				Collections.singletonList( movingSac ),
+				Collections.singletonList( fixedSac ),
+				"MoBIE Big Warp",
+				converterSetups);
 		bigWarpLauncher.run();
 
 		bdvDisplayService.pairClosing( bigWarpLauncher.getBdvHandleQ(), bigWarpLauncher.getBdvHandleP() );
@@ -127,48 +119,19 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 		applyViewerTransform( normalisedViewerTransform, bigWarp.getViewerFrameP().getViewerPanel() );
 		bigWarp.setTransformType( TransformTypeSelectDialog.AFFINE );
 		bigWarp.addTransformListener( this );
-
-		new Thread( () -> showDialog( ) ).start();
 	}
+
 
 	private void applyViewerTransform( AffineTransform3D normalisedViewerTransform, BigWarpViewerPanel viewerPanel )
 	{
 		viewerPanel.state().setViewerTransform( TransformHelper.createUnnormalizedViewerTransform( normalisedViewerTransform, viewerPanel ) );
 	}
 
-	private void showDialog( )
+	@Override
+	public void cancel()
 	{
-		final NonBlockingGenericDialog dialog = new NonBlockingGenericDialog( "Registration - BigWarp" );
-		dialog.addMessage( "Landmark based affine, similarity, rigid and translation transformations.\nPlease read the BigWarp help.\n" + "Press [ OK ] to close BigWarp and apply the current registration in MoBIE.");
-		dialog.showDialog();
-		if ( dialog.wasCanceled() )
-		{
-			resetMovingTransforms();
-			bigWarp.closeAll();
-		}
-		else
-		{
-			setMovingTransforms();
-			bigWarp.closeAll();
-		}
-	}
-
-	private void resetMovingTransforms()
-	{
-		movingSacs.forEach( sac -> ( ( TransformedSource< ? >)  sac.getSpimSource() )
-				.setFixedTransform( sacToOriginalFixedTransform.get( sac ) ) );
-		bdvHandle.getViewerPanel().requestRepaint();
-	}
-
-	private void storeOriginalTransforms( List< SourceAndConverter< ? > > movingSacs )
-	{
-		sacToOriginalFixedTransform = new HashMap<>();
-		for ( SourceAndConverter< ? > movingSac : movingSacs )
-		{
-			final AffineTransform3D fixedTransform = new AffineTransform3D();
-			( ( TransformedSource< ? > ) movingSac.getSpimSource()).getFixedTransform( fixedTransform );
-			sacToOriginalFixedTransform.put( movingSac, fixedTransform );
-		}
+		movingSource.setFixedTransform( previousFixedTransform );
+		bigWarp.closeAll();
 	}
 
 	@Override
@@ -181,17 +144,4 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 		}
 	}
 
-	private void setMovingTransforms()
-	{
-		final BigWarpTransform bigWarpTransform = bigWarp.getBwTransform();
-		final AffineTransform3D bigWarpAffineTransform = bigWarpTransform.affine3d();
-		for ( SourceAndConverter< ? > movingSource : movingSacs )
-		{
-			final AffineTransform3D combinedTransform = sacToOriginalFixedTransform.get( movingSource ).copy();
-			combinedTransform.preConcatenate( bigWarpAffineTransform.copy().inverse() );
-			final TransformedSource< ? > transformedSource = ( TransformedSource< ? > ) movingSource.getSpimSource();
-			transformedSource.setFixedTransform( combinedTransform );
-		}
-		bdvHandle.getViewerPanel().requestRepaint();
-	}
 }

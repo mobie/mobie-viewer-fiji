@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,45 +29,60 @@
 package org.embl.mobie.lib.image;
 
 import bdv.tools.transformation.TransformedSource;
-import bdv.viewer.Source;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
-import org.embl.mobie.lib.image.DefaultSourcePair;
-import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.image.SourcePair;
+import org.embl.mobie.lib.serialize.transformation.Transformation;
+import org.embl.mobie.lib.transform.TransformHelper;
 
-public class AffineTransformedImage< T > implements Image< T >
+public class AffineTransformedImage< T > implements Image< T >, TransformedImage
 {
-	protected final AffineTransform3D affineTransform3D;
-	protected final Image< T > image;
-	protected final String name;
-	private RealMaskRealInterval mask;
+	private final Image< T > image;
+	private final String name;
+	private final AffineTransform3D affineTransform3D;
 
-	public AffineTransformedImage( Image< T > image, String name, AffineTransform3D affineTransform3D )
+	private Transformation transformation;
+
+	private RealMaskRealInterval mask;
+	private DefaultSourcePair< T > sourcePair;
+
+
+	public AffineTransformedImage( Image< T > image,  String transformedImageName, AffineTransform3D affineTransform3D )
 	{
 		this.image = image;
-		this.name = name;
+		this.name = transformedImageName;
 		this.affineTransform3D = affineTransform3D;
 	}
 
-	public AffineTransform3D getAffineTransform3D()
+	public Transformation getTransformation()
 	{
-		return affineTransform3D;
+		return transformation;
+	}
+
+	@Override
+	public void setTransformation( Transformation transformation )
+	{
+		this.transformation = transformation;
 	}
 
 	@Override
 	public synchronized SourcePair< T > getSourcePair()
 	{
-		final SourcePair< T > sourcePair = image.getSourcePair();
-		final Source< T > source = sourcePair.getSource();
-		final Source< ? extends Volatile< T > > volatileSource = sourcePair.getVolatileSource();
+		if ( sourcePair == null )
+			createSourcePair();
 
-		final TransformedSource< T > transformedSource = new TransformedSource<>( source, name );
+		return sourcePair;
+	}
+
+	private void createSourcePair()
+	{
+		SourcePair< T > defaultSourcePair = TransformHelper.getSourcePairWithNewTransformedSources( image.getSourcePair() );
+
+		final TransformedSource< T > transformedSource = new TransformedSource<>( defaultSourcePair.getSource(), name );
 		transformedSource.setFixedTransform( affineTransform3D );
-		final TransformedSource< ? extends Volatile< T > > volatileTransformedSource = new TransformedSource<>( volatileSource, transformedSource );
+		final TransformedSource< ? extends Volatile< T > > volatileTransformedSource = new TransformedSource<>(  defaultSourcePair.getVolatileSource(), transformedSource, name );
 
-		return new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
+		this.sourcePair = new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
 	}
 
 	@Override
@@ -95,5 +110,11 @@ public class AffineTransformedImage< T > implements Image< T >
 	public void setMask( RealMaskRealInterval mask )
 	{
 		this.mask = mask;
+	}
+
+	@Override
+	public Image< ? > getWrappedImage()
+	{
+		return image;
 	}
 }

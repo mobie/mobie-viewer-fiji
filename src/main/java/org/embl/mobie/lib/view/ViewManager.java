@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -32,7 +32,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import ij.WindowManager;
+import ij.gui.GenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
@@ -58,7 +58,6 @@ import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.*;
 import org.embl.mobie.lib.serialize.transformation.*;
 import org.embl.mobie.lib.source.AnnotationType;
-import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.table.*;
 import org.embl.mobie.lib.transform.TransformHelper;
 import org.embl.mobie.lib.transform.ImageTransformer;
@@ -109,18 +108,18 @@ public class ViewManager
 
 	public static void createTransformedSourceView(
 			SourceAndConverter< ? > sac,
-			String newImageName,
+			String imageName,
 			Transformation transformation,
 			String viewDescription )
 	{
-		ArrayList< Transformation > transformations = SourceHelper.fetchAddedTransformations( sac.getSpimSource() );
+		ArrayList< Transformation > transformations = TransformHelper.fetchAddedTransformations( sac.getSpimSource() );
 		transformations.add( transformation );
 
-		ImageDisplay< ? > imageDisplay = new ImageDisplay<>( newImageName, newImageName );
+		ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, imageName );
 		imageDisplay.setDisplaySettings( sac );
 
 		View view = new View(
-				newImageName,
+				imageName,
 				null, // to be determined by the user in below dialog
 				Collections.singletonList( imageDisplay ),
 				transformations,
@@ -129,6 +128,8 @@ public class ViewManager
 				viewDescription );
 
 		MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view );
+
+		MoBIE.getInstance().getViewManager().show( view );
 	}
 
 	private void initScatterPlotView( AbstractAnnotationDisplay< ? > display )
@@ -162,7 +163,7 @@ public class ViewManager
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			Source< ? > source = sourceAndConverter.getSpimSource();
-			ArrayList< Transformation > fetchedTransformations = SourceHelper.fetchAddedTransformations( source );
+			ArrayList< Transformation > fetchedTransformations = TransformHelper.fetchAddedTransformations( source );
 			transformations.addAll( fetchedTransformations );
         }
     }
@@ -188,8 +189,8 @@ public class ViewManager
 			addImageTransforms( transformations, display.sourceAndConverters() );
 		}
 
-		// note that some of the parameters that are null should be later  set via the view's setter methods
-		return new View( "", null, displays, transformations, null, true, "" );
+		// the parameters that are null must be later set via the view's setter methods
+		return new View( null, null, displays, transformations, null, true, "" );
 	}
 
 	public synchronized void show( String viewName )
@@ -202,9 +203,6 @@ public class ViewManager
 	public synchronized void show( View view )
 	{
 		final long startTime = System.currentTimeMillis();
-		IJ.log( "Opening view: " + view.getName() );
-		if ( view.getDescription() != null )
-			IJ.log( "Description: " + view.getDescription() );
 
 		if ( view.isExclusive() )
 		{
@@ -274,6 +272,9 @@ public class ViewManager
 		imageNameOverlay.setActive( view.overlayNames() );
 
 		IJ.log("Opened view: " + view.getName() + " in " + (System.currentTimeMillis() - startTime) + " ms." );
+		if ( view.getDescription() != null )
+			IJ.log( "Description: " + view.getDescription() );
+
 	}
 
 	// initialize and transform

@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -30,6 +30,7 @@ package develop;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 
 import java.io.IOException;
 
@@ -41,7 +42,7 @@ public class MergedGrid3D
 		imageJ.ui().showUI();
 
 		try {
-			new MoBIE("/Users/tischer/Downloads/example/mobie-example-project" );//.getViewManager().show( "cell-segmentation" );
+			new MoBIE("/Users/tischer/Downloads/example/mobie-example-project", new MoBIESettings() );//.getViewManager().show( "cell-segmentation" );
 		} catch ( IOException e) {
 			e.printStackTrace();
 		}

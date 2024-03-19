@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -39,6 +39,7 @@ import net.imagej.ImageJ;
 import net.imagej.patcher.LegacyInjector;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.create.DatasetsCreator;
 import org.embl.mobie.lib.create.ImagesCreator;
@@ -108,7 +109,7 @@ public class CreateRafaelProject
 		}
 
 		// Show the project in MoBIE
-		new MoBIE( projectDirectory);
+		new MoBIE( projectDirectory, new MoBIESettings() );
 	}
 
 	private static ImagePlus cropAndClearOutside( ImagePlus imp, Roi roi )

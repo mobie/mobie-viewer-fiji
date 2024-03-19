@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,11 +28,7 @@
  */
 package org.embl.mobie.command.context;
 
-import bdv.tools.transformation.ManualTransformActiveListener;
-import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import ij.gui.NonBlockingGenericDialog;
-import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.MoBIEManualTransformationEditor;
@@ -40,110 +36,78 @@ import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.widget.Button;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Manual")
-public class ManualTransformationCommand implements BdvPlaygroundActionCommand, ManualTransformActiveListener
+public class ManualTransformationCommand extends AbstractTransformationCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter
-	protected BdvHandle bdvh;
+	@Parameter ( label = "Start manual transform", callback = "startManualTransform" )
+	public Button startManualTransform;
 
-	@Parameter
-	protected SourceAndConverter< ? >[] sourceAndConverters;
+	@Parameter ( label = "Accept manual transform", callback = "acceptManualTransform" )
+	public Button acceptManualTransform;
+
+	@Parameter ( label = "Cancel manual transform", callback = "cancelManualTransform" )
+	public Button cancelManualTransform;
 
 	private List< Image< ? > > transformableImages;
+	private MoBIEManualTransformationEditor transformationEditor;
 
 	@Override
-	public void run()
+	public void initialize()
 	{
-		SourceAndConverter< ? > currentSource = bdvh.getViewerPanel().state().getCurrentSource();
-		Image< ? > image = DataStore.sourceToImage().get( currentSource );
+		super.initialize();
+	}
+
+
+	public void startManualTransform()
+	{
+		Image< ? > image = DataStore.sourceToImage().get( movingSource );
+
+		List< SourceAndConverter< ? > > movingSACs;
 
 		if ( image instanceof RegionAnnotationImage &&
-				! ( ( RegionAnnotationImage< ? > ) image ).getSelectedImages().isEmpty() )
+				!( ( RegionAnnotationImage< ? > ) image ).getSelectedImages().isEmpty() )
 		{
 			transformableImages = ( ( RegionAnnotationImage< ? > ) image ).getSelectedImages();
 
-			List< SourceAndConverter< ? > > sourceAndConverters = transformableImages.stream()
+			movingSACs = transformableImages.stream()
 					.map( img -> DataStore.sourceToImage().inverse().get( img ) )
 					.collect( Collectors.toList() );
-
-			// FIXME: Use this once bdv-core 10.4.13 is shipped with Fiji....
-//			ManualTransformationEditor manualTransformEditor = bdvh.getManualTransformEditor();
-//			manualTransformEditor.transform( sourceAndConverters );
-//			manualTransformEditor.manualTransformActiveListeners().add( this );
-
-			// FIXME: ...instead of this.
-			MoBIEManualTransformationEditor transformationEditor = new MoBIEManualTransformationEditor( bdvh.getViewerPanel(), bdvh.getKeybindings() );
-			transformationEditor.setActive( true );
-			transformationEditor.manualTransformActiveListeners().add( this );
-			transformationEditor.setTransformableSources( sourceAndConverters );
-
-			new Thread( () ->
-			{
-				NonBlockingGenericDialog dialog = new NonBlockingGenericDialog( "Manual Registration" );
-				dialog.addMessage(
-						"You are now in manual transform mode, \n" +
-								"where mouse and keyboard actions will transform the selected sources.\n" +
-								"Click [ OK ] to fix the transformation.\n" +
-								"Click [ Cancel ] to abort the transformation." );
-				dialog.showDialog();
-
-				if ( dialog.wasCanceled() )
-				{
-					transformationEditor.abort();
-					transformationEditor.setActive( false );
-				}
-				else if ( dialog.wasOKed() )
-				{
-					transformationEditor.setActive( false );
-				}
-			} ).start();
 		}
 		else
 		{
-			new Thread( () ->
-			{
-				final NonBlockingGenericDialog dialog = new NonBlockingGenericDialog( "Registration - Manual" );
-				dialog.hideCancelButton();
-				dialog.addMessage( "Manual translation, rotation and scaling transformations.\n\n" +
-						"- Select the BDV window and press P and select the source to be transformed as the current source\n" +
-						"- Press T to start the manual transform mode\n" +
-						"  - While in manual transform mode the mouse and keyboard actions that normally change the view will now transform the current source\n" +
-						"  - For example, right mouse button and mouse drag will translate the source\n\n" +
-						"Press [ T ] again to fix the transformation\n" +
-						"Press [ ESC ] to abort the transformation" );
-				dialog.showDialog();
-			} ).start();
+			movingSACs = Collections.singletonList( movingSac );
 		}
+
+
+		transformationEditor = new MoBIEManualTransformationEditor( bdvHandle.getViewerPanel(), bdvHandle.getKeybindings() );
+		transformationEditor.setTransformableSources( movingSACs );
+		transformationEditor.setActive( true );
 	}
 
-	@Override
-	public void manualTransformActiveChanged( boolean active )
+	private void acceptManualTransform()
 	{
-		if ( !active )
-		{
-			if ( transformableImages != null )
-			{
-				// transform each image with an identity transform in order to
-				// trigger the update of the transform and notify listeners.
-				// see the {@code SpimDataImage} implementation.
-				transformableImages.forEach( image -> image.transform( new AffineTransform3D() ) );
-			}
-			else
-			{
-				// trigger update of the transformed image
-				// FIXME this will not suffice if the user used the grouping mode
-				SourceAndConverter< ? > currentSource = bdvh.getViewerPanel().state().getCurrentSource();
-				Image< ? > image = DataStore.sourceToImage().get( currentSource );
-				image.transform( new AffineTransform3D() );
-			}
-		}
+		if ( transformationEditor == null ) return;
+
+		applyAffineTransform3D( transformationEditor.getManualTransform(), "manual-affine" );
+
+		// This will cause the transformed image to jump back to its original position,
+		// but this is intended as the transfomerd image is now a new image that is stored as a new view.
+		transformationEditor.setActive( false );
 	}
 
+	private void cancelManualTransform()
+	{
+		if ( transformationEditor == null ) return;
+
+		transformationEditor.setActive( false );
+	}
 }

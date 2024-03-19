@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -33,6 +33,7 @@ import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import ij.WindowManager;
 import loci.common.DebugTools;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imagej.ImageJ;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.ImageData;
@@ -100,11 +101,6 @@ public class MoBIE
 	private UserInterface userInterface;
 	private final ArrayList< String > projectCommands = new ArrayList<>();
 
-	public MoBIE( String projectLocation ) throws IOException
-	{
-		this( projectLocation, new MoBIESettings() );
-	}
-
 	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
 		this.settings = settings;
@@ -126,7 +122,7 @@ public class MoBIE
 		return moBIE;
 	}
 
-	public MoBIE( String hcsDataLocation, MoBIESettings settings, double relativeWellMargin, double relativeSiteMargin ) throws IOException
+	public MoBIE( String hcsDataLocation, MoBIESettings settings, double relativeWellMargin, double relativeSiteMargin, @Nullable VoxelDimensions voxelDimensions ) throws IOException
 	{
 		this.settings = settings;
 		this.projectLocation = hcsDataLocation;
@@ -136,7 +132,7 @@ public class MoBIE
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening: " + hcsDataLocation );
 
-		openHCSDataset( relativeWellMargin, relativeSiteMargin );
+		openHCSDataset( relativeWellMargin, relativeSiteMargin, voxelDimensions );
 	}
 
 	public MoBIE( List< String > imagePaths, List< String > labelPaths, List< String > labelTablePaths, String root, GridType grid, MoBIESettings settings ) throws IOException
@@ -158,14 +154,14 @@ public class MoBIE
 	}
 
 	// open an image or object table
-	public MoBIE( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, GridType grid, MoBIESettings settings ) throws IOException
+	public MoBIE( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, String pathMapping, GridType grid, MoBIESettings settings ) throws IOException
 	{
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening data from table: " + tablePath );
 
 		this.settings = settings;
 
-		final SourcesFromTableCreator sourcesCreator = new SourcesFromTableCreator( tablePath, imageColumns, labelColumns, root, grid );
+		final SourcesFromTableCreator sourcesCreator = new SourcesFromTableCreator( tablePath, imageColumns, labelColumns, root, pathMapping, grid );
 
 		final List< ImageFileSources > imageSources = sourcesCreator.getImageSources();
 		final List< LabelFileSources > labelSources = sourcesCreator.getLabelSources();
@@ -241,10 +237,10 @@ public class MoBIE
 		moBIE = this;
 	}
 
-	private void openHCSDataset( double wellMargin, double siteMargin ) throws IOException
+	private void openHCSDataset( double wellMargin, double siteMargin, @Nullable VoxelDimensions voxelDimensions ) throws IOException
 	{
 		initProject( "HCS" );
-		final Plate plate = new Plate( projectLocation );
+		final Plate plate = new Plate( projectLocation, voxelDimensions );
 		new HCSDataAdder( plate, wellMargin, siteMargin ).addData( dataset );
 		initUIandShowView( dataset.views().keySet().iterator().next() );
 	}

@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -30,6 +30,7 @@ package projects;
 
 import org.embl.mobie.MoBIE;
 import net.imagej.ImageJ;
+import org.embl.mobie.MoBIESettings;
 
 import java.io.IOException;
 
@@ -39,6 +40,6 @@ public class OpenRemoteZebrafish
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE("https://github.com/mobie/zebrafish-lm-datasets" );
+		new MoBIE("https://github.com/mobie/zebrafish-lm-datasets", new MoBIESettings() );
 	}
 }

@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -51,7 +51,9 @@ public class ThreadHelper
 
 	public static ExecutorService ioExecutorService = Executors.newFixedThreadPool( N_IO_THREADS );
 
-	public static final SharedQueue sharedQueue = new SharedQueue( N_IO_THREADS );
+	public static final int NUM_PRIORITIES = 6; // https://imagesc.zulipchat.com/#narrow/stream/327326-BigDataViewer/topic/SharedQueue
+
+	public static final SharedQueue sharedQueue = new SharedQueue( N_IO_THREADS, NUM_PRIORITIES );
 
 	public static ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
 

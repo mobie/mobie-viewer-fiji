@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,7 +29,6 @@
 package org.embl.mobie.command.context;
 
 import bdv.util.BdvFunctions;
-import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.viewer.SourceAndConverter;
 import ij.CompositeImage;
@@ -40,7 +39,6 @@ import ij.gui.Roi;
 import ij.process.ImageConverter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.align.TurboReg2DAligner;
@@ -52,9 +50,6 @@ import org.embl.mobie.lib.source.RealTransformedSource;
 import org.embl.mobie.lib.transform.InterpolatedAffineRealTransform;
 import org.embl.mobie.lib.transform.Transform;
 import org.embl.mobie.lib.view.ViewManager;
-import org.scijava.Initializable;
-import org.scijava.command.DynamicCommand;
-import org.scijava.command.Interactive;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
@@ -62,95 +57,56 @@ import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getWindowCentreInPixelUnits;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Automatic 2D/3D")
-public class AutomaticRegistrationCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Interactive, Initializable
+public class AutomaticRegistrationCommand extends AbstractRegistrationCommand
 {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter
-	public BdvHandle bdvHandle;
-
-	@Parameter ( label = "Registration Method", choices = {"TurboReg", "SIFT"} )
+	@Parameter ( label = "Registration method", choices = {"TurboReg", "SIFT"} )
 	private String registrationMethod = "SIFT";
 
-	@Parameter(label="Registration Voxel Size", persist = false, min = "0.0", style="format:#.00000")
+	@Parameter(label = "Registration voxel size", persist = false, min = "0.0", style="format:#.00000")
 	public Double voxelSize = 1D;
 
 	@Parameter ( label = "Transformation" )
 	private Transform transformationType = Transform.Affine;
 
-	@Parameter ( label = "Transformation name" )
-	private String name = "Some automatic transformation";
-
-	@Parameter ( label = "Fixed Image", choices = {""} )
-	private String fixedImageName;
-
-	@Parameter ( label = "Moving Image", choices = {""} )
-	private String movingImageName;
-
-	@Parameter ( label = "Compute Transformation", callback = "compute")
+	@Parameter ( label = "Compute transformation", callback = "compute")
 	private Button compute;
 
-	@Parameter ( label = "Show Intermediate Images" )
+	@Parameter ( label = "Show intermediate images" )
 	private Boolean showIntermediates = false;
 
-	@Parameter ( label = "Apply Transformation", callback = "apply")
+	@Parameter ( label = "Preview transformation", callback = "apply")
 	private Boolean apply = false;
 
-	@Parameter ( label = "Append Transformation to Stack", callback = "append")
+	@Parameter ( label = "Append transformation to stack", callback = "append")
 	private Button append;
 
-	@Parameter ( label = "Preview Stack Transformed Image", callback = "showInterpolatedAffineImage" )
+	@Parameter ( label = "Preview stack transformed image", callback = "showInterpolatedAffineImage" )
 	private Boolean showInterpolatedAffineImage = false;
 
-	@Parameter ( label = "Save Stack Transformed Image", callback = "saveInterpolatedAffineImage" )
+	@Parameter ( label = "Save stack transformed image", callback = "saveInterpolatedAffineImage" )
 	private Button saveInterpolatedAffineImage;
 
 	private AffineTransform3D alignmentTransform;
-	private List< SourceAndConverter< ? > > sourceAndConverters;
 	private final TreeMap< Double, double[] > transforms = new TreeMap<>();
 	private SourceAndConverter< ? > interpolatedTransformsSac;
-	private SourceAndConverter< ? > movingSac;
 
 
 	@Override
 	public void initialize()
 	{
-		sourceAndConverters = MoBIEHelper.getVisibleSacs( bdvHandle );
-
-		if ( sourceAndConverters.size() < 2 )
-		{
-			IJ.showMessage( "There must be at least two images visible." );
-			return;
-		}
-
-		final List< String > imageNames = sourceAndConverters.stream()
-				.map( sac -> sac.getSpimSource().getName() )
-				.collect( Collectors.toList() );
-
-		getInfo().getMutableInput( "fixedImageName", String.class )
-				.setChoices( imageNames );
-
-		getInfo().getMutableInput( "movingImageName", String.class )
-				.setChoices( imageNames );
-
-		getInfo().getMutableInput( "movingImageName", String.class )
-				.setDefaultValue( imageNames.get( 1 ) );
+		super.initialize();
 
 		getInfo().getMutableInput("voxelSize", Double.class)
 				.setValue( this, 2 * BdvHandleHelper.getViewerVoxelSpacing( bdvHandle ) );
 	}
 
-	@Override
-	public void run()
-	{
-		removeInterpolatedPreview();
-	}
 
 	@Override
 	public void cancel()
@@ -160,24 +116,26 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 
 	private void compute()
 	{
+		// remove any previous transformation, because
+		// we want to register the input image as is
+		if ( apply )
+		{
+			getInfo().getMutableInput( "apply", Boolean.class ).setValue( this, false );
+			apply();
+		}
+
 		long start = System.currentTimeMillis();
 
 		SourceAndConverter< ? > fixedSac = sourceAndConverters.stream()
 				.filter( sac -> sac.getSpimSource().getName().equals( fixedImageName ) )
 				.findFirst().get();
 
-		movingSac = sourceAndConverters.stream()
-				.filter( sac -> sac.getSpimSource().getName().equals( movingImageName ) )
-				.findFirst().get();
 
 		// create two 2D ImagePlus that are to be aligned
 		//
 		ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, fixedSac.getSpimSource().getVoxelDimensions().unit() );
-
 		screenShotMaker.run( Arrays.asList( fixedSac, movingSac ), voxelSize );
 		CompositeImage compositeImage = screenShotMaker.getCompositeImagePlus();
-		AffineTransform3D canvasToGlobalTransform = screenShotMaker.getCanvasToGlobalTransform();
-
 		ImageStack stack = compositeImage.getStack();
 
 		// set the display ranges and burn them in by converting to uint8
@@ -227,17 +185,23 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 
 		// convert the transformation that aligns
 		// the images in the 2D screenshot canvas
+		AffineTransform3D canvasToGlobalTransform = screenShotMaker.getCanvasToGlobalTransform();
 		// to the global 3D coordinate system
 		alignmentTransform = new AffineTransform3D();
 		// global to target canvas...
 		alignmentTransform.preConcatenate( canvasToGlobalTransform.inverse() );
 		// ...registration within canvas...
 		alignmentTransform.preConcatenate( localRegistration );
-		// ...canvas back to global
+		// ...canvas back to global...
 		alignmentTransform.preConcatenate( canvasToGlobalTransform );
+		// ...and invert (don't ask why).
+		alignmentTransform = alignmentTransform.inverse();
 
 		IJ.log( "Computed transform in " + ( System.currentTimeMillis() - start ) + " ms:" );
 		IJ.log( MoBIEHelper.print( alignmentTransform.getRowPackedCopy(), 2 ) );
+
+		getInfo().getMutableInput("apply", Boolean.class).setValue( this, true );
+		apply();
 	}
 
 	private void apply()
@@ -249,11 +213,15 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 			return;
 		}
 
-		if ( apply ) {
-			DataStore.sourceToImage().get( movingSac ).transform( alignmentTransform );
+		if ( apply )
+		{
+			// add alignmentTransform
+			applyTransformInPlace( alignmentTransform );
 		}
-		else {
-			DataStore.sourceToImage().get( movingSac ).transform( alignmentTransform.inverse() );
+		else
+		{
+			// reset original transform
+			applyTransformInPlace( new AffineTransform3D() );
 		}
 
 		bdvHandle.getViewerPanel().requestRepaint();
@@ -267,12 +235,12 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 
 		final AffineTransform3D viewerTransform = new AffineTransform3D();
 		bdvHandle.getViewerPanel().state().getViewerTransform(viewerTransform);
-		double[] canvasCenterVoxels = getWindowCentreInPixelUnits(bdvHandle);
+		double[] canvasCenterVoxels = getWindowCentreInPixelUnits (bdvHandle );
 		double[] canvasCenterCalibrated = new double[3];
 		viewerTransform.inverse().apply( canvasCenterVoxels, canvasCenterCalibrated );
 		globalToSource.apply( canvasCenterCalibrated, sourceVoxels );
 
-		transforms.put( sourceVoxels[ 2 ], alignmentTransform.inverse().getRowPackedCopy() );
+		transforms.put( sourceVoxels[ 2 ], alignmentTransform.getRowPackedCopy() );
 
 		IJ.log( new InterpolatedAffineTransformation( "AutomaticRegistration", transforms, null, null).toString() );
 	}
@@ -291,7 +259,7 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 		if( showInterpolatedAffineImage )
 		{
 			AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( movingSac.getSpimSource(), 0, 0 );
-			InterpolatedAffineRealTransform interpolatedTransform = new InterpolatedAffineRealTransform( name, sourceTransform.inverse() );
+			InterpolatedAffineRealTransform interpolatedTransform = new InterpolatedAffineRealTransform( "interpolated-affine-of-" + movingImageName, sourceTransform.inverse() );
 			interpolatedTransform.addTransforms( transforms );
 
 			RealTransformedSource< ? > realTransformedSource = new RealTransformedSource<>(
@@ -317,18 +285,20 @@ public class AutomaticRegistrationCommand extends DynamicCommand implements BdvP
 		}
 	}
 
-	private void saveInterpolatedAffineImage()
+	private void createInterpolatedAffineImage()
 	{
+		String transformedImageName = askForTransformedImageName(  "-interpolated-affine" );
+
 		InterpolatedAffineTransformation interpolatedAffineTransformation = new InterpolatedAffineTransformation(
-				name,
+				"interpolated-affine-of-" + movingImageName,
 				transforms,
 				movingImageName, // the existing, to be transformed image data source
-				movingSac.getSpimSource().getName() + "_iat"
+				transformedImageName
 		);
 
 		ViewManager.createTransformedSourceView(
 						movingSac,
-						movingSac.getSpimSource().getName() + "_iat",
+						transformedImageName,
 						interpolatedAffineTransformation,
 				"Interpolated affine transformation of " + movingSac.getSpimSource().getName() );
 

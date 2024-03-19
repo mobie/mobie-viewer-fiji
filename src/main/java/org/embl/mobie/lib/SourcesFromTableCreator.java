@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -40,8 +40,10 @@ import org.embl.mobie.lib.transform.GridType;
 import tech.tablesaw.api.NumberColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
+import tech.tablesaw.api.TextColumn;
 import tech.tablesaw.columns.Column;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -54,7 +56,7 @@ public class SourcesFromTableCreator
 	private final List< LabelFileSources > labelSources;
 	private Table regionTable;
 
-	public SourcesFromTableCreator( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, GridType gridType )
+	public SourcesFromTableCreator( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, String pathMapping, GridType gridType )
 	{
 		final Table table = TableOpener.openDelimitedTextFile( tablePath );
 
@@ -77,14 +79,14 @@ public class SourcesFromTableCreator
 				IJ.log( "Number of channels: " + numChannels );
 				for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
 				{
-					imageFileSources.add( new ImageFileSources( imageColumn + "_C" + channelIndex, table, imageColumn, channelIndex, root, gridType ) );
+					imageFileSources.add( new ImageFileSources( imageColumn + "_C" + channelIndex, table, imageColumn, channelIndex, pathMapping, root, gridType ) );
 				}
 			}
 			else
 			{
 				// Default table
 				final TableImageSource tableImageSource = new TableImageSource( imageColumn );
-				imageFileSources.add( new ImageFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType ) );
+				imageFileSources.add( new ImageFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, pathMapping, gridType ) );
 			}
 		}
 
@@ -97,7 +99,7 @@ public class SourcesFromTableCreator
 			for ( String label : labelColumns )
 			{
 				final TableImageSource tableImageSource = new TableImageSource( label );
-				labelSources.add( new LabelFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, gridType, label.equals( firstLabel ) ) );
+				labelSources.add( new LabelFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, pathMapping, gridType, label.equals( firstLabel ) ) );
 			}
 		}
 
@@ -146,9 +148,14 @@ public class SourcesFromTableCreator
 					final Table summary = table.summarize( column, Aggregators.firstString ).by( imageColumn );
 					regionTable = regionTable.joinOn( imageColumnName ).leftOuter( summary );
 				}
+				else if ( column instanceof TextColumn )
+				{
+					final Table summary = table.summarize( column.asStringColumn(), Aggregators.firstString ).by( imageColumn );
+					regionTable = regionTable.joinOn( imageColumnName ).leftOuter( summary );
+				}
 				else
 				{
-					throw new RuntimeException( "Unsupported column type " + column.getClass() );
+					throw new RuntimeException( "Unsupported column type " + column.getClass() + " of column " + column.name() );
 				}
 			}
 		}

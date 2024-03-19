@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -72,7 +72,7 @@ public class SliceViewer
 	public static final String FRAME_TITLE = "MoBIE BigDataViewer";
 	public static boolean tileRenderOverlay = false;
 
-	private final SourceAndConverterBdvDisplayService sacDisplayService;
+	private final SourceAndConverterBdvDisplayService bdvDisplayService;
 	private BdvHandle bdvHandle;
 	private final MoBIE moBIE;
 	private final boolean is2D;
@@ -89,7 +89,7 @@ public class SliceViewer
 		this.projectCommands = moBIE.getProjectCommands();
 
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
-		sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
+		bdvDisplayService = SourceAndConverterServices.getBdvDisplayService();
 
 		bdvHandle = getBdvHandle();
 
@@ -98,8 +98,6 @@ public class SliceViewer
 			bdvHandle.getViewerPanel().showDebugTileOverlay();
 			tileRenderOverlay = false; // don't show twice
 		}
-
-		sacDisplayService.registerBdvHandle( bdvHandle );
 
 		imageNameOverlay = new ImageNameOverlay( bdvHandle, false, this );
 
@@ -119,7 +117,7 @@ public class SliceViewer
 		if ( bdvHandle == null )
 		{
 			bdvHandle = createBdv( is2D, FRAME_TITLE );
-			sacDisplayService.registerBdvHandle( bdvHandle );
+			bdvDisplayService.registerBdvHandle( bdvHandle );
 			AccumulateAlphaBlendingProjectorARGB.bdvHandle = bdvHandle;
 		}
 
@@ -162,10 +160,7 @@ public class SliceViewer
 
 		if ( projectCommands != null )
 		{
-			for ( String commandName : projectCommands )
-			{
-				actions.add( commandName );
-			}
+			actions.addAll( projectCommands );
 		}
 
 		contextMenu = new SourceAndConverterContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions.toArray( new String[0] ) );
@@ -175,7 +170,6 @@ public class SliceViewer
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.behaviour( contextMenu, "Context menu", "button3", "shift P");
 		behaviours.install( bdvHandle.getTriggerbindings(), "MoBIE" );
-
 
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->
@@ -210,12 +204,10 @@ public class SliceViewer
 		final MobieSerializableBdvOptions sOptions = new MobieSerializableBdvOptions();
 		sOptions.is2D = is2D;
 		sOptions.frameTitle = frameTitle;
-
 		IBdvSupplier bdvSupplier = new MobieBdvSupplier( sOptions );
-		SourceAndConverterServices.getBdvDisplayService().setDefaultBdvSupplier( bdvSupplier );
-		BdvHandle bdvHandle = SourceAndConverterServices.getBdvDisplayService().getNewBdv();
-
-		return bdvHandle;
+		//SourceAndConverterServices.getBdvDisplayService().setDefaultBdvSupplier( bdvSupplier );
+		//BdvHandle bdvHandle = SourceAndConverterServices.getBdvDisplayService().getNewBdv();
+		return bdvSupplier.get();
 	}
 
 	public Window getWindow()

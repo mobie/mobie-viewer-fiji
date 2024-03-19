@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -47,9 +47,9 @@ public class LabelFileSources extends ImageFileSources
 	protected Map< String, TableSource > nameToLabelTable = new LinkedHashMap<>();
 	private static boolean logLabelParsingError = true;
 
-	public LabelFileSources( String name, Table table, String columnName, Integer channelIndex, String root, GridType gridType, boolean useTableForSegments )
+	public LabelFileSources( String name, Table table, String columnName, Integer channelIndex, String root, String pathMapping, GridType gridType, boolean useTableForSegments )
 	{
-		super( name, table, columnName, channelIndex, root, gridType);
+		super( name, table, columnName, channelIndex, root, pathMapping, gridType);
 
 		if ( useTableForSegments )
 		{
@@ -81,6 +81,7 @@ public class LabelFileSources extends ImageFileSources
 	{
 		super( name, labelsPath, channelIndex, root, grid );
 	}
+
 
 	public LabelFileSources( String name, String path, Integer channelIndex, String labelTablePath, String root, GridType grid )
 	{

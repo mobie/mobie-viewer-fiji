@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.cmd;
 
-import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.lib.transform.GridType;
@@ -82,7 +81,7 @@ public class TableCmd implements Callable< Void > {
 		List< String > labelsList = labels != null ?
 				Arrays.asList( labels ) : new ArrayList<>();
 
-		new MoBIE( table, imageList, labelsList, root, gridType, settings );
+		new MoBIE( table, imageList, labelsList, root, null, gridType, settings );
 
 		return null;
 	}

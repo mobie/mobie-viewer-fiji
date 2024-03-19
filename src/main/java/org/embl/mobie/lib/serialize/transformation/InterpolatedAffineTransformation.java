@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -59,9 +59,7 @@ public class InterpolatedAffineTransformation extends AbstractImageTransformatio
 	{
 		List<String> lines = new ArrayList<>();
 
-		lines.add("Interpolated affine transformation:");
-
-		addNameAndDescription( lines );
+		lines.add("## Interpolated affine transformation: " + getName());
 
 		transforms.forEach((z, affine) ->
 				lines.add("Affine (z=" + MoBIEHelper.print(z, 3) + "): " + MoBIEHelper.print(affine, 3))

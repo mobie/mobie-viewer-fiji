@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -30,6 +30,7 @@ package projects;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 
 import java.io.IOException;
 
@@ -38,6 +39,6 @@ public class OpenLocalMarianne
     public static void main(String[] args) throws IOException {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        new MoBIE( "/Volumes/cba/exchange/marianne-beckwidth/220509_MSB26_sample2_MoBIE");
+        new MoBIE( "/Volumes/cba/exchange/marianne-beckwidth/220509_MSB26_sample2_MoBIE", new MoBIESettings() );
     }
 }

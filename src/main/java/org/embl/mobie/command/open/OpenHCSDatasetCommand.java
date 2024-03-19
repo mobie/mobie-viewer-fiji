@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,16 +28,21 @@
  */
 package org.embl.mobie.command.open;
 
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.lib.hcs.OMEXMLParser;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
 
+import java.io.File;
 import java.io.IOException;
+
+import static org.embl.mobie.command.open.OpenHCSDatasetCommand.VoxelDimensionFetching.FromOMEXML;
 
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open HCS Dataset..." )
@@ -57,16 +62,45 @@ public class OpenHCSDatasetCommand implements Command
 	@Parameter ( label = "Help", callback = "help")
 	public Button help;
 
+	public enum VoxelDimensionFetching
+	{
+		FromImageFiles,
+		FromOMEXML
+	}
+
+	@Parameter ( label = "Voxel Dimensions" )
+	public VoxelDimensionFetching voxelDimensionFetching = VoxelDimensionFetching.FromImageFiles;
+
+	@Parameter ( label = "OME-XML (optional)",
+			description = "This is used if the option FromOMEXML is chosen to for" +
+					" determining the Voxel Dimensions",
+			persist = false, required = false )
+	public File omeXML;
+
 	@Override
 	public void run()
 	{
+		VoxelDimensions voxelDimensions = initVoxelDimensions();
+
 		try
 		{
-			new MoBIE( hcsDirectory, new MoBIESettings(), wellMargin, siteMargin );
+			new MoBIE( hcsDirectory, new MoBIESettings(), wellMargin, siteMargin, voxelDimensions );
 		}
 		catch ( IOException e )
 		{
-			e.printStackTrace();
+			throw new RuntimeException( e );
+		}
+	}
+
+	private VoxelDimensions initVoxelDimensions()
+	{
+		if ( voxelDimensionFetching.equals( FromOMEXML ) )
+		{
+			return OMEXMLParser.readVoxelDimensions( omeXML );
+		}
+		else
+		{
+			return null;
 		}
 	}
 

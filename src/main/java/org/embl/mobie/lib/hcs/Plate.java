@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -53,6 +53,7 @@ import org.embl.mobie.lib.color.ColorHelper;
 import ch.epfl.biop.bdv.img.bioformats.entity.SeriesIndex;
 import org.embl.mobie.lib.hcs.omezarr.OMEZarrHCSHelper;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -80,14 +81,16 @@ public class Plate
 	private boolean siteIDsAreOneBased = true;
 	private boolean is2d = true;
 	private int numSlices;
+	private boolean fetchSpatialMetadata = true;
 
 
-	public Plate( String hcsDirectory ) throws IOException
+	public Plate( String hcsDirectory, @Nullable VoxelDimensions voxelDimensions ) throws IOException
 	{
 		this.hcsDirectory = hcsDirectory;
+		this.voxelDimensions = voxelDimensions;
 
-		// FIXME: fetch operetta paths from XML?!
-		// FIXME: fetch OME-Zarr paths entry point JSON?!
+		// TODO: fetch operetta paths from XML?!
+		// TODO: fetch OME-Zarr paths entry point JSON?!
 
 		IJ.log( "Looking for image files..." );
 		long start = System.currentTimeMillis();
@@ -219,10 +222,10 @@ public class Plate
 						} );
 					}
 
-					// determine spatial metadata (for all channels the same)
-					//
-					if ( voxelDimensions == null )
+					if ( fetchSpatialMetadata )
 					{
+						fetchSpatialMetadata= false; // should be the same for all files and channels
+
 						if ( operettaMetadata != null )
 						{
 							voxelDimensions = operettaMetadata.getVoxelDimensions( imagePath );
@@ -234,7 +237,7 @@ public class Plate
 
 							voxelDimensions = source.getVoxelDimensions();
 
-							if ( hcsPattern.hasZ() )
+							if ( voxelDimensions == null )
 							{
 								/*
 								If the z-positions are distributed over multiple files

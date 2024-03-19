@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -30,6 +30,7 @@ package projects;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 
 import java.io.IOException;
 
@@ -39,7 +40,7 @@ public class OpenLocalJulianNoTables
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		final MoBIE moBIE = new MoBIE("/Volumes/emcf/hennies/for_constantin/mobie_no_table_test/" );
+		final MoBIE moBIE = new MoBIE("/Volumes/emcf/hennies/for_constantin/mobie_no_table_test/", new MoBIESettings() );
 		moBIE.getViewManager().show( "seg-test" );
 	}
 }

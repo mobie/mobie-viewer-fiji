@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -37,19 +37,24 @@ import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.lib.image.DefaultSourcePair;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.SourcePair;
+import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.source.TransformedTimepointSource;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.util.HashMap;
 
-public class TimepointsTransformedImage< T > implements Image< T >
+import static org.embl.mobie.lib.transform.TransformHelper.getSourcePairWithNewTransformedSources;
+
+public class TimepointsTransformedImage< T > implements Image< T >, TransformedImage
 {
 	protected final Image< T > image;
 	protected final String transformedImageName;
 	private final HashMap< Integer, Integer > timepointsMap;
 	private final boolean keep;
 	private RealMaskRealInterval mask;
-	private AffineTransform3D affineTransform3D = new AffineTransform3D();
+	private final AffineTransform3D affineTransform3D = new AffineTransform3D();
+	private Transformation transformation;
+	private SourcePair< T > sourcePair;
 
 	public TimepointsTransformedImage( Image< T > image, String name, HashMap< Integer, Integer > timepointsMap, boolean keep )
 	{
@@ -62,18 +67,24 @@ public class TimepointsTransformedImage< T > implements Image< T >
 	@Override
 	public synchronized SourcePair< T > getSourcePair()
 	{
-		final SourcePair< T > sourcePair = image.getSourcePair();
+		if ( sourcePair == null ) createSourcePair();
+		return sourcePair;
+	}
+
+	private void createSourcePair()
+	{
+		final SourcePair< T > sourcePair = getSourcePairWithNewTransformedSources( image.getSourcePair() );
 
 		// apply the time point transformation
 		final TransformedTimepointSource< T > transformedTimepointSource = new TransformedTimepointSource( transformedImageName, sourcePair.getSource(), timepointsMap, keep );
-		final TransformedTimepointSource< ? extends Volatile< T >> vTransformedTimepointSource = new TransformedTimepointSource( transformedImageName, sourcePair.getVolatileSource(), timepointsMap, keep );
+		final TransformedTimepointSource< ? extends Volatile< T > > vTransformedTimepointSource = new TransformedTimepointSource( transformedImageName, sourcePair.getVolatileSource(), timepointsMap, keep );
 
 		// wrap into TransformedSource for applying manual transforms in BDV
 		final TransformedSource transformedSource = new TransformedSource( transformedTimepointSource, transformedImageName );
 		transformedSource.setFixedTransform( affineTransform3D );
 		final TransformedSource volatileTransformedSource = new TransformedSource( vTransformedTimepointSource, transformedSource );
 
-		return new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
+		this.sourcePair = new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
 	}
 
 	@Override
@@ -103,4 +114,21 @@ public class TimepointsTransformedImage< T > implements Image< T >
 		this.mask = mask;
 	}
 
+	@Override
+	public Image< ? > getWrappedImage()
+	{
+		return image;
+	}
+
+	@Override
+	public Transformation getTransformation()
+	{
+		return transformation;
+	}
+
+	@Override
+	public void setTransformation( Transformation transformation )
+	{
+		this.transformation = transformation;
+	}
 }

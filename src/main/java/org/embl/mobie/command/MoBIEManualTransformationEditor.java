@@ -1,18 +1,18 @@
 /*
  * #%L
- * BigDataViewer core classes with minimal dependencies.
+ * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2012 - 2023 BigDataViewer developers.
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
+ * 
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -60,7 +60,7 @@ public class MoBIEManualTransformationEditor implements TransformListener< Affin
 
     private final AffineTransform3D frozenTransform;
 
-    private final AffineTransform3D liveTransform;
+    private final AffineTransform3D manualTransform;
 
     private final ArrayList< TransformedSource< ? > > sourcesToModify;
 
@@ -106,7 +106,7 @@ public class MoBIEManualTransformationEditor implements TransformListener< Affin
 
         bindings = inputActionBindings;
         frozenTransform = new AffineTransform3D();
-        liveTransform = new AffineTransform3D();
+        manualTransform = new AffineTransform3D();
         sourcesToModify = new ArrayList<>();
         sourcesToFix = new ArrayList<>();
         manualTransformActiveListeners = new Listeners.SynchronizedList<>();
@@ -132,7 +132,7 @@ public class MoBIEManualTransformationEditor implements TransformListener< Affin
             for ( final TransformedSource< ? > source : sourcesToModify )
                 source.setIncrementalTransform( identity );
             viewerState.setViewerTransform( frozenTransform );
-            viewerMessageDisplay.accept( "aborted manual transform" );
+            //viewerMessageDisplay.accept( "aborted manual transform" );
             active = false;
             manualTransformActiveListeners.list.forEach( l -> l.manualTransformActiveChanged( active ) );
         }
@@ -157,12 +157,12 @@ public class MoBIEManualTransformationEditor implements TransformListener< Affin
         }
     }
 
-    public synchronized void setActive( final boolean a )
+    public synchronized void setActive( final boolean active )
     {
-        if ( this.active == a )
+        if ( this.active == active )
             return;
 
-        if ( a )
+        if ( active )
         {
             // Enter manual edit mode
             final ViewerState state = this.viewerState.snapshot();
@@ -195,7 +195,7 @@ public class MoBIEManualTransformationEditor implements TransformListener< Affin
                         sourcesToFix.add( ( TransformedSource< ? > ) source.getSpimSource() );
                 }
             }
-            active = true;
+            this.active = true;
             viewerTransformListeners.add( this );
             bindings.addInputMap( "manual transform", inputMap );
             viewerMessageDisplay.accept( "starting manual transform" );
@@ -203,7 +203,7 @@ public class MoBIEManualTransformationEditor implements TransformListener< Affin
         else
         {
             // Exit manual edit mode.
-            active = false;
+            this.active = false;
             viewerTransformListeners.remove( this );
             bindings.removeInputMap( "manual transform" );
             final AffineTransform3D tmp = new AffineTransform3D();
@@ -211,17 +211,20 @@ public class MoBIEManualTransformationEditor implements TransformListener< Affin
             {
                 tmp.identity();
                 source.setIncrementalTransform( tmp );
-                source.getFixedTransform( tmp );
-                tmp.preConcatenate( liveTransform );
-                source.setFixedTransform( tmp );
+                // TODO: Probably do not set the fixed transform here
+                //source.getFixedTransform( tmp );
+                //tmp.preConcatenate( manualTransform );
+                //source.setFixedTransform( tmp );
             }
-            tmp.identity();
             for ( final TransformedSource< ? > source : sourcesToFix )
+            {
+                tmp.identity();
                 source.setIncrementalTransform( tmp );
+            }
             viewerState.setViewerTransform( frozenTransform );
-            viewerMessageDisplay.accept( "fixed manual transform" );
+            viewerMessageDisplay.accept( "exited manual transform" );
         }
-        manualTransformActiveListeners.list.forEach( l -> l.manualTransformActiveChanged( active ) );
+        manualTransformActiveListeners.list.forEach( l -> l.manualTransformActiveChanged( this.active ) );
     }
 
     public synchronized void toggle()
@@ -237,11 +240,11 @@ public class MoBIEManualTransformationEditor implements TransformListener< Affin
             return;
         }
 
-        liveTransform.set( transform );
-        liveTransform.preConcatenate( frozenTransform.inverse() );
+        manualTransform.set( transform );
+        manualTransform.preConcatenate( frozenTransform.inverse() );
 
         for ( final TransformedSource< ? > source : sourcesToFix )
-            source.setIncrementalTransform( liveTransform.inverse() );
+            source.setIncrementalTransform( manualTransform.inverse() );
     }
 
     public Listeners< ManualTransformActiveListener > manualTransformActiveListeners()
@@ -252,5 +255,10 @@ public class MoBIEManualTransformationEditor implements TransformListener< Affin
     public void setTransformableSources( List< SourceAndConverter< ? > > transformableSources )
     {
         this.transformableSources = transformableSources;
+    }
+
+    public AffineTransform3D getManualTransform()
+    {
+        return manualTransform;
     }
 }

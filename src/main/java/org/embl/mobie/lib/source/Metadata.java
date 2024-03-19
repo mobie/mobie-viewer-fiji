@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.lib.source;
 
-import ch.epfl.biop.bdv.img.imageplus.ImagePlusToSpimData;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.ContrastEnhancer;
@@ -48,7 +47,7 @@ public class Metadata
 	public double[] contrastLimits = null;
 	public Integer numTimePoints = null;
 	public Integer numZSlices = 1;
-	public Integer numChannelsContainer = 1; // in MoBIE each image has jsut one channel, but the container could have multiple
+	public Integer numChannelsContainer = 1; // in MoBIE each image has just one channel, but the container could have multiple
 	private static boolean logBFError = true;
 
 	public Metadata()

@@ -2,7 +2,7 @@
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2023 EMBL
+ * Copyright (C) 2018 - 2024 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -36,7 +36,6 @@ public abstract class AbstractImageTransformation implements ImageTransformation
 {
 	// Serialisation
 	protected String name;
-	protected String description; // FIXME: Add to spec
 
 	protected List< String > sources;
 	protected List< String > sourceNamesAfterTransform;
@@ -56,12 +55,6 @@ public abstract class AbstractImageTransformation implements ImageTransformation
 		return sources;
 	}
 
-	protected void addNameAndDescription( List< String > lines )
-	{
-		lines.add("Name: " + name);
-		lines.add("Description: " + description);
-	}
-
 	protected void addSources( List< String > lines )
 	{
 		if ( sources != null )
@@ -76,11 +69,6 @@ public abstract class AbstractImageTransformation implements ImageTransformation
 	public String getName()
 	{
 		return name;
-	}
-
-	public String getDescription()
-	{
-		return description;
 	}
 
 	public List< String > getSourceNamesAfterTransform()
