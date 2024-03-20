@@ -97,7 +97,7 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 	{
 		if ( transformationEditor == null ) return;
 
-		applyAffineTransform3D( transformationEditor.getManualTransform(), "manual-affine" );
+		applyTransform( transformationEditor.getManualTransform(), "manual-affine" );
 
 		// This will cause the transformed image to jump back to its original position,
 		// but this is intended as the transfomerd image is now a new image that is stored as a new view.

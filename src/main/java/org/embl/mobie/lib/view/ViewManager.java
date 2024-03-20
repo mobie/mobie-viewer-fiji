@@ -61,10 +61,7 @@ import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.table.*;
 import org.embl.mobie.lib.transform.TransformHelper;
 import org.embl.mobie.lib.transform.ImageTransformer;
-import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
-import org.embl.mobie.lib.transform.viewer.MoBIEViewerTransformAdjuster;
-import org.embl.mobie.lib.transform.viewer.ViewerTransform;
-import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
+import org.embl.mobie.lib.transform.viewer.*;
 import org.embl.mobie.ui.UserInterface;
 import org.embl.mobie.ui.WindowArrangementHelper;
 import org.embl.mobie.lib.view.save.ViewSaver;
@@ -106,6 +103,35 @@ public class ViewManager
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 	}
 
+
+	public static void createTransformedImageView(
+			Image< ? > image,
+			String imageName,
+			Transformation transformation,
+			String viewDescription )
+	{
+		// FIXME: Make this work for label images https://github.com/mobie/mobie-viewer-fiji/issues/1126
+		ArrayList< Transformation > transformations = TransformHelper.fetchAddedTransformations( image );
+		transformations.add( transformation );
+
+		ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, imageName );
+		imageDisplay.setDisplaySettings( DataStore.sourceToImage().inverse().get( image ) );
+
+		View view = new View(
+				imageName,
+				null, // to be determined by the user in below dialog
+				Collections.singletonList( imageDisplay ),
+				transformations,
+				new NoViewerTransform(),
+				false,
+				viewDescription );
+
+		MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view );
+
+		MoBIE.getInstance().getViewManager().show( view );
+	}
+
+	@Deprecated // use createTransformedImageView instead
 	public static void createTransformedSourceView(
 			SourceAndConverter< ? > sac,
 			String imageName,

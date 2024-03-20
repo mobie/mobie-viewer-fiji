@@ -37,6 +37,9 @@ import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.DatasetJsonParser;
 import org.embl.mobie.lib.serialize.transformation.NormalizedAffineViewerTransform;
+import org.embl.mobie.lib.transform.viewer.NoViewerTransform;
+import org.embl.mobie.lib.transform.viewer.NormalVectorViewerTransform;
+import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 import org.embl.mobie.ui.UserInterfaceHelper;
 import org.embl.mobie.lib.view.AdditionalViews;
 import org.embl.mobie.lib.serialize.View;
@@ -135,7 +138,9 @@ public class ViewSaver
         if ( view.isExclusive() == null )
             gd.addCheckbox("Exclusive view?", true);
 
-        gd.addCheckbox("Include viewer transform?", true );
+        ViewerTransform viewerTransform = view.getViewerTransform();
+        if ( ! ( viewerTransform instanceof NoViewerTransform ))
+            gd.addCheckbox("Include viewer transform?", true );
 
         gd.showDialog();
 
@@ -167,8 +172,12 @@ public class ViewSaver
         if ( view.isExclusive() == null )
             view.setExclusive( gd.getNextBoolean() );
 
-        if ( gd.getNextBoolean() ) {
-            view.setViewerTransform(  new NormalizedAffineViewerTransform(  moBIE.getViewManager().getSliceViewer().getBdvHandle() ) );
+        if ( ! ( viewerTransform instanceof NoViewerTransform ) )
+        {
+            if ( gd.getNextBoolean() )
+            {
+                view.setViewerTransform( new NormalizedAffineViewerTransform( moBIE.getViewManager().getSliceViewer().getBdvHandle() ) );
+            }
         }
 
         if (uiSelectionChoice.equals("Make New Ui Selection Group")) {

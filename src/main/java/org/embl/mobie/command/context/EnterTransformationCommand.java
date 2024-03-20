@@ -45,28 +45,23 @@ public class EnterTransformationCommand extends AbstractTransformationCommand
 	@Parameter ( label = "Transformation 3D affine" )
 	public String transformation = Arrays.toString( new AffineTransform3D().getRowPackedCopy() );
 
-	@Parameter ( label = "Preview", callback = "previewTransform" )
-	public Button previewTransform;
-
 	@Parameter ( label = "Apply", callback = "applyTransform" )
 	public Button applyTransform;
 
 
-	private void previewTransform()
+	@Override
+	protected void previewTransform()
 	{
 		AffineTransform3D affineTransform3D = new AffineTransform3D();
 		affineTransform3D.set( parseStringToDoubleArray( transformation ) );
-		AffineTransform3D newTransform = previousFixedTransform.copy().preConcatenate( affineTransform3D );
-		movingSource.setFixedTransform( newTransform );
-		bdvHandle.getViewerPanel().requestRepaint();
+		super.previewTransform( affineTransform3D );
 	}
 
 	private void applyTransform()
 	{
 		AffineTransform3D affineTransform3D = new AffineTransform3D();
 		affineTransform3D.set( parseStringToDoubleArray( transformation ) );
-
-		applyAffineTransform3D( affineTransform3D, "custom-affine" );
+		applyTransform( affineTransform3D, "custom-affine" );
 	}
 
 

@@ -57,9 +57,6 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 	@Parameter ( label = "Launch BigWarp", callback = "launchBigWarp")
 	private Button launchBigWarp;
 
-	@Parameter ( label = "Preview current transform", callback = "previewTransform")
-	private Button previewTransform;
-
 	@Parameter ( label = "Apply current transform and exit", callback = "applyTransform")
 	private Button applyTransform;
 
@@ -72,19 +69,16 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 		super.initialize();
 	}
 
+	@Override
 	public void previewTransform()
 	{
-		applyTransformInPlace( bigWarp.getBwTransform().affine3d() );
-		bdvHandle.getViewerPanel().requestRepaint();
+		affineTransform3D = bigWarp.getBwTransform().affine3d();
+		super.previewTransform();
 	}
-
 
 	public void applyTransform()
 	{
-		movingSource.setFixedTransform( previousFixedTransform );
-
-		applyAffineTransform3D( bigWarp.getBwTransform().affine3d(), "bigwarp-" + bigWarp.getTransformType().toLowerCase().replace(" ", "-") );
-
+		applyTransform( bigWarp.getBwTransform().affine3d(), "bigwarp-" + bigWarp.getTransformType().toLowerCase().replace(" ", "-") );
 		bdvHandle.getViewerPanel().requestRepaint();
 		bigWarp.closeAll();
 	}

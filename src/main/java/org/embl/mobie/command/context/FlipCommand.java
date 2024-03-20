@@ -49,6 +49,7 @@ public class FlipCommand extends AbstractTransformationCommand
 	@Parameter( label = "Axis", choices = {"x", "y", "z"} )
 	public String axis;
 
+	// TODO: Could the Apply button be moved to the AbstractTransformationCommand ?
 	@Parameter ( label = "Apply", callback = "applyTransform" )
 	public Button applyTransform;
 
@@ -58,10 +59,16 @@ public class FlipCommand extends AbstractTransformationCommand
 		super.initialize();
 	}
 
+	@Override
+	protected void previewTransform()
+	{
+		super.previewTransform( createFlipTransform( movingSac ) );
+	}
+
 	public void applyTransform()
 	{
 		AffineTransform3D transform = createFlipTransform( movingSac );
-		applyAffineTransform3D( transform, "flip-" + axis + "-axis" );
+		applyTransform( transform, "flip-" + axis + "-axis" );
 	}
 
 	@NotNull

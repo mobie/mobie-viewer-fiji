@@ -81,9 +81,6 @@ public class AutomaticRegistrationCommand extends AbstractRegistrationCommand
 	@Parameter ( label = "Show intermediate images" )
 	private Boolean showIntermediates = false;
 
-	@Parameter ( label = "Preview transformation", callback = "apply")
-	private Boolean apply = false;
-
 	@Parameter ( label = "Append transformation to stack", callback = "append")
 	private Button append;
 
@@ -118,10 +115,9 @@ public class AutomaticRegistrationCommand extends AbstractRegistrationCommand
 	{
 		// remove any previous transformation, because
 		// we want to register the input image as is
-		if ( apply )
+		if ( previewTransformation )
 		{
-			getInfo().getMutableInput( "apply", Boolean.class ).setValue( this, false );
-			apply();
+			previewTransform( null, false );
 		}
 
 		long start = System.currentTimeMillis();
@@ -200,32 +196,9 @@ public class AutomaticRegistrationCommand extends AbstractRegistrationCommand
 		IJ.log( "Computed transform in " + ( System.currentTimeMillis() - start ) + " ms:" );
 		IJ.log( MoBIEHelper.print( alignmentTransform.getRowPackedCopy(), 2 ) );
 
-		getInfo().getMutableInput("apply", Boolean.class).setValue( this, true );
-		apply();
+		previewTransform( alignmentTransform, true );
 	}
 
-	private void apply()
-	{
-		if ( alignmentTransform == null )
-		{
-			IJ.showMessage( "Please first [ Compute Alignment ]." );
-			apply = false;
-			return;
-		}
-
-		if ( apply )
-		{
-			// add alignmentTransform
-			applyTransformInPlace( alignmentTransform );
-		}
-		else
-		{
-			// reset original transform
-			applyTransformInPlace( new AffineTransform3D() );
-		}
-
-		bdvHandle.getViewerPanel().requestRepaint();
-	}
 
 	private void append()
 	{
@@ -287,7 +260,7 @@ public class AutomaticRegistrationCommand extends AbstractRegistrationCommand
 
 	private void createInterpolatedAffineImage()
 	{
-		String transformedImageName = askForTransformedImageName(  "-interpolated-affine" );
+		String transformedImageName = transformedImageNameUI(  "-interpolated-affine" );
 
 		InterpolatedAffineTransformation interpolatedAffineTransformation = new InterpolatedAffineTransformation(
 				"interpolated-affine-of-" + movingImageName,

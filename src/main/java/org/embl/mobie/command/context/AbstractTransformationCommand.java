@@ -61,11 +61,17 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     @Parameter ( label = "Moving image", choices = {""}, callback = "setMovingImage" )
     public String movingImageName;
 
+    @Parameter ( label = "Preview transformation", callback = "previewTransformation" )
+    protected Boolean previewTransformation = false;
+
     protected List< SourceAndConverter< ? > > sourceAndConverters;
     protected List< String > imageNames;
     protected SourceAndConverter< ? > movingSac;
     protected TransformedSource< ? > movingSource;
     protected AffineTransform3D previousFixedTransform;
+    protected AffineTransform3D affineTransform3D;
+
+
 
     @Override
     public void cancel()
@@ -95,7 +101,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         setMovingImage();
     }
 
-    protected void applyAffineTransform3D( AffineTransform3D affineTransform3D, String transformationType )
+    protected void applyTransform( AffineTransform3D affineTransform3D, String transformationType )
     {
         Image< ? > movingImage = DataStore.sourceToImage().get( movingSac );
 
@@ -108,7 +114,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
 
         if ( mode.equals( TransformationOutput.CreateNewImage ) )
         {
-            createAffineTransformedImage( affineTransform3D, transformationType );
+            createAffineTransformedImage( movingImage, affineTransform3D, transformationType );
         }
         else if ( mode.equals( TransformationOutput.TransformMovingImage ))
         {
@@ -116,9 +122,9 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         }
     }
     
-    protected void createAffineTransformedImage( AffineTransform3D affineTransform3D, String transformationType )
+    protected void createAffineTransformedImage( Image< ? > movingImage, AffineTransform3D affineTransform3D, String transformationType )
     {
-        String transformedImageName = askForTransformedImageName( transformationType );
+        String transformedImageName = transformedImageNameUI( transformationType );
         if ( transformedImageName == null ) return;
 
         AffineTransformation affineTransformation = new AffineTransformation(
@@ -128,16 +134,15 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
                 Collections.singletonList( transformedImageName )
         );
 
-        // FIXME: Change this to createTransformedImageView
-        ViewManager.createTransformedSourceView(
-                movingSac,
+        ViewManager.createTransformedImageView(
+                movingImage,
                 transformedImageName,
                 affineTransformation,
                 transformationType + " transformation of " + movingImageName
         );
     }
 
-    protected String askForTransformedImageName( String transformationType )
+    protected String transformedImageNameUI( String transformationType )
     {
         String transformedImageName = movingImageName + "-" + transformationType;
 
@@ -170,9 +175,33 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         final AffineTransform3D newFixedTransform = previousFixedTransform.copy();
         newFixedTransform.preConcatenate( affineTransform.copy().inverse() );
         movingSource.setFixedTransform( newFixedTransform );
-
-        // TODO what would be the pro and con of transforming the image instead as below?
-        // DataStore.sourceToImage().get( movingSac ).transform( alignmentTransform );
     }
 
+    protected void previewTransform()
+    {
+        previewTransform( affineTransform3D );
+    }
+
+    protected void previewTransform( AffineTransform3D affineTransform3D, boolean preview )
+    {
+        getInfo().getMutableInput("previewTransformation", Boolean.class).setValue( this, preview );
+        previewTransform( affineTransform3D );
+    }
+
+
+    protected void previewTransform( AffineTransform3D affineTransform3D )
+    {
+        if ( previewTransformation )
+        {
+            // add alignmentTransform
+            applyTransformInPlace( affineTransform3D );
+        }
+        else
+        {
+            // reset original transform
+            applyTransformInPlace( new AffineTransform3D() );
+        }
+
+        bdvHandle.getViewerPanel().requestRepaint();
+    }
 }
