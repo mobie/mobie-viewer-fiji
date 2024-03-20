@@ -115,7 +115,7 @@ public class AutomaticRegistrationCommand extends AbstractRegistrationCommand
 	{
 		// remove any previous transformation, because
 		// we want to register the input image as is
-		if ( previewTransformation )
+		if ( previewTransform )
 		{
 			previewTransform( null, false );
 		}

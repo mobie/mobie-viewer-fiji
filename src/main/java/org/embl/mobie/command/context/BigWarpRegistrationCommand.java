@@ -72,8 +72,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 	@Override
 	public void previewTransform()
 	{
-		affineTransform3D = bigWarp.getBwTransform().affine3d();
-		super.previewTransform();
+		super.previewTransform( bigWarp.getBwTransform().affine3d() );
 	}
 
 	public void applyTransform()

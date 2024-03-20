@@ -33,6 +33,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import ij.gui.GenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.checkerframework.checker.units.qual.A;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.image.Image;
@@ -61,25 +62,15 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     @Parameter ( label = "Moving image", choices = {""}, callback = "setMovingImage" )
     public String movingImageName;
 
-    @Parameter ( label = "Preview transformation", callback = "previewTransformation" )
-    protected Boolean previewTransformation = false;
+    @Parameter ( label = "Preview transformation", callback = "previewTransform" )
+    protected Boolean previewTransform = false;
 
     protected List< SourceAndConverter< ? > > sourceAndConverters;
     protected List< String > imageNames;
     protected SourceAndConverter< ? > movingSac;
     protected TransformedSource< ? > movingSource;
     protected AffineTransform3D previousFixedTransform;
-    protected AffineTransform3D affineTransform3D;
 
-
-
-    @Override
-    public void cancel()
-    {
-        if ( movingSource != null )
-            movingSource.setFixedTransform( previousFixedTransform );
-        bdvHandle.getViewerPanel().requestRepaint();
-    }
 
     @Override
     public void initialize()
@@ -120,6 +111,9 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         {
             applyTransformInPlace( affineTransform3D );
         }
+
+        // FIXME close the Command UI, HOW?
+        // https://imagesc.zulipchat.com/#narrow/stream/327238-Fiji/topic/Close.20Scijava.20Command.20UI
     }
     
     protected void createAffineTransformedImage( Image< ? > movingImage, AffineTransform3D affineTransform3D, String transformationType )
@@ -177,9 +171,10 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         movingSource.setFixedTransform( newFixedTransform );
     }
 
+    // Should be overwritten by child classes!
     protected void previewTransform()
     {
-        previewTransform( affineTransform3D );
+        previewTransform( new AffineTransform3D() );
     }
 
     protected void previewTransform( AffineTransform3D affineTransform3D, boolean preview )
@@ -191,7 +186,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
 
     protected void previewTransform( AffineTransform3D affineTransform3D )
     {
-        if ( previewTransformation )
+        if ( previewTransform )
         {
             // add alignmentTransform
             applyTransformInPlace( affineTransform3D );
