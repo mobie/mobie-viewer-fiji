@@ -28,14 +28,21 @@
  */
 package org.embl.mobie.command.open.omezarr;
 
+import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.io.ImageDataOpener;
+import org.embl.mobie.io.imagedata.ImageData;
+import org.embl.mobie.io.imagedata.N5ImageData;
+import org.embl.mobie.lib.bdv.view.OMEZarrViewer;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.List;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_OMEZARR + "Open OME-Zarr From File System...")
 public class OpenOMEZARRCommand implements Command {
@@ -45,14 +52,6 @@ public class OpenOMEZARRCommand implements Command {
     @Parameter(label = "OME-Zarr path", style = "directory")
     public File omeZarrDirectory;
 
-    protected static void openAndShow(String filePath) throws IOException
-    {
-        IJ.showMessage("This is currently not implemented.");
-//        SpimData spimData = OMEZarrOpener.openFile(filePath);
-//        final OMEZarrViewer viewer = new OMEZarrViewer(spimData);
-//        viewer.show();
-    }
-
     @Override
     public void run() {
         try {
@@ -61,5 +60,21 @@ public class OpenOMEZARRCommand implements Command {
             e.printStackTrace();
         }
     }
+
+    public static void openAndShow( String s3URL ) throws IOException
+    {
+        ImageData< ? > imageData = ImageDataOpener.open( s3URL );
+        if ( imageData instanceof N5ImageData )
+        {
+            List< SourceAndConverter< ? > > sacs = ( List ) ( ( N5ImageData< ? > ) imageData ).getSourcesAndConverters();
+            new OMEZarrViewer( sacs ).show();
+        }
+        else
+        {
+            throw new UnsupportedEncodingException("Cannot open " + s3URL );
+        }
+    }
+
+
 }
 

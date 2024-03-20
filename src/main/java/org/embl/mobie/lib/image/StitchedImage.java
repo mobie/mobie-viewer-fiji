@@ -62,8 +62,6 @@ import org.embl.mobie.lib.source.MoBIEVolatileTypeMatcher;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.transform.TransformHelper;
 import org.embl.mobie.lib.transform.ImageTransformer;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -123,7 +121,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		this.metadataSource = metadataImage.getSourcePair().getSource();
 		this.type = metadataSource.getType().createVariable();
 		this.volatileType = ( V ) MoBIEVolatileTypeMatcher.getVolatileTypeForType( type );
-		this.numTimepoints = SourceHelper.getNumTimepoints( metadataSource );
+		this.numTimepoints = SourceHelper.getNumTimePoints( metadataSource );
 		this.numMipmapLevels = metadataSource.getNumMipmapLevels();
 		this.numDimensions = metadataSource.getVoxelDimensions().numDimensions();
 		this.voxelDimensions = metadataSource.getVoxelDimensions();

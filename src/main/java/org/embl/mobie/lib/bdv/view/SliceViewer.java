@@ -255,7 +255,7 @@ public class SliceViewer
 			if ( image instanceof RegionAnnotationImage )
 				continue; // https://github.com/mobie/mobie-viewer-fiji/issues/975
 
-			int numTimepoints = SourceHelper.getNumTimepoints( sac.getSpimSource() );
+			int numTimepoints = SourceHelper.getNumTimePoints( sac.getSpimSource() );
 			if ( numTimepoints > maxNumTimePoints ) maxNumTimePoints = numTimepoints;
 		}
 		bdvHandle.getViewerPanel().state().setNumTimepoints( maxNumTimePoints );

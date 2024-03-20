@@ -28,13 +28,22 @@
  */
 package org.embl.mobie.command.open.omezarr;
 
+import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.io.ImageDataOpener;
+import org.embl.mobie.io.imagedata.ImageData;
+import org.embl.mobie.io.imagedata.N5ImageData;
+import org.embl.mobie.lib.bdv.view.OMEZarrViewer;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.List;
+
+import static org.embl.mobie.command.open.omezarr.OpenOMEZARRCommand.openAndShow;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_OMEZARR + "Open OME-Zarr From S3...")
 public class OpenOMEZARRFromS3Command implements Command {
@@ -43,14 +52,6 @@ public class OpenOMEZARRFromS3Command implements Command {
 
     @Parameter(label = "OME-Zarr S3 URL")
     public String s3URL = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
-
-    protected static void openAndShow( String s3URL ) throws IOException
-    {
-        IJ.showMessage("This is currently not implemented.");
-//        ImageData< T > imageData = ImageDataOpener.open( uri );
-//        final OMEZarrViewer viewer = new OMEZarrViewer( imageData );
-//        viewer.show();
-    }
 
     @Override
     public void run() {

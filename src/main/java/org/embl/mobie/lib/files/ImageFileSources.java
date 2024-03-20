@@ -175,7 +175,7 @@ public class ImageFileSources
 		metadata = new Metadata( canonicalDatasetMetadata );
 		Source< ? extends Volatile< ? > > source = imageData.getSourcePair( channelIndex ).getB();
 		metadata.numZSlices = (int) source.getSource( 0, 0  ).dimension( 2 );
-		metadata.numTimePoints = SourceHelper.getNumTimepoints( source );
+		metadata.numTimePoints = SourceHelper.getNumTimePoints( source );
 	}
 
 	private static String applyPathMapping( String pathMapping, String path )

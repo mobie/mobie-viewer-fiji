@@ -36,6 +36,8 @@ import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
+import static org.embl.mobie.command.open.omezarr.OpenOMEZARRCommand.openAndShow;
+
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_OMEZARR + "Open OME-Zarr From S3 with Credentials...")
 public class OpenOMEZARRFromS3WithCredentialsCommand extends OpenOMEZARRFromS3Command
 {

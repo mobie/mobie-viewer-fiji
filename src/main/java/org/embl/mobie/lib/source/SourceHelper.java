@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.lib.source;
 
-import IceInternal.Ex;
 import bdv.AbstractSpimSource;
 import bdv.SpimSource;
 import bdv.tools.transformation.TransformedSource;
@@ -56,7 +55,6 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper.createConverterARGBType;
 import static sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper.getVoxelPositionInSource;
 
 public abstract class SourceHelper
@@ -87,7 +85,7 @@ public abstract class SourceHelper
 		}
 	}
 
-	public static int getNumTimepoints( Source< ? > source )
+	public static int getNumTimePoints( Source< ? > source )
 	{
 		int numSourceTimepoints = 0;
         final int maxNumTimePoints = 10000; // TODO
