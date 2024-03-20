@@ -71,6 +71,7 @@ public class OpenShearedMRIStack
         OpenMultipleImagesAndLabelsCommand command = new OpenMultipleImagesAndLabelsCommand();
         command.image0 = new File("/Users/tischer/Desktop/em-xray/mri-stack-calibrated.tif");
         command.image1 = new File("/Users/tischer/Desktop/em-xray/mri-stack-calibrated-sheared.tif");
+        command.labels0 = new File("/Users/tischer/Desktop/em-xray/mri-stack-calibrated-binary.tif");
         command.run();
 //
 

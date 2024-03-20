@@ -490,6 +490,13 @@ public class TransformHelper
 		}
 	}
 
+	public static ArrayList< Transformation > fetchAddedTransformations( Image< ? > image )
+	{
+		ArrayList< Transformation > allTransformations = fetchAllTransformations( image );
+		allTransformations.remove( 0 ); // in MoBIE this is part of the raw image itself
+		return allTransformations;
+	}
+
 	public static ArrayList< Transformation > fetchAddedTransformations( Source< ? > source )
 	{
 		ArrayList< Transformation > allTransformations = fetchAllTransformations( source );

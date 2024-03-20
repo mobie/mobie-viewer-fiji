@@ -28,10 +28,8 @@
  */
 package org.embl.mobie.command.open.omezarr;
 
+import ij.IJ;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.bdv.view.OMEZarrViewer;
-import mpicbg.spim.data.SpimData;
-import org.embl.mobie.io.ome.zarr.openers.OMEZarrS3Opener;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -43,23 +41,20 @@ public class OpenOMEZARRFromS3Command implements Command {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    @Parameter(label = "S3 URL")
+    @Parameter(label = "OME-Zarr S3 URL")
     public String s3URL = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
 
-    @Parameter ( label = "Log chunk loading" )
-    public boolean logChunkLoading = false;
-
-    protected static void openAndShow(String s3URL) throws IOException
+    protected static void openAndShow( String s3URL ) throws IOException
     {
-        SpimData spimData = OMEZarrS3Opener.readURL( s3URL );
-        final OMEZarrViewer viewer = new OMEZarrViewer( spimData );
-        viewer.show();
+        IJ.showMessage("This is currently not implemented.");
+//        ImageData< T > imageData = ImageDataOpener.open( uri );
+//        final OMEZarrViewer viewer = new OMEZarrViewer( imageData );
+//        viewer.show();
     }
 
     @Override
     public void run() {
         try {
-            OMEZarrS3Opener.setLogging( logChunkLoading );
             openAndShow( s3URL );
         } catch (IOException e) {
             e.printStackTrace();

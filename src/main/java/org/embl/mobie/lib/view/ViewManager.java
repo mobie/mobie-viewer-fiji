@@ -112,6 +112,8 @@ public class ViewManager
 			Transformation transformation,
 			String viewDescription )
 	{
+		// FIXME: Use TransformHelper.fetchAddedTransformations( Image<?> image ) instead
+		// FIXME: Make this work for label images https://github.com/mobie/mobie-viewer-fiji/issues/1126
 		ArrayList< Transformation > transformations = TransformHelper.fetchAddedTransformations( sac.getSpimSource() );
 		transformations.add( transformation );
 

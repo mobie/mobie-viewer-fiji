@@ -35,6 +35,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.imagedata.ImageData;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.source.SourceHelper;
@@ -93,18 +94,7 @@ public class ImageFileSources
 		regionTable.addColumns( StringColumn.create( "source_path", new ArrayList<>( nameToFullPath.values() ) ) );
 	}
 
-	private void setMetadata( Integer channelIndex )
-	{
-		metadataSource = nameToFullPath.keySet().iterator().next();
-		ImageData< ? > imageData = ImageDataOpener.open( nameToFullPath.get( metadataSource ) );
-		CanonicalDatasetMetadata canonicalDatasetMetadata = imageData.getMetadata( channelIndex );
-		metadata = new Metadata( canonicalDatasetMetadata );
-		Source< ? extends Volatile< ? > > source = imageData.getSourcePair( channelIndex ).getB();
-		metadata.numZSlices = (int) source.getSource( 0, 0  ).dimension( 2 );
-		metadata.numTimePoints = SourceHelper.getNumTimepoints( source );
-	}
-
-	public ImageFileSources( String name, Table table, String imageColumn, Integer channelIndex, String root, GridType gridType )
+	public ImageFileSources( String name, Table table, String imageColumn, Integer channelIndex, String root, String pathMapping, GridType gridType )
 	{
 		this.name = name;
 		this.channelIndex = channelIndex;
@@ -122,7 +112,7 @@ public class ImageFileSources
 				String relativeFolderName = table.getString( rowIndex, imageColumn.replace( "FileName_", "PathName_"  ) );
 				String path = MoBIEHelper.createAbsolutePath( root, fileName, relativeFolderName );
 				String imageName = createImageName( channelIndex, fileName );
-				nameToFullPath.put( imageName, path );
+				nameToFullPath.put( imageName, applyPathMapping( pathMapping, path ) );
 				nameToPath.put( imageName, fileName );
 
 				if ( table.columnNames().contains( "Rotation_NUM" ) ) // FIXME can we have this generic?
@@ -134,6 +124,21 @@ public class ImageFileSources
 				}
 			}
 		}
+		else if ( isCellProfilerColumn( imageColumn, table ) )
+		{
+			String postfix = imageColumn.substring("FileName_".length());
+			String folderColumn = "PathName_" + postfix;
+
+			for ( int rowIndex = 0; rowIndex < numRows; rowIndex++ )
+			{
+				String fileName = table.getString( rowIndex, imageColumn );
+				String folder = table.getString( rowIndex, folderColumn );
+				String path = IOHelper.combinePath( folder, fileName );
+				String imageName = createImageName( channelIndex, fileName );
+				nameToFullPath.put( imageName, applyPathMapping( pathMapping, path ) );
+				nameToPath.put( imageName, fileName );
+			}
+		}
 		else
 		{
 			// Default table
@@ -142,13 +147,48 @@ public class ImageFileSources
 				String path = table.getString( rowIndex, imageColumn );
 				File file = root == null ? new File( path ) : new File( root, path );
 				String imageName = createImageName( channelIndex, file.getName() );
-				nameToFullPath.put( imageName, file.getAbsolutePath() );
+				nameToFullPath.put( imageName, applyPathMapping( pathMapping, file.getAbsolutePath() )  );
 				nameToPath.put( imageName, path );
 			}
 		}
 
 		setMetadata( channelIndex );
 		dealWithTimepointsInObjectTableIfNeeded( name, table, imageColumn );
+	}
+
+	protected static boolean isCellProfilerColumn( String column, Table table )
+	{
+		if ( ! column.startsWith( "FileName_" ) ) return false;
+
+		String postfix = column.substring("FileName_".length());
+		String folderColumn = "PathName_" + postfix;
+		boolean containsFolderColumn = table.containsColumn( folderColumn );
+
+		return containsFolderColumn;
+	}
+
+	private void setMetadata( Integer channelIndex )
+	{
+		metadataSource = nameToFullPath.keySet().iterator().next();
+		ImageData< ? > imageData = ImageDataOpener.open( nameToFullPath.get( metadataSource ) );
+		CanonicalDatasetMetadata canonicalDatasetMetadata = imageData.getMetadata( channelIndex );
+		metadata = new Metadata( canonicalDatasetMetadata );
+		Source< ? extends Volatile< ? > > source = imageData.getSourcePair( channelIndex ).getB();
+		metadata.numZSlices = (int) source.getSource( 0, 0  ).dimension( 2 );
+		metadata.numTimePoints = SourceHelper.getNumTimepoints( source );
+	}
+
+	private static String applyPathMapping( String pathMapping, String path )
+	{
+		if ( pathMapping != null )
+		{
+			String[] fromTo = pathMapping.split( "," );
+			String from = fromTo[ 0 ];
+			String to = fromTo[ 1 ];
+			path = path.replace( from, to );
+		}
+
+		return path;
 	}
 
 	protected static List< String > getFullPaths( String regex, String root )

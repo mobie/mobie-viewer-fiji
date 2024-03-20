@@ -128,6 +128,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
                 Collections.singletonList( transformedImageName )
         );
 
+        // FIXME: Change this to createTransformedImageView
         ViewManager.createTransformedSourceView(
                 movingSac,
                 transformedImageName,

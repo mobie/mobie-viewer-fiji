@@ -28,10 +28,8 @@
  */
 package org.embl.mobie.command.open.omezarr;
 
+import ij.IJ;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.bdv.view.OMEZarrViewer;
-import mpicbg.spim.data.SpimData;
-import org.embl.mobie.io.ome.zarr.openers.OMEZarrOpener;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -47,10 +45,12 @@ public class OpenOMEZARRCommand implements Command {
     @Parameter(label = "OME-Zarr path", style = "directory")
     public File omeZarrDirectory;
 
-    protected static void openAndShow(String filePath) throws IOException {
-        SpimData spimData = OMEZarrOpener.openFile(filePath);
-        final OMEZarrViewer viewer = new OMEZarrViewer(spimData);
-        viewer.show();
+    protected static void openAndShow(String filePath) throws IOException
+    {
+        IJ.showMessage("This is currently not implemented.");
+//        SpimData spimData = OMEZarrOpener.openFile(filePath);
+//        final OMEZarrViewer viewer = new OMEZarrViewer(spimData);
+//        viewer.show();
     }
 
     @Override
