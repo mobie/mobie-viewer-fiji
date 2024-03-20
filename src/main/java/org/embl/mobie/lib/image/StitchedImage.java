@@ -861,7 +861,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		//       to overwrite what is been set by
 		//       setMask( RealMaskRealInterval mask )
 
-		mask = SourceHelper.estimateMask( getSourcePair().getSource(), 0, false );
+		mask = SourceHelper.estimateRealMask( getSourcePair().getSource(), 0, false );
 		final String toString = TransformHelper.maskToString( mask );
 		return mask;
 	}

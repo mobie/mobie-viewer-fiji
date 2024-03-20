@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.lib.bdv;
 
-import bdv.SpimSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
@@ -44,10 +43,10 @@ import ij.plugin.filter.ThresholdToSelection;
 import ij.process.LUT;
 import net.imglib2.*;
 import net.imglib2.Cursor;
+import net.imglib2.roi.geom.real.WritableBox;
 import net.imglib2.type.Type;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.real.FloatType;
-import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.annotation.Annotation;
@@ -63,6 +62,7 @@ import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import org.embl.mobie.lib.source.AnnotatedLabelSource;
 import org.embl.mobie.lib.source.AnnotationType;
+import org.embl.mobie.lib.source.SourceHelper;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
@@ -141,7 +141,6 @@ public class ScreenShotMaker
         final ArrayList< RandomAccessibleInterval< FloatType > > floatCaptures = new ArrayList<>();
         final ArrayList< RandomAccessibleInterval< BitType > > maskCaptures = new ArrayList<>();
         final ArrayList< RandomAccessibleInterval< ARGBType > > argbCaptures = new ArrayList<>();
-        final ArrayList< ARGBType > colors = new ArrayList<>();
 
         final ArrayList< double[] > displayRanges = new ArrayList<>();
 
@@ -168,9 +167,6 @@ public class ScreenShotMaker
             Source< ? > source = sac.getSpimSource();
             final Converter< ?, ? > converter = sac.getConverter();
             double[] displayRange = BdvHandleHelper.getDisplayRange( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ) );
-
-            // MoBIEColorConverter
-
             final int level = getLevel( source, targetVoxelSpacing );
             final AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( source, currentTimepoint, level );
 
@@ -191,7 +187,8 @@ public class ScreenShotMaker
                     ThreadHelper.ioExecutorService.submit( () ->
                     {
                         RealRandomAccess< ? extends Type< ? > > sourceAccess = getRealRandomAccess( ( Source< Type< ? > > ) source, currentTimepoint, level, interpolate );
-                        RandomAccessibleInterval< ? > sourceInterval = source.getSource( currentTimepoint, level );
+                        WritableBox sourceMask = SourceHelper.estimateMask( source, currentTimepoint, level, true );
+                        //RandomAccessibleInterval< ? > sourceInterval = source.getSource( currentTimepoint, level );
 
                         // to collect raw data
                         final IntervalView< FloatType > floatCrop = Views.interval( floatCapture, interval );
@@ -221,8 +218,9 @@ public class ScreenShotMaker
                             targetCanvasToSourceTransform.apply( canvasPosition, sourceRealPosition );
                             sourceAccess.setPosition( sourceRealPosition );
 
-                            // set the pixel values
-                            if ( Intervals.contains( sourceInterval, new RealPoint( sourceRealPosition ) ) )
+                            // set the pixel and mask values depending on whether the
+                            // pixel is within the source data
+                            if ( sourceMask.test( new RealPoint( sourceRealPosition ) ) )
                             {
                                 maskAccess.get().set( true );
                                 setFloatPixelValue( sourceAccess, floatAccess );
