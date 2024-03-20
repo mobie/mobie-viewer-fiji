@@ -50,6 +50,7 @@ import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.roi.geom.real.WritableBox;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -197,16 +198,28 @@ public abstract class SourceHelper
 		return mask;
 	}
 
-	public static RealMaskRealInterval estimateMask( Source< ? > source, int t, boolean includeVoxelDimensions )
+	public static RealMaskRealInterval estimateRealMask( Source< ? > source, int t, boolean includeVoxelDimensions )
 	{
+		WritableBox box = estimateMask( source, t, 0, includeVoxelDimensions );
+
+		// apply the source transformation to get the mask in global space
 		final AffineTransform3D sourceTransform = new AffineTransform3D();
 		source.getSourceTransform( t, 0, sourceTransform );
 
+		return box.transform( sourceTransform.inverse() );
+	}
+
+	@NotNull
+	public static WritableBox estimateMask( Source< ? > source, int t, int level, boolean includeVoxelDimensions  )
+	{
 		// determine the extent of the source in voxel space
 		//
-		final RandomAccessibleInterval< ? > rai = source.getSource( t, 0 );
+		final RandomAccessibleInterval< ? > rai = source.getSource( t, level );
 		final double[] min = rai.minAsDoubleArray();
 		final double[] max = rai.maxAsDoubleArray();
+
+		final AffineTransform3D sourceTransform = new AffineTransform3D();
+		source.getSourceTransform( t, level, sourceTransform );
 
 		// extend the bounds in voxel space to include the voxel dimensions
 		if ( includeVoxelDimensions )
@@ -220,12 +233,7 @@ public abstract class SourceHelper
 			}
 		}
 		WritableBox box = GeomMasks.closedBox( min, max );
-
-		// apply the source transformation to the voxel space box
-		// to get the mask in calibrated space
-		final RealMaskRealInterval realInterval = box.transform( sourceTransform.inverse() );
-
-		return realInterval;
+		return box;
 	}
 
 	public static FinalRealInterval bounds( Source< ? > source, int t )

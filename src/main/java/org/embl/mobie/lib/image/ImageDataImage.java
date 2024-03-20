@@ -141,7 +141,7 @@ public class ImageDataImage< T extends NumericType< T > & RealType< T > > implem
 			// because otherwise rendering 2D sources in a 3D scene
 			// will make them so thin that the {@code RegionLabelImage}
 			// does not render anything.
-			return SourceHelper.estimateMask( getSourcePair().getSource(), 0, true );
+			return SourceHelper.estimateRealMask( getSourcePair().getSource(), 0, true );
 		}
 
 		return mask;

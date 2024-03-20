@@ -62,8 +62,6 @@ import org.embl.mobie.lib.source.MoBIEVolatileTypeMatcher;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.transform.TransformHelper;
 import org.embl.mobie.lib.transform.ImageTransformer;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -863,7 +861,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		//       to overwrite what is been set by
 		//       setMask( RealMaskRealInterval mask )
 
-		mask = SourceHelper.estimateMask( getSourcePair().getSource(), 0, false );
+		mask = SourceHelper.estimateRealMask( getSourcePair().getSource(), 0, false );
 		final String toString = TransformHelper.maskToString( mask );
 		return mask;
 	}

@@ -41,7 +41,7 @@ public class MoBIEColorConverter< R extends RealType< ? > > implements OpacityAd
 
 	private final ARGBType color = new ARGBType( ARGBType.rgba( 255, 255, 255, 255 ) );
 
-	private int A;
+	private int alpha;
 
 	private double scaleR;
 
@@ -65,15 +65,23 @@ public class MoBIEColorConverter< R extends RealType< ? > > implements OpacityAd
 	@Override
 	public void convert( R realType, ARGBType color )
 	{
-		final double v = invert ? max - realType.getRealDouble() : realType.getRealDouble() - min;
+		double pixelValue = realType.getRealDouble();
+		final double v = invert ? max - pixelValue : pixelValue - min;
 		int r0 = ( int ) ( scaleR * v + 0.5 );
 		int g0 = ( int ) ( scaleG * v + 0.5 );
 		int b0 = ( int ) ( scaleB * v + 0.5 );
 		final int r = Math.max( Math.min( 255, r0 ), 0 );
 		final int g = Math.max( Math.min( 255, g0 ), 0 );
 		final int b = Math.max( Math.min( 255, b0 ), 0 );
-		color.set( ARGBType.rgba( r, g, b, A ) );
-		adjustOpacity( color, opacity );
+
+		if ( pixelValue == background )
+		{
+			color.set( ARGBType.rgba( r, g, b, 0 ) );
+		}
+		else
+		{
+			color.set( ARGBType.rgba( r, g, b, alpha * getOpacity() ) );
+		}
 	}
 
 	@Override
@@ -147,7 +155,7 @@ public class MoBIEColorConverter< R extends RealType< ? > > implements OpacityAd
 	{
 		final double scale = 1.0 / ( max - min );
 		final int value = color.get();
-		A = ARGBType.alpha( value );
+		alpha = ARGBType.alpha( value );
 		scaleR = ARGBType.red( value ) * scale;
 		scaleG = ARGBType.green( value ) * scale;
 		scaleB = ARGBType.blue( value ) * scale;

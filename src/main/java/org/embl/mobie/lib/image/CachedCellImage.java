@@ -30,7 +30,6 @@ package org.embl.mobie.lib.image;
 
 import bdv.cache.SharedQueue;
 import bdv.tools.transformation.TransformedSource;
-import bdv.util.RandomAccessibleIntervalSource;
 import bdv.util.RandomAccessibleIntervalSource4D;
 import bdv.viewer.Source;
 import net.imglib2.RandomAccessibleInterval;
@@ -160,7 +159,7 @@ public class CachedCellImage< T > implements Image< T >
 			// because otherwise rendering 2D sources in a 3D scene
 			// will make them so thin that the {@code RegionLabelImage}
 			// does not render anything.
-			return SourceHelper.estimateMask( getSourcePair().getSource(), 0, true );
+			return SourceHelper.estimateRealMask( getSourcePair().getSource(), 0, true );
 		}
 
 		return mask;
