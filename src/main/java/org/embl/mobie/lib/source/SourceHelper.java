@@ -220,9 +220,9 @@ public abstract class SourceHelper
 		return mask;
 	}
 
-	public static RealMaskRealInterval estimateRealMask( Source< ? > source, int t, boolean includeVoxelDimensions )
+	public static RealMaskRealInterval estimatePhysicalMask( Source< ? > source, int t, boolean includeVoxelDimensions )
 	{
-		WritableBox box = estimateMask( source, t, 0, includeVoxelDimensions );
+		WritableBox box = estimateDataMask( source, t, 0, includeVoxelDimensions );
 
 		// apply the source transformation to get the mask in global space
 		final AffineTransform3D sourceTransform = new AffineTransform3D();
@@ -232,7 +232,7 @@ public abstract class SourceHelper
 	}
 
 	@NotNull
-	public static WritableBox estimateMask( Source< ? > source, int t, int level, boolean includeVoxelDimensions  )
+	public static WritableBox estimateDataMask( Source< ? > source, int t, int level, boolean includeVoxelDimensions  )
 	{
 		// determine the extent of the source in voxel space
 		//

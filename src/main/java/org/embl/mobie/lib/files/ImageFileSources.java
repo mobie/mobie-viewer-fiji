@@ -88,7 +88,7 @@ public class ImageFileSources
 		// TODO: how to deal with the inconsistent metadata (e.g. number of time-points)?
 		setMetadata( channelIndex );
 
-		// FIXME: move this out to a separate function
+		// TODO: move this out to a separate function
 		regionTable = Table.create( name + " table" );
 		regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, new ArrayList<>( nameToFullPath.keySet() ) ) );
 		regionTable.addColumns( StringColumn.create( "source_path", new ArrayList<>( nameToFullPath.values() ) ) );

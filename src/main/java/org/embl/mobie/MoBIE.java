@@ -189,6 +189,19 @@ public class MoBIE
 		openAndViewDataset();
 	}
 
+	private void setS3Credentials( MoBIESettings settings )
+	{
+		// FIXME: Get rid of this, currently still needed by
+		//        ProjectJsonParser() => ???
+		//        Other functions that need to read JSON files
+		//        probably some Metadata from Image fetcher methods => Use DataStore for this
+
+		if ( settings.values.getS3AccessAndSecretKey() != null )
+		{
+			S3Utils.setS3AccessAndSecretKey( settings.values.getS3AccessAndSecretKey() );
+		}
+	}
+
 	// TODO 2D or 3D?
 	private void openImagesAndLabels( List< ImageFileSources > images, List< LabelFileSources > labels, Table regionTable )
 	{
@@ -318,13 +331,6 @@ public class MoBIE
 		}
 	}
 
-	private void setS3Credentials( MoBIESettings settings )
-	{
-		if ( settings.values.getS3AccessAndSecretKey() != null )
-		{
-			S3Utils.setS3AccessAndSecretKey( settings.values.getS3AccessAndSecretKey() );
-		}
-	}
 
 	private void openAndViewDataset() throws IOException
 	{
@@ -625,6 +631,7 @@ public class MoBIE
 		{
 			final ImageDataSource imageSource = ( ImageDataSource ) dataSource;
 			final ImageDataFormat imageDataFormat = getImageDataFormat( imageSource );
+			imageDataFormat.setS3SecretAndAccessKey( settings.values.getS3AccessAndSecretKey() );
 			final StorageLocation storageLocation = imageSource.imageData.get( imageDataFormat );
 			final Image< ? > image = initImage( imageDataFormat, storageLocation, imageSource.getName() );
 
@@ -693,18 +700,25 @@ public class MoBIE
 				// note that channel = setupID
 				return new SpimDataImage<>( site.getSpimData(), site.channel, name, settings.values.getRemoveSpatialCalibration() );
 			}
-
-			if ( site.getImageDataFormat().equals( ImageDataFormat.OmeZarr ) )
+			else  if ( site.getImageDataFormat().equals( ImageDataFormat.OmeZarr )
+					|| site.getImageDataFormat().equals( ImageDataFormat.OmeZarrS3 ) )
 			{
-				return new ImageDataImage<>( ImageDataFormat.OmeZarr, site.absolutePath, site.channel, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
+				return new ImageDataImage<>(
+						site.getImageDataFormat(),
+						site.absolutePath,
+						site.channel,
+						name,
+						ThreadHelper.sharedQueue,
+						settings.values.getRemoveSpatialCalibration() );
 			}
-
-			if ( site.getImageDataFormat().equals( ImageDataFormat.OmeZarrS3 ) )
+			else
 			{
-				return new ImageDataImage<>( ImageDataFormat.OmeZarrS3, site.absolutePath, site.channel, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
+				return new ImageDataImage<>(
+						site,
+						name,
+						ThreadHelper.sharedQueue,
+						settings.values.getRemoveSpatialCalibration() );
 			}
-
-			return new ImageDataImage<>( site, name, ThreadHelper.sharedQueue, settings.values.getRemoveSpatialCalibration() );
 		}
 		else
 		{

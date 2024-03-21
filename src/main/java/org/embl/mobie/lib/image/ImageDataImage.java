@@ -28,18 +28,14 @@
  */
 package org.embl.mobie.lib.image;
 
-import bdv.SpimSource;
-import bdv.VolatileSpimSource;
 import bdv.cache.SharedQueue;
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
-import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
-import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.io.imagedata.ImageData;
@@ -54,7 +50,7 @@ import javax.annotation.Nullable;
 public class ImageDataImage< T extends NumericType< T > & NativeType< T > > implements Image< T >
 {
 	private ImageDataFormat imageDataFormat;
-	private String path;
+	private String uri;
 	private int setupId;
 	private SourcePair< T > sourcePair;
 	private String name;
@@ -69,7 +65,7 @@ public class ImageDataImage< T extends NumericType< T > & NativeType< T > > impl
 	public ImageDataImage( ImageData< T > imageData, Integer setupId, String name, Boolean removeSpatialCalibration  )
 	{
 		this.imageDataFormat = null;
-		this.path = null;
+		this.uri = null;
 		this.sharedQueue = null;
 		this.setupId = setupId == null ? 0 : setupId;
 		this.name = name;
@@ -77,17 +73,27 @@ public class ImageDataImage< T extends NumericType< T > & NativeType< T > > impl
 		createSourcePair( imageData, setupId, name );
 	}
 
-	public ImageDataImage( ImageDataFormat imageDataFormat, String path, int setupId, String name, @Nullable SharedQueue sharedQueue, Boolean removeSpatialCalibration )
+	public ImageDataImage(
+			ImageDataFormat imageDataFormat,
+			String uri,
+			int setupId,
+			String name,
+			@Nullable SharedQueue sharedQueue,
+			Boolean removeSpatialCalibration )
 	{
 		this.imageDataFormat = imageDataFormat;
-		this.path = path;
+		this.uri = uri;
 		this.setupId = setupId;
 		this.name = name;
 		this.sharedQueue = sharedQueue;
 		this.removeSpatialCalibration = removeSpatialCalibration;
 	}
 
-	public ImageDataImage( Site site, String name, SharedQueue sharedQueue, Boolean removeSpatialCalibration )
+	public ImageDataImage(
+			Site site,
+			String name,
+			SharedQueue sharedQueue,
+			Boolean removeSpatialCalibration )
 	{
 		this.setupId = site.getChannel();
 		this.name = name;
@@ -144,7 +150,7 @@ public class ImageDataImage< T extends NumericType< T > & NativeType< T > > impl
 			// because otherwise rendering 2D sources in a 3D scene
 			// will make them so thin that the {@code RegionLabelImage}
 			// does not render anything.
-			return SourceHelper.estimateRealMask( getSourcePair().getSource(), 0, true );
+			return SourceHelper.estimatePhysicalMask( getSourcePair().getSource(), 0, true );
 		}
 
 		return mask;
@@ -187,7 +193,7 @@ public class ImageDataImage< T extends NumericType< T > & NativeType< T > > impl
 			return ( ImageData< T > ) DataStore.fetchImageData( site, sharedQueue );
 		}
 
-		return ( ImageData< T > ) DataStore.fetchImageData( path, imageDataFormat, sharedQueue );
+		return ( ImageData< T > ) DataStore.fetchImageData( uri, imageDataFormat, sharedQueue );
 	}
 
 }

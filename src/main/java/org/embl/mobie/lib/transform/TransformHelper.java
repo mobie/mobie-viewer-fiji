@@ -399,17 +399,7 @@ public class TransformHelper
 
 	private static void collectTransformations( Image< ? > image, Collection< Transformation > transformations )
 	{
-		if ( image instanceof ImageDataImage )
-		{
-			AffineTransform3D affineTransform3D = new AffineTransform3D();
-			image.getSourcePair().getSource().getSourceTransform( 0, 0, affineTransform3D  );
-			AffineTransformation affineTransformation = new AffineTransformation(
-					"calibration",
-					affineTransform3D,
-					Collections.singletonList( image.getName() ) );
-			transformations.add( affineTransformation );
-		}
-		else if ( image instanceof TransformedImage )
+		if ( image instanceof TransformedImage )
 		{
 			TransformedImage transformedImage = ( TransformedImage ) image;
 			transformations.add( transformedImage.getTransformation() );
@@ -417,7 +407,14 @@ public class TransformHelper
 		}
 		else
 		{
-			IJ.log("Fetching transformations from " + image.getClass().getName() + " is not implemented.");
+			// The raw data with the voxel calibration
+			AffineTransform3D affineTransform3D = new AffineTransform3D();
+			image.getSourcePair().getSource().getSourceTransform( 0, 0, affineTransform3D  );
+			AffineTransformation affineTransformation = new AffineTransformation(
+					"calibration",
+					affineTransform3D,
+					Collections.singletonList( image.getName() ) );
+			transformations.add( affineTransformation );
 		}
 	}
 

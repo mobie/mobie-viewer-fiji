@@ -30,20 +30,13 @@ package org.embl.mobie.lib.image;
 
 import bdv.SpimSource;
 import bdv.VolatileSpimSource;
-import bdv.cache.SharedQueue;
 import bdv.tools.transformation.TransformedSource;
-import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
-import org.embl.mobie.DataStore;
-import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.source.SourceHelper;
-
-import javax.annotation.Nullable;
 
 public class AbstractImage< T extends NumericType< T > & RealType< T > > implements Image< T >
 {
@@ -102,7 +95,7 @@ public class AbstractImage< T extends NumericType< T > & RealType< T > > impleme
 			// because otherwise rendering 2D sources in a 3D scene
 			// will make them so thin that the {@code RegionLabelImage}
 			// does not render anything.
-			return SourceHelper.estimateMask( getSourcePair().getSource(), 0, true );
+			return SourceHelper.estimatePhysicalMask( getSourcePair().getSource(), 0, true );
 		}
 
 		return mask;

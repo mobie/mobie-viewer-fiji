@@ -283,8 +283,8 @@ public class ProjectCreatorHelper {
         return parsedUnit1.getCanonicalString().equals(parsedUnit2.getCanonicalString());
     }
 
-    // FIXME: non-matching voxel units should be somehow supported
-    //        ask in Zulip channel in the context of the n5 viewer
+    // TODO: it would be nice to support non-matching voxel units
+    //       see also: https://imagesc.zulipchat.com/#narrow/stream/327326-BigDataViewer/topic/N5.20viewer.20support.20for.20different.20voxel.20units.3F
     public static boolean isImageValid( String uri, String projectVoxelUnit )
     {
         return isImageValid( ImageDataOpener.open( uri ), projectVoxelUnit );

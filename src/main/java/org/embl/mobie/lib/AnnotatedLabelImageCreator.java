@@ -40,7 +40,6 @@ import org.embl.mobie.lib.serialize.SegmentationDataSource;
 import org.embl.mobie.lib.table.DefaultAnnData;
 import org.embl.mobie.lib.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.lib.table.TableDataFormat;
-import org.embl.mobie.lib.table.columns.SegmentColumnNames;
 import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedSegment;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedSegmentCreator;

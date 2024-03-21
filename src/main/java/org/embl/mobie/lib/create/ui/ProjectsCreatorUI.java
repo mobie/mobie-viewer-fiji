@@ -436,9 +436,6 @@ public class ProjectsCreatorUI extends JFrame {
         }
     }
 
-    /**
-     * Dialog for adding BigDataViewer (bdv) format image to MoBIE project - i.e. N5 or ome-zarr image
-     */
     public void addOMEZarrDialog() {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
@@ -447,8 +444,7 @@ public class ProjectsCreatorUI extends JFrame {
             final GenericDialog gd = new GenericDialog( "Add OME-Zarr To Project..." );
             String[] addMethods = new String[]{
                     ProjectCreator.AddMethod.Link.toString(),
-                    ProjectCreator.AddMethod.Copy.toString(),
-                    ProjectCreator.AddMethod.move.toString() }; // FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/1117
+                    ProjectCreator.AddMethod.Copy.toString() };
             gd.addChoice( "Add method:", addMethods, addMethod.toString() );
             gd.addChoice( "Image type", imageTypes, imageType.toString() );
             gd.addCheckbox( "Make view exclusive", exclusive );
@@ -463,11 +459,12 @@ public class ProjectsCreatorUI extends JFrame {
             useFileNameAsImageName = gd.getNextBoolean();
 
             // FIXME https://github.com/mobie/mobie-viewer-fiji/issues/1117
-//            if ( imageDataFormat == ImageDataFormat.OmeZarr && addMethod == ProjectCreator.AddMethod.link )
-//            {
-//                IJ.log( "link is currently unsupported for ome-zarr. Please choose copy or move instead for this file format." );
-//                return;
-//            }
+            //       we should support this!
+            if ( addMethod == ProjectCreator.AddMethod.Link )
+            {
+                IJ.log( "link is currently unsupported for ome-zarr. Please choose copy or move instead for this file format." );
+                return;
+            }
 
             String filePath = getOMEZarrImagePathDialog();
 

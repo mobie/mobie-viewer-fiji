@@ -104,7 +104,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 			// because otherwise rendering 2D sources in a 3D scene
 			// will make them so thin that the {@code RegionLabelImage}
 			// does not render anything.
-			return SourceHelper.estimateRealMask( getSourcePair().getSource(), 0, true );
+			return SourceHelper.estimatePhysicalMask( getSourcePair().getSource(), 0, true );
 		}
 
 		return mask;

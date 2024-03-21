@@ -71,25 +71,24 @@ public abstract class DataStore
 		return sourceToImage;
 	}
 
-	public static ImageData< ? > fetchImageData( String path, ImageDataFormat imageDataFormat, SharedQueue sharedQueue )
+	public static ImageData< ? > fetchImageData(
+			String path,
+			ImageDataFormat imageDataFormat,
+			SharedQueue sharedQueue )
 	{
 		try
 		{
 			return imageDataCache
 					.computeIfAbsent( path,
 							p -> CompletableFuture.supplyAsync( ()
-							-> addImageData( (String) p, imageDataFormat, sharedQueue ) ) )
+							-> openImageData( (String) p, imageDataFormat, sharedQueue ) ) )
 					.get();
 		}
-		catch ( InterruptedException e )
+		catch ( InterruptedException | ExecutionException e )
 		{
 			throw new RuntimeException( e );
 		}
-		catch ( ExecutionException e )
-		{
-			throw new RuntimeException( e );
-		}
-	}
+    }
 
 	public static ImageData< ? > fetchImageData( Site site, SharedQueue sharedQueue )
 	{
@@ -101,21 +100,17 @@ public abstract class DataStore
 									-> addImageData( (Site) s, sharedQueue )))
 					.get();
 		}
-		catch ( InterruptedException e )
+		catch ( InterruptedException | ExecutionException e )
 		{
 			throw new RuntimeException( e );
 		}
-		catch ( ExecutionException e )
-		{
-			throw new RuntimeException( e );
-		}
-	}
+    }
 
-	private static ImageData< ? > addImageData( String path, ImageDataFormat imageDataFormat, SharedQueue sharedQueue )
+	private static ImageData< ? > openImageData( String path, ImageDataFormat imageDataFormat, SharedQueue sharedQueue )
 	{
 		try
 		{
-			return new ImageDataOpener().open( path, imageDataFormat, sharedQueue );
+			return ImageDataOpener.open( path, imageDataFormat, sharedQueue );
 		}
 		catch ( Exception e )
 		{
@@ -152,6 +147,12 @@ public abstract class DataStore
 			throw new RuntimeException( name + " is not part of the current image data.");
 
 		return images.get( name );
+	}
+
+
+	public static boolean containsImage( String name )
+	{
+		return images.containsKey( name );
 	}
 
 	// Unsorted Set.

@@ -41,11 +41,19 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 {
 	private final AtomicBoolean throwError = new AtomicBoolean( true );
 	private final AnnData< A > annData;
+	private final String source;
 	private Map< String, A > stlToAnnotation; // source, timepoint, label
 
 	public DefaultAnnotationAdapter( AnnData< A > annData )
 	{
 		this.annData = annData;
+		this.source = null;
+	}
+
+	public DefaultAnnotationAdapter( AnnData< A > annData, String source )
+	{
+		this.annData = annData;
+		this.source = source;
 	}
 
 	@Override
@@ -58,13 +66,20 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 	// {@code AnnotatedLabelSource}
 	// to the corresponding annotation.
 	@Override
-	public synchronized A getAnnotation( final String source, final int timePoint, final int label )
+	public synchronized A getAnnotation( String source, final int timePoint, final int label )
 	{
 		if ( label == 0 )
 		{
 			// 0 is the background label
 			// null is the background annotation
 			return null ;
+		}
+
+		if ( this.source != null )
+		{
+			// this is needed, e.g., when an image is transformed and
+			// has a different name than the wrapped original image
+			source = this.source;
 		}
 
 		final String stl = stlKey( source, timePoint, label );

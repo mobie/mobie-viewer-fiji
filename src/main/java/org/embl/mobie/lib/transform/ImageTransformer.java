@@ -70,7 +70,7 @@ public class ImageTransformer
 		}
 		else
 		{
-			AffineTransformedImage< ? > affineTransformedImage = new AffineTransformedImage<>( image, affineTransformation.getTransformedImageName( image.getName() ), affineTransformation.getAffineTransform3D().copy() );
+			AffineTransformedImage< ? > affineTransformedImage = new AffineTransformedImage<>( image, transformedImageName, affineTransformation.getAffineTransform3D().copy() );
 			affineTransformedImage.setTransformation( affineTransformation );
 			return affineTransformedImage;
 		}
@@ -109,7 +109,9 @@ public class ImageTransformer
 		return realTransformedImage;
 	}
 
-	private static < A extends Annotation, TA extends A > DefaultAnnotationLabelImage< TA > createTransformedAnnotatedLabelImage( AnnotationLabelImage< A > annotatedLabelImage, AffineTransformation affineTransformation )
+	private static < A extends Annotation, TA extends A > DefaultAnnotationLabelImage< TA > createTransformedAnnotatedLabelImage(
+			AnnotationLabelImage< A > annotatedLabelImage,
+			AffineTransformation affineTransformation )
 	{
 		final Image< ? extends IntegerType< ? > > labelImage = annotatedLabelImage.getLabelImage();
 
@@ -119,7 +121,7 @@ public class ImageTransformer
 
 		TransformedAnnData< A, TA > transformedAnnData = new TransformedAnnData<>( annData, affineTransformer );
 
-		final DefaultAnnotationAdapter< TA > annotationAdapter = new DefaultAnnotationAdapter<>( transformedAnnData );
+		final DefaultAnnotationAdapter< TA > annotationAdapter = new DefaultAnnotationAdapter<>( transformedAnnData, annotatedLabelImage.getName() );
 
 		final Image< ? extends IntegerType< ? > > transformedLabelImage = ( Image< ? extends IntegerType< ? > > ) affineTransform( labelImage, affineTransformation );
 

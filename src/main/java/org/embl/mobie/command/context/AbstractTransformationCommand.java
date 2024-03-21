@@ -167,7 +167,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     protected void applyTransformInPlace( AffineTransform3D affineTransform )
     {
         final AffineTransform3D newFixedTransform = previousFixedTransform.copy();
-        newFixedTransform.preConcatenate( affineTransform.copy().inverse() );
+        newFixedTransform.preConcatenate( affineTransform.copy() );
         movingSource.setFixedTransform( newFixedTransform );
     }
 

@@ -187,7 +187,7 @@ public class ScreenShotMaker
                     ThreadHelper.ioExecutorService.submit( () ->
                     {
                         RealRandomAccess< ? extends Type< ? > > sourceAccess = getRealRandomAccess( ( Source< Type< ? > > ) source, currentTimepoint, level, interpolate );
-                        WritableBox sourceMask = SourceHelper.estimateMask( source, currentTimepoint, level, true );
+                        WritableBox sourceMask = SourceHelper.estimateDataMask( source, currentTimepoint, level, true );
                         //RandomAccessibleInterval< ? > sourceInterval = source.getSource( currentTimepoint, level );
 
                         // to collect raw data

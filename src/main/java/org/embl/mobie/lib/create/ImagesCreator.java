@@ -270,13 +270,6 @@ public class ImagesCreator {
             deleteImageFiles( datasetName, imageName );
         }
 
-        // make directory for that image, if doesn't exist already
-        // FIXME: Do we really need this? N5 seems to be doing this....
-//        File imageDir = new File( newImageFile.getParent() );
-//        if ( !imageDir.exists() ) {
-//            imageDir.mkdirs();
-//        }
-
         switch (addMethod) {
             case Link:
                 // Do nothing, the absolute path to the linked image will be added to the dataset.json

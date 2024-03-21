@@ -86,6 +86,11 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Abstract
 		super();
 	}
 
+	public SegmentationDisplay( String name, String sourceName )
+	{
+		this( name, Collections.singletonList( sourceName ) );
+	}
+
 	public SegmentationDisplay( String name, List< String > sources )
 	{
 		super();

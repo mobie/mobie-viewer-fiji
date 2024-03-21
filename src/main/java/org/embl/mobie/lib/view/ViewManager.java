@@ -110,17 +110,26 @@ public class ViewManager
 			Transformation transformation,
 			String viewDescription )
 	{
-		// FIXME: Make this work for label images https://github.com/mobie/mobie-viewer-fiji/issues/1126
 		ArrayList< Transformation > transformations = TransformHelper.fetchAddedTransformations( image );
 		transformations.add( transformation );
 
-		ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, imageName );
-		imageDisplay.setDisplaySettings( DataStore.sourceToImage().inverse().get( image ) );
+		Display< ? > display;
+		if ( image instanceof AnnotationImage )
+		{
+			SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( imageName, imageName );
+			display = segmentationDisplay;
+		}
+		else
+		{
+			ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, imageName );
+			imageDisplay.setDisplaySettings( DataStore.sourceToImage().inverse().get( image ) );
+			display = imageDisplay;
+		}
 
 		View view = new View(
 				imageName,
 				null, // to be determined by the user in below dialog
-				Collections.singletonList( imageDisplay ),
+				Collections.singletonList( display ),
 				transformations,
 				new NoViewerTransform(),
 				false,
@@ -316,17 +325,23 @@ public class ViewManager
 		// instantiate source that can be directly opened
 		// (other sources may be created later,
 		// by a display or transformation)
-		final List< DataSource > dataSources = moBIE.getDataSources( sourceToTransformOrDisplay.keySet() );
+		List< DataSource > dataSources = moBIE.getDataSources( sourceToTransformOrDisplay.keySet() );
+
+		// if a view is created on the fly in a running project, e.g. due to an image registration
+		// the data sources may already be present and thus do not need to be instantiated
+		dataSources = dataSources.stream().filter( ds -> ! DataStore.containsImage( ds.getName() ) ).collect( Collectors.toList() );
 
 		for ( DataSource dataSource : dataSources )
 		{
-			final Object transformOrDisplay = sourceToTransformOrDisplay.get( dataSource.getName() );
+			String dataSourceName = dataSource.getName();
+
+			final Object transformOrDisplay = sourceToTransformOrDisplay.get( dataSourceName );
 			if ( transformOrDisplay instanceof MergedGridTransformation )
 			{
 				final MergedGridTransformation mergedGridTransformation = ( MergedGridTransformation ) transformOrDisplay;
 				if ( mergedGridTransformation.metadataSource != null )
 				{
-					if ( dataSource.getName().equals( mergedGridTransformation.metadataSource ) )
+					if ( dataSourceName.equals( mergedGridTransformation.metadataSource ) )
 						dataSource.preInit( true );
 					else
 						dataSource.preInit( false );
@@ -334,7 +349,7 @@ public class ViewManager
 				else // no metadata source specified, use the first in the grid as metadata source
 				{
 					final String firstImageInGrid = mergedGridTransformation.getSources().get( 0 );
-					if ( dataSource.getName().equals( firstImageInGrid ) )
+					if ( dataSourceName.equals( firstImageInGrid ) )
 						dataSource.preInit( true );
 					else
 						dataSource.preInit( false );
@@ -346,7 +361,8 @@ public class ViewManager
 			}
 		}
 
-		moBIE.initDataSources( dataSources );
+		if ( ! dataSources.isEmpty() )
+			moBIE.initDataSources( dataSources );
 
 		// transform images
 		// this may create new images with new names
@@ -376,7 +392,7 @@ public class ViewManager
 
 						for ( Image< ? > image : images )
 						{
-							// FIXME: move this into the ImageTransformer class
+							// TODO: move this into the ImageTransformer class
 							final CroppedImage< ? > croppedImage = new CroppedImage<>(
 									image,
 									cropTransformation.getTransformedImageName( image.getName() ),
@@ -413,7 +429,7 @@ public class ViewManager
 				{
 					if ( transformation instanceof MergedGridTransformation )
 					{
-						// FIXME: move this into the ImageTransformer class
+						// TODO: move this into the ImageTransformer class
 						final MergedGridTransformation mergedGridTransformation = ( MergedGridTransformation ) transformation;
 
 						List< ? extends Image< ? > > images = DataStore.getImageList( mergedGridTransformation.getSources() );

@@ -39,7 +39,6 @@ import javax.annotation.Nullable;
 
 import static ij.measure.Measurements.MIN_MAX;
 
-// FIXME: move this to mobie-io
 public class Metadata
 {
 	public String color = "White";
