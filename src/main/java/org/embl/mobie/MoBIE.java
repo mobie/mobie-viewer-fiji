@@ -180,26 +180,19 @@ public class MoBIE
 
 	private void openMoBIEProject() throws IOException
 	{
-		setS3Credentials( settings );
+		// FIXME: Get rid of setS3AccessAndSecretKey,
+		//  	  currently still needed by
+		//        ProjectJsonParser() => ???
+		//        Other functions that need to read JSON files
+		//        probably some Metadata from Image fetcher methods => Use DataStore for this
+		S3Utils.setS3AccessAndSecretKey( settings.values.getS3AccessAndSecretKey() );
+
 		setProjectImageAndTableRootLocations();
 		registerProjectPlugins( projectLocation );
 		project = new ProjectJsonParser().parseProject( combinePath( projectRoot, "project.json" ) );
 		if ( project.getName() == null ) project.setName( getFileName( projectLocation ) );
 		settings.addTableDataFormat( TableDataFormat.TSV );
 		openAndViewDataset();
-	}
-
-	private void setS3Credentials( MoBIESettings settings )
-	{
-		// FIXME: Get rid of this, currently still needed by
-		//        ProjectJsonParser() => ???
-		//        Other functions that need to read JSON files
-		//        probably some Metadata from Image fetcher methods => Use DataStore for this
-
-		if ( settings.values.getS3AccessAndSecretKey() != null )
-		{
-			S3Utils.setS3AccessAndSecretKey( settings.values.getS3AccessAndSecretKey() );
-		}
 	}
 
 	// TODO 2D or 3D?
@@ -443,6 +436,7 @@ public class MoBIE
 		{
 			IJ.log( "Closing MoBIE..." );
 			IJ.log( "Closing I/O threads..." );
+			S3Utils.setS3AccessAndSecretKey( null );
 			ThreadHelper.resetIOThreads();
 			viewManager.close();
 			IJ.log( "MoBIE closed." );
