@@ -162,7 +162,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 	{
 		externalChunkToStatus.put( storageLocation, Status.Opening );
 		final String chunk = storageLocation.defaultChunk;
-		final TableDataFormat format = TableDataFormat.fromPath( chunk );
+		final TableDataFormat format = TableDataFormat.fromPath( IOHelper.combinePath( storageLocation.absolutePath, chunk ) );
 		final Table table = TableOpener.open( storageLocation, chunk, format );
 		externalChunkToStatus.put( storageLocation, Status.Open );
 		return table;

@@ -13,11 +13,12 @@ public class BacteriaHaloQuantification
 
         OpenMultipleImagesAndLabelsCommand command = new OpenMultipleImagesAndLabelsCommand();
 
-        command.image0 = new File("/Users/tischer/Documents/bacteria-halo-quantification-data/output/CV014D14_NT5102_22h_P002_19-01-23_A_spots_intensities.tiff");
-        command.image1 = new File("/Users/tischer/Documents/bacteria-halo-quantification-data/output/CV014D14_NT5102_22h_P002_19-01-23_A_spots_bg_mask.tiff");
+        String root = "/Users/tischer/Documents/bacteria-halo-quantification-data/many_images_output/";
+        command.image0 = new File( root + ".*_intensities.tiff" );
+        command.image1 = new File( root + ".*_bg_mask.tiff" );
 
-        command.labels0 = new File("/Users/tischer/Documents/bacteria-halo-quantification-data/output/CV014D14_NT5102_22h_P002_19-01-23_A_spots_halo_labels.tiff");
-        command.table0 = new File("/Users/tischer/Documents/bacteria-halo-quantification-data/output/CV014D14_NT5102_22h_P002_19-01-23_A_spots_measurements.csv");
+        command.labels0 = new File( root + ".*_halo_labels.tiff" );
+        command.table0 = new File( root + ".*_measurements.csv" );
 
         command.run();
     }

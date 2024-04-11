@@ -196,9 +196,15 @@ public class ImageFileSources
 		if ( root != null )
 			regex = new File( root, regex ).getAbsolutePath();
 
-		List< String > paths = getPaths( regex, 999 );
-
-		return paths;
+		try
+		{
+			List< String > paths = getPaths( regex, 999 );
+			return paths;
+		}
+		catch ( Exception e )
+		{
+			throw new RuntimeException( e );
+		}
 	}
 
 	private void dealWithTimepointsInObjectTableIfNeeded( String name, Table table, String pathColumn )
