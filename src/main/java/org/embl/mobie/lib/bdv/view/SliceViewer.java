@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.bdv.view;
 
+import IceInternal.Ex;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -222,7 +223,7 @@ public class SliceViewer
 		display.sourceAndConverters().add( sourceAndConverter );
 
 		// link to image
-		DataStore.sourceToImage().put( sourceAndConverter, image );
+		DataStore.sourceToImage().forcePut( sourceAndConverter, image );
 
 		// blending mode
 		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.class.getName(), display.getBlendingMode() );

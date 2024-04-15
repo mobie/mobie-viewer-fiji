@@ -96,7 +96,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 				final SpotAnnotationImage spotAnnotationImage = ( ( SpotAnnotationImage ) image );
 				spotAnnotationImage.setRadius( spotDisplay.spotRadius );
 
-				DataStore.sourceToImage().put( sourceAndConverter, spotAnnotationImage );
+				DataStore.sourceToImage().forcePut( sourceAndConverter, spotAnnotationImage );
 			}
 		}
 	}
