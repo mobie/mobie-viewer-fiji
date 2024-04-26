@@ -33,6 +33,7 @@ import de.embl.cba.tables.Tables;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.process.LUT;
+import net.imagej.patcher.LegacyInjector;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.RealTypeConverters;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -67,7 +68,7 @@ import static org.embl.mobie.lib.create.ProjectCreatorHelper.*;
  */
 public class ImagesCreator {
 
-    static { net.imagej.patcher.LegacyInjector.preinit(); }
+    static { LegacyInjector.preinit(); }
 
     ProjectCreator projectCreator;
 
@@ -148,9 +149,11 @@ public class ImagesCreator {
                 double[] contrastLimits = new double[]{imp.getDisplayRangeMin(), imp.getDisplayRangeMax()};
                 LUT lut = imp.getLuts()[ 0 ];
                 String colour = ColorHelper.getString( lut );
-                updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup, contrastLimits, colour, exclusive, sourceTransform );
+                updateTableAndJsonsForNewImage( imageName, imageFile, datasetName, uiSelectionGroup, contrastLimits,
+                        colour, exclusive, sourceTransform );
             } else {
-                updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup, exclusive, sourceTransform );
+                updateTableAndJsonsForNewSegmentation(imageName, imageFile, datasetName, uiSelectionGroup,
+                        exclusive, sourceTransform );
             }
         }
 
@@ -264,36 +267,44 @@ public class ImagesCreator {
             projectCreator.setVoxelUnit( imageData.getSourcePair( 0 ).getB().getVoxelDimensions().unit() );
         }
 
-        File newImageFile = new File(imagesDirectory, imageName + ".ome.zarr" );
-        if ( newImageFile.exists() ) {
+        // If an image of the same name is inside the project, delete it.
+        File oldImageFile = new File(imagesDirectory, imageName + ".ome.zarr" );
+        if ( oldImageFile.exists() ) {
             IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
             deleteImageFiles( datasetName, imageName );
         }
 
+        File newImageFile;
         switch (addMethod) {
             case Link:
-                // Do nothing, the absolute path to the linked image will be added to the dataset.json
+                // Do nothing, the relative or absolute path to the linked image will be added to the dataset.json
+                newImageFile = new File(uri);
                 break;
             case Copy:
-                copyImage( uri, imagesDirectory, imageName);
+                newImageFile = copyImage( uri, imagesDirectory, imageName);
                 break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + addMethod);
         }
 
         if ( imageType == ProjectCreator.ImageType.Image ) {
-            updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup, new double[]{0.0, 255.0}, "white", exclusive, new AffineTransform3D() );
+            updateTableAndJsonsForNewImage( imageName, newImageFile, datasetName, uiSelectionGroup,
+                    new double[]{0.0, 255.0}, "white", exclusive, new AffineTransform3D() );
         } else {
-            updateTableAndJsonsForNewSegmentation( imageName, datasetName, uiSelectionGroup, exclusive, new AffineTransform3D() );
+            updateTableAndJsonsForNewSegmentation( imageName, newImageFile,
+                    datasetName, uiSelectionGroup, exclusive, new AffineTransform3D() );
         }
 
         IJ.log(  imageName + " added to project" );
     }
 
-    private void copyImage( String uri, File imagesDir, String imageName )
+    private File copyImage( String uri, File imagesDir, String imageName )
     {
         try
         {
             File destination = new File( imagesDir, imageName + ".ome.zarr" );
             FileUtils.copyDirectory( new File( uri ), destination);
+            return destination;
         }
         catch ( IOException e )
         {
@@ -353,14 +364,28 @@ public class ImagesCreator {
     }
 
 
-    private void updateTableAndJsonsForNewImage ( String imageName, String datasetName, String uiSelectionGroup, double[] contrastLimits, String colour, boolean exclusive, AffineTransform3D sourceTransform ) {
+    private void updateTableAndJsonsForNewImage ( String imageName,
+                                                  File imageFile,
+                                                  String datasetName,
+                                                  String uiSelectionGroup,
+                                                  double[] contrastLimits,
+                                                  String colour,
+                                                  boolean exclusive,
+                                                  AffineTransform3D sourceTransform ) {
         DatasetSerializer datasetSerializer = projectCreator.getDatasetJsonCreator();
-        datasetSerializer.addImage( imageName, datasetName, uiSelectionGroup, contrastLimits, colour, exclusive, sourceTransform );
+        datasetSerializer.addImage( imageName, imageFile, datasetName, uiSelectionGroup, contrastLimits, colour,
+                exclusive, sourceTransform );
     }
 
-    private void updateTableAndJsonsForNewSegmentation( String imageName, String datasetName, String uiSelectionGroup, boolean exclusive, AffineTransform3D sourceTransform ) {
+    private void updateTableAndJsonsForNewSegmentation( String imageName,
+                                                        File imageFile,
+                                                        String datasetName,
+                                                        String uiSelectionGroup,
+                                                        boolean exclusive,
+                                                        AffineTransform3D sourceTransform ) {
         addDefaultTableForImage( imageName, datasetName );
         DatasetSerializer datasetSerializer = projectCreator.getDatasetJsonCreator();
-        datasetSerializer.addSegmentation( imageName, datasetName, uiSelectionGroup, exclusive, sourceTransform );
+        datasetSerializer.addSegmentation( imageName, imageFile, datasetName, uiSelectionGroup,
+                exclusive, sourceTransform );
     }
 }

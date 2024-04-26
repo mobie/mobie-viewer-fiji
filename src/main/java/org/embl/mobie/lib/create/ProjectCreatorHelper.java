@@ -42,6 +42,8 @@ import org.embl.mobie.lib.view.AdditionalViews;
 import ucar.units.*;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -338,6 +340,13 @@ public class ProjectCreatorHelper {
         }
 
         return true;
+    }
+
+    public static boolean pathIsInsideDir(File path, File dir) {
+        Path filePath = Paths.get( path.getAbsolutePath() ).normalize();
+        Path dirPath = Paths.get( dir.getAbsolutePath() ).normalize();
+
+        return filePath.startsWith(dirPath);
     }
 
 }

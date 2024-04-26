@@ -458,14 +458,6 @@ public class ProjectsCreatorUI extends JFrame {
             exclusive = gd.getNextBoolean();
             useFileNameAsImageName = gd.getNextBoolean();
 
-            // FIXME https://github.com/mobie/mobie-viewer-fiji/issues/1117
-            //       we should support this!
-            if ( addMethod == ProjectCreator.AddMethod.Link )
-            {
-                IJ.log( "link is currently unsupported for ome-zarr. Please choose copy or move instead for this file format." );
-                return;
-            }
-
             String filePath = getOMEZarrImagePathDialog();
 
             if ( filePath != null )
