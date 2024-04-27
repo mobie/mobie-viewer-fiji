@@ -400,7 +400,7 @@ public class ProjectsCreatorUI extends JFrame {
 
     /**
      * Dialog to choose a dataset
-     * @return Name of chosen datset, or null if cancelled
+     * @return Name of chosen dataset, or null if cancelled
      */
     public String chooseDatasetDialog() {
         final GenericDialog gd = new GenericDialog( "Choose a dataset" );
@@ -437,6 +437,9 @@ public class ProjectsCreatorUI extends JFrame {
         }
     }
 
+    /**
+     * Dialog to add an existing ome-zarr image to a MoBIE project
+     */
     public void addOMEZarrDialog() {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 

@@ -107,6 +107,20 @@ public class ImagesCreator {
         return new File (filePath).exists();
     }
 
+    /**
+     * Add ImagePlus image to MoBIE project.
+     *
+     * @param imp image
+     * @param imageName image name
+     * @param datasetName dataset name
+     * @param imageType image type i.e. image or segmentation
+     * @param sourceTransform Affine transform of image
+     * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
+     *                         menu it will appear in
+     * @param exclusive whether the image view is exclusive or not i.e. when viewed, does it first remove all current
+     *                  images from the viewer?
+     * @param overwrite whether to overwrite any existing images inside the dataset with the same name
+     */
     public void addImage( ImagePlus imp,
                           String imageName,
                           String datasetName,
@@ -240,6 +254,22 @@ public class ImagesCreator {
         return rows;
     }
 
+    /**
+     * Add existing ome-zarr image to MoBIE project.
+     *
+     * @param uri ome-zarr uri
+     * @param imageName image name
+     * @param datasetName dataset name
+     * @param imageType image type i.e. image or segmentation
+     * @param addMethod link or copy the image - link (leave image as-is, and link to this location. Linking to images
+     *                  outside of the project folder is only supported for local projects),
+     *                  copy (copy image into project)
+     * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
+     *                         menu it will appear in
+     * @param exclusive whether the image view is exclusive or not i.e. when viewed, does it first remove all current
+     *                  images from the viewer?
+     * @param overwrite whether to overwrite any existing images inside the dataset with the same name
+     */
     public void addOMEZarrImage( String uri,
                                  String imageName,
                                  String datasetName,

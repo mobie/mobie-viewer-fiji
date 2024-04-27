@@ -61,7 +61,7 @@ public class ProjectCreatorHelper {
 
     /**
      * Check if entered affine string is valid - i.e. does it only contain valid characters, and have a length of 12
-     * @param affine
+     * @param affine affine string
      * @return whether the affine string is valid or not
      */
     public static boolean isValidAffine(String affine) {

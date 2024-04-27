@@ -151,7 +151,8 @@ class ImagesCreatorTest {
     }
 
     void assertionsForTableAdded( ) throws IOException {
-        String tablePath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "tables", imageName, "default.tsv" );
+        String tablePath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
+                datasetName, "tables", imageName, "default.tsv" );
         assertTrue( new File(tablePath).exists() );
 
         Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
