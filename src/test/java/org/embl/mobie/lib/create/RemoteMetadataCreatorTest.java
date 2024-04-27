@@ -75,7 +75,7 @@ class RemoteMetadataCreatorTest {
         // add image of right type
         projectCreator.getImagesCreator().addImage( ProjectCreatorTestHelper.createImage(imageName, false), imageName,
                 datasetName, ProjectCreator.ImageType.Image, new AffineTransform3D(),
-                uiSelectionGroup, false );
+                uiSelectionGroup, false, false );
 
         ImageDataFormat remoteFormat = ImageDataFormat.OmeZarrS3;
 

@@ -113,10 +113,16 @@ public class ImagesCreator {
                           ProjectCreator.ImageType imageType,
                           AffineTransform3D sourceTransform,
                           String uiSelectionGroup,
-                          boolean exclusive )
+                          boolean exclusive,
+                          boolean overwrite )
     {
         String filePath = getDefaultLocalImagePath( datasetName, imageName );
         File imageFile = new File(filePath);
+
+        if (imageFile.exists() && !overwrite) {
+            throw new UnsupportedOperationException("An image called " + imageName + "already exists in the dataset " +
+                    datasetName + ", and overwrite is set to false" );
+        }
 
         if ( ! isImageValid( imp.getNChannels(), imp.getCalibration().getUnit(), projectCreator.getVoxelUnit(), false ) )
         {
@@ -133,15 +139,7 @@ public class ImagesCreator {
             projectCreator.setVoxelUnit( imp.getCalibration().getUnit() );
         }
 
-        // Done by N5?!
-//        File imageDir = new File(imageFile.getParent());
-//        if ( ! imageDir.exists() )
-//        {
-//            imageDir.mkdirs();
-//        }
-
-
-        OMEZarrWriter.write( imp, filePath, getImageType( imageType ), true );
+        OMEZarrWriter.write( imp, filePath, getImageType( imageType ), overwrite );
 
         // check image written successfully, before writing JSONs
         if ( imageFile.exists() ) {
@@ -248,7 +246,8 @@ public class ImagesCreator {
                                  ProjectCreator.ImageType imageType,
                                  ProjectCreator.AddMethod addMethod,
                                  String uiSelectionGroup,
-                                 boolean exclusive )
+                                 boolean exclusive,
+                                 boolean overwrite )
     {
         File imagesDirectory = new File( getDefaultLocalImageDirPath( datasetName ) );
 
@@ -263,15 +262,20 @@ public class ImagesCreator {
             throw new UnsupportedOperationException("Can't add a 3D image to a 2D dataset" );
         }
 
-        if ( projectCreator.getVoxelUnit() == null ) {
-            projectCreator.setVoxelUnit( imageData.getSourcePair( 0 ).getB().getVoxelDimensions().unit() );
+        // If an image of the same name is inside the project, delete it when overwrite=True.
+        File oldImageFile = new File(imagesDirectory, imageName + ".ome.zarr" );
+        if (oldImageFile.exists()) {
+            if (overwrite) {
+                IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
+                deleteImageFiles( datasetName, imageName );
+            } else {
+                throw new UnsupportedOperationException("An image called " + imageName + "already exists in the dataset " +
+                        datasetName + ", and overwrite is set to false" );
+            }
         }
 
-        // If an image of the same name is inside the project, delete it.
-        File oldImageFile = new File(imagesDirectory, imageName + ".ome.zarr" );
-        if ( oldImageFile.exists() ) {
-            IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
-            deleteImageFiles( datasetName, imageName );
+        if ( projectCreator.getVoxelUnit() == null ) {
+            projectCreator.setVoxelUnit( imageData.getSourcePair( 0 ).getB().getVoxelDimensions().unit() );
         }
 
         File newImageFile;

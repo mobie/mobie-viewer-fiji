@@ -489,12 +489,14 @@ public class ProjectsCreatorUI extends JFrame {
         }
 
         ImagesCreator imagesCreator = projectCreator.getImagesCreator();
-        boolean overwriteImage = true;
+
+        // If image already exists, check if they want to overwrite it
+        boolean overwriteImage = false;
         if ( imagesCreator.imageExists( datasetName, imageName ) ) {
             overwriteImage = overwriteImageDialog();
-        }
-        if ( !overwriteImage ) {
-            return;
+            if ( !overwriteImage ) {
+                return;
+            }
         }
 
         String chosenUiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
@@ -504,7 +506,8 @@ public class ProjectsCreatorUI extends JFrame {
             uiSelectionGroup = chosenUiSelectionGroup;
         }
 
-        imagesCreator.addOMEZarrImage( uri, imageName, datasetName, imageType, addMethod, uiSelectionGroup, exclusive );
+        imagesCreator.addOMEZarrImage( uri, imageName, datasetName, imageType, addMethod, uiSelectionGroup,
+                exclusive, overwriteImage );
         updateComboBoxesForNewImage(imageName, uiSelectionGroup);
 
     }
@@ -658,13 +661,16 @@ public class ProjectsCreatorUI extends JFrame {
                 if ( imageName != null && sourceTransform != null ) {
                     ImagesCreator imagesCreator = projectCreator.getImagesCreator();
 
-                    boolean overwriteImage = true;
+                    // If image already exists, check if they want to overwrite it
+                    boolean overwriteImage = false;
                     if ( imagesCreator.imageExists( datasetName, imageName ) ) {
                         overwriteImage = overwriteImageDialog();
+
+                        if ( !overwriteImage ) {
+                            return;
+                        }
                     }
-                    if ( !overwriteImage ) {
-                        return;
-                    }
+
 
                     String chosenUiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
                     if ( chosenUiSelectionGroup == null ) {
@@ -673,7 +679,8 @@ public class ProjectsCreatorUI extends JFrame {
                         uiSelectionGroup = chosenUiSelectionGroup;
                     }
 
-                    imagesCreator.addImage(currentImage, imageName, datasetName, imageType, sourceTransform, uiSelectionGroup, exclusive);
+                    imagesCreator.addImage(currentImage, imageName, datasetName, imageType, sourceTransform,
+                            uiSelectionGroup, exclusive, overwriteImage);
                     updateComboBoxesForNewImage(imageName, uiSelectionGroup);
                 }
             }
