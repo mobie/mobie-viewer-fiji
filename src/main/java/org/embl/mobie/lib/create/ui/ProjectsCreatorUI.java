@@ -392,7 +392,8 @@ public class ProjectsCreatorUI extends JFrame {
             String bucketName = gd.getNextString();
 
             if ( continueDialog(format) ) {
-                projectCreator.getRemoteMetadataCreator().createRemoteMetadata( signingRegion, serviceEndpoint, bucketName, format );
+                projectCreator.getRemoteMetadataCreator().createOMEZarrRemoteMetadata(
+                        signingRegion, serviceEndpoint, bucketName );
             }
         }
     }

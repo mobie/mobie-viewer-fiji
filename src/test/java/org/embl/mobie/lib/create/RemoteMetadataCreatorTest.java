@@ -29,19 +29,24 @@
 package org.embl.mobie.lib.create;
 
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.OMEZarrWriter;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.DatasetJsonParser;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.serialize.ImageDataSource;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static org.embl.mobie.lib.create.ProjectCreatorTestHelper.createImage;
 import static org.junit.jupiter.api.Assertions.*;
 
-// TODO this currently does not work
 class RemoteMetadataCreatorTest {
 
     private ProjectCreator projectCreator;
@@ -53,10 +58,12 @@ class RemoteMetadataCreatorTest {
     private String serviceEndpoint;
     private String bucketName;
     private String datasetJsonPath;
+    private File tempDir;
 
-    //@org.junit.jupiter.api.BeforeEach
+    @BeforeEach
     void setUp( @TempDir Path tempDir ) throws IOException {
-        projectCreator = new ProjectCreator( tempDir.toFile() );
+        this.tempDir = tempDir.toFile();
+        projectCreator = new ProjectCreator( this.tempDir );
         remoteMetadataCreator = projectCreator.getRemoteMetadataCreator();
 
         datasetName = "test";
@@ -70,25 +77,59 @@ class RemoteMetadataCreatorTest {
                 datasetName, "dataset.json" );
     }
 
-    void testAddingRemoteMetadata(  ) throws IOException{
-
-        // add image of right type
-        projectCreator.getImagesCreator().addImage( ProjectCreatorTestHelper.createImage(imageName, false), imageName,
-                datasetName, ProjectCreator.ImageType.Image, new AffineTransform3D(),
-                uiSelectionGroup, false, false );
-
-        ImageDataFormat remoteFormat = ImageDataFormat.OmeZarrS3;
-
-        // add remote metadata
-        remoteMetadataCreator.createRemoteMetadata( signingRegion, serviceEndpoint, bucketName, remoteFormat );
-
+    void assertionsForRemoteMetadata(  ) throws IOException{
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
         assertTrue( dataset.sources().containsKey( imageName ) );
-        assertTrue( (( ImageDataSource ) dataset.sources().get( imageName )).imageData.containsKey(remoteFormat) );
+
+        ImageDataSource source = ( ImageDataSource ) dataset.sources().get( imageName );
+        assertTrue( source.imageData.containsKey(ImageDataFormat.OmeZarrS3) );
+
+        // Check s3 address is set correctly in remote metadata
+        StorageLocation remoteStorageLocation = source.imageData.get(ImageDataFormat.OmeZarrS3);
+        String localRelativePath = source.imageData.get(ImageDataFormat.OmeZarr).relativePath;
+        assertEquals(remoteStorageLocation.signingRegion, signingRegion);
+        assertEquals(remoteStorageLocation.s3Address,
+                serviceEndpoint + bucketName + "/" + datasetName + "/" + localRelativePath);
     }
 
-    //@Test
+    @Test
     void createRemoteMetadataOmeZarr() throws IOException {
-        testAddingRemoteMetadata();
+        // add ome-zarr image
+        projectCreator.getImagesCreator().addImage(
+                createImage(imageName, false),
+                imageName,
+                datasetName,
+                ProjectCreator.ImageType.Image,
+                new AffineTransform3D(),
+                uiSelectionGroup,
+                false,
+                false );
+
+        // add remote metadata
+        remoteMetadataCreator.createOMEZarrRemoteMetadata( signingRegion, serviceEndpoint, bucketName );
+        assertionsForRemoteMetadata();
+    }
+
+    @Test
+    void createRemoteMetadataWithImagesOutsideProject() throws IOException {
+        // create ome-zarr image outside of project
+        String filePath = new File(tempDir, imageName + ".ome.zarr").getAbsolutePath();
+        OMEZarrWriter.write(
+                createImage( imageName, false ),
+                filePath,
+                OMEZarrWriter.ImageType.Intensities,
+                false
+        );
+
+        // link to the ome-zarr image
+        projectCreator.getImagesCreator().addOMEZarrImage( filePath, imageName, datasetName,
+                ProjectCreator.ImageType.Image, ProjectCreator.AddMethod.Link,
+                uiSelectionGroup, false, false );
+
+        // check that it detected the image was outside the project, and therefore didn't write the remote metadata
+        Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
+        assertTrue( dataset.sources().containsKey( imageName ) );
+        ImageDataSource source = ( ImageDataSource ) dataset.sources().get( imageName );
+        assertFalse( source.imageData.containsKey(ImageDataFormat.OmeZarrS3) );
     }
 }
