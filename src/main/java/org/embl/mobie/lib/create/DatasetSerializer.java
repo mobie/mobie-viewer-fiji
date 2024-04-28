@@ -204,7 +204,10 @@ public class DatasetSerializer
         File projectDir = projectCreator.getProjectLocation();
         File datasetDir = new File(projectDir, datasetName);
         if (ProjectCreatorHelper.pathIsInsideDir(imageFile, projectDir)) {
-            imageStorageLocation.relativePath = datasetDir.toURI().relativize(imageFile.toURI()).getPath();
+            String relativePath = datasetDir.toPath().relativize(imageFile.toPath()).toString();
+            // force use of forward slashes in relative paths (even on windows). Windows can handle / or \ in relative
+            // paths, so this means they'll work for all OS.
+            imageStorageLocation.relativePath = relativePath.replaceAll("\\\\", "/");
         } else {
             imageStorageLocation.absolutePath = imageFile.getAbsolutePath();
         }

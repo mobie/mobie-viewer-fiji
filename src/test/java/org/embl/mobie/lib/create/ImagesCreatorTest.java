@@ -6,13 +6,13 @@
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -69,19 +69,22 @@ class ImagesCreatorTest {
     private String uiSelectionGroup;
     private String datasetJsonPath;
     private File tempDir;
-    private ImagePlus image;
+    private File imageOutsideProject;
 
     @BeforeEach
     void setUp( @TempDir Path tempDir ) throws IOException {
         this.tempDir = tempDir.toFile();
-        projectCreator = new ProjectCreator( this.tempDir );
+        // Write project into sub-folder called 'data'
+        File projectDir = new File(this.tempDir, "data");
+        projectCreator = new ProjectCreator( projectDir );
         imagesCreator = projectCreator.getImagesCreator();
 
         imageName = "testImage";
         datasetName = "test";
         uiSelectionGroup = "testGroup";
         sourceTransform = new AffineTransform3D();
-        image = null;
+        // Path for test image outside project (for linking)
+        imageOutsideProject = new File(this.tempDir, imageName + ".ome.zarr");
 
         projectCreator.getDatasetsCreator().addDataset(datasetName, false);
 
@@ -106,13 +109,14 @@ class ImagesCreatorTest {
         } else {
             imagePath = storageLocation.absolutePath;
         }
-        assertEquals(imageLocation.getAbsolutePath(), new File(imagePath).getAbsolutePath());
+        assertEquals(imageLocation.getCanonicalPath(), new File(imagePath).getCanonicalPath());
 
         // Check that this follows JSON schema
-        assertTrue( validate( datasetJsonPath, JSONValidator.datasetSchemaURL ) );
+        // TODO- uncomment when absolute path is added to the json schema
+//        assertTrue( validate( datasetJsonPath, JSONValidator.datasetSchemaURL ) );
     }
 
-    void assertionsForImage(File imageLocation) throws IOException
+    void assertionsForImage(File imageLocation, ImagePlus image)
     {
         // File exists
         assertTrue( imageLocation.exists() );
@@ -130,24 +134,24 @@ class ImagesCreatorTest {
                         image.getCalibration().pixelWidth,
                         image.getCalibration().pixelHeight,
                         image.getCalibration().pixelDepth
-        });
+                });
     }
 
-    void assertionsForImageAdded() throws IOException {
+    void assertionsForImageAdded(ImagePlus image) throws IOException {
         File imageLocation = new File(
                 IOHelper.combinePath(
                         projectCreator.getProjectLocation().getAbsolutePath(),
                         datasetName,
                         "images",
                         imageName + ".ome.zarr")
-                );
+        );
 
-        assertionsForImageAdded(imageLocation);
+        assertionsForImageAdded(imageLocation, image);
     }
 
-    void assertionsForImageAdded(File imageLocation) throws IOException {
+    void assertionsForImageAdded(File imageLocation, ImagePlus image) throws IOException {
         assertionsForDataset(imageLocation);
-        assertionsForImage(imageLocation);
+        assertionsForImage(imageLocation, image);
     }
 
     void assertionsForTableAdded( ) throws IOException {
@@ -160,54 +164,56 @@ class ImagesCreatorTest {
         assertTrue( segmentationData.tableData.containsKey(TableDataFormat.TSV ) );
     }
 
-    String writeImageAndGetPath( boolean is2D ) {
+    ImagePlus writeImageOutsideProject(boolean is2D ) {
         // add example image
-        image = createImage( imageName, is2D );
-        String filePath = new File(tempDir, imageName + ".ome.zarr").getAbsolutePath();
-        OMEZarrWriter.write( image, filePath, OMEZarrWriter.ImageType.Intensities, false );
-        return filePath;
+        ImagePlus image = createImage( imageName, is2D );
+        OMEZarrWriter.write( image, imageOutsideProject.getAbsolutePath(),
+                OMEZarrWriter.ImageType.Intensities, false );
+        return image;
     }
 
-    void addImage( boolean is2D, String datasetName, String imageName ) {
-        image = createImage( imageName, is2D );
+    ImagePlus addImageToDataset(boolean is2D, String datasetName, String imageName ) {
+        ImagePlus image = createImage( imageName, is2D );
         imagesCreator.addImage( image, imageName, datasetName,
                 ProjectCreator.ImageType.Image, sourceTransform,
                 uiSelectionGroup, false, false );
+        return image;
     }
 
-    void copyImage(  boolean is2D ) {
+    ImagePlus copyImageIntoDataset(boolean is2D ) {
         // save example image
-        String filePath = writeImageAndGetPath( is2D );
+        ImagePlus image = writeImageOutsideProject( is2D );
 
-        imagesCreator.addOMEZarrImage( filePath, imageName, datasetName,
+        imagesCreator.addOMEZarrImage(
+                imageOutsideProject.getAbsolutePath(), imageName, datasetName,
                 ProjectCreator.ImageType.Image,
                 ProjectCreator.AddMethod.Copy, uiSelectionGroup, false, false );
+        return image;
     }
 
     @ParameterizedTest
     @ValueSource(booleans = { false, true })
     void addImageTo3DDataset(boolean is2D) throws IOException {
-        addImage( is2D, datasetName, imageName );
-        assertionsForImageAdded();
+        ImagePlus image = addImageToDataset( is2D, datasetName, imageName );
+        assertionsForImageAdded(image);
     }
 
     @Test
     void add3DImageTo2DDataset() {
         projectCreator.getDatasetsCreator().makeDataset2D(datasetName, true);
         assertThrows( UnsupportedOperationException.class, () -> {
-            addImage( false, datasetName, imageName);
+            addImageToDataset( false, datasetName, imageName);
         } );
     }
 
     @Test
     void addSegmentation() throws IOException {
         ImagePlus seg = createLabels( imageName );
-
         imagesCreator.addImage( seg, imageName, datasetName,
                 ProjectCreator.ImageType.Segmentation,
                 sourceTransform, uiSelectionGroup, false, false );
 
-        assertionsForImageAdded();
+        assertionsForImageAdded(seg);
         assertionsForTableAdded();
     }
 
@@ -222,7 +228,7 @@ class ImagesCreatorTest {
         String otherDatasetName = "other-dataset";
         String otherImageName = "other-image";
         projectCreator.getDatasetsCreator().addDataset(otherDatasetName, false);
-        addImage(false, otherDatasetName, otherImageName);
+        ImagePlus image = addImageToDataset(false, otherDatasetName, otherImageName);
         String filePath = IOHelper.combinePath(
                 projectCreator.getProjectLocation().getAbsolutePath(),
                 otherDatasetName,
@@ -234,7 +240,7 @@ class ImagesCreatorTest {
                 ProjectCreator.ImageType.Image, ProjectCreator.AddMethod.Link,
                 uiSelectionGroup, false, false );
 
-        assertionsForImageAdded(new File(filePath));
+        assertionsForImageAdded(new File(filePath), image);
 
         // check that a relative path is used, rather than an absolute one
         Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
@@ -248,12 +254,12 @@ class ImagesCreatorTest {
     @Test
     void linkImageOutsideProject() throws IOException {
         // save example image
-        String filePath = writeImageAndGetPath( false );
-        imagesCreator.addOMEZarrImage( filePath, imageName, datasetName,
+        ImagePlus image = writeImageOutsideProject( false );
+        imagesCreator.addOMEZarrImage( imageOutsideProject.getAbsolutePath(), imageName, datasetName,
                 ProjectCreator.ImageType.Image, ProjectCreator.AddMethod.Link,
                 uiSelectionGroup, false, false );
 
-        assertionsForImageAdded(new File(filePath));
+        assertionsForImageAdded(imageOutsideProject, image);
 
         // check that an absolute path is used, rather than a relative one
         Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
@@ -266,15 +272,15 @@ class ImagesCreatorTest {
     @ParameterizedTest
     @ValueSource(booleans = { false, true })
     void copyImageTo3DDataset(boolean is2D) throws IOException {
-        copyImage( is2D );
-        assertionsForImageAdded();
+        ImagePlus image = copyImageIntoDataset( is2D );
+        assertionsForImageAdded(image);
     }
 
     @Test
     void copy3DImageTo2DDataset() {
         projectCreator.getDatasetsCreator().makeDataset2D(datasetName, true);
         assertThrows( UnsupportedOperationException.class, () -> {
-            copyImage( false);
+            copyImageIntoDataset( false);
         } );
     }
 }
