@@ -63,7 +63,9 @@ class RemoteMetadataCreatorTest {
     @BeforeEach
     void setUp( @TempDir Path tempDir ) throws IOException {
         this.tempDir = tempDir.toFile();
-        projectCreator = new ProjectCreator( this.tempDir );
+        // Write project into sub-folder called 'data'
+        File projectDir = new File(this.tempDir, "data");
+        projectCreator = new ProjectCreator( projectDir );
         remoteMetadataCreator = projectCreator.getRemoteMetadataCreator();
 
         datasetName = "test";
@@ -125,6 +127,9 @@ class RemoteMetadataCreatorTest {
         projectCreator.getImagesCreator().addOMEZarrImage( filePath, imageName, datasetName,
                 ProjectCreator.ImageType.Image, ProjectCreator.AddMethod.Link,
                 uiSelectionGroup, false, false );
+
+        // try to add remote metadata
+        remoteMetadataCreator.createOMEZarrRemoteMetadata( signingRegion, serviceEndpoint, bucketName );
 
         // check that it detected the image was outside the project, and therefore didn't write the remote metadata
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
