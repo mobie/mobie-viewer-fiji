@@ -377,7 +377,7 @@ public class ProjectsCreatorUI extends JFrame {
         }
 
         final GenericDialog gd = new GenericDialog( "Remote metadata settings..." );
-        String[] formats= Arrays.stream( ImageDataFormat.values() ).filter( v -> v.isRemote() ).map( v -> v.toString() ).collect( Collectors.toList() ).toArray( new String[0] );
+        String[] formats = new String[]{ImageDataFormat.OmeZarrS3.toString()};
         gd.addChoice("Image format:", formats, formats[0]);
         gd.addStringField("Signing Region", "", 20);
         gd.addStringField("Service endpoint", "https://...", 20);
