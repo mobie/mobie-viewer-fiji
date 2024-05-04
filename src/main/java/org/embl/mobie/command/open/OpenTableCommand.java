@@ -59,6 +59,7 @@ public class OpenTableCommand implements Command {
 	public String labels;
 
 	@Parameter( label = "Images & Labels Root Folder",
+			style = "directory",
 			description = "Use this is if the images and labels paths in the table are relative.",
 			required = false )
 	public File root;

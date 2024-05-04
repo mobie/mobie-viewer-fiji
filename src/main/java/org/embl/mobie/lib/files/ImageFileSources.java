@@ -103,9 +103,8 @@ public class ImageFileSources
 		nameToPath = new LinkedHashMap<>(); // needed for joining the tables below when creating the region table
 
 		int numRows = table.rowCount();
-		if ( imageColumn.contains( "_IMG" )  )
+		if ( imageColumn.contains( "_IMG" )  ) // Automic table
 		{
-			// Automic table
 			for ( int rowIndex = 0; rowIndex < numRows; rowIndex++ )
 			{
 				String fileName = table.getString( rowIndex, imageColumn );
