@@ -76,7 +76,7 @@ public class ImageFileSources
 		this.name = name;
 		this.channelIndex = channelIndex;
 
-		List< String > paths = getFullPaths( pathRegex, root );
+		List< String > paths = MoBIEHelper.getFullPaths( pathRegex, root );
 
 		for ( String path : paths )
 		{
@@ -188,22 +188,6 @@ public class ImageFileSources
 		}
 
 		return path;
-	}
-
-	protected static List< String > getFullPaths( String regex, String root )
-	{
-		if ( root != null )
-			regex = new File( root, regex ).getAbsolutePath();
-
-		try
-		{
-			List< String > paths = getPaths( regex, 999 );
-			return paths;
-		}
-		catch ( Exception e )
-		{
-			throw new RuntimeException( e );
-		}
 	}
 
 	private void dealWithTimepointsInObjectTableIfNeeded( String name, Table table, String pathColumn )

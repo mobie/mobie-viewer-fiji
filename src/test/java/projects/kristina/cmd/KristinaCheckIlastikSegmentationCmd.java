@@ -30,6 +30,7 @@ package projects.kristina.cmd;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.cmd.FilesCmd;
+import org.embl.mobie.command.SpatialCalibration;
 
 class KristinaCheckIlastikSegmentationCmd
 {
@@ -40,7 +41,7 @@ class KristinaCheckIlastikSegmentationCmd
 		cmd.images = new String[]{
 				".*--pro.tif",
 				".*--pro_prob_worm.tif" } ;
-		cmd.removeSpatialCalibration = true;
+		cmd.spatialCalibration = SpatialCalibration.UsePixelUnits;
 		cmd.call();
 	}
 }

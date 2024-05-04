@@ -29,6 +29,7 @@
 package projects.colony_detection_anavo;
 
 import net.imagej.ImageJ;
+import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.command.open.OpenTableCommand;
 
 import java.io.File;
@@ -45,7 +46,7 @@ public class OpenColonyWellTableWithLabels
         command.table = new File( "/Users/tischer/Desktop/moritz/U2OS_subset-wells/well_table_with_colonies.csv" );
         command.images = "file_name";
         command.labels = "labels_file_name";
-        command.removeSpatialCalibration = true;
+        command.spatialCalibration = SpatialCalibration.UsePixelUnits;
         command.run();
     }
 }

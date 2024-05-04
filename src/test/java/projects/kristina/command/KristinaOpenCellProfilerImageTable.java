@@ -29,6 +29,7 @@
 package projects.kristina.command;
 
 import net.imagej.ImageJ;
+import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.command.open.OpenTableCommand;
 
 import java.io.File;
@@ -43,7 +44,7 @@ class KristinaOpenCellProfilerImageTable
 		command.table = new File("/Volumes/cba/exchange/kristina-mirkes/data/processed/Image.txt");
 		command.images = "RawData=FileName_RawData,WormProb=FileName_WormProb";
 		//command.labelsColumns = "Worm=FileName_Worm???";
-		command.removeSpatialCalibration = true;
+		command.spatialCalibration = SpatialCalibration.UsePixelUnits;
 		command.run();
 	}
 }

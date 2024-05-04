@@ -29,6 +29,7 @@
 package projects.kristina.cmd;
 
 import org.embl.mobie.cmd.FilesCmd;
+import org.embl.mobie.command.SpatialCalibration;
 
 class KristinaCheckCellposeSegmentationCmd
 {
@@ -38,7 +39,7 @@ class KristinaCheckCellposeSegmentationCmd
 		cmd.root = null; // "/Volumes/cba/exchange/kristina-mirkes/data/processed";
 		cmd.images = new String[]{ "/g/cba/exchange/kristina-mirkes/data/segmentation-training/.*.tif=raw" } ;
 		cmd.labels = new String[]{ "/g/cba/exchange/kristina-mirkes/develop/cellpose-training/output/.*.tif=labels" } ;
-		cmd.removeSpatialCalibration = true;
+		cmd.spatialCalibration = SpatialCalibration.UsePixelUnits;
 		cmd.call();
 	}
 }

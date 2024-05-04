@@ -682,7 +682,7 @@ public class MoBIE
 	{
 		if ( imageDataFormat.equals( ImageDataFormat.ImageData ) )
 		{
-			return new ImageDataImage<>( ( ImageData ) storageLocation.data, storageLocation.getChannel(), name, settings.values.getRemoveSpatialCalibration() );
+			return new ImageDataImage<>( ( ImageData ) storageLocation.data, storageLocation.getChannel(), name, settings.values.getVoxelDimensions() );
 		}
 		else if ( storageLocation instanceof Site ) // HCS data
 		{
@@ -692,7 +692,7 @@ public class MoBIE
 			{
 				// the whole plate is already initialised as one big SpimData
 				// note that channel = setupID
-				return new SpimDataImage<>( site.getSpimData(), site.channel, name, settings.values.getRemoveSpatialCalibration() );
+				return new SpimDataImage<>( site.getSpimData(), site.channel, name, settings.values.getVoxelDimensions() );
 			}
 			else  if ( site.getImageDataFormat().equals( ImageDataFormat.OmeZarr )
 					|| site.getImageDataFormat().equals( ImageDataFormat.OmeZarrS3 ) )
@@ -703,7 +703,7 @@ public class MoBIE
 						site.channel,
 						name,
 						ThreadHelper.sharedQueue,
-						settings.values.getRemoveSpatialCalibration() );
+						settings.values.getVoxelDimensions() );
 			}
 			else
 			{
@@ -711,7 +711,7 @@ public class MoBIE
 						site,
 						name,
 						ThreadHelper.sharedQueue,
-						settings.values.getRemoveSpatialCalibration() );
+						settings.values.getVoxelDimensions() );
 			}
 		}
 		else
@@ -722,7 +722,7 @@ public class MoBIE
 					storageLocation.getChannel(),
 					name,
 					ThreadHelper.sharedQueue,
-					settings.values.getRemoveSpatialCalibration() );
+					settings.values.getVoxelDimensions() );
 		}
 	}
 

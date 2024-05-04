@@ -29,6 +29,7 @@
 package org.embl.mobie.lib.files;
 
 import ij.IJ;
+import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
@@ -87,7 +88,7 @@ public class LabelFileSources extends ImageFileSources
 	{
 		super( name, path, channelIndex, root, grid );
 
-		final List< String > labelTablePaths = getFullPaths( labelTablePath, root );
+		final List< String > labelTablePaths = MoBIEHelper.getFullPaths( labelTablePath, root );
 		final ArrayList< String > labelMaskNames = new ArrayList<>( nameToFullPath.keySet() );
 		for ( int tableIndex = 0; tableIndex < labelTablePaths.size(); tableIndex++ )
 		{

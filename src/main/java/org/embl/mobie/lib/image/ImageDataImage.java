@@ -31,6 +31,7 @@ package org.embl.mobie.lib.image;
 import bdv.cache.SharedQueue;
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
@@ -56,20 +57,20 @@ public class ImageDataImage< T extends NumericType< T > & NativeType< T > > impl
 	private String name;
 	private Site site;
 	private SharedQueue sharedQueue;
-	private Boolean removeSpatialCalibration = false;
+	private VoxelDimensions voxelDimensions;
 	@Nullable
 	private RealMaskRealInterval mask;
 	private TransformedSource< T > transformedSource;
 	private AffineTransform3D currentTransform = new AffineTransform3D();
 
-	public ImageDataImage( ImageData< T > imageData, Integer setupId, String name, Boolean removeSpatialCalibration  )
+	public ImageDataImage( ImageData imageData, Integer setupId, String name, VoxelDimensions voxelDimensions )
 	{
 		this.imageDataFormat = null;
 		this.uri = null;
 		this.sharedQueue = null;
 		this.setupId = setupId == null ? 0 : setupId;
 		this.name = name;
-		this.removeSpatialCalibration = removeSpatialCalibration;
+		this.voxelDimensions = voxelDimensions;
 		createSourcePair( imageData, setupId, name );
 	}
 
@@ -79,27 +80,27 @@ public class ImageDataImage< T extends NumericType< T > & NativeType< T > > impl
 			int setupId,
 			String name,
 			@Nullable SharedQueue sharedQueue,
-			Boolean removeSpatialCalibration )
+			VoxelDimensions voxelDimensions )
 	{
 		this.imageDataFormat = imageDataFormat;
 		this.uri = uri;
 		this.setupId = setupId;
 		this.name = name;
 		this.sharedQueue = sharedQueue;
-		this.removeSpatialCalibration = removeSpatialCalibration;
+		this.voxelDimensions = voxelDimensions;
 	}
 
 	public ImageDataImage(
 			Site site,
 			String name,
 			SharedQueue sharedQueue,
-			Boolean removeSpatialCalibration )
+			VoxelDimensions voxelDimensions )
 	{
 		this.setupId = site.getChannel();
 		this.name = name;
 		this.site = site;
 		this.sharedQueue = sharedQueue;
-		this.removeSpatialCalibration = removeSpatialCalibration;
+		this.voxelDimensions = voxelDimensions;
 	}
 
 	@Override
@@ -172,12 +173,18 @@ public class ImageDataImage< T extends NumericType< T > & NativeType< T > > impl
 		final Source< T > source = imageData.getSourcePair( setupId ).getA();
 		Source< ? extends Volatile< T > > volatileSource = imageData.getSourcePair( setupId ).getB();
 
-		if ( removeSpatialCalibration )
+		if ( voxelDimensions != null  )
 		{
 			source.getSourceTransform( 0, 0, currentTransform );
+			// remove current spatial calibration
 			currentTransform = currentTransform.inverse();
-			SourceHelper.setVoxelDimensionsToPixels( source );
-			SourceHelper.setVoxelDimensionsToPixels( volatileSource );
+			// add new spatial calibration
+			currentTransform.scale(
+					voxelDimensions.dimension( 0 ),
+					voxelDimensions.dimension( 1 ),
+					voxelDimensions.dimension( 2 ) );
+			SourceHelper.setVoxelDimensions( source, voxelDimensions );
+			SourceHelper.setVoxelDimensions( volatileSource, voxelDimensions );
 		}
 
 		transformedSource = new TransformedSource<>( source, name );

@@ -31,6 +31,7 @@ package org.embl.mobie.command.open;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.lib.transform.GridType;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
@@ -54,12 +55,14 @@ public class OpenImageAndLabelsCommand implements Command {
 	@Parameter( label = "Label Mask Table Path", required = false )
 	public File table;
 
-	@Parameter( label = "Remove Spatial Calibration", required = false )
-	public Boolean removeSpatialCalibration = false;
+	@Parameter( label = "Spatial Calibration" )
+	public SpatialCalibration spatialCalibration;
 
 	@Override
 	public void run()
 	{
+		final MoBIESettings settings = new MoBIESettings();
+
 		final GridType gridType = GridType.Stitched; // TODO: fetch from UI
 
 		final ArrayList< String > imageList = new ArrayList<>();
@@ -69,10 +72,12 @@ public class OpenImageAndLabelsCommand implements Command {
 		if ( labels != null ) labelsList.add( labels.getAbsolutePath() );
 
 		final ArrayList< String > tablesList = new ArrayList<>();
-		if ( table != null ) tablesList.add( table.getAbsolutePath() );
+		if ( table != null )
+		{
+			tablesList.add( table.getAbsolutePath() );
+		}
 
-		final MoBIESettings settings = new MoBIESettings();
-		settings.removeSpatialCalibration( removeSpatialCalibration );
+		spatialCalibration.setSpatialCalibration( settings, table.getAbsolutePath() );
 
 		try
 		{
@@ -83,4 +88,5 @@ public class OpenImageAndLabelsCommand implements Command {
 			e.printStackTrace();
 		}
 	}
+
 }

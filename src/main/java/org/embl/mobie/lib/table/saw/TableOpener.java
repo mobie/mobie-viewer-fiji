@@ -195,7 +195,7 @@ public class TableOpener
 				} else if (firstLine.contains(",")) {
 					return ',';
 				} else {
-					return ','; // We could also throw and error, but maybe there is only one column ?
+					return ','; // We could throw an error, but maybe there is only one column ?
 				}
 			}
 		} catch (IOException e) {

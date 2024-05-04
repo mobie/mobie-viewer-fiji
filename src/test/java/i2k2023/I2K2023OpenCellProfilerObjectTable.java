@@ -30,6 +30,7 @@ package i2k2023;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.command.open.OpenTableCommand;
 
 import java.io.File;
@@ -44,7 +45,7 @@ class I2K2023OpenCellProfilerObjectTable
 		command.table = new File( "/Users/tischer/Documents/cellprofiler-practical-NeuBIAS-Lisbon-2017/mobie/Cells.txt" );
 		command.images = "FileName_DNA=DNA,FileName_PLA=PLA";
 		command.labels = "FileName_CellLabels=Cells,FileName_NucleiLabels=Nuclei,FileName_PLALabels=PLASpots";
-		command.removeSpatialCalibration = true;
+		command.spatialCalibration = SpatialCalibration.UsePixelUnits;
 		command.run();
 
 		//MoBIE.getInstance().getViewManager().show( "Nuclei" );

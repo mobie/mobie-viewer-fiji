@@ -30,6 +30,7 @@ package org.embl.mobie.lib;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
@@ -38,6 +39,7 @@ import org.janelia.saalfeldlab.n5.universe.metadata.canonical.CanonicalDatasetMe
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
@@ -51,6 +53,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.embl.mobie.io.util.IOHelper.combinePath;
+import static org.embl.mobie.io.util.IOHelper.getPaths;
 
 
 public abstract class MoBIEHelper
@@ -281,4 +284,25 @@ public abstract class MoBIEHelper
 
         return visibleSacs;
     }
+
+    public static VoxelDimensions getPixelDimensions()
+    {
+        return new FinalVoxelDimensions( "pixel", 1.0, 1.0, 1.0 );
+    }
+
+	public static List< String > getFullPaths( String regex, String root )
+	{
+		if ( root != null )
+			regex = new File( root, regex ).getAbsolutePath();
+
+		try
+		{
+			List< String > paths = getPaths( regex, 999 );
+			return paths;
+		}
+		catch ( Exception e )
+		{
+			throw new RuntimeException( e );
+		}
+	}
 }

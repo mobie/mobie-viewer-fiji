@@ -30,6 +30,7 @@ package projects.agata.command;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.command.open.OpenTableCommand;
 
 import java.io.File;
@@ -47,7 +48,7 @@ class AgataOpenCellProfilerObjectTable
 		command.table = new File( "/Users/tischer/Desktop/mobie-data/cellprofiler/Nuclei.txt" );
 		command.images = "Image_FileName_DNA=DAPI;0,Image_FileName_DNA=RPAC1;1";
 		command.labels = "Image_FileName_NucleiLables=Nuclei,Image_FileName_NucleoplasmLabels=Nucleoplasm,Image_FileName_NucleoliLabels=Nucleoli,Image_FileName_SpecklesLabels=Speckles";
-		command.removeSpatialCalibration = true;
+		command.spatialCalibration = SpatialCalibration.UsePixelUnits;
 		command.run();
 
 		MoBIE.getInstance().getViewManager().show( "Nuclei" );

@@ -30,6 +30,7 @@ package org.embl.mobie.cmd;
 
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.lib.transform.GridType;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
@@ -64,15 +65,18 @@ public class FilesCmd implements Callable< Void > {
 	@Option(names = {"-g", "--grid"}, required = false, description = "grid type: none, stitched (default), transform")
 	public GridType gridType = GridType.Stitched;
 
+	// FIXME: This is wrong now
 	@Option(names = { RC, REMOVE_CALIBRATION }, required = false, description = "flag to remove spatial calibration from all images; this can be useful if only some images have a spatial calibration metadata and thus overlaying several images would fail")
-	public Boolean removeSpatialCalibration = false;
+	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImageFiles;
 
 	@Override
 	public Void call() throws Exception {
 
-		final MoBIESettings settings = new MoBIESettings()
-				.openedFromCLI( true )
-				.removeSpatialCalibration( removeSpatialCalibration );
+		final MoBIESettings settings = new MoBIESettings();
+
+		settings.openedFromCLI( true );
+
+		spatialCalibration.setSpatialCalibration( settings, tables[ 0 ] );
 
 		List< String > imageList = images != null ?
 				Arrays.asList( images ) : new ArrayList<>();

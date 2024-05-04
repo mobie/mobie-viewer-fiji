@@ -32,6 +32,7 @@ import loci.common.DebugTools;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.lib.transform.GridType;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
@@ -70,8 +71,8 @@ public class OpenTableCommand implements Command {
 			required = false )
 	public String pathMapping;
 
-	@Parameter( label = "Remove Spatial Calibration", required = false )
-	public Boolean removeSpatialCalibration = false;
+	@Parameter( label = "Spatial Calibration" )
+	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImageFiles;
 
 	@Override
 	public void run()
@@ -84,7 +85,8 @@ public class OpenTableCommand implements Command {
 		DebugTools.setRootLevel( "OFF" );
 
 		final MoBIESettings settings = new MoBIESettings();
-		settings.removeSpatialCalibration( removeSpatialCalibration );
+
+		spatialCalibration.setSpatialCalibration( settings, table.getAbsolutePath() );
 
 		List< String > imageList = new ArrayList<>();
 		if ( images != null && ! images.equals( "" ) )

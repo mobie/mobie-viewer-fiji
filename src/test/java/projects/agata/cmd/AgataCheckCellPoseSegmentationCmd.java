@@ -29,6 +29,7 @@
 package projects.agata.cmd;
 
 import org.embl.mobie.cmd.FilesCmd;
+import org.embl.mobie.command.SpatialCalibration;
 
 class AgataCheckCellPoseSegmentationCmd
 {
@@ -42,7 +43,7 @@ class AgataCheckCellPoseSegmentationCmd
 		cmd.labels = new String[]{
 				"labels=.*.ome_cp_masks.tif"
 		} ;
-		cmd.removeSpatialCalibration = true;
+		cmd.spatialCalibration = SpatialCalibration.UsePixelUnits;
 		cmd.call();
 	}
 }

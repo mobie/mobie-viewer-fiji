@@ -29,9 +29,11 @@
 package develop.hcs;
 
 import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.lib.MoBIEHelper;
 
 import java.io.IOException;
 
@@ -49,8 +51,9 @@ public class HCSYokogawaCQ1
         new ImageJ().ui().showUI();
 
         new MoBIE( "/Users/tischer/Desktop/moritz/CQ1_testfiles",
-                new MoBIESettings().removeSpatialCalibration( true ), // TODO: what is the z-spacing, how to add this?
+                new MoBIESettings().setVoxelDimensions( MoBIEHelper.getPixelDimensions() ), // TODO: what is the z-spacing, how to add this?
                 0.1,
                 0.0, null  );
     }
+
 }

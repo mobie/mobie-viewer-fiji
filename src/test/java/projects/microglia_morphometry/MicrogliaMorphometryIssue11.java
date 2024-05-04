@@ -1,6 +1,7 @@
 package projects.microglia_morphometry;
 
 import net.imagej.ImageJ;
+import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsCommand;
 import org.embl.mobie.command.open.OpenTableCommand;
 
@@ -17,7 +18,7 @@ public class MicrogliaMorphometryIssue11
         command.table = new File("/Users/tischer/Desktop/microglia-data/test/test-crop-8bit-ds2.csv");
         command.images = "Path_Intensities=Signal";
         command.labels = "Path_LabelMasks=Segmentation";
-        command.removeSpatialCalibration = true;
+        command.spatialCalibration = SpatialCalibration.UsePixelUnits;
         command.run();
     }
 }

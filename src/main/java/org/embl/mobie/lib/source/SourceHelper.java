@@ -287,11 +287,10 @@ public abstract class SourceHelper
 		return sourcesAtCurrentPosition;
 	}
 
-	public static void setVoxelDimensionsToPixels( Source< ? > source )
+	public static void setVoxelDimensionsToPixels( Source< ? > source, double[] scale, String unit )
 	{
 		try
 		{
-			final VoxelDimensions pixelDimensions = new FinalVoxelDimensions( "pixel", 1.0, 1.0, 1.0 );
 			Field voxelDimensions;
 			if ( source instanceof AbstractSpimSource )
 				voxelDimensions = AbstractSpimSource.class.getDeclaredField("voxelDimensions");
@@ -303,7 +302,30 @@ public abstract class SourceHelper
 			}
 
 			voxelDimensions.setAccessible(true);
-			voxelDimensions.set( source, pixelDimensions );
+			voxelDimensions.set( source, new FinalVoxelDimensions( unit, scale ) );
+		}
+		catch ( Exception e )
+		{
+			throw new RuntimeException( e );
+		}
+	}
+
+	public static void setVoxelDimensions( Source< ? > source, VoxelDimensions voxelDimensions )
+	{
+		try
+		{
+			Field voxelDimensionsField;
+			if ( source instanceof AbstractSpimSource )
+				voxelDimensionsField = AbstractSpimSource.class.getDeclaredField("voxelDimensions");
+			else if ( source instanceof AbstractSource )
+				voxelDimensionsField = AbstractSource.class.getDeclaredField("voxelDimensions");
+			else
+			{
+				throw new RuntimeException("Cannot access field voxelDimensions in " + source.getClass().getName() );
+			}
+
+			voxelDimensionsField.setAccessible(true);
+			voxelDimensionsField.set( source, voxelDimensions );
 		}
 		catch ( Exception e )
 		{

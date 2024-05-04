@@ -32,6 +32,7 @@ import bdv.SpimSource;
 import bdv.VolatileSpimSource;
 import bdv.tools.transformation.TransformedSource;
 import mpicbg.spim.data.generic.AbstractSpimData;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
@@ -41,6 +42,8 @@ import org.embl.mobie.lib.source.SourceHelper;
 
 import javax.annotation.Nullable;
 
+
+// FIXME: This should be inherited from ImageDataImage or a common anchestor, the code is almost identical
 public class SpimDataImage< T extends NumericType< T > & RealType< T > > implements Image< T >
 {
 	private SourcePair< T > sourcePair;
@@ -50,11 +53,11 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	private TransformedSource< T > transformedSource;
 	private AffineTransform3D currentTransform = new AffineTransform3D();
 
-	public SpimDataImage( AbstractSpimData< ? > spimData, Integer setupId, String name, Boolean removeSpatialCalibration  )
+	public SpimDataImage( AbstractSpimData< ? > spimData, Integer setupId, String name, VoxelDimensions voxelDimensions  )
 	{
 		this.name = name;
 		setupId = setupId == null ? 0 : setupId;
-		createSourcePair( spimData, setupId, name, removeSpatialCalibration );
+		createSourcePair( spimData, setupId, name, voxelDimensions );
 	}
 
 	@Override
@@ -116,22 +119,24 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		this.mask = mask;
 	}
 
-	private void createSourcePair( AbstractSpimData< ? > spimData, int setupId, String name, Boolean removeSpatialCalibration )
+	private void createSourcePair( AbstractSpimData< ? > spimData, int setupId, String name, VoxelDimensions voxelDimensions )
 	{
 		final SpimSource< T > source = new SpimSource<>( spimData, setupId, name );
-		final VolatileSpimSource< ? extends Volatile< T > > vSource = new VolatileSpimSource<>( spimData, setupId, name );
+		final VolatileSpimSource< ? extends Volatile< T > > volatileSource = new VolatileSpimSource<>( spimData, setupId, name );
 
-		if ( removeSpatialCalibration )
+		if ( voxelDimensions != null  )
 		{
 			source.getSourceTransform( 0, 0, currentTransform );
+			// remove current spatial calibration
 			currentTransform = currentTransform.inverse();
-			SourceHelper.setVoxelDimensionsToPixels( source );
-			SourceHelper.setVoxelDimensionsToPixels( vSource );
+			// add new spatial calibration
+			currentTransform.scale( voxelDimensions.dimension( 0 ), voxelDimensions.dimension( 1 ), voxelDimensions.dimension( 2 ) );
+			SourceHelper.setVoxelDimensions( source, voxelDimensions );
+			SourceHelper.setVoxelDimensions( volatileSource, voxelDimensions );
 		}
-
 		transformedSource = new TransformedSource<>( source );
 		transformedSource.setFixedTransform( currentTransform );
 
-		sourcePair = new DefaultSourcePair<>( transformedSource, new TransformedSource<>( vSource, transformedSource ) );
+		sourcePair = new DefaultSourcePair<>( transformedSource, new TransformedSource<>( volatileSource, transformedSource ) );
 	}
 }

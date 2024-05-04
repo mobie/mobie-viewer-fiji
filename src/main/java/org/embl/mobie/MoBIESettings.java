@@ -28,6 +28,7 @@
  */
 package org.embl.mobie;
 
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import org.embl.mobie.lib.io.DataFormats;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.table.TableDataFormat;
@@ -101,9 +102,9 @@ public class MoBIESettings
 		return this;
 	}
 
-	public MoBIESettings removeSpatialCalibration( Boolean removeSpatialCalibration )
+	public MoBIESettings setVoxelDimensions( VoxelDimensions voxelDimensions )
 	{
-		this.values.removeSpatialCalibration = removeSpatialCalibration;
+		this.values.voxelDimensions = voxelDimensions;
 		return this;
 	}
 
@@ -131,13 +132,13 @@ public class MoBIESettings
 		private Set< TableDataFormat > tableDataFormats = new HashSet<>();
 		private String tableDataLocation;
 		private String view = View.DEFAULT;
-		private Boolean removeSpatialCalibration = false;
+		private VoxelDimensions voxelDimensions = null;
 		private Boolean openedFromCLI = false; // started from CLI
 		private String groovyScript = "";
 
-		public Boolean getRemoveSpatialCalibration()
+		public VoxelDimensions getVoxelDimensions()
 		{
-			return removeSpatialCalibration;
+			return voxelDimensions;
 		}
 
 		public String getDataset()
@@ -195,9 +196,5 @@ public class MoBIESettings
 			return openedFromCLI;
 		}
 
-		public String getGroovyScript()
-		{
-			return groovyScript;
-		}
 	}
 }

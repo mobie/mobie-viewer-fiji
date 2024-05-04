@@ -29,6 +29,7 @@
 package projects.agata.cmd;
 
 import org.embl.mobie.cmd.TableCmd;
+import org.embl.mobie.command.SpatialCalibration;
 
 class AgataOpenCellProfilerImageTableCmd
 {
@@ -39,7 +40,7 @@ class AgataOpenCellProfilerImageTableCmd
 		cmd.table = "/g/cba/exchange/agata-misiaszek/data/analysed/Image.txt";
 		cmd.images = new String[]{"DAPI=FileName_DNA;0","RPAC1=FileName_DNA;1"};
 		cmd.labels = new String[]{"CytoSeg=FileName_CytoplasmLabels","NucleiSeg=ObjectsFileName_Nuclei"};
-		cmd.removeSpatialCalibration = true;
+		cmd.spatialCalibration = SpatialCalibration.UsePixelUnits;
 		cmd.call();
 	}
 }

@@ -29,6 +29,7 @@
 package projects.lysosomal_lipids;
 
 import net.imagej.ImageJ;
+import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.command.open.OpenTableCommand;
 
 import java.io.File;
@@ -44,7 +45,7 @@ public class OpenHeikoCellTable
         command.pathMapping = "/g/,/Volumes/";
         command.images = "FileName_dapiRaw=DAPI,FileName_cherryRaw=Cherry,FileName_gfpRaw=GFP";
         command.labels = "FileName_cells=cells,FileName_nuclei=nuclei,FileName_vesicle=vesicles";
-        command.removeSpatialCalibration = true;
+        command.spatialCalibration = SpatialCalibration.UsePixelUnits;
         command.run();
     }
 }

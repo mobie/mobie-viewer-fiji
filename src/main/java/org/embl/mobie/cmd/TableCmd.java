@@ -30,6 +30,8 @@ package org.embl.mobie.cmd;
 
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.command.SpatialCalibration;
+import org.embl.mobie.lib.plot.ScatterPlotDialog;
 import org.embl.mobie.lib.transform.GridType;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
@@ -66,14 +68,16 @@ public class TableCmd implements Callable< Void > {
 	public GridType gridType = GridType.Stitched;
 
 	@Option(names = {RC, REMOVE_CALIBRATION}, required = false, description = "removes spatial calibration from all images; this is useful if only some images have a spatial calibration and thus the overlay would fail.")
-	public Boolean removeSpatialCalibration = false;
+	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImageFiles;
 
 	@Override
 	public Void call() throws Exception {
 
-		final MoBIESettings settings = new MoBIESettings()
-				.openedFromCLI( true )
-				.removeSpatialCalibration( removeSpatialCalibration );
+		final MoBIESettings settings = new MoBIESettings();
+
+		settings.openedFromCLI( true );
+
+		settings.setVoxelDimensions( null ); // FIXME
 
 		List< String > imageList = images != null ?
 				Arrays.asList( images ) : new ArrayList<>();

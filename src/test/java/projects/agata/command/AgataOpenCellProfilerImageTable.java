@@ -29,6 +29,7 @@
 package projects.agata.command;
 
 import net.imagej.ImageJ;
+import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.command.open.OpenTableCommand;
 
 import java.io.File;
@@ -43,7 +44,7 @@ class AgataOpenCellProfilerImageTable
 		command.root = new File("/g/cba/exchange/agata-misiaszek/data/analysed/");
 		command.images = "FileName_DNA=DAPI;0,FileName_DNA=RPAC1;1";
 		command.labels = "FileName_CytoplasmLabels=CytoSeg,ObjectsFileName_Nuclei=NucleiSeg";
-		command.removeSpatialCalibration = true;
+		command.spatialCalibration = SpatialCalibration.UsePixelUnits;
 		command.run();
 	}
 }

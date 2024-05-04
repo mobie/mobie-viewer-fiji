@@ -44,7 +44,6 @@ public class OpenVeronicaMicroglia
         command.table = new File( "/Users/tischer/Desktop/veronica/Intensities c3 pup4 lps.csv" );
         command.images = "Path_Intensities=Signal";
         command.labels = "Path_LabelMasks=Segmentations,Path_Skeletons=Skeletons,Path_Annotations=Annotations";
-        command.removeSpatialCalibration = false;
         command.run();
     }
 }

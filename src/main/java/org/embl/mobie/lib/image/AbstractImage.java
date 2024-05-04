@@ -120,8 +120,8 @@ public class AbstractImage< T extends NumericType< T > & RealType< T > > impleme
 		{
 			source.getSourceTransform( 0, 0, currentTransform );
 			currentTransform = currentTransform.inverse();
-			SourceHelper.setVoxelDimensionsToPixels( source );
-			SourceHelper.setVoxelDimensionsToPixels( vSource );
+			SourceHelper.setVoxelDimensionsToPixels( source, new double[]{ 1.0, 1.0, 1.0 }, "pixel" );
+			SourceHelper.setVoxelDimensionsToPixels( vSource, new double[]{ 1.0, 1.0, 1.0 }, "pixel" );
 		}
 
 		transformedSource = new TransformedSource<>( source );

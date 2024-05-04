@@ -30,6 +30,7 @@ package org.embl.mobie.cmd;
 
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.lib.MoBIEHelper;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
@@ -56,9 +57,11 @@ public class HCSCmd implements Callable< Void > {
 	@Override
 	public Void call() throws Exception {
 
-		final MoBIESettings settings = new MoBIESettings()
-				.openedFromCLI( true )
-				.removeSpatialCalibration( removeSpatialCalibration );
+		final MoBIESettings settings = new MoBIESettings();
+
+		settings.openedFromCLI( true );
+
+		settings.setVoxelDimensions( null ); // FIXME
 
 		new MoBIE( hcs, settings, wellMargin, siteMargin, null );
 

@@ -1,6 +1,7 @@
 package projects.microbial_predation;
 
 import net.imagej.ImageJ;
+import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.command.open.OpenImageAndLabelsCommand;
 import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsCommand;
 
@@ -18,7 +19,7 @@ public class MicrobialPredation
         command.image = new File( root + "test_timelapse_subset/.*.tif" );
         command.labels = new File( root + "test_timelapse_results/.*_labels.tif" );
         command.table = new File( root + "test_timelapse_results/.*_measurements.csv" );
-        command.removeSpatialCalibration = true;
+        command.spatialCalibration = SpatialCalibration.FromTable;
 
         command.run();
     }

@@ -31,6 +31,7 @@ package org.embl.mobie.command.open;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.lib.transform.GridType;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
@@ -69,12 +70,14 @@ public class OpenMultipleImagesAndLabelsCommand implements Command {
 	@Parameter( label = "Labels Table Path", required = false )
 	public File table1;
 
-	@Parameter( label = "Remove Spatial Calibration", required = false )
-	public Boolean removeSpatialCalibration = false;
+	@Parameter( label = "Spatial Calibration" )
+	public SpatialCalibration spatialCalibration;
 
 	@Override
 	public void run()
 	{
+		final MoBIESettings settings = new MoBIESettings();
+
 		final GridType gridType = GridType.Stitched; // TODO: fetch from UI
 
 		final ArrayList< String > imageList = new ArrayList<>();
@@ -91,11 +94,7 @@ public class OpenMultipleImagesAndLabelsCommand implements Command {
 		if ( table0 != null ) tablesList.add( table0.getAbsolutePath() );
 		if ( table1 != null ) tablesList.add( table1.getAbsolutePath() );
 
-		final MoBIESettings settings = new MoBIESettings();
-		settings.removeSpatialCalibration( removeSpatialCalibration );
-		String groovyCode = generateGroovyScript();
-		settings.appendGroovyCode( groovyCode );
-//		System.out.println( groovyCode );
+		spatialCalibration.setSpatialCalibration( settings, table0.getAbsolutePath() );
 
 		try
 		{
@@ -105,41 +104,5 @@ public class OpenMultipleImagesAndLabelsCommand implements Command {
 		{
 			throw new RuntimeException( e );
 		}
-	}
-
-	public String generateGroovyScript() {
-		StringBuilder sb = new StringBuilder();
-
-		sb.append("import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsCommand\n");
-		sb.append("import java.io.File\n\n");
-
-		sb.append("OpenMultipleImagesAndLabelsCommand command = new OpenMultipleImagesAndLabelsCommand()\n");
-
-		if (image0 != null) sb.append(String.format("command.image0 = new File(\"%s\")\n",
-				image0.getAbsolutePath()));
-		if (image1 != null) sb.append(String.format("command.image1 = new File(\"%s\")\n",
-				image1.getAbsolutePath()));
-		if (image2 != null) sb.append(String.format("command.image2 = new File(\"%s\")\n",
-				image2.getAbsolutePath()));
-		if (image3 != null) sb.append(String.format("command.image3 = new File(\"%s\")\n",
-				image3.getAbsolutePath()));
-
-		if (labels0 != null) sb.append(String.format("command.labels0 = new File(\"%s\")\n",
-				labels0.getAbsolutePath()));
-		if (labels1 != null) sb.append(String.format("command.labels1 = new File(\"%s\")\n",
-				labels1.getAbsolutePath()));
-
-		if (table0 != null) sb.append(String.format("command.table0 = new File(\"%s\")\n",
-				table0.getAbsolutePath()));
-		if (table1 != null) sb.append(String.format("command.table1 = new File(\"%s\")\n",
-				table1.getAbsolutePath()));
-
-		if (removeSpatialCalibration != null) {
-			sb.append("command.removeSpatialCalibration = ").append(removeSpatialCalibration).append("\n");
-		}
-
-		sb.append("\ncommand.run()\n");
-
-		return sb.toString();
 	}
 }
