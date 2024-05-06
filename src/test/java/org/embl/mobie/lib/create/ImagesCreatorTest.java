@@ -112,8 +112,7 @@ class ImagesCreatorTest {
         assertEquals(imageLocation.getCanonicalPath(), new File(imagePath).getCanonicalPath());
 
         // Check that this follows JSON schema
-        // TODO- uncomment when absolute path is added to the json schema
-//        assertTrue( validate( datasetJsonPath, JSONValidator.datasetSchemaURL ) );
+        assertTrue( validate( datasetJsonPath, JSONValidator.datasetSchemaURL ) );
     }
 
     void assertionsForImage(File imageLocation, ImagePlus image)
