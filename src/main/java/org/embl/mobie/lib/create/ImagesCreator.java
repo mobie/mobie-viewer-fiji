@@ -133,11 +133,6 @@ public class ImagesCreator {
         String filePath = getDefaultLocalImagePath( datasetName, imageName );
         File imageFile = new File(filePath);
 
-        if (imageFile.exists() && !overwrite) {
-            throw new UnsupportedOperationException("An image called " + imageName + "already exists in the dataset " +
-                    datasetName + ", and overwrite is set to false" );
-        }
-
         if ( ! isImageValid( imp.getNChannels(), imp.getCalibration().getUnit(), projectCreator.getVoxelUnit(), false ) )
         {
             return;
@@ -146,6 +141,15 @@ public class ImagesCreator {
         if ( imp.getNDimensions() > 2 && projectCreator.getDataset( datasetName ).is2D() )
         {
             throw new UnsupportedOperationException("Can't add a " + imp.getNDimensions() + "D image to a 2D dataset" );
+        }
+
+        if (imageFile.exists()) {
+            if (overwrite) {
+                IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
+            } else {
+                throw new UnsupportedOperationException("An image called " + imageName + "already exists in the dataset " +
+                        datasetName + ", and overwrite is set to false");
+            }
         }
 
         if ( projectCreator.getVoxelUnit() == null )
@@ -169,6 +173,7 @@ public class ImagesCreator {
             }
         }
 
+        IJ.log(  imageName + " added to project" );
     }
 
     private static OMEZarrWriter.ImageType getImageType( ProjectCreator.ImageType imageType )
@@ -288,7 +293,6 @@ public class ImagesCreator {
         }
 
         if ( ! is2D( imageData ) && projectCreator.getDataset( datasetName ).is2D() ) {
-            // FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/1119
             throw new UnsupportedOperationException("Can't add a 3D image to a 2D dataset" );
         }
 
