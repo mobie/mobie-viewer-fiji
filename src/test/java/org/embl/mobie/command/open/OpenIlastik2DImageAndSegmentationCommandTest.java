@@ -26,15 +26,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.open;
 
 import net.imagej.ImageJ;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.open.OpenImageAndLabelsCommand;
 
 import java.io.File;
 
-public class OpenImagesAndSegmentationsCommandTest {
-
+public class OpenIlastik2DImageAndSegmentationCommandTest
+{
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	public static void main( String[] args )
@@ -42,8 +43,12 @@ public class OpenImagesAndSegmentationsCommandTest {
 		new ImageJ().ui().showUI(); // initialise SciJava Services
 
 		final OpenImageAndLabelsCommand command = new OpenImageAndLabelsCommand();
-		command.image = new File( "/Users/tischer/Desktop/matt/preprocessed/XYZ__EGM_8hr_1--act.tif" );
-		command.labels = null;
+		command.image = new File( "src/test/resources/input/ilastik-2d/image.tif" );
+		command.labels = new File( "src/test/resources/input/ilastik-2d/labels.h5" );
+		command.table = new File( "src/test/resources/input/ilastik-2d/table.csv" );
 		command.run();
+
+		//final MoBIE moBIE = MoBIE.getInstance();
+		//moBIE.getViewManager().show( "labels" );
 	}
 }

@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command;
+package org.embl.mobie.command.open;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.command.open.OpenImageAndLabelsCommand;

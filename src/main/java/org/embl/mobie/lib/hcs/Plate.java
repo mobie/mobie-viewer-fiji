@@ -112,12 +112,10 @@ public class Plate
 
 			imagePaths = OMEZarrHCSHelper.sitePathsFromMetadata( hcsDirectory );
 
-			final String firstImagePath = imagePaths.get( 0 );
 			ImageData< ? > imageData = ImageDataOpener.open( imagePaths.get( 0 ), imageDataFormat, ThreadHelper.sharedQueue );
 			int numChannels = imageData.getNumDatasets();
-
 			List< String > channelNames = IntStream.range( 0, numChannels )
-					.mapToObj( channelIndex -> imageData.getSourcePair( channelIndex ).getA().getName() )
+					.mapToObj( channelIndex -> "" + channelIndex )
 					.collect( Collectors.toList() );
 			hcsPattern.setChannelNames( channelNames );
 		}
