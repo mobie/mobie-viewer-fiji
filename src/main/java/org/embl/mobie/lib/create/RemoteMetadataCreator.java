@@ -43,8 +43,11 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static org.embl.mobie.lib.create.ProjectCreatorHelper.pathIsInsideDir;
+
 /**
- * Class to create and modify the metadata required for remote (S3) storage of MoBIE projects
+ * Class to create and modify the metadata required for remote (S3) storage of MoBIE projects.
+ * Only supports ome-zarr.
  */
 public class RemoteMetadataCreator {
 
@@ -58,7 +61,7 @@ public class RemoteMetadataCreator {
     ImageDataFormat localImageDataFormat;
 
     /**
-     * Make a remoteMetadataCreator - includes all functions for creation/modification of remote metadata
+     * Make a remoteMetadataCreator - includes all functions for creation/modification of ome-zarr remote metadata
      * @param projectCreator projectCreator
      */
     public RemoteMetadataCreator( ProjectCreator projectCreator ) {
@@ -77,28 +80,14 @@ public class RemoteMetadataCreator {
         }
     }
 
-    private void deleteRemoteMetadataForImage( String datasetName, String imageName ) throws IOException {
+    private void deleteRemoteMetadataForImage( String datasetName, String imageName ) {
         ImageDataSource imageSource = ( ImageDataSource ) projectCreator.getDataset( datasetName ).sources().get( imageName );
         if ( imageSource.imageData.containsKey( remoteImageDataFormat ) ) {
-
-            if ( remoteImageDataFormat.hasXml() ) {
-                // delete any existing remote metadata .xml files
-                File currentRemoteXmlLocation = new File(IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
-                        datasetName, imageSource.imageData.get(remoteImageDataFormat).relativePath));
-                if (currentRemoteXmlLocation.exists()) {
-                    if (!currentRemoteXmlLocation.delete()) {
-                        String errorMessage = "Remote metadata for: " + imageName + " in dataset: " + datasetName + " could not be deleted.";
-                        IJ.log(errorMessage);
-                        throw new IOException(errorMessage);
-                    }
-                }
-            }
             imageSource.imageData.remove( remoteImageDataFormat );
         }
     }
 
-    private void addRemoteMetadataForImage( String datasetName, String imageName )
-    {
+    private void addRemoteMetadataForImage( String datasetName, String imageName ) throws IOException {
         ImageDataSource imageSource = ( ImageDataSource ) projectCreator.getDataset( datasetName ).sources().get( imageName );
         if ( !imageSource.imageData.containsKey( localImageDataFormat ) ) {
             IJ.log( "No images of format " + localImageDataFormat + " for " + imageName +
@@ -106,15 +95,38 @@ public class RemoteMetadataCreator {
             return;
         }
 
+        // Don't allow images without a relative path e.g. those using absolute paths via the 'link' option
+        String relativePath = imageSource.imageData.get(localImageDataFormat).relativePath;
+        if (relativePath == null) {
+            String errorMesage = "Image: " + imageName + " for dataset:" + datasetName + " has no relative path. \n" +
+                    "You can't 'link' to images outside the project folder, when uploading to s3";
+            IJ.log( errorMesage );
+            throw new IOException( errorMesage );
+        }
+
+        // Don't allow images with relative paths to locations outside the project directory. These won't work when the
+        // project is uploaded to S3.
+        File imageLocation = new File(
+                IOHelper.combinePath(
+                        projectCreator.getProjectLocation().getAbsolutePath(),
+                        datasetName,
+                        relativePath)
+        );
+        if (!pathIsInsideDir(imageLocation, projectCreator.getProjectLocation())) {
+            String errorMesage = "Image: " + imageName + " for dataset:" + datasetName + " is not in project folder. \n" +
+                    "You can't 'link' to images outside the project folder, when uploading to s3";
+            IJ.log( errorMesage );
+            throw new IOException( errorMesage );
+        }
+
         // give absolute s3 path to ome.zarr file
         StorageLocation storageLocation = new StorageLocation();
-        String relativePath = imageSource.imageData.get(localImageDataFormat).relativePath;
         storageLocation.s3Address = serviceEndpoint + bucketName + "/" + datasetName + "/" + relativePath;
         storageLocation.signingRegion = signingRegion;
         imageSource.imageData.put( remoteImageDataFormat, storageLocation );
     }
 
-    private void addRemoteMetadataForDataset( String datasetName )  {
+    private void addRemoteMetadataForDataset( String datasetName ) throws IOException {
         Dataset dataset = projectCreator.getDataset( datasetName );
         for ( String imageName: dataset.sources().keySet() ) {
             if ( !imageName.equals("") ) {
@@ -137,22 +149,18 @@ public class RemoteMetadataCreator {
     }
 
     /**
-     * Add remote metadata. Note this will overwrite any existing remote metadata for the given image format.
+     * Add ome-zarr remote metadata. Note this will overwrite any existing remote metadata.
      * @param signingRegion signing region e.g. us-west-2
      * @param serviceEndpoint service endpoint e.g. https://s3.embl.de
      * @param bucketName bucket name
-     * @param imageDataFormat image format
      */
-    public void createRemoteMetadata( String signingRegion, String serviceEndpoint, String bucketName, ImageDataFormat imageDataFormat ) {
-
-        if ( !imageDataFormat.isRemote() ) {
-            IJ.log( "Creating remote metadata aborted - provided image data format is not remote." );
-        }
+    public void createOMEZarrRemoteMetadata( String signingRegion, String serviceEndpoint, String bucketName ) {
 
         this.signingRegion = signingRegion;
         this.serviceEndpoint = serviceEndpoint;
         this.bucketName = bucketName;
-        this.remoteImageDataFormat = imageDataFormat;
+        this.remoteImageDataFormat = ImageDataFormat.OmeZarrS3;
+        this.localImageDataFormat = ImageDataFormat.OmeZarr;
 
         if ( this.signingRegion.equals("") ) {
             this.signingRegion = null;
@@ -160,18 +168,6 @@ public class RemoteMetadataCreator {
 
         if ( !this.serviceEndpoint.endsWith("/") ) {
             this.serviceEndpoint = this.serviceEndpoint + "/";
-        }
-
-        switch( remoteImageDataFormat ) {
-            case BdvN5S3:
-                localImageDataFormat = ImageDataFormat.BdvN5;
-                break;
-            case BdvOmeZarrS3:
-                localImageDataFormat = ImageDataFormat.BdvOmeZarr;
-                break;
-            case OmeZarrS3:
-                localImageDataFormat = ImageDataFormat.OmeZarr;
-                break;
         }
 
         try {

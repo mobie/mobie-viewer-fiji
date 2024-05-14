@@ -377,7 +377,7 @@ public class ProjectsCreatorUI extends JFrame {
         }
 
         final GenericDialog gd = new GenericDialog( "Remote metadata settings..." );
-        String[] formats= Arrays.stream( ImageDataFormat.values() ).filter( v -> v.isRemote() ).map( v -> v.toString() ).collect( Collectors.toList() ).toArray( new String[0] );
+        String[] formats = new String[]{ImageDataFormat.OmeZarrS3.toString()};
         gd.addChoice("Image format:", formats, formats[0]);
         gd.addStringField("Signing Region", "", 20);
         gd.addStringField("Service endpoint", "https://...", 20);
@@ -392,14 +392,15 @@ public class ProjectsCreatorUI extends JFrame {
             String bucketName = gd.getNextString();
 
             if ( continueDialog(format) ) {
-                projectCreator.getRemoteMetadataCreator().createRemoteMetadata( signingRegion, serviceEndpoint, bucketName, format );
+                projectCreator.getRemoteMetadataCreator().createOMEZarrRemoteMetadata(
+                        signingRegion, serviceEndpoint, bucketName );
             }
         }
     }
 
     /**
      * Dialog to choose a dataset
-     * @return Name of chosen datset, or null if cancelled
+     * @return Name of chosen dataset, or null if cancelled
      */
     public String chooseDatasetDialog() {
         final GenericDialog gd = new GenericDialog( "Choose a dataset" );
@@ -436,6 +437,9 @@ public class ProjectsCreatorUI extends JFrame {
         }
     }
 
+    /**
+     * Dialog to add an existing ome-zarr image to a MoBIE project
+     */
     public void addOMEZarrDialog() {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
@@ -457,14 +461,6 @@ public class ProjectsCreatorUI extends JFrame {
             imageType = ProjectCreator.ImageType.valueOf( gd.getNextChoice() );
             exclusive = gd.getNextBoolean();
             useFileNameAsImageName = gd.getNextBoolean();
-
-            // FIXME https://github.com/mobie/mobie-viewer-fiji/issues/1117
-            //       we should support this!
-            if ( addMethod == ProjectCreator.AddMethod.Link )
-            {
-                IJ.log( "link is currently unsupported for ome-zarr. Please choose copy or move instead for this file format." );
-                return;
-            }
 
             String filePath = getOMEZarrImagePathDialog();
 
@@ -497,12 +493,14 @@ public class ProjectsCreatorUI extends JFrame {
         }
 
         ImagesCreator imagesCreator = projectCreator.getImagesCreator();
-        boolean overwriteImage = true;
+
+        // If image already exists, check if they want to overwrite it
+        boolean overwriteImage = false;
         if ( imagesCreator.imageExists( datasetName, imageName ) ) {
             overwriteImage = overwriteImageDialog();
-        }
-        if ( !overwriteImage ) {
-            return;
+            if ( !overwriteImage ) {
+                return;
+            }
         }
 
         String chosenUiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
@@ -512,7 +510,8 @@ public class ProjectsCreatorUI extends JFrame {
             uiSelectionGroup = chosenUiSelectionGroup;
         }
 
-        imagesCreator.addOMEZarrImage( uri, imageName, datasetName, imageType, addMethod, uiSelectionGroup, exclusive );
+        imagesCreator.addOMEZarrImage( uri, imageName, datasetName, imageType, addMethod, uiSelectionGroup,
+                exclusive, overwriteImage );
         updateComboBoxesForNewImage(imageName, uiSelectionGroup);
 
     }
@@ -666,13 +665,16 @@ public class ProjectsCreatorUI extends JFrame {
                 if ( imageName != null && sourceTransform != null ) {
                     ImagesCreator imagesCreator = projectCreator.getImagesCreator();
 
-                    boolean overwriteImage = true;
+                    // If image already exists, check if they want to overwrite it
+                    boolean overwriteImage = false;
                     if ( imagesCreator.imageExists( datasetName, imageName ) ) {
                         overwriteImage = overwriteImageDialog();
+
+                        if ( !overwriteImage ) {
+                            return;
+                        }
                     }
-                    if ( !overwriteImage ) {
-                        return;
-                    }
+
 
                     String chosenUiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
                     if ( chosenUiSelectionGroup == null ) {
@@ -681,7 +683,8 @@ public class ProjectsCreatorUI extends JFrame {
                         uiSelectionGroup = chosenUiSelectionGroup;
                     }
 
-                    imagesCreator.addImage(currentImage, imageName, datasetName, imageType, sourceTransform, uiSelectionGroup, exclusive);
+                    imagesCreator.addImage(currentImage, imageName, datasetName, imageType, sourceTransform,
+                            uiSelectionGroup, exclusive, overwriteImage);
                     updateComboBoxesForNewImage(imageName, uiSelectionGroup);
                 }
             }
