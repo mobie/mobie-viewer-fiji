@@ -31,6 +31,7 @@ package org.embl.mobie.command.open;
 import net.imagej.ImageJ;
 import org.embl.mobie.command.open.OpenImageAndLabelsCommand;
 import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsCommand;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
@@ -38,7 +39,8 @@ public class OpenIlastikImagesAndSegmentationsCommandTest
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static void main( String[] args )
+	@Test
+	public void test( )
 	{
 		new ImageJ().ui().showUI(); // initialise SciJava Services
 

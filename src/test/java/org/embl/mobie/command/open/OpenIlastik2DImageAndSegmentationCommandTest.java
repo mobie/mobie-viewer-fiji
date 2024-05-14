@@ -31,6 +31,7 @@ package org.embl.mobie.command.open;
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.open.OpenImageAndLabelsCommand;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
@@ -38,7 +39,8 @@ public class OpenIlastik2DImageAndSegmentationCommandTest
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static void main( String[] args )
+	@Test
+	public void test( )
 	{
 		new ImageJ().ui().showUI(); // initialise SciJava Services
 
@@ -47,8 +49,5 @@ public class OpenIlastik2DImageAndSegmentationCommandTest
 		command.labels = new File( "src/test/resources/input/ilastik-2d/labels.h5" );
 		command.table = new File( "src/test/resources/input/ilastik-2d/table.csv" );
 		command.run();
-
-		//final MoBIE moBIE = MoBIE.getInstance();
-		//moBIE.getViewManager().show( "labels" );
 	}
 }

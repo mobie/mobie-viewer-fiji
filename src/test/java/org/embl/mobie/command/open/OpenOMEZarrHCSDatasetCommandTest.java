@@ -1,12 +1,14 @@
 package org.embl.mobie.command.open;
 
 import net.imagej.ImageJ;
+import org.junit.jupiter.api.Test;
 
 class OpenOMEZarrHCSDatasetCommandTest
 {
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    public static void main( String[] args )
+    @Test
+    public void test( )
     {
         new ImageJ().ui().showUI(); // initialise SciJava Services
 
