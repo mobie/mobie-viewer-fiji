@@ -1,0 +1,145 @@
+{
+    "barcode": "barcode",
+    "order_name": "order",
+    "plate": {
+        "columns": [
+            {
+                "name": "01"
+            },
+            {
+                "name": "02"
+            },
+            {
+                "name": "03"
+            },
+            {
+                "name": "04"
+            },
+            {
+                "name": "05"
+            },
+            {
+                "name": "06"
+            },
+            {
+                "name": "07"
+            },
+            {
+                "name": "08"
+            },
+            {
+                "name": "09"
+            },
+            {
+                "name": "10"
+            },
+            {
+                "name": "11"
+            },
+            {
+                "name": "12"
+            },
+            {
+                "name": "13"
+            },
+            {
+                "name": "14"
+            },
+            {
+                "name": "15"
+            },
+            {
+                "name": "16"
+            },
+            {
+                "name": "17"
+            },
+            {
+                "name": "18"
+            },
+            {
+                "name": "19"
+            },
+            {
+                "name": "20"
+            },
+            {
+                "name": "21"
+            },
+            {
+                "name": "22"
+            },
+            {
+                "name": "23"
+            },
+            {
+                "name": "24"
+            }
+        ],
+        "field_count": 1,
+        "name": "md-single-plane",
+        "rows": [
+            {
+                "name": "A"
+            },
+            {
+                "name": "B"
+            },
+            {
+                "name": "C"
+            },
+            {
+                "name": "D"
+            },
+            {
+                "name": "E"
+            },
+            {
+                "name": "F"
+            },
+            {
+                "name": "G"
+            },
+            {
+                "name": "H"
+            },
+            {
+                "name": "I"
+            },
+            {
+                "name": "J"
+            },
+            {
+                "name": "K"
+            },
+            {
+                "name": "L"
+            },
+            {
+                "name": "M"
+            },
+            {
+                "name": "N"
+            },
+            {
+                "name": "O"
+            },
+            {
+                "name": "P"
+            }
+        ],
+        "version": "0.4",
+        "wells": [
+            {
+                "columnIndex": 7,
+                "path": "E/08",
+                "rowIndex": 4
+            },
+            {
+                "columnIndex": 6,
+                "path": "E/07",
+                "rowIndex": 4
+            }
+        ]
+    }
+}

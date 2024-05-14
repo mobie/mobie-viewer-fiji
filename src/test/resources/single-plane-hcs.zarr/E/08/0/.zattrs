@@ -1,0 +1,157 @@
+{
+    "acquisition_metadata": {
+        "channels": [
+            {
+                "channel_index": 1,
+                "channel_name": "Best-Focus-Projection_FITC_05",
+                "display_color": "73ff00",
+                "exposure_time": 15.0,
+                "exposure_time_unit": "ms",
+                "objective": "20X Plan Apo Lambda",
+                "spatial_calibration_units": "um",
+                "spatial_calibration_x": 1.3668,
+                "spatial_calibration_y": 1.3668,
+                "wavelength": 536,
+                "z_spacing": null
+            },
+            {
+                "channel_index": 2,
+                "channel_name": "Maximum-Projection_FITC_05",
+                "display_color": "73ff00",
+                "exposure_time": 15.0,
+                "exposure_time_unit": "ms",
+                "objective": "20X Plan Apo Lambda",
+                "spatial_calibration_units": "um",
+                "spatial_calibration_x": 1.3668,
+                "spatial_calibration_y": 1.3668,
+                "wavelength": 536,
+                "z_spacing": null
+            },
+            {
+                "channel_index": 0,
+                "channel_name": "Maximum-Projection_FITC_05",
+                "display_color": "73ff00",
+                "exposure_time": 15.0,
+                "exposure_time_unit": "ms",
+                "objective": "20X Plan Apo Lambda",
+                "spatial_calibration_units": "um",
+                "spatial_calibration_x": 1.3668,
+                "spatial_calibration_y": 1.3668,
+                "wavelength": 536,
+                "z_spacing": null
+            }
+        ]
+    },
+    "multiscales": [
+        {
+            "axes": [
+                {
+                    "name": "c",
+                    "type": "channel"
+                },
+                {
+                    "name": "y",
+                    "type": "space",
+                    "unit": "micrometer"
+                },
+                {
+                    "name": "x",
+                    "type": "space",
+                    "unit": "micrometer"
+                }
+            ],
+            "datasets": [
+                {
+                    "coordinateTransformations": [
+                        {
+                            "scale": [
+                                1.0,
+                                2.7336,
+                                2.7336
+                            ],
+                            "type": "scale"
+                        }
+                    ],
+                    "path": "0"
+                },
+                {
+                    "coordinateTransformations": [
+                        {
+                            "scale": [
+                                1.0,
+                                5.4672,
+                                5.4672
+                            ],
+                            "type": "scale"
+                        }
+                    ],
+                    "path": "1"
+                },
+                {
+                    "coordinateTransformations": [
+                        {
+                            "scale": [
+                                1.0,
+                                10.9344,
+                                10.9344
+                            ],
+                            "type": "scale"
+                        }
+                    ],
+                    "path": "2"
+                }
+            ],
+            "name": "/E/08/0",
+            "version": "0.4"
+        }
+    ],
+    "omero": {
+        "channels": [
+            {
+                "active": true,
+                "coefficient": 1,
+                "color": "73ff00",
+                "family": "linear",
+                "inverted": false,
+                "label": "Maximum-Projection_FITC_05",
+                "wavelength_id": "C01",
+                "window": {
+                    "end": 65535,
+                    "max": 65535,
+                    "min": 0,
+                    "start": 0
+                }
+            },
+            {
+                "active": true,
+                "coefficient": 1,
+                "color": "73ff00",
+                "family": "linear",
+                "inverted": false,
+                "label": "Best-Focus-Projection_FITC_05",
+                "wavelength_id": "C02",
+                "window": {
+                    "end": 65535,
+                    "max": 65535,
+                    "min": 0,
+                    "start": 0
+                }
+            },
+            {
+                "active": true,
+                "coefficient": 1,
+                "color": "73ff00",
+                "family": "linear",
+                "inverted": false,
+                "label": "Maximum-Projection_FITC_05",
+                "wavelength_id": "C03",
+                "window": {
+                    "end": 65535,
+                    "max": 65535,
+                    "min": 0,
+                    "start": 0
+                }
+            }
+        ]
+    }
+}

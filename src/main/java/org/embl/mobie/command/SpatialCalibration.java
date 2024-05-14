@@ -30,7 +30,7 @@ public enum SpatialCalibration
                 if ( rows.columnNames().contains( PixelSizeColumns.PIXEL_SIZE ) )
                 {
                     FinalVoxelDimensions voxelDimensions = new FinalVoxelDimensions(
-                            rows.textColumn( PixelSizeColumns.PIXEL_SIZE_UNIT ).get( 0 ),
+                            rows.textColumn( PixelSizeColumns.PIXEL_UNIT ).get( 0 ),
                             rows.doubleColumn( PixelSizeColumns.PIXEL_SIZE ).get( 0 ),
                             rows.doubleColumn( PixelSizeColumns.PIXEL_SIZE ).get( 0 ),
                             rows.doubleColumn( PixelSizeColumns.PIXEL_SIZE ).get( 0 )
@@ -40,7 +40,7 @@ public enum SpatialCalibration
                 else
                 {
                     FinalVoxelDimensions voxelDimensions = new FinalVoxelDimensions(
-                            rows.textColumn( PixelSizeColumns.PIXEL_SIZE_UNIT ).get( 0 ),
+                            rows.textColumn( PixelSizeColumns.PIXEL_UNIT ).get( 0 ),
                             rows.doubleColumn( PixelSizeColumns.PIXEL_SIZE_X ).get( 0 ),
                             rows.doubleColumn( PixelSizeColumns.PIXEL_SIZE_Y ).get( 0 ),
                             rows.doubleColumn( PixelSizeColumns.PIXEL_SIZE_Z ).get( 0 )
@@ -52,12 +52,12 @@ public enum SpatialCalibration
             {
                 IJ.log("[ERROR] Could not read spatial calibration from table: " + tablePath );
                 IJ.log("Please check that the tables contain the following columns:");
-                IJ.log( PixelSizeColumns.PIXEL_SIZE + " and " + PixelSizeColumns.PIXEL_SIZE_UNIT );
+                IJ.log( PixelSizeColumns.PIXEL_SIZE + " and " + PixelSizeColumns.PIXEL_UNIT );
                 IJ.log( "or" );
                 IJ.log( PixelSizeColumns.PIXEL_SIZE_X + ", " +
                         PixelSizeColumns.PIXEL_SIZE_Y + ", " +
                         PixelSizeColumns.PIXEL_SIZE_Z + ", " +
-                        " and " + PixelSizeColumns.PIXEL_SIZE_UNIT );
+                        " and " + PixelSizeColumns.PIXEL_UNIT );
                 throw new RuntimeException( e );
             }
         }
