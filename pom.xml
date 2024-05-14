@@ -99,7 +99,8 @@
         <n5-zarr.version>1.3.1</n5-zarr.version>
         <n5-hdf5.version>2.2.0</n5-hdf5.version>
         <n5-ij.version>4.1.1</n5-ij.version>
-        <n5-universe.version>1.4.3-SNAPSHOT</n5-universe.version>
+        <n5-imglib2.version>5.0.0</n5-imglib2.version>
+        <n5-universe.version>1.4.3</n5-universe.version>
         <n5-aws-s3.version>4.1.1</n5-aws-s3.version>
         <bigdataviewer-core.version>10.4.13</bigdataviewer-core.version>
         <bigdataviewer-vistools.version>1.0.0-beta-34</bigdataviewer-vistools.version>

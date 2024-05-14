@@ -54,8 +54,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.embl.mobie.io.util.IOHelper.getPaths;
-
 public class ImageFileSources
 {
 	protected final String name;

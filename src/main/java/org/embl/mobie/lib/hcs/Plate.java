@@ -29,16 +29,13 @@
 package org.embl.mobie.lib.hcs;
 
 import bdv.viewer.Source;
+import ch.epfl.biop.bdv.img.bioformats.entity.SeriesIndex;
 import ij.IJ;
-import ij.ImagePlus;
-import ij.io.Opener;
 import mpicbg.spim.data.generic.AbstractSpimData;
+import mpicbg.spim.data.generic.base.Entity;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
-import mpicbg.spim.data.sequence.ViewSetup;
 import mpicbg.spim.data.sequence.VoxelDimensions;
-import mpicbg.spim.data.generic.base.Entity;
-import org.embl.mobie.DataStore;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.imagedata.ImageData;
@@ -46,11 +43,8 @@ import org.embl.mobie.io.toml.TPosition;
 import org.embl.mobie.io.toml.ZPosition;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
-import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.color.ColorHelper;
-
-import ch.epfl.biop.bdv.img.bioformats.entity.SeriesIndex;
 import org.embl.mobie.lib.hcs.omezarr.OMEZarrHCSHelper;
 
 import javax.annotation.Nullable;
