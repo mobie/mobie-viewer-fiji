@@ -77,7 +77,7 @@ public class OpenImageAndLabelsCommand implements Command {
 			tablesList.add( table.getAbsolutePath() );
 		}
 
-		spatialCalibration.setSpatialCalibration( settings, table.getAbsolutePath() );
+		spatialCalibration.setVoxelDimensions( settings, table != null ? table.getAbsolutePath() : null );
 
 		try
 		{

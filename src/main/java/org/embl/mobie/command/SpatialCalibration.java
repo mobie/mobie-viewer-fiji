@@ -14,18 +14,18 @@ public enum SpatialCalibration
     FromTable,
     UsePixelUnits;
 
-    public void setSpatialCalibration(
-            MoBIESettings settings,
-            String tablePathRegExp )
+    // TODO: it is not nice that the tablePath is required here even though it only is needed
+    //       if this.equals( FromTable )
+    public void setVoxelDimensions( MoBIESettings settings, String tablePath )
     {
         if ( this.equals( FromTable ) )
         {
             // Often the path is a regex, thus we need to resolve the actual paths
-            String tablePath = IOHelper.getPaths( tablePathRegExp, 999 ).get( 0 );
+            String resolvedTablePath = IOHelper.getPaths( tablePath, 999 ).get( 0 );
 
             try
             {
-                Table rows = TableOpener.openDelimitedTextFile( tablePath );
+                Table rows = TableOpener.openDelimitedTextFile( resolvedTablePath );
 
                 if ( rows.columnNames().contains( PixelSizeColumns.PIXEL_SIZE ) )
                 {

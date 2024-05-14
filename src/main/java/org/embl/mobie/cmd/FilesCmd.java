@@ -76,7 +76,7 @@ public class FilesCmd implements Callable< Void > {
 
 		settings.openedFromCLI( true );
 
-		spatialCalibration.setSpatialCalibration( settings, tables[ 0 ] );
+		spatialCalibration.setVoxelDimensions( settings, tables != null ? tables[ 0 ] : null );
 
 		List< String > imageList = images != null ?
 				Arrays.asList( images ) : new ArrayList<>();

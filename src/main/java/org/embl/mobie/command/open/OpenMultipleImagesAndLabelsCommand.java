@@ -71,7 +71,7 @@ public class OpenMultipleImagesAndLabelsCommand implements Command {
 	public File table1;
 
 	@Parameter( label = "Spatial Calibration" )
-	public SpatialCalibration spatialCalibration;
+	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImageFiles;
 
 	@Override
 	public void run()
@@ -94,7 +94,7 @@ public class OpenMultipleImagesAndLabelsCommand implements Command {
 		if ( table0 != null ) tablesList.add( table0.getAbsolutePath() );
 		if ( table1 != null ) tablesList.add( table1.getAbsolutePath() );
 
-		spatialCalibration.setSpatialCalibration( settings, table0.getAbsolutePath() );
+		spatialCalibration.setVoxelDimensions( settings, table0 != null ? table0.getAbsolutePath() : null );
 
 		try
 		{

@@ -86,7 +86,7 @@ public class OpenTableCommand implements Command {
 
 		final MoBIESettings settings = new MoBIESettings();
 
-		spatialCalibration.setSpatialCalibration( settings, table.getAbsolutePath() );
+		spatialCalibration.setVoxelDimensions( settings, table != null ? table.getAbsolutePath() : null  );
 
 		List< String > imageList = new ArrayList<>();
 		if ( images != null && ! images.equals( "" ) )
