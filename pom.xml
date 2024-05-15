@@ -84,7 +84,7 @@
         <license.copyrightOwners>EMBL</license.copyrightOwners>
         <enforcer.skip>true</enforcer.skip>
 
-        <mobie-io.version>3.0.0-SNAPSHOT</mobie-io.version>
+        <mobie-io.version>3.0.0</mobie-io.version>
         <imagej-utils.version>0.7.0</imagej-utils.version>
 
         <bigdataviewer-playground.version>0.9.0</bigdataviewer-playground.version>
