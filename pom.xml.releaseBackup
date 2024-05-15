@@ -9,7 +9,7 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>5.0.0</version>
+    <version>5.0.0-SNAPSHOT</version>
 
 
     <!-- force javadoc generation to fetch errors:    -->
@@ -67,7 +67,7 @@
     <scm>
         <connection>scm:git:https://github.com/mobie/mobie-viewer-fiji</connection>
         <developerConnection>scm:git:git@github.com:mobie/mobie-viewer-fiji</developerConnection>
-        <tag>mobie-viewer-fiji-5.0.0</tag>
+        <tag>mobie-viewer-fiji-4.0.7</tag>
         <url>https://github.com/mobie/mobie-viewer-fiji</url>
     </scm>
     <issueManagement>

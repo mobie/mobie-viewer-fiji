@@ -403,8 +403,6 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		{
 			this.type = type;
 			this.name = name;
-			assert stitched.size() == mipmapTransforms.length : "Number of mipmaps and scale factors do not match.";
-
 			this.mipmapSources = stitched;
 			this.mipmapTransforms = mipmapTransforms;
 			this.interpolators = new DefaultInterpolators<>();

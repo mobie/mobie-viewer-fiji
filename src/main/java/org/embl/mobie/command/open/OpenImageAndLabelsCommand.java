@@ -56,7 +56,7 @@ public class OpenImageAndLabelsCommand implements Command {
 	public File table;
 
 	@Parameter( label = "Spatial Calibration" )
-	public SpatialCalibration spatialCalibration;
+	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImageFiles;
 
 	@Override
 	public void run()
