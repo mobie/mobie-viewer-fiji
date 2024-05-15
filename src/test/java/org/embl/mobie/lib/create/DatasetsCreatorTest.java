@@ -47,6 +47,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DatasetsCreatorTest {
 
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     private ProjectCreator projectCreator;
     private DatasetsCreator datasetsCreator;
 

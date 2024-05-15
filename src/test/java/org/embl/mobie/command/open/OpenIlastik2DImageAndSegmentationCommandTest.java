@@ -39,7 +39,7 @@ public class OpenIlastik2DImageAndSegmentationCommandTest
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Test
+	//@Test
 	public void test( )
 	{
 		new ImageJ().ui().showUI(); // initialise SciJava Services

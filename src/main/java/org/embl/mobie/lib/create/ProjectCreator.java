@@ -47,7 +47,7 @@ import static org.embl.mobie.lib.create.ProjectCreatorHelper.getGroupToViewsMap;
  */
 public class ProjectCreator {
 
-    static { LegacyInjector.preinit(); }
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     private final File projectLocation;
     private final File projectJson;

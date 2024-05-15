@@ -43,6 +43,8 @@ import java.io.InputStream;
 
 public class JSONValidator
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static String datasetSchemaURL = "https://raw.githubusercontent.com/mobie/mobie.github.io/master/schema/dataset.schema.json";
 	public static String projectSchemaURL = "https://raw.githubusercontent.com/mobie/mobie.github.io/master/schema/project.schema.json";
 	public static String viewSchemaURL = "https://raw.githubusercontent.com/mobie/mobie.github.io/master/schema/view.schema.json";

@@ -49,6 +49,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class RemoteMetadataCreatorTest {
 
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     private ProjectCreator projectCreator;
     private RemoteMetadataCreator remoteMetadataCreator;
     private String datasetName;

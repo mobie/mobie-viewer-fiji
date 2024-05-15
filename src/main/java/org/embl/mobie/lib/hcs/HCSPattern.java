@@ -44,6 +44,8 @@ public enum HCSPattern
 	MolecularDevices,
 	YokogawaCQ1;
 
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static final String WELL = "W";
 	public static final String SITE = "S";
 	public static final String CHANNEL = "C";

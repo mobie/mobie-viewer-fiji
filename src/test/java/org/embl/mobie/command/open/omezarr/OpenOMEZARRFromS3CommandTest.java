@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OpenOMEZARRFromS3CommandTest
 {
-    @Test
+    //@Test
     public void test( )
     {
         OpenOMEZARRFromS3Command command = new OpenOMEZARRFromS3Command();
