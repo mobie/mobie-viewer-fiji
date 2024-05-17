@@ -73,8 +73,7 @@ public class OMEZarrHCSHelper
         List< String > imageSitePaths = new CopyOnWriteArrayList<>();
         Gson gson = JsonHelper.buildGson(false);
 
-        String plateUri = hcsDirectory;
-        final String plateJson = IOHelper.read( plateUri + ZATTRS );
+        final String plateJson = IOHelper.read( hcsDirectory + ZATTRS );
         //System.out.println( plateJson );
         HCSMetadata hcsMetadata = gson.fromJson(plateJson, new TypeToken< HCSMetadata >() {}.getType());
         int numWells = hcsMetadata.plate.wells.size();
@@ -85,7 +84,7 @@ public class OMEZarrHCSHelper
         AtomicLong lastLogMillis = new AtomicLong( System.currentTimeMillis() );
         final long startTime = System.currentTimeMillis();
         IJ.log( "Parsing " + numWells + " wells..." );
-        parseWells( hcsMetadata, wellIndex, numWells, sourceLoggingModulo, lastLogMillis, plateUri, gson, imageSitePaths );
+        parseWells( hcsMetadata, wellIndex, numWells, sourceLoggingModulo, lastLogMillis, hcsDirectory, gson, imageSitePaths );
         IJ.log( "Parsed " + numWells + " wells in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + ThreadHelper.getNumIoThreads() + " thread(s).");
 
         return imageSitePaths;
