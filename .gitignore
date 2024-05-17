@@ -15,6 +15,9 @@ target
 *.orig
 hs_err_*.log
 
+release.properties
+pom.xml.releaseBackup
+
 mobie-files
 mobie-hcs
 mobie-project

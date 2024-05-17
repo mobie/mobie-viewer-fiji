@@ -36,13 +36,13 @@ class HCSPatternTest
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	private static String operetta = "r01c01f04p01-ch1sk1fk1fl1.tiff";
-	private static String incucyte = "MiaPaCa2-PhaseOriginal_A2_1_03d06h40m.tif";
-	private static String moldev = "MIP-2P-2sub_C05_s1_w146C9B2CD-0BB3-4B8A-9187-2805F4C90506.tif";
-	private static String incucyteRaw = "/Users/tischer/Downloads/incu-test-data/2207/19/1110/262/B3-1-C2.tif";
-	private static  String incell = "A - 01(fld 1 wv Green - dsRed z 3).tif";
+	private static final String operetta = "r01c01f04p01-ch1sk1fk1fl1.tiff";
+	private static final String incucyte = "MiaPaCa2-PhaseOriginal_A2_1_03d06h40m.tif";
+	private static final String moldev = "MIP-2P-2sub_C05_s1_w146C9B2CD-0BB3-4B8A-9187-2805F4C90506.tif";
+	private static final String incucyteRaw = "/Users/tischer/Downloads/incu-test-data/2207/19/1110/262/B3-1-C2.tif";
+	private static final String incell = "A - 01(fld 1 wv Green - dsRed z 3).tif";
 
-	private static String yokogawaCQ1 = "W0018F0001T0001Z001C1.tif";
+	private static final String yokogawaCQ1 = "W0018F0001T0001Z001C1.tif";
 
 	@Test
 	void fromPath()
