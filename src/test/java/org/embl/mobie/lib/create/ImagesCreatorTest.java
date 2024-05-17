@@ -115,8 +115,11 @@ class ImagesCreatorTest {
         assertTrue( validate( datasetJsonPath, JSONValidator.datasetSchemaURL ) );
     }
 
-    void assertionsForImage(File imageLocation, ImagePlus image)
+    void assertionsForImage(File imageLocation, Object imageObject)
     {
+        // NB: Avoid recursive class loading of ij.* classes.
+        ImagePlus image = (ImagePlus) imageObject;
+
         // File exists
         assertTrue( imageLocation.exists() );
 
@@ -136,7 +139,10 @@ class ImagesCreatorTest {
                 });
     }
 
-    void assertionsForImageAdded(ImagePlus image) throws IOException {
+    void assertionsForImageAdded(Object imageObject) throws IOException {
+        // NB: Avoid recursive class loading of ij.* classes.
+        ImagePlus image = (ImagePlus) imageObject;
+
         File imageLocation = new File(
                 IOHelper.combinePath(
                         projectCreator.getProjectLocation().getAbsolutePath(),
@@ -148,9 +154,9 @@ class ImagesCreatorTest {
         assertionsForImageAdded(imageLocation, image);
     }
 
-    void assertionsForImageAdded(File imageLocation, ImagePlus image) throws IOException {
+    void assertionsForImageAdded(File imageLocation, Object imageObject) throws IOException {
         assertionsForDataset(imageLocation);
-        assertionsForImage(imageLocation, image);
+        assertionsForImage(imageLocation, imageObject);
     }
 
     void assertionsForTableAdded( ) throws IOException {
@@ -163,7 +169,7 @@ class ImagesCreatorTest {
         assertTrue( segmentationData.tableData.containsKey(TableDataFormat.TSV ) );
     }
 
-    ImagePlus writeImageOutsideProject(boolean is2D ) {
+    Object writeImageOutsideProject(boolean is2D ) {
         // add example image
         ImagePlus image = createImage( imageName, is2D );
         OMEZarrWriter.write( image, imageOutsideProject.getAbsolutePath(),
@@ -171,7 +177,7 @@ class ImagesCreatorTest {
         return image;
     }
 
-    ImagePlus addImageToDataset(boolean is2D, String datasetName, String imageName ) {
+    Object addImageToDataset(boolean is2D, String datasetName, String imageName ) {
         ImagePlus image = createImage( imageName, is2D );
         imagesCreator.addImage( image, imageName, datasetName,
                 ProjectCreator.ImageType.Image, sourceTransform,
@@ -179,9 +185,10 @@ class ImagesCreatorTest {
         return image;
     }
 
-    ImagePlus copyImageIntoDataset(boolean is2D ) {
+    Object copyImageIntoDataset(boolean is2D ) {
         // save example image
-        ImagePlus image = writeImageOutsideProject( is2D );
+        // NB: Avoid recursive class loading of ij.* classes.
+        ImagePlus image = (ImagePlus) writeImageOutsideProject( is2D );
 
         imagesCreator.addOMEZarrImage(
                 imageOutsideProject.getAbsolutePath(), imageName, datasetName,
@@ -193,7 +200,8 @@ class ImagesCreatorTest {
     @ParameterizedTest
     @ValueSource(booleans = { false, true })
     void addImageTo3DDataset(boolean is2D) throws IOException {
-        ImagePlus image = addImageToDataset( is2D, datasetName, imageName );
+        // NB: Avoid recursive class loading of ij.* classes.
+        ImagePlus image = (ImagePlus) addImageToDataset( is2D, datasetName, imageName );
         assertionsForImageAdded(image);
     }
 
@@ -227,7 +235,8 @@ class ImagesCreatorTest {
         String otherDatasetName = "other-dataset";
         String otherImageName = "other-image";
         projectCreator.getDatasetsCreator().addDataset(otherDatasetName, false);
-        ImagePlus image = addImageToDataset(false, otherDatasetName, otherImageName);
+        // NB: Avoid recursive class loading of ij.* classes.
+        ImagePlus image = (ImagePlus) addImageToDataset(false, otherDatasetName, otherImageName);
         String filePath = IOHelper.combinePath(
                 projectCreator.getProjectLocation().getAbsolutePath(),
                 otherDatasetName,
@@ -253,7 +262,8 @@ class ImagesCreatorTest {
     @Test
     void linkImageOutsideProject() throws IOException {
         // save example image
-        ImagePlus image = writeImageOutsideProject( false );
+        // NB: Avoid recursive class loading of ij.* classes.
+        ImagePlus image = (ImagePlus) writeImageOutsideProject( false );
         imagesCreator.addOMEZarrImage( imageOutsideProject.getAbsolutePath(), imageName, datasetName,
                 ProjectCreator.ImageType.Image, ProjectCreator.AddMethod.Link,
                 uiSelectionGroup, false, false );
@@ -271,7 +281,8 @@ class ImagesCreatorTest {
     @ParameterizedTest
     @ValueSource(booleans = { false, true })
     void copyImageTo3DDataset(boolean is2D) throws IOException {
-        ImagePlus image = copyImageIntoDataset( is2D );
+        // NB: Avoid recursive class loading of ij.* classes.
+        ImagePlus image = (ImagePlus) copyImageIntoDataset( is2D );
         assertionsForImageAdded(image);
     }
 
