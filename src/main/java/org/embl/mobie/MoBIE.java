@@ -682,7 +682,7 @@ public class MoBIE
 	{
 		if ( imageDataFormat.equals( ImageDataFormat.ImageData ) )
 		{
-			return new ImageDataImage<>( ( ImageData ) storageLocation.data, storageLocation.getChannel(), name, settings.values.getVoxelDimensions() );
+			return new ImageDataImage<>( ( ImageData< ? > ) storageLocation.data, storageLocation.getChannel(), name, settings.values.getVoxelDimensions() );
 		}
 		else if ( storageLocation instanceof Site ) // HCS data
 		{

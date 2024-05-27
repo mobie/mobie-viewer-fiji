@@ -42,7 +42,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -68,9 +67,9 @@ public class OMEZarrHCSHelper
         return imageSitePaths;
     }
 
-    public static List< String > sitePathsFromMetadata( String hcsDirectory ) throws IOException
+    public static List< String > imagePathsFromMetadata( String hcsDirectory ) throws IOException
     {
-        List< String > imageSitePaths = new CopyOnWriteArrayList<>();
+        List< String > imagePaths = new CopyOnWriteArrayList<>();
         Gson gson = JsonHelper.buildGson(false);
 
         final String plateJson = IOHelper.read( hcsDirectory + ZATTRS );
@@ -84,10 +83,10 @@ public class OMEZarrHCSHelper
         AtomicLong lastLogMillis = new AtomicLong( System.currentTimeMillis() );
         final long startTime = System.currentTimeMillis();
         IJ.log( "Parsing " + numWells + " wells..." );
-        parseWells( hcsMetadata, wellIndex, numWells, sourceLoggingModulo, lastLogMillis, hcsDirectory, gson, imageSitePaths );
+        parseWells( hcsMetadata, wellIndex, numWells, sourceLoggingModulo, lastLogMillis, hcsDirectory, gson, imagePaths );
         IJ.log( "Parsed " + numWells + " wells in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + ThreadHelper.getNumIoThreads() + " thread(s).");
 
-        return imageSitePaths;
+        return imagePaths;
     }
 
     private static void parseWells( HCSMetadata hcsMetadata, AtomicInteger wellIndex, int numWells, AtomicInteger sourceLoggingModulo, AtomicLong lastLogMillis, String plateUri, Gson gson, List< String > imageSitePaths )

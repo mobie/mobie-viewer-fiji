@@ -63,15 +63,16 @@ public class ImageDataImage< T extends NumericType< T > & NativeType< T > > impl
 	private TransformedSource< T > transformedSource;
 	private AffineTransform3D currentTransform = new AffineTransform3D();
 
-	public ImageDataImage( ImageData imageData, Integer setupId, String name, VoxelDimensions voxelDimensions )
+	public ImageDataImage( ImageData< ? > imageData, Integer setupId, String name, VoxelDimensions voxelDimensions )
 	{
 		this.imageDataFormat = null;
 		this.uri = null;
 		this.sharedQueue = null;
 		this.setupId = setupId == null ? 0 : setupId;
+		FIXME: add the datasetname to the name
 		this.name = name;
 		this.voxelDimensions = voxelDimensions;
-		createSourcePair( imageData, setupId, name );
+		createSourcePair( ( ImageData< T > ) imageData, setupId, name );
 	}
 
 	public ImageDataImage(

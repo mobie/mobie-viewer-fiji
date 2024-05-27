@@ -104,7 +104,7 @@ public class Plate
 				imageDataFormat = ImageDataFormat.OmeZarr;
 			}
 
-			imagePaths = OMEZarrHCSHelper.sitePathsFromMetadata( hcsDirectory );
+			imagePaths = OMEZarrHCSHelper.imagePathsFromMetadata( hcsDirectory );
 
 			ImageData< ? > imageData = ImageDataOpener.open( imagePaths.get( 0 ), imageDataFormat, ThreadHelper.sharedQueue );
 			int numChannels = imageData.getNumDatasets();
