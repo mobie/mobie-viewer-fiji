@@ -28,13 +28,12 @@
  */
 package org.embl.mobie.lib.hcs;
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.WindowManager;
+import ij.*;
+import ij.io.Opener;
 import ij.plugin.FolderOpener;
 import ij.process.*;
 import ij.util.Tools;
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.util.IOHelper;
 
 import java.awt.*;
@@ -44,9 +43,10 @@ import java.util.Properties;
 
 
 /** Copied VirtualStack that uses BioFormats as a reader. */
-public class VirtualBioFormatsStack extends ImageStack
+public class VirtualStackWithFlexibleLoader extends ImageStack
 {
     private static final int INITIAL_SIZE = 100;
+    private ImageDataFormat imageDataFormat;
     private String path;
     private int nSlices;
     private String[] names;
@@ -59,22 +59,26 @@ public class VirtualBioFormatsStack extends ImageStack
 
 
     /** Default constructor. */
-    public VirtualBioFormatsStack() { }
+    public VirtualStackWithFlexibleLoader() { }
 
-    public VirtualBioFormatsStack( int width, int height) {
+    public VirtualStackWithFlexibleLoader( int width, int height) {
         super(width, height);
     }
 
-    /** Creates an empty virtual stack.
-     * @param width		image width
-     * @param height	image height
-     * @param cm	ColorModel or null
-     * @param path	file path of directory containing the images
+    /**
+     * Creates an empty virtual stack.
+     *
+     * @param width           image width
+     * @param height          image height
+     * @param cm              ColorModel or null
+     * @param path            file path of directory containing the images
+     * @param imageDataFormat
      * @see #addSlice(String)
      * @see <a href="http://wsr.imagej.net/macros/js/OpenAsVirtualStack.js">OpenAsVirtualStack.js</a>
      */
-    public VirtualBioFormatsStack( int width, int height, ColorModel cm, String path) {
+    public VirtualStackWithFlexibleLoader( int width, int height, ColorModel cm, String path, ImageDataFormat imageDataFormat ) {
         super(width, height, cm);
+        this.imageDataFormat = imageDataFormat;
         path = IJ.addSeparator(path);
         this.path = path;
         names = new String[INITIAL_SIZE];
@@ -84,14 +88,14 @@ public class VirtualBioFormatsStack extends ImageStack
     /** Creates a virtual stack with no backing storage.<br>
      * See: Help&gt;Examples&gt;JavaScript&gt;Terabyte VirtualStack
      */
-    public VirtualBioFormatsStack( int width, int height, int slices) {
+    public VirtualStackWithFlexibleLoader( int width, int height, int slices) {
         this(width, height, slices, "8-bit");
     }
 
     /** Creates a virtual stack with no backing storage.<br>
      * See: Help&gt;Examples&gt;JavaScript&gt;Terabyte VirtualStack
      */
-    public VirtualBioFormatsStack(int width, int height, int slices, String options) {
+    public VirtualStackWithFlexibleLoader( int width, int height, int slices, String options) {
         super(width, height, null);
         nSlices = slices;
         int depth = 8;
@@ -210,7 +214,21 @@ public class VirtualBioFormatsStack extends ImageStack
         }
         n = translate(n);  // update n for hyperstacks not in the default CZT order
         String path = getFileName( n );
-        ImagePlus imp = IOHelper.openWithBioFormats( path, 0 );
+        // Open the image
+        ImagePlus imp;
+        if ( imageDataFormat.equals( ImageDataFormat.BioFormats ) )
+        {
+            imp = IOHelper.openWithBioFormats(path, 0);
+            imp.setTitle( names[n-1] );
+        }
+        else if ( imageDataFormat.equals( ImageDataFormat.Tiff ))
+        {
+            imp = IOHelper.openTiffFromFile(path);
+        }
+        else
+        {
+            throw new RuntimeException( "Opening files with " + imageDataFormat + " into a VirtualStack is currently not supported");
+        }
         ImageProcessor ip = null;
         int depthThisImage = 0;
         if (imp!=null) {

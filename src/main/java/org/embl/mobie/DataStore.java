@@ -42,7 +42,7 @@ import org.embl.mobie.io.imagedata.ImagePlusImageData;
 import org.embl.mobie.io.toml.TPosition;
 import org.embl.mobie.io.toml.ZPosition;
 import org.embl.mobie.lib.hcs.Site;
-import org.embl.mobie.lib.hcs.VirtualBioFormatsStack;
+import org.embl.mobie.lib.hcs.VirtualStackWithFlexibleLoader;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.serialize.DataSource;
 
@@ -195,7 +195,7 @@ public abstract class DataStore
 
 	private static ImageData< ? > addImageData( Site site, SharedQueue sharedQueue )
 	{
-		VirtualBioFormatsStack virtualStack = null;
+		VirtualStackWithFlexibleLoader virtualStack = null;
 
 		final Map< TPosition, Map< ZPosition, String > > paths = site.getPaths();
 
@@ -222,7 +222,8 @@ public abstract class DataStore
 				if ( virtualStack == null )
 				{
 					final int[] dimensions = site.getDimensions();
-					virtualStack = new VirtualBioFormatsStack( dimensions[ 0 ], dimensions[ 1 ], null, "" );
+					ImageDataFormat imageDataFormat = site.getImageDataFormat();
+					virtualStack = new VirtualStackWithFlexibleLoader( dimensions[ 0 ], dimensions[ 1 ], null, "", imageDataFormat );
 				}
 
 				virtualStack.addSlice( paths.get( t ).get( z ) );

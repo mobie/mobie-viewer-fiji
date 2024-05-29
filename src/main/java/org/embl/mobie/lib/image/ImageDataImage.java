@@ -69,7 +69,7 @@ public class ImageDataImage< T extends NumericType< T > & NativeType< T > > impl
 		this.uri = null;
 		this.sharedQueue = null;
 		this.setupId = setupId == null ? 0 : setupId;
-		FIXME: add the datasetname to the name
+		// FIXME: add the datasetname to the name
 		this.name = name;
 		this.voxelDimensions = voxelDimensions;
 		createSourcePair( ( ImageData< T > ) imageData, setupId, name );

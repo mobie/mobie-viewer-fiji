@@ -31,6 +31,7 @@ package org.embl.mobie.lib.hcs;
 import bdv.viewer.Source;
 import ch.epfl.biop.bdv.img.bioformats.entity.SeriesIndex;
 import ij.IJ;
+import ij.ImagePlus;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.generic.base.Entity;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
@@ -51,8 +52,10 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -123,10 +126,10 @@ public class Plate
 			}
 			else
 			{
-				imageDataFormat = ImageDataFormat.BioFormats;
 				imagePaths = Files.walk( Paths.get( hcsDirectory ), 3 )
-						.map( p -> p.toString() )
+						.map( Path::toString )
 						.collect( Collectors.toList() );
+				imageDataFormat = ImageDataFormat.BioFormats;
 			}
 
 			hcsPattern = determineHCSPattern( hcsDirectory, imagePaths );
@@ -147,6 +150,19 @@ public class Plate
 			else if ( hcsPattern.equals( HCSPattern.YokogawaCQ1 ) )
 			{
 				imageDataFormat = ImageDataFormat.Tiff;
+			}
+			else if ( hcsPattern.equals( HCSPattern.MolecularDevices ) )
+			{
+				try
+				{
+					imageDataFormat = ImageDataFormat.Tiff;
+					ImagePlus imagePlus = IOHelper.openTiffFromFile( imagePaths.get( 0 ) );
+				}
+				catch ( Exception e )
+				{
+					imageDataFormat = ImageDataFormat.BioFormats;
+					ImagePlus imagePlus = IOHelper.openWithBioFormatsFromFile( imagePaths.get( 0 ), 0 );
+				}
 			}
 		}
 		IJ.log( "Found " + imagePaths.size() + " image files in " + ( System.currentTimeMillis() - start ) + " ms." );
