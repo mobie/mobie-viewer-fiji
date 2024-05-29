@@ -108,7 +108,6 @@ public enum HCSPattern
 	 */
 	public static final String YOKOGAWACQ1 = ".*W(?<"+WELL+">[0-9]+)F(?<"+SITE+">[0-9]+)T(?<"+TIME+">[0-9]+)(?<"+SLICE+">Z[0-9]+)C(?<"+CHANNEL+">[0-9]+).tif";
 
-
 	private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 	// TODO: add the ones below
@@ -116,7 +115,6 @@ public enum HCSPattern
 	private final String PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL = ".*--(.*)--(.*)--W(?<"+WELL+">[0-9]{4})--P(?<"+SITE+">[0-9]{3})--T[0-9]{4,5}--Z[0-9]{3}--(?<"+CHANNEL+">.*)";
 	private final String PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL = ".*--W(?<"+WELL+">[0-9]{5})--P(?<"+SITE+">[0-9]{5}).*--.*--(?<"+CHANNEL+">.*)\\..*";
 	private final String PATTERN_NIKON_TI2_HDF5 = ".*Well([A-Z]{1}[0-9]{2})_Point[A-Z]{1}[0-9]{2}_([0-9]{4})_.*h5$";
-
 	private final String MD_SITES = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">[0-9]{1}).*";
 
 	private Matcher matcher;
