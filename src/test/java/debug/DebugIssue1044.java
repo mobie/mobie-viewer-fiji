@@ -28,11 +28,9 @@
  */
 package debug;
 
-import bdv.util.VolatileSource;
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import org.janelia.saalfeldlab.n5.ij.N5ScalePyramidExporter;
 
 import java.io.IOException;
 

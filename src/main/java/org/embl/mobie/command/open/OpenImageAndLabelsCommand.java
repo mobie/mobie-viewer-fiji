@@ -41,7 +41,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Image and Labels..." )
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Image and Label Files..." )
 public class OpenImageAndLabelsCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
@@ -56,7 +56,7 @@ public class OpenImageAndLabelsCommand implements Command {
 	public File table;
 
 	@Parameter( label = "Spatial Calibration" )
-	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImageFiles;
+	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImage;
 
 	@Override
 	public void run()

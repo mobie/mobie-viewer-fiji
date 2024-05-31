@@ -29,9 +29,6 @@
 package org.embl.mobie.command.open;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenImageAndLabelsCommand;
-import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsCommand;
-import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
@@ -44,7 +41,7 @@ public class OpenIlastikImagesAndSegmentationsCommandTest
 	{
 		new ImageJ().ui().showUI(); // initialise SciJava Services
 
-		final OpenMultipleImagesAndLabelsCommand command = new OpenMultipleImagesAndLabelsCommand();
+		final OpenMultipleImageAndLabelFilesCommand command = new OpenMultipleImageAndLabelFilesCommand();
 		command.image0 = new File( "src/test/resources/ilastik-multiple/raw/iso.*.png" );
 		command.image1 = new File( "src/test/resources/ilastik-multiple/pc/iso..*_Probabilities.h5" );
 		command.labels0 = new File( "src/test/resources/ilastik-multiple/oc/iso..*_Object Identities.h5" );

@@ -83,7 +83,7 @@
         <license.copyrightOwners>EMBL</license.copyrightOwners>
         <enforcer.skip>true</enforcer.skip>
 
-        <mobie-io.version>3.0.0</mobie-io.version>
+        <mobie-io.version>3.0.1-SNAPSHOT</mobie-io.version>
         <imagej-utils.version>0.7.0</imagej-utils.version>
 
         <bigdataviewer-playground.version>0.9.0</bigdataviewer-playground.version>
@@ -92,15 +92,18 @@
         <trove.version>1.0.2</trove.version>
         <annotations.version>16.0.2</annotations.version>
 
-        <n5-viewer_fiji.version>6.1.0</n5-viewer_fiji.version>
-        <n5.version>3.2.0</n5.version>
+        <n5-aws-s3.version>4.1.2</n5-aws-s3.version>
+        <n5-blosc.version>1.1.1</n5-blosc.version>
         <n5-google-cloud.version>4.1.0</n5-google-cloud.version>
-        <n5-zarr.version>1.3.1</n5-zarr.version>
         <n5-hdf5.version>2.2.0</n5-hdf5.version>
-        <n5-ij.version>4.1.1</n5-ij.version>
-        <n5-imglib2.version>5.0.0</n5-imglib2.version>
-        <n5-universe.version>1.4.3</n5-universe.version>
-        <n5-aws-s3.version>4.1.1</n5-aws-s3.version>
+        <n5-ij.version>4.2.0</n5-ij.version>
+        <n5-imglib2.version>7.0.0</n5-imglib2.version>
+        <n5-universe.version>1.5.0</n5-universe.version>
+        <n5-viewer_fiji.version>6.1.1</n5-viewer_fiji.version>
+        <n5-zarr.version>1.3.4-SNAPSHOT</n5-zarr.version>
+        <n5-zstandard.version>1.0.2</n5-zstandard.version>
+        <n5.version>3.2.0</n5.version>
+
         <bigdataviewer-core.version>10.4.13</bigdataviewer-core.version>
         <bigdataviewer-vistools.version>1.0.0-beta-34</bigdataviewer-vistools.version>
 

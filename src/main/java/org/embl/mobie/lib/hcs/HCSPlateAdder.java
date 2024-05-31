@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.lib.hcs;
 
-import ij.IJ;
 import net.thisptr.jackson.jq.internal.misc.Strings;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
@@ -51,20 +50,20 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
-public class HCSDataAdder
+public class HCSPlateAdder
 {
 	private final Plate plate;
 	private final double wellMargin;
 	private final double siteMargin;
 
-	public HCSDataAdder( Plate plate, double wellMargin, double siteMargin  )
+	public HCSPlateAdder( Plate plate, double wellMargin, double siteMargin  )
 	{
 		this.plate = plate;
 		this.wellMargin = wellMargin;
 		this.siteMargin = siteMargin;
 	}
 
-	public void addData( Dataset dataset )
+	public void addPlateToDataset( Dataset dataset )
 	{
 		boolean is2D = plate.is2D();
 		dataset.is2D( is2D );
@@ -106,7 +105,7 @@ public class HCSDataAdder
 
 			final Set< Well > wells = plate.getWells( channel );
 
-			final MergedGridTransformation wellGrid = new MergedGridTransformation( "ch_" + channel.getName() );
+			final MergedGridTransformation wellGrid = new MergedGridTransformation( channel.getName() );
 			wellGrid.sources = new ArrayList<>();
 			wellGrid.positions = new ArrayList<>();
 			wellGrid.margin = wellMargin;
@@ -183,14 +182,14 @@ public class HCSDataAdder
 
 			imageTransforms.add( wellGrid );
 
-			if ( channel.getName().equals( "labels" ) )
+			if ( channel.getName().contains( "labels" ) )
 			{
-				SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( wellGrid.getName(), Arrays.asList( wellGrid.getName() ) );
+				SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( wellGrid.getName(), Collections.singletonList( wellGrid.getName() ) );
 				displays.add( segmentationDisplay );
 			}
 			else
 			{
-				ImageDisplay< ? > imageDisplay = new ImageDisplay<>( wellGrid.getName(), Arrays.asList( wellGrid.getName() ), channel.getColor(), channel.getContrastLimits() );
+				ImageDisplay< ? > imageDisplay = new ImageDisplay<>( wellGrid.getName(), Collections.singletonList( wellGrid.getName() ), channel.getColor(), channel.getContrastLimits() );
 				displays.add( imageDisplay );
 			}
 
@@ -210,7 +209,7 @@ public class HCSDataAdder
 	private static ImageDataSource createImageDataSource( Channel channel, Site site, String siteID )
 	{
 		ImageDataSource imageDataSource;
-		if ( channel.getName().equals( "labels" ) )
+		if ( channel.getName().contains( "labels" ) )
 		{
 			imageDataSource = new SegmentationDataSource( siteID, site.getImageDataFormat(), site );
 		}

@@ -43,10 +43,7 @@ public class DebugIssue1066
 		imageJ.ui().showUI();
 
 		OpenHCSDatasetCommand command = new OpenHCSDatasetCommand();
-
-		// FIXME: the labels are not loaded
-		// this probably needs a fix in mobie-io in the n5 image loader?
-		// probably always checking whether a "labels" subfolder exists
+		// TODO: implement loading of the labels
 		command.hcsDirectory = "/Users/tischer/Downloads/20200812-CardiomyocyteDifferentiation14-Cycle1_mip.zarr";
 		command.run();
 	}

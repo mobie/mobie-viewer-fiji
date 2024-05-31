@@ -30,6 +30,7 @@ package org.embl.mobie.lib.files;
 
 import bdv.viewer.Source;
 import ij.IJ;
+import loci.formats.in.CellSensReader;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.io.FilenameUtils;
@@ -49,10 +50,7 @@ import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ImageFileSources
 {
@@ -74,7 +72,11 @@ public class ImageFileSources
 		this.name = name;
 		this.channelIndex = channelIndex;
 
-		List< String > paths = MoBIEHelper.getFullPaths( pathRegex, root );
+		List< String > paths;
+		if ( pathRegex.contains( "http" ) )
+			paths = Collections.singletonList(  pathRegex );
+		else
+			paths = MoBIEHelper.getFullPaths( pathRegex, root );
 
 		for ( String path : paths )
 		{
@@ -221,7 +223,10 @@ public class ImageFileSources
 
 		if ( channelIndex != null )
 		{
-			imageName += "_c" + channelIndex;
+			// TODO: it is a bit ugly to have that
+			//   - if there is only one image
+			//   - if the image is a segmentation
+			imageName += "_ch" + channelIndex;
 		}
 
 		return imageName;

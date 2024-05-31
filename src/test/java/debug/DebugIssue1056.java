@@ -30,9 +30,6 @@ package debug;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.command.open.OpenHCSDatasetCommand;
-import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsCommand;
-
-import java.io.File;
 
 public class DebugIssue1056
 {

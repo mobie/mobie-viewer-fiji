@@ -43,7 +43,7 @@ import org.embl.mobie.lib.files.FileSourcesDataSetter;
 import org.embl.mobie.lib.files.ImageFileSources;
 import org.embl.mobie.lib.files.LabelFileSources;
 import org.embl.mobie.lib.files.SourcesFromPathsCreator;
-import org.embl.mobie.lib.hcs.HCSDataAdder;
+import org.embl.mobie.lib.hcs.HCSPlateAdder;
 import org.embl.mobie.lib.hcs.Plate;
 import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.image.Image;
@@ -215,8 +215,11 @@ public class MoBIE
 
 		initProject( projectName );
 
-		new ImageDataAdder( imageData, labelData, tableStorageLocation, tableDataFormat )
-				.addData( dataset, settings );
+		new ImageDataAdder(
+				imageData,
+				labelData,
+				tableStorageLocation,
+				tableDataFormat ).addData( dataset, settings );
 
 		initUIandShowView( null );
 	}
@@ -247,7 +250,7 @@ public class MoBIE
 	{
 		initProject( "HCS" );
 		final Plate plate = new Plate( projectLocation, voxelDimensions );
-		new HCSDataAdder( plate, wellMargin, siteMargin ).addData( dataset );
+		new HCSPlateAdder( plate, wellMargin, siteMargin ).addPlateToDataset( dataset );
 		initUIandShowView( dataset.views().keySet().iterator().next() );
 	}
 

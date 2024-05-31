@@ -297,8 +297,7 @@ public abstract class MoBIEHelper
 
 		try
 		{
-			List< String > paths = getPaths( regex, 999 );
-			return paths;
+            return getPaths( regex, 999 );
 		}
 		catch ( Exception e )
 		{

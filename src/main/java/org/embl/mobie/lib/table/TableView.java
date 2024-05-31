@@ -53,6 +53,8 @@ import org.embl.mobie.ui.UserInterfaceHelper;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -109,6 +111,18 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	public void show()
 	{
+		// Prefetch the columns and wait a bit as this hopefully makes it less likely that
+		// there are errors thrown by Java Swing when rendering the table window
+		// below during frame.pack()
+		TableColumnModel columnModel = jTable.getColumnModel();
+		int columnCount = columnModel.getColumnCount();
+		for ( int columnIndex = 0; columnIndex < columnCount; columnIndex++ )
+		{
+			TableColumn column = columnModel.getColumn( columnIndex );
+		}
+		IJ.log( "Showing table " + tableName + " with " + columnCount + " columns.");
+		IJ.wait( 200 );
+
 		final JPanel panel = new JPanel( new GridLayout( 1, 0 ) );
 		JScrollPane scrollPane = new JScrollPane(
 				jTable,
@@ -126,7 +140,14 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		frame.setContentPane( panel );
 
 		// Display the window
-		frame.pack();
+		try
+		{
+			frame.pack();
+		}
+		catch ( Exception e )
+		{
+			IJ.log("Error showing table: " + tableName );
+		}
 
 		// Replace closing by making it invisible
 		frame.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
@@ -147,6 +168,11 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		jTable.setAutoCreateRowSorter( true );
 		jTable.setRowSelectionAllowed( true );
 		jTable.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
+	}
+
+	public String getName()
+	{
+		return tableName;
 	}
 
 	private JMenuBar createMenuBar()

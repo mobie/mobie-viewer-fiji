@@ -1,7 +1,7 @@
 package projects.bacteria_halo_quantification;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsCommand;
+import org.embl.mobie.command.open.OpenMultipleImageAndLabelFilesCommand;
 
 import java.io.File;
 
@@ -11,7 +11,7 @@ public class BacteriaHaloQuantification
     {
         new ImageJ().ui().showUI();
 
-        OpenMultipleImagesAndLabelsCommand command = new OpenMultipleImagesAndLabelsCommand();
+        OpenMultipleImageAndLabelFilesCommand command = new OpenMultipleImageAndLabelFilesCommand();
 
         String root = "/Users/tischer/Documents/bacteria-halo-quantification-data/many_images_output/";
         //String root = "/Users/tischer/Documents/bacteria-halo-quantification-data/few_images_output/";

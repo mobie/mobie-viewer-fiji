@@ -67,7 +67,7 @@ public class FilesCmd implements Callable< Void > {
 
 	// FIXME: This is wrong now
 	@Option(names = { RC, REMOVE_CALIBRATION }, required = false, description = "flag to remove spatial calibration from all images; this can be useful if only some images have a spatial calibration metadata and thus overlaying several images would fail")
-	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImageFiles;
+	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImage;
 
 	@Override
 	public Void call() throws Exception {

@@ -92,6 +92,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -1123,7 +1124,14 @@ public class UserInterfaceHelper
 		checkBox.setToolTipText( "Toggle window visibility" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
-		window.setVisible( isVisible );
+		try
+		{
+			window.setVisible( isVisible );
+		}
+		catch ( Exception e )
+		{
+			IJ.log( "Error making visible " + window );
+		}
 		checkBox.addActionListener( e -> SwingUtilities.invokeLater( () -> window.setVisible( checkBox.isSelected() ) ) );
 		window.addWindowListener(
 				new WindowAdapter() {

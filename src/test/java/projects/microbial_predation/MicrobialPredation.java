@@ -3,7 +3,6 @@ package projects.microbial_predation;
 import net.imagej.ImageJ;
 import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.command.open.OpenImageAndLabelsCommand;
-import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsCommand;
 
 import java.io.File;
 

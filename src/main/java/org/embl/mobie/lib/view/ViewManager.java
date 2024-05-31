@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.view;
 
+import IceInternal.Ex;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
@@ -656,6 +657,7 @@ public class ViewManager
 			annotationDisplay.sliceViewer = sliceViewer;
 			annotationDisplay.sliceView = new AnnotationSliceView<>( moBIE, annotationDisplay );
 			initTableView( annotationDisplay );
+			IJ.wait( 500 ); // FIXME: somehow it takes time to show the table?
 			initScatterPlotView( annotationDisplay );
 			if ( annotationDisplay instanceof SegmentationDisplay )
 				initSegmentVolumeViewer( ( SegmentationDisplay ) annotationDisplay );
@@ -714,6 +716,7 @@ public class ViewManager
 		//   in which the table window will be
 		//   hidden, if {@code display.showTable == false}.
 		//   It would be good if we would not have to show it.
+
 		display.tableView.show();
 		setTablePosition( display.sliceViewer.getWindow(), display.tableView.getWindow() );
 		display.selectionModel.listeners().add( display.tableView );

@@ -37,64 +37,43 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Multiple Images and Labels..." )
-public class OpenMultipleImagesAndLabelsCommand implements Command {
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Image and Label URIs..." )
+public class OpenImageAndLabelsURIsCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter( label = "Image Path", required = false )
-	public File image0;
+	@Parameter( label = "Image URI", required = false )
+	public String image = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
 
-	@Parameter( label = "Image Path", required = false )
-	public File image1;
+	@Parameter( label = "Label Mask URI", required = false )
+	public String labels = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr/labels/cells";
 
-	@Parameter( label = "Image Path", required = false )
-	public File image2;
-
-	@Parameter( label = "Image Path", required = false )
-	public File image3;
-
-	@Parameter( label = "Labels Path", required = false )
-	public File labels0;
-
-	@Parameter( label = "Labels Table Path", required = false )
-	public File table0;
-
-	@Parameter( label = "Labels Path", required = false )
-	public File labels1;
-
-	@Parameter( label = "Labels Table Path", required = false )
-	public File table1;
+	@Parameter( label = "Label Mask Table URI", required = false )
+	public String table;
 
 	@Parameter( label = "Spatial Calibration" )
-	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImageFiles;
+	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImage;
 
 	@Override
 	public void run()
 	{
 		final MoBIESettings settings = new MoBIESettings();
 
-		final GridType gridType = GridType.Stitched; // TODO: fetch from UI
+		final GridType gridType = GridType.Stitched; // TODO: maybe fetch from UI
 
 		final ArrayList< String > imageList = new ArrayList<>();
-		if ( image0 != null ) imageList.add( image0.getAbsolutePath() );
-		if ( image1 != null ) imageList.add( image1.getAbsolutePath() );
-		if ( image2 != null ) imageList.add( image2.getAbsolutePath() );
-		if ( image3 != null ) imageList.add( image3.getAbsolutePath() );
+		if ( image != null ) imageList.add( image);
 
 		final ArrayList< String > labelsList = new ArrayList<>();
-		if ( labels0 != null ) labelsList.add( labels0.getAbsolutePath() );
-		if ( labels1 != null ) labelsList.add( labels1.getAbsolutePath() );
+		if ( labels != null ) labelsList.add( labels );
 
 		final ArrayList< String > tablesList = new ArrayList<>();
-		if ( table0 != null ) tablesList.add( table0.getAbsolutePath() );
-		if ( table1 != null ) tablesList.add( table1.getAbsolutePath() );
+		if ( table != null ) tablesList.add( table );
 
-		spatialCalibration.setVoxelDimensions( settings, table0 != null ? table0.getAbsolutePath() : null );
+		spatialCalibration.setVoxelDimensions( settings, table != null ? table : null );
 
 		try
 		{
@@ -105,4 +84,5 @@ public class OpenMultipleImagesAndLabelsCommand implements Command {
 			throw new RuntimeException( e );
 		}
 	}
+
 }

@@ -30,7 +30,7 @@ package projects.em_xray_alignment;
 
 import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsCommand;
+import org.embl.mobie.command.open.OpenMultipleImageAndLabelFilesCommand;
 
 import java.io.File;
 import java.io.IOException;
@@ -68,7 +68,7 @@ public class OpenShearedMRIStack
 //        // OpenerLogging.setLogging( true );
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        OpenMultipleImagesAndLabelsCommand command = new OpenMultipleImagesAndLabelsCommand();
+        OpenMultipleImageAndLabelFilesCommand command = new OpenMultipleImageAndLabelFilesCommand();
         command.image0 = new File("/Users/tischer/Desktop/em-xray/mri-stack-calibrated.tif");
         command.image1 = new File("/Users/tischer/Desktop/em-xray/mri-stack-calibrated-sheared.tif");
         command.labels0 = new File("/Users/tischer/Desktop/em-xray/mri-stack-calibrated-binary.tif");

@@ -112,7 +112,7 @@ public class Plate
 			ImageData< ? > imageData = ImageDataOpener.open( imagePaths.get( 0 ), imageDataFormat, ThreadHelper.sharedQueue );
 			int numChannels = imageData.getNumDatasets();
 			List< String > channelNames = IntStream.range( 0, numChannels )
-					.mapToObj( channelIndex -> "" + channelIndex )
+					.mapToObj( imageData::getName )
 					.collect( Collectors.toList() );
 			hcsPattern.setChannelNames( channelNames );
 		}
@@ -198,7 +198,6 @@ public class Plate
 					channel = new Channel( channelName, channelNames.indexOf( channelName ) );
 					channelWellSites.put( channel, new HashMap<>() );
 
-
 					// Open for metadata only
 					ImageData< ? > imageData = ImageDataOpener.open( imagePath, imageDataFormat, ThreadHelper.sharedQueue );
 
@@ -219,7 +218,7 @@ public class Plate
 					{
 						int datasetIndex = channel.getIndex();
 
-						IJ.log( "Fetching metadata for setup " + channelName + " from " + imagePath );
+						IJ.log( "Fetching metadata for " + channelName + " from " + imagePath );
 						numSlices = ( int ) imageData.getSourcePair( datasetIndex ).getB().getSource( 0, 0 ).dimension( 2 );
 
 						channel.setColor( ColorHelper.getString( imageData.getMetadata( datasetIndex ).getColor() ) );

@@ -2,7 +2,6 @@ package projects.microglia_morphometry;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.command.SpatialCalibration;
-import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsCommand;
 import org.embl.mobie.command.open.OpenTableCommand;
 
 import java.io.File;

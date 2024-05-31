@@ -26,21 +26,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects.kristina.command;
+package develop;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.command.open.OpenMultipleImageAndLabelFilesCommand;
+import org.embl.mobie.command.open.OpenMultipleImagesAndLabelURIsCommand;
+import org.embl.mobie.io.imagedata.N5ImageData;
 
 import java.io.File;
 
-class KristinaCheckSemanticSegmentation
+public class OpenOMEZarrWithLabelsFromS3
 {
-	public static void main( String[] args ) throws Exception
-	{
-		new ImageJ().ui().showUI();
-		final OpenMultipleImageAndLabelFilesCommand command = new OpenMultipleImageAndLabelFilesCommand();
-		command.image0 = new File("/Volumes/cba/exchange/kristina-mirkes/data/processed/.*--pro.tif");
-		command.image1 = new File("/Volumes/cba/exchange/kristina-mirkes/data/processed/.*--pro_prob_worm.tif");
-		command.run();
-	}
+    public static void main( String[] args )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenMultipleImagesAndLabelURIsCommand command = new OpenMultipleImagesAndLabelURIsCommand();
+        command.image0 = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
+        command.labels0 = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr/labels/cells";
+        command.run();
+    }
 }

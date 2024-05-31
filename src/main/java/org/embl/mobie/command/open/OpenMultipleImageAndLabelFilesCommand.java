@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.command.open;
 
-import loci.common.DebugTools;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
@@ -41,35 +40,35 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Table..." )
-public class OpenTableCommand implements Command {
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Multiple Images and Label Files..." )
+public class OpenMultipleImageAndLabelFilesCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter( label = "Table Path", required = true )
-	public File table;
+	@Parameter( label = "Image Path", required = false )
+	public File image0;
 
-	@Parameter( label = "Image Path Columns (Comma Separated)", required = true )
-	public String images;
+	@Parameter( label = "Image Path", required = false )
+	public File image1;
 
-	@Parameter( label = "Labels Path Columns (Comma Separated)", required = false )
-	public String labels;
+	@Parameter( label = "Image Path", required = false )
+	public File image2;
 
-	@Parameter( label = "Images & Labels Root Folder",
-			style = "directory",
-			description = "Use this is if the images and labels paths in the table are relative.",
-			required = false )
-	public File root;
+	@Parameter( label = "Image Path", required = false )
+	public File image3;
 
-	@Parameter( label = "Path Mapping (From,To)",
-			description = "If the data was analysed on a different computer.\n" +
-					"For example from Linux to MacOS: \"/g,/Volumes\"",
-			required = false )
-	public String pathMapping;
+	@Parameter( label = "Labels Path", required = false )
+	public File labels0;
+
+	@Parameter( label = "Labels Table Path", required = false )
+	public File table0;
+
+	@Parameter( label = "Labels Path", required = false )
+	public File labels1;
+
+	@Parameter( label = "Labels Table Path", required = false )
+	public File table1;
 
 	@Parameter( label = "Spatial Calibration" )
 	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImage;
@@ -77,39 +76,33 @@ public class OpenTableCommand implements Command {
 	@Override
 	public void run()
 	{
-		run( GridType.Stitched );
-	}
-
-	public void run( GridType gridType )
-	{
-		DebugTools.setRootLevel( "OFF" );
-
 		final MoBIESettings settings = new MoBIESettings();
 
-		spatialCalibration.setVoxelDimensions( settings, table != null ? table.getAbsolutePath() : null  );
+		final GridType gridType = GridType.Stitched; // TODO: fetch from UI
 
-		List< String > imageList = new ArrayList<>();
-		if ( images != null && ! images.equals( "" ) )
-		{
-			imageList = Arrays.asList( images.split( "," ) );
-			imageList = imageList.stream().map( s -> s.trim() ).collect( Collectors.toList() );
-		}
+		final ArrayList< String > imageList = new ArrayList<>();
+		if ( image0 != null ) imageList.add( image0.getAbsolutePath() );
+		if ( image1 != null ) imageList.add( image1.getAbsolutePath() );
+		if ( image2 != null ) imageList.add( image2.getAbsolutePath() );
+		if ( image3 != null ) imageList.add( image3.getAbsolutePath() );
 
-		List< String > labelList = new ArrayList<>();
-		if ( labels != null && ! labels.equals( "" ) )
-		{
-			labelList = Arrays.asList( labels.split( "," ) );
-			labelList = labelList.stream().map( s -> s.trim() ).collect( Collectors.toList() );
-		}
+		final ArrayList< String > labelsList = new ArrayList<>();
+		if ( labels0 != null ) labelsList.add( labels0.getAbsolutePath() );
+		if ( labels1 != null ) labelsList.add( labels1.getAbsolutePath() );
+
+		final ArrayList< String > tablesList = new ArrayList<>();
+		if ( table0 != null ) tablesList.add( table0.getAbsolutePath() );
+		if ( table1 != null ) tablesList.add( table1.getAbsolutePath() );
+
+		spatialCalibration.setVoxelDimensions( settings, table0 != null ? table0.getAbsolutePath() : null );
 
 		try
 		{
-			String rootPath = root == null ? null : root.getAbsolutePath();
-			new MoBIE( table.getAbsolutePath(), imageList, labelList, rootPath, pathMapping ,gridType, settings );
+			new MoBIE( imageList, labelsList, tablesList, null, gridType, settings );
 		}
 		catch ( IOException e )
 		{
-			e.printStackTrace();
+			throw new RuntimeException( e );
 		}
 	}
 }

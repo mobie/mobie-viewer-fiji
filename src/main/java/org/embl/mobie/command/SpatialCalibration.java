@@ -10,7 +10,7 @@ import tech.tablesaw.api.Table;
 
 public enum SpatialCalibration
 {
-    FromImageFiles,
+    FromImage,
     FromTable,
     UsePixelUnits;
 
