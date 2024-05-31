@@ -31,7 +31,7 @@ package projects.em_xray_alignment;
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.context.AutomaticRegistrationCommand;
-import org.embl.mobie.command.open.OpenMultipleImageAndLabelFilesCommand;
+import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsFilesCommand;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +43,7 @@ public class OpenEmXraySlices
        // OpenerLogging.setLogging( true );
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        OpenMultipleImageAndLabelFilesCommand command = new OpenMultipleImageAndLabelFilesCommand();
+        OpenMultipleImagesAndLabelsFilesCommand command = new OpenMultipleImagesAndLabelsFilesCommand();
         command.image0 = new File("/Users/tischer/Desktop/em-xray/xray-slice-ds-0.tif");
         command.image1 = new File("/Users/tischer/Desktop/em-xray/em-slice-ds-0.tif");
         command.run();

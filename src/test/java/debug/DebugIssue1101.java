@@ -29,7 +29,7 @@
 package debug;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenMultipleImageAndLabelFilesCommand;
+import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsFilesCommand;
 
 import java.io.File;
 
@@ -38,7 +38,7 @@ public class DebugIssue1101
     public static void main( String[] args )
     {
         new ImageJ().ui().showUI();
-        final OpenMultipleImageAndLabelFilesCommand command = new OpenMultipleImageAndLabelFilesCommand();
+        final OpenMultipleImagesAndLabelsFilesCommand command = new OpenMultipleImagesAndLabelsFilesCommand();
         command.image0 = new File( "/Users/tischer/Downloads/example-png-no-open/iso.*.png" );
         command.run();
     }

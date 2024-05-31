@@ -30,7 +30,7 @@ package projects.agata.command;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.command.open.OpenMultipleImageAndLabelFilesCommand;
+import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsFilesCommand;
 
 import java.io.File;
 
@@ -39,7 +39,7 @@ class AgataCheckCellPoseSegmentation
 	public static void main( String[] args ) throws Exception
 	{
 		new ImageJ().ui().showUI();
-		final OpenMultipleImageAndLabelFilesCommand command = new OpenMultipleImageAndLabelFilesCommand();
+		final OpenMultipleImagesAndLabelsFilesCommand command = new OpenMultipleImagesAndLabelsFilesCommand();
 		//final String root = "/Volumes/cba/exchange/agata-misiaszek/data/analysed/";
 		final String root = "/Users/tischer/Desktop/mobie-data/cellprofiler/";
 		command.image0 = new File( root + ".*.ome.tif=DAPI" );

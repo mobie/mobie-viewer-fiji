@@ -42,7 +42,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Image and Label Files..." )
-public class OpenImageAndLabelsCommand implements Command {
+public class OpenImageAndLabelsFilesCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
