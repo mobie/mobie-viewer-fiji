@@ -82,9 +82,8 @@ public class OMEZarrHCSHelper
         AtomicInteger sourceLoggingModulo = new AtomicInteger(1);
         AtomicLong lastLogMillis = new AtomicLong( System.currentTimeMillis() );
         final long startTime = System.currentTimeMillis();
-        IJ.log( "Parsing " + numWells + " wells..." );
         parseWells( hcsMetadata, wellIndex, numWells, sourceLoggingModulo, lastLogMillis, hcsDirectory, gson, imagePaths );
-        IJ.log( "Parsed " + numWells + " wells in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + ThreadHelper.getNumIoThreads() + " thread(s).");
+        IJ.log( "Parsed " + numWells + " well(s) in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + ThreadHelper.getNumIoThreads() + " thread(s).");
 
         return imagePaths;
     }

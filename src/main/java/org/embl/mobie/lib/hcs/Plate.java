@@ -37,6 +37,7 @@ import mpicbg.spim.data.generic.base.Entity;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imglib2.RandomAccessibleInterval;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.imagedata.ImageData;
@@ -58,6 +59,8 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static org.embl.mobie.lib.MoBIEHelper.computeMinMax;
 
 
 public class Plate
@@ -165,7 +168,7 @@ public class Plate
 				}
 			}
 		}
-		IJ.log( "Found " + imagePaths.size() + " image files in " + ( System.currentTimeMillis() - start ) + " ms." );
+		IJ.log( "Found " + imagePaths.size() + " image file(s) in " + ( System.currentTimeMillis() - start ) + " ms." );
 		IJ.log( "HCS pattern: " + getHcsPattern() );
 		IJ.log( "Image data format: " + imageDataFormat );
 
@@ -219,14 +222,19 @@ public class Plate
 						int datasetIndex = channel.getIndex();
 
 						IJ.log( "Fetching metadata for " + channelName + " from " + imagePath );
-						numSlices = ( int ) imageData.getSourcePair( datasetIndex ).getB().getSource( 0, 0 ).dimension( 2 );
-
+						Source< ? > source = imageData.getSourcePair( datasetIndex ).getA();
+						int numMipmapLevels = source.getNumMipmapLevels();
+						numSlices = ( int ) source.getSource( 0, 0 ).dimension( 2 );
+						RandomAccessibleInterval< ? > rai = source.getSource( 0, numMipmapLevels - 1 );
+						double[] minMax = computeMinMax( ( RandomAccessibleInterval ) rai );
+						IJ.log( "Min, max: " + Arrays.toString( minMax ) );
 						channel.setColor( ColorHelper.getString( imageData.getMetadata( datasetIndex ).getColor() ) );
-
-						channel.setContrastLimits( new double[]{
-								imageData.getMetadata( datasetIndex ).minIntensity(),
-								imageData.getMetadata( datasetIndex ).maxIntensity()
-						} );
+						// This currently does not do any auto-contrast, but just returns the datatype's range
+//						double[] contrastLimits = {
+//								imageData.getMetadata( datasetIndex ).minIntensity(),
+//								imageData.getMetadata( datasetIndex ).maxIntensity()
+//						};
+						channel.setContrastLimits( minMax );
 					}
 
 					if ( fetchSpatialMetadata )

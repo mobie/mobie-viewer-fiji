@@ -32,6 +32,10 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imglib2.Cursor;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.view.Views;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.io.imagedata.ImageData;
@@ -303,5 +307,27 @@ public abstract class MoBIEHelper
 		{
 			throw new RuntimeException( e );
 		}
+	}
+
+	public static <T extends RealType<T> > double[] computeMinMax( RandomAccessibleInterval<T> rai) {
+		Cursor<T> cursor = Views.iterable(rai).cursor();
+
+		// Initialize min and max with the first element
+		T type = cursor.next();
+		T min = type.copy();
+		T max = type.copy();
+
+		// Iterate over the remaining elements to find min and max
+		while (cursor.hasNext()) {
+			type = cursor.next();
+			if (type.compareTo(min) < 0) {
+				min.set(type);
+			}
+			if (type.compareTo(max) > 0) {
+				max.set(type);
+			}
+		}
+
+		return new double[]{ min.getRealDouble(), max.getRealDouble() };
 	}
 }

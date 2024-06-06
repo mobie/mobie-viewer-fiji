@@ -26,24 +26,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package debug;
+package projects;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.command.open.OpenHCSDatasetCommand;
 
 import java.io.IOException;
 
-public class DebugIssue1066
+public class OpenRemotePlatynereis
 {
 	public static void main( String[] args ) throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		OpenHCSDatasetCommand command = new OpenHCSDatasetCommand();
-		command.hcsDirectory = "/Users/tischer/Downloads/20200812-CardiomyocyteDifferentiation14-Cycle1_mip.zarr";
-		command.run();
+		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/covid-if-project", MoBIESettings.settings().gitProjectBranch( "main" ).view( "default" ) ); //"full_grid"
 	}
 }

@@ -35,6 +35,7 @@ import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.imagedata.N5ImageData;
 import org.embl.mobie.lib.bdv.view.OMEZarrViewer;
+import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -44,7 +45,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_OMEZARR + "Open OME-Zarr From File System...")
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_OMEZARR + "(Deprecated) Open OME-Zarr From File System... ")
 public class OpenOMEZARRCommand implements Command {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
@@ -52,12 +53,15 @@ public class OpenOMEZARRCommand implements Command {
     @Parameter(label = "OME-Zarr path", style = "directory")
     public File omeZarrDirectory;
 
+    @Parameter( visibility = ItemVisibility.MESSAGE )
+    private final String message = "Deprecated! Please use \"Open Image and Labels Files\" instead.";
+
     @Override
     public void run() {
         try {
             openAndShow( omeZarrDirectory.toString() );
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException( e );
         }
     }
 

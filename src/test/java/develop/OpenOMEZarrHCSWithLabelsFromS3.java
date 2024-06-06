@@ -26,24 +26,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package debug;
+package develop;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.open.OpenHCSDatasetCommand;
+import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsURIsCommand;
 
-import java.io.IOException;
-
-public class DebugIssue1066
+public class OpenOMEZarrHCSWithLabelsFromS3
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+    public static void main( String[] args )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
 
-		OpenHCSDatasetCommand command = new OpenHCSDatasetCommand();
-		command.hcsDirectory = "/Users/tischer/Downloads/20200812-CardiomyocyteDifferentiation14-Cycle1_mip.zarr";
-		command.run();
-	}
+        OpenHCSDatasetCommand command = new OpenHCSDatasetCommand();
+        // Does this really have labels?
+        command.hcsDirectory = "https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.4/idr0001A/2551.zarr";
+        command.run();
+    }
 }

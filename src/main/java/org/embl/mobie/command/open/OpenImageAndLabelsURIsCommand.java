@@ -40,7 +40,7 @@ import org.scijava.plugin.Plugin;
 import java.io.IOException;
 import java.util.ArrayList;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Image and Label URIs..." )
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Image and Labels URIs..." )
 public class OpenImageAndLabelsURIsCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
@@ -65,7 +65,7 @@ public class OpenImageAndLabelsURIsCommand implements Command {
 		final GridType gridType = GridType.Stitched; // TODO: maybe fetch from UI
 
 		final ArrayList< String > imageList = new ArrayList<>();
-		if ( image != null ) imageList.add( image);
+		if ( image != null ) imageList.add( image );
 
 		final ArrayList< String > labelsList = new ArrayList<>();
 		if ( labels != null ) labelsList.add( labels );
@@ -84,5 +84,4 @@ public class OpenImageAndLabelsURIsCommand implements Command {
 			throw new RuntimeException( e );
 		}
 	}
-
 }

@@ -30,6 +30,7 @@ package org.embl.mobie;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import ij.IJ;
 import ij.WindowManager;
 import loci.common.DebugTools;
@@ -84,6 +85,12 @@ public class MoBIE
 	{
 		net.imagej.patcher.LegacyInjector.preinit();
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
+
+		new Thread(() -> {
+			long start = System.currentTimeMillis();
+			AmazonS3ClientBuilder.standard();
+			IJ.log( "Initialised AmazonS3ClientBuilder in " + ( System.currentTimeMillis() -start ) + " ms." );
+		}).start();
 	}
 
 	private static MoBIE moBIE;
