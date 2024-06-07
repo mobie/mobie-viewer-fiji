@@ -227,6 +227,6 @@ public class HCSPlateAdder
 
 	private String getWellID( Plate plate, Channel channel, Well well )
 	{
-		return Strings.join( "-", Arrays.asList( plate.getName(), "ch" + channel.getName(), "w" + well.getName() ) );
+		return Strings.join( "-", Arrays.asList( plate.getName(), channel.getName(), well.getName() ) );
 	}
 }

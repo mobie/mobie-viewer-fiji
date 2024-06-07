@@ -59,6 +59,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.embl.mobie.lib.MoBIEHelper.computeMinMax;
 
@@ -111,8 +112,9 @@ public class Plate
 			}
 
 			imagePaths = OMEZarrHCSHelper.imagePathsFromMetadata( hcsDirectory );
-
-			ImageData< ? > imageData = ImageDataOpener.open( imagePaths.get( 0 ), imageDataFormat, ThreadHelper.sharedQueue );
+			Collections.sort( imagePaths );
+			String referenceImagePath = imagePaths.get( 0 );
+			ImageData< ? > imageData = ImageDataOpener.open( referenceImagePath, imageDataFormat, ThreadHelper.sharedQueue );
 			int numChannels = imageData.getNumDatasets();
 			List< String > channelNames = IntStream.range( 0, numChannels )
 					.mapToObj( imageData::getName )
@@ -311,7 +313,7 @@ public class Plate
 						IJ.log( "" );
 						final Map< String, Entity > attributes = viewSetup.getAttributes();
 						IJ.log( "Image index:" + imageIndex );
-						IJ.log( "Series index: " + ( ( SeriesIndex ) attributes.get( "seriesindex" ) ).getId() );
+						IJ.log( "Series index: " + attributes.get( "seriesindex" ).getId() );
 						IJ.log( "Setup name: " + viewSetup.getName() );
 						IJ.log( "File name: " + new File( imagePath ).getName() );
 						site = new Site( siteGroup, imageDataFormat, spimDataPlate, imageIndex );

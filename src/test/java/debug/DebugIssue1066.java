@@ -43,7 +43,11 @@ public class DebugIssue1066
 		imageJ.ui().showUI();
 
 		OpenHCSDatasetCommand command = new OpenHCSDatasetCommand();
-		command.hcsDirectory = "/Users/tischer/Downloads/20200812-CardiomyocyteDifferentiation14-Cycle1_mip.zarr";
+		//command.hcsDirectory = "/Users/tischer/Downloads/20200812-CardiomyocyteDifferentiation14-Cycle1_mip.zarr";
+
+		// https://forum.image.sc/t/ome-zarr-hcs-with-labels-on-s3/97327/3
+		command.hcsDirectory = "https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.4/idr0001A/2551.zarr";
+
 		command.run();
 	}
 }

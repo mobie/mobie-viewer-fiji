@@ -127,6 +127,7 @@ public class SwingTableModel implements TableModel
 
 	public void tableChanged()
 	{
+		// https://github.com/mobie/mobie-viewer-fiji/issues/1146
 		for ( TableModelListener listener : tableModelListeners )
 		{
 			final TableModelEvent tableModelEvent = new TableModelEvent( this, TableModelEvent.HEADER_ROW );

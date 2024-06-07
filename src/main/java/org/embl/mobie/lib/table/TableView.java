@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.table;
 
+import IceInternal.Ex;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.TableUIs;
 import ij.IJ;
@@ -111,6 +112,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	public void show()
 	{
+
 		// Prefetch the columns and wait a bit as this hopefully makes it less likely that
 		// there are errors thrown by Java Swing when rendering the table window
 		// below during frame.pack()
@@ -119,8 +121,10 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		for ( int columnIndex = 0; columnIndex < columnCount; columnIndex++ )
 		{
 			TableColumn column = columnModel.getColumn( columnIndex );
+			if ( column == null )
+				throw new NullPointerException("");
 		}
-		IJ.log( "Showing table " + tableName + " with " + columnCount + " columns.");
+		IJ.log( "Showing table \"" + tableName + "\" with " + columnCount + " columns.");
 		IJ.wait( 200 );
 
 		final JPanel panel = new JPanel( new GridLayout( 1, 0 ) );
@@ -130,7 +134,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED );
 		panel.add( scrollPane );
 
-		jTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 		panel.updateUI();
 		panel.setOpaque( true );
 
@@ -139,31 +142,37 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		frame.setJMenuBar( menuBar );
 		frame.setContentPane( panel );
 
-		// Display the window
 		try
 		{
-			frame.pack();
+			// Adding a delay
+			Timer timer = new Timer(200, e -> {
+				frame.pack();
+				frame.setVisible(true);
+			});
+			timer.setRepeats(false);
+			timer.start();
 		}
 		catch ( Exception e )
 		{
 			IJ.log("Error showing table: " + tableName );
 		}
 
-		// Replace closing by making it invisible
 		frame.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
 		frame.addWindowListener( new WindowAdapter() {
 			public void windowClosing( WindowEvent ev) {
 				frame.setVisible( false );
 			}
-		});
+		});	//frame.pack();
 	}
 
 	private void configureJTable()
 	{
 		swingTableModel = new SwingTableModel( tableModel );
 		jTable = new JTable( swingTableModel );
+		TableColumnModel columnModel = jTable.getColumnModel();
+		TableColumn column = columnModel.getColumn( 0 );
 		jTable.updateUI();
-		jTable.setPreferredScrollableViewportSize( new Dimension(500, 200) );
+		jTable.setPreferredScrollableViewportSize( new Dimension( 500, 200 ) );
 		jTable.setFillsViewportHeight( true );
 		jTable.setAutoCreateRowSorter( true );
 		jTable.setRowSelectionAllowed( true );
@@ -316,8 +325,11 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		if ( jTable == null ) return;
 
+		// https://github.com/mobie/mobie-viewer-fiji/issues/1146
 		swingTableModel.tableChanged();
-		repaintTable();
+
+		if ( jTable.isVisible() )
+			repaintTable();
 	}
 
 	private JMenuItem createSaveTableAsMenuItem()
@@ -850,28 +862,38 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	@Override
 	public void annotationsAdded( Collection< A > annotations )
 	{
+		// https://github.com/mobie/mobie-viewer-fiji/issues/1146
 		updateTable();
 	}
 
 	@Override
 	public synchronized void columnsAdded( Collection< String > columns )
 	{
-		updateTable();
-		// TODO: errors such as
-		// Exception in thread "AWT-EventQueue-0" java.lang.ArrayIndexOutOfBoundsException: 31 >= 31
-		//	at java.util.Vector.elementAt(Vector.java:479)
-		//	at javax.swing.table.DefaultTableColumnModel
-//		For debugging:
-//		final List< String > columnNames = tableModel.columnNames();
-//		final int swingColumnCount = swingTableModel.getColumnCount();
-//		final TableColumnModel columnModel = jTable.getColumnModel();
-//		final int jTableColumnCount = columnModel.getColumnCount();
-////		IJ.wait( 100 ); // maybe this avoids the updating error?
-//		for ( int i = 0; i < columnNames.size(); i++ )
-//		{
-//			System.out.println( columnNames.get( i ) );
-//			System.out.println( swingTableModel.getColumnName( i ) );
-//			System.out.println( jTable.getColumnName( i ) );
-//		}
+		try
+		{
+			updateTable();
+		}
+		catch ( Exception e )
+		{
+			// TODO: errors such as
+			// Exception in thread "AWT-EventQueue-0" java.lang.ArrayIndexOutOfBoundsException: 31 >= 31
+			//	at java.util.Vector.elementAt(Vector.java:479)
+			//	at javax.swing.table.DefaultTableColumnModel
+			// For debugging:
+			System.out.println("Error updating " + tableName );
+			final List< String > columnNames = tableModel.columnNames();
+			final int swingColumnCount = swingTableModel.getColumnCount();
+			final TableColumnModel columnModel = jTable.getColumnModel();
+			final int jTableColumnCount = columnModel.getColumnCount();
+			IJ.wait( 100 ); // maybe this avoids the updating error?
+			for ( int i = 0; i < columnNames.size(); i++ )
+			{
+				System.out.println( columnNames.get( i ) );
+				System.out.println( swingTableModel.getColumnName( i ) );
+				System.out.println( jTable.getColumnName( i ) );
+			}
+			throw new RuntimeException( e );
+		}
+
 	}
 }
