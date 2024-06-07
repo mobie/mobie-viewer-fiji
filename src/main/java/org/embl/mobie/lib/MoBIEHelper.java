@@ -62,6 +62,8 @@ import static org.embl.mobie.io.util.IOHelper.getPaths;
 
 public abstract class MoBIEHelper
 {
+	public static final String GRID_TYPE_HELP = "If the images are different and not too many, use Transformed; otherwise use Stitched for better performance.";
+
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	public static String print(double[] array, int numSignificantDigits) {

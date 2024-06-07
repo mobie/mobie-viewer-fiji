@@ -32,6 +32,7 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.SpatialCalibration;
+import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.transform.GridType;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
@@ -57,7 +58,7 @@ public class OpenImageAndLabelsURIsCommand implements Command {
 	@Parameter( label = "Spatial Calibration" )
 	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImage;
 
-	@Parameter( label = "Grid type", description = "If the images are different and not too many, use Transformed; otherwise use Stitched for better performance.")
+	@Parameter( label = "Grid type", description = MoBIEHelper.GRID_TYPE_HELP )
 	public GridType gridType = GridType.Transformed;
 
 	@Override
