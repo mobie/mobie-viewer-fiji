@@ -74,10 +74,13 @@ public class OpenTableCommand implements Command {
 	@Parameter( label = "Spatial Calibration" )
 	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImage;
 
+	@Parameter( label = "Grid type", description = "If the images are different and not too many, use \"Transformed\"; otherwise use \"Stitched\" for better performance.")
+	public GridType gridType = GridType.Transformed;
+
 	@Override
 	public void run()
 	{
-		run( GridType.Stitched );
+		run( gridType );
 	}
 
 	public void run( GridType gridType )

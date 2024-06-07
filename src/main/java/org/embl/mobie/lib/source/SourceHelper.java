@@ -105,6 +105,7 @@ public abstract class SourceHelper
         if ( numSourceTimepoints == maxNumTimePoints )
 		{
 			System.err.println( source.getName() + " has more than " + maxNumTimePoints + " time-points. Is this an error?!" );
+			return 1;
 		}
 
 		return numSourceTimepoints;

@@ -31,9 +31,11 @@ package org.embl.mobie.lib.files;
 import bdv.viewer.Source;
 import ij.IJ;
 import loci.formats.in.CellSensReader;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.io.FilenameUtils;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
@@ -169,12 +171,17 @@ public class ImageFileSources
 	private void setMetadata( Integer channelIndex )
 	{
 		metadataSource = nameToFullPath.keySet().iterator().next();
+		IJ.log( "Fetching metadata from " + nameToFullPath.get( metadataSource ) );
 		ImageData< ? > imageData = ImageDataOpener.open( nameToFullPath.get( metadataSource ) );
 		CanonicalDatasetMetadata canonicalDatasetMetadata = imageData.getMetadata( channelIndex );
 		metadata = new Metadata( canonicalDatasetMetadata );
-		Source< ? extends Volatile< ? > > source = imageData.getSourcePair( channelIndex ).getB();
+		Source< ? > source = imageData.getSourcePair( channelIndex ).getA();
 		metadata.numZSlices = (int) source.getSource( 0, 0  ).dimension( 2 );
 		metadata.numTimePoints = SourceHelper.getNumTimePoints( source );
+		metadata.contrastLimits = MoBIEHelper.computeMinMax( ( RandomAccessibleInterval ) source.getSource( 0, source.getNumMipmapLevels() -1 ) );
+		IJ.log( "Slices: " + metadata.numZSlices );
+		IJ.log( "Frames: " + metadata.numTimePoints );
+		IJ.log( "Min, max: " + Arrays.toString( metadata.contrastLimits ) );
 	}
 
 	private static String applyPathMapping( String pathMapping, String path )

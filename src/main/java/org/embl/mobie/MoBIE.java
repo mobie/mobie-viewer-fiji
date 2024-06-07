@@ -89,7 +89,7 @@ public class MoBIE
 		new Thread(() -> {
 			long start = System.currentTimeMillis();
 			AmazonS3ClientBuilder.standard();
-			IJ.log( "Initialised AmazonS3ClientBuilder in " + ( System.currentTimeMillis() -start ) + " ms." );
+			IJ.log( "( Initialised AmazonS3ClientBuilder in " + ( System.currentTimeMillis() -start ) + " ms. )" );
 		}).start();
 	}
 

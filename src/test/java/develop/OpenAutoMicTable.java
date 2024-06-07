@@ -29,7 +29,6 @@
 package develop;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenTableAdvancedCommand;
 import org.embl.mobie.lib.transform.GridType;
 
 import java.io.File;

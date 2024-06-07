@@ -26,25 +26,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open;
+package projects;
 
-import org.embl.mobie.command.CommandConstants;
+import net.imagej.ImageJ;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.command.open.OpenImageAndLabelsFilesCommand;
 import org.embl.mobie.lib.transform.GridType;
-import org.scijava.command.Command;
-import org.scijava.plugin.Parameter;
-import org.scijava.plugin.Plugin;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Table (Advanced)..." )
-public class OpenTableAdvancedCommand extends OpenTableCommand {
+import java.io.File;
+import java.io.IOException;
 
-	static { net.imagej.patcher.LegacyInjector.preinit(); }
-
-	@Parameter( label = "Grid type" )
-	public GridType gridType = GridType.Transformed;
-
-	@Override
-	public void run()
+public class OpenLocalYannickZarrs
+{
+	public static void main( String[] args ) throws IOException
 	{
-		super.run( gridType );
+		final ImageJ imageJ = new ImageJ();
+		imageJ.ui().showUI();
+
+		OpenImageAndLabelsFilesCommand command = new OpenImageAndLabelsFilesCommand();
+		command.gridType = GridType.Transformed;
+		command.image = new File("/Volumes/schwab/schwab/MoBIE-GRIDtestJUNE2024/JEOL1400_20240426/.*.ome.zarr");
+		//command.image = new File("/Volumes/schwab/schwab/MoBIE-GRIDtestJUNE2024/JEOL1400_20240426/Alex_ASH_BlockA1_Grid11_PS_ser1_cell4_8k_blend.ome.zarr");
+
+		// FIXME
+		// - why does the software complain that there are more than 1000 time-points?
+		// - add the relative paths to the table
+		// - add the full paths to the table
+		command.run();
 	}
 }

@@ -46,10 +46,11 @@ public class OpenImageAndLabelsFilesCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter( label = "Image Path", required = false )
+	// FIXME: https://forum.image.sc/t/scijava-ui-open-both-file-and-directory/97389
+	@Parameter( label = "Image Path", style = "both", required = false )
 	public File image;
 
-	@Parameter( label = "Label Mask Path", required = false )
+	@Parameter( label = "Label Mask Path", style = "both", required = false )
 	public File labels;
 
 	@Parameter( label = "Label Mask Table Path", required = false )
@@ -58,12 +59,13 @@ public class OpenImageAndLabelsFilesCommand implements Command {
 	@Parameter( label = "Spatial Calibration" )
 	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImage;
 
+	@Parameter( label = "Grid type", description = "If the images are different and not too many, use Transformed; otherwise use Stitched for better performance.")
+	public GridType gridType = GridType.Transformed;
+
 	@Override
 	public void run()
 	{
 		final MoBIESettings settings = new MoBIESettings();
-
-		final GridType gridType = GridType.Stitched; // TODO: fetch from UI
 
 		final ArrayList< String > imageList = new ArrayList<>();
 		if ( image != null ) imageList.add( image.getAbsolutePath() );
@@ -85,7 +87,7 @@ public class OpenImageAndLabelsFilesCommand implements Command {
 		}
 		catch ( IOException e )
 		{
-			e.printStackTrace();
+			throw new RuntimeException( e );
 		}
 	}
 

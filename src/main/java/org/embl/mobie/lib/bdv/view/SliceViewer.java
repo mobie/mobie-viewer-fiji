@@ -205,6 +205,7 @@ public class SliceViewer
 		final MobieSerializableBdvOptions sOptions = new MobieSerializableBdvOptions();
 		sOptions.is2D = is2D;
 		sOptions.frameTitle = frameTitle;
+		sOptions.interpolate = !is2D;
 		IBdvSupplier bdvSupplier = new MobieBdvSupplier( sOptions );
 		//SourceAndConverterServices.getBdvDisplayService().setDefaultBdvSupplier( bdvSupplier );
 		//BdvHandle bdvHandle = SourceAndConverterServices.getBdvDisplayService().getNewBdv();

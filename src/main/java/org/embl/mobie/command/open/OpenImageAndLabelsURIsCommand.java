@@ -57,12 +57,13 @@ public class OpenImageAndLabelsURIsCommand implements Command {
 	@Parameter( label = "Spatial Calibration" )
 	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImage;
 
+	@Parameter( label = "Grid type", description = "If the images are different and not too many, use Transformed; otherwise use Stitched for better performance.")
+	public GridType gridType = GridType.Transformed;
+
 	@Override
 	public void run()
 	{
 		final MoBIESettings settings = new MoBIESettings();
-
-		final GridType gridType = GridType.Stitched; // TODO: maybe fetch from UI
 
 		final ArrayList< String > imageList = new ArrayList<>();
 		if ( image != null ) imageList.add( image );
