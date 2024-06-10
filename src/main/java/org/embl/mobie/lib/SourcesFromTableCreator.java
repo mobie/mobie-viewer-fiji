@@ -113,7 +113,9 @@ public class SourcesFromTableCreator
 			// can thus be used as the region table
 			String imageColumn = imageColumns.get( 0 );
 			final List< String > regions = table.stringColumn( imageColumn ).asList();
-			regionTable = table.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) );
+			regionTable = table;
+			if ( ! table.containsColumn( ColumnNames.REGION_ID ) )
+				regionTable = table.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) );
 			regionTable.setName( "image table" );
 		}
 		else
