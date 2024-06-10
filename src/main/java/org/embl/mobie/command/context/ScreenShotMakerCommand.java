@@ -30,8 +30,6 @@ package org.embl.mobie.command.context;
 
 import bdv.util.BdvHandle;
 import ij.IJ;
-import ij.gui.Roi;
-import ij.plugin.frame.RoiManager;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;

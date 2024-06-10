@@ -38,27 +38,29 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Image and Labels URIs..." )
-public class OpenImageAndLabelsURIsCommand implements Command {
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Image and Labels..." )
+public class OpenImageAndLabelsCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter( label = "Image URI", required = false )
-	public String image = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
+	// FIXME: https://forum.image.sc/t/scijava-ui-open-both-file-and-directory/97389
+	@Parameter( label = "Image URI", style = "both", required = false )
+	public File image;
 
-	@Parameter( label = "Label Mask URI", required = false )
-	public String labels = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr/labels/cells";
+	@Parameter( label = "Label Mask URI", style = "both", required = false )
+	public File labels;
 
 	@Parameter( label = "Label Mask Table URI", required = false )
-	public String table;
+	public File table;
 
 	@Parameter( label = "Spatial Calibration" )
 	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImage;
 
-	@Parameter( label = "Grid type", description = MoBIEHelper.GRID_TYPE_HELP )
+	@Parameter( label = "Grid", description = MoBIEHelper.GRID_TYPE_HELP )
 	public GridType gridType = GridType.Transformed;
 
 	@Override
@@ -67,15 +69,18 @@ public class OpenImageAndLabelsURIsCommand implements Command {
 		final MoBIESettings settings = new MoBIESettings();
 
 		final ArrayList< String > imageList = new ArrayList<>();
-		if ( image != null ) imageList.add( image );
+		if ( image != null ) imageList.add( MoBIEHelper.toURI( image ) );
 
 		final ArrayList< String > labelsList = new ArrayList<>();
-		if ( labels != null ) labelsList.add( labels );
+		if ( labels != null ) labelsList.add( MoBIEHelper.toURI( labels ) );
 
 		final ArrayList< String > tablesList = new ArrayList<>();
-		if ( table != null ) tablesList.add( table );
+		if ( table != null )
+		{
+			tablesList.add( MoBIEHelper.toURI( table ) );
+		}
 
-		spatialCalibration.setVoxelDimensions( settings, table != null ? table : null );
+		spatialCalibration.setVoxelDimensions( settings, table != null ? MoBIEHelper.toURI( table ) : null );
 
 		try
 		{
@@ -86,4 +91,5 @@ public class OpenImageAndLabelsURIsCommand implements Command {
 			throw new RuntimeException( e );
 		}
 	}
+
 }

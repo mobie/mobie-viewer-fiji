@@ -2,7 +2,7 @@ package projects.microbial_predation;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.command.SpatialCalibration;
-import org.embl.mobie.command.open.OpenImageAndLabelsFilesCommand;
+import org.embl.mobie.command.open.OpenImageAndLabelsCommand;
 
 import java.io.File;
 
@@ -12,7 +12,7 @@ public class MicrobialPredation
     {
         new ImageJ().ui().showUI();
 
-        OpenImageAndLabelsFilesCommand command = new OpenImageAndLabelsFilesCommand();
+        OpenImageAndLabelsCommand command = new OpenImageAndLabelsCommand();
 
         String root = "/Users/tischer/Documents/microbial-predation-data/";
         command.image = new File( root + "test_timelapse_subset/.*.tif" );

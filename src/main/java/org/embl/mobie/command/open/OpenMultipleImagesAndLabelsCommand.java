@@ -42,39 +42,39 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Multiple Images and Label Files..." )
-public class OpenMultipleImagesAndLabelsFilesCommand implements Command {
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Multiple Images and Labels..." )
+public class OpenMultipleImagesAndLabelsCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter( label = "Image Path", required = false )
+	@Parameter( label = "Image URI", required = false )
 	public File image0;
 
-	@Parameter( label = "Image Path", required = false )
+	@Parameter( label = "Image URI", required = false )
 	public File image1;
 
-	@Parameter( label = "Image Path", required = false )
+	@Parameter( label = "Image URI", required = false )
 	public File image2;
 
-	@Parameter( label = "Image Path", required = false )
+	@Parameter( label = "Image URI", required = false )
 	public File image3;
 
-	@Parameter( label = "Labels Path", required = false )
+	@Parameter( label = "Labels URI", required = false )
 	public File labels0;
 
-	@Parameter( label = "Labels Table Path", required = false )
+	@Parameter( label = "Labels Table URI", required = false )
 	public File table0;
 
-	@Parameter( label = "Labels Path", required = false )
+	@Parameter( label = "Labels URI", required = false )
 	public File labels1;
 
-	@Parameter( label = "Labels Table Path", required = false )
+	@Parameter( label = "Labels Table URI", required = false )
 	public File table1;
 
 	@Parameter( label = "Spatial Calibration" )
 	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImage;
 
-	@Parameter( label = "Grid type", description = MoBIEHelper.GRID_TYPE_HELP )
+	@Parameter( label = "Grid", description = MoBIEHelper.GRID_TYPE_HELP )
 	public GridType gridType = GridType.Transformed;
 
 	@Override
@@ -83,20 +83,20 @@ public class OpenMultipleImagesAndLabelsFilesCommand implements Command {
 		final MoBIESettings settings = new MoBIESettings();
 
 		final ArrayList< String > imageList = new ArrayList<>();
-		if ( image0 != null ) imageList.add( image0.getAbsolutePath() );
-		if ( image1 != null ) imageList.add( image1.getAbsolutePath() );
-		if ( image2 != null ) imageList.add( image2.getAbsolutePath() );
-		if ( image3 != null ) imageList.add( image3.getAbsolutePath() );
+		if ( image0 != null ) imageList.add( MoBIEHelper.toURI( image0 ) );
+		if ( image1 != null ) imageList.add( MoBIEHelper.toURI( image1 ) );
+		if ( image2 != null ) imageList.add( MoBIEHelper.toURI( image2 ) );
+		if ( image3 != null ) imageList.add( MoBIEHelper.toURI( image3 ) );
 
 		final ArrayList< String > labelsList = new ArrayList<>();
-		if ( labels0 != null ) labelsList.add( labels0.getAbsolutePath() );
-		if ( labels1 != null ) labelsList.add( labels1.getAbsolutePath() );
+		if ( labels0 != null ) labelsList.add( MoBIEHelper.toURI( labels0 ) );
+		if ( labels1 != null ) labelsList.add( MoBIEHelper.toURI( labels1 ) );
 
 		final ArrayList< String > tablesList = new ArrayList<>();
-		if ( table0 != null ) tablesList.add( table0.getAbsolutePath() );
-		if ( table1 != null ) tablesList.add( table1.getAbsolutePath() );
+		if ( table0 != null ) tablesList.add( MoBIEHelper.toURI( table0 ) );
+		if ( table1 != null ) tablesList.add( MoBIEHelper.toURI( table1 ) );
 
-		spatialCalibration.setVoxelDimensions( settings, table0 != null ? table0.getAbsolutePath() : null );
+		spatialCalibration.setVoxelDimensions( settings, table0 != null ? MoBIEHelper.toURI( table0 ) : null );
 
 		try
 		{

@@ -29,7 +29,7 @@
 package projects.kristina.command;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsFilesCommand;
+import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsCommand;
 
 import java.io.File;
 
@@ -38,7 +38,7 @@ class KristinaOpenJPEGSeries
 	public static void main( String[] args ) throws Exception
 	{
 		new ImageJ().ui().showUI();
-		final OpenMultipleImagesAndLabelsFilesCommand command = new OpenMultipleImagesAndLabelsFilesCommand();
+		final OpenMultipleImagesAndLabelsCommand command = new OpenMultipleImagesAndLabelsCommand();
 		command.image0 = new File("/Volumes/cba/exchange/kristina-mirkes/develop/data-test/processed/exp/batch/date/MVI_1253/.*.image.toml");
 		command.run();
 	}

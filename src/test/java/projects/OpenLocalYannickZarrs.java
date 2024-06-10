@@ -29,9 +29,7 @@
 package projects;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.command.open.OpenImageAndLabelsFilesCommand;
+import org.embl.mobie.command.open.OpenImageAndLabelsCommand;
 import org.embl.mobie.lib.transform.GridType;
 
 import java.io.File;
@@ -44,7 +42,7 @@ public class OpenLocalYannickZarrs
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		OpenImageAndLabelsFilesCommand command = new OpenImageAndLabelsFilesCommand();
+		OpenImageAndLabelsCommand command = new OpenImageAndLabelsCommand();
 		command.gridType = GridType.Transformed;
 		command.image = new File("/Volumes/schwab/schwab/MoBIE-GRIDtestJUNE2024/JEOL1400_20240426/.*.ome.zarr");
 		//command.image = new File("/Volumes/schwab/schwab/MoBIE-GRIDtestJUNE2024/JEOL1400_20240426/Alex_ASH_BlockA1_Grid11_PS_ser1_cell4_8k_blend.ome.zarr");

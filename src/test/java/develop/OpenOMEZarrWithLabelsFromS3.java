@@ -29,7 +29,9 @@
 package develop;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsURIsCommand;
+import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsCommand;
+
+import java.io.File;
 
 public class OpenOMEZarrWithLabelsFromS3
 {
@@ -38,9 +40,9 @@ public class OpenOMEZarrWithLabelsFromS3
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenMultipleImagesAndLabelsURIsCommand command = new OpenMultipleImagesAndLabelsURIsCommand();
-        command.image0 = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
-        command.labels0 = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr/labels/cells";
+        OpenMultipleImagesAndLabelsCommand command = new OpenMultipleImagesAndLabelsCommand();
+        command.image0 = new File( "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr" );
+        command.labels0 = new File( "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr/labels/cells" );
         command.run();
     }
 }

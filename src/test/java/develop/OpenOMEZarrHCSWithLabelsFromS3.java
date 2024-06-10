@@ -30,7 +30,6 @@ package develop;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.command.open.OpenHCSDatasetCommand;
-import org.embl.mobie.command.open.OpenMultipleImagesAndLabelsURIsCommand;
 
 public class OpenOMEZarrHCSWithLabelsFromS3
 {

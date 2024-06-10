@@ -62,7 +62,8 @@ import static org.embl.mobie.io.util.IOHelper.getPaths;
 
 public abstract class MoBIEHelper
 {
-	public static final String GRID_TYPE_HELP = "If the images are different and not too many, use Transformed; otherwise use Stitched for better performance.";
+	public static final String GRID_TYPE_HELP = "If the images are different and not too many, use Transformed for more flexible visualisation.\n" +
+			"If all images are identical use Stitched for better performance.";
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -331,5 +332,18 @@ public abstract class MoBIEHelper
 		}
 
 		return new double[]{ min.getRealDouble(), max.getRealDouble() };
+	}
+
+	public static String toURI( File file )
+	{
+		String string = file.toString();
+
+		if (string.startsWith("https:/") || string.startsWith("http:/")) {
+			string = string
+					.replaceFirst("https:/", "https://")
+					.replaceFirst("http:/", "http://");
+		}
+
+		return string;
 	}
 }
