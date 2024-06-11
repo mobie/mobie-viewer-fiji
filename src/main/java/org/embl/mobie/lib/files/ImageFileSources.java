@@ -146,10 +146,18 @@ public class ImageFileSources
 			for ( int rowIndex = 0; rowIndex < numRows; rowIndex++ )
 			{
 				String path = table.getString( rowIndex, imageColumn );
-				File file = root == null ? new File( path ) : new File( root, path );
-				String imageName = createImageName( channelIndex, file.getName() );
-				nameToFullPath.put( imageName, applyPathMapping( pathMapping, file.getAbsolutePath() )  );
-				nameToPath.put( imageName, path );
+				String imageName = createImageName( channelIndex, IOHelper.getFileName( path ) );
+				if ( path.startsWith( "http" ) )
+				{
+					nameToFullPath.put( imageName, path );
+					nameToPath.put( imageName, path );
+				}
+				else
+				{
+					File file = root == null ? new File( path ) : new File( root, path );
+					nameToFullPath.put( imageName, applyPathMapping( pathMapping, file.getAbsolutePath() )  );
+					nameToPath.put( imageName, path );
+				}
 			}
 		}
 

@@ -261,6 +261,7 @@ public class FileSourcesDataSetter
 			}
 			else
 			{
+				// FIXME what about supporting no grid type?
 				throw new RuntimeException( "Grid type not supported: " + sources.getGridType() );
 			}
 		}

@@ -40,6 +40,6 @@ public class OpenRemoteHTMTest
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/htm-test", MoBIESettings.settings().view( "default" ) );
+		new MoBIE( "https://github.com/mobie/htm-test", MoBIESettings.settings().view( "default" ) );
 	}
 }
