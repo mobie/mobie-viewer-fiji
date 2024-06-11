@@ -68,17 +68,18 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 	protected final Listeners.SynchronizedList< ActiveListener > listeners
 			= new Listeners.SynchronizedList< ActiveListener >(  );
 
-
-	public ImageNameOverlay( BdvHandle bdvHandle, boolean isActive, SliceViewer sliceViewer )
+	public ImageNameOverlay( BdvHandle bdvHandle, SliceViewer sliceViewer )
 	{
 		this.bdvHandle = bdvHandle;
 		this.sliceViewer = sliceViewer;
 		bdvHandle.getViewerPanel().transformListeners().add( this );
-		setActive( isActive );
 	}
 
 	public void setActive( boolean isActive )
 	{
+		if ( this.isActive == isActive )
+			return;
+
 		this.isActive = isActive;
 
 		if ( isActive && overlaySource == null )
@@ -106,6 +107,9 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 		{
 			activeListener.isActive( isActive );
 		}
+
+		updateImages();
+		bdvHandle.getViewerPanel().requestRepaint();
 	}
 
 	public boolean isActive()

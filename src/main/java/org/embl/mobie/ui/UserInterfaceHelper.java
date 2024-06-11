@@ -928,9 +928,11 @@ public class UserInterfaceHelper
 			} );
 		} );
 
-		overlayNamesCheckbox =new JCheckBox( "overlay names" );
+		overlayNamesCheckbox = new JCheckBox( "overlay names" );
 		overlayNamesCheckbox.setSelected( false );
-		overlayNamesCheckbox.addActionListener( e -> new Thread( () -> moBIE.getViewManager().getSliceViewer().getImageNameOverlay().setActive( overlayNamesCheckbox.isSelected() ) ).start() );
+		overlayNamesCheckbox.addActionListener( e -> new Thread( () ->
+				moBIE.getViewManager().getSliceViewer()
+						.getImageNameOverlay().setActive( overlayNamesCheckbox.isSelected() ) ).start() );
 
 		panel.add( overlayNamesCheckbox );
 		panel.add( space() );

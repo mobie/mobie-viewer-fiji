@@ -81,7 +81,7 @@ public class SliceViewer
 
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 	private final SourceAndConverterService sacService;
-	private ImageNameOverlay imageNameOverlay;
+	private final ImageNameOverlay imageNameOverlay;
 
 	public SliceViewer( MoBIE moBIE, boolean is2D )
 	{
@@ -100,12 +100,11 @@ public class SliceViewer
 			tileRenderOverlay = false; // don't show twice
 		}
 
-		imageNameOverlay = new ImageNameOverlay( bdvHandle, false, this );
+		imageNameOverlay = new ImageNameOverlay( bdvHandle, this );
 
 		installContextMenuAndKeyboardShortCuts();
 
 		WindowArrangementHelper.rightAlignWindow( moBIE.getUserInterface().getWindow(), SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() ), true, true );
-
 	}
 
 	public ImageNameOverlay getImageNameOverlay()
