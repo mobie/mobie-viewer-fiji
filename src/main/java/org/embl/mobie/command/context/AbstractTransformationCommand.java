@@ -57,22 +57,23 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     @Parameter
     public BdvHandle bdvHandle;
 
+    // Too complex to maintain right now
     //@Parameter ( label = "Transformation target" )
     public TransformationOutput mode = TransformationOutput.CreateNewImage;
 
-    @Parameter ( label = "Moving image(s)", choices = {""}, callback = "setMovingImage" )
+    @Parameter ( label = "Moving image(s)", choices = {""}, callback = "setMovingImages" )
     public String selectedSourceName;
 
-//    // FIXME: maybe remove this?
-//    @Parameter ( label = "Preview transformation", callback = "previewTransform" )
-//    protected Boolean previewTransform = false;
+    // Too complex to maintain right now
+    //@Parameter ( label = "Preview transformation", callback = "previewTransform" )
+    //protected Boolean previewTransform = false;
 
     protected Collection< SourceAndConverter< ? > > visibleSacs;
-    //protected List< String > selectableSourceNames;
     protected Collection< SourceAndConverter< ? > > movingSacs;
     protected Collection< Image< ? > > movingImages;
     protected Collection< TransformedSource< ? > > movingSources;
     protected Map< TransformedSource< ? >, AffineTransform3D > movingSourcesToInitialTransform;
+    protected List< String > selectableSourceNames; // used by some child classes
 
 
     @Override
@@ -80,7 +81,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     {
         visibleSacs = MoBIEHelper.getVisibleSacs( bdvHandle );
 
-        List< String > selectableSourceNames = visibleSacs.stream()
+        selectableSourceNames = visibleSacs.stream()
                 .map( sac -> sac.getSpimSource().getName() )
                 .collect( Collectors.toList() );
 
@@ -95,12 +96,12 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
             selectableSourceNames.add( GROUP + groupName );
         }
 
-        getInfo().getMutableInput( "movingImageName", String.class )
+        getInfo().getMutableInput( "selectedSourceName", String.class )
                 .setChoices( selectableSourceNames );
 
         selectedSourceName = selectableSourceNames.get( 0 );
 
-        getInfo().getMutableInput( "movingImageName", String.class )
+        getInfo().getMutableInput( "selectedSourceName", String.class )
                 .setDefaultValue( selectedSourceName );
 
         setMovingImages();
@@ -122,38 +123,46 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     
     protected void createAffineTransformedImages( Collection< Image< ? > > movingImages, AffineTransform3D affineTransform3D, String transformationSuffix )
     {
-        String transformedImageName = selectedSourceName + "-" + transformedImageSuffixUI( transformationSuffix );
+        String suffix = transformedImageSuffixUI( transformationSuffix );
 
-        AffineTransformation affineTransformation = new AffineTransformation(
-                transformationSuffix,
-                affineTransform3D.getRowPackedCopy(),
-                Collections.singletonList( selectedSourceName ),
-                Collections.singletonList( transformedImageName )
-        );
+        for ( Image< ? > movingImage : movingImages )
+        {
+            // FIXME: Make this more convenient that the user does not have to enter
+            //        everything for each image
+            String transformedImageName = movingImage.getName() + "-" + suffix;
 
-        ViewManager.createTransformedImageView(
-                movingImages,
-                transformedImageName,
-                affineTransformation,
-                transformationSuffix + " transformation of " + selectedSourceName
-        );
+            AffineTransformation affineTransformation = new AffineTransformation(
+                    transformationSuffix,
+                    affineTransform3D.getRowPackedCopy(),
+                    Collections.singletonList( movingImage.getName() ),
+                    Collections.singletonList( transformedImageName )
+            );
+
+            ViewManager.createTransformedImageView(
+                    movingImage,
+                    transformedImageName,
+                    affineTransformation,
+                    transformationSuffix + " transformation of " + selectedSourceName
+            );
+        }
     }
 
     protected String transformedImageSuffixUI( String transformationSuffix )
     {
         final GenericDialog gd = new GenericDialog("Transformed Image(s) Suffix");
-        gd.addStringField( "Transformed Image(s) Suffix", transformationSuffix, 40 );
+        gd.addStringField( "Suffix for the transformed image(s)", transformationSuffix, 40 );
         gd.showDialog();
         if ( gd.wasCanceled() ) return "";
         return gd.getNextString();
     }
 
+    // button callback => rename with care!
     protected void setMovingImages()
     {
         // Reset potential previous transforms
         if ( movingSources != null )
         {
-            movingSources.forEach( source -> source.setFixedTransform( movingSourcesToInitialTransform.get( source ) ) );
+            resetTransforms();
         }
 
         if ( selectedSourceName.contains( GROUP ) )
@@ -199,6 +208,11 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         }
     }
 
+    protected void resetTransforms()
+    {
+        movingSources.forEach( source -> source.setFixedTransform( movingSourcesToInitialTransform.get( source ) ) );
+    }
+
 //    protected void applyTransformInPlace( AffineTransform3D affineTransform )
 //    {
 //        final AffineTransform3D newFixedTransform = movingSourcesToInitialTransform.copy();
@@ -207,16 +221,16 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
 //    }
 
     // Should be overwritten by child classes!
-    protected void previewTransform()
-    {
-        previewTransform( new AffineTransform3D() );
-    }
+//    protected void previewTransform()
+//    {
+//        previewTransform( new AffineTransform3D() );
+//    }
 
-    protected void previewTransform( AffineTransform3D affineTransform3D, boolean preview )
-    {
-        getInfo().getMutableInput("previewTransformation", Boolean.class).setValue( this, preview );
-        previewTransform( affineTransform3D );
-    }
+//    protected void previewTransform( AffineTransform3D affineTransform3D, boolean preview )
+//    {
+//        getInfo().getMutableInput("previewTransformation", Boolean.class).setValue( this, preview );
+//        previewTransform( affineTransform3D );
+//    }
 
 
 //    protected void previewTransform( AffineTransform3D affineTransform3D )

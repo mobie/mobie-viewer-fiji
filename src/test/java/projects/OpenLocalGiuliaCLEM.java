@@ -42,6 +42,6 @@ public class OpenLocalGiuliaCLEM
 		imageJ.ui().showUI();
 
 		// Move 62 towards 63 appears in wrong place
-		new MoBIE("/Volumes/emcf/mizzon/projects/2024/HEV_vCLEM/HEV_D7-1_oRblended_sec5-8/mobie_backup", MoBIESettings.settings() );
+		new MoBIE("/Volumes/emcf/mizzon/projects/2024/HEV_vCLEM/HEV_D7/HEV_D7-1_oRblended_sec5-8/mobie_backup_2", MoBIESettings.settings() );
 	}
 }

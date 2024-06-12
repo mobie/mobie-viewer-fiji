@@ -126,7 +126,7 @@ public class ViewsGithubWriter {
         fileCommitter.commitStringAsFile("Add new views from UI", jsonBase64String );
     }
 
-    public void writeViewToDatasetJson( String viewName, View view ) {
+    public void writeViewToDatasetJson( View view ) {
         if ( showDialog() ) {
             if ( viewJsonGitLocation.path.endsWith( "dataset.json") ) {
                 final GitHubContentGetter contentGetter =
@@ -138,13 +138,13 @@ public class ViewsGithubWriter {
                     if (content != null) {
                         FilePathAndSha filePathAndSha = getFilePathAndSha(content);
                         dataset = new DatasetJsonParser().parseDataset(filePathAndSha.filePath);
-                        dataset.views().put(viewName, view);
+                        dataset.views().put( view.getName(), view);
 
                         final String datasetBase64String = writeDatasetToBase64String(dataset);
                         overwriteExistingFile(filePathAndSha, datasetBase64String);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    throw new RuntimeException( e );
                 }
             } else {
                 IJ.log( "Aborting saving view to github - path is not a dataset.json" );
@@ -163,7 +163,7 @@ public class ViewsGithubWriter {
         }
     }
 
-    public void writeViewToViewsJson( String viewName, View view ) {
+    public void writeViewToViewsJson( View view ) {
         if ( showDialog() ) {
             if ( viewJsonGitLocation.path.endsWith( ".json" )) {
                 AdditionalViews additionalViews;
@@ -171,7 +171,7 @@ public class ViewsGithubWriter {
                 if ( !jsonExists() ) {
                     additionalViews = new AdditionalViews();
                     additionalViews.views = new HashMap<>();
-                    additionalViews.views.put(viewName, view);
+                    additionalViews.views.put(view.getName(), view);
 
                     final String additionalViewsBase64String = writeAdditionalViewsToBase64String(additionalViews);
                     writeNewFile(additionalViewsBase64String);
@@ -184,13 +184,13 @@ public class ViewsGithubWriter {
                         if (content != null) {
                             FilePathAndSha filePathAndSha = getFilePathAndSha(content);
                             additionalViews = new AdditionalViewsJsonParser().getViews(filePathAndSha.filePath);
-                            additionalViews.views.put(viewName, view);
+                            additionalViews.views.put(view.getName(), view);
 
                             final String additionalViewsBase64String = writeAdditionalViewsToBase64String(additionalViews);
                             overwriteExistingFile(filePathAndSha, additionalViewsBase64String);
                         }
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        throw new RuntimeException( e );
                     }
                 }
             } else {

@@ -68,27 +68,8 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 
 	public void startManualTransform()
 	{
-		Image< ? > image = DataStore.sourceToImage().get( movingSources );
-
-		List< SourceAndConverter< ? > > movingSACs;
-
-		if ( image instanceof RegionAnnotationImage &&
-				!( ( RegionAnnotationImage< ? > ) image ).getSelectedImages().isEmpty() )
-		{
-			List< Image< ? > > transformableImages = ( ( RegionAnnotationImage< ? > ) image ).getSelectedImages();
-
-			movingSACs = transformableImages.stream()
-					.map( img -> DataStore.sourceToImage().inverse().get( img ) )
-					.collect( Collectors.toList() );
-		}
-		else
-		{
-			movingSACs = Collections.singletonList( movingSacs );
-		}
-
-
 		transformationEditor = new MoBIEManualTransformationEditor( bdvHandle.getViewerPanel(), bdvHandle.getKeybindings() );
-		transformationEditor.setTransformableSources( movingSACs );
+		transformationEditor.setTransformableSources( movingSacs );
 		transformationEditor.setActive( true );
 	}
 
@@ -96,7 +77,7 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 	{
 		if ( transformationEditor == null ) return;
 
-		applyTransform( transformationEditor.getManualTransform(), "manual-affine" );
+		applyTransform( transformationEditor.getManualTransform(), "manual-transform" );
 
 		// This will cause the transformed image to jump back to its original position,
 		// but this is intended as the transformed image is now a new image that is stored as a new view.

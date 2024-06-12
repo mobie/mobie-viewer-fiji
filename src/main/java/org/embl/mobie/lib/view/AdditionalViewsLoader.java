@@ -55,7 +55,7 @@ public class AdditionalViewsLoader {
                 FileLocation fileLocation = UserInterfaceHelper.loadFromProjectOrFileSystemDialog();
                 if ( fileLocation == null )
                     return;
-                if ( fileLocation == FileLocation.Project ) {
+                if ( fileLocation == FileLocation.CurrentProject ) {
                     selectedFilePath = UserInterfaceHelper.selectPathFromProject( moBIE.absolutePath("misc", "views" ), "View" );
                 } else {
                     selectedFilePath = UserInterfaceHelper.selectFilePath( "json", "View", true );

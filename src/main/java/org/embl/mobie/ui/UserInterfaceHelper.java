@@ -92,7 +92,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -126,7 +125,7 @@ public class UserInterfaceHelper
 
 	public static FileLocation loadFromProjectOrFileSystemDialog() {
 		final GenericDialog gd = new GenericDialog("Choose source");
-		gd.addChoice("Load from", new String[]{ FileLocation.Project.toString(), FileLocation.FileSystem.toString()}, FileLocation.Project.toString());
+		gd.addChoice("Load from", new String[]{ FileLocation.CurrentProject.toString(), FileLocation.ExternalFile.toString()}, FileLocation.CurrentProject.toString());
 		gd.showDialog();
 		if (gd.wasCanceled()) return null;
 		return FileLocation.valueOf(gd.getNextChoice());

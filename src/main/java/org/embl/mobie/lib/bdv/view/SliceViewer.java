@@ -150,7 +150,7 @@ public class SliceViewer
 		actions.add( SourceAndConverterService.getCommandName( ScreenShotMakerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ViewerTransformLoggerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( BigWarpRegistrationCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( AutomaticRegistrationCommand.class ) );
+		//actions.add( SourceAndConverterService.getCommandName( AutomaticRegistrationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ManualTransformationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( EnterTransformationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( FlipCommand.class ) );

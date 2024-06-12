@@ -59,15 +59,16 @@ public class FlipCommand extends AbstractTransformationCommand
 		super.initialize();
 	}
 
-	@Override
-	protected void previewTransform()
-	{
-		super.previewTransform( createFlipTransform( movingSacs ) );
-	}
+//	@Override
+//	protected void previewTransform()
+//	{
+//		super.previewTransform( createFlipTransform( movingSacs ) );
+//	}
 
 	public void applyTransform()
 	{
-		AffineTransform3D transform = createFlipTransform( movingSacs );
+		// FIXME: This needs a transform for each of the sacs
+		AffineTransform3D transform = createFlipTransform( movingSacs.iterator().next() );
 		applyTransform( transform, "flip-" + axis + "-axis" );
 	}
 

@@ -28,12 +28,10 @@
  */
 package org.embl.mobie.lib.view;
 
-import IceInternal.Ex;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import ij.gui.GenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
@@ -136,7 +134,6 @@ public class ViewManager
 				viewDescription );
 
 		MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view );
-
 		MoBIE.getInstance().getViewManager().show( view );
 	}
 

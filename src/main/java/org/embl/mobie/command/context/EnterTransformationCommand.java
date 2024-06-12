@@ -49,13 +49,13 @@ public class EnterTransformationCommand extends AbstractTransformationCommand
 	public Button applyTransform;
 
 
-	@Override
-	protected void previewTransform()
-	{
-		AffineTransform3D affineTransform3D = new AffineTransform3D();
-		affineTransform3D.set( parseStringToDoubleArray( transformation ) );
-		super.previewTransform( affineTransform3D );
-	}
+//	@Override
+//	protected void previewTransform()
+//	{
+//		AffineTransform3D affineTransform3D = new AffineTransform3D();
+//		affineTransform3D.set( parseStringToDoubleArray( transformation ) );
+//		super.previewTransform( affineTransform3D );
+//	}
 
 	private void applyTransform()
 	{
@@ -69,7 +69,6 @@ public class EnterTransformationCommand extends AbstractTransformationCommand
 	{
 		arrayStr = arrayStr.replaceAll("\\[|\\]", "");
 		String[] items = arrayStr.split(",\\s*");
-		double[] doubles = Arrays.stream(items).mapToDouble(Double::parseDouble).toArray();
-		return doubles;
+        return Arrays.stream(items).mapToDouble(Double::parseDouble).toArray();
 	}
 }

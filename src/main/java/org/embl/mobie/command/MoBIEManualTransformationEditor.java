@@ -30,9 +30,11 @@ package org.embl.mobie.command;
 
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
+import javax.servlet.http.Cookie;
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
@@ -77,7 +79,7 @@ public class MoBIEManualTransformationEditor implements TransformListener< Affin
     private final ViewerState viewerState;
 
     private final Consumer< String > viewerMessageDisplay;
-    private List< SourceAndConverter< ? > > transformableSources;
+    private Collection< SourceAndConverter< ? > > transformableSources;
 
     public MoBIEManualTransformationEditor( final AbstractViewerPanel viewer, final InputActionBindings inputActionBindings )
     {
@@ -252,7 +254,7 @@ public class MoBIEManualTransformationEditor implements TransformListener< Affin
         return manualTransformActiveListeners;
     }
 
-    public void setTransformableSources( List< SourceAndConverter< ? > > transformableSources )
+    public void setTransformableSources( Collection< SourceAndConverter< ? > > transformableSources )
     {
         this.transformableSources = transformableSources;
     }

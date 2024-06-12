@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.lib.table;
 
-import IceInternal.Ex;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.TableUIs;
 import ij.IJ;
@@ -292,7 +291,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 			new Thread( () -> {
 				FileLocation fileLocation = loadFromProjectOrFileSystemDialog();
 
-				if ( fileLocation.equals( FileLocation.Project ) )
+				if ( fileLocation.equals( FileLocation.CurrentProject ) )
 				{
 					final String[] availableChunks = tableModel.getAvailableTableChunks().toArray( new String[ 0 ] );
 					final GenericDialog gd = new GenericDialog("Choose table chunk");
@@ -303,7 +302,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 					IJ.log( "Loading table chunk: " + chunk + "..." );
 					tableModel.loadTableChunk( chunk );
 				}
-				else if ( fileLocation.equals( FileLocation.FileSystem ) )
+				else if ( fileLocation.equals( FileLocation.ExternalFile ) )
 				{
 					String path = UserInterfaceHelper.selectFilePath( "tsv", "Table", true );
 					if ( path == null )  return;

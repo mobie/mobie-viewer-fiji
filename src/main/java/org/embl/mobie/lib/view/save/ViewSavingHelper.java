@@ -41,27 +41,25 @@ import static de.embl.cba.tables.github.GitHubUtils.isGithub;
 
 public class ViewSavingHelper
 {
-    public static void writeDatasetJson( Dataset dataset, View view, String viewName, String datasetJsonPath ) throws IOException {
-        if ( viewName != null ) {
-            dataset.views().put(viewName, view);
+    public static void writeDatasetJson( Dataset dataset, View view, String datasetJsonPath ) throws IOException
+    {
+        dataset.views().put( view.getName(), view );
 
-            if ( isGithub(datasetJsonPath)) {
-                new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation(datasetJsonPath)).writeViewToDatasetJson(viewName, view);
-            } else {
-                new DatasetJsonParser().saveDataset(dataset, datasetJsonPath);
-            }
+        if ( isGithub(datasetJsonPath)) {
+            new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation( datasetJsonPath ) ).writeViewToDatasetJson( view );
+        } else {
+            new DatasetJsonParser().saveDataset( dataset, datasetJsonPath );
         }
     }
 
-    public static void writeAdditionalViewsJson( AdditionalViews additionalViews, View view, String viewName, String additionalViewsJsonPath ) throws IOException {
-        if ( viewName != null ) {
-            additionalViews.views.put(viewName, view);
+    public static void writeAdditionalViewsJson( AdditionalViews additionalViews, View view, String additionalViewsJsonPath ) throws IOException
+    {
+        additionalViews.views.put(view.getName(), view);
 
-            if (isGithub( additionalViewsJsonPath )) {
-                new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation( additionalViewsJsonPath ) ).writeViewToViewsJson( viewName, view );
-            } else {
-                new AdditionalViewsJsonParser().saveViews(additionalViews, additionalViewsJsonPath );
-            }
+        if (isGithub( additionalViewsJsonPath )) {
+            new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation( additionalViewsJsonPath ) ).writeViewToViewsJson( view );
+        } else {
+            new AdditionalViewsJsonParser().saveViews(additionalViews, additionalViewsJsonPath );
         }
     }
 }

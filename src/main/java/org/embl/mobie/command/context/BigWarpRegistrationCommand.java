@@ -48,6 +48,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.register.BigWarpLauncher;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - BigWarp")
 public class BigWarpRegistrationCommand extends AbstractRegistrationCommand implements TransformListener< InvertibleRealTransform >
@@ -69,11 +70,11 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 		super.initialize();
 	}
 
-	@Override
-	public void previewTransform()
-	{
-		super.previewTransform( bigWarp.getBwTransform().affine3d() );
-	}
+//	@Override
+//	public void previewTransform()
+//	{
+//		super.previewTransform( bigWarp.getBwTransform().affine3d() );
+//	}
 
 	public void applyTransform()
 	{
@@ -92,12 +93,13 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 				.filter( sac -> sac.getSpimSource().getName().equals( fixedImageName ) )
 				.findFirst().get();
 
-		List< ConverterSetup > converterSetups = new ArrayList<>();
-		converterSetups.add( sacService.getConverterSetup( movingSacs ) );
+		List< ConverterSetup > converterSetups = movingSacs.stream()
+				.map( sacService::getConverterSetup )
+				.collect( Collectors.toList() );
 		converterSetups.add( sacService.getConverterSetup( fixedSac ) );
 
 		BigWarpLauncher bigWarpLauncher = new BigWarpLauncher(
-				Collections.singletonList( movingSacs ),
+				new ArrayList<>( movingSacs ),
 				Collections.singletonList( fixedSac ),
 				"MoBIE Big Warp",
 				converterSetups);
@@ -123,7 +125,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 	@Override
 	public void cancel()
 	{
-		movingSources.setFixedTransform( movingSourcesToInitialTransform );
+		resetTransforms();
 		bigWarp.closeAll();
 	}
 

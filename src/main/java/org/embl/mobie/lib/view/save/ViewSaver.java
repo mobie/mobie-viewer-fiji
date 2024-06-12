@@ -31,20 +31,17 @@ package org.embl.mobie.lib.view.save;
 import ij.IJ;
 import ij.gui.GenericDialog;
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.lib.create.ProjectCreatorHelper;
 import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.DatasetJsonParser;
 import org.embl.mobie.lib.serialize.transformation.NormalizedAffineViewerTransform;
-import org.embl.mobie.lib.transform.viewer.NoViewerTransform;
-import org.embl.mobie.lib.transform.viewer.NormalVectorViewerTransform;
-import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 import org.embl.mobie.ui.UserInterfaceHelper;
 import org.embl.mobie.lib.view.AdditionalViews;
 import org.embl.mobie.lib.serialize.View;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.github.GitHubUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,29 +53,32 @@ import static org.embl.mobie.lib.view.save.ViewSavingHelper.writeAdditionalViews
 import static org.embl.mobie.lib.view.save.ViewSavingHelper.writeDatasetJson;
 import static org.embl.mobie.io.github.GitHubUtils.isGithub;
 import static org.embl.mobie.io.util.IOHelper.getFileNames;
-import static org.embl.mobie.io.util.S3Utils.isS3;
 
 public class ViewSaver
 {
     public static final String MAKE_NEW_VIEWS_JSON_FILE = "Make New Views JSON file";
     public static final String MAKE_NEW_UI_SELECTION_GROUP = "Make New Ui Selection Group";
+    public static final String CREATE_SELECTION_GROUP = "New selection group";
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     private MoBIE moBIE;
 
-    private static String saveToChoice = FileLocation.Project.toString();;
+    private static String saveToProjectOrFile = FileLocation.CurrentProject.toString();;
     private static String uiSelectionChoice = MAKE_NEW_UI_SELECTION_GROUP;
 
-    enum ProjectSaveLocation {
-        datasetJson,
-        viewsJson
-    }
+    private static String externalFilePath = "";
 
-    enum SaveMethod {
-        saveAsNewView,
-        overwriteExistingView
-    }
+
+//    enum ProjectSaveLocation {
+//        datasetJson,
+//        viewsJson
+//    }
+
+//    enum SaveMethod {
+//        saveAsNewView,
+//        overwriteExistingView
+//    }
 
     public ViewSaver( MoBIE moBIE) {
         this.moBIE = moBIE;
@@ -88,113 +88,71 @@ public class ViewSaver
     {
         final GenericDialog gd = new GenericDialog("Save view");
 
-        String[] choices = new String[]{ "Save as new view", "Overwrite existing view" };
-        gd.addChoice("Save method:", choices, choices[0] );
-        gd.addChoice("Save to", new String[]{ FileLocation.Project.toString(), FileLocation.FileSystem.toString()}, saveToChoice );
-        gd.showDialog();
+        gd.addChoice("Save to", new String[]{ FileLocation.CurrentProject.toString(), FileLocation.ExternalFile.toString() }, saveToProjectOrFile );
+        gd.addFileField( "External file", externalFilePath );
+        gd.addMessage( "" );
+        gd.addStringField("View name", view.getName() != null ? view.getName() : "", 25 );
+        gd.addStringField( "View description:", view.getDescription() != null ? view.getDescription() : "", 50 );
+        gd.addCheckbox("Make view exclusive", view.isExclusive() != null ? view.isExclusive() : false );
+        gd.addMessage( "" );
+        gd.addChoice("Selection group", getSelectionGroupChoices(), uiSelectionChoice);
+        gd.addStringField("New selection group", "");
 
+        gd.showDialog();
         if( gd.wasCanceled() ) return;
 
-        String saveMethodString = gd.getNextChoice();
-        saveToChoice = gd.getNextChoice();
-        FileLocation fileLocation = FileLocation.valueOf( saveToChoice );
+        // fetch primary user input
+        saveToProjectOrFile = gd.getNextChoice();
+        externalFilePath = gd.getNextString();
+        view.setName( UserInterfaceHelper.tidyString( gd.getNextString() ) );
+        view.setDescription( gd.getNextString()  );
+        view.setExclusive( gd.getNextBoolean() );
+        String selectionGroup = gd.getNextString();
+        String newSelectionGroupName = gd.getNextString();
 
-        SaveMethod saveMethod;
-        if (saveMethodString.equals("Save as new view")) {
-            saveMethod = SaveMethod.saveAsNewView;
-        } else {
-            saveMethod = SaveMethod.overwriteExistingView;
+        // compute derived parameters
+        FileLocation fileLocation = FileLocation.valueOf( saveToProjectOrFile );
+        if ( view.isExclusive() )
+            view.setViewerTransform( new NormalizedAffineViewerTransform( moBIE.getViewManager().getSliceViewer().getBdvHandle() ) );
+
+        if ( selectionGroup.equals( CREATE_SELECTION_GROUP ) )
+            view.setUiSelectionGroup( newSelectionGroupName );
+        else
+            view.setUiSelectionGroup( selectionGroup );
+
+//        // FIXME https://github.com/mobie/mobie-viewer-fiji/issues/1150
+//        if ( fileLocation == FileLocation.CurrentProject ) {
+//            String[] jsonChoices = new String[]{ "dataset.json", "views.json" };
+//            gd.addChoice("Save location:", jsonChoices, jsonChoices[0]);
+//        }
+//
+//        ProjectSaveLocation projectSaveLocation = null;
+//        if ( fileLocation == FileLocation.CurrentProject ) {
+//            String projectSaveLocationString = gd.getNextChoice();
+//            if ( projectSaveLocationString.equals("dataset.json") ) {
+//                projectSaveLocation = ProjectSaveLocation.datasetJson;
+//            } else if ( projectSaveLocationString.equals("views.json") ) {
+//                projectSaveLocation = ProjectSaveLocation.viewsJson;
+//            }
+//        }
+
+        if ( fileLocation == FileLocation.CurrentProject ) {
+            saveNewViewToProject( view, "dataset.json" );
+        } else if ( fileLocation == FileLocation.ExternalFile ) {
+            saveNewViewToFileSystem( view );
         }
-
-        viewSettingsDialog(
-                saveMethod,
-                fileLocation,
-                view );
     }
 
-    private void viewSettingsDialog( SaveMethod saveMethod, FileLocation fileLocation, View view ) {
-        final GenericDialog gd = new GenericDialog("View settings");
-
-        if ( saveMethod == SaveMethod.saveAsNewView ) {
-            if ( view.getName() == null )
-                gd.addStringField("View name:", "", 25 );
-            String description = view.getDescription() != null ? view.getDescription() : "" ;
-            gd.addStringField( "View description:", description, 50 );
-        }
-
-        // FIXME: If one overwrites an existing view it should not be necessary to ask for the UI selection group
-        //        One should rather fetch it from the view that is to be overwritten.
+    @NotNull
+    private String[] getSelectionGroupChoices()
+    {
         String[] currentUiSelectionGroups = moBIE.getUserInterface().getUISelectionGroupNames();
         String[] choices = new String[currentUiSelectionGroups.length + 1];
-        choices[0] = "Make New Ui Selection Group";
+        choices[0] = CREATE_SELECTION_GROUP;
         System.arraycopy( currentUiSelectionGroups, 0, choices, 1, currentUiSelectionGroups.length );
-        gd.addChoice("Ui Selection Group", choices, uiSelectionChoice);
-
-        if ( fileLocation == FileLocation.Project ) {
-            String[] jsonChoices = new String[]{"dataset.json", "views.json"};
-            gd.addChoice("Save location:", jsonChoices, jsonChoices[0]);
-        }
-
-        if ( view.isExclusive() == null )
-            gd.addCheckbox("Exclusive view?", true);
-
-        ViewerTransform viewerTransform = view.getViewerTransform();
-        if ( ! ( viewerTransform instanceof NoViewerTransform ))
-            gd.addCheckbox("Include viewer transform?", true );
-
-        gd.showDialog();
-
-        if ( gd.wasCanceled() ) return;
-
-        String viewName = null;
-        if( saveMethod == SaveMethod.saveAsNewView )
-        {
-
-            if ( view.getName() == null )
-                viewName = UserInterfaceHelper.tidyString( gd.getNextString() );
-            else
-                viewName = UserInterfaceHelper.tidyString( view.getName() );
-
-            view.setDescription( gd.getNextString()  );
-        }
-
-        uiSelectionChoice = gd.getNextChoice();
-        ProjectSaveLocation projectSaveLocation = null;
-        if ( fileLocation == FileLocation.Project ) {
-            String projectSaveLocationString = gd.getNextChoice();
-            if ( projectSaveLocationString.equals("dataset.json") ) {
-                projectSaveLocation =  ProjectSaveLocation.datasetJson;
-            } else if ( projectSaveLocationString.equals("views.json") ) {
-                projectSaveLocation =  ProjectSaveLocation.viewsJson;
-            }
-        }
-
-        if ( view.isExclusive() == null )
-            view.setExclusive( gd.getNextBoolean() );
-
-        if ( ! ( viewerTransform instanceof NoViewerTransform ) )
-        {
-            if ( gd.getNextBoolean() )
-            {
-                view.setViewerTransform( new NormalizedAffineViewerTransform( moBIE.getViewManager().getSliceViewer().getBdvHandle() ) );
-            }
-        }
-
-        if (uiSelectionChoice.equals("Make New Ui Selection Group")) {
-            uiSelectionChoice = ProjectCreatorHelper.makeNewUiSelectionGroup(currentUiSelectionGroups);
-        }
-        view.setUiSelectionGroup( uiSelectionChoice );
-
-        if ( fileLocation == FileLocation.Project && saveMethod == SaveMethod.saveAsNewView ) {
-            saveNewViewToProject( view, viewName, projectSaveLocation );
-        } else if ( fileLocation == FileLocation.Project && saveMethod == SaveMethod.overwriteExistingView ) {
-            overwriteExistingViewInProject( view, projectSaveLocation );
-        } else if ( fileLocation == FileLocation.FileSystem && saveMethod == SaveMethod.saveAsNewView ) {
-            saveNewViewToFileSystem( view, viewName );
-        } else if ( fileLocation == FileLocation.FileSystem && saveMethod == SaveMethod.overwriteExistingView ) {
-            overwriteExistingViewOnFileSystem( view );
-        }
+        return choices;
     }
+
 
     private String chooseFileSystemJson() {
         String jsonPath = UserInterfaceHelper.selectFilePath( "json", "json file", false );
@@ -206,13 +164,13 @@ public class ViewSaver
         return jsonPath;
     }
 
-    private void saveNewViewToFileSystem( View view, String viewName ) {
+    private void saveNewViewToFileSystem( View view ) {
         new Thread( () -> {
             String jsonPath = chooseFileSystemJson();
             if ( jsonPath != null ) {
                 try {
-                    saveNewViewToAdditionalViewsJson( view, viewName, jsonPath );
-                    addViewToUi( viewName, view );
+                    saveNewViewToAdditionalViewsJson( view, jsonPath );
+                    addViewToUi( view );
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -220,93 +178,97 @@ public class ViewSaver
         }).start();
     }
 
-    private void overwriteExistingViewOnFileSystem( View view ) {
-        new Thread( () -> {
-            String jsonPath = chooseFileSystemJson();
-            if ( jsonPath != null ) {
-                try {
-                    overwriteExistingViewInAdditionalViewsJson( view, jsonPath );
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-    }
+//    private void overwriteExistingViewOnFileSystem( View view ) {
+//        new Thread( () -> {
+//            String jsonPath = chooseFileSystemJson();
+//            if ( jsonPath != null ) {
+//                try {
+//                    overwriteExistingViewInAdditionalViewsJson( view, jsonPath );
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }).start();
+//    }
 
-    private void saveNewViewToProject( View view, String viewName, ProjectSaveLocation projectSaveLocation ) {
+    private void saveNewViewToProject( View view, String viewJson ) {
         try {
-            if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
-                saveViewToDatasetJson( view, viewName, false );
-            } else {
-                String viewJsonPath = chooseAdditionalViewsJson( true );
-                if (viewJsonPath != null) {
-                    saveNewViewToAdditionalViewsJson( view, viewName, viewJsonPath);
+            if ( viewJson.equals( "dataset.json" ) )
+            {
+                saveViewToDatasetJson( view, false );
+            }
+            else
+            {
+                String viewJsonPath = chooseAdditionalViewsJson();
+                if ( viewJsonPath != null ) {
+                    saveNewViewToAdditionalViewsJson( view, viewJsonPath);
                 }
             }
-            addViewToUi( viewName, view );
+            addViewToUi( view );
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException( e );
         }
     }
 
-    private void overwriteExistingViewInProject( View view, ProjectSaveLocation projectSaveLocation )
-    {
-        if ( isS3( moBIE.getProjectLocation() ) )
-        {
-            throw new UnsupportedOperationException("View saving aborted - saving directly to s3 is not yet supported!");
-        }
-        else
-        {
-            try {
-                if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
-                    overwriteExistingViewInDatasetJson( view );
-                } else {
-                    String viewJsonPath = chooseAdditionalViewsJson( false );
-                    if (viewJsonPath != null) {
-                        overwriteExistingViewInAdditionalViewsJson( view, viewJsonPath);
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+//    private void overwriteExistingViewInProject( View view, ProjectSaveLocation projectSaveLocation )
+//    {
+//        if ( isS3( moBIE.getProjectLocation() ) )
+//        {
+//            throw new UnsupportedOperationException("View saving aborted - saving directly to s3 is not yet supported!");
+//        }
+//        else
+//        {
+//            try {
+//                if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
+//                    overwriteExistingViewInDatasetJson( view );
+//                } else {
+//                    String viewJsonPath = chooseAdditionalViewsJson( false );
+//                    if (viewJsonPath != null) {
+//                        overwriteExistingViewInAdditionalViewsJson( view, viewJsonPath);
+//                    }
+//                }
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+//    }
 
-    private void addViewToUi( String viewName, View view ) {
-        moBIE.getViews().put( viewName, view );
+    private void addViewToUi( View view ) {
+        moBIE.getViews().put( view.getName(), view );
         Map<String, View > views = new HashMap<>();
-        views.put( viewName, view );
+        views.put( view.getName(), view );
         moBIE.getUserInterface().addViews( views );
     }
 
-    public void saveViewToDatasetJson( View view, String viewName, boolean overwrite ) throws IOException
+    public void saveViewToDatasetJson( View view, boolean overwrite ) throws IOException
     {
         String datasetJsonPath = moBIE.absolutePath( "dataset.json");
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
 
         if ( ! overwrite )
-            if ( dataset.views().containsKey( viewName ) )
+            if ( dataset.views().containsKey( view.getName() ) )
                 throw new IOException( "View saving aborted - this view name already exists!" );
 
-        writeDatasetJson( dataset, view, viewName, datasetJsonPath );
-        IJ.log( "View \"" + viewName + "\" written to dataset.json" );
+        writeDatasetJson( dataset, view, datasetJsonPath );
+        IJ.log( "View \"" + view.getName()  + "\" written to dataset.json" );
     }
 
-    private void overwriteExistingViewInDatasetJson( View view ) throws IOException {
-        String datasetJsonPath = moBIE.absolutePath( "dataset.json");
-        Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
-
-        if ( dataset.views().keySet().size() > 0 ) {
-            String selectedView = new SelectExistingViewDialog( dataset ).getSelectedView();
-            if ( selectedView != null ) {
-                writeDatasetJson( dataset, view, selectedView, datasetJsonPath );
-                IJ.log( selectedView + " overwritten in dataset.json" );
-                addViewToUi( selectedView, view );
-            }
-        } else {
-            IJ.log( "View saving aborted - dataset.json contains no views" );
-        }
-    }
+    // FIXME: Delete this? https://github.com/mobie/mobie-viewer-fiji/issues/1150
+//    private void overwriteExistingViewInDatasetJson( View view ) throws IOException {
+//        String datasetJsonPath = moBIE.absolutePath( "dataset.json");
+//        Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
+//
+//        if ( ! dataset.views().keySet().isEmpty() ) {
+//            String selectedView = new SelectExistingViewDialog( dataset ).getSelectedView();
+//            if ( selectedView != null ) {
+//                writeDatasetJson( dataset, view, datasetJsonPath );
+//                IJ.log( selectedView + " overwritten in dataset.json" );
+//                addViewToUi( selectedView, view );
+//            }
+//        } else {
+//            IJ.log( "View saving aborted - dataset.json contains no views" );
+//        }
+//    }
 
     private boolean jsonExists( String jsonPath ) {
         if ( isGithub( jsonPath )) {
@@ -316,29 +278,29 @@ public class ViewSaver
         }
     }
 
-    private void overwriteExistingViewInAdditionalViewsJson( View view, String jsonPath ) throws IOException {
+//    private void overwriteExistingViewInAdditionalViewsJson( View view, String jsonPath ) throws IOException {
+//
+//        if ( !jsonExists( jsonPath ) ) {
+//            IJ.log( "View saving aborted - this views json does not exist" );
+//            return;
+//        }
+//
+//        AdditionalViews additionalViews = new AdditionalViewsJsonParser().getViews( jsonPath );
+//        String selectedView = new SelectExistingViewDialog( additionalViews ).getSelectedView();
+//
+//        if ( selectedView != null ) {
+//            writeAdditionalViewsJson( additionalViews, view, selectedView, jsonPath );
+//            IJ.log( selectedView + " overwritten in " + new File(jsonPath).getName() );
+//            addViewToUi( selectedView, view );
+//        }
+//    }
 
-        if ( !jsonExists( jsonPath ) ) {
-            IJ.log( "View saving aborted - this views json does not exist" );
-            return;
-        }
-
-        AdditionalViews additionalViews = new AdditionalViewsJsonParser().getViews( jsonPath );
-        String selectedView = new SelectExistingViewDialog( additionalViews ).getSelectedView();
-
-        if ( selectedView != null ) {
-            writeAdditionalViewsJson( additionalViews, view, selectedView, jsonPath );
-            IJ.log( selectedView + " overwritten in " + new File(jsonPath).getName() );
-            addViewToUi( selectedView, view );
-        }
-    }
-
-    private void saveNewViewToAdditionalViewsJson( View view, String viewName, String jsonPath ) throws IOException {
+    private void saveNewViewToAdditionalViewsJson( View view, String jsonPath ) throws IOException {
 
         AdditionalViews additionalViews;
         if ( jsonExists( jsonPath ) ) {
             additionalViews = new AdditionalViewsJsonParser().getViews( jsonPath );
-            if ( additionalViews.views.containsKey( viewName ) ) {
+            if ( additionalViews.views.containsKey( view.getName() ) ) {
                 IJ.log( "View saving aborted - this view name already exists!" );
                 return;
             }
@@ -347,21 +309,21 @@ public class ViewSaver
             additionalViews.views = new HashMap<>();
         }
 
-        writeAdditionalViewsJson( additionalViews, view, viewName, jsonPath );
-        IJ.log( "New view, " + viewName + ", written to " + new File( jsonPath ).getName() );
+        writeAdditionalViewsJson( additionalViews, view,  jsonPath );
+        IJ.log( "New view, " + view.getName() + ", written to " + new File( jsonPath ).getName() );
     }
 
-    private String chooseAdditionalViewsJson( boolean includeOptionToMakeNewViewJson ) {
+    private String chooseAdditionalViewsJson( ) {
         String additionalViewsDirectory = moBIE.absolutePath( "misc", "views");
-        String[] existingViewFiles = getFileNames(additionalViewsDirectory);
+        String[] existingViewFiles = getFileNames( additionalViewsDirectory );
 
         String jsonFileName = null;
         if ( existingViewFiles != null && existingViewFiles.length > 0 ) {
-            jsonFileName = chooseViewsJsonDialog( existingViewFiles, includeOptionToMakeNewViewJson );
-        } else if ( includeOptionToMakeNewViewJson ) {
+            jsonFileName = chooseViewsJsonDialog( existingViewFiles, true );
+        }
+        else
+        {
             jsonFileName = makeNewViewFile( existingViewFiles );
-        } else {
-            IJ.log("View saving aborted - no additional views jsons exist" );
         }
 
         if ( jsonFileName != null ) {
