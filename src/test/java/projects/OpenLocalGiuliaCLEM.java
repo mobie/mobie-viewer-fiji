@@ -31,17 +31,17 @@ package projects;
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.command.open.OpenHCSDatasetCommand;
 
 import java.io.IOException;
 
-public class OpenGiulia
+public class OpenLocalGiuliaCLEM
 {
 	public static void main( String[] args ) throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
+		// Move 62 towards 63 appears in wrong place
 		new MoBIE("/Volumes/emcf/mizzon/projects/2024/HEV_vCLEM/HEV_D7-1_oRblended_sec5-8/mobie_backup", MoBIESettings.settings() );
 	}
 }

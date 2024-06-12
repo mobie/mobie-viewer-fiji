@@ -260,7 +260,7 @@ public class AutomaticRegistrationCommand extends AbstractRegistrationCommand
 
 	private void createInterpolatedAffineImage()
 	{
-		String transformedImageName = transformedImageNameUI(  "-interpolated-affine" );
+		String transformedImageName = movingImageName + "-" + transformedImageSuffixUI(  "interpolated-affine" );
 
 		InterpolatedAffineTransformation interpolatedAffineTransformation = new InterpolatedAffineTransformation(
 				"interpolated-affine-of-" + movingImageName,

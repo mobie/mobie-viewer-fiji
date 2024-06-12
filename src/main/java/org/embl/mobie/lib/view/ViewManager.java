@@ -117,8 +117,7 @@ public class ViewManager
 		Display< ? > display;
 		if ( image instanceof AnnotationImage )
 		{
-			SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( imageName, imageName );
-			display = segmentationDisplay;
+            display = new SegmentationDisplay<>( imageName, imageName );
 		}
 		else
 		{
@@ -309,9 +308,9 @@ public class ViewManager
 		userInterface.setImageNameOverlay( imageNameOverlay );
 		imageNameOverlay.setActive( view.overlayNames() );
 
-		IJ.log("Opened view: " + view.getName() + " in " + (System.currentTimeMillis() - startTime) + " ms." );
+		IJ.log("Opened view \"" + view.getName() + "\" in " + (System.currentTimeMillis() - startTime) + " ms." );
 		if ( view.getDescription() != null )
-			IJ.log( "Description: " + view.getDescription() );
+			IJ.log( "Description: \"" + view.getDescription() + "\"" );
 
 	}
 

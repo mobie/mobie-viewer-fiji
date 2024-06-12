@@ -33,7 +33,6 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import ij.gui.GenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.checkerframework.checker.units.qual.A;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.image.Image;
@@ -62,6 +61,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     @Parameter ( label = "Moving image", choices = {""}, callback = "setMovingImage" )
     public String movingImageName;
 
+    // FIXME: maybe remove this?
     @Parameter ( label = "Preview transformation", callback = "previewTransform" )
     protected Boolean previewTransform = false;
 
@@ -116,13 +116,12 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         // https://imagesc.zulipchat.com/#narrow/stream/327238-Fiji/topic/Close.20Scijava.20Command.20UI
     }
     
-    protected void createAffineTransformedImage( Image< ? > movingImage, AffineTransform3D affineTransform3D, String transformationType )
+    protected void createAffineTransformedImage( Image< ? > movingImage, AffineTransform3D affineTransform3D, String transformationSuffix )
     {
-        String transformedImageName = transformedImageNameUI( transformationType );
-        if ( transformedImageName == null ) return;
+        String transformedImageName = movingImageName + "-" + transformedImageSuffixUI( transformationSuffix );
 
         AffineTransformation affineTransformation = new AffineTransformation(
-                transformationType,
+                transformationSuffix,
                 affineTransform3D.getRowPackedCopy(),
                 Collections.singletonList( movingImageName),
                 Collections.singletonList( transformedImageName )
@@ -132,18 +131,16 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
                 movingImage,
                 transformedImageName,
                 affineTransformation,
-                transformationType + " transformation of " + movingImageName
+                transformationSuffix + " transformation of " + movingImageName
         );
     }
 
-    protected String transformedImageNameUI( String transformationType )
+    protected String transformedImageSuffixUI( String transformationSuffix )
     {
-        String transformedImageName = movingImageName + "-" + transformationType;
-
-        final GenericDialog gd = new GenericDialog("Transformed Image Name");
-        gd.addStringField( "Transformed Image Name", transformedImageName, 40 );
+        final GenericDialog gd = new GenericDialog("Transformed Image(s) Suffix");
+        gd.addStringField( "Transformed Image(s) Suffix", transformationSuffix, 40 );
         gd.showDialog();
-        if ( gd.wasCanceled() ) return null;
+        if ( gd.wasCanceled() ) return "";
         return gd.getNextString();
     }
 

@@ -57,7 +57,6 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 	@Parameter ( label = "Cancel manual transform", callback = "cancelManualTransform" )
 	public Button cancelManualTransform;
 
-	private List< Image< ? > > transformableImages;
 	private MoBIEManualTransformationEditor transformationEditor;
 
 	@Override
@@ -76,7 +75,7 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 		if ( image instanceof RegionAnnotationImage &&
 				!( ( RegionAnnotationImage< ? > ) image ).getSelectedImages().isEmpty() )
 		{
-			transformableImages = ( ( RegionAnnotationImage< ? > ) image ).getSelectedImages();
+			List< Image< ? > > transformableImages = ( ( RegionAnnotationImage< ? > ) image ).getSelectedImages();
 
 			movingSACs = transformableImages.stream()
 					.map( img -> DataStore.sourceToImage().inverse().get( img ) )
@@ -100,7 +99,8 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 		applyTransform( transformationEditor.getManualTransform(), "manual-affine" );
 
 		// This will cause the transformed image to jump back to its original position,
-		// but this is intended as the transfomerd image is now a new image that is stored as a new view.
+		// but this is intended as the transformed image is now a new image that is stored as a new view.
+		// And this new transformed image will also be shown by the above applyTransform function.
 		transformationEditor.setActive( false );
 	}
 
