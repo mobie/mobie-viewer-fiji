@@ -60,7 +60,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 	@Parameter ( label = "Apply current transform and exit", callback = "applyTransform")
 	private Button applyTransform;
 
-	private BigWarp< ? >bigWarp;
+	private BigWarp< ? > bigWarp;
 
 
 	@Override
@@ -88,16 +88,16 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 		ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();
 		SourceAndConverterBdvDisplayService bdvDisplayService = SourceAndConverterServices.getBdvDisplayService();
 
-		SourceAndConverter< ? > fixedSac = sourceAndConverters.stream()
+		SourceAndConverter< ? > fixedSac = visibleSacs.stream()
 				.filter( sac -> sac.getSpimSource().getName().equals( fixedImageName ) )
 				.findFirst().get();
 
 		List< ConverterSetup > converterSetups = new ArrayList<>();
-		converterSetups.add( sacService.getConverterSetup( movingSac ) );
+		converterSetups.add( sacService.getConverterSetup( movingSacs ) );
 		converterSetups.add( sacService.getConverterSetup( fixedSac ) );
 
 		BigWarpLauncher bigWarpLauncher = new BigWarpLauncher(
-				Collections.singletonList( movingSac ),
+				Collections.singletonList( movingSacs ),
 				Collections.singletonList( fixedSac ),
 				"MoBIE Big Warp",
 				converterSetups);
@@ -123,7 +123,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 	@Override
 	public void cancel()
 	{
-		movingSource.setFixedTransform( previousFixedTransform );
+		movingSources.setFixedTransform( movingSourcesToInitialTransform );
 		bigWarp.closeAll();
 	}
 

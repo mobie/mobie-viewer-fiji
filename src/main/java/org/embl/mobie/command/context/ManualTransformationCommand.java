@@ -68,7 +68,7 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 
 	public void startManualTransform()
 	{
-		Image< ? > image = DataStore.sourceToImage().get( movingSource );
+		Image< ? > image = DataStore.sourceToImage().get( movingSources );
 
 		List< SourceAndConverter< ? > > movingSACs;
 
@@ -83,7 +83,7 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 		}
 		else
 		{
-			movingSACs = Collections.singletonList( movingSac );
+			movingSACs = Collections.singletonList( movingSacs );
 		}
 
 

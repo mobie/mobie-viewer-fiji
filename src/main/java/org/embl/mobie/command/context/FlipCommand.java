@@ -62,12 +62,12 @@ public class FlipCommand extends AbstractTransformationCommand
 	@Override
 	protected void previewTransform()
 	{
-		super.previewTransform( createFlipTransform( movingSac ) );
+		super.previewTransform( createFlipTransform( movingSacs ) );
 	}
 
 	public void applyTransform()
 	{
-		AffineTransform3D transform = createFlipTransform( movingSac );
+		AffineTransform3D transform = createFlipTransform( movingSacs );
 		applyTransform( transform, "flip-" + axis + "-axis" );
 	}
 

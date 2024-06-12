@@ -70,7 +70,26 @@ public class AffineTransformation extends AbstractImageTransformation
 
 		lines.add( "## Affine transformation: " + getName() );
 
-		lines.add( MoBIEHelper.print( parameters, 3 ) );
+		String affineString = MoBIEHelper.print( parameters, 3 );
+
+		// split into three rows for better readability
+		String[] entries = affineString.split(",");
+		StringBuilder output = new StringBuilder();
+		int count = 0;
+        for ( String entry : entries )
+        {
+            output.append( entry );
+            count++;
+            if ( count == 4 )
+            {
+                lines.add( output.toString() );
+                count = 0;
+            }
+			else
+            {
+                output.append( "," );
+            }
+        }
 
 		addSources( lines );
 

@@ -28,18 +28,7 @@
  */
 package org.embl.mobie.command.context;
 
-import bdv.util.BdvHandle;
-import bdv.viewer.SourceAndConverter;
-import ij.IJ;
-import org.embl.mobie.lib.MoBIEHelper;
-import org.scijava.Initializable;
-import org.scijava.command.DynamicCommand;
-import org.scijava.command.Interactive;
 import org.scijava.plugin.Parameter;
-import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 public abstract class AbstractRegistrationCommand extends AbstractTransformationCommand
 {
@@ -52,10 +41,10 @@ public abstract class AbstractRegistrationCommand extends AbstractTransformation
         super.initialize();
 
         getInfo().getMutableInput( "fixedImageName", String.class )
-                .setChoices( imageNames );
+                .setChoices( selectableSourceNames );
 
         getInfo().getMutableInput( "fixedImageName", String.class )
-                .setDefaultValue( imageNames.get( 1 ) );
+                .setDefaultValue( selectableSourceNames.get( 1 ) );
     }
 
 }

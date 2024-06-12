@@ -31,6 +31,8 @@ package org.embl.mobie.command.context;
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import bdv.viewer.SourceGroup;
+import bdv.viewer.SynchronizedViewerState;
 import ij.gui.GenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
@@ -46,92 +48,94 @@ import org.scijava.command.Interactive;
 import org.scijava.plugin.Parameter;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class AbstractTransformationCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Interactive, Initializable
 {
+    public static final String GROUP = "group: ";
     @Parameter
     public BdvHandle bdvHandle;
 
     //@Parameter ( label = "Transformation target" )
     public TransformationOutput mode = TransformationOutput.CreateNewImage;
 
-    @Parameter ( label = "Moving image", choices = {""}, callback = "setMovingImage" )
-    public String movingImageName;
+    @Parameter ( label = "Moving image(s)", choices = {""}, callback = "setMovingImage" )
+    public String selectedSourceName;
 
-    // FIXME: maybe remove this?
-    @Parameter ( label = "Preview transformation", callback = "previewTransform" )
-    protected Boolean previewTransform = false;
+//    // FIXME: maybe remove this?
+//    @Parameter ( label = "Preview transformation", callback = "previewTransform" )
+//    protected Boolean previewTransform = false;
 
-    protected List< SourceAndConverter< ? > > sourceAndConverters;
-    protected List< String > imageNames;
-    protected SourceAndConverter< ? > movingSac;
-    protected TransformedSource< ? > movingSource;
-    protected AffineTransform3D previousFixedTransform;
+    protected Collection< SourceAndConverter< ? > > visibleSacs;
+    //protected List< String > selectableSourceNames;
+    protected Collection< SourceAndConverter< ? > > movingSacs;
+    protected Collection< Image< ? > > movingImages;
+    protected Collection< TransformedSource< ? > > movingSources;
+    protected Map< TransformedSource< ? >, AffineTransform3D > movingSourcesToInitialTransform;
 
 
     @Override
     public void initialize()
     {
-        sourceAndConverters = MoBIEHelper.getVisibleSacs( bdvHandle );
+        visibleSacs = MoBIEHelper.getVisibleSacs( bdvHandle );
 
-        imageNames = sourceAndConverters.stream()
+        List< String > selectableSourceNames = visibleSacs.stream()
                 .map( sac -> sac.getSpimSource().getName() )
                 .collect( Collectors.toList() );
 
+        SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
+        List< String > groupNames = state.getGroups().stream()
+                .filter( group -> ! state.getSourcesInGroup( group ).isEmpty() )
+                .map( state::getGroupName )
+                .collect( Collectors.toList() );
+
+        for ( String groupName : groupNames )
+        {
+            selectableSourceNames.add( GROUP + groupName );
+        }
+
         getInfo().getMutableInput( "movingImageName", String.class )
-                .setChoices( imageNames );
+                .setChoices( selectableSourceNames );
 
-        movingImageName = imageNames.get( 0 );
+        selectedSourceName = selectableSourceNames.get( 0 );
 
         getInfo().getMutableInput( "movingImageName", String.class )
-                .setDefaultValue( movingImageName );
+                .setDefaultValue( selectedSourceName );
 
-        setMovingImage();
+        setMovingImages();
     }
 
     protected void applyTransform( AffineTransform3D affineTransform3D, String transformationType )
     {
-        Image< ? > movingImage = DataStore.sourceToImage().get( movingSac );
-
-        if ( movingImage instanceof RegionAnnotationImage )
+        if ( mode.equals( TransformationOutput.TransformImage ) )
         {
-            // TODO: handle multiple selections instead of just taking the first one?!
-            movingImage = ( ( RegionAnnotationImage< ? > ) movingImage ).getSelectedImages().get( 0 );
-            movingSac = DataStore.sourceToImage().inverse().get( movingImage );
+            throw new RuntimeException( "In place transformation is currently not supported; just give the output image the same name as the input image.");
+            //   applyTransformInPlace( affineTransform3D );
         }
 
-        if ( mode.equals( TransformationOutput.CreateNewImage ) )
-        {
-            createAffineTransformedImage( movingImage, affineTransform3D, transformationType );
-        }
-        else if ( mode.equals( TransformationOutput.TransformMovingImage ))
-        {
-            applyTransformInPlace( affineTransform3D );
-        }
+        createAffineTransformedImages( movingImages, affineTransform3D, transformationType );
 
         // FIXME close the Command UI, HOW?
         // https://imagesc.zulipchat.com/#narrow/stream/327238-Fiji/topic/Close.20Scijava.20Command.20UI
     }
     
-    protected void createAffineTransformedImage( Image< ? > movingImage, AffineTransform3D affineTransform3D, String transformationSuffix )
+    protected void createAffineTransformedImages( Collection< Image< ? > > movingImages, AffineTransform3D affineTransform3D, String transformationSuffix )
     {
-        String transformedImageName = movingImageName + "-" + transformedImageSuffixUI( transformationSuffix );
+        String transformedImageName = selectedSourceName + "-" + transformedImageSuffixUI( transformationSuffix );
 
         AffineTransformation affineTransformation = new AffineTransformation(
                 transformationSuffix,
                 affineTransform3D.getRowPackedCopy(),
-                Collections.singletonList( movingImageName),
+                Collections.singletonList( selectedSourceName ),
                 Collections.singletonList( transformedImageName )
         );
 
         ViewManager.createTransformedImageView(
-                movingImage,
+                movingImages,
                 transformedImageName,
                 affineTransformation,
-                transformationSuffix + " transformation of " + movingImageName
+                transformationSuffix + " transformation of " + selectedSourceName
         );
     }
 
@@ -144,29 +148,63 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         return gd.getNextString();
     }
 
-    protected void setMovingImage()
+    protected void setMovingImages()
     {
-        if ( movingSource != null )
+        // Reset potential previous transforms
+        if ( movingSources != null )
         {
-            // reset transform of previously selected image
-            movingSource.setFixedTransform( previousFixedTransform );
+            movingSources.forEach( source -> source.setFixedTransform( movingSourcesToInitialTransform.get( source ) ) );
         }
 
-        // fetch the new moving image
-        movingSac = sourceAndConverters.stream()
-                .filter( sac -> sac.getSpimSource().getName().equals( movingImageName ) )
-                .findFirst().get();
-        movingSource = ( TransformedSource< ? > ) movingSac.getSpimSource();
-        previousFixedTransform = new AffineTransform3D();
-        movingSource.getFixedTransform( previousFixedTransform );
+        if ( selectedSourceName.contains( GROUP ) )
+        {
+            String groupName = selectedSourceName.replace( GROUP, "" );
+            SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
+            SourceGroup sourceGroup = state.getGroups().stream()
+                    .filter( g -> state.getGroupName( g ).equals( groupName ) )
+                    .findFirst().get();
+            movingSacs = state.getSourcesInGroup( sourceGroup );
+            movingImages = movingSacs.stream()
+                    .map( sac -> DataStore.sourceToImage().get( sac ) )
+                    .collect( Collectors.toSet() );
+        }
+        else
+        {
+            Image< ? > image = DataStore.getImage( selectedSourceName );
+            if ( image instanceof RegionAnnotationImage )
+            {
+                movingImages = ( ( RegionAnnotationImage< ? > ) image ).getSelectedImages();
+                movingSacs = movingImages.stream()
+                        .map( img -> DataStore.sourceToImage().inverse().get( img ) )
+                        .collect( Collectors.toSet() );
+            }
+            else
+            {
+                movingImages = Collections.singletonList( image );
+                movingSacs = Collections.singletonList( DataStore.sourceToImage().inverse().get( image ) );
+            }
+        }
+
+        movingSources = movingSacs.stream()
+                .map( sac -> ( TransformedSource< ? > ) sac.getSpimSource() )
+                .collect( Collectors.toSet() );
+
+        movingSourcesToInitialTransform = new HashMap<>();
+        for ( TransformedSource< ? > movingSource : movingSources )
+        {
+            AffineTransform3D initialTransform = new AffineTransform3D();
+            movingSource.getFixedTransform( initialTransform );
+            movingSourcesToInitialTransform.put( movingSource, initialTransform );
+
+        }
     }
 
-    protected void applyTransformInPlace( AffineTransform3D affineTransform )
-    {
-        final AffineTransform3D newFixedTransform = previousFixedTransform.copy();
-        newFixedTransform.preConcatenate( affineTransform.copy() );
-        movingSource.setFixedTransform( newFixedTransform );
-    }
+//    protected void applyTransformInPlace( AffineTransform3D affineTransform )
+//    {
+//        final AffineTransform3D newFixedTransform = movingSourcesToInitialTransform.copy();
+//        newFixedTransform.preConcatenate( affineTransform.copy() );
+//        movingSources.setFixedTransform( newFixedTransform );
+//    }
 
     // Should be overwritten by child classes!
     protected void previewTransform()
@@ -181,19 +219,19 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     }
 
 
-    protected void previewTransform( AffineTransform3D affineTransform3D )
-    {
-        if ( previewTransform )
-        {
-            // add alignmentTransform
-            applyTransformInPlace( affineTransform3D );
-        }
-        else
-        {
-            // reset original transform
-            applyTransformInPlace( new AffineTransform3D() );
-        }
-
-        bdvHandle.getViewerPanel().requestRepaint();
-    }
+//    protected void previewTransform( AffineTransform3D affineTransform3D )
+//    {
+//        if ( previewTransform )
+//        {
+//            // add alignmentTransform
+//            applyTransformInPlace( affineTransform3D );
+//        }
+//        else
+//        {
+//            // reset original transform
+//            applyTransformInPlace( new AffineTransform3D() );
+//        }
+//
+//        bdvHandle.getViewerPanel().requestRepaint();
+//    }
 }
