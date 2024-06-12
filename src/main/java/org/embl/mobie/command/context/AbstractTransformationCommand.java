@@ -33,12 +33,13 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.SourceGroup;
 import bdv.viewer.SynchronizedViewerState;
-import ij.gui.GenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
+import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.transform.TransformationOutput;
 import org.embl.mobie.lib.view.ViewManager;
@@ -63,6 +64,11 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
 
     @Parameter ( label = "Moving image(s)", choices = {""}, callback = "setMovingImages" )
     public String selectedSourceName;
+
+    @Parameter ( label = "Transformed image(s) suffix",
+            description = "Upon transformation this suffix will be appended to the moving image(s).\n" +
+                    "Carefully choose a meaningful suffix here that will create a unique new image name.")
+    public String suffix = "transformed";
 
     // Too complex to maintain right now
     //@Parameter ( label = "Preview transformation", callback = "previewTransform" )
@@ -107,7 +113,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         setMovingImages();
     }
 
-    protected void applyTransform( AffineTransform3D affineTransform3D, String transformationType )
+    protected void applyTransform( AffineTransform3D affineTransform3D )
     {
         if ( mode.equals( TransformationOutput.TransformImage ) )
         {
@@ -115,45 +121,37 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
             //   applyTransformInPlace( affineTransform3D );
         }
 
-        createAffineTransformedImages( movingImages, affineTransform3D, transformationType );
+        createAndSaveAffineTransformedImages( movingImages, affineTransform3D, suffix );
 
         // FIXME close the Command UI, HOW?
         // https://imagesc.zulipchat.com/#narrow/stream/327238-Fiji/topic/Close.20Scijava.20Command.20UI
     }
     
-    protected void createAffineTransformedImages( Collection< Image< ? > > movingImages, AffineTransform3D affineTransform3D, String transformationSuffix )
+    protected void createAndSaveAffineTransformedImages(
+            Collection< Image< ? > > movingImages,
+            AffineTransform3D affineTransform3D,
+            String suffix )
     {
-        String suffix = transformedImageSuffixUI( transformationSuffix );
-
         for ( Image< ? > movingImage : movingImages )
         {
-            // FIXME: Make this more convenient that the user does not have to enter
-            //        everything for each image
             String transformedImageName = movingImage.getName() + "-" + suffix;
 
             AffineTransformation affineTransformation = new AffineTransformation(
-                    transformationSuffix,
+                    suffix,
                     affineTransform3D.getRowPackedCopy(),
                     Collections.singletonList( movingImage.getName() ),
                     Collections.singletonList( transformedImageName )
             );
 
-            ViewManager.createTransformedImageView(
+            View view = ViewManager.createTransformedImageView(
                     movingImage,
                     transformedImageName,
                     affineTransformation,
-                    transformationSuffix + " transformation of " + selectedSourceName
-            );
-        }
-    }
+                    movingImage.getName() + ", " + suffix );
 
-    protected String transformedImageSuffixUI( String transformationSuffix )
-    {
-        final GenericDialog gd = new GenericDialog("Transformed Image(s) Suffix");
-        gd.addStringField( "Suffix for the transformed image(s)", transformationSuffix, 40 );
-        gd.showDialog();
-        if ( gd.wasCanceled() ) return "";
-        return gd.getNextString();
+            MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view );
+            MoBIE.getInstance().getViewManager().show( view );
+        }
     }
 
     // button callback => rename with care!

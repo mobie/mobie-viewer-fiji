@@ -40,6 +40,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class AdditionalViewsJsonParser {
     public AdditionalViews getViews( String path ) throws IOException
@@ -50,17 +52,18 @@ public class AdditionalViewsJsonParser {
         return gson.fromJson( s, type );
     }
 
-    public void saveViews( AdditionalViews additionalViews, String path ) throws IOException {
+    public void saveViews( AdditionalViews additionalViews, String path ) throws IOException
+    {
         Gson gson = JsonHelper.buildGson( false );
         Type type = new TypeToken< AdditionalViews >() {}.getType();
 
         File parentDir = new File( path ).getParentFile();
-        if ( !parentDir.exists() ) {
+        if ( ! parentDir.exists() ) {
             parentDir.mkdirs();
         }
 
-        try ( OutputStream outputStream = new FileOutputStream( path );
-             final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8")) ) {
+        try ( OutputStream outputStream = Files.newOutputStream( Paths.get( path ) );
+              final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8")) ) {
             writer.setIndent("  ");
             gson.toJson(additionalViews, type, writer);
         }

@@ -31,5 +31,5 @@ package org.embl.mobie.lib.io;
 public enum FileLocation
 {
     CurrentProject,
-    ExternalFile
+    ExternalJSONFile
 }

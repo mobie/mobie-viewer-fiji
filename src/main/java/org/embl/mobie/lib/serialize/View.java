@@ -50,7 +50,7 @@ public class View
 
 	private List< Transformation > sourceTransforms;
 
-	private ViewerTransform viewerTransform;
+	private ViewerTransform viewerTransform = null;
 
 	private Boolean isExclusive = null;
 
@@ -66,7 +66,7 @@ public class View
 
 	public View() // deserialization
 	{
-		if ( isExclusive == null ) isExclusive = false;
+        isExclusive = false;
 	}
 
 	public View( String name,

@@ -66,8 +66,7 @@ public class ViewSaver
 
     private static String saveToProjectOrFile = FileLocation.CurrentProject.toString();;
     private static String uiSelectionChoice = MAKE_NEW_UI_SELECTION_GROUP;
-
-    private static String externalFilePath = "";
+    private static String externalJsonPath = "my-external-views.json";
 
 
 //    enum ProjectSaveLocation {
@@ -88,59 +87,64 @@ public class ViewSaver
     {
         final GenericDialog gd = new GenericDialog("Save view");
 
-        gd.addChoice("Save to", new String[]{ FileLocation.CurrentProject.toString(), FileLocation.ExternalFile.toString() }, saveToProjectOrFile );
-        gd.addFileField( "External file", externalFilePath );
+        gd.addChoice("Save to", new String[]{ FileLocation.CurrentProject.toString(), FileLocation.ExternalJSONFile.toString() }, saveToProjectOrFile );
+        gd.addFileField( "External JSON file", externalJsonPath, 70 );
         gd.addMessage( "" );
-        gd.addStringField("View name", view.getName() != null ? view.getName() : "", 25 );
-        gd.addStringField( "View description:", view.getDescription() != null ? view.getDescription() : "", 50 );
+        gd.addStringField("View name", view.getName() != null ? view.getName() : "", 70 );
+        gd.addStringField( "View description", view.getDescription() != null ? view.getDescription() : "", 70 );
         gd.addCheckbox("Make view exclusive", view.isExclusive() != null ? view.isExclusive() : false );
         gd.addMessage( "" );
-        gd.addChoice("Selection group", getSelectionGroupChoices(), uiSelectionChoice);
-        gd.addStringField("New selection group", "");
+        gd.addChoice("Selection group", getSelectionGroupChoices(), uiSelectionChoice );
+        gd.addStringField("New selection group", "my-new-group", 30 );
 
         gd.showDialog();
         if( gd.wasCanceled() ) return;
 
         // fetch primary user input
         saveToProjectOrFile = gd.getNextChoice();
-        externalFilePath = gd.getNextString();
+        externalJsonPath = gd.getNextString();
         view.setName( UserInterfaceHelper.tidyString( gd.getNextString() ) );
         view.setDescription( gd.getNextString()  );
         view.setExclusive( gd.getNextBoolean() );
-        String selectionGroup = gd.getNextString();
+        uiSelectionChoice = gd.getNextChoice();
         String newSelectionGroupName = gd.getNextString();
 
         // compute derived parameters
         FileLocation fileLocation = FileLocation.valueOf( saveToProjectOrFile );
         if ( view.isExclusive() )
             view.setViewerTransform( new NormalizedAffineViewerTransform( moBIE.getViewManager().getSliceViewer().getBdvHandle() ) );
+        //else
+        //    view.setViewerTransform( new NoViewerTransform() );
 
-        if ( selectionGroup.equals( CREATE_SELECTION_GROUP ) )
+        if ( uiSelectionChoice.equals( CREATE_SELECTION_GROUP ) )
             view.setUiSelectionGroup( newSelectionGroupName );
         else
-            view.setUiSelectionGroup( selectionGroup );
+            view.setUiSelectionGroup( uiSelectionChoice );
 
-//        // FIXME https://github.com/mobie/mobie-viewer-fiji/issues/1150
-//        if ( fileLocation == FileLocation.CurrentProject ) {
-//            String[] jsonChoices = new String[]{ "dataset.json", "views.json" };
-//            gd.addChoice("Save location:", jsonChoices, jsonChoices[0]);
-//        }
-//
-//        ProjectSaveLocation projectSaveLocation = null;
-//        if ( fileLocation == FileLocation.CurrentProject ) {
-//            String projectSaveLocationString = gd.getNextChoice();
-//            if ( projectSaveLocationString.equals("dataset.json") ) {
-//                projectSaveLocation = ProjectSaveLocation.datasetJson;
-//            } else if ( projectSaveLocationString.equals("views.json") ) {
-//                projectSaveLocation = ProjectSaveLocation.viewsJson;
-//            }
-//        }
+        //  We discussed in below issue that the views.json is not needed anymore
+        //  https://github.com/mobie/mobie-viewer-fiji/issues/1150
+        //
+        //        if ( fileLocation == FileLocation.CurrentProject ) {
+        //            String[] jsonChoices = new String[]{ "dataset.json", "views.json" };
+        //            gd.addChoice("Save location:", jsonChoices, jsonChoices[0]);
+        //        }
+        //
+        //        ProjectSaveLocation projectSaveLocation = null;
+        //        if ( fileLocation == FileLocation.CurrentProject ) {
+        //            String projectSaveLocationString = gd.getNextChoice();
+        //            if ( projectSaveLocationString.equals("dataset.json") ) {
+        //                projectSaveLocation = ProjectSaveLocation.datasetJson;
+        //            } else if ( projectSaveLocationString.equals("views.json") ) {
+        //                projectSaveLocation = ProjectSaveLocation.viewsJson;
+        //            }
+        //        }
 
-        if ( fileLocation == FileLocation.CurrentProject ) {
+        addViewToUi( view );
+
+        if ( fileLocation == FileLocation.CurrentProject )
             saveNewViewToProject( view, "dataset.json" );
-        } else if ( fileLocation == FileLocation.ExternalFile ) {
-            saveNewViewToFileSystem( view );
-        }
+        else if ( fileLocation == FileLocation.ExternalJSONFile )
+            saveNewViewToFileSystem( view, externalJsonPath );
     }
 
     @NotNull
@@ -164,18 +168,12 @@ public class ViewSaver
         return jsonPath;
     }
 
-    private void saveNewViewToFileSystem( View view ) {
-        new Thread( () -> {
-            String jsonPath = chooseFileSystemJson();
-            if ( jsonPath != null ) {
-                try {
-                    saveNewViewToAdditionalViewsJson( view, jsonPath );
-                    addViewToUi( view );
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+    private void saveNewViewToFileSystem( View view, String jsonPath ) {
+        try {
+            saveNewViewToAdditionalViewsJson( view, jsonPath );
+        } catch (IOException e) {
+            throw new RuntimeException( e );
+        }
     }
 
 //    private void overwriteExistingViewOnFileSystem( View view ) {
@@ -199,12 +197,11 @@ public class ViewSaver
             }
             else
             {
-                String viewJsonPath = chooseAdditionalViewsJson();
-                if ( viewJsonPath != null ) {
-                    saveNewViewToAdditionalViewsJson( view, viewJsonPath);
+                String jsonPath = chooseAdditionalViewsJson();
+                if ( jsonPath != null ) {
+                    saveNewViewToAdditionalViewsJson( view, jsonPath);
                 }
             }
-            addViewToUi( view );
         } catch (IOException e) {
             throw new RuntimeException( e );
         }
@@ -309,8 +306,8 @@ public class ViewSaver
             additionalViews.views = new HashMap<>();
         }
 
-        writeAdditionalViewsJson( additionalViews, view,  jsonPath );
-        IJ.log( "New view, " + view.getName() + ", written to " + new File( jsonPath ).getName() );
+        writeAdditionalViewsJson( additionalViews, view, jsonPath );
+        IJ.log( "Saved view \"" + view.getName() + "\" to " + jsonPath );
     }
 
     private String chooseAdditionalViewsJson( ) {

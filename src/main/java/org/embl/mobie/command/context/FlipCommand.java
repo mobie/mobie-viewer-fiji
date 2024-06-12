@@ -69,7 +69,7 @@ public class FlipCommand extends AbstractTransformationCommand
 	{
 		// FIXME: This needs a transform for each of the sacs
 		AffineTransform3D transform = createFlipTransform( movingSacs.iterator().next() );
-		applyTransform( transform, "flip-" + axis + "-axis" );
+		applyTransform( transform );
 	}
 
 	@NotNull

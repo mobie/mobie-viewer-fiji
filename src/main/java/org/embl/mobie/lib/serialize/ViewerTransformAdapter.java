@@ -48,8 +48,8 @@ import java.util.TreeMap;
 // TODO: maybe we don't need the serializer?!
 public class ViewerTransformAdapter implements JsonSerializer< ViewerTransform >, JsonDeserializer< ViewerTransform >
 {
-	private static Map<String, Class> nameToClass = new TreeMap<>();
-	private static Map<String, String> classToName = new TreeMap<>();
+	private static final Map<String, Class> nameToClass = new TreeMap<>();
+	private static final Map<String, String> classToName = new TreeMap<>();
 
 	static {
 		nameToClass.put("affine", AffineViewerTransform.class);
@@ -67,12 +67,12 @@ public class ViewerTransformAdapter implements JsonSerializer< ViewerTransform >
 	@Override
 	public ViewerTransform deserialize( JsonElement json, Type typeOfT, JsonDeserializationContext context ) throws JsonParseException
 	{
-		final ViewerTransform viewerTransform = ( ViewerTransform ) JsonHelper.createObjectFromJsonObject( context, json, nameToClass );
-		return viewerTransform;
+        return ( ViewerTransform ) JsonHelper.createObjectFromJsonObject( context, json, nameToClass );
 	}
 
 	@Override
-	public JsonElement serialize( ViewerTransform viewerTransform, Type type, JsonSerializationContext context ) {
+	public JsonElement serialize( ViewerTransform viewerTransform, Type type, JsonSerializationContext context )
+	{
 		return context.serialize( viewerTransform );
 	}
 }

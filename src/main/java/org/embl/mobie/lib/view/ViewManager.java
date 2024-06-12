@@ -103,7 +103,7 @@ public class ViewManager
 	}
 
 
-	public static void createTransformedImageView(
+	public static View createTransformedImageView(
 			Image< ? > image,
 			String imageName,
 			Transformation transformation,
@@ -129,12 +129,13 @@ public class ViewManager
 				null, // to be determined by the user in below dialog
 				Collections.singletonList( display ),
 				transformations,
-				new NoViewerTransform(),
+				null,
 				false,
 				viewDescription );
 
-		MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view );
-		MoBIE.getInstance().getViewManager().show( view );
+		view.setExclusive( false );
+
+		return view;
 	}
 
 	@Deprecated // use createTransformedImageView instead
@@ -307,7 +308,7 @@ public class ViewManager
 
 		IJ.log("Opened view \"" + view.getName() + "\" in " + (System.currentTimeMillis() - startTime) + " ms." );
 		if ( view.getDescription() != null )
-			IJ.log( "Description: \"" + view.getDescription() + "\"" );
+			IJ.log( "View description: \"" + view.getDescription() + "\"" );
 
 	}
 

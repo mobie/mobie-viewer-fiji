@@ -52,14 +52,14 @@ public class ViewSavingHelper
         }
     }
 
-    public static void writeAdditionalViewsJson( AdditionalViews additionalViews, View view, String additionalViewsJsonPath ) throws IOException
+    public static void writeAdditionalViewsJson( AdditionalViews additionalViews, View view, String jsonPath ) throws IOException
     {
         additionalViews.views.put(view.getName(), view);
 
-        if (isGithub( additionalViewsJsonPath )) {
-            new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation( additionalViewsJsonPath ) ).writeViewToViewsJson( view );
+        if (isGithub( jsonPath )) {
+            new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation( jsonPath ) ).writeViewToViewsJson( view );
         } else {
-            new AdditionalViewsJsonParser().saveViews(additionalViews, additionalViewsJsonPath );
+            new AdditionalViewsJsonParser().saveViews( additionalViews, jsonPath );
         }
     }
 }

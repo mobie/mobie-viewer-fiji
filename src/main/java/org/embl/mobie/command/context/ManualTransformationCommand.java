@@ -77,7 +77,7 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 	{
 		if ( transformationEditor == null ) return;
 
-		applyTransform( transformationEditor.getManualTransform(), "manual-transform" );
+		applyTransform( transformationEditor.getManualTransform() );
 
 		// This will cause the transformed image to jump back to its original position,
 		// but this is intended as the transformed image is now a new image that is stored as a new view.
