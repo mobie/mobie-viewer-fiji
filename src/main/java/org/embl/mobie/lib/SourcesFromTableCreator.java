@@ -44,9 +44,8 @@ import tech.tablesaw.api.TextColumn;
 import tech.tablesaw.columns.Column;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.lang.reflect.Array;
+import java.util.*;
 
 import static tech.tablesaw.aggregate.AggregateFunctions.mean;
 
@@ -103,8 +102,12 @@ public class SourcesFromTableCreator
 			}
 		}
 
+
 		// region table for grid view
 		//
+		if ( imageFileSources.isEmpty() )
+			throw new RuntimeException("No images found in the table! Please check your table and image column names: " + imageColumns );
+
 		int numSources = imageFileSources.get( 0 ).getSources().size();
 
 		if ( table.rowCount() == numSources )
@@ -126,14 +129,15 @@ public class SourcesFromTableCreator
 			regionTable = Table.create( "image table" );
 
 			// init columns
-			LinkedHashSet< String > uniqueImagePaths = new LinkedHashSet<>(); // important not to change the order!
+			LinkedHashSet< String > uniqueRegionNames = new LinkedHashSet<>(); // important not to change the order!
 			String imageColumnName = new TableImageSource( imageColumns.get( 0 ) ).columnName;
 			StringColumn imageColumn = table.stringColumn( imageColumnName );
 			for ( String imagePath : imageColumn )
 			{
-				uniqueImagePaths.add( imagePath );
+				// FIXME It would be nice to shorten the names, e.g. by removing everything that is common to all image paths
+				uniqueRegionNames.add( imagePath );
 			}
-			final List< String > regions = new ArrayList<>( uniqueImagePaths );
+			final List< String > regions = new ArrayList<>( uniqueRegionNames );
 			regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, regions ) ); // needed for region table
 			regionTable.addColumns( StringColumn.create( imageColumnName, regions ) ); // needed for joining the tables
 
