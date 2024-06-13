@@ -54,7 +54,7 @@ public class ViewSavingHelper
 
     public static void writeAdditionalViewsJson( AdditionalViews additionalViews, View view, String jsonPath ) throws IOException
     {
-        additionalViews.views.put(view.getName(), view);
+        additionalViews.views.put( view.getName(), view );
 
         if (isGithub( jsonPath )) {
             new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation( jsonPath ) ).writeViewToViewsJson( view );

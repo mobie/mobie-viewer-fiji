@@ -149,8 +149,10 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
                     affineTransformation,
                     movingImage.getName() + ", " + suffix );
 
-            MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view );
-            MoBIE.getInstance().getViewManager().show( view );
+            if ( MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view ) )
+            {
+                MoBIE.getInstance().getViewManager().show( view );
+            }
         }
     }
 

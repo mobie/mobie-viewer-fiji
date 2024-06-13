@@ -83,15 +83,16 @@ public class ViewSaver
         this.moBIE = moBIE;
     }
 
-    public void saveViewDialog( View view )
+    public boolean saveViewDialog( View view )
     {
-        final GenericDialog gd = new GenericDialog("Save view");
+        final GenericDialog gd = new GenericDialog("Save view " + ( view.getName() == null ? "" : view.getName()) );
 
         gd.addChoice("Save to", new String[]{ FileLocation.CurrentProject.toString(), FileLocation.ExternalJSONFile.toString() }, saveToProjectOrFile );
         gd.addFileField( "External JSON file", externalJsonPath, 70 );
         gd.addMessage( "" );
-        gd.addStringField("View name", view.getName() != null ? view.getName() : "", 70 );
-        gd.addStringField( "View description", view.getDescription() != null ? view.getDescription() : "", 70 );
+        if ( view.getName() == null )
+            gd.addStringField("View name", "my-new-view-name", 35 );
+        gd.addStringField( "View description", view.getDescription() != null ? view.getDescription() : "My view description....", 70 );
         gd.addCheckbox("Make view exclusive", view.isExclusive() != null ? view.isExclusive() : false );
         gd.addMessage( "" );
         gd.addChoice("Selection group", getSelectionGroupChoices(), uiSelectionChoice );
@@ -103,18 +104,27 @@ public class ViewSaver
         // fetch primary user input
         saveToProjectOrFile = gd.getNextChoice();
         externalJsonPath = gd.getNextString();
-        view.setName( UserInterfaceHelper.tidyString( gd.getNextString() ) );
+        if ( view.getName() == null )
+            view.setName( UserInterfaceHelper.tidyString( gd.getNextString() ) );
         view.setDescription( gd.getNextString()  );
         view.setExclusive( gd.getNextBoolean() );
         uiSelectionChoice = gd.getNextChoice();
         String newSelectionGroupName = gd.getNextString();
 
+        if ( moBIE.getViews().containsKey( view.getName() ) )
+        {
+            GenericDialog dialog = new GenericDialog( "Overwrite view?" );
+            dialog.addMessage( view.getName() + " exists already; are you sure you want to overwrite it?" );
+            dialog.showDialog();
+            if ( ! dialog.wasOKed() ) {
+                return false;
+            }
+        }
+
         // compute derived parameters
         FileLocation fileLocation = FileLocation.valueOf( saveToProjectOrFile );
         if ( view.isExclusive() )
             view.setViewerTransform( new NormalizedAffineViewerTransform( moBIE.getViewManager().getSliceViewer().getBdvHandle() ) );
-        //else
-        //    view.setViewerTransform( new NoViewerTransform() );
 
         if ( uiSelectionChoice.equals( CREATE_SELECTION_GROUP ) )
             view.setUiSelectionGroup( newSelectionGroupName );
@@ -145,6 +155,8 @@ public class ViewSaver
             saveNewViewToProject( view, "dataset.json" );
         else if ( fileLocation == FileLocation.ExternalJSONFile )
             saveNewViewToFileSystem( view, externalJsonPath );
+
+        return true;
     }
 
     @NotNull
@@ -230,7 +242,8 @@ public class ViewSaver
 //        }
 //    }
 
-    private void addViewToUi( View view ) {
+    private void addViewToUi( View view )
+    {
         moBIE.getViews().put( view.getName(), view );
         Map<String, View > views = new HashMap<>();
         views.put( view.getName(), view );
@@ -292,15 +305,11 @@ public class ViewSaver
 //        }
 //    }
 
-    private void saveNewViewToAdditionalViewsJson( View view, String jsonPath ) throws IOException {
-
+    private void saveNewViewToAdditionalViewsJson( View view, String jsonPath ) throws IOException
+    {
         AdditionalViews additionalViews;
         if ( jsonExists( jsonPath ) ) {
             additionalViews = new AdditionalViewsJsonParser().getViews( jsonPath );
-            if ( additionalViews.views.containsKey( view.getName() ) ) {
-                IJ.log( "View saving aborted - this view name already exists!" );
-                return;
-            }
         } else {
             additionalViews = new AdditionalViews();
             additionalViews.views = new HashMap<>();

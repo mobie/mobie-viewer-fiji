@@ -44,8 +44,8 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-@Plugin( type = BdvPlaygroundActionCommand.class, name = ViewerTransformLoggerCommand.NAME, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + ViewerTransformLoggerCommand.NAME )
-public class ViewerTransformLoggerCommand implements BdvPlaygroundActionCommand
+@Plugin( type = BdvPlaygroundActionCommand.class, name = CurrentLocationLoggerCommand.NAME, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + CurrentLocationLoggerCommand.NAME )
+public class CurrentLocationLoggerCommand implements BdvPlaygroundActionCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -79,10 +79,13 @@ public class ViewerTransformLoggerCommand implements BdvPlaygroundActionCommand
 
 			// print
 			final Gson gson = JsonHelper.buildGson( false );
-			Logger.log( "# Current location " );
-			Logger.log( "To restore the view, any of below lines can be pasted into the \'location\' text field." );
-			Logger.log( "To share views with other people we recommend \'normalizedAffine\'." );
-
+			Logger.log( "" );
+			Logger.log( "# Current location" );
+			Logger.log( "" );
+			Logger.log( "- To restore the current location, any of below lines can be pasted into MoBIE's \"location\"  field." );
+			Logger.log( "- To share views with other people we recommend \"normalizedAffine\"." );
+			Logger.log( "- Note that below \"position\" is the position of the window center (not of the mouse pointer)." );
+			Logger.log( "" );
 			Logger.log( gson.toJson( positionViewerTransform ) );
 			Logger.log( gson.toJson( affineViewerTransform ) );
 			Logger.log( gson.toJson( normalizedAffineViewerTransform ) );

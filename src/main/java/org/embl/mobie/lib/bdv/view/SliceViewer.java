@@ -28,13 +28,12 @@
  */
 package org.embl.mobie.lib.bdv.view;
 
-import IceInternal.Ex;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.context.*;
-import org.embl.mobie.command.view.ViewerTransformLoggerCommand;
+import org.embl.mobie.command.view.CurrentLocationLoggerCommand;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.lib.bdv.MobieBdvSupplier;
@@ -126,7 +125,8 @@ public class SliceViewer
 
 	private void installContextMenuAndKeyboardShortCuts( )
 	{
-		final SliceViewAnnotationSelector sliceViewAnnotationSelector = new SliceViewAnnotationSelector( bdvHandle, is2D, () -> moBIE.getViewManager().getAnnotationDisplays() );
+		final SliceViewAnnotationSelector sliceViewAnnotationSelector =
+				new SliceViewAnnotationSelector( bdvHandle, is2D, () -> moBIE.getViewManager().getAnnotationDisplays() );
 
 		sacService.registerAction( UNDO_SEGMENT_SELECTIONS, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
@@ -148,7 +148,8 @@ public class SliceViewer
 		actions.add( SourceAndConverterService.getCommandName( SourcesInfoCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ShowRasterImagesCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ScreenShotMakerCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( ViewerTransformLoggerCommand.class ) );
+		// TODO https://github.com/mobie/mobie-viewer-fiji/issues/1152
+		actions.add( SourceAndConverterService.getCommandName( CurrentLocationLoggerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( BigWarpRegistrationCommand.class ) );
 		//actions.add( SourceAndConverterService.getCommandName( AutomaticRegistrationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ManualTransformationCommand.class ) );

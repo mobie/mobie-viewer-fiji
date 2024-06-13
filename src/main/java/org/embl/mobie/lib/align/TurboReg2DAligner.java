@@ -32,7 +32,6 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.io.FileSaver;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.command.context.AutomaticRegistrationCommand;
 import org.embl.mobie.lib.transform.Transform;
 
 import java.lang.reflect.Method;
