@@ -45,13 +45,12 @@ import java.util.Arrays;
 public abstract class ViewerTransformChanger
 {
 	public static int animationDurationMillis = 1500;
-
 	private static BdvOverlaySource< BdvOverlay > pointOverlaySource;
 	private static CircleOverlay circleOverlay;
 	private static boolean pointOverlaySourceIsActive;
 	private static boolean isPointOverlayEnabled;
 
-	public static void changeLocation( BdvHandle bdvHandle, ViewerTransform viewerTransform )
+	public static void apply( BdvHandle bdvHandle, ViewerTransform viewerTransform )
 	{
 		if ( viewerTransform instanceof PositionViewerTransform )
 		{
@@ -67,18 +66,18 @@ public abstract class ViewerTransformChanger
 		else if ( viewerTransform instanceof NormalVectorViewerTransform )
 		{
 			final AffineTransform3D transform = NormalVectorViewerTransform.createTransform( bdvHandle, viewerTransform.getParameters() );
-			changeLocation( bdvHandle, transform, animationDurationMillis );
+			apply( bdvHandle, transform, animationDurationMillis );
 			adaptTimepoint( bdvHandle, viewerTransform );
 		}
 		else if ( viewerTransform instanceof AffineViewerTransform )
 		{
-			changeLocation( bdvHandle, TransformHelper.asAffineTransform3D( viewerTransform.getParameters() ), animationDurationMillis );
+			apply( bdvHandle, TransformHelper.asAffineTransform3D( viewerTransform.getParameters() ), animationDurationMillis );
 			adaptTimepoint( bdvHandle, viewerTransform );
 		}
 		else if ( viewerTransform instanceof NormalizedAffineViewerTransform )
 		{
 			final AffineTransform3D transform = TransformHelper.createUnnormalizedViewerTransform( TransformHelper.asAffineTransform3D( viewerTransform.getParameters() ), bdvHandle.getBdvHandle().getViewerPanel() );
-			changeLocation( bdvHandle, transform, animationDurationMillis );
+			apply( bdvHandle, transform, animationDurationMillis );
 			adaptTimepoint( bdvHandle, viewerTransform );
 		}
 	}
@@ -160,7 +159,7 @@ public abstract class ViewerTransformChanger
 		}
 	}
 
-	public static void changeLocation( BdvHandle bdvHandle, AffineTransform3D newViewerTransform, long duration)
+	public static void apply( BdvHandle bdvHandle, AffineTransform3D newViewerTransform, long duration )
 	{
 		AffineTransform3D currentViewerTransform = new AffineTransform3D();
 		bdvHandle.getBdvHandle().getViewerPanel().state().getViewerTransform( currentViewerTransform );

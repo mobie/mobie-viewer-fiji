@@ -269,11 +269,11 @@ public class ViewManager
 				final String imageName = ( ( ImageZoomViewerTransform ) viewerTransform ).getImageName();
 				final RealMaskRealInterval mask = DataStore.getImage( imageName ).getMask();
 				final AffineTransform3D transform = TransformHelper.getIntervalViewerTransform( bdvHandle, mask );
-				ViewerTransformChanger.changeLocation( bdvHandle, transform, 0 );
+				ViewerTransformChanger.apply( bdvHandle, transform, 0 );
 			}
 			else
 			{
-				ViewerTransformChanger.changeLocation( bdvHandle, viewerTransform );
+				ViewerTransformChanger.apply( bdvHandle, viewerTransform );
 			}
 		}
 

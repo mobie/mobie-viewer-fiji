@@ -217,8 +217,7 @@ public abstract class SourceHelper
 		// create mask
 		// as compared with estimateBounds this has the
 		// advantage that it can represent a rotated box
-		final RealMaskRealInterval mask = GeomMasks.closedBox( min, max ).transform( sourceTransform.inverse() );
-		return mask;
+        return GeomMasks.closedBox( min, max ).transform( sourceTransform.inverse() );
 	}
 
 	public static RealMaskRealInterval estimatePhysicalMask( Source< ? > source, int t, boolean includeVoxelDimensions )

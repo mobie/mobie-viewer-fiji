@@ -99,7 +99,8 @@ public class ViewSaver
         gd.addStringField("New selection group", "my-new-group", 30 );
 
         gd.showDialog();
-        if( gd.wasCanceled() ) return;
+
+        if( gd.wasCanceled() ) return false;
 
         // fetch primary user input
         saveToProjectOrFile = gd.getNextChoice();

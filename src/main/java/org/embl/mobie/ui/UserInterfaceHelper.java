@@ -977,7 +977,7 @@ public class UserInterfaceHelper
 		button.addActionListener( e ->
 		{
 			ViewerTransform viewerTransform = ViewerTransform.toViewerTransform( jTextField.getText() );
-			ViewerTransformChanger.changeLocation( this.moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
+			ViewerTransformChanger.apply( this.moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
 		} );
 
 		panel.add( SwingHelper.getJLabel( "location" ) );
@@ -1210,7 +1210,9 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JButton createFocusButton( AbstractDisplay sourceDisplay, BdvHandle bdvHandle, List< Source< ? > > sources )
+	public static JButton createFocusButton( AbstractDisplay< ? > sourceDisplay,
+											 BdvHandle bdvHandle,
+											 List< Source< ? > > sources )
 	{
 		JButton button = new JButton( "F" );
 		button.setToolTipText( "Show whole dataset" );
@@ -1218,8 +1220,20 @@ public class UserInterfaceHelper
 
 		button.addActionListener( e ->
 		{
-			final AffineTransform3D transform = new MoBIEViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sources ).getMultiSourceTransform();
-			new sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger( bdvHandle, transform, false, ViewerTransformChanger.animationDurationMillis ).run();
+			if ( sources.size() == 1 )
+			{
+				final AffineTransform3D transform = new MoBIEViewerTransformAdjuster(
+						sourceDisplay.sliceViewer.getBdvHandle(),
+						sources ).getSingleSourceTransform();
+				ViewerTransformChanger.apply( bdvHandle, transform, ViewerTransformChanger.animationDurationMillis );
+			}
+			else
+			{
+				final AffineTransform3D transform = new MoBIEViewerTransformAdjuster(
+						sourceDisplay.sliceViewer.getBdvHandle(),
+						sources ).getMultiSourceTransform();
+				ViewerTransformChanger.apply( bdvHandle, transform, ViewerTransformChanger.animationDurationMillis );
+			}
 		} );
 
 		return button;

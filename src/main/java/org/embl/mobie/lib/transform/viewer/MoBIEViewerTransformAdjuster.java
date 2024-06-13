@@ -97,7 +97,6 @@ public class MoBIEViewerTransformAdjuster {
 			double[] pScreen = new double[3];
 			sourceTransform.apply(pSource, pGlobal);
 
-
 			LinAlgHelpers.quaternionApply(qViewer, centerGlobal, translation);
 			LinAlgHelpers.scale(translation, -1.0D, translation);
 			LinAlgHelpers.setCol(3, translation, m);
@@ -115,10 +114,12 @@ public class MoBIEViewerTransformAdjuster {
 		}
 	}
 
+	// TODO: This does not seem to work well if one of the sources
+	//   contains a rotation: https://github.com/mobie/mobie-viewer-fiji/issues/1153
 	public AffineTransform3D getMultiSourceTransform() {
 		SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
-		final RealInterval bounds = TransformHelper.createMask( sources, state.getCurrentTimepoint() );
-		final AffineTransform3D transform = TransformHelper.getIntervalViewerTransform( bdvHandle, bounds );
+		final RealInterval mask = TransformHelper.createMask( sources, state.getCurrentTimepoint() );
+		final AffineTransform3D transform = TransformHelper.getIntervalViewerTransform( bdvHandle, mask );
 		return transform;
 	}
 
