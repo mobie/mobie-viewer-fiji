@@ -64,7 +64,9 @@ public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< 
 		position[ 0 ] = (float) table.get( rowIndex, xColumnIndex );
 		position[ 1 ] = (float) table.get( rowIndex, yColumnIndex );
 		if ( zColumnIndex > -1 )
-			position[ 2 ] =  (float) table.get( rowIndex, zColumnIndex ) + (float) ( 1e-3 * Math.random() ); // FIXME kdTree issue: https://imagesc.zulipchat.com/#narrow/stream/327240-ImgLib2/topic/kdTree.20issue
+			position[ 2 ] =  (float) table.get( rowIndex, zColumnIndex ) + (float) ( 1e-3 * Math.random() );
+
+		// FIXME kdTree issue: https://imagesc.zulipchat.com/#narrow/stream/327240-ImgLib2/topic/kdTree.20issue
 
 		int label = ( int ) table.get( rowIndex, spotIDColumnIndex );
 

@@ -250,7 +250,7 @@ public class ViewSaver
         IJ.log( "View \"" + view.getName()  + "\" written to dataset.json" );
     }
 
-    // FIXME: Delete this? https://github.com/mobie/mobie-viewer-fiji/issues/1150
+    // TODO: Delete this? https://github.com/mobie/mobie-viewer-fiji/issues/1150
 //    private void overwriteExistingViewInDatasetJson( View view ) throws IOException {
 //        String datasetJsonPath = moBIE.absolutePath( "dataset.json");
 //        Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );

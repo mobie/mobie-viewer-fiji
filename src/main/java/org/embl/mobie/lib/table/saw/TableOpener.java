@@ -77,7 +77,7 @@ public class TableOpener
 	{
 		switch ( tableDataFormat )
 		{
-			// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/935
+			// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/935
 			case ResultsTable:
 				return openResultTable( (ResultsTable) storageLocation.data );
 			case Table:

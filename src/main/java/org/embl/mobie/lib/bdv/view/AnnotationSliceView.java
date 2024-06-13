@@ -108,7 +108,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		final BoundarySource boundarySource = new BoundarySource( source, false, 0.0F, image.getMask() );
 		final Converter< AnnotationType< A >, ARGBType > annotationARGBConverter = new AnnotationARGBConverter<>( display.coloringModel );
 		final TransformedSource transformedBoundarySource = new TransformedSource( boundarySource );
-		// FIXME: This is an issue if those sources are transformed, because the underlying image will not know about it
+		// FIXME: If those sources are transformed the underlying image will not know about it
 
 		if ( image.getSourcePair().getVolatileSource() != null )
 		{

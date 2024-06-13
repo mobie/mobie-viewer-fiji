@@ -49,7 +49,7 @@ public class OpenTeresaData
         //command.images = "Result.Image.Zarr"; // Result.Image.Zarr
         command.root = command.table.getParentFile();
         command.images = "FileName_Result.Image_IMG"; // Result.Image.Zarr
-        command.gridType = GridType.Transformed; // FIXME: not working with Stitched!
+        command.gridType = GridType.Transformed; // TODO: not working with Stitched!
         command.run();
     }
 }

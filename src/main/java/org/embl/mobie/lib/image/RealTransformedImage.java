@@ -89,10 +89,10 @@ public class RealTransformedImage< T > implements Image< T >, TransformedImage
 	{
 		if ( mask == null )
 		{
-			// FIXME: this should be something like
+			// TODO: this should be something like
 			//   image.getMask().transform( realTransform.inverse() )
 			//   and probably also include this.affineTransform
-			System.err.println( "Masks for " + this.getClass().getName() + " are not properly implemented" );
+			System.err.println( "Masks for " + this.getClass().getName() + " are not yet properly implemented" );
 			return image.getMask();
 		}
 		else

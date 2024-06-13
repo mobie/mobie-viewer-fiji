@@ -145,8 +145,8 @@ public class ViewManager
 			Transformation transformation,
 			String viewDescription )
 	{
-		// FIXME: Use TransformHelper.fetchAddedTransformations( Image<?> image ) instead
-		// FIXME: Make this work for label images https://github.com/mobie/mobie-viewer-fiji/issues/1126
+		// TODO: Use TransformHelper.fetchAddedTransformations( Image<?> image ) instead
+		// TODO: Make this work for label images https://github.com/mobie/mobie-viewer-fiji/issues/1126
 		ArrayList< Transformation > transformations = TransformHelper.fetchAddedTransformations( sac.getSpimSource() );
 		transformations.add( transformation );
 
@@ -648,7 +648,7 @@ public class ViewManager
 			annotationDisplay.sliceViewer = sliceViewer;
 			annotationDisplay.sliceView = new AnnotationSliceView<>( moBIE, annotationDisplay );
 			initTableView( annotationDisplay );
-			IJ.wait( 500 ); // FIXME: somehow it takes time to show the table?
+			IJ.wait( 500 ); // TODO https://github.com/mobie/mobie-viewer-fiji/issues/1146
 			initScatterPlotView( annotationDisplay );
 			if ( annotationDisplay instanceof SegmentationDisplay )
 				initSegmentVolumeViewer( ( SegmentationDisplay ) annotationDisplay );

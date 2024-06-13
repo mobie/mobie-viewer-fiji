@@ -446,7 +446,7 @@ public class TransformHelper
 			final Source< ? > wrappedSource = transformedSource.getWrappedSource();
 			AffineTransform3D fixedTransform = new AffineTransform3D();
 			transformedSource.getFixedTransform( fixedTransform );
-			// FIXME: how to get the names?
+			// FIXME How to get the names?
 			//  We could extend TransformedSource and add a field for the name of the transformation
 			if ( ! fixedTransform.isIdentity() )
 			{

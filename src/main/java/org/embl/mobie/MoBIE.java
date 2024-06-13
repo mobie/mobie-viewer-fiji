@@ -187,11 +187,6 @@ public class MoBIE
 
 	private void openMoBIEProject() throws IOException
 	{
-		// FIXME: Get rid of setS3AccessAndSecretKey,
-		//  	  currently still needed by
-		//        ProjectJsonParser() => ???
-		//        Other functions that need to read JSON files
-		//        probably some Metadata from Image fetcher methods => Use DataStore for this
 		S3Utils.setS3AccessAndSecretKey( settings.values.getS3AccessAndSecretKey() );
 
 		setProjectImageAndTableRootLocations();
@@ -557,7 +552,7 @@ public class MoBIE
 	}
 
 	@Deprecated
-	// FIXME https://github.com/bigdataviewer/bigdataviewer-playground/issues/259#issuecomment-1279705489
+	// TODO https://github.com/bigdataviewer/bigdataviewer-playground/issues/259#issuecomment-1279705489
 	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, boolean closeImgLoader )
 	{
 		SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );

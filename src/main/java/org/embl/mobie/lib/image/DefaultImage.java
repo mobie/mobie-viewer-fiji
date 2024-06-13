@@ -71,7 +71,7 @@ public class DefaultImage< T > implements Image< T >
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		// FIXME: This should probably be the same code as in SpimDataImage
+		// TODO: This should probably be the same code as in SpimDataImage
 		//   Probably they (and maybe other image implementations)
 		//   should inherit from an AbstractImage
 		if ( mask != null )

@@ -123,7 +123,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
 
         createAndSaveAffineTransformedImages( movingImages, affineTransform3D, suffix );
 
-        // FIXME close the Command UI, HOW?
+        // TODO close the Command UI, HOW?
         // https://imagesc.zulipchat.com/#narrow/stream/327238-Fiji/topic/Close.20Scijava.20Command.20UI
     }
     

@@ -60,7 +60,7 @@ import java.util.*;
 
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getWindowCentreInPixelUnits;
 
-// FIXME: Make a simplified version of this that does not do the "stack" thing
+// TODO: Make a simplified version of this that does not do the "stack" thing
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Automatic 2D/3D")
 public class AutomaticRegistrationCommand extends AbstractRegistrationCommand

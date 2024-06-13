@@ -134,7 +134,7 @@ public class SourcesFromTableCreator
 			StringColumn imageColumn = table.stringColumn( imageColumnName );
 			for ( String imagePath : imageColumn )
 			{
-				// FIXME It would be nice to shorten the names, e.g. by removing everything that is common to all image paths
+				// TODO: It would be nice to shorten the names, e.g. by removing everything that is common to all image paths
 				uniqueRegionNames.add( imagePath );
 			}
 			final List< String > regions = new ArrayList<>( uniqueRegionNames );

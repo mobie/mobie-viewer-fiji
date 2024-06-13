@@ -189,7 +189,7 @@ public abstract class DataStore
 
 	public static void clearImages()
 	{
-		// FIXME Caching: https://github.com/mobie/mobie-viewer-fiji/issues/813
+		// TODO: Caching: https://github.com/mobie/mobie-viewer-fiji/issues/813
 		images.clear();
 	}
 

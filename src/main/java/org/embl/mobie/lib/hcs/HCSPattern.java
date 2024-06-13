@@ -192,7 +192,7 @@ public enum HCSPattern
 	private static int[] decodeYokogawaQC1WellPosition( String well )
 	{
 		final int wellIndex = Integer.parseInt( well );
-		final int numColumns = 24; // 384 well plate FIXME: it could be also another plate type?
+		final int numColumns = 24; // 384 well plate TODO: could it be also another plate type?
 		final int x = (wellIndex - 1) % numColumns;
 		final int y = (wellIndex - 1) / numColumns;
 		return new int[]{ x, y };

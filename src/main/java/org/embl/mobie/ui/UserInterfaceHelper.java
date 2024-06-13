@@ -132,7 +132,7 @@ public class UserInterfaceHelper
 	}
 
 	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
-	// FIXME: Can we use this also to fetch a S3 address? Look how they implemented this in the N5 viewer!
+	// TODO: Can we use this also to fetch a S3 address?
 	public static String selectDirectoryPath( String objectName, boolean open ) {
 		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
 		jFileChooser.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );

@@ -47,10 +47,6 @@ public class OpenLocalYannickZarrs
 		command.image = new File("/Volumes/schwab/schwab/MoBIE-GRIDtestJUNE2024/JEOL1400_20240426/.*.ome.zarr");
 		//command.image = new File("/Volumes/schwab/schwab/MoBIE-GRIDtestJUNE2024/JEOL1400_20240426/Alex_ASH_BlockA1_Grid11_PS_ser1_cell4_8k_blend.ome.zarr");
 
-		// FIXME
-		// - why does the software complain that there are more than 1000 time-points?
-		// - add the relative paths to the table
-		// - add the full paths to the table
 		command.run();
 	}
 }

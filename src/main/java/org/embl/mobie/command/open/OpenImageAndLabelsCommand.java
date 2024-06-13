@@ -47,7 +47,7 @@ public class OpenImageAndLabelsCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	// FIXME: https://forum.image.sc/t/scijava-ui-open-both-file-and-directory/97389
+	// TODO: https://forum.image.sc/t/scijava-ui-open-both-file-and-directory/97389
 	@Parameter( label = "Image URI", style = "both", required = false )
 	public File image;
 

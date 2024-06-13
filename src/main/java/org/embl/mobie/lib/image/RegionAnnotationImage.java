@@ -97,8 +97,8 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 		final ArrayList< AR > annotations = annData.getTable().annotations();
 		for ( AR annotatedRegion : annotations )
 		{
-			// FIXME currently the cast below works because TableSawAnnotatedImages is the only use-case
-			//    In general, it may also be something else
+			// TODO Currently the cast below works because TableSawAnnotatedImages is the only use-case
+			//      In general, it may also be something else
 			final TableSawAnnotatedImages tableSawAnnotatedImages = ( TableSawAnnotatedImages ) annotatedRegion;
 			System.out.println( "RegionLabelImage " + name + ": " + annotatedRegion.regionId() + " images = " + Arrays.toString( tableSawAnnotatedImages.getImageNames().toArray( new String[ 0 ] ) ) + "\n" + TransformHelper.maskToString( annotatedRegion.getMask() ) );
 			final List< String > regionImageNames = tableSawAnnotatedImages.getImageNames();

@@ -116,7 +116,7 @@ public class ImageFileSources
 				nameToFullPath.put( imageName, applyPathMapping( pathMapping, path ) );
 				nameToPath.put( imageName, fileName );
 
-				if ( table.columnNames().contains( "Rotation_NUM" ) ) // FIXME can we have this generic?
+				if ( table.columnNames().contains( "Rotation_NUM" ) ) // TODO can we have this generic?
 				{
 					double rotation = table.doubleColumn( "Rotation_NUM" ).get( rowIndex );
 					AffineTransform3D affineTransform3D = new AffineTransform3D();

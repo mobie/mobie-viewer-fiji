@@ -16,6 +16,6 @@ class OpenOMEZarrHCSDatasetCommandTest
         command.hcsDirectory = "src/test/resources/single-plane-hcs.zarr";
         command.run();
 
-        // FIXME: add a test assertion for ensuring the the number of channels is correct.
+        // TODO: add a test assertion for ensuring the the number of channels is correct.
     }
 }

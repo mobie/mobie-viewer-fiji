@@ -54,7 +54,7 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	protected double[] contrastLimits;
 	protected boolean showImagesIn3d;
 	protected Double[] resolution3dView;
-	protected boolean invert; // FIXME add to spec
+	protected boolean invert; // TODO add to spec
 
 	// Runtime
 	public transient ImageSliceView< ?> imageSliceView;

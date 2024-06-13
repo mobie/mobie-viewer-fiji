@@ -43,7 +43,7 @@ import org.embl.mobie.lib.source.SourceHelper;
 import javax.annotation.Nullable;
 
 
-// FIXME: This should be inherited from ImageDataImage or a common anchestor, the code is almost identical
+// TODO This should be inherited from ImageDataImage or a common anchestor, the code is almost identical
 public class SpimDataImage< T extends NumericType< T > & RealType< T > > implements Image< T >
 {
 	private SourcePair< T > sourcePair;
