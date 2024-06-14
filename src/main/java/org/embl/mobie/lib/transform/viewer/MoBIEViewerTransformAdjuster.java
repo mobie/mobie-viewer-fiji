@@ -115,7 +115,8 @@ public class MoBIEViewerTransformAdjuster {
 	}
 
 	// TODO: This does not seem to work well if one of the sources
-	//   contains a rotation: https://github.com/mobie/mobie-viewer-fiji/issues/1153
+	//   contains a rotation: https://github.com/mobie/mobie-viewer-fiji/issues/1154
+	//   For debugging this also a single source would suffice.
 	public AffineTransform3D getMultiSourceTransform() {
 		SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
 		final RealInterval mask = TransformHelper.createMask( sources, state.getCurrentTimepoint() );

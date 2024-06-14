@@ -37,9 +37,8 @@ import java.util.List;
 
 public class SourcesFromPathsCreator
 {
-	private List< ImageFileSources > imageSources;
-	private List< LabelFileSources > labelSources;
-	private Table regionTable;
+	private final List< ImageFileSources > imageSources;
+	private final List< LabelFileSources > labelSources;
 
 	public SourcesFromPathsCreator( List < String > imagePaths, List < String > labelPaths, List < String > labelTablePaths, String root, GridType grid )
 	{

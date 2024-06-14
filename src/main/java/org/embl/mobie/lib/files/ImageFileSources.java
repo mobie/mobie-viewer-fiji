@@ -88,6 +88,7 @@ public class ImageFileSources
 		}
 
 		// TODO: how to deal with the inconsistent metadata (e.g. number of time-points)?
+		// FIXME: We don't always want to prefetch this as this is expensive..
 		setMetadata( channelIndex );
 
 		// TODO: move this out to a separate function

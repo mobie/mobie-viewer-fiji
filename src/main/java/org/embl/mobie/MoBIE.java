@@ -168,6 +168,13 @@ public class MoBIE
 
 		this.settings = settings;
 
+		// TODO: if the gridType is None we may want to rather use SourcesFromPathsCreator( )
+		//   where we prefetch the paths from the table based on the image type
+		//   https://github.com/mobie/mobie-viewer-fiji/issues/1151
+		//   in fact then the table layout is different as each row can have a different data type
+		//   Old table: image_path, segmentation_path (one-to-one relation of an image and a segmentation)
+		//   New Table: path, image_type (no relation of an image and a segmentation needed, could be defined by having the same view_id)
+		//   Both can be useful and I guess we should keep on supporting both
 		final SourcesFromTableCreator sourcesCreator = new SourcesFromTableCreator( tablePath, imageColumns, labelColumns, root, pathMapping, grid );
 
 		final List< ImageFileSources > imageSources = sourcesCreator.getImageSources();

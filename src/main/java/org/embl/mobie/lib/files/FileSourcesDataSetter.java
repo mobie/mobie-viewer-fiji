@@ -64,7 +64,9 @@ public class FileSourcesDataSetter
 	private final List< LabelFileSources > labels;
 	private final Table regionTable;
 
-	public FileSourcesDataSetter( List< ImageFileSources > images, List< LabelFileSources > labels, Table regionTable )
+	public FileSourcesDataSetter( List< ImageFileSources > images,
+								  List< LabelFileSources > labels,
+								  Table regionTable )
 	{
 		this.images = images;
 		this.labels = labels;
@@ -112,23 +114,86 @@ public class FileSourcesDataSetter
 			}
 		}
 
-		addGridView( dataset, allSources, regionTable );
+		// note that currently the way they are constructed
+		// all sources will have the same grid type
+		// thus it suffices to check the first one
+		// ( obviously this smells as if this logic could be improved )
+		if ( allSources.get( 0 ).getGridType().equals( GridType.None ) )
+		{
+			addIndividualViews( dataset, allSources );
+		}
+		else
+		{
+			// create a grid view for all sources
+			// assuming that they all live in the same grid
+			addGridView( dataset, allSources );
+		}
 	}
 
-	private void addGridView( Dataset dataset, ArrayList< ImageFileSources > allSources, Table regionTable )
+	// This assumes that all the individual views are similar
+	// that are part of the same ImageFileSources, as they get the same initial metadata
+	// in terms of number of channels, timepoints and contrast limits
+	private void addIndividualViews( Dataset dataset, ArrayList< ImageFileSources > fileSourcesList )
+	{
+		for ( ImageFileSources sources : fileSourcesList )
+		{
+			for ( String source : sources.getSources() )
+			{
+				final List< Display< ? > > displays = new ArrayList<>();
+				final List< Transformation > transformations = new ArrayList<>();
+
+				if ( sources instanceof LabelFileSources )
+				{
+					// SegmentationDisplay
+					final SegmentationDisplay< AnnotatedSegment > segmentationDisplay
+							= new SegmentationDisplay<>( source, Collections.singletonList( source ) );
+					final int numLabelTables = ( ( LabelFileSources ) sources ).getNumLabelTables();
+					segmentationDisplay.setShowTable( numLabelTables > 0 );
+					displays.add( segmentationDisplay );
+				}
+				else
+				{
+					// ImageDisplay
+					final Metadata metadata = sources.getMetadata();
+					ImageDisplay< ? > imageDisplay = new ImageDisplay<>( source,
+							Collections.singletonList( source ),
+							metadata.color,
+							metadata.contrastLimits );
+					displays.add( imageDisplay );
+				}
+
+				// construct and add the view
+				//
+				final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( source, 0 );
+				final View view = new View(
+						source,
+						"data",
+						displays,
+						null,
+						viewerTransform,
+						false,
+						null );
+
+				dataset.views().put( view.getName(), view );
+			}
+		}
+
+	}
+
+	private void addGridView( Dataset dataset, ArrayList< ImageFileSources > fileSourcesList )
 	{
 		RegionDisplay< AnnotatedRegion > regionDisplay = null;
 		final List< Display< ? > > displays = new ArrayList<>();
 		final List< Transformation > transformations = new ArrayList<>();
 
-		for ( ImageFileSources sources : allSources )
+		for ( ImageFileSources sources : fileSourcesList )
 		{
 			List< String > sourceNames = sources.getSources();
 			final int numRegions = sourceNames.size();
 
 			if ( regionDisplay == null )
 			{
-				// init RegionDisplay
+				// init RegionDisplay for allSources, assuming that they all should live in the same grid
 				regionDisplay = new RegionDisplay<>( regionTable.name() );
 
 				// add table
@@ -170,10 +235,10 @@ public class FileSourcesDataSetter
 				//System.out.println("Region: " +  regionName + "; source: " + sourceNames.get( regionIndex ) );
 			}
 
-			if ( sources.getSources().size() == 1 )
+			if ( sources.getSources().size() == 1 ) // no need to build a grid view
 			{
 				String source = sources.getSources().get( 0 );
-				// no need to build a grid view
+
 				if ( sources instanceof LabelFileSources )
 				{
 					// SegmentationDisplay
@@ -273,7 +338,7 @@ public class FileSourcesDataSetter
 
 		// construct and add the view
 		//
-		final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( allSources.get( 0 ).getSources().get( 0 ), 0 );
+		final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( fileSourcesList.get( 0 ).getSources().get( 0 ), 0 );
 		final View view = new View( "all images", "data", displays, transformations, viewerTransform, false, null );
 		dataset.views().put( view.getName(), view );
 	}
