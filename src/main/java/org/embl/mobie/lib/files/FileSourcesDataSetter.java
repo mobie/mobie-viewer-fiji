@@ -90,7 +90,7 @@ public class FileSourcesDataSetter
 			List< String > imageNames = sources.getSources();
 			ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( sources.getPath( imageNames.get( 0 ) ) );
 
-			IJ.log(sources.name + " file type: " + imageDataFormat );
+			IJ.log( "\""+ sources.name + "\" file type: " + imageDataFormat );
 
 			for ( String imageName : imageNames )
 			{
@@ -339,7 +339,15 @@ public class FileSourcesDataSetter
 		// construct and add the view
 		//
 		final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( fileSourcesList.get( 0 ).getSources().get( 0 ), 0 );
-		final View view = new View( "all images", "data", displays, transformations, viewerTransform, false, null );
+		final View view = new View(
+				"all images",
+				"data",
+				displays,
+				transformations,
+				viewerTransform,
+				false,
+				null );
+		view.overlayNames( true );
 		dataset.views().put( view.getName(), view );
 	}
 }

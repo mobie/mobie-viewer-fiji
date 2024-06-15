@@ -30,7 +30,7 @@ public enum SpatialCalibration
                 if ( rows.columnNames().contains( PixelSizeColumns.PIXEL_SIZE ) )
                 {
                     FinalVoxelDimensions voxelDimensions = new FinalVoxelDimensions(
-                            rows.textColumn( PixelSizeColumns.PIXEL_UNIT ).get( 0 ),
+                            rows.stringColumn( PixelSizeColumns.PIXEL_UNIT ).get( 0 ),
                             rows.doubleColumn( PixelSizeColumns.PIXEL_SIZE ).get( 0 ),
                             rows.doubleColumn( PixelSizeColumns.PIXEL_SIZE ).get( 0 ),
                             rows.doubleColumn( PixelSizeColumns.PIXEL_SIZE ).get( 0 )
@@ -40,7 +40,7 @@ public enum SpatialCalibration
                 else
                 {
                     FinalVoxelDimensions voxelDimensions = new FinalVoxelDimensions(
-                            rows.textColumn( PixelSizeColumns.PIXEL_UNIT ).get( 0 ),
+                            rows.stringColumn( PixelSizeColumns.PIXEL_UNIT ).get( 0 ),
                             rows.doubleColumn( PixelSizeColumns.PIXEL_SIZE_X ).get( 0 ),
                             rows.doubleColumn( PixelSizeColumns.PIXEL_SIZE_Y ).get( 0 ),
                             rows.doubleColumn( PixelSizeColumns.PIXEL_SIZE_Z ).get( 0 )

@@ -34,6 +34,7 @@ import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.MoBIEManualTransformationEditor;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
+import org.scijava.ItemVisibility;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
@@ -46,6 +47,9 @@ import java.util.stream.Collectors;
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Manual")
 public class ManualTransformationCommand extends AbstractTransformationCommand
 {
+
+	public static final String INACTIVE = "Status: Manual transform inactive.";
+
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	@Parameter ( label = "Start manual transform", callback = "startManualTransform" )
@@ -56,6 +60,9 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 
 	@Parameter ( label = "Cancel manual transform", callback = "cancelManualTransform" )
 	public Button cancelManualTransform;
+
+	@Parameter( visibility = ItemVisibility.MESSAGE )
+	private final String status = INACTIVE;
 
 	private MoBIEManualTransformationEditor transformationEditor;
 
@@ -71,6 +78,9 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 		transformationEditor = new MoBIEManualTransformationEditor( bdvHandle.getViewerPanel(), bdvHandle.getKeybindings() );
 		transformationEditor.setTransformableSources( movingSacs );
 		transformationEditor.setActive( true );
+
+		getInfo().getMutableInput( "status", String.class )
+				.setValue( this, "Status: You are transforming " + selectedSourceName + "...");
 	}
 
 	private void acceptManualTransform()
@@ -83,6 +93,9 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 		// but this is intended as the transformed image is now a new image that is stored as a new view.
 		// And this new transformed image will also be shown by the above applyTransform function.
 		transformationEditor.setActive( false );
+
+		getInfo().getMutableInput( "status", String.class )
+				.setValue( this, INACTIVE );
 	}
 
 	private void cancelManualTransform()
@@ -90,5 +103,8 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 		if ( transformationEditor == null ) return;
 
 		transformationEditor.setActive( false );
+
+		getInfo().getMutableInput( "status", String.class )
+				.setValue( this, INACTIVE );
 	}
 }
