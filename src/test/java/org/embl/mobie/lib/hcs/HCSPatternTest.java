@@ -42,11 +42,16 @@ class HCSPatternTest
 	private static final String incucyteRaw = "/Users/tischer/Downloads/incu-test-data/2207/19/1110/262/B3-1-C2.tif";
 	private static final String incell = "A - 01(fld 1 wv Green - dsRed z 3).tif";
 
+	private static final String incarta = "t1_D04_s1_w1_z3.tif";
+
 	private static final String yokogawaCQ1 = "W0018F0001T0001Z001C1.tif";
 
 	@Test
 	void fromPath()
 	{
+		final HCSPattern incarta = HCSPattern.fromPath( HCSPatternTest.incarta );
+		assertEquals( incarta, HCSPattern.InCarta );
+
 		final HCSPattern operetta = HCSPattern.fromPath( HCSPatternTest.operetta );
         assertEquals( operetta, HCSPattern.Operetta );
 

@@ -158,16 +158,11 @@ public class Plate
 			}
 			else if ( hcsPattern.equals( HCSPattern.MolecularDevices ) )
 			{
-				try
-				{
-					imageDataFormat = ImageDataFormat.Tiff;
-					ImagePlus imagePlus = IOHelper.openTiffFromFile( imagePaths.get( 0 ) );
-				}
-				catch ( Exception e )
-				{
-					imageDataFormat = ImageDataFormat.BioFormats;
-					ImagePlus imagePlus = IOHelper.openWithBioFormatsFromFile( imagePaths.get( 0 ), 0 );
-				}
+				imageDataFormat = ImageDataFormat.Tiff;
+			}
+			else if ( hcsPattern.equals( HCSPattern.InCarta ) )
+			{
+				imageDataFormat = ImageDataFormat.Tiff;
 			}
 		}
 		IJ.log( "Found " + imagePaths.size() + " image file(s) in " + ( System.currentTimeMillis() - start ) + " ms." );
