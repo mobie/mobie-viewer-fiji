@@ -39,7 +39,7 @@ public class OpenAnavoHCSDataWithVoxelDimensions
     {
         new ImageJ().ui().showUI();
         final OpenHCSDatasetCommand command = new OpenHCSDatasetCommand();
-        command.hcsDirectory = "/Users/tischer/Desktop/moritz/U2OS_subset";
+        command.hcsDirectory = new File( "/Users/tischer/Desktop/moritz/U2OS_subset" );
         command.voxelDimensionFetching = OpenHCSDatasetCommand.VoxelDimensionFetching.FromOMEXML;
         command.omeXML = new File("/Users/tischer/Desktop/moritz/MeasurementResult.ome.xml");
         command.run();

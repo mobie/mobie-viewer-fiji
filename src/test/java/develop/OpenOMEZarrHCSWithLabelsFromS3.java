@@ -31,6 +31,8 @@ package develop;
 import net.imagej.ImageJ;
 import org.embl.mobie.command.open.OpenHCSDatasetCommand;
 
+import java.io.File;
+
 public class OpenOMEZarrHCSWithLabelsFromS3
 {
     public static void main( String[] args )
@@ -40,7 +42,7 @@ public class OpenOMEZarrHCSWithLabelsFromS3
 
         OpenHCSDatasetCommand command = new OpenHCSDatasetCommand();
         // Does this really have labels?
-        command.hcsDirectory = "https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.4/idr0001A/2551.zarr";
+        command.hcsDirectory = new File("https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.4/idr0001A/2551.zarr");
         command.run();
     }
 }

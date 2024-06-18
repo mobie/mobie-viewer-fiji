@@ -31,6 +31,8 @@ package develop.hcs;
 import net.imagej.ImageJ;
 import org.embl.mobie.command.open.OpenHCSDatasetCommand;
 
+import java.io.File;
+
 public class HCSInCarta
 {
     public static void main( String[] args )
@@ -39,7 +41,8 @@ public class HCSInCarta
         imageJ.ui().showUI();
 
         OpenHCSDatasetCommand command = new OpenHCSDatasetCommand();
-        command.hcsDirectory = "/Users/tischer/Downloads/timepoint0";
+        command.hcsDirectory = new File( "/Users/tischer/Downloads/timepoint0" );
+        //command.hcsDirectory = new File( "/Users/tischer/Downloads/demo_data/Sample_005/Sample_005_images_20240202_1659_30/00000000" );
         command.run();
     }
 }

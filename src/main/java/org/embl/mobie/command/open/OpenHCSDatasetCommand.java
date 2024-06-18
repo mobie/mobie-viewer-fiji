@@ -33,6 +33,7 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.hcs.OMEXMLParser;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
@@ -50,8 +51,8 @@ public class OpenHCSDatasetCommand implements Command
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter ( label = "HCS Plate Directory" ) // , style = "directory"
-	public String hcsDirectory; // changed to String, because otherwise S3 addresses do not work
+	@Parameter ( label = "HCS Plate Directory", style = "directory")
+	public File hcsDirectory;
 
 	@Parameter ( label = "Relative Well Margin" )
 	public double wellMargin = 0.1;
@@ -84,7 +85,7 @@ public class OpenHCSDatasetCommand implements Command
 
 		try
 		{
-			new MoBIE( hcsDirectory, new MoBIESettings(), wellMargin, siteMargin, voxelDimensions );
+			new MoBIE( MoBIEHelper.toURI( hcsDirectory ), new MoBIESettings(), wellMargin, siteMargin, voxelDimensions );
 		}
 		catch ( IOException e )
 		{

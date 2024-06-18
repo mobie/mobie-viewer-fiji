@@ -3,6 +3,8 @@ package org.embl.mobie.command.open;
 import net.imagej.ImageJ;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+
 class OpenOMEZarrHCSDatasetCommandTest
 {
     static { net.imagej.patcher.LegacyInjector.preinit(); }
@@ -13,7 +15,7 @@ class OpenOMEZarrHCSDatasetCommandTest
         new ImageJ().ui().showUI(); // initialise SciJava Services
 
         final OpenHCSDatasetCommand command = new OpenHCSDatasetCommand();
-        command.hcsDirectory = "src/test/resources/single-plane-hcs.zarr";
+        command.hcsDirectory = new File( "src/test/resources/single-plane-hcs.zarr" );
         command.run();
 
         // TODO: add a test assertion for ensuring the the number of channels is correct.

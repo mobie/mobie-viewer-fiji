@@ -38,6 +38,7 @@ import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
+import net.thisptr.jackson.jq.internal.misc.Strings;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.imagedata.ImageData;
@@ -403,7 +404,13 @@ public class Plate
 			}
 		}
 
-		throw new RuntimeException( "Could not determine HCSPattern for " + hcsDirectory );
+		ArrayList< String > messages = new ArrayList<>();
+		messages.add( "Could not determine HCSPattern for " + hcsDirectory );
+		messages.add( "Examined paths:" );
+		messages.addAll( paths );
+		String join = Strings.join( "\n", messages );
+
+		throw new RuntimeException( join );
 	}
 
 	public Set< Channel > getChannels()

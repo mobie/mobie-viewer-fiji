@@ -33,6 +33,7 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.open.OpenHCSDatasetCommand;
 
+import java.io.File;
 import java.io.IOException;
 
 public class OpenLocalThomasMolDev
@@ -43,7 +44,7 @@ public class OpenLocalThomasMolDev
 		imageJ.ui().showUI();
 
 		OpenHCSDatasetCommand command = new OpenHCSDatasetCommand();
-		command.hcsDirectory = "/Users/tischer/Downloads/TBO-Test31-01-2024-10x-TL-DAPI_Plate_260/TimePoint_1";
+		command.hcsDirectory = new File( "/Users/tischer/Downloads/TBO-Test31-01-2024-10x-TL-DAPI_Plate_260/TimePoint_1" );
 		command.run();
 	}
 }

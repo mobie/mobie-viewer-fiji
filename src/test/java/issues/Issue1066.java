@@ -3,6 +3,8 @@ package issues;
 import net.imagej.ImageJ;
 import org.embl.mobie.command.open.OpenHCSDatasetCommand;
 
+import java.io.File;
+
 public class Issue1066
 {
     public static void main( String[] args )
@@ -17,7 +19,7 @@ public class Issue1066
 
         // Open local HCS Plate
         // - does not open the labels...why?
-        command.hcsDirectory = "/Users/tischer/Downloads/20200812-CardiomyocyteDifferentiation14-Cycle1_mip.zarr";
+        command.hcsDirectory = new File( "/Users/tischer/Downloads/20200812-CardiomyocyteDifferentiation14-Cycle1_mip.zarr" );
         command.run();
     }
 }
