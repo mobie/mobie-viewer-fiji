@@ -53,7 +53,7 @@ public class SourcesAtMousePositionSupplier implements Supplier< Collection< Sou
 	@Override
 	public Collection< SourceAndConverter< ? > > get()
 	{
-		final GlobalMousePositionProvider positionProvider = new GlobalMousePositionProvider( bdvHandle );
+		final CalibratedMousePositionProvider positionProvider = new CalibratedMousePositionProvider( bdvHandle );
 
 		final List< SourceAndConverter< ? > > sourceAndConverters = SourceAndConverterServices.getBdvDisplayService().getSourceAndConverterOf( bdvHandle )
 				.stream()

@@ -35,7 +35,7 @@ import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.bdv.CircleOverlay;
-import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
+import org.embl.mobie.lib.bdv.CalibratedMousePositionProvider;
 import org.embl.mobie.command.CommandConstants;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -67,7 +67,7 @@ public class GeneSearchCommand implements BdvPlaygroundActionCommand
 	{
 		new Thread( () ->
 		{
-			double[] position = new GlobalMousePositionProvider( bdvHandle ).getPositionAsDoubles();
+			double[] position = new CalibratedMousePositionProvider( bdvHandle ).getPositionAsDoubles();
 
 			final CircleOverlay circleOverlay = new CircleOverlay( position, radius );
 			BdvFunctions.showOverlay( circleOverlay, "", BdvOptions.options().addTo( bdvHandle ) );

@@ -38,7 +38,7 @@ import ij.gui.GenericDialog;
 import net.imglib2.RealPoint;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
+import org.embl.mobie.lib.bdv.CalibratedMousePositionProvider;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.image.StitchedImage;
@@ -52,7 +52,6 @@ import net.imglib2.view.Views;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -90,7 +89,7 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 
 			if ( image instanceof StitchedImage )
 			{
-				final RealPoint position = new GlobalMousePositionProvider( bdvHandle ).getPositionAsRealPoint();
+				final RealPoint position = new CalibratedMousePositionProvider( bdvHandle ).getPositionAsRealPoint();
 
 				// traverse through the potentially several
 				// layers of stitching

@@ -34,18 +34,16 @@ import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.context.*;
-import org.embl.mobie.command.view.CurrentLocationLoggerCommand;
+import org.embl.mobie.command.context.CurrentLocationLoggerCommand;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.SliceViewAnnotationSelector;
-import org.embl.mobie.lib.bdv.MobieBdvSupplier;
-import org.embl.mobie.lib.bdv.MobieSerializableBdvOptions;
-import org.embl.mobie.lib.bdv.ImageNameOverlay;
-import org.embl.mobie.lib.bdv.SourcesAtMousePositionSupplier;
+import org.embl.mobie.lib.bdv.*;
 import org.embl.mobie.lib.bdv.blend.AccumulateAlphaBlendingProjectorARGB;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.color.OpacityHelper;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
+import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.AbstractDisplay;
 import org.embl.mobie.lib.source.SourceHelper;
@@ -147,10 +145,10 @@ public class SliceViewer
 
 		final ArrayList< String > actions = new ArrayList< String >();
 		actions.add( SourceAndConverterService.getCommandName( SourcesInfoCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( ShowRasterImagesCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( ScreenShotMakerCommand.class ) );
-		// TODO https://github.com/mobie/mobie-viewer-fiji/issues/1152
 		actions.add( SourceAndConverterService.getCommandName( CurrentLocationLoggerCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( ScreenShotMakerCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( ShowRasterImagesCommand.class ) );
+		// TODO https://github.com/mobie/mobie-viewer-fiji/issues/1152
 		actions.add( SourceAndConverterService.getCommandName( BigWarpRegistrationCommand.class ) );
 		//actions.add( SourceAndConverterService.getCommandName( AutomaticRegistrationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ManualTransformationCommand.class ) );
@@ -199,6 +197,18 @@ public class SliceViewer
 							ConfigureLabelRenderingCommand.incrementRandomColorSeed( sourceAndConverters, bdvHandle );
 						}).start(),
 				"Change random color seed", "ctrl L" ) ;
+
+		behaviours.behaviour(
+				( ClickBehaviour ) ( x, y ) ->
+						new Thread( () ->
+						{
+							CurrentLocationLoggerCommand.logCurrentPosition(
+									bdvHandle,
+									BdvPlaygroundHelper.getWindowCentreInCalibratedUnits( bdvHandle ),
+									new CalibratedMousePositionProvider( bdvHandle ).getPositionAsDoubles()
+									);
+						}).start(),
+				"Log current position", "C" ) ;
 	}
 
 	public static BdvHandle createBdv( boolean is2D, String frameTitle )

@@ -82,6 +82,7 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	@Override
 	public List< SourceAndConverter< T > > sourceAndConverters()
 	{
+		// returns an unmodifiableList
 		return DataStore.getSourceAndConverters( ( Collection ) images );
 	}
 

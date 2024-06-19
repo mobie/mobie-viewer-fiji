@@ -49,7 +49,7 @@ import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.roi.geom.real.WritableBox;
 import net.imglib2.util.Intervals;
-import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
+import org.embl.mobie.lib.bdv.CalibratedMousePositionProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
@@ -277,7 +277,7 @@ public abstract class SourceHelper
 
 	public static List< Source< ? > > filterAtCurrentMousePosition( Collection< Source< ? > > sources, BdvHandle bdvHandle )
 	{
-		final GlobalMousePositionProvider positionProvider = new GlobalMousePositionProvider( bdvHandle );
+		final CalibratedMousePositionProvider positionProvider = new CalibratedMousePositionProvider( bdvHandle );
 		final RealPoint position = positionProvider.getPositionAsRealPoint();
 		final int timePoint = positionProvider.getTimePoint();
 		final List< Source< ? > > sourcesAtCurrentPosition = sources.stream()

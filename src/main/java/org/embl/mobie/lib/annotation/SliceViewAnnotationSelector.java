@@ -34,7 +34,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.lib.bdv.GlobalMousePositionProvider;
+import org.embl.mobie.lib.bdv.CalibratedMousePositionProvider;
 import org.embl.mobie.lib.serialize.display.AbstractAnnotationDisplay;
 import org.embl.mobie.lib.source.AnnotationType;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
@@ -66,7 +66,7 @@ public class SliceViewAnnotationSelector< A extends Annotation > implements Runn
 
 	private synchronized void toggleSelectionAtMousePosition()
 	{
-		final GlobalMousePositionProvider positionProvider = new GlobalMousePositionProvider( bdvHandle );
+		final CalibratedMousePositionProvider positionProvider = new CalibratedMousePositionProvider( bdvHandle );
 		final int timePoint = positionProvider.getTimePoint();
 		final RealPoint realPosition = positionProvider.getPositionAsRealPoint();
 

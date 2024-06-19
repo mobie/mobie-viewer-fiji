@@ -9,7 +9,7 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>5.0.7</version>
+    <version>5.0.9</version>
 
     <!-- force javadoc generation to fetch errors:    -->
     <!-- mvn javadoc:javadoc | grep error -->
