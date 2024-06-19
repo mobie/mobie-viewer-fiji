@@ -213,7 +213,7 @@ public class MoBIE
 
 		new FileSourcesDataSetter( images, labels, regionTable ).addDataAndDisplaysAndViews( dataset );
 
-		initUIandShowView( null ); //dataset.views().keySet().iterator().next() );
+		initUiAndShowView( null ); //dataset.views().keySet().iterator().next() );
 	}
 
 	public MoBIE( String projectName, ImageData< ? > imageData, ImageData< ? > labelData, @Nullable StorageLocation tableStorageLocation, @Nullable TableDataFormat tableDataFormat )
@@ -230,7 +230,7 @@ public class MoBIE
 				tableStorageLocation,
 				tableDataFormat ).addData( dataset, settings );
 
-		initUIandShowView( null );
+		initUiAndShowView( null );
 	}
 
 	private void initImageJAndMoBIE()
@@ -260,10 +260,10 @@ public class MoBIE
 		initProject( "HCS" );
 		final Plate plate = new Plate( projectLocation, voxelDimensions );
 		new HCSPlateAdder( plate, wellMargin, siteMargin ).addPlateToDataset( dataset );
-		initUIandShowView( dataset.views().keySet().iterator().next() );
+		initUiAndShowView( dataset.views().keySet().iterator().next() );
 	}
 
-	private void initUIandShowView( @Nullable String view )
+	private void initUiAndShowView( @Nullable String view )
 	{
 		buildUI();
 

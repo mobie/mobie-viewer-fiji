@@ -36,6 +36,7 @@ import net.imglib2.Interval;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.LinAlgHelpers;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.serialize.display.Display;
 import org.embl.mobie.lib.transform.TransformHelper;
 
@@ -48,6 +49,7 @@ public class MoBIEViewerTransformAdjuster {
 
 	public MoBIEViewerTransformAdjuster( BdvHandle bdvHandle, Display< ? > display) {
 		this.bdvHandle = bdvHandle;
+		// TODO: It may be better to use display.images() here instead, but not sure
 		this.sources = display.sourceAndConverters().stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() );
 	}
 

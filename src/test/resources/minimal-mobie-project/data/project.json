@@ -1,0 +1,8 @@
+{
+	"datasets": [
+		"blobs"
+	],
+	"defaultDataset": "blobs",
+	"specVersion": "0.3.0",
+	"references": []
+}

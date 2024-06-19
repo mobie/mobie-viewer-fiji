@@ -61,7 +61,6 @@ public abstract class AbstractSliceView implements SliceView
 			moBIE.closeSourceAndConverter( sourceAndConverter, closeImgLoader );
 		}
 		display.images().clear();
-		display.sourceAndConverters().clear();
 
 		sliceViewer.updateTimepointSlider();
 	}

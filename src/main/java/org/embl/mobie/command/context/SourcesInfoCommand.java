@@ -70,7 +70,7 @@ public class SourcesInfoCommand implements BdvPlaygroundActionCommand
             IJ.log( "Voxel size: " + Arrays.toString( source.getVoxelDimensions().dimensionsAsDoubleArray() ) );
 
             Image< ? > image = DataStore.sourceToImage().get( sac );
-            ArrayList< Transformation > transformations = TransformHelper.fetchAllTransformations( image );
+            ArrayList< Transformation > transformations = TransformHelper.fetchAllImageTransformations( image );
 
             transformations.forEach( transformation ->
             {

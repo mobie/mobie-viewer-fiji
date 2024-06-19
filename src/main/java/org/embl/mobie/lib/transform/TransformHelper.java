@@ -389,7 +389,7 @@ public class TransformHelper
 		}
 	}
 
-	public static ArrayList< Transformation > fetchAllTransformations( Image< ? > image )
+	public static ArrayList< Transformation > fetchAllImageTransformations( Image< ? > image )
 	{
 		ArrayList< Transformation > transformations = new ArrayList<>();
 		collectTransformations( image, transformations );
@@ -419,14 +419,14 @@ public class TransformHelper
 	}
 
 
-	@Deprecated // use fetchAllTransformations( Image< ? > image ) instead
-	public static ArrayList< Transformation > fetchAllTransformations( Source< ? > source )
-	{
-		ArrayList< Transformation > transformations = new ArrayList<>();
-		collectTransformations( source, transformations );
-		Collections.reverse( transformations ); // first transformation first
-		return transformations;
-	}
+//	@Deprecated // use fetchAllTransformations( Image< ? > image ) instead
+//	public static ArrayList< Transformation > fetchAllSourceTransformations( Source< ? > source )
+//	{
+//		ArrayList< Transformation > transformations = new ArrayList<>();
+//		collectTransformations( source, transformations );
+//		Collections.reverse( transformations ); // first transformation first
+//		return transformations;
+//	}
 
 	private static void collectTransformations( Source< ? > source, Collection< Transformation > transformations )
 	{
@@ -487,19 +487,21 @@ public class TransformHelper
 		}
 	}
 
-	public static ArrayList< Transformation > fetchAddedTransformations( Image< ? > image )
+	public static ArrayList< Transformation > fetchAddedImageTransformations( Image< ? > image )
 	{
-		ArrayList< Transformation > allTransformations = fetchAllTransformations( image );
+		ArrayList< Transformation > allTransformations = fetchAllImageTransformations( image );
 		allTransformations.remove( 0 ); // in MoBIE this is part of the raw image itself
 		return allTransformations;
 	}
 
-	public static ArrayList< Transformation > fetchAddedTransformations( Source< ? > source )
-	{
-		ArrayList< Transformation > allTransformations = fetchAllTransformations( source );
-		allTransformations.remove( 0 ); // in MoBIE this is part of the raw image itself
-		return allTransformations;
-	}
+//	@Deprecated
+//	public static ArrayList< Transformation > fetchAddedSourceTransformations( Source< ? > source )
+//	{
+//		ArrayList< Transformation > allTransformations = fetchAllSourceTransformations( source );
+//		if ( ! allTransformations.isEmpty() )
+//			allTransformations.remove( 0 ); // in MoBIE this is part of the raw image itself
+//		return allTransformations;
+//	}
 
 	// Wrap the input sourcePair into new TransformedSources,
 	// because otherwise, if the incremental transformations of the input TransformedSources

@@ -29,12 +29,15 @@
 package org.embl.mobie.lib.serialize.display;
 
 import bdv.viewer.SourceAndConverter;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
 import org.embl.mobie.lib.image.Image;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class AbstractDisplay< T > implements Display< T >
 {
@@ -45,8 +48,7 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	protected BlendingMode blendingMode; // Do not set default to avoid serialisation for AnnotationDisplays
 
 	// Runtime
-	private transient List< Image< T > > images = new ArrayList<>();
-	private transient List< SourceAndConverter< T > > sourceAndConverters = new ArrayList<>();
+	private final transient List< Image< T > > images = new ArrayList<>();
 	public transient SliceViewer sliceViewer;
 
 	@Override
@@ -79,7 +81,9 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	@Override
 	public List< SourceAndConverter< T > > sourceAndConverters()
 	{
-		return sourceAndConverters;
+		return Collections.unmodifiableList( ( List ) images.stream()
+				.map( image -> DataStore.sourceToImage().inverse().get( image ) )
+				.collect( Collectors.toList() ) );
 	}
 
 	public void setOpacity( double opacity )

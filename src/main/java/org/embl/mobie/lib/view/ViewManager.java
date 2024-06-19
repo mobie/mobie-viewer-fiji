@@ -109,7 +109,7 @@ public class ViewManager
 			Transformation transformation,
 			String viewDescription )
 	{
-		ArrayList< Transformation > transformations = TransformHelper.fetchAddedTransformations( image );
+		ArrayList< Transformation > transformations = TransformHelper.fetchAddedImageTransformations( image );
 		transformations.add( transformation );
 
 		Display< ? > display;
@@ -138,34 +138,34 @@ public class ViewManager
 		return view;
 	}
 
-	@Deprecated // use createTransformedImageView instead
-	public static void createTransformedSourceView(
-			SourceAndConverter< ? > sac,
-			String imageName,
-			Transformation transformation,
-			String viewDescription )
-	{
-		// TODO: Use TransformHelper.fetchAddedTransformations( Image<?> image ) instead
-		// TODO: Make this work for label images https://github.com/mobie/mobie-viewer-fiji/issues/1126
-		ArrayList< Transformation > transformations = TransformHelper.fetchAddedTransformations( sac.getSpimSource() );
-		transformations.add( transformation );
-
-		ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, imageName );
-		imageDisplay.setDisplaySettings( sac );
-
-		View view = new View(
-				imageName,
-				null, // to be determined by the user in below dialog
-				Collections.singletonList( imageDisplay ),
-				transformations,
-				null,
-				false,
-				viewDescription );
-
-		MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view );
-
-		MoBIE.getInstance().getViewManager().show( view );
-	}
+//	@Deprecated // use createTransformedImageView instead
+//	public static void createTransformedSourceView(
+//			SourceAndConverter< ? > sac,
+//			String imageName,
+//			Transformation transformation,
+//			String viewDescription )
+//	{
+//		// TODO: Use TransformHelper.fetchAddedTransformations( Image<?> image ) instead
+//		// TODO: Make this work for label images https://github.com/mobie/mobie-viewer-fiji/issues/1126
+//		ArrayList< Transformation > transformations = TransformHelper.fetchAddedSourceTransformations( sac.getSpimSource() );
+//		transformations.add( transformation );
+//
+//		ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, imageName );
+//		imageDisplay.setDisplaySettings( sac );
+//
+//		View view = new View(
+//				imageName,
+//				null, // to be determined by the user in below dialog
+//				Collections.singletonList( imageDisplay ),
+//				transformations,
+//				null,
+//				false,
+//				viewDescription );
+//
+//		MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view );
+//
+//		MoBIE.getInstance().getViewManager().show( view );
+//	}
 
 	private void initScatterPlotView( AbstractAnnotationDisplay< ? > display )
 	{
@@ -193,14 +193,14 @@ public class ViewManager
 
 	public ViewSaver getViewsSaver() { return viewSaver; }
 
-	private void addImageTransforms( List< Transformation > transformations, List< ? extends SourceAndConverter< ? >> sourceAndConverters )
+	private void addImageTransforms( List< Transformation > transformations,
+									 List< ? extends Image< ? > > images )
 	{
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		images.forEach( image ->
 		{
-			Source< ? > source = sourceAndConverter.getSpimSource();
-			ArrayList< Transformation > fetchedTransformations = TransformHelper.fetchAddedTransformations( source );
-			transformations.addAll( fetchedTransformations );
-        }
+			ArrayList< Transformation > imageTransformations = TransformHelper.fetchAddedImageTransformations( image );
+			transformations.addAll( imageTransformations );
+		});
     }
 
 	public View createViewFromCurrentState()
@@ -221,7 +221,8 @@ public class ViewManager
 			else
 				throw new UnsupportedOperationException( "Serialisation of a " + display.getClass().getName() + " is not yet supported." );
 
-			addImageTransforms( transformations, display.sourceAndConverters() );
+
+			addImageTransforms( transformations, display.images() );
 		}
 
 		// the parameters that are null must be later set via the view's setter methods

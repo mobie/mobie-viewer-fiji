@@ -20,10 +20,9 @@ public class MicrobialPredation
 //        command.table = new File( root + "test_timelapse_results/.*_measurements.csv" );
 //        command.spatialCalibration = SpatialCalibration.FromTable;
 
-        String root = "/Volumes/Microbial_Predation_Analysis_Dev/Interval_output";
-        command.image = new File( root, "Source/.*.tif" );
-        command.labels = new File( root , ".*_profile_labels.tif" );
-        command.table = new File( root, ".*_measurements.csv" );
+        command.image = new File( "/Volumes/Microbial_Predation_Analysis_Dev/Interval_output/Source/.*.tif" );
+        command.labels = new File( "/Volumes/Microbial_Predation_Analysis_Dev/Interval_output_without_profiles/.*_profile_labels.tif" );
+        command.table = new File( "/Volumes/Microbial_Predation_Analysis_Dev/Interval_output_without_profiles/.*_measurements_without_profiles.csv" );
         command.spatialCalibration = SpatialCalibration.FromTable;
 
         command.run();

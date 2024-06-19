@@ -1,0 +1,1 @@
+{"multiscales":[{"name":"","type":"Average","version":"0.4","axes":[{"type":"space","name":"y","unit":"pixel"},{"type":"space","name":"x","unit":"pixel"}],"datasets":[{"path":"s0","coordinateTransformations":[{"scale":[1.0,1.0],"type":"scale"},{"translation":[0.0,0.0],"type":"translation"}]}],"coordinateTransformations":[]}]}

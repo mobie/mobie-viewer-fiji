@@ -30,6 +30,7 @@ package org.embl.mobie.lib.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.context.*;
@@ -205,7 +206,12 @@ public class SliceViewer
 		final MobieSerializableBdvOptions sOptions = new MobieSerializableBdvOptions();
 		sOptions.is2D = is2D;
 		sOptions.frameTitle = frameTitle;
-		sOptions.interpolate = !is2D;
+		sOptions.interpolate = false;
+		IJ.log("BigDataViewer (BDV) initialised.");
+		IJ.log("BDV navigation mode: " + ( is2D ? "2D" : "3D" ));
+		IJ.log("BDV interpolation: Nearest neighbour (Press \"I\" in BDV window to change this)" );
+		IJ.log("" );
+
 		IBdvSupplier bdvSupplier = new MobieBdvSupplier( sOptions );
 		//SourceAndConverterServices.getBdvDisplayService().setDefaultBdvSupplier( bdvSupplier );
 		//BdvHandle bdvHandle = SourceAndConverterServices.getBdvDisplayService().getNewBdv();
@@ -217,13 +223,12 @@ public class SliceViewer
 		return SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
 	}
 
-	public void show( Image< ? > image, SourceAndConverter< ? > sourceAndConverter, AbstractDisplay display )
+	public void show( Image< ? > image, SourceAndConverter< ? > sourceAndConverter, AbstractDisplay< ? > display )
 	{
-		// register
+		// register sac
 		SourceAndConverterServices.getSourceAndConverterService().register( sourceAndConverter );
-		display.sourceAndConverters().add( sourceAndConverter );
 
-		// link to image
+		// link sac to image
 		DataStore.sourceToImage().forcePut( sourceAndConverter, image );
 
 		// blending mode
@@ -248,7 +253,7 @@ public class SliceViewer
 		if ( bdvHandle.getViewerPanel().state()	 == null ) return;
 
 		final List< SourceAndConverter< ? > > sacs = bdvHandle.getViewerPanel().state().getSources();
-		if ( sacs.size() == 0 ) return;
+		if ( sacs.isEmpty() ) return;
 
 		int maxNumTimePoints = 1;
 		for ( SourceAndConverter< ? > sac : sacs )
@@ -257,8 +262,8 @@ public class SliceViewer
 			if ( image instanceof RegionAnnotationImage )
 				continue; // https://github.com/mobie/mobie-viewer-fiji/issues/975
 
-			int numTimepoints = SourceHelper.getNumTimePoints( sac.getSpimSource() );
-			if ( numTimepoints > maxNumTimePoints ) maxNumTimePoints = numTimepoints;
+			int numTimePoints = SourceHelper.getNumTimePoints( sac.getSpimSource() );
+			if ( numTimePoints > maxNumTimePoints ) maxNumTimePoints = numTimePoints;
 		}
 		bdvHandle.getViewerPanel().state().setNumTimepoints( maxNumTimePoints );
 	}

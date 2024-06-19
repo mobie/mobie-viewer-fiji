@@ -88,7 +88,7 @@ public class ViewSaver
         final GenericDialog gd = new GenericDialog("Save view " + ( view.getName() == null ? "" : view.getName()) );
 
         gd.addChoice("Save to", new String[]{ FileLocation.CurrentProject.toString(), FileLocation.ExternalJSONFile.toString() }, saveToProjectOrFile );
-        gd.addFileField( "External JSON file", externalJsonPath, 70 );
+        gd.addFileField( "( External JSON file )", externalJsonPath, 70 );
         gd.addMessage( "" );
         if ( view.getName() == null )
             gd.addStringField("View name", "my-new-view-name", 35 );
@@ -96,7 +96,7 @@ public class ViewSaver
         gd.addCheckbox("Make view exclusive", view.isExclusive() != null ? view.isExclusive() : false );
         gd.addMessage( "" );
         gd.addChoice("Selection group", getSelectionGroupChoices(), uiSelectionChoice );
-        gd.addStringField("New selection group", "my-new-group", 30 );
+        gd.addStringField("( New selection group )", "my-new-group", 30 );
 
         gd.showDialog();
 

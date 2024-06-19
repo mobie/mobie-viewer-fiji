@@ -26,40 +26,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.serialize.display;
+package projects;
 
-import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.lib.bdv.blend.BlendingMode;
-import org.embl.mobie.lib.image.Image;
+import net.imagej.ImageJ;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 
-import java.util.List;
+import java.io.IOException;
 
-
-/**
- * A display is a collection of images
- * with shared display settings.
- *
- * Currently, everything that we display in MoBIE
- * is a Display. This implies that it must be
- * modelled as an Image, which essentially is a Source.
- * This is in line with BDV, which internally also
- * models everything as a Source.
- *
- * Practically, for adding a Display to BDV,
- * all images, using the display settings, will be
- * converted to SourceAndConverters.
- *
- * @param <T> the data type of the images
- */
-public interface Display< T >
+public class OpenMinimalProjectLocalBlobs
 {
-	String getName();
-	List< String > getSources();
-	BlendingMode getBlendingMode();
-	double getOpacity();
-	boolean isVisible();
+	public static void main( String[] args ) throws IOException
+	{
+		final ImageJ imageJ = new ImageJ();
+		imageJ.ui().showUI();
 
-	// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/1162
-	List< Image< T > > images();
-	List< SourceAndConverter< T > > sourceAndConverters();
+		new MoBIE( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/minimal-mobie-project"
+				, new MoBIESettings() );
+	}
 }
