@@ -35,6 +35,7 @@ import org.embl.mobie.lib.bdv.view.SliceViewer;
 import org.embl.mobie.lib.image.Image;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -81,9 +82,7 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	@Override
 	public List< SourceAndConverter< T > > sourceAndConverters()
 	{
-		return Collections.unmodifiableList( ( List ) images.stream()
-				.map( image -> DataStore.sourceToImage().inverse().get( image ) )
-				.collect( Collectors.toList() ) );
+		return DataStore.getSourceAndConverters( ( Collection ) images );
 	}
 
 	public void setOpacity( double opacity )

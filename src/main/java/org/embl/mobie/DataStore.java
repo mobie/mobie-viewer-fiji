@@ -50,6 +50,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 public abstract class DataStore
 {
@@ -69,6 +70,13 @@ public abstract class DataStore
 	public static BiMap< SourceAndConverter< ? >, Image< ? > > sourceToImage()
 	{
 		return sourceToImage;
+	}
+
+	public static List< SourceAndConverter< ? > > getSourceAndConverters( Collection< Image< ? > > images )
+	{
+		return Collections.unmodifiableList( images.stream()
+				.map( image -> sourceToImage().inverse().get( image ) )
+				.collect( Collectors.toList() ) );
 	}
 
 	public static ImageData< ? > fetchImageData(
