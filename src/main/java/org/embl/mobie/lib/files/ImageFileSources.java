@@ -35,6 +35,7 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.io.FilenameUtils;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.imagedata.ImageData;
@@ -51,6 +52,7 @@ import tech.tablesaw.api.NumberColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 
+import javax.xml.crypto.Data;
 import java.io.File;
 import java.util.*;
 
@@ -180,17 +182,19 @@ public class ImageFileSources
 	private void setMetadata( Integer channelIndex )
 	{
 		metadataSource = nameToFullPath.keySet().iterator().next();
-		IJ.log( "Fetching metadata from " + nameToFullPath.get( metadataSource ) );
+		IJ.log( "Fetching metadata for channel " + channelIndex + "..." );
+		IJ.log( "...from image file " + nameToFullPath.get( metadataSource ) );
+		// FIXME: Cache the image data, because for multiple images it is now reloaded!
 		ImageData< ? > imageData = ImageDataOpener.open( nameToFullPath.get( metadataSource ) );
 		CanonicalDatasetMetadata canonicalDatasetMetadata = imageData.getMetadata( channelIndex );
 		metadata = new Metadata( canonicalDatasetMetadata );
 		Source< ? > source = imageData.getSourcePair( channelIndex ).getA();
 		metadata.numZSlices = (int) source.getSource( 0, 0  ).dimension( 2 );
 		metadata.numTimePoints = SourceHelper.getNumTimePoints( source );
-		metadata.contrastLimits = MoBIEHelper.computeMinMax( ( RandomAccessibleInterval ) source.getSource( 0, source.getNumMipmapLevels() -1 ) );
+		metadata.contrastLimits = MoBIEHelper.estimateMinMax( ( RandomAccessibleInterval ) source.getSource( 0, source.getNumMipmapLevels() -1 ) );
 		IJ.log( "Slices: " + metadata.numZSlices );
 		IJ.log( "Frames: " + metadata.numTimePoints );
-		IJ.log( "Min, max: " + Arrays.toString( metadata.contrastLimits ) );
+		IJ.log( "Contrast limits: " + Arrays.toString( metadata.contrastLimits ) );
 	}
 
 	private static String applyPathMapping( String pathMapping, String path )

@@ -38,19 +38,18 @@ import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
-import net.imglib2.FinalRealInterval;
-import net.imglib2.Interval;
-import net.imglib2.Point;
-import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealInterval;
-import net.imglib2.RealPoint;
+import net.imglib2.*;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.roi.geom.real.WritableBox;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Intervals;
+import net.imglib2.util.ValuePair;
+import net.imglib2.view.Views;
 import org.embl.mobie.lib.bdv.CalibratedMousePositionProvider;
 import org.jetbrains.annotations.NotNull;
+import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -60,7 +59,6 @@ import static sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper.getVoxel
 
 public abstract class SourceHelper
 {
-
 	public static < T > T unwrapSource( Source source, Class< T > clazz )
 	{
 		if ( source == null )
@@ -375,4 +373,5 @@ public abstract class SourceHelper
 //		}
 //		else {
 	}
+
 }

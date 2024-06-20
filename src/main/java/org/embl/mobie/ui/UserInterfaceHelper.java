@@ -37,6 +37,7 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
 import ij.gui.GenericDialog;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -44,6 +45,7 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.command.context.ConfigureSegmentRenderingCommand;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.MoBIEInfo;
 import org.embl.mobie.lib.Services;
@@ -488,7 +490,6 @@ public class UserInterfaceHelper
 		selection.setUpdateListener( opacityUpdateListener );
 		panel.add( opacitySlider );
 
-
 		if ( addContrastLimitUI )
 		{
 			// Contrast Limits
@@ -502,7 +503,6 @@ public class UserInterfaceHelper
 					.stream()
 					.map( sac -> sac.getConverter() )
 					.collect( Collectors.toList() );
-
 
 			final double currentContrastLimitsMin = converterSetups.get( 0 ).getDisplayRangeMin();
 			final double currentContrastLimitsMax = converterSetups.get( 0 ).getDisplayRangeMax();
@@ -547,6 +547,18 @@ public class UserInterfaceHelper
 
 			panel.add( minSlider );
 			panel.add( maxSlider );
+
+			JButton autoButton = new JButton("Auto Min Max");
+			autoButton.addActionListener( e ->
+			{
+				Source< ? > source = sacs.get( 0 ).getSpimSource();
+				RandomAccessibleInterval< ? > rai = source.getSource( bdvHandle.getViewerPanel().state().getCurrentTimepoint(),
+						source.getNumMipmapLevels() - 1 );
+				double[] minMax = MoBIEHelper.estimateMinMax( ( RandomAccessibleInterval ) rai );
+				min.setCurrentValue( minMax[ 0 ] );
+				max.setCurrentValue( minMax[ 1 ] );
+			});
+			panel.add( autoButton );
 
 			boolean isInvert = false;
 			for ( Converter< ?, ARGBType > converter : converters )

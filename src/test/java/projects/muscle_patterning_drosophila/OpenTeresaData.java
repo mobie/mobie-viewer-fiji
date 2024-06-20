@@ -41,15 +41,37 @@ public class OpenTeresaData
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
+//        OpenTableCommand command = new OpenTableCommand();
+//        command.table = new File( "/Users/tischer/Desktop/teresa/summary_calculated1_subset.txt" );
+//        command.root = command.table.getParentFile();
+//        command.images = "FileName_Result.Image_IMG"; // Result.Image.Zarr
+//        command.gridType = GridType.Transformed; // TODO: not working with Stitched!
+//        command.run();
+
         OpenTableCommand command = new OpenTableCommand();
-        //command.table = new File( "/Volumes/almf/group/Aliaksandr/User_data/Furlong_CrispR/test_data_20231018/20231004/20231004-172458/summary_calculated1.txt" );
-        //command.table = new File( "/Volumes/almf/group/Aliaksandr/User_data/Furlong_CrispR/test_data_20231018/20231004/20231004-172458/summary_calculated1_subset.txt" );
-        command.table = new File( "/Users/tischer/Desktop/teresa/summary_calculated1_subset.txt" );
-        //command.table = new File( "/Volumes/cba/exchange/furlong_test/summary_calculated1_subset_zarr.txt" );
-        //command.images = "Result.Image.Zarr"; // Result.Image.Zarr
+        command.table = new File( "/Volumes/CRISPR_project_data/test_data_new/20231122-170451/summary_new.txt" );
         command.root = command.table.getParentFile();
-        command.images = "FileName_Result.Image_IMG"; // Result.Image.Zarr
+        command.images = "FileName_Result.Image_IMG";
         command.gridType = GridType.Transformed; // TODO: not working with Stitched!
         command.run();
+
+        /*
+        TODO:
+
+        Why is it fetching so much metadata?? It is opening the same data again for all channels.
+
+        Also initialisation is slow...
+
+        Min, max: [6.0, 2608.0]
+        Fetching metadata from /Volumes/CRISPR_project_data/test_data_new/20231122-170451/Result-Image/Result-Image--WA01--P0001--T0001.oir
+        Slices: 11
+        Frames: 1
+        Min, max: [13.0, 981.0]
+        Fetching metadata from /Volumes/CRISPR_project_data/test_data_new/20231122-170451/Result-Image/Result-Image--WA01--P0001--T0001.oir
+        Slices: 11
+        Frames: 1
+        Min, max: [7.0, 2060.0]
+         */
+
     }
 }

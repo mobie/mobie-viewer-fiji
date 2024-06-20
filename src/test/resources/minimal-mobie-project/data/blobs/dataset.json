@@ -42,26 +42,35 @@
           }
         }
       ],
-      "sourceTransforms": [],
-      "viewerTransform": {
-        "normalizedAffine": [
-          0.0016175016000465467,
-          0.0,
-          0.0,
-          -0.20623145400593473,
-          0.0,
-          0.0016175016000465467,
-          0.0,
-          -0.20461395240588817,
-          0.0,
-          0.0,
-          0.0016175016000465467,
-          0.0
-        ],
-        "timepoint": 0
-      },
-      "isExclusive": true,
-      "description": ""
+      "sourceTransforms": [
+        {
+          "affine": {
+            "parameters": [
+              1.0000000000000002,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0000000000000002,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0000000000000002,
+              0.0
+            ],
+            "name": "",
+            "sources": [
+              "blobs"
+            ],
+            "sourceNamesAfterTransform": [
+              "blobs"
+            ]
+          }
+        }
+      ],
+      "isExclusive": false,
+      "description": "blobs, overwrite"
     },
     "default": {
       "uiSelectionGroup": "bookmark",

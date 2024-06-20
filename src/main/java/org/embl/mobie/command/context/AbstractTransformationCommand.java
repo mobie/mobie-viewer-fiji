@@ -66,8 +66,9 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     public String selectedSourceName;
 
     @Parameter ( label = "Transformed image(s) suffix",
-            description = "Upon transformation this suffix will be appended to the moving image(s).\n" +
-                    "Carefully choose a meaningful suffix here that will create a unique new image name.")
+            description = "Upon transformation this suffix will be appended to the moving image name.\n" +
+                    "Carefully choose a meaningful suffix here that will create a unique new image name.\n" +
+                    "If you leave this empty the input image view will be overwritten.")
     public String suffix = "transformed";
 
     // Too complex to maintain right now
@@ -134,7 +135,9 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     {
         for ( Image< ? > movingImage : movingImages )
         {
-            String transformedImageName = movingImage.getName() + "-" + suffix;
+            String transformedImageName = movingImage.getName();
+            if ( ! suffix.isEmpty() )
+                transformedImageName += "-" + suffix;
 
             AffineTransformation affineTransformation = new AffineTransformation(
                     suffix,

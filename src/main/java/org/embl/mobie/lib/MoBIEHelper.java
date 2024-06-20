@@ -35,6 +35,8 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.util.Intervals;
+import net.imglib2.util.ValuePair;
 import net.imglib2.view.Views;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
@@ -47,10 +49,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
@@ -310,6 +309,25 @@ public abstract class MoBIEHelper
 		{
 			throw new RuntimeException( e );
 		}
+	}
+
+	public static double[] estimateMinMax(
+			RandomAccessibleInterval<? extends RealType<?> > rai)
+	{
+		Cursor<? extends RealType<?>> cursor = Views.iterable(rai).cursor();
+		if (!cursor.hasNext()) return new double[]{0, 255};
+		long stepSize = Intervals.numElements(rai) / 10000 + 1;
+		int randomLimit = (int) Math.min(Integer.MAX_VALUE, stepSize);
+		Random random = new Random(42);
+		double min = cursor.next().getRealDouble();
+		double max = min;
+		while (cursor.hasNext()) {
+			double value = cursor.get().getRealDouble();
+			cursor.jumpFwd(stepSize + random.nextInt(randomLimit));
+			min = Math.min(min, value);
+			max = Math.max(max, value);
+		}
+		return new double[]{min, max};
 	}
 
 	public static <T extends RealType<T> > double[] computeMinMax( RandomAccessibleInterval<T> rai) {

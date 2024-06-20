@@ -80,7 +80,7 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 		transformationEditor.setActive( true );
 
 		getInfo().getMutableInput( "status", String.class )
-				.setValue( this, "Status: You are transforming " + selectedSourceName + "...");
+				.setValue( this, "Status: You are transforming \"" + selectedSourceName + "\"...");
 	}
 
 	private void acceptManualTransform()

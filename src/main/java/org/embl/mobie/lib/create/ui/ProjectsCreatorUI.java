@@ -336,14 +336,14 @@ public class ProjectsCreatorUI extends JFrame {
 
         remoteButton.addActionListener( e ->
         {
-            new Thread( () -> { remoteMetadataSettingsDialog(); } ).start();
+            new Thread( this::remoteMetadataSettingsDialog ).start();
         } );
 
         openMoBIEButton.addActionListener( e ->
         {
             new Thread( () -> {
                 OpenMoBIEProjectCommand openMoBIE = new OpenMoBIEProjectCommand();
-                openMoBIE.projectLocation = this.projectCreator.getProjectLocation().getAbsolutePath();
+                openMoBIE.projectLocation = new File( this.projectCreator.getProjectLocation().getAbsolutePath() );
                 openMoBIE.run();
             } ).start();
         } );

@@ -29,20 +29,23 @@
 package org.embl.mobie.command.open.project;
 
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
+import java.io.File;
+
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open MoBIE Project Expert Mode..." )
 public class OpenMoBIEProjectExpertCommand extends OpenMoBIEProjectBranchCommand
 {
 	@Parameter ( label = "Image Data Location" )
-	public String imageDataLocation = "https://github.com/platybrowser/platybrowser";
+	public File imageDataLocation = new File( "https://github.com/platybrowser/platybrowser" );
 
 	@Parameter ( label = "Table Data Location" )
-	public String tableDataLocation = "https://github.com/platybrowser/platybrowser";
+	public File tableDataLocation = new File( "https://github.com/platybrowser/platybrowser" );
 
 	@Parameter ( label = "Table Data Branch" )
 	public String tableDataBranch = "master";
@@ -60,8 +63,8 @@ public class OpenMoBIEProjectExpertCommand extends OpenMoBIEProjectBranchCommand
 		ThreadHelper.setNumIoThreads( numThreads );
 
 		settings.gitProjectBranch( projectBranch )
-				.imageDataLocation( imageDataLocation )
-				.tableDataLocation( tableDataLocation )
+				.imageDataLocation( MoBIEHelper.toURI( imageDataLocation ) )
+				.tableDataLocation( MoBIEHelper.toURI( tableDataLocation ) )
 				.gitTablesBranch( tableDataBranch );
 
 		super.run();
