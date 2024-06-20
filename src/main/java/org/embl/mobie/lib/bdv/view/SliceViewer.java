@@ -219,7 +219,8 @@ public class SliceViewer
 		sOptions.interpolate = false;
 		IJ.log("BigDataViewer (BDV) initialised.");
 		IJ.log("BDV navigation mode: " + ( is2D ? "2D" : "3D" ));
-		IJ.log("BDV interpolation: Nearest neighbour (Press \"I\" in BDV window to change this)" );
+		IJ.log("BDV interpolation: Nearest neighbour");
+		IJ.log(" - Use [I] keyboard shortcut in BDV window to change this" );
 		IJ.log("" );
 
 		IBdvSupplier bdvSupplier = new MobieBdvSupplier( sOptions );

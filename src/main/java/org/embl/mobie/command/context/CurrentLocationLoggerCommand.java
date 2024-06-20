@@ -103,7 +103,7 @@ public class CurrentLocationLoggerCommand implements BdvPlaygroundActionCommand
 		Double distanceToRecentPosition = null;
 		if ( mousePointer == null )
 		{
-			Logger.log( "To get this please use the \"" + SHORTCUT + "\" keyboard shortcut to trigger this action." );
+			Logger.log( "Only given when using the [" + SHORTCUT + "] keyboard shortcut in the BDV window to trigger this action." );
 		}
 		else
 		{

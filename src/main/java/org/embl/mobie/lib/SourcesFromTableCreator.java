@@ -73,12 +73,19 @@ public class SourcesFromTableCreator
 				String fileName = table.getString( 0, imageColumn);
 				String relativeFolder = table.getString( 0, imageColumn.replace(  "FileName_", "PathName_" ) );
 				String referenceImagePath = MoBIEHelper.createAbsolutePath( root, fileName, relativeFolder );
-				IJ.log( "Determining number of channels of " + imageColumn + " from " + referenceImagePath + "..." );
+				IJ.log( "Determining number of channels of \"" + imageColumn + "\" from " + referenceImagePath + "..." );
 				int numChannels = ImageDataOpener.open( referenceImagePath, ThreadHelper.sharedQueue ).getNumDatasets();
 				IJ.log( "Number of channels: " + numChannels );
 				for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
 				{
-					imageFileSources.add( new ImageFileSources( imageColumn + "_C" + channelIndex, table, imageColumn, channelIndex, pathMapping, root, gridType ) );
+					imageFileSources.add( new ImageFileSources(
+							imageColumn + "_C" + channelIndex,
+							table,
+							imageColumn,
+							channelIndex,
+							root,
+							pathMapping,
+							gridType ) );
 				}
 			}
 			else

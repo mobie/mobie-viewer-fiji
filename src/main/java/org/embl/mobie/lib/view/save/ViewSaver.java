@@ -115,7 +115,7 @@ public class ViewSaver
         if ( moBIE.getViews().containsKey( view.getName() ) )
         {
             GenericDialog dialog = new GenericDialog( "Overwrite view?" );
-            dialog.addMessage( view.getName() + " exists already; are you sure you want to overwrite it?" );
+            dialog.addMessage( "A view named \"" + view.getName() + "\" exists already.\nAre you sure you want to overwrite it?" );
             dialog.showDialog();
             if ( ! dialog.wasOKed() ) {
                 return false;
@@ -206,7 +206,7 @@ public class ViewSaver
         try {
             if ( viewJson.equals( "dataset.json" ) )
             {
-                saveViewToDatasetJson( view, false );
+                saveViewToDatasetJson( view );
             }
             else
             {
@@ -251,15 +251,10 @@ public class ViewSaver
         moBIE.getUserInterface().addViews( views );
     }
 
-    public void saveViewToDatasetJson( View view, boolean overwrite ) throws IOException
+    public void saveViewToDatasetJson( View view ) throws IOException
     {
         String datasetJsonPath = moBIE.absolutePath( "dataset.json");
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
-
-        if ( ! overwrite )
-            if ( dataset.views().containsKey( view.getName() ) )
-                throw new IOException( "View saving aborted - this view name already exists!" );
-
         writeDatasetJson( dataset, view, datasetJsonPath );
         IJ.log( "View \"" + view.getName()  + "\" written to dataset.json" );
     }

@@ -28,7 +28,7 @@
             "sources": [
               "blobs"
             ],
-            "color": "r255-g255-b255-a255",
+            "color": "r=255,g=255,b=255,a=255",
             "contrastLimits": [
               0.0,
               255.0
@@ -37,11 +37,31 @@
             "invert": false,
             "name": "blobs",
             "opacity": 1.0,
-            "visible": true
+            "visible": true,
+            "blendingMode": "sum"
           }
         }
       ],
-      "isExclusive": false
+      "sourceTransforms": [],
+      "viewerTransform": {
+        "normalizedAffine": [
+          0.0016175016000465467,
+          0.0,
+          0.0,
+          -0.20623145400593473,
+          0.0,
+          0.0016175016000465467,
+          0.0,
+          -0.20461395240588817,
+          0.0,
+          0.0,
+          0.0016175016000465467,
+          0.0
+        ],
+        "timepoint": 0
+      },
+      "isExclusive": true,
+      "description": ""
     },
     "default": {
       "uiSelectionGroup": "bookmark",
