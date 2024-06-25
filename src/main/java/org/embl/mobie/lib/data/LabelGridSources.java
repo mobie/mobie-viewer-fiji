@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.files;
+package org.embl.mobie.lib.data;
 
 import ij.IJ;
 import org.embl.mobie.lib.MoBIEHelper;
@@ -43,12 +43,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LabelFileSources extends ImageFileSources
+public class LabelGridSources extends ImageGridSources
 {
 	protected Map< String, TableSource > nameToLabelTable = new LinkedHashMap<>();
 	private static boolean logLabelParsingError = true;
 
-	public LabelFileSources( String name, Table table, String columnName, Integer channelIndex, String root, String pathMapping, GridType gridType, boolean useTableForSegments )
+	public LabelGridSources( String name, Table table, String columnName, Integer channelIndex, String root, String pathMapping, GridType gridType, boolean useTableForSegments )
 	{
 		super( name, table, columnName, channelIndex, root, pathMapping, gridType);
 
@@ -78,13 +78,13 @@ public class LabelFileSources extends ImageFileSources
 		}
 	}
 
-	public LabelFileSources( String name, String labelsPath, Integer channelIndex, String root, GridType grid )
+	public LabelGridSources( String name, String labelsPath, Integer channelIndex, String root, GridType grid )
 	{
 		super( name, labelsPath, channelIndex, root, grid );
 	}
 
 
-	public LabelFileSources( String name, String path, Integer channelIndex, String labelTablePath, String root, GridType grid )
+	public LabelGridSources( String name, String path, Integer channelIndex, String labelTablePath, String root, GridType grid )
 	{
 		super( name, path, channelIndex, root, grid );
 

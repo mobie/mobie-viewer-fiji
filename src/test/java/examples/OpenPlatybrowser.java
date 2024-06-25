@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package examples;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
@@ -34,7 +34,7 @@ import org.embl.mobie.MoBIESettings;
 
 import java.io.IOException;
 
-public class OpenRemotePlatynereis
+public class OpenPlatybrowser
 {
 	public static void main( String[] args ) throws IOException
 	{

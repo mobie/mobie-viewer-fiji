@@ -38,12 +38,10 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imagej.ImageJ;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.ImageData;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.lib.*;
-import org.embl.mobie.lib.files.FileSourcesDataSetter;
-import org.embl.mobie.lib.files.ImageFileSources;
-import org.embl.mobie.lib.files.LabelFileSources;
-import org.embl.mobie.lib.files.SourcesFromPathsCreator;
+import org.embl.mobie.lib.data.*;
 import org.embl.mobie.lib.hcs.HCSPlateAdder;
 import org.embl.mobie.lib.hcs.Plate;
 import org.embl.mobie.lib.hcs.Site;
@@ -97,7 +95,7 @@ public class MoBIE
 	public static ImageJ imageJ;
 
 	private String projectLocation;
-	private MoBIESettings settings;
+	private MoBIESettings settings = new MoBIESettings();
 	private Project project;
 	private Dataset dataset;
 	private String projectRoot = "";
@@ -151,13 +149,13 @@ public class MoBIE
 
 		this.settings = settings;
 
-		final SourcesFromPathsCreator sourcesCreator = new SourcesFromPathsCreator( imagePaths, labelPaths, labelTablePaths, root, grid );
+		final GridSourcesFromPathsCreator sourcesCreator = new GridSourcesFromPathsCreator( imagePaths, labelPaths, labelTablePaths, root, grid );
 
-		final List< ImageFileSources > imageSources = sourcesCreator.getImageSources();
-		final List< LabelFileSources > labelSources = sourcesCreator.getLabelSources();
+		final List< ImageGridSources > imageSources = sourcesCreator.getImageSources();
+		final List< LabelGridSources > labelSources = sourcesCreator.getLabelSources();
 		Table regionTable = sourcesCreator.getRegionTable();
 
-		openImagesAndLabels( imageSources, labelSources, regionTable );
+		openImageAndLabelGrids( imageSources, labelSources, regionTable );
 	}
 
 	// open an image or object table
@@ -177,11 +175,31 @@ public class MoBIE
 		//   Both can be useful and I guess we should keep on supporting both
 		final SourcesFromTableCreator sourcesCreator = new SourcesFromTableCreator( tablePath, imageColumns, labelColumns, root, pathMapping, grid );
 
-		final List< ImageFileSources > imageSources = sourcesCreator.getImageSources();
-		final List< LabelFileSources > labelSources = sourcesCreator.getLabelSources();
+		final List< ImageGridSources > imageSources = sourcesCreator.getImageSources();
+		final List< LabelGridSources > labelSources = sourcesCreator.getLabelSources();
 		Table regionTable = sourcesCreator.getRegionTable();
 
-		openImagesAndLabels( imageSources, labelSources, regionTable );
+		openImageAndLabelGrids( imageSources, labelSources, regionTable );
+	}
+
+	// Open a MoBIE table with MoBIETableColumnNames
+	// TODO: get rid of the boolean with for now is just not to have the same signature twice
+	public MoBIE( String tablePath, MoBIESettings settings, boolean isMoBIETable )
+	{
+		settings = settings;
+
+		IJ.log("\n# MoBIE" );
+		IJ.log("Opening data from table: " + tablePath );
+
+		final Table table = TableOpener.openDelimitedTextFile( tablePath );
+
+		initImageJAndMoBIE();
+		initProject( IOHelper.getFileName( tablePath ) );
+
+		TableSourcesDataSetter dataSetter = new TableSourcesDataSetter( table );
+		dataSetter.addToDataset( dataset );
+
+		initUiAndShowView( null );
 	}
 
 	private void initTableSaw()
@@ -205,13 +223,13 @@ public class MoBIE
 	}
 
 	// TODO 2D or 3D?
-	private void openImagesAndLabels( List< ImageFileSources > images, List< LabelFileSources > labels, Table regionTable )
+	private void openImageAndLabelGrids( List< ImageGridSources > images, List< LabelGridSources > labels, Table regionTable )
 	{
 		initImageJAndMoBIE();
 
 		initProject( "" );
 
-		new FileSourcesDataSetter( images, labels, regionTable ).addDataAndDisplaysAndViews( dataset );
+		new GridSourcesDataSetter( images, labels, regionTable ).addDataAndDisplaysAndViews( dataset );
 
 		initUiAndShowView( null ); //dataset.views().keySet().iterator().next() );
 	}
@@ -239,8 +257,7 @@ public class MoBIE
 
 		if ( settings.values.isOpenedFromCLI() )
 		{
-			// TODO: if possible open init the SciJava Services
-			//   by different means
+			// TODO: if possible init the SciJava Services by different means
 			imageJ = new ImageJ(); // Init SciJava Services
 			imageJ.ui().showUI(); // Enable SciJava Command rendering
 		}

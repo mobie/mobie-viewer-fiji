@@ -45,7 +45,6 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.command.context.ConfigureSegmentRenderingCommand;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.MoBIEInfo;
 import org.embl.mobie.lib.Services;
@@ -66,6 +65,7 @@ import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
+import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.transform.viewer.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
@@ -554,7 +554,7 @@ public class UserInterfaceHelper
 				Source< ? > source = sacs.get( 0 ).getSpimSource();
 				RandomAccessibleInterval< ? > rai = source.getSource( bdvHandle.getViewerPanel().state().getCurrentTimepoint(),
 						source.getNumMipmapLevels() - 1 );
-				double[] minMax = MoBIEHelper.estimateMinMax( ( RandomAccessibleInterval ) rai );
+				double[] minMax = SourceHelper.estimateMinMax( ( RandomAccessibleInterval ) rai );
 				min.setCurrentValue( minMax[ 0 ] );
 				max.setCurrentValue( minMax[ 1 ] );
 			});

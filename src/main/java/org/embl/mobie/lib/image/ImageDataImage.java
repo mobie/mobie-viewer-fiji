@@ -206,4 +206,13 @@ public class ImageDataImage< T extends NumericType< T > & NativeType< T > > impl
 		return ( ImageData< T > ) DataStore.fetchImageData( uri, imageDataFormat, sharedQueue );
 	}
 
+	public String getUri()
+	{
+		return uri;
+	}
+
+	public int getSetupId()
+	{
+		return setupId;
+	}
 }

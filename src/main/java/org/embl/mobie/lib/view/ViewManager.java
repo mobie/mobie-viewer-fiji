@@ -243,7 +243,7 @@ public class ViewManager
 		if ( view.isExclusive() )
 		{
 			removeAllSourceDisplays( true );
-			DataStore.clearImages();
+		 	DataStore.clearImages();
 			MoBIEWindowManager.closeAllWindows();
 		}
 

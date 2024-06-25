@@ -32,15 +32,13 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
-import net.imglib2.Cursor;
-import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.type.numeric.RealType;
-import net.imglib2.util.Intervals;
-import net.imglib2.util.ValuePair;
-import net.imglib2.view.Views;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.io.imagedata.ImageData;
+import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.image.ImageDataImage;
+import org.embl.mobie.lib.image.TransformedImage;
+import org.embl.mobie.lib.io.ImageDataInfo;
 import org.janelia.saalfeldlab.n5.universe.metadata.canonical.CanonicalDatasetMetadata;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -61,6 +59,29 @@ import static org.embl.mobie.io.util.IOHelper.getPaths;
 
 public abstract class MoBIEHelper
 {
+	public static ImageDataInfo fetchImageDataInfo( Image< ? > image )
+	{
+		if ( image instanceof ImageDataImage )
+		{
+			ImageDataInfo imageDataInfo = new ImageDataInfo();
+			imageDataInfo.uri = ( ( ImageDataImage ) image ).getUri();
+			imageDataInfo.datasetId = ( ( ImageDataImage ) image ).getSetupId();
+			return imageDataInfo;
+		}
+		else if ( image instanceof TransformedImage )
+		{
+			TransformedImage transformedImage = ( TransformedImage ) image;
+			Image< ? > wrappedImage = transformedImage.getWrappedImage();
+			return fetchImageDataInfo( wrappedImage );
+		}
+		else
+		{
+			ImageDataInfo imageDataInfo = new ImageDataInfo();
+			imageDataInfo.uri = "Could not determine URI of " + image.getClass().getSimpleName();
+			return imageDataInfo;
+		}
+	}
+
 	public static final String GRID_TYPE_HELP = "If the images are different and not too many, use Transformed for more flexible visualisation.\n" +
 			"If all images are identical use Stitched for better performance.";
 
@@ -73,12 +94,17 @@ public abstract class MoBIEHelper
 		DecimalFormat formatter = new DecimalFormat(pattern.toString());
 
 		StringBuilder result = new StringBuilder();
+		result.append( "(" );
 		for (int i = 0; i < array.length; i++) {
+			if (Math.abs(array[i]) < 1e-10) {
+				array[i] = 0.0;  // Explicitly set to zero to remove negative sign
+			}
 			result.append(formatter.format(array[i]));
 			if (i < array.length - 1) {
 				result.append(", ");
 			}
 		}
+		result.append( ")" );
 		return result.toString();
 	}
 
@@ -309,47 +335,6 @@ public abstract class MoBIEHelper
 		{
 			throw new RuntimeException( e );
 		}
-	}
-
-	public static double[] estimateMinMax(
-			RandomAccessibleInterval<? extends RealType<?> > rai)
-	{
-		Cursor<? extends RealType<?>> cursor = Views.iterable(rai).cursor();
-		if (!cursor.hasNext()) return new double[]{0, 255};
-		long stepSize = Intervals.numElements(rai) / 10000 + 1;
-		int randomLimit = (int) Math.min(Integer.MAX_VALUE, stepSize);
-		Random random = new Random(42);
-		double min = cursor.next().getRealDouble();
-		double max = min;
-		while (cursor.hasNext()) {
-			double value = cursor.get().getRealDouble();
-			cursor.jumpFwd(stepSize + random.nextInt(randomLimit));
-			min = Math.min(min, value);
-			max = Math.max(max, value);
-		}
-		return new double[]{min, max};
-	}
-
-	public static <T extends RealType<T> > double[] computeMinMax( RandomAccessibleInterval<T> rai) {
-		Cursor<T> cursor = Views.iterable(rai).cursor();
-
-		// Initialize min and max with the first element
-		T type = cursor.next();
-		T min = type.copy();
-		T max = type.copy();
-
-		// Iterate over the remaining elements to find min and max
-		while (cursor.hasNext()) {
-			type = cursor.next();
-			if (type.compareTo(min) < 0) {
-				min.set(type);
-			}
-			if (type.compareTo(max) > 0) {
-				max.set(type);
-			}
-		}
-
-		return new double[]{ min.getRealDouble(), max.getRealDouble() };
 	}
 
 	public static String toURI( File file )

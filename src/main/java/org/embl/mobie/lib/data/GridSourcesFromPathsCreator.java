@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.files;
+package org.embl.mobie.lib.data;
 
 import org.embl.mobie.lib.io.FileImageSource;
 import org.embl.mobie.lib.transform.GridType;
@@ -35,12 +35,12 @@ import tech.tablesaw.api.Table;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SourcesFromPathsCreator
+public class GridSourcesFromPathsCreator
 {
-	private final List< ImageFileSources > imageSources;
-	private final List< LabelFileSources > labelSources;
+	private final List< ImageGridSources > imageSources;
+	private final List< LabelGridSources > labelSources;
 
-	public SourcesFromPathsCreator( List < String > imagePaths, List < String > labelPaths, List < String > labelTablePaths, String root, GridType grid )
+	public GridSourcesFromPathsCreator( List < String > imagePaths, List < String > labelPaths, List < String > labelTablePaths, String root, GridType grid )
 	{
 		// images
 		//
@@ -48,7 +48,7 @@ public class SourcesFromPathsCreator
 		for ( String imagePath : imagePaths )
 		{
 			final FileImageSource fileImageSource = new FileImageSource( imagePath );
-			imageSources.add( new ImageFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
+			imageSources.add( new ImageGridSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
 		}
 
 		// segmentation images
@@ -61,21 +61,21 @@ public class SourcesFromPathsCreator
 			if ( labelTablePaths.size() > labelSourceIndex )
 			{
 				final String labelTablePath = labelTablePaths.get( labelSourceIndex );
-				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, labelTablePath, root, grid ) );
+				labelSources.add( new LabelGridSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, labelTablePath, root, grid ) );
 			}
 			else
 			{
-				labelSources.add( new LabelFileSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
+				labelSources.add( new LabelGridSources( fileImageSource.name, fileImageSource.path, fileImageSource.channelIndex, root, grid ) );
 			}
 		}
 	}
 
-	public List< ImageFileSources > getImageSources()
+	public List< ImageGridSources > getImageSources()
 	{
 		return imageSources;
 	}
 
-	public List< LabelFileSources > getLabelSources()
+	public List< LabelGridSources > getLabelSources()
 	{
 		return labelSources;
 	}

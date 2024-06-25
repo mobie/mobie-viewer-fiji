@@ -78,16 +78,17 @@ public class AffineTransformation extends AbstractImageTransformation
 		int count = 0;
         for ( String entry : entries )
         {
-            output.append( entry );
+            output.append( entry.trim() );
             count++;
             if ( count == 4 )
             {
                 lines.add( output.toString() );
+				output = new StringBuilder();
                 count = 0;
             }
 			else
             {
-                output.append( "," );
+                output.append( ", " );
             }
         }
 

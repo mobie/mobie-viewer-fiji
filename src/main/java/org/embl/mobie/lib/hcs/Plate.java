@@ -29,9 +29,7 @@
 package org.embl.mobie.lib.hcs;
 
 import bdv.viewer.Source;
-import ch.epfl.biop.bdv.img.bioformats.entity.SeriesIndex;
 import ij.IJ;
-import ij.ImagePlus;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.generic.base.Entity;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
@@ -57,12 +55,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
-import static org.embl.mobie.lib.MoBIEHelper.computeMinMax;
+import static org.embl.mobie.lib.source.SourceHelper.computeMinMax;
 
 
 public class Plate

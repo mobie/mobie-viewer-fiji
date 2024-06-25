@@ -54,7 +54,12 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     @Parameter
     public BdvHandle bdvHandle;
 
-    @Parameter(label="Sampling (in below units)", persist = false, callback = "showNumPixels", min = "0.0", style="format:#.00000", stepSize = "0.01")
+    @Parameter(label="Sampling (in below units)",
+            persist = false,
+            callback = "showNumPixels",
+            min = "0.0",
+            style="format:#.00000",
+            stepSize = "0.01")
     public Double targetSamplingInXY = 1D;
 
     @Parameter(label="Pixel unit", persist = false, choices = {"micrometer"} )

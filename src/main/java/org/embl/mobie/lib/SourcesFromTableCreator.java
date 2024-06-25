@@ -30,8 +30,8 @@ package org.embl.mobie.lib;
 
 import ij.IJ;
 import org.embl.mobie.io.ImageDataOpener;
-import org.embl.mobie.lib.files.ImageFileSources;
-import org.embl.mobie.lib.files.LabelFileSources;
+import org.embl.mobie.lib.data.ImageGridSources;
+import org.embl.mobie.lib.data.LabelGridSources;
 import org.embl.mobie.lib.io.TableImageSource;
 import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.table.saw.Aggregators;
@@ -43,16 +43,14 @@ import tech.tablesaw.api.Table;
 import tech.tablesaw.api.TextColumn;
 import tech.tablesaw.columns.Column;
 
-import java.io.File;
-import java.lang.reflect.Array;
 import java.util.*;
 
 import static tech.tablesaw.aggregate.AggregateFunctions.mean;
 
 public class SourcesFromTableCreator
 {
-	private final List< ImageFileSources > imageFileSources;
-	private final List< LabelFileSources > labelSources;
+	private final List< ImageGridSources > imageGridSources;
+	private final List< LabelGridSources > labelSources;
 	private Table regionTable;
 
 	public SourcesFromTableCreator( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, String pathMapping, GridType gridType )
@@ -61,7 +59,7 @@ public class SourcesFromTableCreator
 
 		// images
 		//
-		imageFileSources = new ArrayList<>();
+		imageGridSources = new ArrayList<>();
 
 		for ( String imageColumn : imageColumns )
 		{
@@ -78,7 +76,7 @@ public class SourcesFromTableCreator
 				IJ.log( "Number of channels: " + numChannels );
 				for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
 				{
-					imageFileSources.add( new ImageFileSources(
+					imageGridSources.add( new ImageGridSources(
 							imageColumn + "_C" + channelIndex,
 							table,
 							imageColumn,
@@ -92,7 +90,7 @@ public class SourcesFromTableCreator
 			{
 				// Default table
 				final TableImageSource tableImageSource = new TableImageSource( imageColumn );
-				imageFileSources.add( new ImageFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, pathMapping, gridType ) );
+				imageGridSources.add( new ImageGridSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, pathMapping, gridType ) );
 			}
 		}
 
@@ -105,17 +103,17 @@ public class SourcesFromTableCreator
 			for ( String label : labelColumns )
 			{
 				final TableImageSource tableImageSource = new TableImageSource( label );
-				labelSources.add( new LabelFileSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, pathMapping, gridType, label.equals( firstLabel ) ) );
+				labelSources.add( new LabelGridSources( tableImageSource.name, table, tableImageSource.columnName, tableImageSource.channelIndex, root, pathMapping, gridType, label.equals( firstLabel ) ) );
 			}
 		}
 
 
 		// region table for grid view
 		//
-		if ( imageFileSources.isEmpty() )
+		if ( imageGridSources.isEmpty() )
 			throw new RuntimeException("No images found in the table! Please check your table and image column names: " + imageColumns );
 
-		int numSources = imageFileSources.get( 0 ).getSources().size();
+		int numSources = imageGridSources.get( 0 ).getSources().size();
 
 		if ( table.rowCount() == numSources )
 		{
@@ -174,12 +172,12 @@ public class SourcesFromTableCreator
 		}
 	}
 
-	public List< ImageFileSources > getImageSources()
+	public List< ImageGridSources > getImageSources()
 	{
-		return imageFileSources;
+		return imageGridSources;
 	}
 
-	public List< LabelFileSources > getLabelSources()
+	public List< LabelGridSources > getLabelSources()
 	{
 		return labelSources;
 	}

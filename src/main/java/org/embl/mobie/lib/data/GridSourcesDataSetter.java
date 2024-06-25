@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.files;
+package org.embl.mobie.lib.data;
 
 import ij.IJ;
 import org.embl.mobie.io.ImageDataFormat;
@@ -58,14 +58,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class FileSourcesDataSetter
+public class GridSourcesDataSetter
 {
-	private final List< ImageFileSources > images;
-	private final List< LabelFileSources > labels;
+	private final List< ImageGridSources > images;
+	private final List< LabelGridSources > labels;
 	private final Table regionTable;
 
-	public FileSourcesDataSetter( List< ImageFileSources > images,
-								  List< LabelFileSources > labels,
+	public GridSourcesDataSetter( List< ImageGridSources > images,
+								  List< LabelGridSources > labels,
 								  Table regionTable )
 	{
 		this.images = images;
@@ -75,12 +75,12 @@ public class FileSourcesDataSetter
 
 	public void addDataAndDisplaysAndViews( Dataset dataset )
 	{
-		final ArrayList< ImageFileSources > allSources = new ArrayList<>();
+		final ArrayList< ImageGridSources > allSources = new ArrayList<>();
 		allSources.addAll( images );
 		allSources.addAll( labels );
 
 		// create and add data sources to the dataset
-		for ( ImageFileSources sources : allSources )
+		for ( ImageGridSources sources : allSources )
 		{
 			if ( sources.getMetadata().numZSlices > 1 )
 			{
@@ -98,9 +98,9 @@ public class FileSourcesDataSetter
 				final StorageLocation storageLocation = new StorageLocation();
 				storageLocation.absolutePath = path;
 				storageLocation.setChannel( sources.getChannelIndex() );
-				if ( sources instanceof LabelFileSources )
+				if ( sources instanceof LabelGridSources )
 				{
-					final TableSource tableSource = ( ( LabelFileSources ) sources ).getLabelTable( imageName );
+					final TableSource tableSource = ( ( LabelGridSources ) sources ).getLabelTable( imageName );
 					SegmentationDataSource segmentationDataSource = SegmentationDataSource.create( imageName, imageDataFormat, storageLocation, tableSource );
 					segmentationDataSource.preInit( false );
 					dataset.addDataSource( segmentationDataSource );
@@ -133,21 +133,21 @@ public class FileSourcesDataSetter
 	// This assumes that all the individual views are similar
 	// that are part of the same ImageFileSources, as they get the same initial metadata
 	// in terms of number of channels, timepoints and contrast limits
-	private void addIndividualViews( Dataset dataset, ArrayList< ImageFileSources > fileSourcesList )
+	private void addIndividualViews( Dataset dataset, ArrayList< ImageGridSources > fileSourcesList )
 	{
-		for ( ImageFileSources sources : fileSourcesList )
+		for ( ImageGridSources sources : fileSourcesList )
 		{
 			for ( String source : sources.getSources() )
 			{
 				final List< Display< ? > > displays = new ArrayList<>();
 				final List< Transformation > transformations = new ArrayList<>();
 
-				if ( sources instanceof LabelFileSources )
+				if ( sources instanceof LabelGridSources )
 				{
 					// SegmentationDisplay
 					final SegmentationDisplay< AnnotatedSegment > segmentationDisplay
 							= new SegmentationDisplay<>( source, Collections.singletonList( source ) );
-					final int numLabelTables = ( ( LabelFileSources ) sources ).getNumLabelTables();
+					final int numLabelTables = ( ( LabelGridSources ) sources ).getNumLabelTables();
 					segmentationDisplay.setShowTable( numLabelTables > 0 );
 					displays.add( segmentationDisplay );
 				}
@@ -180,13 +180,13 @@ public class FileSourcesDataSetter
 
 	}
 
-	private void addGridView( Dataset dataset, ArrayList< ImageFileSources > fileSourcesList )
+	private void addGridView( Dataset dataset, ArrayList< ImageGridSources > fileSourcesList )
 	{
 		RegionDisplay< AnnotatedRegion > regionDisplay = null;
 		final List< Display< ? > > displays = new ArrayList<>();
 		final List< Transformation > transformations = new ArrayList<>();
 
-		for ( ImageFileSources sources : fileSourcesList )
+		for ( ImageGridSources sources : fileSourcesList )
 		{
 			List< String > sourceNames = sources.getSources();
 			final int numRegions = sourceNames.size();
@@ -239,12 +239,12 @@ public class FileSourcesDataSetter
 			{
 				String source = sources.getSources().get( 0 );
 
-				if ( sources instanceof LabelFileSources )
+				if ( sources instanceof LabelGridSources )
 				{
 					// SegmentationDisplay
 					final SegmentationDisplay< AnnotatedSegment > segmentationDisplay
 							= new SegmentationDisplay<>( source, Collections.singletonList( source ) );
-					final int numLabelTables = ( ( LabelFileSources ) sources ).getNumLabelTables();
+					final int numLabelTables = ( ( LabelGridSources ) sources ).getNumLabelTables();
 					segmentationDisplay.setShowTable( numLabelTables > 0 );
 					displays.add( segmentationDisplay );
 				}
@@ -274,11 +274,11 @@ public class FileSourcesDataSetter
 						.map(row -> new int[]{row.getInt(ColumnNames.COLUMN_INDEX), row.getInt(ColumnNames.ROW_INDEX)})
 						.collect( Collectors.toList());
 
-				if ( sources instanceof LabelFileSources )
+				if ( sources instanceof LabelGridSources )
 				{
 					// SegmentationDisplay
 					final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( grid.getName(), Collections.singletonList( grid.getName() ) );
-					final int numLabelTables = ( ( LabelFileSources ) sources ).getNumLabelTables();
+					final int numLabelTables = ( ( LabelGridSources ) sources ).getNumLabelTables();
 					segmentationDisplay.setShowTable( numLabelTables > 0 );
 					displays.add( segmentationDisplay );
 				}
@@ -295,11 +295,11 @@ public class FileSourcesDataSetter
 			{
 				// Add the individual images to the displays
 				//
-				if ( sources instanceof LabelFileSources )
+				if ( sources instanceof LabelGridSources )
 				{
 					// SegmentationDisplay
 					final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( sources.getName(), sourceNames );
-					final int numLabelTables = ( ( LabelFileSources ) sources ).getNumLabelTables();
+					final int numLabelTables = ( ( LabelGridSources ) sources ).getNumLabelTables();
 					segmentationDisplay.setShowTable( numLabelTables > 0 );
 					displays.add( segmentationDisplay );
 				}

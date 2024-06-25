@@ -45,11 +45,9 @@ import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.roi.geom.real.WritableBox;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Intervals;
-import net.imglib2.util.ValuePair;
 import net.imglib2.view.Views;
 import org.embl.mobie.lib.bdv.CalibratedMousePositionProvider;
 import org.jetbrains.annotations.NotNull;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -374,4 +372,70 @@ public abstract class SourceHelper
 //		else {
 	}
 
+	public static <T extends RealType<T> > double[] computeMinMax( RandomAccessibleInterval<T> rai) {
+		Cursor<T> cursor = Views.iterable(rai).cursor();
+
+		// Initialize min and max with the first element
+		T type = cursor.next();
+		T min = type.copy();
+		T max = type.copy();
+
+		// Iterate over the remaining elements to find min and max
+		while (cursor.hasNext()) {
+			type = cursor.next();
+			if (type.compareTo(min) < 0) {
+				min.set(type);
+			}
+			if (type.compareTo(max) > 0) {
+				max.set(type);
+			}
+		}
+
+		return new double[]{ min.getRealDouble(), max.getRealDouble() };
+	}
+
+	public static double[] estimateMinMax( RandomAccessibleInterval<? extends RealType<?> > rai)
+	{
+		Cursor<? extends RealType<?>> cursor = Views.iterable(rai).cursor();
+		if (!cursor.hasNext()) return new double[]{0, 255};
+		long stepSize = Intervals.numElements(rai) / 10000 + 1;
+		int randomLimit = (int) Math.min(Integer.MAX_VALUE, stepSize);
+		Random random = new Random(42);
+		double min = cursor.next().getRealDouble();
+		double max = min;
+		while (cursor.hasNext()) {
+			double value = cursor.get().getRealDouble();
+			cursor.jumpFwd(stepSize + random.nextInt(randomLimit));
+			min = Math.min(min, value);
+			max = Math.max(max, value);
+		}
+		return new double[]{min, max};
+	}
+
+	// TODO: finish implementation
+	public static double[] estimateMinMaxWithinViewerUNFINISHED(
+			RandomAccessibleInterval<? extends RealType<?> > rai,
+			AffineTransform3D sourceToGlobal,
+			BdvHandle bdvHandle)
+	{
+		AffineTransform3D globalToViewer = bdvHandle.getViewerPanel().state().getViewerTransform();
+		AffineTransform3D sourceToViewer = sourceToGlobal.preConcatenate( globalToViewer );
+
+		Cursor<? extends RealType<?>> cursor = Views.iterable(rai).cursor();
+		if (!cursor.hasNext()) return new double[]{0, 255};
+		long stepSize = Intervals.numElements(rai) / 10000 + 1;
+		int randomLimit = (int) Math.min(Integer.MAX_VALUE, stepSize);
+		Random random = new Random(42);
+		double min = cursor.next().getRealDouble();
+		double max = min;
+		while (cursor.hasNext()) {
+			// TODO: how to move without triggering data access?
+			double value = cursor.get().getRealDouble();
+			cursor.jumpFwd(stepSize + random.nextInt(randomLimit));
+			long[] longs = cursor.positionAsLongArray();
+			min = Math.min(min, value);
+			max = Math.max(max, value);
+		}
+		return new double[]{min, max};
+	}
 }

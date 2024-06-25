@@ -26,17 +26,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.files;
+package org.embl.mobie.lib.data;
 
 import bdv.viewer.Source;
 import ij.IJ;
-import loci.formats.in.CellSensReader;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.io.FilenameUtils;
-import org.embl.mobie.DataStore;
-import org.embl.mobie.MoBIE;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
@@ -52,11 +48,10 @@ import tech.tablesaw.api.NumberColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 
-import javax.xml.crypto.Data;
 import java.io.File;
 import java.util.*;
 
-public class ImageFileSources
+public class ImageGridSources
 {
 	protected final String name;
 	protected Map< String, AffineTransform3D > nameToAffineTransform = new LinkedHashMap<>();
@@ -70,7 +65,7 @@ public class ImageFileSources
 	protected Metadata metadata;
 	private String metadataSource;
 
-	public ImageFileSources( String name, String pathRegex, Integer channelIndex, String root, GridType gridType )
+	public ImageGridSources( String name, String pathRegex, Integer channelIndex, String root, GridType gridType )
 	{
 		this.gridType = gridType;
 		this.name = name;
@@ -99,7 +94,7 @@ public class ImageFileSources
 		regionTable.addColumns( StringColumn.create( "source_path", new ArrayList<>( nameToFullPath.values() ) ) );
 	}
 
-	public ImageFileSources( String name, Table table, String imageColumn, Integer channelIndex, String root, String pathMapping, GridType gridType )
+	public ImageGridSources( String name, Table table, String imageColumn, Integer channelIndex, String root, String pathMapping, GridType gridType )
 	{
 		this.name = name;
 		this.channelIndex = channelIndex;
@@ -191,7 +186,7 @@ public class ImageFileSources
 		Source< ? > source = imageData.getSourcePair( channelIndex ).getA();
 		metadata.numZSlices = (int) source.getSource( 0, 0  ).dimension( 2 );
 		metadata.numTimePoints = SourceHelper.getNumTimePoints( source );
-		metadata.contrastLimits = MoBIEHelper.estimateMinMax( ( RandomAccessibleInterval ) source.getSource( 0, source.getNumMipmapLevels() -1 ) );
+		metadata.contrastLimits = SourceHelper.estimateMinMax( ( RandomAccessibleInterval ) source.getSource( 0, source.getNumMipmapLevels() -1 ) );
 		IJ.log( "Slices: " + metadata.numZSlices );
 		IJ.log( "Frames: " + metadata.numTimePoints );
 		IJ.log( "Contrast limits: " + Arrays.toString( metadata.contrastLimits ) );

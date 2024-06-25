@@ -52,13 +52,17 @@ public class ImageTransformer
 	public static Image< ? > affineTransform( Image< ? > image, AffineTransformation affineTransformation )
 	{
 		String transformedImageName = affineTransformation.getTransformedImageName( image.getName() );
+		if( transformedImageName == null )
+			transformedImageName = image.getName();
 
-		if( transformedImageName == null || image.getName().equals( transformedImageName ) )
-		{
-			// in place transformation
-			image.transform( affineTransformation.getAffineTransform3D()  );
-			return image;
-		}
+		// FIXME The below will destroy the Transformation History of this image
+		//       Not sure why we have this? For performance??
+//		if( transformedImageName == null || image.getName().equals( transformedImageName ) )
+//		{
+//			// in place transformation
+//			image.transform( affineTransformation.getAffineTransform3D()  );
+//			return image;
+//		}
 
 		if ( image instanceof AnnotationLabelImage )
 		{

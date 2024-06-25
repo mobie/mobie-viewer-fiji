@@ -32,10 +32,13 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.io.ImageDataInfo;
+import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.transform.TransformHelper;
 import org.scijava.plugin.Parameter;
@@ -46,7 +49,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Log Images Info")
+@Plugin(type = BdvPlaygroundActionCommand.class,
+        menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Log Images Info")
 public class SourcesInfoCommand implements BdvPlaygroundActionCommand
 {
     static { net.imagej.patcher.LegacyInjector.preinit(); }
@@ -54,31 +58,50 @@ public class SourcesInfoCommand implements BdvPlaygroundActionCommand
     @Parameter
     public BdvHandle bdvHandle;
 
+    @Parameter (label = "Show transformation history")
+    public Boolean showTransformationHistory = false;
+
     @Override
     public void run()
     {
+        int t = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
         List< SourceAndConverter< ? > > visibleSacs = MoBIEHelper.getVisibleSacs( bdvHandle );
         visibleSacs.forEach( sac ->
         {
+            Image< ? > image = DataStore.sourceToImage().get( sac );
+            ImageDataInfo imageDataInfo = MoBIEHelper.fetchImageDataInfo( image );
+
             Source< ? > source = sac.getSpimSource();
+            AffineTransform3D transform3D = new AffineTransform3D();
+            sac.getSpimSource().getSourceTransform( t, 0, transform3D );
+
             IJ.log( "" );
             IJ.log( "# " + source.getName() );
-            IJ.log( "" );
+            IJ.log( "Source URI: " + imageDataInfo.uri );
+            IJ.log( "Dataset index within URI: " + imageDataInfo.datasetId );
             IJ.log( "Data type: " + source.getType().getClass().getSimpleName() );
-            IJ.log( "Shape: " + Arrays.toString( source.getSource( 0,0 ).dimensionsAsLongArray() ) );
+            IJ.log( "Shape: " + Arrays.toString( source.getSource( t,0 ).dimensionsAsLongArray() ) );
             IJ.log( "Number of resolution levels: " + source.getNumMipmapLevels() );
             IJ.log( "Voxel size: " + Arrays.toString( source.getVoxelDimensions().dimensionsAsDoubleArray() ) );
 
-            Image< ? > image = DataStore.sourceToImage().get( sac );
             ArrayList< Transformation > transformations = TransformHelper.fetchAllImageTransformations( image );
-
-            transformations.forEach( transformation ->
+            Transformation imageTransformation = transformations.get( 0 );
+            if ( imageTransformation instanceof AffineTransformation )
             {
-                IJ.log( "" );
-                IJ.log( transformation.toString() );
-            });
+                AffineTransform3D imageTransform = ( ( AffineTransformation ) imageTransformation ).getAffineTransform3D();
+                IJ.log( "Original image transformation: " + MoBIEHelper.print( imageTransform.getRowPackedCopy(), 3 ) );
+                AffineTransform3D additionalTransform = transform3D.copy().concatenate( imageTransform.inverse() );
+                IJ.log( "Additional MoBIE transformation: " + MoBIEHelper.print( additionalTransform.getRowPackedCopy(), 3 ) );
+                IJ.log( "Total transformation: " +  MoBIEHelper.print( transform3D.getRowPackedCopy(), 3 )  );
+            }
 
-            IJ.log( "" );
+            if ( showTransformationHistory )
+            {
+                transformations.forEach( transformation ->
+                {
+                    IJ.log( transformation.toString() );
+                } );
+            }
         });
     }
 }

@@ -81,7 +81,6 @@ public class ImageDataAdder
 
 	private void addData( ImageData< ? > imageData, boolean isSegmentation )
 	{
-
 		final ImageDataFormat imageDataFormat = ImageDataFormat.ImageData;
 
 		if ( tableDataFormat != null )
@@ -153,7 +152,7 @@ public class ImageDataAdder
 		dataset.views().put( view.getName(), view );
 	}
 
-	private void addSegmentationView( ImageData< ? > imageData, int setupId, String name  )
+	private void addSegmentationView( ImageData< ? > imageData, int setupId, String name )
 	{
 		final SegmentationDisplay< ? > display = new SegmentationDisplay<>( name, Arrays.asList( name ) );
 		final double pixelWidth = imageData.getSourcePair( setupId ).getB().getVoxelDimensions().dimension( 0 );

@@ -407,11 +407,10 @@ public class TransformHelper
 		}
 		else
 		{
-			// The raw data with the voxel calibration
 			AffineTransform3D affineTransform3D = new AffineTransform3D();
 			image.getSourcePair().getSource().getSourceTransform( 0, 0, affineTransform3D  );
 			AffineTransformation affineTransformation = new AffineTransformation(
-					"calibration",
+					"image transform",
 					affineTransform3D,
 					Collections.singletonList( image.getName() ) );
 			transformations.add( affineTransformation );

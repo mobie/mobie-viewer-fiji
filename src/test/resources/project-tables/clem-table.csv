@@ -1,0 +1,3 @@
+uri,pixel_type
+https://s3.embl.de/yeast-clem/hela/images/ome-zarr/em-overview.ome.zarr,intensities
+https://raw.githubusercontent.com/mobie/clem-example-project/main/data/hela/images/bdv-n5-s3/fluorescence-a2-FMR-c2.xml,intensities
