@@ -77,8 +77,9 @@ public class CollectionTableConstants
      * correspondingly many table rows with the *same URI* and the respective
      * different value in the "channel" column.
      *
-     * Notes:
-     * - One could consider to encode the channel directly within the URI: FIXME add link
+     * Discussion points:
+     * - One could consider to encode the channel directly within the URI
+     *   - see: https://forum.image.sc/t/loading-only-one-channel-from-an-ome-zarr/97798
      *
      * Supported values:
      * - Zero based positive integers
@@ -123,6 +124,10 @@ public class CollectionTableConstants
      * No transformation will be applied if
      * - this column is absent.
      * - the given value cannot be parsed.
+     *
+     * Discussion points:
+     * - If one would not have commas to separate the values also CSV would be fine as a table format
+     *   - For instance, we could use space as a separator instead of comma
      */
     public static final String AFFINE = "affine";
 

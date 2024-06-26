@@ -54,7 +54,6 @@ public class OpenCollectionTableCommand implements Command {
 	@Parameter( label = "Table Path", required = true )
 	public File table;
 
-
 	@Override
 	public void run()
 	{
@@ -62,30 +61,6 @@ public class OpenCollectionTableCommand implements Command {
 
 		final MoBIESettings settings = new MoBIESettings();
 
-		spatialCalibration.setVoxelDimensions( settings, table != null ? table.getAbsolutePath() : null  );
-
-		List< String > imageList = new ArrayList<>();
-		if ( images != null && ! images.equals( "" ) )
-		{
-			imageList = Arrays.asList( images.split( "," ) );
-			imageList = imageList.stream().map( s -> s.trim() ).collect( Collectors.toList() );
-		}
-
-		List< String > labelList = new ArrayList<>();
-		if ( labels != null && ! labels.equals( "" ) )
-		{
-			labelList = Arrays.asList( labels.split( "," ) );
-			labelList = labelList.stream().map( s -> s.trim() ).collect( Collectors.toList() );
-		}
-
-		try
-		{
-			String rootPath = root == null ? null : root.getAbsolutePath();
-			new MoBIE( table.getAbsolutePath(), imageList, labelList, rootPath, pathMapping ,gridType, settings );
-		}
-		catch ( IOException e )
-		{
-			e.printStackTrace();
-		}
+		new MoBIE( MoBIEHelper.toURI( table ), settings, true );
 	}
 }

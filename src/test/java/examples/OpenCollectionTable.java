@@ -3,6 +3,9 @@ package examples;
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.command.open.OpenCollectionTableCommand;
+
+import java.io.File;
 
 public class OpenCollectionTable
 {
@@ -11,9 +14,11 @@ public class OpenCollectionTable
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-//        String tablePath = "src/test/resources/project-tables/clem-table.txt";
-        String tablePath = "src/test/resources/project-tables/blobs-table.txt";
+        String tablePath = "src/test/resources/collections/blobs-table.txt";
+        File tableFile = new File( tablePath );
 
-        new MoBIE( tablePath, new MoBIESettings(), true );
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.table = tableFile;
+        command.run();
     }
 }
