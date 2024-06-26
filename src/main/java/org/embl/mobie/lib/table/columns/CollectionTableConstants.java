@@ -7,6 +7,9 @@ package org.embl.mobie.lib.table.columns;
  * Tables following this specification can be opened in MoBIE/Fiji via
  * MoBIE>Open>Open Collection Table...
  *
+ * The table currently MUST be a TAB separated text file.
+ * - see the "affine" column for why we currently cannot support COMMA separation
+ *
  * In addition to the columns that are specified in this class
  * tables MAY have as many additional columns as needed.
  */
@@ -125,9 +128,16 @@ public class CollectionTableConstants
      * - this column is absent.
      * - the given value cannot be parsed.
      *
+     * Notes:
+     * - This affine transformation will be applied on top of any transformation
+     *   that can be discovered within the image URI
+     *
      * Discussion points:
-     * - If one would not have commas to separate the values also CSV would be fine as a table format
+     * - If one would NOT have COMMA to separate the values of the affine
+     *   also a CSV would be fine as a table format (current we need TAB)
      *   - For instance, we could use space as a separator instead of comma
+     *   - If someone opens the table by chance in Excel, using both TAB and COMMA as a separator
+     *     it can lead to a major fuck-up that can initially even go unnoticed
      */
     public static final String AFFINE = "affine";
 
