@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.command.open.project;
 
-import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
@@ -38,7 +37,6 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import java.io.File;
 import java.io.IOException;
 
 
@@ -47,8 +45,8 @@ public class OpenMoBIEProjectCommand implements Command
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter ( label = "Project Location" )
-	public File projectLocation = new File( "https://github.com/mobie/platybrowser-datasets" );
+	@Parameter ( label = "Project URI" )
+	public String uri = "https://github.com/mobie/platybrowser-datasets";
 
 	@Parameter ( label = "Preferentially Fetch Data From", choices = {"Remote", "Local"} )
 	public String location = "Remote";
@@ -62,7 +60,7 @@ public class OpenMoBIEProjectCommand implements Command
 
 		try
 		{
-			new MoBIE( MoBIEHelper.toURI( projectLocation ), settings );
+			new MoBIE( uri, settings );
 		}
 		catch ( IOException e )
 		{

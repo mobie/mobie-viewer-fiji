@@ -52,9 +52,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.embl.mobie.lib.create.ProjectCreatorHelper.*;
 
@@ -343,7 +341,7 @@ public class ProjectsCreatorUI extends JFrame {
         {
             new Thread( () -> {
                 OpenMoBIEProjectCommand openMoBIE = new OpenMoBIEProjectCommand();
-                openMoBIE.projectLocation = new File( this.projectCreator.getProjectLocation().getAbsolutePath() );
+                openMoBIE.uri = this.projectCreator.getProjectLocation().getAbsolutePath();
                 openMoBIE.run();
             } ).start();
         } );
