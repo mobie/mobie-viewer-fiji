@@ -1,0 +1,4 @@
+uri	name	type	affine	color	view
+/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/project-tables/blobs.tif	shifted blobs	intensities	(1, 0, 0, 80, 0, 1, 0, 30, 0, 0, 1, 0)	red	
+/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/project-tables/blobs.tif		intensities		green	segmented blobs
+/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/project-tables/blobs-labels.tif		labels			segmented blobs

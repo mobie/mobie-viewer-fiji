@@ -34,7 +34,6 @@ import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -118,7 +117,7 @@ public class View
 			}
 		}
 
-		List< Transformation > transformations = getTransformations();
+		List< Transformation > transformations = transformations();
 		for ( Transformation transformation : transformations )
 		{
 			final List< String > transformationSources = transformation.getSources();
@@ -136,7 +135,7 @@ public class View
 		return isExclusive;
 	}
 
-	public List< Transformation > getTransformations()
+	public List< Transformation > transformations()
 	{
 		if ( sourceTransforms == null )
 			return new ArrayList<>();

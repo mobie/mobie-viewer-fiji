@@ -196,10 +196,10 @@ public class MoBIE
 		initImageJAndMoBIE();
 		initProject( IOHelper.getFileName( tablePath ) );
 
-		TableSourcesDataSetter dataSetter = new TableSourcesDataSetter( table );
+		CollectionTableDataSetter dataSetter = new CollectionTableDataSetter( table );
 		dataSetter.addToDataset( dataset );
 
-		initUiAndShowView( null );
+		initUiAndShowView( dataset.views().values().iterator().next().getName() );
 	}
 
 	private void initTableSaw()

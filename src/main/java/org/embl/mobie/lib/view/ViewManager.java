@@ -29,7 +29,6 @@
 package org.embl.mobie.lib.view;
 
 import bdv.util.BdvHandle;
-import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -361,7 +360,7 @@ public class ViewManager
 		// this may create new images with new names
 
 		// TODO factor this out int an image transformer class
-		final List< Transformation > transformations = view.getTransformations();
+		final List< Transformation > transformations = view.transformations();
 		if ( transformations != null )
 		{
 			for ( Transformation transformation : transformations )
