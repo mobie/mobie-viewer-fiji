@@ -1,9 +1,11 @@
 package org.embl.mobie.lib.data;
 
 import ij.IJ;
+import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.ImageDataSource;
@@ -21,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -114,7 +117,7 @@ public class CollectionTableDataSetter
     private static String getPixelType( Row row )
     {
         try {
-            return row.getString( CollectionTableConstants.PIXEL_TYPE );
+            return row.getString( CollectionTableConstants.TYPE );
         }
         catch ( Exception e )
         {
@@ -160,13 +163,16 @@ public class CollectionTableDataSetter
         // which probably will combine several displays
 
         String viewName = getViewName( row );
-        if ( viewName == null ) return;
+        if ( viewName == null || viewName.isEmpty() ) return;
 
         if ( dataset.views().containsKey( viewName ) )
         {
             View existingView = dataset.views().get( viewName );
             existingView.transformations().addAll( transforms );
             existingView.displays().addAll( displays );
+            // if several images are combined into the
+            // same view we make it exclusive
+            existingView.setExclusive( true );
         }
         else
         {
@@ -251,11 +257,16 @@ public class CollectionTableDataSetter
     {
         try
         {
-            return row.getString( CollectionTableConstants.COLOR );
+            String colorString = row.getString( CollectionTableConstants.COLOR );
+            ARGBType argbType = ColorHelper.getARGBType( colorString );
+            if ( argbType == null )
+                return "white";
+
+            return colorString;
         }
         catch ( Exception e )
         {
-            return "White";
+            return "white";
         }
     }
 

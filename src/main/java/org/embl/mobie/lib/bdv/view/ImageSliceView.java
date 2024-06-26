@@ -140,12 +140,6 @@ public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceV
 		else
 			argbType = ColorHelper.getARGBType( color );
 
-		if ( argbType == null )
-		{
-			IJ.log( "[WARN] Could not parse color: " + color );
-			return;
-		}
-
 		new ColorChanger( sourceAndConverter, argbType ).run();
 	}
 

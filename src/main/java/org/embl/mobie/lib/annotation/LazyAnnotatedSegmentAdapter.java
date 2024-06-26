@@ -76,6 +76,9 @@ public class LazyAnnotatedSegmentAdapter implements AnnotationAdapter< Annotated
 		{
 			synchronized ( stlToAnnotation )
 			{
+				if ( stlToAnnotation.containsKey( stl ) )
+					return stlToAnnotation.get( stl );
+
 				final AnnotatedSegment annotatedSegment = tableModel.createAnnotation( source, timePoint, label );
 				stlToAnnotation.put( stl, annotatedSegment );
 			}

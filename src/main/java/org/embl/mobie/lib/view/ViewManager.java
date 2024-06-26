@@ -628,7 +628,11 @@ public class ViewManager
 
 				coloringModel.setRandomSeed( annotationDisplay.getRandomColorSeed() );
 
-				annotationDisplay.coloringModel = new MobieColoringModel( coloringModel, annotationDisplay.selectionModel, annotationDisplay.getSelectionColor(), annotationDisplay.getOpacityNotSelected() );
+				annotationDisplay.coloringModel = new MobieColoringModel(
+						coloringModel,
+						annotationDisplay.selectionModel,
+						annotationDisplay.getSelectionColor(),
+						annotationDisplay.getOpacityNotSelected() );
 			}
 			else
 			{

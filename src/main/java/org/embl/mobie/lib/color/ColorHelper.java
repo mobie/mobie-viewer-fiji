@@ -43,6 +43,9 @@ public abstract class ColorHelper
 
 	public static Color getColor( ARGBType argbType )
 	{
+		if ( argbType == null )
+			return null;
+
 		final int colorIndex = argbType.get();
 
 		return new Color(
@@ -111,7 +114,6 @@ public abstract class ColorHelper
 		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
 			return null;
 		}
-
 	}
 
 	private static ARGBType getArgbType( Matcher matcher )
