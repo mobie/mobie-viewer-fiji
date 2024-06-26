@@ -46,8 +46,10 @@ public class CollectionTableDataSetter
             storageLocation.absolutePath = getUri( row );
             ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( storageLocation.absolutePath );
             storageLocation.setChannel( getChannel( row ) ); // TODO: Fetch from table or URI? https://forum.image.sc/t/loading-only-one-channel-from-an-ome-zarr/97798
-            String name = getName( row );
+            String imageName = getName( row );
             String pixelType = getPixelType( row );
+
+            Display< ? > display;
 
             if ( pixelType.equals( CollectionTableConstants.LABELS )  )
             {
@@ -56,7 +58,7 @@ public class CollectionTableDataSetter
 
                 SegmentationDataSource segmentationDataSource =
                         SegmentationDataSource.create(
-                                name,
+                                imageName,
                                 imageDataFormat,
                                 storageLocation,
                                 tableSource );
@@ -64,20 +66,20 @@ public class CollectionTableDataSetter
                 segmentationDataSource.preInit( false );
                 dataset.addDataSource( segmentationDataSource );
 
-                final SegmentationDisplay< ? > display = createLabelsDisplay( dataName );
-                addDisplayToViews( dataset, display, row );
+                display = createLabelsDisplay( imageName );
             }
             else // intensities
             {
-                final ImageDataSource imageDataSource = new ImageDataSource( name, imageDataFormat, storageLocation );
+                final ImageDataSource imageDataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
                 imageDataSource.preInit( false );
                 dataset.addDataSource( imageDataSource );
 
-                ImageDisplay< ? > imageDisplay = createImageDisplay( name, row );
-                addDisplayToViews( dataset, imageDisplay, row );
+                display = createImageDisplay( imageName, row );
             }
 
-            IJ.log("## " + name );
+            addDisplayToViews( dataset, display, row );
+
+            IJ.log("## " + imageName );
             IJ.log("URI: " + storageLocation.absolutePath );
             IJ.log("Format: " + imageDataFormat );
             IJ.log("Type: " + pixelType );
