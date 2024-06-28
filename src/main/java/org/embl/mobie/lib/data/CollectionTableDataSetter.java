@@ -41,7 +41,7 @@ public class CollectionTableDataSetter
     public void addToDataset( Dataset dataset )
     {
         if ( ! table.containsColumn( CollectionTableConstants.URI ) )
-            throw new RuntimeException( "Column \"" + CollectionTableConstants.URI + "\" must be present in table." );
+            throw new RuntimeException( "Column \"" + CollectionTableConstants.URI + "\" must be present in the collection table." );
 
         for ( Row row : table )
         {
@@ -53,7 +53,6 @@ public class CollectionTableDataSetter
             String pixelType = getPixelType( row );
 
             Display< ? > display;
-
             if ( pixelType.equals( CollectionTableConstants.LABELS )  )
             {
                 // TODO: label table path could be fetched from collection table
@@ -82,10 +81,10 @@ public class CollectionTableDataSetter
 
             addDisplayToViews( dataset, display, row );
 
-            IJ.log("## " + imageName );
-            IJ.log("URI: " + storageLocation.absolutePath );
-            IJ.log("Format: " + imageDataFormat );
-            IJ.log("Type: " + pixelType );
+//            IJ.log("## " + imageName );
+//            IJ.log("URI: " + storageLocation.absolutePath );
+//            IJ.log("Format: " + imageDataFormat );
+//            IJ.log("Type: " + pixelType );
 
         }
     }

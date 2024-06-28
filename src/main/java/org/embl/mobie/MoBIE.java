@@ -184,12 +184,12 @@ public class MoBIE
 
 	// Open a MoBIE table with MoBIETableColumnNames
 	// TODO: get rid of the boolean with for now is just not to have the same signature twice
-	public MoBIE( String tablePath, MoBIESettings settings, boolean isMoBIETable )
+	public MoBIE( String tablePath, MoBIESettings settings, boolean isCollectionTable )
 	{
 		settings = settings;
 
 		IJ.log("\n# MoBIE" );
-		IJ.log("Opening data from table: " + tablePath );
+		IJ.log("Opening collection table: " + tablePath );
 
 		final Table table = TableOpener.openDelimitedTextFile( tablePath );
 

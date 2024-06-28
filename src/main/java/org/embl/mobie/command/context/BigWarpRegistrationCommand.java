@@ -89,7 +89,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 		ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();
 		SourceAndConverterBdvDisplayService bdvDisplayService = SourceAndConverterServices.getBdvDisplayService();
 
-		SourceAndConverter< ? > fixedSac = visibleSacs.stream()
+		SourceAndConverter< ? > fixedSac = sacs.stream()
 				.filter( sac -> sac.getSpimSource().getName().equals( fixedImageName ) )
 				.findFirst().get();
 

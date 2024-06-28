@@ -36,6 +36,7 @@ import org.embl.mobie.DataStore;
 import org.embl.mobie.command.context.*;
 import org.embl.mobie.command.context.CurrentLocationLoggerCommand;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.lib.Services;
 import org.embl.mobie.lib.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.lib.bdv.*;
 import org.embl.mobie.lib.bdv.blend.AccumulateAlphaBlendingProjectorARGB;
@@ -70,7 +71,6 @@ public class SliceViewer
 	public static final String SAVE_CURRENT_SETTINGS_AS_VIEW = "Save Current View";
 	public static final String FRAME_TITLE = "MoBIE BigDataViewer";
 	public static boolean tileRenderOverlay = false;
-
 	private final SourceAndConverterBdvDisplayService bdvDisplayService;
 	private BdvHandle bdvHandle;
 	private final MoBIE moBIE;
@@ -170,6 +170,16 @@ public class SliceViewer
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.behaviour( contextMenu, "Context menu", "button3", "shift P");
 		behaviours.install( bdvHandle.getTriggerbindings(), "MoBIE" );
+
+		bdvHandle.getKeybindings().removeInputMap( "T" );
+
+		behaviours.behaviour(
+				( ClickBehaviour ) ( x, y ) ->
+						new Thread( () -> {
+							Services.commandService.run( ManualTransformationCommand.class, true );
+							System.out.println( "My own manual transform" );
+						}).start(),
+				"Manual transform", "T" ) ;
 
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->

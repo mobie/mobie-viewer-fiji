@@ -26,48 +26,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open.project;
+package org.embl.mobie.command.widget;
 
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.MoBIEHelper;
-import org.embl.mobie.lib.io.DataFormats;
-import org.scijava.command.Command;
-import org.scijava.plugin.Parameter;
-import org.scijava.plugin.Plugin;
+import org.scijava.widget.InputWidget;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URL;
-
-
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open MoBIE Project..." )
-public class OpenMoBIEProjectCommand implements Command
-{
-	static { net.imagej.patcher.LegacyInjector.preinit(); }
-
-	// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/1164
-	@Parameter ( label = "Project URI" )
-	public String uri = "https://github.com/mobie/platybrowser-datasets";
-
-	@Parameter ( label = "Preferentially Fetch Data From", choices = {"Remote", "Local"} )
-	public String location = "Remote";
-
-	protected MoBIESettings settings = MoBIESettings.settings();
-
-	@Override
-	public void run()
-	{
-		settings.preferentialDataLocation( DataFormats.Location.valueOf( location ) );
-
-		try
-		{
-			new MoBIE( uri, settings );
-		}
-		catch ( IOException e )
-		{
-			e.printStackTrace();
-		}
-	}
+public interface SelectableImagesWidget< U > extends InputWidget< SelectableImages, U > {
 }

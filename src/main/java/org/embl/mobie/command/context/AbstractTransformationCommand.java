@@ -31,11 +31,10 @@ package org.embl.mobie.command.context;
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import bdv.viewer.SourceGroup;
-import bdv.viewer.SynchronizedViewerState;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.command.widget.SelectableImages;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
@@ -62,8 +61,17 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     //@Parameter ( label = "Transformation target" )
     public TransformationOutput mode = TransformationOutput.CreateNewImage;
 
-    @Parameter ( label = "Moving image(s)", choices = {""}, callback = "setMovingImages" )
-    public String selectedSourceName;
+//    @Parameter ( label = "Moving image(s)", choices = {""},
+//            description = "Select the image that you want to transform.\n" +
+//                    "For transforming multiple images at once, configure a group within the\n" +
+//                    "BigDataViewer side panel [ P ] and restart this command; \n" +
+//                    "the group will appear as a selection choice.",
+//            callback = "setMovingImages",
+//            style = "radioButtonHorizontal")
+//    public String selectedSourceName;
+
+    @Parameter ( label = "Moving image(s)", callback = "setMovingImages" )
+    public SelectableImages selectedImages = new SelectableImages();
 
     @Parameter ( label = "Transformed image(s) suffix",
             description = "Upon transformation this suffix will be appended to the moving image name.\n" +
@@ -75,7 +83,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     //@Parameter ( label = "Preview transformation", callback = "previewTransform" )
     //protected Boolean previewTransform = false;
 
-    protected Collection< SourceAndConverter< ? > > visibleSacs;
+    protected Collection< SourceAndConverter< ? > > sacs;
     protected Collection< SourceAndConverter< ? > > movingSacs;
     protected Collection< Image< ? > > movingImages;
     protected Collection< TransformedSource< ? > > movingSources;
@@ -86,32 +94,29 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     @Override
     public void initialize()
     {
-        visibleSacs = MoBIEHelper.getVisibleSacs( bdvHandle );
+        sacs = MoBIEHelper.getVisibleSacs( bdvHandle );
 
-        selectableSourceNames = visibleSacs.stream()
-                .map( sac -> sac.getSpimSource().getName() )
-                .collect( Collectors.toList() );
+//        selectableSourceNames = sacs.stream()
+//                .map( sac -> sac.getSpimSource().getName() )
+//                .collect( Collectors.toList() );
+//
+//        SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
+//        List< String > groupNames = state.getGroups().stream()
+//                .filter( group -> ! state.getSourcesInGroup( group ).isEmpty() )
+//                .map( state::getGroupName )
+//                .collect( Collectors.toList() );
+//
+//        for ( String groupName : groupNames )
+//        {
+//            selectableSourceNames.add( GROUP + groupName );
+//        }
 
-        SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
-        List< String > groupNames = state.getGroups().stream()
-                .filter( group -> ! state.getSourcesInGroup( group ).isEmpty() )
-                .map( state::getGroupName )
-                .collect( Collectors.toList() );
+//        selectedSourceName = selectableSourceNames.get( 0 );
+//
+//        getInfo().getMutableInput( "selectedSourceName", String.class )
+//                .setDefaultValue( selectedSourceName );
 
-        for ( String groupName : groupNames )
-        {
-            selectableSourceNames.add( GROUP + groupName );
-        }
-
-        getInfo().getMutableInput( "selectedSourceName", String.class )
-                .setChoices( selectableSourceNames );
-
-        selectedSourceName = selectableSourceNames.get( 0 );
-
-        getInfo().getMutableInput( "selectedSourceName", String.class )
-                .setDefaultValue( selectedSourceName );
-
-        setMovingImages();
+        // setMovingImages();
     }
 
     protected void applyTransform( AffineTransform3D affineTransform3D )
@@ -162,39 +167,47 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     // button callback => rename with care!
     protected void setMovingImages()
     {
+
         // Reset potential previous transforms
         if ( movingSources != null )
         {
             resetTransforms();
         }
 
-        if ( selectedSourceName.contains( GROUP ) )
+//        if ( selectedSourceName.contains( GROUP ) )
+//        {
+//            String groupName = selectedSourceName.replace( GROUP, "" );
+//            SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
+//            SourceGroup sourceGroup = state.getGroups().stream()
+//                    .filter( g -> state.getGroupName( g ).equals( groupName ) )
+//                    .findFirst().get();
+//            movingSacs = state.getSourcesInGroup( sourceGroup );
+//            movingImages = movingSacs.stream()
+//                    .map( sac -> DataStore.sourceToImage().get( sac ) )
+//                    .collect( Collectors.toSet() );
+//        }
+//        else
+//        {
+
+        movingImages = selectedImages.getNames().stream()
+                .map( name -> DataStore.getImage( name ) )
+                .collect( Collectors.toList() );
+
+        Image< ? > firstImage = movingImages.iterator().next();
+        if ( firstImage instanceof RegionAnnotationImage )
         {
-            String groupName = selectedSourceName.replace( GROUP, "" );
-            SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
-            SourceGroup sourceGroup = state.getGroups().stream()
-                    .filter( g -> state.getGroupName( g ).equals( groupName ) )
-                    .findFirst().get();
-            movingSacs = state.getSourcesInGroup( sourceGroup );
-            movingImages = movingSacs.stream()
-                    .map( sac -> DataStore.sourceToImage().get( sac ) )
+            assert movingImages.size() == 1;
+
+            movingImages = ( ( RegionAnnotationImage< ? > ) firstImage ).getSelectedImages();
+            movingSacs = movingImages.stream()
+                    .map( img -> DataStore.sourceToImage().inverse().get( img ) )
                     .collect( Collectors.toSet() );
         }
         else
         {
-            Image< ? > image = DataStore.getImage( selectedSourceName );
-            if ( image instanceof RegionAnnotationImage )
-            {
-                movingImages = ( ( RegionAnnotationImage< ? > ) image ).getSelectedImages();
-                movingSacs = movingImages.stream()
-                        .map( img -> DataStore.sourceToImage().inverse().get( img ) )
-                        .collect( Collectors.toSet() );
-            }
-            else
-            {
-                movingImages = Collections.singletonList( image );
-                movingSacs = Collections.singletonList( DataStore.sourceToImage().inverse().get( image ) );
-            }
+            movingSacs = movingImages.stream()
+                    .map( image -> DataStore.sourceToImage().inverse().get( image ) )
+                    .collect( Collectors.toList() );
         }
 
         movingSources = movingSacs.stream()

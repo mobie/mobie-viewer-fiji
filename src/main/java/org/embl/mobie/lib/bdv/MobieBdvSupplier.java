@@ -86,6 +86,9 @@ public class MobieBdvSupplier implements IBdvSupplier {
         // remove dummy image
         bdvHandle.getViewerPanel().state().removeSource( bdvHandle.getViewerPanel().state().getCurrentSource() );
 
+        // remove manual transform keyboard shortcut
+
+
         setTimepointTextColor( bdvHandle );
 
         return bdvHandle;

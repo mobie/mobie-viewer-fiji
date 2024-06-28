@@ -28,8 +28,10 @@
  */
 package org.embl.mobie.command.widget;
 
-import ij.ImagePlus;
-import ij.WindowManager;
+import bdv.util.BdvHandle;
+import bdv.viewer.SourceAndConverter;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.lib.MoBIEHelper;
 import org.scijava.Priority;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.swing.widget.SwingInputWidget;
@@ -42,7 +44,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Plugin(type = InputWidget.class, priority = Priority.EXTREMELY_HIGH)
-public class SwingImagePlusListWidget extends SwingInputWidget< ImagePlus[] > implements ImagePlusListWidget< JPanel > {
+public class SwingSelectableImagesWidget extends SwingInputWidget< SelectableImages > implements SelectableImagesWidget< JPanel >
+{
+
+	JList< String > list;
 
 	@Override
 	protected void doRefresh() {
@@ -50,31 +55,26 @@ public class SwingImagePlusListWidget extends SwingInputWidget< ImagePlus[] > im
 
 	@Override
 	public boolean supports( final WidgetModel model ) {
-		return super.supports( model ) && model.isType( ImagePlus[].class );
+		return super.supports( model ) && model.isType( SelectableImages.class );
 	}
 
 	@Override
-	public ImagePlus[] getValue() {
-		return getSelectedImagePlus();
-	}
-
-	JList< String > list;
-
-	public ImagePlus[] getSelectedImagePlus() {
+	public SelectableImages getValue() {
 		List< String > selected = list.getSelectedValuesList();
-		final ImagePlus[] imagePluses = selected.stream()
-				.map( title -> WindowManager.getImage( title ) )
-				.collect( Collectors.toList() )
-				.toArray( new ImagePlus[ selected.size() ] );
-		return imagePluses;
+		return new SelectableImages( selected );
 	}
 
 	@Override
 	public void set(final WidgetModel model) {
 		super.set(model);
 
-		final String[] imageTitles = WindowManager.getImageTitles();
-		list = new JList( imageTitles );
+		BdvHandle bdvHandle = MoBIE.getInstance().getViewManager().getSliceViewer().getBdvHandle();
+		List< SourceAndConverter< ? > > visibleSacs = MoBIEHelper.getVisibleSacs( bdvHandle );
+		String[] names = visibleSacs.stream()
+				.map( sac -> sac.getSpimSource().getName() )
+				.collect( Collectors.toList() ).toArray( new String[ 0 ] );
+
+		list = new JList( names );
 		list.setSelectionMode( ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
 		JScrollPane listScroller = new JScrollPane(list);
 		listScroller.setPreferredSize( new Dimension(250, 80) );

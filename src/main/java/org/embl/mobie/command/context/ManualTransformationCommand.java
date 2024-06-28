@@ -28,27 +28,21 @@
  */
 package org.embl.mobie.command.context;
 
-import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.MoBIEManualTransformationEditor;
-import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.scijava.ItemVisibility;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Arrays;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, attrs = {}, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Manual")
 public class ManualTransformationCommand extends AbstractTransformationCommand
 {
 
-	public static final String INACTIVE = "Status: Manual transform inactive.";
+	public static final String INACTIVE = "Manual transform inactive";
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -80,7 +74,7 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 		transformationEditor.setActive( true );
 
 		getInfo().getMutableInput( "status", String.class )
-				.setValue( this, "Status: You are transforming \"" + selectedSourceName + "\"...");
+				.setValue( this, "Transforming: " + String.join( ",", selectedImages.getNames() ));
 	}
 
 	private void acceptManualTransform()
