@@ -171,13 +171,17 @@ public class SliceViewer
 		behaviours.behaviour( contextMenu, "Context menu", "button3", "shift P");
 		behaviours.install( bdvHandle.getTriggerbindings(), "MoBIE" );
 
-		bdvHandle.getKeybindings().removeInputMap( "T" );
+		// get all present action keys
+		// just to see what's there
+		// one of them is "toggle manual transformation"
+		Object[] allKeys = bdvHandle.getKeybindings().getConcatenatedActionMap().allKeys();
+		// disable the manual transform action
+		bdvHandle.getKeybindings().getConcatenatedActionMap().get("toggle manual transformation").setEnabled( false );
 
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->
 						new Thread( () -> {
 							Services.commandService.run( ManualTransformationCommand.class, true );
-							System.out.println( "My own manual transform" );
 						}).start(),
 				"Manual transform", "T" ) ;
 

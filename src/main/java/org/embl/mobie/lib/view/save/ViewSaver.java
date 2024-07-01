@@ -85,7 +85,7 @@ public class ViewSaver
 
     public boolean saveViewDialog( View view )
     {
-        final GenericDialog gd = new GenericDialog("Save view " + ( view.getName() == null ? "" : view.getName()) );
+        final GenericDialog gd = new GenericDialog("Save view" + ( view.getName() == null ? "" : ": " + view.getName()) );
 
         gd.addChoice("Save to", new String[]{ FileLocation.CurrentProject.toString(), FileLocation.ExternalJSONFile.toString() }, saveToProjectOrFile );
         gd.addFileField( "( External JSON file )", externalJsonPath, 70 );
