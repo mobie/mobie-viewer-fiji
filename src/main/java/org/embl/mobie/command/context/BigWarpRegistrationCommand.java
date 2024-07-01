@@ -70,19 +70,12 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 		super.initialize();
 	}
 
-//	@Override
-//	public void previewTransform()
-//	{
-//		super.previewTransform( bigWarp.getBwTransform().affine3d() );
-//	}
-
 	public void applyTransform()
 	{
 		applyTransform( bigWarp.getBwTransform().affine3d() );
 		bdvHandle.getViewerPanel().requestRepaint();
 		bigWarp.closeAll();
 	}
-
 
 	public void launchBigWarp()
 	{
@@ -96,6 +89,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 		List< ConverterSetup > converterSetups = movingSacs.stream()
 				.map( sacService::getConverterSetup )
 				.collect( Collectors.toList() );
+
 		converterSetups.add( sacService.getConverterSetup( fixedSac ) );
 
 		BigWarpLauncher bigWarpLauncher = new BigWarpLauncher(
