@@ -317,6 +317,12 @@ public abstract class MoBIEHelper
         return visibleSacs;
     }
 
+	public static List< SourceAndConverter< ? > > getSacs( BdvHandle bdv )
+	{
+		final SourceAndConverterBdvDisplayService displayService = SourceAndConverterServices.getBdvDisplayService();
+		return displayService.getSourceAndConverterOf( bdv );
+	}
+
     public static VoxelDimensions getPixelDimensions()
     {
         return new FinalVoxelDimensions( "pixel", 1.0, 1.0, 1.0 );

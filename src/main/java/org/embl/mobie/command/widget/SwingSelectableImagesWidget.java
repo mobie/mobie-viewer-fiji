@@ -69,8 +69,9 @@ public class SwingSelectableImagesWidget extends SwingInputWidget< SelectableIma
 		super.set(model);
 
 		BdvHandle bdvHandle = MoBIE.getInstance().getViewManager().getSliceViewer().getBdvHandle();
-		List< SourceAndConverter< ? > > visibleSacs = MoBIEHelper.getVisibleSacs( bdvHandle );
-		String[] names = visibleSacs.stream()
+
+		List< SourceAndConverter< ? > > sacs = MoBIEHelper.getSacs( bdvHandle ); //  MoBIEHelper.getVisibleSacs( bdvHandle );
+		String[] names = sacs.stream()
 				.map( sac -> sac.getSpimSource().getName() )
 				.collect( Collectors.toList() ).toArray( new String[ 0 ] );
 

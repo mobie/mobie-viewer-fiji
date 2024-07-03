@@ -55,10 +55,10 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter ( label = "Launch BigWarp", callback = "launchBigWarp")
+	@Parameter ( label = "Launch BigWarp", callback = "launchBigWarp" )
 	private Button launchBigWarp;
 
-	@Parameter ( label = "Apply current transform and exit", callback = "applyTransform")
+	@Parameter ( label = "Apply transform", callback = "applyTransform" )
 	private Button applyTransform;
 
 	private BigWarp< ? > bigWarp;
@@ -79,6 +79,8 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 
 	public void launchBigWarp()
 	{
+		setMovingImages();
+
 		ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();
 		SourceAndConverterBdvDisplayService bdvDisplayService = SourceAndConverterServices.getBdvDisplayService();
 

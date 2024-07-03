@@ -41,7 +41,6 @@ import java.util.Arrays;
 @Plugin(type = BdvPlaygroundActionCommand.class, attrs = {}, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Manual")
 public class ManualTransformationCommand extends AbstractTransformationCommand
 {
-
 	public static final String INACTIVE = "Manual transform inactive";
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
@@ -69,6 +68,8 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 
 	public void startManualTransform()
 	{
+		setMovingImages();
+
 		transformationEditor = new MoBIEManualTransformationEditor( bdvHandle.getViewerPanel(), bdvHandle.getKeybindings() );
 		transformationEditor.setTransformableSources( movingSacs );
 		transformationEditor.setActive( true );

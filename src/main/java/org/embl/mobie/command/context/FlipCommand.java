@@ -67,6 +67,8 @@ public class FlipCommand extends AbstractTransformationCommand
 
 	public void applyTransform()
 	{
+		setMovingImages();
+
 		// FIXME: This needs a transform for each of the sacs
 		AffineTransform3D transform = createFlipTransform( movingSacs.iterator().next() );
 		applyTransform( transform );

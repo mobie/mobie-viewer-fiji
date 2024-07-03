@@ -45,7 +45,7 @@ public class EnterTransformationCommand extends AbstractTransformationCommand
 	@Parameter ( label = "Transformation 3D affine" )
 	public String transformation = Arrays.toString( new AffineTransform3D().getRowPackedCopy() );
 
-	@Parameter ( label = "Apply", callback = "applyTransform" )
+	@Parameter ( label = "Apply transform", callback = "applyTransform" )
 	public Button applyTransform;
 
 
@@ -59,6 +59,8 @@ public class EnterTransformationCommand extends AbstractTransformationCommand
 
 	private void applyTransform()
 	{
+		setMovingImages();
+
 		AffineTransform3D affineTransform3D = new AffineTransform3D();
 		affineTransform3D.set( parseStringToDoubleArray( transformation ) );
 		applyTransform( affineTransform3D );

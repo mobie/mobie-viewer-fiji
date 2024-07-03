@@ -70,7 +70,8 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
 //            style = "radioButtonHorizontal")
 //    public String selectedSourceName;
 
-    @Parameter ( label = "Moving image(s)", callback = "setMovingImages" )
+    // Note that this is populated by org.embl.mobie.command.widget.SwingSelectableImagesWidget
+    @Parameter ( label = "Moving image(s)" ) // , callback = "setMovingImages"
     public SelectableImages selectedImages = new SelectableImages();
 
     @Parameter ( label = "Transformed image(s) suffix",
@@ -133,7 +134,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         // https://imagesc.zulipchat.com/#narrow/stream/327238-Fiji/topic/Close.20Scijava.20Command.20UI
     }
     
-    protected void createAndSaveAffineTransformedImages(
+    protected static void createAndSaveAffineTransformedImages(
             Collection< Image< ? > > movingImages,
             AffineTransform3D affineTransform3D,
             String suffix )
@@ -164,7 +165,6 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         }
     }
 
-    // button callback => rename with care!
     protected void setMovingImages()
     {
 
@@ -220,7 +220,6 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
             AffineTransform3D initialTransform = new AffineTransform3D();
             movingSource.getFixedTransform( initialTransform );
             movingSourcesToInitialTransform.put( movingSource, initialTransform );
-
         }
     }
 
