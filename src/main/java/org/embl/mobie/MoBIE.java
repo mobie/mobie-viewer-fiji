@@ -198,6 +198,7 @@ public class MoBIE
 
 		CollectionTableDataSetter dataSetter = new CollectionTableDataSetter( table );
 		dataSetter.addToDataset( dataset );
+		dataset.is2D(false); // TODO: determine from data?
 
 		initUiAndShowView( dataset.views().values().iterator().next().getName() );
 	}

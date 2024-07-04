@@ -548,17 +548,18 @@ public class UserInterfaceHelper
 			panel.add( minSlider );
 			panel.add( maxSlider );
 
-			JButton autoButton = new JButton("Auto Min Max");
-			autoButton.addActionListener( e ->
-			{
-				Source< ? > source = sacs.get( 0 ).getSpimSource();
-				RandomAccessibleInterval< ? > rai = source.getSource( bdvHandle.getViewerPanel().state().getCurrentTimepoint(),
-						source.getNumMipmapLevels() - 1 );
-				double[] minMax = SourceHelper.estimateMinMax( ( RandomAccessibleInterval ) rai );
-				min.setCurrentValue( minMax[ 0 ] );
-				max.setCurrentValue( minMax[ 1 ] );
-			});
-			panel.add( autoButton );
+			// FIXME: This hangs for large sources without resolution pyramid
+//			JButton autoButton = new JButton("Auto Min Max");
+//			autoButton.addActionListener( e ->
+//			{
+//				Source< ? > source = sacs.get( 0 ).getSpimSource();
+//				RandomAccessibleInterval< ? > rai = source.getSource( bdvHandle.getViewerPanel().state().getCurrentTimepoint(),
+//						source.getNumMipmapLevels() - 1 );
+//				double[] minMax = SourceHelper.estimateMinMax( ( RandomAccessibleInterval ) rai );
+//				min.setCurrentValue( minMax[ 0 ] );
+//				max.setCurrentValue( minMax[ 1 ] );
+//			});
+//			panel.add( autoButton );
 
 			boolean isInvert = false;
 			for ( Converter< ?, ARGBType > converter : converters )

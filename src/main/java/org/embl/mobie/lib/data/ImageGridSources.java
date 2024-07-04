@@ -32,6 +32,7 @@ import bdv.viewer.Source;
 import ij.IJ;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.util.Intervals;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.imagedata.ImageData;
@@ -176,6 +177,7 @@ public class ImageGridSources
 
 	private void setMetadata( Integer channelIndex )
 	{
+		// Take the first source to fetch metadata
 		metadataSource = nameToFullPath.keySet().iterator().next();
 		IJ.log( "Fetching metadata for channel " + channelIndex + "..." );
 		IJ.log( "...from image file " + nameToFullPath.get( metadataSource ) );
@@ -184,12 +186,24 @@ public class ImageGridSources
 		CanonicalDatasetMetadata canonicalDatasetMetadata = imageData.getMetadata( channelIndex );
 		metadata = new Metadata( canonicalDatasetMetadata );
 		Source< ? > source = imageData.getSourcePair( channelIndex ).getA();
-		metadata.numZSlices = (int) source.getSource( 0, 0  ).dimension( 2 );
+		RandomAccessibleInterval< ? > highResRAI = source.getSource( 0, 0 );
+		metadata.numZSlices = (int) highResRAI.dimension( 2 );
 		metadata.numTimePoints = SourceHelper.getNumTimePoints( source );
-		metadata.contrastLimits = SourceHelper.estimateMinMax( ( RandomAccessibleInterval ) source.getSource( 0, source.getNumMipmapLevels() -1 ) );
 		IJ.log( "Slices: " + metadata.numZSlices );
 		IJ.log( "Frames: " + metadata.numTimePoints );
-		IJ.log( "Contrast limits: " + Arrays.toString( metadata.contrastLimits ) );
+
+		// determine contrast limits if affordable
+		RandomAccessibleInterval< ? > lowResRAI = source.getSource( 0, source.getNumMipmapLevels() - 1 );
+		long numElements = Intervals.numElements( lowResRAI.dimensionsAsLongArray() );
+		if ( numElements < 1024 * 1024 )
+		{
+			IJ.log( "Contrast limits: " + Arrays.toString( metadata.contrastLimits ) );
+			metadata.contrastLimits = SourceHelper.estimateMinMax( ( RandomAccessibleInterval ) lowResRAI );
+		}
+		else
+		{
+			IJ.log( "Contrast limits: Not determined, as image is too large" );
+		}
 	}
 
 	private static String applyPathMapping( String pathMapping, String path )

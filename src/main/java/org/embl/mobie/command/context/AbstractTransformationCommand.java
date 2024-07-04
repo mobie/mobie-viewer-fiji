@@ -128,13 +128,16 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
             //   applyTransformInPlace( affineTransform3D );
         }
 
-        createAndSaveAffineTransformedImages( movingImages, affineTransform3D, suffix );
+        createSaveAndViewAffineTransformedImages( movingImages, affineTransform3D, suffix );
 
-        // TODO close the Command UI, HOW?
-        // https://imagesc.zulipchat.com/#narrow/stream/327238-Fiji/topic/Close.20Scijava.20Command.20UI
+
+
+        // FIXME close the Command UI, HOW?
+        //    Maybe we use the hack that finds the awt Window based on its name?
+        //    https://imagesc.zulipchat.com/#narrow/stream/327238-Fiji/topic/Close.20Scijava.20Command.20UI
     }
     
-    protected static void createAndSaveAffineTransformedImages(
+    protected static void createSaveAndViewAffineTransformedImages(
             Collection< Image< ? > > movingImages,
             AffineTransform3D affineTransform3D,
             String suffix )
@@ -160,6 +163,8 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
 
             if ( MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view ) )
             {
+                // Show the transformed images
+                // TODO: it would be nice to remove the non-transformed images from the current view
                 MoBIE.getInstance().getViewManager().show( view );
             }
         }

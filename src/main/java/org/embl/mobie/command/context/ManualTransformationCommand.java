@@ -89,8 +89,12 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 		// And this new transformed image will also be shown by the above applyTransform function.
 		transformationEditor.setActive( false );
 
-		getInfo().getMutableInput( "status", String.class )
-				.setValue( this, INACTIVE );
+		getInfo().getMutableInput( "status", String.class ).setValue( this, INACTIVE );
+
+		// TODO: make the non-transformed sources invisible
+
+		// TODO: Close the Command UI, but how?
+		// https://imagesc.zulipchat.com/#narrow/stream/327238-Fiji/topic/Close.20Scijava.20Command.20UI
 	}
 
 	private void cancelManualTransform()

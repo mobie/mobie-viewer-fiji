@@ -1,9 +1,11 @@
 package org.embl.mobie.lib.data;
 
 import ij.IJ;
+import ij.ImagePlus;
 import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.imagedata.TIFFImageData;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.io.StorageLocation;
@@ -48,6 +50,9 @@ public class CollectionTableDataSetter
             final StorageLocation storageLocation = new StorageLocation();
             storageLocation.absolutePath = getUri( row );
             ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( storageLocation.absolutePath );
+            // FIXME: how to decide?
+            //        for big TIFF images we should use BioFormats...
+            //imageDataFormat = ImageDataFormat.BioFormats;
             storageLocation.setChannel( getChannel( row ) ); // TODO: Fetch from table or URI? https://forum.image.sc/t/loading-only-one-channel-from-an-ome-zarr/97798
             String imageName = getName( row );
             String pixelType = getPixelType( row );
@@ -81,11 +86,10 @@ public class CollectionTableDataSetter
 
             addDisplayToViews( dataset, display, row );
 
-//            IJ.log("## " + imageName );
-//            IJ.log("URI: " + storageLocation.absolutePath );
-//            IJ.log("Format: " + imageDataFormat );
-//            IJ.log("Type: " + pixelType );
-
+            IJ.log("## " + imageName );
+            IJ.log("URI: " + storageLocation.absolutePath );
+            IJ.log("Opener: " + imageDataFormat );
+            IJ.log("Type: " + pixelType );
         }
     }
 
@@ -231,10 +235,10 @@ public class CollectionTableDataSetter
         {
             String string = row.getString( CollectionTableConstants.AFFINE );
             string = string.replace("(", "").replace(")", "");
-            String[] strings = string.split(", ");
+            String[] strings = string.split(",");
             double[] doubles = new double[strings.length];
             for (int i = 0; i < strings.length; i++) {
-                doubles[i] = Double.parseDouble(strings[i]);
+                doubles[i] = Double.parseDouble(strings[i].trim());
             }
 
             AffineTransformation affine = new AffineTransformation(
