@@ -361,6 +361,49 @@
       },
       "isExclusive": true,
       "description": ""
+    },
+    "my-new-view-name": {
+      "uiSelectionGroup": "my-new-group",
+      "sourceDisplays": [
+        {
+          "imageDisplay": {
+            "sources": [
+              "blobs"
+            ],
+            "color": "r=255,g=255,b=255,a=255",
+            "contrastLimits": [
+              0.0,
+              255.0
+            ],
+            "showImagesIn3d": false,
+            "invert": false,
+            "name": "blobs",
+            "opacity": 1.0,
+            "visible": true,
+            "blendingMode": "sum"
+          }
+        }
+      ],
+      "sourceTransforms": [],
+      "viewerTransform": {
+        "normalizedAffine": [
+          0.002100528407354033,
+          0.0,
+          0.0,
+          -0.26781737193763916,
+          0.0,
+          0.002100528407354033,
+          0.0,
+          -0.26571684353028513,
+          0.0,
+          0.0,
+          0.002100528407354033,
+          0.0
+        ],
+        "timepoint": 0
+      },
+      "isExclusive": true,
+      "description": ""
     }
   }
 }

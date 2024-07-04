@@ -180,7 +180,7 @@ public class ImageGridSources
 		// Take the first source to fetch metadata
 		metadataSource = nameToFullPath.keySet().iterator().next();
 		IJ.log( "Fetching metadata for channel " + channelIndex + "..." );
-		IJ.log( "...from image file " + nameToFullPath.get( metadataSource ) );
+		IJ.log( "...from " + nameToFullPath.get( metadataSource ) );
 		// FIXME: Cache the image data, because for multiple images it is now reloaded!
 		ImageData< ? > imageData = ImageDataOpener.open( nameToFullPath.get( metadataSource ) );
 		CanonicalDatasetMetadata canonicalDatasetMetadata = imageData.getMetadata( channelIndex );
@@ -197,13 +197,17 @@ public class ImageGridSources
 		long numElements = Intervals.numElements( lowResRAI.dimensionsAsLongArray() );
 		if ( numElements < 1024 * 1024 )
 		{
-			IJ.log( "Contrast limits: " + Arrays.toString( metadata.contrastLimits ) );
+			IJ.log( "Computing contrast limits from image data..." );
 			metadata.contrastLimits = SourceHelper.estimateMinMax( ( RandomAccessibleInterval ) lowResRAI );
 		}
 		else
 		{
-			IJ.log( "Contrast limits: Not determined, as image is too large" );
+			IJ.log( "Image is too large => taking contrast limits from datatype..." );
 		}
+
+		IJ.log( "Contrast limits: " + Arrays.toString( metadata.contrastLimits ) );
+
+
 	}
 
 	private static String applyPathMapping( String pathMapping, String path )
