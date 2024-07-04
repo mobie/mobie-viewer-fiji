@@ -28,8 +28,11 @@
  */
 package org.embl.mobie.command.context;
 
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.MoBIEManualTransformationEditor;
+import org.embl.mobie.lib.serialize.display.Display;
+import org.embl.mobie.lib.view.ViewManager;
 import org.scijava.ItemVisibility;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -37,6 +40,8 @@ import org.scijava.widget.Button;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, attrs = {}, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Manual")
 public class ManualTransformationCommand extends AbstractTransformationCommand

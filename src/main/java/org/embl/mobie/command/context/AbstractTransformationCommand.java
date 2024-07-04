@@ -39,6 +39,7 @@ import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.serialize.View;
+import org.embl.mobie.lib.serialize.display.Display;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.transform.TransformationOutput;
 import org.embl.mobie.lib.view.ViewManager;
@@ -130,7 +131,18 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
 
         createSaveAndViewAffineTransformedImages( movingImages, affineTransform3D, suffix );
 
+        // Remove the moving image displays
+        // because we are now showing the transformed once
+        List< String > movingImageNames = selectedImages.getNames();
+        ViewManager viewManager = MoBIE.getInstance().getViewManager();
+        List< Display > displays = viewManager.getCurrentSourceDisplays();
+        List< Display > displaysToRemove = displays.stream()
+                .filter( display -> display.getSources().size() == 1 )
+                .filter( display -> display.getSources().stream().anyMatch( movingImageNames::contains ) )
+                .collect( Collectors.toList() );
 
+        for ( Display display : displaysToRemove )
+            viewManager.removeDisplay( display, false );
 
         // FIXME close the Command UI, HOW?
         //    Maybe we use the hack that finds the awt Window based on its name?
