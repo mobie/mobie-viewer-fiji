@@ -30,6 +30,17 @@ package org.embl.mobie.lib.io;
 
 public enum FileLocation
 {
-    CurrentProject,
-    ExternalJSONFile
+    CurrentProject("Current project"),
+    ExternalFile("External file");
+
+    private final String displayName;
+
+    FileLocation(String displayName) {
+        this.displayName = displayName;
+    }
+
+    @Override
+    public String toString() {
+        return displayName;
+    }
 }

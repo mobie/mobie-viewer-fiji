@@ -404,6 +404,32 @@
       },
       "isExclusive": true,
       "description": ""
+    },
+    "test": {
+      "uiSelectionGroup": "bookmark",
+      "sourceDisplays": [
+        {
+          "imageDisplay": {
+            "sources": [
+              "blobs"
+            ],
+            "color": "r=255,g=255,b=255,a=255",
+            "contrastLimits": [
+              0.0,
+              255.0
+            ],
+            "showImagesIn3d": false,
+            "invert": false,
+            "name": "blobs",
+            "opacity": 1.0,
+            "visible": true,
+            "blendingMode": "sum"
+          }
+        }
+      ],
+      "sourceTransforms": [],
+      "isExclusive": false,
+      "description": ""
     }
   }
 }

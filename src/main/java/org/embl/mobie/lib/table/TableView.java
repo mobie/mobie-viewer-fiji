@@ -302,7 +302,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 					IJ.log( "Loading table chunk: " + chunk + "..." );
 					tableModel.loadTableChunk( chunk );
 				}
-				else if ( fileLocation.equals( FileLocation.ExternalJSONFile ) )
+				else if ( fileLocation.equals( FileLocation.ExternalFile ) )
 				{
 					String path = UserInterfaceHelper.selectFilePath( "tsv", "Table", true );
 					if ( path == null )  return;

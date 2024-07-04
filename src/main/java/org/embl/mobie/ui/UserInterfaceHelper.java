@@ -37,7 +37,6 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
 import ij.gui.GenericDialog;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -65,7 +64,6 @@ import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
-import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.transform.viewer.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
@@ -127,7 +125,7 @@ public class UserInterfaceHelper
 
 	public static FileLocation loadFromProjectOrFileSystemDialog() {
 		final GenericDialog gd = new GenericDialog("Choose source");
-		gd.addChoice("Load from", new String[]{ FileLocation.CurrentProject.toString(), FileLocation.ExternalJSONFile.toString()}, FileLocation.CurrentProject.toString());
+		gd.addChoice("Load from", new String[]{ FileLocation.CurrentProject.toString(), FileLocation.ExternalFile.toString()}, FileLocation.CurrentProject.toString());
 		gd.showDialog();
 		if (gd.wasCanceled()) return null;
 		return FileLocation.valueOf(gd.getNextChoice());

@@ -56,17 +56,12 @@ import static org.embl.mobie.io.util.IOHelper.getFileNames;
 
 public class ViewSaver
 {
-    public static final String MAKE_NEW_VIEWS_JSON_FILE = "Make New Views JSON file";
-    public static final String MAKE_NEW_UI_SELECTION_GROUP = "Make New Ui Selection Group";
-    public static final String CREATE_SELECTION_GROUP = "New selection group";
+    public static final String CREATE_NEW_VIEWS_JSON_FILE = "Make New Views JSON file";
+    public static final String CREATE_SELECTION_GROUP = "Create new group";
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     private MoBIE moBIE;
-
-    private static String fileLocation = FileLocation.CurrentProject.toString();;
-    private static String uiSelectionChoice = MAKE_NEW_UI_SELECTION_GROUP;
-    private static String externalJsonPath = "my-external-views.json";
 
 
 //    enum ProjectSaveLocation {
@@ -90,57 +85,37 @@ public class ViewSaver
             return false;
 
         if ( view.getName() == null )
-            view.setName( UserInterfaceHelper.tidyString( gd.getNextString() ) );
-        view.setDescription( "" ); // TODO
-        view.setExclusive( dialog.getMakeViewExclusive() );
-        uiSelectionChoice = gd.getNextChoice();
-        String newSelectionGroupName = gd.getNextString();
+            view.setName( UserInterfaceHelper.tidyString( dialog.getViewName() ) );
 
         if ( moBIE.getViews().containsKey( view.getName() ) )
         {
-            GenericDialog dialog = new GenericDialog( "Overwrite view?" );
-            dialog.addMessage( "A view named \"" + view.getName() + "\" exists already.\nAre you sure you want to overwrite it?" );
-            dialog.showDialog();
-            if ( ! dialog.wasOKed() ) {
+            GenericDialog gd = new GenericDialog( "Overwrite view?" );
+            gd.addMessage( "A view named \"" + view.getName() + "\" exists already.\nAre you sure you want to overwrite it?" );
+            gd.showDialog();
+            if ( ! gd.wasOKed() ) {
                 return false;
             }
         }
 
-        // compute derived parameters
-        FileLocation fileLocation = dialog.getFileLocation();
+        view.setDescription( "" ); // TODO
+
+        view.setExclusive( dialog.getMakeViewExclusive() );
 
         if ( view.isExclusive() )
             view.setViewerTransform( new NormalizedAffineViewerTransform( moBIE.getViewManager().getSliceViewer().getBdvHandle() ) );
 
-        if ( uiSelectionChoice.equals( CREATE_SELECTION_GROUP ) )
-            view.setUiSelectionGroup( newSelectionGroupName );
+        if ( dialog.getViewGroup().equals( CREATE_SELECTION_GROUP ) )
+            view.setUiSelectionGroup( dialog.getNewGroup() );
         else
-            view.setUiSelectionGroup( uiSelectionChoice );
-
-        //  We discussed in below issue that the views.json is not needed anymore
-        //  https://github.com/mobie/mobie-viewer-fiji/issues/1150
-        //
-        //        if ( fileLocation == FileLocation.CurrentProject ) {
-        //            String[] jsonChoices = new String[]{ "dataset.json", "views.json" };
-        //            gd.addChoice("Save location:", jsonChoices, jsonChoices[0]);
-        //        }
-        //
-        //        ProjectSaveLocation projectSaveLocation = null;
-        //        if ( fileLocation == FileLocation.CurrentProject ) {
-        //            String projectSaveLocationString = gd.getNextChoice();
-        //            if ( projectSaveLocationString.equals("dataset.json") ) {
-        //                projectSaveLocation = ProjectSaveLocation.datasetJson;
-        //            } else if ( projectSaveLocationString.equals("views.json") ) {
-        //                projectSaveLocation = ProjectSaveLocation.viewsJson;
-        //            }
-        //        }
+            view.setUiSelectionGroup( dialog.getViewGroup() );
 
         addViewToUi( view );
 
+        FileLocation fileLocation = dialog.getFileLocation();
         if ( fileLocation == FileLocation.CurrentProject )
             saveNewViewToProject( view, "dataset.json" );
-        else if ( fileLocation == FileLocation.ExternalJSONFile )
-            saveNewViewToFileSystem( view, externalJsonPath );
+        else if ( fileLocation == FileLocation.ExternalFile )
+            saveNewViewToFileSystem( view, dialog.getViewJsonPath() );
 
         return true;
     }
@@ -315,7 +290,7 @@ public class ViewSaver
         String[] choices;
         if ( includeOptionToMakeNewViewJson ) {
             choices = new String[viewFileNames.length + 1];
-            choices[0] = MAKE_NEW_VIEWS_JSON_FILE;
+            choices[0] = CREATE_NEW_VIEWS_JSON_FILE;
             for (int i = 0; i < viewFileNames.length; i++) {
                 choices[i + 1] = viewFileNames[i];
             }
@@ -328,7 +303,8 @@ public class ViewSaver
 
         if (!gd.wasCanceled()) {
             String choice = gd.getNextChoice();
-            if ( includeOptionToMakeNewViewJson && choice.equals( MAKE_NEW_VIEWS_JSON_FILE ) ) {
+            if ( includeOptionToMakeNewViewJson && choice.equals( CREATE_NEW_VIEWS_JSON_FILE ) )
+            {
                 choice = makeNewViewFile( viewFileNames );
             }
             return choice;

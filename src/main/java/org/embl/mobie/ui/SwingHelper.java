@@ -90,4 +90,11 @@ public class SwingHelper
 		}
 	}
 
+	public static JPanel horizontalLayoutPanel()
+	{
+		JPanel panel = new JPanel( new FlowLayout( FlowLayout.LEFT ) );
+		panel.setBorder( BorderFactory.createEmptyBorder(2, 2, 2, 2) );
+		return panel;
+	}
+
 }
