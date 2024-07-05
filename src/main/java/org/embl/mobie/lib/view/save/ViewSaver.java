@@ -57,22 +57,11 @@ import static org.embl.mobie.io.util.IOHelper.getFileNames;
 public class ViewSaver
 {
     public static final String CREATE_NEW_VIEWS_JSON_FILE = "Make New Views JSON file";
-    public static final String CREATE_SELECTION_GROUP = "Create new group";
+    public static final String CREATE_SELECTION_GROUP = "Create New Group";
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     private MoBIE moBIE;
-
-
-//    enum ProjectSaveLocation {
-//        datasetJson,
-//        viewsJson
-//    }
-
-//    enum SaveMethod {
-//        saveAsNewView,
-//        overwriteExistingView
-//    }
 
     public ViewSaver( MoBIE moBIE) {
         this.moBIE = moBIE;
@@ -90,11 +79,11 @@ public class ViewSaver
         if ( moBIE.getViews().containsKey( view.getName() ) )
         {
             GenericDialog gd = new GenericDialog( "Overwrite view?" );
-            gd.addMessage( "A view named \"" + view.getName() + "\" exists already.\nAre you sure you want to overwrite it?" );
+            gd.addMessage( "A view named \"" + view.getName() + "\" exists already." +
+                    "\nAre you sure you want to overwrite it?" );
             gd.showDialog();
-            if ( ! gd.wasOKed() ) {
+            if ( ! gd.wasOKed() )
                 return false;
-            }
         }
 
         view.setDescription( "" ); // TODO

@@ -12,7 +12,7 @@ public class DebugIssue1167
     {
         new ImageJ().ui().showUI();
         final OpenImageAndLabelsCommand command = new OpenImageAndLabelsCommand();
-        command.image = new File( "/Users/tischer/Desktop/tim-oliver.ome.zarr" );
+        command.image = new File( "/Users/tischer/Downloads/20240524_1_s2.zarr" );
         command.run();
     }
 }
