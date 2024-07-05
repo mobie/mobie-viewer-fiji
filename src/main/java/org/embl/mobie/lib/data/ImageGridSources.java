@@ -179,6 +179,7 @@ public class ImageGridSources
 	{
 		// Take the first source to fetch metadata
 		metadataSource = nameToFullPath.keySet().iterator().next();
+		long start = System.currentTimeMillis();
 		IJ.log( "Fetching metadata for channel " + channelIndex + "..." );
 		IJ.log( "...from " + nameToFullPath.get( metadataSource ) );
 		// FIXME: Cache the image data, because for multiple images it is now reloaded!
@@ -192,7 +193,7 @@ public class ImageGridSources
 		IJ.log( "Slices: " + metadata.numZSlices );
 		IJ.log( "Frames: " + metadata.numTimePoints );
 
-		// determine contrast limits if affordable
+		// determine contrast limits, if affordable
 		RandomAccessibleInterval< ? > lowResRAI = source.getSource( 0, source.getNumMipmapLevels() - 1 );
 		long numElements = Intervals.numElements( lowResRAI.dimensionsAsLongArray() );
 		if ( numElements < 1024 * 1024 )
@@ -202,11 +203,11 @@ public class ImageGridSources
 		}
 		else
 		{
-			IJ.log( "Image is too large => taking contrast limits from datatype..." );
+			IJ.log( "Image is large, thus taking contrast limits from datatype range." );
 		}
 
 		IJ.log( "Contrast limits: " + Arrays.toString( metadata.contrastLimits ) );
-
+		IJ.log( "Fetched metadata in " + ( System.currentTimeMillis() - start ) + " ms." );
 
 	}
 

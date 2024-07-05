@@ -111,7 +111,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	public void show()
 	{
-
 		// Prefetch the columns and wait a bit as this hopefully makes it less likely that
 		// there are errors thrown by Java Swing when rendering the table window
 		// below during frame.pack()
@@ -168,13 +167,12 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		swingTableModel = new SwingTableModel( tableModel );
 		jTable = new JTable( swingTableModel );
-		TableColumnModel columnModel = jTable.getColumnModel();
-		TableColumn column = columnModel.getColumn( 0 );
 		jTable.updateUI();
 		jTable.setPreferredScrollableViewportSize( new Dimension( 500, 200 ) );
 		jTable.setFillsViewportHeight( true );
 		jTable.setAutoCreateRowSorter( true );
 		jTable.setRowSelectionAllowed( true );
+		jTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 		jTable.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
 	}
 
