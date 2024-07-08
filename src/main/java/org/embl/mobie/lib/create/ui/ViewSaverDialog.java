@@ -1,5 +1,6 @@
 package org.embl.mobie.lib.create.ui;
 
+import javafx.scene.control.ComboBox;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.serialize.View;
@@ -13,18 +14,24 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
+import java.util.Arrays;
 
 import static org.embl.mobie.lib.view.save.ViewSaver.CREATE_SELECTION_GROUP;
 
 public class ViewSaverDialog
 {
-    private JComboBox< FileLocation > fileLocation;
+
+    private static final JComboBox< FileLocation > fileLocation = new JComboBox<>( FileLocation.values() );
+    private static final JTextField viewJsonPath = new JTextField( "", 20 );
+    private static final JCheckBox makeViewExclusive = new JCheckBox( "Make view exclusive" );
+    private static String selectedViewGroup;
+
+    private JComboBox< String > viewGroup;
+
     private final View view;
     private boolean isOkPressed;
-    private JTextField viewJsonPath;
+
     private JDialog dialog;
-    private JCheckBox makeViewExclusive;
-    private JComboBox< String > viewGroup;
     private JTextField newGroup;
     private JTextField viewName;
 
@@ -60,14 +67,12 @@ public class ViewSaverDialog
         // Save location
         //
         JPanel locationPanel = SwingHelper.horizontalLayoutPanel();
-        fileLocation = new JComboBox<>( FileLocation.values() );
         fileLocation.setMaximumSize( maximumSize );
         locationPanel.add( new JLabel("Save location:  ") );
         locationPanel.add( fileLocation );
         dialog.add( locationPanel );
 
         JPanel jsonPathPanel = SwingHelper.horizontalLayoutPanel();
-        viewJsonPath = new JTextField( "", 20 );
         viewJsonPath.setMaximumSize( maximumSize );
         JButton browseButton = getBrowseButton();
         jsonPathPanel.add( new JLabel("File path:  ") );
@@ -94,7 +99,13 @@ public class ViewSaverDialog
         // Selection group for UI
         //
         JPanel viewGroupPanel = SwingHelper.horizontalLayoutPanel();
-        viewGroup = new JComboBox<>( getViewGroupChoices() );
+        String[] viewGroupChoices = getViewGroupChoices();
+        viewGroup = new JComboBox<>( viewGroupChoices );
+        if ( selectedViewGroup != null &&
+             Arrays.asList( viewGroupChoices ).contains( selectedViewGroup ) )
+        {
+            viewGroup.setSelectedItem( selectedViewGroup );
+        }
         viewGroup.setMaximumSize( maximumSize );
         viewGroupPanel.add( new JLabel("View group:  ") );
         viewGroupPanel.add( viewGroup );
@@ -125,7 +136,6 @@ public class ViewSaverDialog
         // Exclusive
         //
         JPanel checkBoxPanel = SwingHelper.horizontalLayoutPanel();
-        makeViewExclusive = new JCheckBox( "Make view exclusive" );
         checkBoxPanel.add( makeViewExclusive );
         dialog.add( checkBoxPanel );
 
@@ -167,7 +177,7 @@ public class ViewSaverDialog
         return isOkPressed;
     }
 
-    private String[] getViewGroupChoices()
+    private static String[] getViewGroupChoices()
     {
         String[] groupNames = MoBIE.getInstance().getUserInterface().getUISelectionGroupNames();
         String[] choices = new String[ groupNames.length + 1 ];
@@ -225,12 +235,14 @@ public class ViewSaverDialog
 
     public String getViewGroup()
     {
-        return (String) viewGroup.getSelectedItem();
+        selectedViewGroup = ( String ) viewGroup.getSelectedItem();
+        return selectedViewGroup;
     }
 
     public String getNewGroup()
     {
-        return newGroup.getText();
+        selectedViewGroup = newGroup.getText();
+        return selectedViewGroup;
     }
 }
 
