@@ -72,7 +72,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 
 	public void applyTransform()
 	{
-		applyTransform( bigWarp.getBwTransform().affine3d() );
+		applyTransform( bigWarp.getBwTransform().affine3d().inverse() );
 		bdvHandle.getViewerPanel().requestRepaint();
 		bigWarp.closeAll();
 	}

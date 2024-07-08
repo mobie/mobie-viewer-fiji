@@ -430,6 +430,83 @@
       "sourceTransforms": [],
       "isExclusive": false,
       "description": ""
+    },
+    "blobs-transformed-transformed": {
+      "uiSelectionGroup": "bookmark",
+      "sourceDisplays": [
+        {
+          "imageDisplay": {
+            "sources": [
+              "blobs-transformed-transformed"
+            ],
+            "color": "r=255,g=255,b=255,a=255",
+            "contrastLimits": [
+              0.0,
+              255.0
+            ],
+            "showImagesIn3d": false,
+            "invert": false,
+            "name": "blobs-transformed-transformed",
+            "opacity": 1.0,
+            "visible": true,
+            "blendingMode": "sum"
+          }
+        }
+      ],
+      "sourceTransforms": [
+        {
+          "affine": {
+            "parameters": [
+              1.0000000000000002,
+              0.0,
+              0.0,
+              -96.4864864864865,
+              0.0,
+              1.0000000000000002,
+              0.0,
+              -32.86902286902287,
+              0.0,
+              0.0,
+              1.0000000000000002,
+              0.0
+            ],
+            "name": "transformed",
+            "sources": [
+              "blobs"
+            ],
+            "sourceNamesAfterTransform": [
+              "blobs-transformed"
+            ]
+          }
+        },
+        {
+          "affine": {
+            "parameters": [
+              1.0315166695588902,
+              -0.003586403594267481,
+              0.0,
+              95.03486701198025,
+              0.01977287546261093,
+              1.0191681483234158,
+              -0.0,
+              30.235395858835002,
+              -0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            "name": "transformed",
+            "sources": [
+              "blobs-transformed"
+            ],
+            "sourceNamesAfterTransform": [
+              "blobs-transformed-transformed"
+            ]
+          }
+        }
+      ],
+      "isExclusive": false,
+      "description": ""
     }
   }
 }

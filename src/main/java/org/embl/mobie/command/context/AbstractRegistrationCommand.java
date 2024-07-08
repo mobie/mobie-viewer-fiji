@@ -28,8 +28,6 @@
  */
 package org.embl.mobie.command.context;
 
-import org.embl.mobie.command.widget.SelectableImages;
-import org.embl.mobie.command.widget.SwingSelectableImagesWidget;
 import org.scijava.plugin.Parameter;
 
 public abstract class AbstractRegistrationCommand extends AbstractTransformationCommand
