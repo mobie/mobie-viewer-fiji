@@ -28,6 +28,8 @@
  */
 package org.embl.mobie.command.context;
 
+import org.embl.mobie.command.widget.SelectableImages;
+import org.embl.mobie.command.widget.SwingSelectableImagesWidget;
 import org.scijava.plugin.Parameter;
 
 public abstract class AbstractRegistrationCommand extends AbstractTransformationCommand
@@ -41,10 +43,10 @@ public abstract class AbstractRegistrationCommand extends AbstractTransformation
         super.initialize();
 
         getInfo().getMutableInput( "fixedImageName", String.class )
-                .setChoices( selectableSourceNames );
+                .setChoices( selectedImages.getNames() );
 
         getInfo().getMutableInput( "fixedImageName", String.class )
-                .setDefaultValue( selectableSourceNames.get( 1 ) );
+                .setDefaultValue( selectedImages.getNames().get( 1 ) );
     }
 
 }

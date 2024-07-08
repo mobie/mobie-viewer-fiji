@@ -38,6 +38,7 @@ import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.table.ColumnNames;
@@ -180,10 +181,10 @@ public class ImageGridSources
 		// Take the first source to fetch metadata
 		metadataSource = nameToFullPath.keySet().iterator().next();
 		long start = System.currentTimeMillis();
-		IJ.log( "Fetching metadata for channel " + channelIndex + "..." );
-		IJ.log( "...from " + nameToFullPath.get( metadataSource ) );
-		// FIXME: Cache the image data, because for multiple images it is now reloaded!
-		ImageData< ? > imageData = ImageDataOpener.open( nameToFullPath.get( metadataSource ) );
+		IJ.log( "Fetching metadata for " + name + ", channel " + channelIndex );
+		IJ.log( "Source: " + nameToFullPath.get( metadataSource ) );
+		// FIXME: Cache the image data, because for multiple channels it is now reloaded!
+		ImageData< ? > imageData = ImageDataOpener.open( nameToFullPath.get( metadataSource ), ThreadHelper.sharedQueue );
 		CanonicalDatasetMetadata canonicalDatasetMetadata = imageData.getMetadata( channelIndex );
 		metadata = new Metadata( canonicalDatasetMetadata );
 		Source< ? > source = imageData.getSourcePair( channelIndex ).getA();

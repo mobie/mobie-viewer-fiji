@@ -35,6 +35,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.widget.SelectableImages;
+import org.embl.mobie.command.widget.SwingSelectableImagesWidget;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
@@ -73,7 +74,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
 
     // Note that this is populated by org.embl.mobie.command.widget.SwingSelectableImagesWidget
     @Parameter ( label = "Moving image(s)" ) // , callback = "setMovingImages"
-    public SelectableImages selectedImages = new SelectableImages();
+    public SelectableImages selectedImages;
 
     @Parameter ( label = "Transformed image(s) suffix",
             description = "Upon transformation this suffix will be appended to the moving image name.\n" +
@@ -90,13 +91,14 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     protected Collection< Image< ? > > movingImages;
     protected Collection< TransformedSource< ? > > movingSources;
     protected Map< TransformedSource< ? >, AffineTransform3D > movingSourcesToInitialTransform;
-    protected List< String > selectableSourceNames; // used by some child classes
-
 
     @Override
     public void initialize()
     {
         sacs = MoBIEHelper.getVisibleSacs( bdvHandle );
+        // the below should not be necessary, because the SciJava context should do this
+        // but the AbstractRegistrationCommand otherwise gets null there...
+        selectedImages = SwingSelectableImagesWidget.getSelectableImages();
 
 //        selectableSourceNames = sacs.stream()
 //                .map( sac -> sac.getSpimSource().getName() )

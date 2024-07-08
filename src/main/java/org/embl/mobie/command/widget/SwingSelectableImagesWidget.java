@@ -32,6 +32,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.MoBIEHelper;
+import org.jetbrains.annotations.NotNull;
 import org.scijava.Priority;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.swing.widget.SwingInputWidget;
@@ -67,19 +68,24 @@ public class SwingSelectableImagesWidget extends SwingInputWidget< SelectableIma
 	@Override
 	public void set(final WidgetModel model) {
 		super.set(model);
+		SelectableImages selectableImages = getSelectableImages( );
 
-		BdvHandle bdvHandle = MoBIE.getInstance().getViewManager().getSliceViewer().getBdvHandle();
-
-		List< SourceAndConverter< ? > > sacs = MoBIEHelper.getSacs( bdvHandle ); //  MoBIEHelper.getVisibleSacs( bdvHandle );
-		String[] names = sacs.stream()
-				.map( sac -> sac.getSpimSource().getName() )
-				.collect( Collectors.toList() ).toArray( new String[ 0 ] );
-
-		list = new JList( names );
+		list = new JList( selectableImages.getNames().toArray( new String[ 0 ] ) );
 		list.setSelectionMode( ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
 		JScrollPane listScroller = new JScrollPane(list);
 		listScroller.setPreferredSize( new Dimension(250, 80) );
 		list.addListSelectionListener( (e)-> model.setValue(getValue()) );
 		getComponent().add( listScroller );
+	}
+
+	@NotNull
+	public static SelectableImages getSelectableImages( )
+	{
+		BdvHandle bdvHandle = MoBIE.getInstance().getViewManager().getSliceViewer().getBdvHandle();
+		List< SourceAndConverter< ? > > sacs = MoBIEHelper.getSacs( bdvHandle ); //  MoBIEHelper.getVisibleSacs( bdvHandle );
+		List< String > imageNames = sacs.stream()
+				.map( sac -> sac.getSpimSource().getName() )
+				.collect( Collectors.toList() );
+		return new SelectableImages( imageNames );
 	}
 }
