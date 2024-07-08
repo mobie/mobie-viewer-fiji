@@ -21,7 +21,7 @@ public enum SpatialCalibration
         if ( this.equals( FromTable ) )
         {
             // Often the path is a regex, thus we need to resolve the actual paths
-            String resolvedTablePath = IOHelper.getPaths( tablePath, 999 ).get( 0 );
+            String resolvedTablePath = IOHelper.getPaths( tablePath, 2 ).get( 0 );
 
             try
             {

@@ -335,7 +335,7 @@ public abstract class MoBIEHelper
 
 		try
 		{
-            return getPaths( regex, 999 );
+            return getPaths( regex, 2 );
 		}
 		catch ( Exception e )
 		{
