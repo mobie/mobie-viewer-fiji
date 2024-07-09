@@ -30,6 +30,7 @@ package org.embl.mobie.lib.table;
 
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.TableUIs;
+import de.embl.cba.tables.Tables;
 import ij.IJ;
 import ij.gui.GenericDialog;
 import org.embl.mobie.io.util.IOHelper;
@@ -198,6 +199,8 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		menuBar.add( createComputeMenu() );
 
+		menuBar.add( createMiscMenu() );
+
 		return menuBar;
 	}
 
@@ -208,6 +211,13 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		menu.add( createSelectEqualToMenuItem() );
 		menu.add( createSelectLessThanMenuItem() );
 		menu.add( createSelectGreaterThanMenuItem() );
+		return menu;
+	}
+
+	private JMenu createMiscMenu()
+	{
+		JMenu menu = new JMenu( "Misc" );
+		menu.add( createColumnSearchMenuItem() );
 		return menu;
 	}
 
@@ -352,6 +362,28 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
 						selectionModel.setSelected( tableModel.annotations(), true ) ) );
+		return menuItem;
+	}
+
+	private JMenuItem createColumnSearchMenuItem()
+	{
+		final JMenuItem menuItem = new JMenuItem( "Focus Column..." );
+		menuItem.addActionListener( e ->
+				SwingUtilities.invokeLater( () ->
+				{
+					final String[] columnNames = Tables.getColumnNamesAsArray( jTable );
+					final GenericDialog gd = new GenericDialog( "Focus Column" );
+					gd.addChoice( "Column", columnNames, columnNames[ 0 ] );
+					gd.showDialog();
+					if ( gd.wasCanceled() ) return;
+					final String columnName = gd.getNextChoice();
+					int columnIndex = jTable.getColumnModel().getColumnIndex( columnName );
+					JViewport viewport = (JViewport) jTable.getParent();
+					Rectangle rect = jTable.getCellRect(0, columnIndex, true);
+					Point pt = viewport.getViewPosition();
+					rect.setLocation(rect.x - pt.x, rect.y - pt.y);
+					viewport.scrollRectToVisible(rect);
+				}) );
 		return menuItem;
 	}
 
