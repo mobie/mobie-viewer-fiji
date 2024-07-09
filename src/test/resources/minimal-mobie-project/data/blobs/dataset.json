@@ -182,7 +182,7 @@
       "description": ""
     },
     "blobs-transformed": {
-      "uiSelectionGroup": "data",
+      "uiSelectionGroup": "bookmark",
       "sourceDisplays": [
         {
           "imageDisplay": {
@@ -198,7 +198,8 @@
             "invert": false,
             "name": "blobs-transformed",
             "opacity": 1.0,
-            "visible": true
+            "visible": true,
+            "blendingMode": "sum"
           }
         }
       ],
@@ -209,11 +210,11 @@
               1.0000000000000002,
               0.0,
               0.0,
-              -113.45114345114347,
+              -105.49896049896051,
               0.0,
               1.0000000000000002,
               0.0,
-              -36.049896049896056,
+              -88.53430353430355,
               0.0,
               0.0,
               1.0000000000000002,
@@ -230,7 +231,7 @@
         }
       ],
       "isExclusive": false,
-      "description": "blobs, transformed"
+      "description": ""
     },
     "two_blobs": {
       "uiSelectionGroup": "data",

@@ -9,14 +9,15 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>5.1.5</version>
+    <version>5.1.7-SNAPSHOT</version>
+
+    <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
+
+    <!--  ../scijava-scripts/release-version.sh - -skip-version-check - -skip-license-update -->
+    <!-- ../scijava-scripts/release-version.sh - -skip-version-check  - -skip-license-update -->
 
     <!-- force javadoc generation to fetch errors:    -->
     <!-- mvn javadoc:javadoc | grep error -->
-    <!--  ../scijava-scripts/release-version.sh - -skip-version-check - -skip-license-update -->
-    <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
-    <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
-    <!-- ../scijava-scripts/release-version.sh - -skip-version-check  - -skip-license-update -->
 
     <url>https://github.com/mobie/mobie-viewer-fiji</url>
     <name>MoBIE Fiji Viewer</name>

@@ -335,6 +335,9 @@ public abstract class MoBIEHelper
 
 		try
 		{
+			// TODO: what is the correct path depth here?
+			//   Note that is can become very slow for
+			//   OME-Zarr with its many sub-folders if the depth is too deep
             return getPaths( regex, 2 );
 		}
 		catch ( Exception e )

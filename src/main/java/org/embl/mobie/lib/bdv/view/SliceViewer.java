@@ -52,6 +52,7 @@ import org.embl.mobie.ui.WindowArrangementHelper;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
+import org.scijava.ui.behaviour.util.RunnableAction;
 import sc.fiji.bdvpg.bdv.supplier.IBdvSupplier;
 import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
@@ -60,6 +61,9 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -142,13 +146,11 @@ public class SliceViewer
 		} );
 
 		final Set< String > actionsKeys = sacService.getActionsKeys();
-
 		final ArrayList< String > actions = new ArrayList< String >();
 		actions.add( SourceAndConverterService.getCommandName( SourcesInfoCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( CurrentLocationLoggerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ScreenShotMakerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ShowRasterImagesCommand.class ) );
-		// TODO https://github.com/mobie/mobie-viewer-fiji/issues/1152
 		actions.add( SourceAndConverterService.getCommandName( BigWarpRegistrationCommand.class ) );
 		//actions.add( SourceAndConverterService.getCommandName( AutomaticRegistrationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ManualTransformationCommand.class ) );
@@ -171,28 +173,17 @@ public class SliceViewer
 		behaviours.behaviour( contextMenu, "Context menu", "button3", "shift P");
 		behaviours.install( bdvHandle.getTriggerbindings(), "MoBIE" );
 
-		// get all present action keys
-		// just to see what's there
-		// one of them is "toggle manual transformation"
-		Object[] allKeys = bdvHandle.getKeybindings().getConcatenatedActionMap().allKeys();
-		// disable the manual transform action
-		bdvHandle.getKeybindings().getConcatenatedActionMap().get("toggle manual transformation").setEnabled( false );
+		ActionMap actionMap = new ActionMap();
+		actionMap.put( "MoBIE manual transform", new RunnableAction( "MoBIE manual transform",
+				() -> new Thread( () -> { Services.commandService.run( ManualTransformationCommand.class, true ); }).start() ) );
+		InputMap inputMap = new InputMap();
+		inputMap.put( KeyStroke.getKeyStroke("T"),"MoBIE manual transform" );
+		bdvHandle.getKeybindings().addInputMap( "MoBIE", inputMap );
+		bdvHandle.getKeybindings().addActionMap( "MoBIE", actionMap );
 
-		behaviours.behaviour(
-				( ClickBehaviour ) ( x, y ) ->
-						new Thread( () -> {
-							Services.commandService.run( ManualTransformationCommand.class, true );
-						}).start(),
-				"Manual transform", "T" ) ;
-
-		behaviours.behaviour(
-				( ClickBehaviour ) ( x, y ) ->
-						new Thread( () -> {
-							AffineTransform3D affineTransform3D = bdvHandle.getViewerPanel().state().getViewerTransform();
-							System.out.println( "Viewer transform " + affineTransform3D );
-						}).start(),
-				"Log viewer transform", "ctrl 1" ) ;
-
+		// TODO: several of the below "behaviours" could also be just "actions"
+		//       and thereby be added to the above inputMap and actionMap
+		//       see: https://forum.image.sc/t/how-to-replace-a-key-mapping-in-bdv/98432/6
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->
 						new Thread( () -> sliceViewAnnotationSelector.run() ).start(),
@@ -205,8 +196,7 @@ public class SliceViewer
 
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->
-						new Thread( () ->
-						{
+						new Thread( () -> {
 							final SourceAndConverter[] sourceAndConverters = sacService.getSourceAndConverters().toArray( new SourceAndConverter[ 0 ] );
 							ConfigureLabelRenderingCommand.incrementRandomColorSeed( sourceAndConverters, bdvHandle );
 						}).start(),
@@ -214,8 +204,7 @@ public class SliceViewer
 
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->
-						new Thread( () ->
-						{
+						new Thread( () -> {
 							CurrentLocationLoggerCommand.logCurrentPosition(
 									bdvHandle,
 									BdvPlaygroundHelper.getWindowCentreInCalibratedUnits( bdvHandle ),
