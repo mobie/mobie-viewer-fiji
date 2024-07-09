@@ -44,6 +44,7 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.command.context.ConfigureSegmentRenderingCommand;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.lib.bdv.AutoContrastAdjuster;
 import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.MoBIEInfo;
 import org.embl.mobie.lib.Services;
@@ -546,18 +547,15 @@ public class UserInterfaceHelper
 			panel.add( minSlider );
 			panel.add( maxSlider );
 
-			// FIXME: This hangs for large sources without resolution pyramid
-//			JButton autoButton = new JButton("Auto Min Max");
-//			autoButton.addActionListener( e ->
-//			{
-//				Source< ? > source = sacs.get( 0 ).getSpimSource();
-//				RandomAccessibleInterval< ? > rai = source.getSource( bdvHandle.getViewerPanel().state().getCurrentTimepoint(),
-//						source.getNumMipmapLevels() - 1 );
-//				double[] minMax = SourceHelper.estimateMinMax( ( RandomAccessibleInterval ) rai );
-//				min.setCurrentValue( minMax[ 0 ] );
-//				max.setCurrentValue( minMax[ 1 ] );
-//			});
-//			panel.add( autoButton );
+			JButton autoButton = new JButton("Auto Contrast");
+			autoButton.addActionListener( e ->
+			{
+				AutoContrastAdjuster contrastAdjuster = new AutoContrastAdjuster( bdvHandle, sacs.get( 0 ) );
+				double[] minMax = contrastAdjuster.computeMinMax();
+				min.setCurrentValue( minMax[ 0 ] );
+				max.setCurrentValue( minMax[ 1 ] );
+			});
+			panel.add( autoButton );
 
 			boolean isInvert = false;
 			for ( Converter< ?, ARGBType > converter : converters )
@@ -789,7 +787,9 @@ public class UserInterfaceHelper
 
 	private JButton createImageRenderingSettingsButton( List< ? extends SourceAndConverter< ? > > sourceAndConverters, ImageVolumeViewer imageVolumeViewer )
 	{
-		JButton button = new JButton( "S" );
+		final URL resource = UserInterfaceHelper.class.getResource( "/settings_19.png" );
+		final ImageIcon imageIcon = new ImageIcon( resource );
+		JButton button = new JButton( imageIcon );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 		button.addActionListener( e ->
 		{
@@ -1225,7 +1225,9 @@ public class UserInterfaceHelper
 											 BdvHandle bdvHandle,
 											 List< Source< ? > > sources )
 	{
-		JButton button = new JButton( "F" );
+		final URL resource = UserInterfaceHelper.class.getResource( "/focus_19.png" );
+		final ImageIcon imageIcon = new ImageIcon( resource );
+		JButton button = new JButton( imageIcon );
 		button.setToolTipText( "Show whole dataset" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
@@ -1274,7 +1276,9 @@ public class UserInterfaceHelper
 			BdvHandle bdvHandle,
 			boolean addContrastLimitUI )
 	{
-		JButton button = new JButton( "B" );
+		final URL resource = UserInterfaceHelper.class.getResource( "/contrast_19.png" );
+		final ImageIcon imageIcon = new ImageIcon( resource );
+		JButton button = new JButton( imageIcon );
 		button.setToolTipText( "Change opacity and contrast limits" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
@@ -1294,7 +1298,9 @@ public class UserInterfaceHelper
 
 	private static JButton createColorButton( JPanel parentPanel, List< ? extends SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
 	{
-		JButton colorButton = new JButton( "C" );
+		final URL resource = UserInterfaceHelper.class.getResource( "/color_19.png" );
+		final ImageIcon imageIcon = new ImageIcon( resource );
+		JButton colorButton = new JButton( imageIcon );
 		colorButton.setToolTipText( "Change color" );
 
 		colorButton.setPreferredSize( PREFERRED_BUTTON_SIZE);
@@ -1339,18 +1345,20 @@ public class UserInterfaceHelper
 
 	private JButton createRemoveButton( Display display )
 	{
-		JButton removeButton = new JButton( "X" );
-		removeButton.setToolTipText( "Remove dataset" );
-		removeButton.setPreferredSize( PREFERRED_BUTTON_SIZE );
+		final URL resource = UserInterfaceHelper.class.getResource( "/delete_19.png" );
+		final ImageIcon imageIcon = new ImageIcon( resource );
+		JButton button = new JButton( imageIcon );
+		button.setToolTipText( "Remove dataset" );
+		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
-		removeButton.addActionListener( e ->
+		button.addActionListener( e ->
 		{
 			// remove the display but do not close the ImgLoader
 			// because some derived sources may currently be shown
 			moBIE.getViewManager().removeDisplay( display, false );
 		} );
 
-		return removeButton;
+		return button;
 	}
 
 	public static String tidyString( String string ) {

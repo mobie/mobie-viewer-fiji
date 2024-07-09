@@ -134,9 +134,9 @@ public class ScreenShotMaker
         // ...viewer canvas to global
         AffineTransform3D viewerToGlobal = viewerTransform.inverse();
         canvasToGlobalTransform.preConcatenate( viewerToGlobal );
-        IJ.log( "Canvas to global transform: " + canvasToGlobalTransform );
+        //IJ.log( "Canvas to global transform: " + canvasToGlobalTransform );
 
-        IJ.log( "Fetching data from " + sacs.size() + " images..."  );
+        IJ.log( "Fetching data from " + sacs.size() + " image(s)..."  );
 
         final ArrayList< RandomAccessibleInterval< FloatType > > floatCaptures = new ArrayList<>();
         final ArrayList< RandomAccessibleInterval< BitType > > maskCaptures = new ArrayList<>();
