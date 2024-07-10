@@ -9,7 +9,7 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>5.2.2-SNAPSHOT</version>
+    <version>5.2.2</version>
 
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
 
@@ -84,7 +84,7 @@
         <license.copyrightOwners>EMBL</license.copyrightOwners>
         <enforcer.skip>true</enforcer.skip>
 
-        <mobie-io.version>3.0.1</mobie-io.version>
+        <mobie-io.version>3.0.2</mobie-io.version>
         <imagej-utils.version>0.7.0</imagej-utils.version>
 
         <bigdataviewer-playground.version>0.9.0</bigdataviewer-playground.version>
