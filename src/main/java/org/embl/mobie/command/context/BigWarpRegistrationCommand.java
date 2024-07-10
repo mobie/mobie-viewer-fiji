@@ -70,7 +70,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 		super.initialize();
 
 		getInfo().getMutableInput( "suffix", String.class )
-				.setValue( this, "bigWarp");
+				.setValue( this, "bw");
 	}
 
 	public void applyTransform()

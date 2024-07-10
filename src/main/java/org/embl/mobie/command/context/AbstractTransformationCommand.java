@@ -67,9 +67,9 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     public SelectableImages selectedImages;
 
     // FIXME: change the suffix based on the registration method in an init()
-    @Parameter ( label = "Transformed image(s) suffix",
+    @Parameter ( label = "Transformed image(s) suffix", persist = false,
             description = "Upon transformation this suffix will be appended to the moving image name.\n" +
-                    "Carefully choose a meaningful suffix here that will create a unique new image name.\n" +
+                    "Carefully choose a meaningful suffix here to create a UNIQUE new image name.\n" +
                     "If you leave this empty the input image view will be overwritten.")
     public String suffix = "transformed";
 

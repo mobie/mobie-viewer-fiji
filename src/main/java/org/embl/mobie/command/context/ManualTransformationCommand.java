@@ -70,7 +70,7 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 		super.initialize();
 
 		getInfo().getMutableInput( "suffix", String.class )
-				.setValue( this, "manual_transformation");
+				.setValue( this, "mt");
 	}
 
 	public void startManualTransform()

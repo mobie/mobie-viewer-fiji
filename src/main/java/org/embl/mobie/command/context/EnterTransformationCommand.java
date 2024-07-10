@@ -55,7 +55,7 @@ public class EnterTransformationCommand extends AbstractTransformationCommand
 		super.initialize();
 
 		getInfo().getMutableInput( "suffix", String.class )
-				.setValue( this, "enter_transformation");
+				.setValue( this, "et");
 	}
 
 	private void applyTransform()

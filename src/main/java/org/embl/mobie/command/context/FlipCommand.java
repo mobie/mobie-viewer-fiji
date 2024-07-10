@@ -57,19 +57,16 @@ public class FlipCommand extends AbstractTransformationCommand
 	public void initialize()
 	{
 		super.initialize();
+
+		getInfo().getMutableInput( "suffix", String.class )
+				.setValue( this, "flip");
 	}
 
-//	@Override
-//	protected void previewTransform()
-//	{
-//		super.previewTransform( createFlipTransform( movingSacs ) );
-//	}
-
-	public void applyTransform()
+	public void applyTransform() // callback
 	{
 		setMovingImages();
 
-		// FIXME: This needs a transform for each of the sacs
+		// FIXME: This needs a different transform for each of the sacs
 		AffineTransform3D transform = createFlipTransform( movingSacs.iterator().next() );
 		applyTransform( transform );
 	}
