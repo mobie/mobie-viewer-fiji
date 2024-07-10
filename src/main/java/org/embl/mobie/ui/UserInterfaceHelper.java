@@ -45,6 +45,7 @@ import org.embl.mobie.command.context.ConfigureSegmentRenderingCommand;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.bdv.AutoContrastAdjuster;
+import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.MoBIEInfo;
 import org.embl.mobie.lib.Services;
@@ -71,6 +72,8 @@ import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
 import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 import org.embl.mobie.lib.volume.ImageVolumeViewer;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
+import org.jetbrains.annotations.NotNull;
+import org.scijava.plugin.Parameter;
 import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
@@ -458,36 +461,12 @@ public class UserInterfaceHelper
 			BdvHandle bdvHandle,
 			boolean addContrastLimitUI )
 	{
+		ISourceAndConverterService service = SourceAndConverterServices.getSourceAndConverterService();
+
 		JFrame frame = new JFrame( name );
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 		JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
-
-		ISourceAndConverterService service = SourceAndConverterServices.getSourceAndConverterService();
-
-		// Opacity Slider
-		//
-		// TODO: This cast requires that the sourceAndConverter implements
-		//   an OpacityAdjuster; how to do this more cleanly?
-		//   Maybe we should rather operate on the coloring model that is
-		//   wrapped in the converter?
-		final double current = ( ( OpacityAdjuster ) sacs.get( 0 ).getConverter()).getOpacity();
-
-		final BoundedValueDouble selection =
-				new BoundedValueDouble(
-						0.0,
-						1.0,
-						current );
-
-		final SliderPanelDouble opacitySlider = new SliderPanelDouble( "Opacity", selection, 0.05 );
-		opacitySlider.setNumColummns( 3 );
-		opacitySlider.setDecimalFormat( "#.##" );
-
-		final OpacityUpdateListener opacityUpdateListener =
-				new OpacityUpdateListener( selection, opacitySlider, sacs, bdvHandle );
-
-		selection.setUpdateListener( opacityUpdateListener );
-		panel.add( opacitySlider );
 
 		if ( addContrastLimitUI )
 		{
@@ -547,6 +526,7 @@ public class UserInterfaceHelper
 			panel.add( minSlider );
 			panel.add( maxSlider );
 
+
 			JButton autoButton = new JButton("Auto Contrast");
 			autoButton.addActionListener( e ->
 			{
@@ -555,7 +535,9 @@ public class UserInterfaceHelper
 				min.setCurrentValue( minMax[ 0 ] );
 				max.setCurrentValue( minMax[ 1 ] );
 			});
-			panel.add( autoButton );
+			JPanel autoPanel = SwingHelper.horizontalLayoutPanel();
+			autoPanel.add( autoButton );
+			panel.add( autoPanel );
 
 			boolean isInvert = false;
 			for ( Converter< ?, ARGBType > converter : converters )
@@ -580,8 +562,55 @@ public class UserInterfaceHelper
 				}
 				bdvHandle.getViewerPanel().requestRepaint();
 			} );
-			panel.add( invertCheckBox );
+			JPanel invertPanel = SwingHelper.horizontalLayoutPanel();
+			invertPanel.add( invertCheckBox );
+			panel.add( invertPanel );
+			panel.add( new JLabel("") ); // create some Luft
 		}
+
+		// Blending mode
+		JPanel blendingPanel = SwingHelper.horizontalLayoutPanel();
+		blendingPanel.add( new JLabel("Blending  ") );
+		JComboBox< BlendingMode > blendingModeComboBox = new JComboBox<>(
+				new BlendingMode[]{ BlendingMode.Sum, BlendingMode.Alpha } );
+		BlendingMode currentBlendingMode = ( BlendingMode ) service.getMetadata( sacs.get( 0 ), BlendingMode.class.getName() );
+		blendingModeComboBox.setSelectedItem( currentBlendingMode );
+		blendingModeComboBox.addActionListener( e ->
+		{
+			for ( SourceAndConverter< ? > sourceAndConverter : sacs )
+			{
+				service.setMetadata( sourceAndConverter,
+						BlendingMode.class.getName(),
+						blendingModeComboBox.getSelectedItem() );
+			}
+			bdvHandle.getViewerPanel().requestRepaint();
+		} );
+		blendingPanel.add( blendingModeComboBox );
+		panel.add( blendingPanel );
+
+		// Opacity Slider
+		//
+		// TODO: This cast requires that the sourceAndConverter implements
+		//   an OpacityAdjuster; how to do this more cleanly?
+		//   Maybe we should rather operate on the coloring model that is
+		//   wrapped in the converter?
+		final double current = ( ( OpacityAdjuster ) sacs.get( 0 ).getConverter()).getOpacity();
+
+		final BoundedValueDouble selection =
+				new BoundedValueDouble(
+						0.0,
+						1.0,
+						current );
+
+		final SliderPanelDouble opacitySlider = new SliderPanelDouble( "Opacity", selection, 0.05 );
+		opacitySlider.setNumColummns( 3 );
+		opacitySlider.setDecimalFormat( "#.##" );
+
+		final OpacityUpdateListener opacityUpdateListener =
+				new OpacityUpdateListener( selection, opacitySlider, sacs, bdvHandle );
+
+		selection.setUpdateListener( opacityUpdateListener );
+		panel.add( opacitySlider );
 
 		//Display the window.
 		frame.setContentPane( panel );
@@ -604,7 +633,7 @@ public class UserInterfaceHelper
 		// Buttons
 		panel.add( space() );
 		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
-		panel.add( createOpacityAndContrastLimitsButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle(), false ) );
+		panel.add( createContrastButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle(), false ) );
 		panel.add( createButtonPlaceholder() ); // color
 		panel.add( createLabelRenderingSettingsButton( sourceAndConverters ) ); // special settings
 		panel.add( createRemoveButton( display ) );
@@ -625,7 +654,7 @@ public class UserInterfaceHelper
 		// Buttons
 		panel.add( space() );
 		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
-		panel.add( createOpacityAndContrastLimitsButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle(), false ) );
+		panel.add( createContrastButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle(), false ) );
 		panel.add( createButtonPlaceholder() ); // color
 		panel.add( createSpotSettingsButton( sourceAndConverters ) ); // special settings
 		panel.add( createRemoveButton( display ) );
@@ -712,7 +741,7 @@ public class UserInterfaceHelper
 		// Buttons
 		panel.add( space() );
 		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
-		panel.add( createOpacityAndContrastLimitsButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle(), true ) );
+		panel.add( createContrastButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle(), true ) );
 		panel.add( createColorButton( panel, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
 		//panel.add( createImageDisplayBrightnessButton( display ) );
 		panel.add( createImageRenderingSettingsButton( sourceAndConverters, display.imageVolumeViewer ) );
@@ -758,7 +787,7 @@ public class UserInterfaceHelper
 
 		panel.add( space() );
 		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
-		panel.add( createOpacityAndContrastLimitsButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle(), false ) );
+		panel.add( createContrastButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle(), false ) );
 		panel.add( createButtonPlaceholder() );
 		panel.add( createSegmentRenderingSettingsButton( sourceAndConverters, display.segmentVolumeViewer ) );
 		panel.add( createRemoveButton( display ) );
@@ -787,10 +816,7 @@ public class UserInterfaceHelper
 
 	private JButton createImageRenderingSettingsButton( List< ? extends SourceAndConverter< ? > > sourceAndConverters, ImageVolumeViewer imageVolumeViewer )
 	{
-		final URL resource = UserInterfaceHelper.class.getResource( "/settings_19.png" );
-		final ImageIcon imageIcon = new ImageIcon( resource );
-		JButton button = new JButton( imageIcon );
-		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
+		JButton button = getIconButton( "settings.png" );
 		button.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
@@ -807,7 +833,7 @@ public class UserInterfaceHelper
 
 	private JButton createLabelRenderingSettingsButton( List< SourceAndConverter< ? > > sourceAndConverters )
 	{
-		JButton button = new JButton( "S" );
+		JButton button = getIconButton( "settings.png" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 		button.addActionListener( e -> Services.commandService.run( ConfigureLabelRenderingCommand.class, true, "sourceAndConverters", sourceAndConverters.toArray( new SourceAndConverter[ 0 ] ) ) );
 		return button;
@@ -815,7 +841,7 @@ public class UserInterfaceHelper
 
 	private JButton createSegmentRenderingSettingsButton( List< SourceAndConverter< ? > > sourceAndConverters, SegmentVolumeViewer< ? > segmentVolumeViewer )
 	{
-		JButton button = new JButton( "S" );
+		JButton button = getIconButton( "settings.png" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 		button.addActionListener( e -> Services.commandService.run( ConfigureSegmentRenderingCommand.class, true, "sourceAndConverters", sourceAndConverters.toArray( new SourceAndConverter[ 0 ] ), "volumeViewer", segmentVolumeViewer ) );
 		return button;
@@ -1225,11 +1251,8 @@ public class UserInterfaceHelper
 											 BdvHandle bdvHandle,
 											 List< Source< ? > > sources )
 	{
-		final URL resource = UserInterfaceHelper.class.getResource( "/focus_19.png" );
-		final ImageIcon imageIcon = new ImageIcon( resource );
-		JButton button = new JButton( imageIcon );
+		JButton button =  getIconButton( "focus.png" );
 		button.setToolTipText( "Show whole dataset" );
-		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		button.addActionListener( e ->
 		{
@@ -1254,9 +1277,8 @@ public class UserInterfaceHelper
 
 	public static JButton createImageDisplayBrightnessButton( ImageDisplay< ? > imageDisplay )
 	{
-		JButton button = new JButton( "B" );
+		JButton button = getIconButton( "contrast.png" );
 		button.setToolTipText( "Change brightness/contrast" );
-		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		button.addActionListener( e ->
 		{
@@ -1270,17 +1292,14 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-	public static JButton createOpacityAndContrastLimitsButton(
+	public static JButton createContrastButton(
 			List< ? extends SourceAndConverter< ? > > sourceAndConverters,
 			String name,
 			BdvHandle bdvHandle,
 			boolean addContrastLimitUI )
 	{
-		final URL resource = UserInterfaceHelper.class.getResource( "/contrast_19.png" );
-		final ImageIcon imageIcon = new ImageIcon( resource );
-		JButton button = new JButton( imageIcon );
+		JButton button = getIconButton( "contrast.png" );
 		button.setToolTipText( "Change opacity and contrast limits" );
-		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		button.addActionListener( e ->
 		{
@@ -1296,16 +1315,23 @@ public class UserInterfaceHelper
 		return button;
 	}
 
+	@NotNull
+	private static JButton getIconButton( final String iconResource )
+	{
+		final URL resource = UserInterfaceHelper.class.getResource( "/" + iconResource );
+		Image scaledInstance = new ImageIcon( resource ).getImage().getScaledInstance( 19, 19, Image.SCALE_SMOOTH );
+		ImageIcon imageIcon = new ImageIcon( scaledInstance );
+		JButton button = new JButton( imageIcon );
+		button.setPreferredSize( PREFERRED_BUTTON_SIZE);
+		return button;
+	}
+
 	private static JButton createColorButton( JPanel parentPanel, List< ? extends SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
 	{
-		final URL resource = UserInterfaceHelper.class.getResource( "/color_19.png" );
-		final ImageIcon imageIcon = new ImageIcon( resource );
-		JButton colorButton = new JButton( imageIcon );
-		colorButton.setToolTipText( "Change color" );
+		JButton button = getIconButton( "color.png" );
+		button.setToolTipText( "Change color" );
 
-		colorButton.setPreferredSize( PREFERRED_BUTTON_SIZE);
-
-		colorButton.addActionListener( e ->
+		button.addActionListener( e ->
 		{
 			Color color = JColorChooser.showDialog( null, "", null );
 			if ( color == null ) return;
@@ -1320,7 +1346,7 @@ public class UserInterfaceHelper
 			bdvHandle.getViewerPanel().requestRepaint();
 		} );
 
-		return colorButton;
+		return button;
 	}
 
 	private void setPanelColor( JPanel panel, ARGBType argbType )
@@ -1345,11 +1371,8 @@ public class UserInterfaceHelper
 
 	private JButton createRemoveButton( Display display )
 	{
-		final URL resource = UserInterfaceHelper.class.getResource( "/delete_19.png" );
-		final ImageIcon imageIcon = new ImageIcon( resource );
-		JButton button = new JButton( imageIcon );
+		JButton button = getIconButton( "delete.png" );
 		button.setToolTipText( "Remove dataset" );
-		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		button.addActionListener( e ->
 		{

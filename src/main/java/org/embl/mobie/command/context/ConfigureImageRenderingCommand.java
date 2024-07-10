@@ -31,11 +31,9 @@ package org.embl.mobie.command.context;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.volume.ImageVolumeViewer;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
-import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
@@ -50,19 +48,14 @@ public class ConfigureImageRenderingCommand extends DynamicCommand implements Bd
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	protected static ISourceAndConverterService sourceAndConverterService = SourceAndConverterServices.getSourceAndConverterService();
-
 	@Parameter
-	protected BdvHandle bdvh;
+	protected BdvHandle bdvHandle;
 
 	@Parameter
 	protected SourceAndConverter< ? >[] sourceAndConverters;
 
 	@Parameter
 	protected ImageVolumeViewer volumeViewer;
-
-	@Parameter( label = "Blending mode", choices = { BlendingMode.SUM, BlendingMode.ALPHA }, persist = false )
-	String blendingMode = BlendingMode.SUM;
 
 	@Parameter ( label = "Volume rendering", choices = { AUTO, USE_BELOW_RESOLUTION } )
 	public String volumeRenderingMode = AUTO;
@@ -73,38 +66,13 @@ public class ConfigureImageRenderingCommand extends DynamicCommand implements Bd
 	@Override
 	public void initialize()
 	{
-		initBlendingModeItem();
-	}
 
-	private void initBlendingModeItem()
-	{
-		final MutableModuleItem< String > blendingModeItem = getInfo().getMutableInput("blendingMode", String.class );
-
-		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
-		{
-			final BlendingMode blendingMode = ( BlendingMode ) sourceAndConverterService.getMetadata( sourceAndConverter, BlendingMode.class.getName() );
-			final String toString = blendingMode.toString();
-			blendingModeItem.setValue( this, toString );
-			return;
-		}
 	}
 
 	@Override
 	public void run()
 	{
-		updateBlendingMode();
-
 		updateVolumeRendering();
-	}
-
-	private void updateBlendingMode()
-	{
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
-		{
-			final BlendingMode blendingMode = BlendingMode.valueOf( this.blendingMode );
-			SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.class.getName(), blendingMode );
-		}
-		bdvh.getViewerPanel().requestRepaint();
 	}
 
 	private void updateVolumeRendering()
