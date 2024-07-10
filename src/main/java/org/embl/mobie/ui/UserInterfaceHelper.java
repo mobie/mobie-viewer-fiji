@@ -126,6 +126,32 @@ public class UserInterfaceHelper
 		return overlayNamesCheckbox;
 	}
 
+
+	public static void closeWindowByName(String windowTitle) {
+		Frame[] frames = Frame.getFrames();
+		for (Frame frame : frames) {
+			if ( frame.getTitle().equals( windowTitle ) ) {
+				frame.dispose();
+				break;
+			}
+		}
+
+		Window[] windows = JDialog.getWindows();
+		for ( Window window : windows )
+		{
+			if ( window instanceof javax.swing.JDialog)
+			{
+				String title = ( ( JDialog ) window ).getTitle();
+				if ( title.equals( windowTitle ) )
+				{
+					window.dispose();
+					break;
+				}
+			}
+		}
+
+	}
+
 	public static FileLocation loadFromProjectOrFileSystemDialog() {
 		final GenericDialog gd = new GenericDialog("Choose source");
 		gd.addChoice("Load from", new String[]{ FileLocation.CurrentProject.toString(), FileLocation.ExternalFile.toString()}, FileLocation.CurrentProject.toString());

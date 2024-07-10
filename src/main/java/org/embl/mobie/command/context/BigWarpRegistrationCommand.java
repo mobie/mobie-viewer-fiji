@@ -34,10 +34,12 @@ import bdv.viewer.BigWarpViewerPanel;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TransformListener;
 import bigwarp.BigWarp;
+import jj2000.j2k.codestream.HeaderInfo;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.transform.TransformHelper;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.InvertibleRealTransform;
+import org.embl.mobie.ui.UserInterfaceHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
@@ -50,9 +52,11 @@ import sc.fiji.bdvpg.sourceandconverter.register.BigWarpLauncher;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - BigWarp")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>" + BigWarpRegistrationCommand.COMMAND_NAME )
 public class BigWarpRegistrationCommand extends AbstractRegistrationCommand implements TransformListener< InvertibleRealTransform >
 {
+	public static final String COMMAND_NAME = "Registration - BigWarp";
+
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	@Parameter ( label = "Launch BigWarp", callback = "launchBigWarp" )
@@ -76,8 +80,8 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 	public void applyTransform()
 	{
 		applyTransform( bigWarp.getBwTransform().affine3d().inverse() );
-		bdvHandle.getViewerPanel().requestRepaint();
 		bigWarp.closeAll();
+		UserInterfaceHelper.closeWindowByName( COMMAND_NAME );
 	}
 
 	public void launchBigWarp()

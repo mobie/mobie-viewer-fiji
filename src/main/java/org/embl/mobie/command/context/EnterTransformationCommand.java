@@ -29,7 +29,9 @@
 package org.embl.mobie.command.context;
 
 import net.imglib2.realtransform.AffineTransform3D;
+import org.checkerframework.checker.units.qual.C;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.ui.UserInterfaceHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
@@ -37,9 +39,11 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.Arrays;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Enter Transformation")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>" + EnterTransformationCommand.COMMAND_NAME )
 public class EnterTransformationCommand extends AbstractTransformationCommand
 {
+	public static final String COMMAND_NAME = "Registration - Enter Transformation";
+
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	@Parameter ( label = "Transformation 3D affine" )
@@ -65,6 +69,7 @@ public class EnterTransformationCommand extends AbstractTransformationCommand
 		AffineTransform3D affineTransform3D = new AffineTransform3D();
 		affineTransform3D.set( parseStringToDoubleArray( transformation ) );
 		applyTransform( affineTransform3D );
+		UserInterfaceHelper.closeWindowByName( COMMAND_NAME );
 	}
 
 

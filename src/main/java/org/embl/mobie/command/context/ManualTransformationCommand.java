@@ -33,6 +33,7 @@ import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.MoBIEManualTransformationEditor;
 import org.embl.mobie.lib.serialize.display.Display;
 import org.embl.mobie.lib.view.ViewManager;
+import org.embl.mobie.ui.UserInterfaceHelper;
 import org.scijava.ItemVisibility;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -43,10 +44,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, attrs = {}, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Manual")
+@Plugin(type = BdvPlaygroundActionCommand.class, attrs = {}, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>" + ManualTransformationCommand.COMMAND_NAME )
 public class ManualTransformationCommand extends AbstractTransformationCommand
 {
 	public static final String INACTIVE = "Manual transform inactive";
+	public static final String COMMAND_NAME = "Registration - Manual";
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -95,13 +97,14 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 		// but this is intended as the transformed image is now a new image that is stored as a new view.
 		// And this new transformed image will also be shown by the above applyTransform function.
 		transformationEditor.setActive( false );
+		transformationEditor = null;
 
 		getInfo().getMutableInput( "status", String.class ).setValue( this, INACTIVE );
 
 		// TODO: make the non-transformed sources invisible
 
-		// TODO: Close the Command UI, but how?
 		// https://imagesc.zulipchat.com/#narrow/stream/327238-Fiji/topic/Close.20Scijava.20Command.20UI
+		UserInterfaceHelper.closeWindowByName( COMMAND_NAME );
 	}
 
 	private void cancelManualTransform()

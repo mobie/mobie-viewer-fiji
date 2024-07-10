@@ -33,6 +33,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.transform.TransformHelper;
+import org.embl.mobie.ui.UserInterfaceHelper;
 import org.jetbrains.annotations.NotNull;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -41,9 +42,11 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.Arrays;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Flip")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>" + FlipCommand.COMMAND_NAME )
 public class FlipCommand extends AbstractTransformationCommand
 {
+	public static final String COMMAND_NAME = "Registration - Flip";
+
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	@Parameter( label = "Axis", choices = {"x", "y", "z"} )
@@ -69,6 +72,8 @@ public class FlipCommand extends AbstractTransformationCommand
 		// FIXME: This needs a different transform for each of the sacs
 		AffineTransform3D transform = createFlipTransform( movingSacs.iterator().next() );
 		applyTransform( transform );
+
+		UserInterfaceHelper.closeWindowByName( COMMAND_NAME );
 	}
 
 	@NotNull
