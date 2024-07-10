@@ -68,6 +68,9 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 	public void initialize()
 	{
 		super.initialize();
+
+		getInfo().getMutableInput( "suffix", String.class )
+				.setValue( this, "bigWarp");
 	}
 
 	public void applyTransform()

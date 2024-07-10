@@ -55,7 +55,6 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractTransformationCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Interactive, Initializable
 {
-    public static final String GROUP = "group: ";
     @Parameter
     public BdvHandle bdvHandle;
 
@@ -63,17 +62,8 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     //@Parameter ( label = "Transformation target" )
     public TransformationOutput mode = TransformationOutput.CreateNewImage;
 
-//    @Parameter ( label = "Moving image(s)", choices = {""},
-//            description = "Select the image that you want to transform.\n" +
-//                    "For transforming multiple images at once, configure a group within the\n" +
-//                    "BigDataViewer side panel [ P ] and restart this command; \n" +
-//                    "the group will appear as a selection choice.",
-//            callback = "setMovingImages",
-//            style = "radioButtonHorizontal")
-//    public String selectedSourceName;
-
     // Note that this is populated by org.embl.mobie.command.widget.SwingSelectableImagesWidget
-    @Parameter ( label = "Moving image(s)" ) // , callback = "setMovingImages"
+    @Parameter ( label = "Moving image(s)" )
     public SelectableImages selectedImages;
 
     // FIXME: change the suffix based on the registration method in an init()
@@ -82,10 +72,6 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
                     "Carefully choose a meaningful suffix here that will create a unique new image name.\n" +
                     "If you leave this empty the input image view will be overwritten.")
     public String suffix = "transformed";
-
-    // Too complex to maintain right now
-    //@Parameter ( label = "Preview transformation", callback = "previewTransform" )
-    //protected Boolean previewTransform = false;
 
     protected Collection< SourceAndConverter< ? > > sacs;
     protected Collection< SourceAndConverter< ? > > movingSacs;
@@ -98,30 +84,8 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     {
         sacs = MoBIEHelper.getVisibleSacs( bdvHandle );
         // the below should not be necessary, because the SciJava context should do this
-        // but the AbstractRegistrationCommand otherwise gets null there...
+        // but the AbstractRegistrationCommand otherwise gets null for "selectedImages"...
         selectedImages = SwingSelectableImagesWidget.getSelectableImages();
-
-//        selectableSourceNames = sacs.stream()
-//                .map( sac -> sac.getSpimSource().getName() )
-//                .collect( Collectors.toList() );
-//
-//        SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
-//        List< String > groupNames = state.getGroups().stream()
-//                .filter( group -> ! state.getSourcesInGroup( group ).isEmpty() )
-//                .map( state::getGroupName )
-//                .collect( Collectors.toList() );
-//
-//        for ( String groupName : groupNames )
-//        {
-//            selectableSourceNames.add( GROUP + groupName );
-//        }
-
-//        selectedSourceName = selectableSourceNames.get( 0 );
-//
-//        getInfo().getMutableInput( "selectedSourceName", String.class )
-//                .setDefaultValue( selectedSourceName );
-
-        // setMovingImages();
     }
 
     protected void applyTransform( AffineTransform3D affineTransform3D )
@@ -187,7 +151,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
 
             if ( MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view ) )
             {
-                // Show the transformed images
+                // Show the transformed image
                 MoBIE.getInstance().getViewManager().show( view );
             }
             else

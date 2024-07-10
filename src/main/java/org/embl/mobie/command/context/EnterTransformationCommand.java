@@ -49,13 +49,14 @@ public class EnterTransformationCommand extends AbstractTransformationCommand
 	public Button applyTransform;
 
 
-//	@Override
-//	protected void previewTransform()
-//	{
-//		AffineTransform3D affineTransform3D = new AffineTransform3D();
-//		affineTransform3D.set( parseStringToDoubleArray( transformation ) );
-//		super.previewTransform( affineTransform3D );
-//	}
+	@Override
+	public void initialize()
+	{
+		super.initialize();
+
+		getInfo().getMutableInput( "suffix", String.class )
+				.setValue( this, "enter_transformation");
+	}
 
 	private void applyTransform()
 	{

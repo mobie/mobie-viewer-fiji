@@ -68,8 +68,10 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 	public void initialize()
 	{
 		super.initialize();
-	}
 
+		getInfo().getMutableInput( "suffix", String.class )
+				.setValue( this, "manual_transformation");
+	}
 
 	public void startManualTransform()
 	{
