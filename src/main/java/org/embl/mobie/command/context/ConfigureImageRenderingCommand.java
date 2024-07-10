@@ -37,8 +37,6 @@ import org.scijava.command.DynamicCommand;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
-import sc.fiji.bdvpg.services.ISourceAndConverterService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import static org.embl.mobie.command.context.ConfigureSegmentRenderingCommand.AUTO;
 import static org.embl.mobie.command.context.ConfigureSegmentRenderingCommand.USE_BELOW_RESOLUTION;
@@ -57,10 +55,10 @@ public class ConfigureImageRenderingCommand extends DynamicCommand implements Bd
 	@Parameter
 	protected ImageVolumeViewer volumeViewer;
 
-	@Parameter ( label = "Volume rendering", choices = { AUTO, USE_BELOW_RESOLUTION } )
+	@Parameter ( label = ConfigureSegmentRenderingCommand.VOLUME_RENDERING_RESOLUTION, choices = { AUTO, USE_BELOW_RESOLUTION } )
 	public String volumeRenderingMode = AUTO;
 
-	@Parameter ( label = "Volume rendering resolution", style="format:#0.000" )
+	@Parameter ( label = ConfigureSegmentRenderingCommand.FIXED_RESOLUTION, style="format:#0.000" )
 	public double voxelSpacing = 1.0;
 
 	@Override

@@ -343,24 +343,7 @@
         }
       ],
       "sourceTransforms": [],
-      "viewerTransform": {
-        "normalizedAffine": [
-          0.002100528407354033,
-          0.0,
-          0.0,
-          -0.2522271714922049,
-          0.0,
-          0.002100528407354033,
-          0.0,
-          -0.2779662867374121,
-          0.0,
-          0.0,
-          0.002100528407354033,
-          0.0
-        ],
-        "timepoint": 0
-      },
-      "isExclusive": true,
+      "isExclusive": false,
       "description": ""
     },
     "my-new-view-name": {
@@ -433,7 +416,7 @@
       "description": ""
     },
     "blobs-transformed-transformed": {
-      "uiSelectionGroup": "bookmark",
+      "uiSelectionGroup": "data",
       "sourceDisplays": [
         {
           "imageDisplay": {
@@ -483,17 +466,17 @@
         {
           "affine": {
             "parameters": [
-              1.0315166695588902,
-              -0.003586403594267481,
+              1.0000000000000002,
               0.0,
-              95.03486701198025,
-              0.01977287546261093,
-              1.0191681483234158,
-              -0.0,
-              30.235395858835002,
-              -0.0,
               0.0,
-              1.0,
+              56.53790959100699,
+              0.0,
+              1.0000000000000002,
+              0.0,
+              -27.958306940607862,
+              0.0,
+              0.0,
+              1.0000000000000002,
               0.0
             ],
             "name": "transformed",
@@ -532,6 +515,445 @@
         }
       ],
       "sourceTransforms": [],
+      "isExclusive": false,
+      "description": ""
+    },
+    "three_blobs": {
+      "uiSelectionGroup": "data",
+      "sourceDisplays": [
+        {
+          "imageDisplay": {
+            "sources": [
+              "blobs"
+            ],
+            "color": "r=255,g=255,b=0,a=255",
+            "contrastLimits": [
+              0.0,
+              148.767
+            ],
+            "showImagesIn3d": false,
+            "invert": false,
+            "name": "blobs",
+            "opacity": 1.0,
+            "visible": true,
+            "blendingMode": "sum"
+          }
+        },
+        {
+          "imageDisplay": {
+            "sources": [
+              "blobs-transformed"
+            ],
+            "color": "r=255,g=255,b=255,a=255",
+            "contrastLimits": [
+              0.0,
+              255.0
+            ],
+            "showImagesIn3d": false,
+            "invert": false,
+            "name": "blobs-transformed",
+            "opacity": 1.0,
+            "visible": true,
+            "blendingMode": "sum"
+          }
+        },
+        {
+          "imageDisplay": {
+            "sources": [
+              "blobs"
+            ],
+            "color": "r=255,g=255,b=0,a=255",
+            "contrastLimits": [
+              0.0,
+              148.767
+            ],
+            "showImagesIn3d": false,
+            "invert": false,
+            "name": "blobs",
+            "opacity": 1.0,
+            "visible": true,
+            "blendingMode": "sum"
+          }
+        }
+      ],
+      "sourceTransforms": [
+        {
+          "affine": {
+            "parameters": [
+              1.0000000000000002,
+              0.0,
+              0.0,
+              -96.4864864864865,
+              0.0,
+              1.0000000000000002,
+              0.0,
+              -32.86902286902287,
+              0.0,
+              0.0,
+              1.0000000000000002,
+              0.0
+            ],
+            "name": "transformed",
+            "sources": [
+              "blobs"
+            ],
+            "sourceNamesAfterTransform": [
+              "blobs-transformed"
+            ]
+          }
+        }
+      ],
+      "viewerTransform": {
+        "normalizedAffine": [
+          0.002034816083930875,
+          0.0,
+          0.0,
+          -0.2594390507011866,
+          0.0,
+          0.002034816083930875,
+          0.0,
+          -0.2574042346172557,
+          0.0,
+          0.0,
+          0.002034816083930875,
+          0.0
+        ],
+        "timepoint": 0
+      },
+      "isExclusive": true,
+      "description": ""
+    },
+    "three-blobs": {
+      "uiSelectionGroup": "data",
+      "sourceDisplays": [
+        {
+          "imageDisplay": {
+            "sources": [
+              "blobs"
+            ],
+            "color": "r=255,g=255,b=255,a=255",
+            "contrastLimits": [
+              0.0,
+              255.0
+            ],
+            "showImagesIn3d": false,
+            "invert": false,
+            "name": "blobs",
+            "opacity": 1.0,
+            "visible": true,
+            "blendingMode": "sum"
+          }
+        },
+        {
+          "imageDisplay": {
+            "sources": [
+              "blobs-transformed"
+            ],
+            "color": "r=255,g=255,b=255,a=255",
+            "contrastLimits": [
+              0.0,
+              255.0
+            ],
+            "showImagesIn3d": false,
+            "invert": false,
+            "name": "blobs-transformed",
+            "opacity": 1.0,
+            "visible": true,
+            "blendingMode": "sum"
+          }
+        },
+        {
+          "imageDisplay": {
+            "sources": [
+              "blobs-transformed-transformed"
+            ],
+            "color": "r=255,g=255,b=255,a=255",
+            "contrastLimits": [
+              0.0,
+              255.0
+            ],
+            "showImagesIn3d": false,
+            "invert": false,
+            "name": "blobs-transformed-transformed",
+            "opacity": 1.0,
+            "visible": true,
+            "blendingMode": "sum"
+          }
+        }
+      ],
+      "sourceTransforms": [
+        {
+          "affine": {
+            "parameters": [
+              1.0000000000000002,
+              0.0,
+              0.0,
+              -96.4864864864865,
+              0.0,
+              1.0000000000000002,
+              0.0,
+              -32.86902286902287,
+              0.0,
+              0.0,
+              1.0000000000000002,
+              0.0
+            ],
+            "name": "transformed",
+            "sources": [
+              "blobs"
+            ],
+            "sourceNamesAfterTransform": [
+              "blobs-transformed"
+            ]
+          }
+        },
+        {
+          "affine": {
+            "parameters": [
+              1.0000000000000002,
+              0.0,
+              0.0,
+              -96.4864864864865,
+              0.0,
+              1.0000000000000002,
+              0.0,
+              -32.86902286902287,
+              0.0,
+              0.0,
+              1.0000000000000002,
+              0.0
+            ],
+            "name": "transformed",
+            "sources": [
+              "blobs"
+            ],
+            "sourceNamesAfterTransform": [
+              "blobs-transformed"
+            ]
+          }
+        },
+        {
+          "affine": {
+            "parameters": [
+              1.0000000000000002,
+              0.0,
+              0.0,
+              56.53790959100699,
+              0.0,
+              1.0000000000000002,
+              0.0,
+              -27.958306940607862,
+              0.0,
+              0.0,
+              1.0000000000000002,
+              0.0
+            ],
+            "name": "transformed",
+            "sources": [
+              "blobs-transformed"
+            ],
+            "sourceNamesAfterTransform": [
+              "blobs-transformed-transformed"
+            ]
+          }
+        }
+      ],
+      "viewerTransform": {
+        "normalizedAffine": [
+          0.002034816083930875,
+          0.0,
+          0.0,
+          -0.2594390507011866,
+          0.0,
+          0.002034816083930875,
+          0.0,
+          -0.2574042346172557,
+          0.0,
+          0.0,
+          0.002034816083930875,
+          0.0
+        ],
+        "timepoint": 0
+      },
+      "isExclusive": true,
+      "description": ""
+    },
+    "blobs-transformed-bw": {
+      "uiSelectionGroup": "data",
+      "sourceDisplays": [
+        {
+          "imageDisplay": {
+            "sources": [
+              "blobs-transformed-bw"
+            ],
+            "color": "r=255,g=255,b=255,a=255",
+            "contrastLimits": [
+              0.0,
+              255.0
+            ],
+            "showImagesIn3d": false,
+            "invert": false,
+            "name": "blobs-transformed-bw",
+            "opacity": 1.0,
+            "visible": true,
+            "blendingMode": "sum"
+          }
+        }
+      ],
+      "sourceTransforms": [
+        {
+          "affine": {
+            "parameters": [
+              1.0000000000000002,
+              0.0,
+              0.0,
+              -96.4864864864865,
+              0.0,
+              1.0000000000000002,
+              0.0,
+              -32.86902286902287,
+              0.0,
+              0.0,
+              1.0000000000000002,
+              0.0
+            ],
+            "name": "transformed",
+            "sources": [
+              "blobs"
+            ],
+            "sourceNamesAfterTransform": [
+              "blobs-transformed"
+            ]
+          }
+        },
+        {
+          "affine": {
+            "parameters": [
+              0.9071467490101555,
+              0.20781601613061354,
+              -0.0,
+              63.49193142793336,
+              0.7251592692142805,
+              1.434904262488866,
+              -0.0,
+              -109.29919279356258,
+              -0.0,
+              -0.0,
+              1.0,
+              0.0
+            ],
+            "name": "bw",
+            "sources": [
+              "blobs-transformed"
+            ],
+            "sourceNamesAfterTransform": [
+              "blobs-transformed-bw"
+            ]
+          }
+        }
+      ],
+      "isExclusive": false,
+      "description": ""
+    },
+    "blobs-transformed-transformed-bw": {
+      "uiSelectionGroup": "data",
+      "sourceDisplays": [
+        {
+          "imageDisplay": {
+            "sources": [
+              "blobs-transformed-transformed-bw"
+            ],
+            "color": "r=255,g=255,b=255,a=255",
+            "contrastLimits": [
+              0.0,
+              255.0
+            ],
+            "showImagesIn3d": false,
+            "invert": false,
+            "name": "blobs-transformed-transformed-bw",
+            "opacity": 1.0,
+            "visible": true,
+            "blendingMode": "sum"
+          }
+        }
+      ],
+      "sourceTransforms": [
+        {
+          "affine": {
+            "parameters": [
+              1.0000000000000002,
+              0.0,
+              0.0,
+              -96.4864864864865,
+              0.0,
+              1.0000000000000002,
+              0.0,
+              -32.86902286902287,
+              0.0,
+              0.0,
+              1.0000000000000002,
+              0.0
+            ],
+            "name": "transformed",
+            "sources": [
+              "blobs"
+            ],
+            "sourceNamesAfterTransform": [
+              "blobs-transformed"
+            ]
+          }
+        },
+        {
+          "affine": {
+            "parameters": [
+              1.0000000000000002,
+              0.0,
+              0.0,
+              56.53790959100699,
+              0.0,
+              1.0000000000000002,
+              0.0,
+              -27.958306940607862,
+              0.0,
+              0.0,
+              1.0000000000000002,
+              0.0
+            ],
+            "name": "transformed",
+            "sources": [
+              "blobs-transformed"
+            ],
+            "sourceNamesAfterTransform": [
+              "blobs-transformed-transformed"
+            ]
+          }
+        },
+        {
+          "affine": {
+            "parameters": [
+              0.9071467490101555,
+              0.20781601613061354,
+              -0.0,
+              63.49193142793336,
+              0.7251592692142805,
+              1.434904262488866,
+              -0.0,
+              -109.29919279356258,
+              -0.0,
+              -0.0,
+              1.0,
+              0.0
+            ],
+            "name": "bw",
+            "sources": [
+              "blobs-transformed-transformed"
+            ],
+            "sourceNamesAfterTransform": [
+              "blobs-transformed-transformed-bw"
+            ]
+          }
+        }
+      ],
       "isExclusive": false,
       "description": ""
     }

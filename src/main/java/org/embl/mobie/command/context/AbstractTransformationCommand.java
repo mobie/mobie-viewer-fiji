@@ -76,6 +76,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     @Parameter ( label = "Moving image(s)" ) // , callback = "setMovingImages"
     public SelectableImages selectedImages;
 
+    // FIXME: change the suffix based on the registration method in an init()
     @Parameter ( label = "Transformed image(s) suffix",
             description = "Upon transformation this suffix will be appended to the moving image name.\n" +
                     "Carefully choose a meaningful suffix here that will create a unique new image name.\n" +
@@ -131,27 +132,36 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
             //   applyTransformInPlace( affineTransform3D );
         }
 
-        createSaveAndViewAffineTransformedImages( movingImages, affineTransform3D, suffix );
+        if ( createSaveAndViewAffineTransformedImages(
+                movingImages,
+                affineTransform3D,
+                suffix ) )
+        {
+            // Remove the moving image displays
+            // because the transformed ones are being shown
+            List< String > movingImageNames = selectedImages.getNames();
+            ViewManager viewManager = MoBIE.getInstance().getViewManager();
+            List< Display > displays = viewManager.getCurrentSourceDisplays();
+            List< Display > displaysToRemove = displays.stream()
+                    .filter( display -> display.getSources().size() == 1 )
+                    .filter( display -> display.getSources().stream().anyMatch( movingImageNames::contains ) )
+                    .collect( Collectors.toList() );
 
-        // Remove the moving image displays
-        // because we are now showing the transformed once
-        List< String > movingImageNames = selectedImages.getNames();
-        ViewManager viewManager = MoBIE.getInstance().getViewManager();
-        List< Display > displays = viewManager.getCurrentSourceDisplays();
-        List< Display > displaysToRemove = displays.stream()
-                .filter( display -> display.getSources().size() == 1 )
-                .filter( display -> display.getSources().stream().anyMatch( movingImageNames::contains ) )
-                .collect( Collectors.toList() );
+            for ( Display display : displaysToRemove )
+                viewManager.removeDisplay( display, false );
+        }
+        else
+        {
+            resetTransforms();
+        }
 
-        for ( Display display : displaysToRemove )
-            viewManager.removeDisplay( display, false );
 
         // FIXME close the Command UI, HOW?
         //    Maybe we use the hack that finds the awt Window based on its name?
         //    https://imagesc.zulipchat.com/#narrow/stream/327238-Fiji/topic/Close.20Scijava.20Command.20UI
     }
     
-    protected static void createSaveAndViewAffineTransformedImages(
+    protected static boolean createSaveAndViewAffineTransformedImages(
             Collection< Image< ? > > movingImages,
             AffineTransform3D affineTransform3D,
             String suffix )
@@ -178,15 +188,21 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
             if ( MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view ) )
             {
                 // Show the transformed images
-                // TODO: it would be nice to remove the non-transformed images from the current view
                 MoBIE.getInstance().getViewManager().show( view );
             }
+            else
+            {
+                // TODO: if a user clicks "Cancel" in-between to sources this will create a mess
+                //    Probably anyway better we save all the transformed sources in one go.
+                return false;
+            }
         }
+
+        return true;
     }
 
     protected void setMovingImages()
     {
-
         // Reset potential previous transforms
         if ( movingSources != null )
         {
@@ -246,40 +262,4 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     {
         movingSources.forEach( source -> source.setFixedTransform( movingSourcesToInitialTransform.get( source ) ) );
     }
-
-//    protected void applyTransformInPlace( AffineTransform3D affineTransform )
-//    {
-//        final AffineTransform3D newFixedTransform = movingSourcesToInitialTransform.copy();
-//        newFixedTransform.preConcatenate( affineTransform.copy() );
-//        movingSources.setFixedTransform( newFixedTransform );
-//    }
-
-    // Should be overwritten by child classes!
-//    protected void previewTransform()
-//    {
-//        previewTransform( new AffineTransform3D() );
-//    }
-
-//    protected void previewTransform( AffineTransform3D affineTransform3D, boolean preview )
-//    {
-//        getInfo().getMutableInput("previewTransformation", Boolean.class).setValue( this, preview );
-//        previewTransform( affineTransform3D );
-//    }
-
-
-//    protected void previewTransform( AffineTransform3D affineTransform3D )
-//    {
-//        if ( previewTransform )
-//        {
-//            // add alignmentTransform
-//            applyTransformInPlace( affineTransform3D );
-//        }
-//        else
-//        {
-//            // reset original transform
-//            applyTransformInPlace( new AffineTransform3D() );
-//        }
-//
-//        bdvHandle.getViewerPanel().requestRepaint();
-//    }
 }

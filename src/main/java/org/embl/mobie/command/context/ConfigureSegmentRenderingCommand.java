@@ -37,18 +37,21 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Segment Rendering")
 public class ConfigureSegmentRenderingCommand extends ConfigureLabelRenderingCommand
 {
+
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
+	public static final String VOLUME_RENDERING_RESOLUTION = "Volume rendering resolution";
+	public static final String FIXED_RESOLUTION = "Fixed resolution";
 	public static final String AUTO = "Automatic";
-	public static final String USE_BELOW_RESOLUTION = "Use below resolution";
+	public static final String USE_BELOW_RESOLUTION = "Use below fixed resolution";
 
 	@Parameter
 	protected SegmentVolumeViewer< ? > volumeViewer;
 
-	@Parameter ( label = "Volume rendering", choices = { AUTO, USE_BELOW_RESOLUTION } )
+	@Parameter ( label = VOLUME_RENDERING_RESOLUTION, choices = { AUTO, USE_BELOW_RESOLUTION } )
 	public String volumeRenderingMode = AUTO;
 
-	@Parameter ( label = "Volume rendering resolution", style="format:#0.000" )
+	@Parameter ( label = FIXED_RESOLUTION, style="format:#0.000" )
 	public double voxelSpacing = 1.0;
 
 	@Override

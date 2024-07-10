@@ -73,7 +73,6 @@ import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 import org.embl.mobie.lib.volume.ImageVolumeViewer;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.jetbrains.annotations.NotNull;
-import org.scijava.plugin.Parameter;
 import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
@@ -410,52 +409,7 @@ public class UserInterfaceHelper
 		return frame;
 	}
 
-	public static void showOpacityDialog(
-			String name,
-			List< ? extends SourceAndConverter< ? > > sourceAndConverters,
-			BdvHandle bdvHandle )
-	{
-		JFrame frame = new JFrame( name );
-		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-		JPanel panel = new JPanel();
-		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
-
-		// TODO: This cast requires that the sourceAndConverter implements
-		//   an OpacityAdjuster; how to do this more cleanly?
-		//   Maybe we should rather operate on the coloring model that is
-		//   wrapped in the converter?
-		final double current = ( ( OpacityAdjuster ) sourceAndConverters.get( 0 ).getConverter()).getOpacity();
-
-		final BoundedValueDouble selection =
-				new BoundedValueDouble(
-						0.0,
-						1.0,
-						current );
-
-		double spinnerStepSize = 0.05;
-
-		final SliderPanelDouble opacitySlider = new SliderPanelDouble( "Opacity", selection, spinnerStepSize );
-		opacitySlider.setNumColummns( 3 );
-		opacitySlider.setDecimalFormat( "#.##" );
-
-		final OpacityUpdateListener opacityUpdateListener =
-				new OpacityUpdateListener( selection, opacitySlider, sourceAndConverters, bdvHandle );
-
-		selection.setUpdateListener( opacityUpdateListener );
-		panel.add( opacitySlider );
-
-		frame.setContentPane( panel );
-
-		//Display the window.
-		frame.setBounds( MouseInfo.getPointerInfo().getLocation().x,
-				MouseInfo.getPointerInfo().getLocation().y,
-				120, 10);
-		frame.setResizable( false );
-		frame.pack();
-		frame.setVisible( true );
-	}
-
-	public static JFrame showOpacityAndContrastLimitsDialog(
+	public static JFrame showContrastDialog(
 			String name,
 			List< ? extends SourceAndConverter< ? > > sacs,
 			BdvHandle bdvHandle,
@@ -505,27 +459,31 @@ public class UserInterfaceHelper
 
 			double spinnerStepSize = absCurrentRange / 100.0;
 
+			// TODO: adapt the number of decimal places to the current range
+			String decimalFormat = "#####.####";
+
 			final SliderPanelDouble minSlider =
 					new SliderPanelDouble( "Min", min, spinnerStepSize );
 			minSlider.setNumColummns( 10 );
-
-			// TODO: adapt the number of decimal places to the current range
-			minSlider.setDecimalFormat( "#####.####" );
+			minSlider.setDecimalFormat( decimalFormat );
 
 			final SliderPanelDouble maxSlider =
 					new SliderPanelDouble( "Max", max, spinnerStepSize );
 			maxSlider.setNumColummns( 10 );
-			maxSlider.setDecimalFormat( "#####.####" );
-			//maxSlider.setDecimalFormat( "####E0" );
+			maxSlider.setDecimalFormat( decimalFormat );
 
 			final BrightnessUpdateListener brightnessUpdateListener = new BrightnessUpdateListener( min, max, minSlider, maxSlider, converterSetups );
 
 			min.setUpdateListener( brightnessUpdateListener );
 			max.setUpdateListener( brightnessUpdateListener );
 
-			panel.add( minSlider );
-			panel.add( maxSlider );
+			JPanel minPanel = SwingHelper.horizontalLayoutPanel();
+			minPanel.add( minSlider );
+			panel.add( minPanel );
 
+			JPanel maxPanel = SwingHelper.horizontalLayoutPanel();
+			maxPanel.add( maxSlider );
+			panel.add( maxPanel );
 
 			JButton autoButton = new JButton("Auto Contrast");
 			autoButton.addActionListener( e ->
@@ -610,7 +568,9 @@ public class UserInterfaceHelper
 				new OpacityUpdateListener( selection, opacitySlider, sacs, bdvHandle );
 
 		selection.setUpdateListener( opacityUpdateListener );
-		panel.add( opacitySlider );
+		JPanel opacityPanel = SwingHelper.horizontalLayoutPanel();
+		opacityPanel.add( opacitySlider );
+		panel.add( opacityPanel );
 
 		//Display the window.
 		frame.setContentPane( panel );
@@ -1303,7 +1263,7 @@ public class UserInterfaceHelper
 
 		button.addActionListener( e ->
 		{
-			JFrame jFrame = showOpacityAndContrastLimitsDialog(
+			JFrame jFrame = showContrastDialog(
 					name,
 					sourceAndConverters,
 					bdvHandle,
