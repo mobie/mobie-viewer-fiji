@@ -5,7 +5,7 @@ package org.embl.mobie.lib.table.columns;
  * row values of a "MoBIE collection table".
  *
  * Tables following this specification can be opened in MoBIE/Fiji via
- * "MoBIE>Open>Open Collection Table..."
+ * MoBIE..Open..Open Collection Table...
  *
  * The table currently MUST be a TAB separated text file.
  * - see the "affine" column for why we currently cannot support COMMA separation
