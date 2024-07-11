@@ -9,7 +9,7 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>5.2.2-SNAPSHOT</version>
+    <version>5.2.3-SNAPSHOT</version>
 
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
 
@@ -67,7 +67,7 @@
     <scm>
         <connection>scm:git:https://github.com/mobie/mobie-viewer-fiji</connection>
         <developerConnection>scm:git:git@github.com:mobie/mobie-viewer-fiji</developerConnection>
-        <tag>mobie-viewer-fiji-5.2.3</tag>
+        <tag>mobie-viewer-fiji-5.2.2</tag>
         <url>https://github.com/mobie/mobie-viewer-fiji</url>
     </scm>
     <issueManagement>

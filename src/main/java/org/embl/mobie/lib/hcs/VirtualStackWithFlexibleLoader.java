@@ -42,7 +42,6 @@ import java.io.File;
 import java.util.Properties;
 
 
-/** Copied VirtualStack that uses BioFormats as a reader. */
 public class VirtualStackWithFlexibleLoader extends ImageStack
 {
     private static final int INITIAL_SIZE = 100;
@@ -58,24 +57,12 @@ public class VirtualStackWithFlexibleLoader extends ImageStack
     private int[] indexes;  // used to translate non-CZT hyperstack slice numbers
 
 
-    /** Default constructor. */
     public VirtualStackWithFlexibleLoader() { }
 
     public VirtualStackWithFlexibleLoader( int width, int height) {
         super(width, height);
     }
 
-    /**
-     * Creates an empty virtual stack.
-     *
-     * @param width           image width
-     * @param height          image height
-     * @param cm              ColorModel or null
-     * @param path            file path of directory containing the images
-     * @param imageDataFormat
-     * @see #addSlice(String)
-     * @see <a href="http://wsr.imagej.net/macros/js/OpenAsVirtualStack.js">OpenAsVirtualStack.js</a>
-     */
     public VirtualStackWithFlexibleLoader( int width, int height, ColorModel cm, String path, ImageDataFormat imageDataFormat ) {
         super(width, height, cm);
         this.imageDataFormat = imageDataFormat;
@@ -85,16 +72,10 @@ public class VirtualStackWithFlexibleLoader extends ImageStack
         labels = new String[INITIAL_SIZE];
     }
 
-    /** Creates a virtual stack with no backing storage.<br>
-     * See: Help&gt;Examples&gt;JavaScript&gt;Terabyte VirtualStack
-     */
     public VirtualStackWithFlexibleLoader( int width, int height, int slices) {
         this(width, height, slices, "8-bit");
     }
 
-    /** Creates a virtual stack with no backing storage.<br>
-     * See: Help&gt;Examples&gt;JavaScript&gt;Terabyte VirtualStack
-     */
     public VirtualStackWithFlexibleLoader( int width, int height, int slices, String options) {
         super(width, height, null);
         nSlices = slices;
@@ -107,12 +88,6 @@ public class VirtualStackWithFlexibleLoader extends ImageStack
         this.bitDepth = depth;
     }
 
-    /** Adds an image to the end of a virtual stack created using the
-     * VirtualStack(w,h,cm,path) constructor. The argument
-     * can be a full file path (e.g., "C:/Users/wayne/dir1/image.tif")
-     * if the 'path' argument in the constructor is "". File names
-     * that start with '.' are ignored.
-     */
     public void addSlice(String fileName) {
         if (fileName==null)
             throw new IllegalArgumentException("'fileName' is null!");
@@ -132,19 +107,15 @@ public class VirtualStackWithFlexibleLoader extends ImageStack
         names[nSlices-1] = fileName;
     }
 
-    /** Does nothing. */
     public void addSlice(String sliceLabel, Object pixels) {
     }
 
-    /** Does nothing.. */
     public void addSlice(String sliceLabel, ImageProcessor ip) {
     }
 
-    /** Does noting. */
     public void addSlice(String sliceLabel, ImageProcessor ip, int n) {
     }
 
-    /** Deletes the specified slice, where {@literal 1<=n<=nslices}. */
     public void deleteSlice(int n) {
         if (nSlices==0)
             return;
@@ -156,14 +127,12 @@ public class VirtualStackWithFlexibleLoader extends ImageStack
         nSlices--;
     }
 
-    /** Deletes the last slice in the stack. */
     public void deleteLastSlice() {
         int n = size();
         if (n>0)
             deleteSlice(n);
     }
 
-    /** Returns the pixel array for the specified slice, where {@literal 1<=n<=nslices}. */
     public Object getPixels(int n) {
         ImageProcessor ip = getProcessor(n);
         if (ip!=null)
@@ -172,14 +141,9 @@ public class VirtualStackWithFlexibleLoader extends ImageStack
             return null;
     }
 
-    /** Assigns a pixel array to the specified slice, where {@literal 1<=n<=nslices}. */
     public void setPixels(Object pixels, int n) {
     }
 
-    /** Returns an ImageProcessor for the specified slice,
-     * where {@literal 1<=n<=nslices}. Returns null if
-     * the stack is empty.
-     */
     public ImageProcessor getProcessor(int n) {
         if (path==null) {  //Help>Examples?JavaScript>Terabyte VirtualStack
             ImageProcessor ip = null;
@@ -285,12 +249,10 @@ public class VirtualStackWithFlexibleLoader extends ImageStack
         ip.drawString(msg, size, size*2);
     }
 
-    /** Currently not implemented */
     public int saveChanges(int n) {
         return -1;
     }
 
-    /** Returns the number of slices in this stack. */
     public int size() {
         return getSize();
     }
@@ -299,7 +261,6 @@ public class VirtualStackWithFlexibleLoader extends ImageStack
         return nSlices;
     }
 
-    /** Returns the label of the Nth image. */
     public String getSliceLabel(int n) {
         if (labels==null)
             return null;
@@ -314,40 +275,32 @@ public class VirtualStackWithFlexibleLoader extends ImageStack
         }
     }
 
-    /** Returns null. */
     public Object[] getImageArray() {
         return null;
     }
 
-    /** Does nothing. */
     public void setSliceLabel(String label, int n) {
     }
 
-    /** Always return true. */
     public boolean isVirtual() {
         return true;
     }
 
-    /** Does nothing. */
     public void trim() {
     }
 
-    /** Returns the path to the directory containing the images. */
     public String getDirectory() {
         return IJ.addSeparator(path);
     }
 
-    /** Returns the file name of the specified slice, where {@literal 1<=n<=nslices}. */
     public String getFileName(int n) {
         return names[n-1];
     }
 
-    /** Sets the bit depth (8, 16, 24 or 32). */
     public void setBitDepth(int bitDepth) {
         this.bitDepth = bitDepth;
     }
 
-    /** Returns the bit depth (8, 16, 24 or 32), or 0 if the bit depth is not known. */
     public int getBitDepth() {
         return bitDepth;
     }
@@ -366,24 +319,20 @@ public class VirtualStackWithFlexibleLoader extends ImageStack
         return this;
     }
 
-    /** Returns the ImagePlus Properties assoctated with the current slice, or null. */
     public Properties getProperties() {
         return properties;
     }
 
-    /** Sets the table that translates slice numbers of hyperstacks not in default CZT order. */
     public void setIndexes(int[] indexes) {
         this.indexes = indexes;
     }
 
-    /** Translates slice numbers of hyperstacks not in default CZT order. */
     public int translate(int n) {
         int n2 = (indexes!=null&&indexes.length==getSize()) ? indexes[n-1]+1 : n;
         //IJ.log("translate: "+n+" "+n2+" "+getSize()+" "+(indexes!=null?indexes.length:null));
         return n2;
     }
 
-    /** Reduces the number of slices in this stack by a factor. */
     public void reduce(int factor) {
         if (factor<2 || nSlices/factor<1 || names==null)
             return;
