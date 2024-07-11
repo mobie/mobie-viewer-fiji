@@ -1,6 +1,5 @@
 package org.embl.mobie.lib.create.ui;
 
-import javafx.scene.control.ComboBox;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.serialize.View;
