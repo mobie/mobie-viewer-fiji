@@ -70,7 +70,7 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	@Override
 	public BlendingMode getBlendingMode()
 	{
-		return blendingMode;
+		return blendingMode != null ? blendingMode : BlendingMode.Sum;
 	}
 
 	@Override
@@ -89,5 +89,10 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	public void setOpacity( double opacity )
 	{
 		this.opacity = opacity;
+	}
+
+	public void setBlendingMode( BlendingMode blendingMode )
+	{
+		this.blendingMode = blendingMode;
 	}
 }

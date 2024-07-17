@@ -31,6 +31,7 @@ package org.embl.mobie.command.open;
 import loci.common.DebugTools;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.ProjectType;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.lib.MoBIEHelper;
@@ -59,8 +60,16 @@ public class OpenCollectionTableCommand implements Command {
 	{
 		DebugTools.setRootLevel( "OFF" );
 
-		final MoBIESettings settings = new MoBIESettings();
+		final MoBIESettings settings = new MoBIESettings()
+				.projectType( ProjectType.CollectionTable );
 
-		new MoBIE( MoBIEHelper.toURI( table ), settings, true );
+		try
+		{
+			new MoBIE( MoBIEHelper.toURI( table ), settings );
+		}
+		catch ( IOException e )
+		{
+			throw new RuntimeException( e );
+		}
 	}
 }

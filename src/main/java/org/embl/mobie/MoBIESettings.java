@@ -120,6 +120,12 @@ public class MoBIESettings
 		return this;
 	}
 
+	public MoBIESettings projectType( ProjectType projectType )
+	{
+		this.values.projectType = projectType;
+		return this;
+	}
+
 
 	public static class Values
 	{
@@ -134,6 +140,7 @@ public class MoBIESettings
 		private String view = View.DEFAULT;
 		private VoxelDimensions voxelDimensions = null;
 		private Boolean openedFromCLI = false; // started from CLI
+		private ProjectType projectType = ProjectType.MoBIEJSON;
 		private String groovyScript = "";
 
 		public VoxelDimensions getVoxelDimensions()
@@ -196,5 +203,9 @@ public class MoBIESettings
 			return openedFromCLI;
 		}
 
+		public ProjectType getProjectType()
+		{
+			return projectType;
+		}
 	}
 }

@@ -46,6 +46,7 @@ import org.scijava.ui.behaviour.Behaviour;
 import org.scijava.ui.behaviour.BehaviourMap;
 import sc.fiji.bdvpg.bdv.supplier.IBdvSupplier;
 
+import javax.swing.*;
 import java.awt.*;
 
 public class MobieBdvSupplier implements IBdvSupplier {
@@ -87,7 +88,11 @@ public class MobieBdvSupplier implements IBdvSupplier {
         bdvHandle.getViewerPanel().state().removeSource( bdvHandle.getViewerPanel().state().getCurrentSource() );
 
         // remove manual transform keyboard shortcut
+        JFrame bdvFrame = (JFrame) SwingUtilities.getWindowAncestor(bdvHandle.getViewerPanel());
 
+        // Get the existing menu bar
+        // Here we could add or remove stuff...
+        JMenuBar menuBar = bdvFrame.getJMenuBar();
 
         setTimepointTextColor( bdvHandle );
 

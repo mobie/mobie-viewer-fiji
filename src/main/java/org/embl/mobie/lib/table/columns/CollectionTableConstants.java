@@ -35,25 +35,6 @@ public class CollectionTableConstants
     public static final String URI = "uri";
 
     /**
-     * The "name" column MAY be present.
-     *
-     * It specifies how the default view for this data is called within the MoBIE UI.
-     *
-     * Supported values:
-     * - Free text (Recommendation: keep it short)
-     *
-     * Default value: a name will be automatically derived from the URI.
-     * The default value will be assigned if
-     * - this column is absent.
-     * - the value is empty.
-     *
-     * The name SHOULD be unique;
-     * if there are several rows with the same name,
-     * only the last one will be accessible in the MoBIE UI.
-     */
-    public static final String NAME = "name";
-
-    /**
      * The "type" column MAY be present.
      *
      * It specifies what pixel type the data is.
@@ -112,6 +93,21 @@ public class CollectionTableConstants
     public static final String COLOR = "color";
 
     /**
+     * The "blend" column MAY be present.
+     *
+     * The value determines the blending mode for this image.
+     *
+     * The value MUST be one of "sum" or "alpha".
+     *
+     * Default value: "sum"
+     * The default value will be assigned if
+     * - this column is absent.
+     * - the value cannot be parsed to a {@code BlendingMode}
+     */
+    public static final String BLEND = "blend";
+
+
+    /**
      * The "affine" column MAY be present.
      *
      * The value will determine an affine transformation that will
@@ -165,4 +161,31 @@ public class CollectionTableConstants
      *   a CLEM experiment.
      */
     public static final String VIEW = "view";
+
+
+    /**
+     * The "group" column MAY be present.
+     *
+     * The value will create a UI selection group in the MoBIE user interface
+     * to which the view of this image will be added.
+     * Note that each image will be anyway visible via its own view,
+     * whose name is determined by the "name" column.
+     *
+     * Supported values:
+     * - Free text
+     *
+     * Default value: "views"
+     * The default value will be assigned if
+     * - this column is absent.
+     * - the table cell is empty.
+     *
+     * Use cases:
+     * - One can add data from an URI a second time, but
+     *   with a different "affine" transform, or a different "channel"
+     * - One can combine several images into the same view, e.g.
+     *   different channels of the same image, or an image and a corresponding
+     *   label mask (segmentation) image, or several (registered) images of
+     *   a CLEM experiment.
+     */
+    public static final String GROUP = "group";
 }

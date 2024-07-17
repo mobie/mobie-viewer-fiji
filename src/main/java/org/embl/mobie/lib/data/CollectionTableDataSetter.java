@@ -1,12 +1,11 @@
 package org.embl.mobie.lib.data;
 
 import ij.IJ;
-import ij.ImagePlus;
 import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.io.imagedata.TIFFImageData;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.Dataset;
@@ -18,14 +17,12 @@ import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
-import org.embl.mobie.lib.table.TableSource;
 import org.embl.mobie.lib.table.columns.CollectionTableConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -51,7 +48,6 @@ public class CollectionTableDataSetter
             storageLocation.absolutePath = getUri( row );
             ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( storageLocation.absolutePath );
             // FIXME: how to decide?
-            //        for big TIFF images we should use BioFormats...
             //imageDataFormat = ImageDataFormat.BioFormats;
             storageLocation.setChannel( getChannel( row ) ); // TODO: Fetch from table or URI? https://forum.image.sc/t/loading-only-one-channel-from-an-ome-zarr/97798
             String imageName = getName( row );
@@ -60,20 +56,20 @@ public class CollectionTableDataSetter
             Display< ? > display;
             if ( pixelType.equals( CollectionTableConstants.LABELS )  )
             {
-                // TODO: label table path could be fetched from collection table
-                final TableSource tableSource = null;
-
                 SegmentationDataSource segmentationDataSource =
                         SegmentationDataSource.create(
                                 imageName,
                                 imageDataFormat,
                                 storageLocation,
-                                tableSource );
+                                null // TODO: label table path could be fetched from collection table
+                        );
 
                 segmentationDataSource.preInit( false );
                 dataset.addDataSource( segmentationDataSource );
 
-                display = createLabelsDisplay( imageName );
+                display = createSegmentationDisplay(
+                        imageName,
+                        row );
             }
             else // intensities
             {
@@ -81,7 +77,9 @@ public class CollectionTableDataSetter
                 imageDataSource.preInit( false );
                 dataset.addDataSource( imageDataSource );
 
-                display = createImageDisplay( imageName, row );
+                display = createImageDisplay(
+                        imageName,
+                        row );
             }
 
             addDisplayToViews( dataset, display, row );
@@ -100,21 +98,8 @@ public class CollectionTableDataSetter
 
     private static String getName( Row row )
     {
-        try
-        {
-            String name = row.getString( CollectionTableConstants.NAME );
-
-            if ( name.isEmpty() )
-                throw new UnsupportedOperationException("The name must not be empty.");
-
-            return name;
-        }
-        catch ( Exception e )
-        {
-            String uri = getUri( row );
-            String name = FilenameUtils.removeExtension( IOHelper.getFileName( uri ) );
-            return name;
-        }
+        String uri = getUri( row );
+        return FilenameUtils.removeExtension( IOHelper.getFileName( uri ) );
     }
 
     private static String getPixelType( Row row )
@@ -143,30 +128,11 @@ public class CollectionTableDataSetter
     @NotNull
     private static void addDisplayToViews( Dataset dataset, Display< ? > display, Row row )
     {
-        // add view for the display of this row
-        //
-        String uiGroupName = ( display instanceof SegmentationDisplay ) ? CollectionTableConstants.LABELS : CollectionTableConstants.INTENSITIES;
-
         List< Transformation > transforms = getTransforms( display.getName(), row );
         ArrayList< Display< ? > > displays = new ArrayList<>();
         displays.add( display );
 
-        final View view = new View(
-                display.getName(),
-                uiGroupName,
-                displays,
-                transforms, // asserting that display name == image name
-                null,
-                false,
-                null );
-
-        dataset.views().put( view.getName(), view );
-
-        // if requested by the table row, add display to another view,
-        // which probably will combine several displays
-
-        String viewName = getViewName( row );
-        if ( viewName == null || viewName.isEmpty() ) return;
+        String viewName = getViewName( display, row );
 
         if ( dataset.views().containsKey( viewName ) )
         {
@@ -181,7 +147,7 @@ public class CollectionTableDataSetter
         {
             final View newView = new View(
                     viewName,
-                    "views",
+                    getGroup( display ),
                     displays,
                     transforms, // asserting that display name == image name
                     null,
@@ -193,23 +159,40 @@ public class CollectionTableDataSetter
 
     }
 
-    private static String getViewName( Row row )
+    @NotNull
+    private static String getGroup( Display< ? > display )
+    {
+        // TODO: fetch from table
+        return "views";
+    }
+
+    private static String getViewName( Display< ? > display, Row row )
     {
         try
         {
             String name = row.getString( CollectionTableConstants.VIEW );
-            if ( name.isEmpty() ) return null;
+
+            if ( name.isEmpty() )
+                return display.getName();
+
             return name;
-        } catch ( Exception e )
+        }
+        catch ( Exception e )
         {
-            return null;
+            return display.getName();
         }
     }
 
     @NotNull
-    private static SegmentationDisplay< ? > createLabelsDisplay( String name )
+    private static SegmentationDisplay< ? > createSegmentationDisplay( String name, Row row )
     {
-        final SegmentationDisplay< ? > display = new SegmentationDisplay<>( name, Arrays.asList( name ) );
+        final SegmentationDisplay< ? > display =
+                new SegmentationDisplay<>(
+                        name,
+                        Arrays.asList( name ) );
+
+        display.setBlendingMode( getBlendingMode( row ) );
+
         return display;
     }
 
@@ -218,12 +201,32 @@ public class CollectionTableDataSetter
     {
         final ImageDisplay< ? > display = new ImageDisplay<>(
                 imageName,
+                1.0,
                 Collections.singletonList( imageName ),
                 getColor( row ), // ColorHelper.getString( metadata.getColor() ),
-                null //new double[]{ metadata.minIntensity(), metadata.minIntensity() }
+                null, //new double[]{ metadata.minIntensity(), metadata.minIntensity() }
+                getBlendingMode( row ),
+                false
                 );
 
         return display;
+    }
+
+    private static BlendingMode getBlendingMode( Row row )
+    {
+        try
+        {
+            String string = row.getString( CollectionTableConstants.BLEND );
+
+            if ( string.toLowerCase().equals( "alpha" ) )
+                return BlendingMode.Alpha;
+
+            return null;
+        }
+        catch ( Exception e )
+        {
+            return null;
+        }
     }
 
     @Nullable

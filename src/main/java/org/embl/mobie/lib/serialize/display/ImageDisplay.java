@@ -60,12 +60,22 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	public transient ImageSliceView< ?> imageSliceView;
 	public transient ImageVolumeViewer imageVolumeViewer;
 
-	public ImageDisplay( String name, List< String > sources, String color, double[] contrastLimits )
+	public ImageDisplay(
+			String name,
+			List< String > sources,
+			String color,
+			double[] contrastLimits )
 	{
 		this( name, sources, color, contrastLimits, false, null );
 	}
 
-	public ImageDisplay( String name, List< String > sources, String color, double[] contrastLimits, boolean showImagesIn3d, Double[] resolution3dView )
+	public ImageDisplay(
+			String name,
+			List< String > sources,
+			String color,
+			double[] contrastLimits,
+			boolean showImagesIn3d,
+			Double[] resolution3dView )
 	{
 		this.name = name;
 		this.sources = sources;
@@ -85,7 +95,15 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	}
 
 	// Project creator serialization
-	public ImageDisplay( String name, double opacity, List< String > sources, String color, double[] contrastLimits, BlendingMode blendingMode, boolean showImagesIn3d ) {
+	public ImageDisplay(
+			String name,
+			double opacity,
+			List< String > sources,
+			String color,
+			double[] contrastLimits,
+			BlendingMode blendingMode,
+			boolean showImagesIn3d )
+	{
 		this.name = name;
 		this.opacity = opacity;
 		this.sources = sources;
@@ -145,6 +163,7 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	{
 		return blendingMode != null ? blendingMode : BlendingMode.Sum;
 	}
+
 
 	public Double[] getResolution3dView() { return resolution3dView; }
 

@@ -64,15 +64,11 @@ public enum BlendingMode
 	@SerializedName("averageOccluding") @Deprecated
 	AverageOccluding;
 
-	// To use in Commands until they can do enums as choices
-	public static final String SUM = "Sum";
-	public static final String ALPHA = "Alpha";
-
 	// For alpha blending
 	public static final String TIME_ADDED = "TA";
 
-	// It is unclear whether this is used
+	// It is unclear whether the below is used
 	// https://github.com/mobie/mobie-viewer-fiji/issues/850
-	// As it does not hurt we left it in.
+	// ...as it does not hurt we left it in.
 	public static final String BLENDING_MODE = "Blending Mode";
 }

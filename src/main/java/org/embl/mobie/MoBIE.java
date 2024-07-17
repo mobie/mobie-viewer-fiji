@@ -101,25 +101,42 @@ public class MoBIE
 	private String projectRoot = "";
 	private String imageRoot = "";
 	private String tableRoot = "";
-
 	private ViewManager viewManager;
 	private UserInterface userInterface;
 	private final ArrayList< String > projectCommands = new ArrayList<>();
 
-	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
+	public MoBIE( String uri, MoBIESettings settings ) throws IOException
 	{
 		this.settings = settings;
-		this.projectLocation = projectLocation;
+		this.projectLocation = uri;
 
-		initTableSaw();
+		if ( settings.values.getProjectType().equals( ProjectType.CollectionTable ) )
+		{
+			IJ.log("\n# MoBIE" );
+			IJ.log("Opening collection table: " + uri );
 
-		initImageJAndMoBIE();
+			final Table table = TableOpener.openDelimitedTextFile( uri );
 
-		IJ.log("\n# MoBIE" );
-		IJ.log("Opening: " + projectLocation );
-		IJ.log("Branch: " + settings.values.getProjectBranch() );
+			initImageJAndMoBIE();
+			initProject( IOHelper.getFileName( uri ) );
 
-		openMoBIEProject();
+			CollectionTableDataSetter dataSetter = new CollectionTableDataSetter( table );
+			dataSetter.addToDataset( dataset );
+			dataset.is2D( false ); // TODO: determine from data?!
+
+			initUiAndShowView( dataset.views().values().iterator().next().getName() );
+		}
+		else if ( settings.values.getProjectType().equals( ProjectType.MoBIEJSON ) )
+		{
+			initTableSaw();
+			initImageJAndMoBIE();
+
+			IJ.log( "\n# MoBIE" );
+			IJ.log( "Opening: " + uri );
+			IJ.log( "Branch: " + settings.values.getProjectBranch() );
+
+			openMoBIEProject();
+		}
 	}
 
 	public static MoBIE getInstance()
@@ -180,27 +197,6 @@ public class MoBIE
 		Table regionTable = sourcesCreator.getRegionTable();
 
 		openImageAndLabelGrids( imageSources, labelSources, regionTable );
-	}
-
-	// Open a MoBIE table with MoBIETableColumnNames
-	// TODO: get rid of the boolean with for now is just not to have the same signature twice
-	public MoBIE( String tablePath, MoBIESettings settings, boolean isCollectionTable )
-	{
-		settings = settings;
-
-		IJ.log("\n# MoBIE" );
-		IJ.log("Opening collection table: " + tablePath );
-
-		final Table table = TableOpener.openDelimitedTextFile( tablePath );
-
-		initImageJAndMoBIE();
-		initProject( IOHelper.getFileName( tablePath ) );
-
-		CollectionTableDataSetter dataSetter = new CollectionTableDataSetter( table );
-		dataSetter.addToDataset( dataset );
-		dataset.is2D(false); // TODO: determine from data?
-
-		initUiAndShowView( dataset.views().values().iterator().next().getName() );
 	}
 
 	private void initTableSaw()

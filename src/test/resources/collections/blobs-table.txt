@@ -1,4 +1,4 @@
-uri	name	type	affine	color	view
-/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/blobs.tif	shifted blobs	intensities	(1,0,0,-80,0,1,0,0,0,0,1,0)	green	
-/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/blobs.tif		intensities			segmented blobs
-/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/blobs-labels.tif		labels			segmented blobs
+uri	type	affine	color	view
+/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/blobs.tif	intensities	(1,0,0,-80,0,1,0,0,0,0,1,0)	green	
+/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/blobs.tif	intensities			segmented blobs
+/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/blobs-labels.tif	labels			segmented blobs
