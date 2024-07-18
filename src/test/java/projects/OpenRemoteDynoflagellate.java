@@ -40,6 +40,6 @@ public class OpenRemoteDynoflagellate
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE( "https://github.com/mobie/environmental-dinoflagellate-vCLEM", new MoBIESettings() );
+		new MoBIE( "https://github.com/mobie/environmental-dinoflagellate-vCLEM",  new MoBIESettings() );
 	}
 }

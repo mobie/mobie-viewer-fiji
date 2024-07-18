@@ -33,7 +33,6 @@ import org.embl.mobie.MoBIESettings;
 import net.imagej.ImageJ;
 
 import java.io.IOException;
-import org.embl.mobie.io.ImageDataFormat;
 
 public class OpenLocalTobias
 {
@@ -43,7 +42,7 @@ public class OpenLocalTobias
 		imageJ.ui().showUI();
 		try {
 			new MoBIE("/g/schwab/Tobias/MoBIE",
-					MoBIESettings.settings() );
+                   MoBIESettings.settings() );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

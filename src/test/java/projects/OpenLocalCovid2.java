@@ -42,7 +42,7 @@ public class OpenLocalCovid2
 		imageJ.ui().showUI();
 
 		try {
-			new MoBIE("/g/kreshuk/pape/Work/data/mobie/covid-if-2", MoBIESettings.settings().view( "segmentations" ) );//.getViewManager().show( "cell-segmentation" );
+			new MoBIE("/g/kreshuk/pape/Work/data/mobie/covid-if-2",MoBIESettings.settings().view( "segmentations" ) );//.getViewManager().show( "cell-segmentation" );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

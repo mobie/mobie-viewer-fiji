@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.lib;
 
-import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.io.ImageDataFormat;
@@ -44,8 +43,6 @@ import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.janelia.saalfeldlab.n5.universe.metadata.canonical.CanonicalDatasetMetadata;
-import org.janelia.saalfeldlab.n5.universe.metadata.canonical.CanonicalSpatialDatasetMetadata;
-import spimdata.util.Displaysettings;
 
 import java.io.File;
 import java.util.Arrays;
@@ -110,7 +107,7 @@ public class ImageDataAdder
 			}
 
 			dataSource.preInit( true );
-			dataset.addDataSource( dataSource );
+			dataset.putDataSource( dataSource );
 			dataset.is2D( MoBIEHelper.is2D( imageData, datasetIndex ) );
 		}
 	}

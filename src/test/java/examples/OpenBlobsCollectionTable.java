@@ -1,24 +1,20 @@
 package examples;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.open.OpenCollectionTableCommand;
 
 import java.io.File;
 
-public class OpenCollectionTable
+public class OpenBlobsCollectionTable
 {
     public static void main( String[] args )
     {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        String tablePath = "src/test/resources/collections/blobs-table.txt";
-        File tableFile = new File( tablePath );
-
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.table = tableFile;
+        command.table = new File( "src/test/resources/collections/blobs-table.txt" );
+        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources" );
         command.run();
     }
 }

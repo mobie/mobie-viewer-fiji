@@ -28,7 +28,6 @@
  */
 package projects;
 
-import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import net.imagej.ImageJ;
@@ -39,6 +38,6 @@ public class OpenLocalOmeZarr {
     public static void main(String[] args) throws IOException {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        new MoBIE( "/g/kreshuk/pape/Work/mobie/covid-if-project/data", MoBIESettings.settings() );
+        new MoBIE( "/g/kreshuk/pape/Work/mobie/covid-if-project/data",MoBIESettings.settings() );
     }
 }

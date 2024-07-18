@@ -28,7 +28,6 @@
  */
 package develop;
 
-import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import net.imagej.ImageJ;
@@ -47,8 +46,7 @@ public class DevelopNormalisedViewerTransforms
 		testNormalisationAndReversion();
 
 		try {
-			final MoBIE moBIE = new MoBIE("https://github.com/mobie-org/covid-em-datasets",
-					MoBIESettings.settings() );
+			final MoBIE moBIE = new MoBIE("https://github.com/mobie-org/covid-em-datasets", MoBIESettings.settings() );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

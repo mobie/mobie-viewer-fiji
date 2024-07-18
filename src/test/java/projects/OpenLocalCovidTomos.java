@@ -28,7 +28,6 @@
  */
 package projects;
 
-import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import net.imagej.ImageJ;
@@ -42,7 +41,7 @@ public class OpenLocalCovidTomos
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 		try {
-			new MoBIE("/Volumes/kreshuk/pape/Work/mobie/covid-tomo-datasets", MoBIESettings.settings() );
+			new MoBIE("/Volumes/kreshuk/pape/Work/mobie/covid-tomo-datasets",MoBIESettings.settings() );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

@@ -33,19 +33,13 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.ProjectType;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.lib.MoBIEHelper;
-import org.embl.mobie.lib.transform.GridType;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Collection Table..." )
 public class OpenCollectionTableCommand implements Command {
@@ -55,16 +49,24 @@ public class OpenCollectionTableCommand implements Command {
 	@Parameter( label = "Table Path", required = true )
 	public File table;
 
+	@Parameter( label = "Data Root Folder",
+			style = "directory",
+			description = "Use this is if the paths to the images and labels in the table are relative.",
+			required = false )
+	public File dataRoot;
+
 	@Override
 	public void run()
 	{
 		DebugTools.setRootLevel( "OFF" );
 
 		final MoBIESettings settings = new MoBIESettings()
-				.projectType( ProjectType.CollectionTable );
+				.projectType( ProjectType.CollectionTable )
+				.dataRoot( dataRoot.getAbsolutePath() );
 
 		try
 		{
+			String rootPath = dataRoot == null ? null : dataRoot.getAbsolutePath();
 			new MoBIE( MoBIEHelper.toURI( table ), settings );
 		}
 		catch ( IOException e )

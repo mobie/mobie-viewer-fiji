@@ -140,9 +140,8 @@ public class CollectionTableConstants
     /**
      * The "view" column MAY be present.
      *
-     * The value will determine to which view this image will be added.
-     * Note that each image will be anyway visible via its own view,
-     * whose name is determined by the "name" column.
+     * The value will determine to which view this image will be added,
+     * i.e. at which name it can be accessed in the MoBIE UI.
      *
      * Supported values:
      * - Free text
@@ -153,7 +152,7 @@ public class CollectionTableConstants
      * - the value is empty.
      *
      * Use cases:
-     * - One can add data from an URI a second time, but
+     * - One can add data from the same URI a second time, but
      *   with a different "affine" transform, or a different "channel"
      * - One can combine several images into the same view, e.g.
      *   different channels of the same image, or an image and a corresponding
@@ -162,14 +161,11 @@ public class CollectionTableConstants
      */
     public static final String VIEW = "view";
 
-
     /**
      * The "group" column MAY be present.
      *
      * The value will create a UI selection group in the MoBIE user interface
      * to which the view of this image will be added.
-     * Note that each image will be anyway visible via its own view,
-     * whose name is determined by the "name" column.
      *
      * Supported values:
      * - Free text
@@ -180,12 +176,8 @@ public class CollectionTableConstants
      * - the table cell is empty.
      *
      * Use cases:
-     * - One can add data from an URI a second time, but
-     *   with a different "affine" transform, or a different "channel"
-     * - One can combine several images into the same view, e.g.
-     *   different channels of the same image, or an image and a corresponding
-     *   label mask (segmentation) image, or several (registered) images of
-     *   a CLEM experiment.
+     * - If you have a lot of data it can be helpful to
+     *   divide the views into groups.
      */
     public static final String GROUP = "group";
 }

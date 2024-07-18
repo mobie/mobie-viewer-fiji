@@ -29,7 +29,6 @@
 package projects;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 
@@ -41,6 +40,6 @@ public class OpenLocalGiuliaMartinCLEM
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE("/g/emcf/pape/clem-example-project", MoBIESettings.settings() );
+		new MoBIE("/g/emcf/pape/clem-example-project",MoBIESettings.settings() );
 	}
 }

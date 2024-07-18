@@ -42,6 +42,6 @@ public class OpenMinimalProjectLocalBlobs
 		imageJ.ui().showUI();
 
 		new MoBIE( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/minimal-mobie-project"
-				, new MoBIESettings() );
+				,  new MoBIESettings() );
 	}
 }

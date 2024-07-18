@@ -91,6 +91,6 @@ public class VolatileAnnotatedLabelSource< T extends IntegerType< T >, V extends
 
     private VolatileAnnotationType< A > createVariable()
     {
-        return new VolatileAnnotationType( annotationAdapter.createVariable(), true );
+        return new VolatileAnnotationType( new AnnotationType<>() , true ); // annotationAdapter.createVariable()
     }
 }

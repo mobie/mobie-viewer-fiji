@@ -60,9 +60,9 @@ public class OpenTableCommand implements Command {
 	@Parameter( label = "Labels Path Columns (Comma Separated)", required = false )
 	public String labels;
 
-	@Parameter( label = "Images & Labels Root Folder",
+	@Parameter( label = "Data Root Folder",
 			style = "directory",
-			description = "Use this is if the images and labels paths in the table are relative.",
+			description = "Use this is if the paths to the images and labels in the table are relative.",
 			required = false )
 	public File root;
 

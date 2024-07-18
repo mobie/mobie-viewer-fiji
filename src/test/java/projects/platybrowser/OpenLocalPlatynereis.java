@@ -41,6 +41,6 @@ public class OpenLocalPlatynereis
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		final MoBIE moBIE = new MoBIE( "/Volumes/cba/exchange/buglakova/platybrowser-smfish-project", new MoBIESettings() );
+		final MoBIE moBIE = new MoBIE( "/Volumes/cba/exchange/buglakova/platybrowser-smfish-project",  new MoBIESettings() );
 	}
 }

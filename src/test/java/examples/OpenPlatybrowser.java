@@ -42,6 +42,6 @@ public class OpenPlatybrowser
 		imageJ.ui().showUI();
 
 		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/covid-if-project",
-				MoBIESettings.settings().gitProjectBranch( "main" ).view( "default" ) );
+               MoBIESettings.settings().gitProjectBranch( "main" ).view( "default" ) );
 	}
 }

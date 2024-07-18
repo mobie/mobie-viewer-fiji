@@ -42,6 +42,6 @@ public class OpenEMXRAY
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
         MoBIESettings settings = new MoBIESettings(); //.view( "em-invert-sift-similarity_iat" );
-        new MoBIE("/Volumes/cba/exchange/em-xray-alignment/mobie", settings );
+        new MoBIE("/Volumes/cba/exchange/em-xray-alignment/mobie",  settings );
     }
 }

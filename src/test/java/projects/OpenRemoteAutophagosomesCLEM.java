@@ -33,7 +33,6 @@ import org.embl.mobie.MoBIESettings;
 import net.imagej.ImageJ;
 
 import java.io.IOException;
-import org.embl.mobie.io.ImageDataFormat;
 
 public class OpenRemoteAutophagosomesCLEM
 {
@@ -43,7 +42,7 @@ public class OpenRemoteAutophagosomesCLEM
 		imageJ.ui().showUI();
 		try {
 			new MoBIE("https://github.com/mobie-org/autophagosomes-clem-datasets",
-					MoBIESettings.settings() );
+                   MoBIESettings.settings() );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

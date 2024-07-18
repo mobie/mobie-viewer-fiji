@@ -32,7 +32,9 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.lib.ThreadHelper;
 import org.embl.mobie.lib.annotation.Annotation;
+import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
+import org.embl.mobie.lib.annotation.LazyAnnotatedSegmentAdapter;
 import org.embl.mobie.lib.image.*;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
@@ -113,23 +115,36 @@ public class ImageTransformer
 		return realTransformedImage;
 	}
 
-	private static < A extends Annotation, TA extends A > DefaultAnnotationLabelImage< TA > createTransformedAnnotatedLabelImage(
+	private static < A extends Annotation, TA extends A > DefaultAnnotationLabelImage< ? > createTransformedAnnotatedLabelImage(
 			AnnotationLabelImage< A > annotatedLabelImage,
 			AffineTransformation affineTransformation )
 	{
 		final Image< ? extends IntegerType< ? > > labelImage = annotatedLabelImage.getLabelImage();
-
+		final Image< ? extends IntegerType< ? > > transformedLabelImage = ( Image< ? extends IntegerType< ? > > ) affineTransform( labelImage, affineTransformation );
 		final AnnData< A > annData = annotatedLabelImage.getAnnData();
 
-		final AnnotationAffineTransformer< A, TA > affineTransformer = new AnnotationAffineTransformer<>( affineTransformation.getAffineTransform3D() );
+		AnnotationAdapter< A > annotationAdapter = annotatedLabelImage.getAnnotationAdapter();
 
-		TransformedAnnData< A, TA > transformedAnnData = new TransformedAnnData<>( annData, affineTransformer );
+		if ( annotationAdapter instanceof LazyAnnotatedSegmentAdapter )
+		{
+			// There are no annotations with coordinates,
+			// thus we do not need to transform them.
+			return new DefaultAnnotationLabelImage< A >( transformedLabelImage, annData, annotationAdapter );
+		}
+		else
+		{
+			final AnnotationAffineTransformer< A, TA > affineTransformer =
+					new AnnotationAffineTransformer<>( affineTransformation.getAffineTransform3D() );
 
-		final DefaultAnnotationAdapter< TA > annotationAdapter = new DefaultAnnotationAdapter<>( transformedAnnData, annotatedLabelImage.getName() );
+			TransformedAnnData< A, TA > transformedAnnData = new TransformedAnnData<>( annData, affineTransformer );
 
-		final Image< ? extends IntegerType< ? > > transformedLabelImage = ( Image< ? extends IntegerType< ? > > ) affineTransform( labelImage, affineTransformation );
+			AnnotationAdapter< TA > newAnnotationAdapter =
+					new DefaultAnnotationAdapter<>(
+							transformedAnnData,
+							annotatedLabelImage.getName() );
 
-        return new DefaultAnnotationLabelImage< TA >( transformedLabelImage, transformedAnnData, annotationAdapter );
+			return new DefaultAnnotationLabelImage< TA >( transformedLabelImage, transformedAnnData, newAnnotationAdapter );
+		}
 	}
 
 	public static List< ? extends Image< ? > > gridTransform( List< List< ? extends Image< ? > > > nestedImages, @Nullable List< List< String > > nestedTransformedNames, List< int[] > positions, double[] tileRealDimensions, boolean centerAtOrigin, double[] withinTileOffset )

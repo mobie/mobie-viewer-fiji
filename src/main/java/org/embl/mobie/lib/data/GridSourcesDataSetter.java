@@ -103,13 +103,13 @@ public class GridSourcesDataSetter
 					final TableSource tableSource = ( ( LabelGridSources ) sources ).getLabelTable( imageName );
 					SegmentationDataSource segmentationDataSource = SegmentationDataSource.create( imageName, imageDataFormat, storageLocation, tableSource );
 					segmentationDataSource.preInit( false );
-					dataset.addDataSource( segmentationDataSource );
+					dataset.putDataSource( segmentationDataSource );
 				}
 				else
 				{
 					final ImageDataSource imageDataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
 					imageDataSource.preInit( false );
-					dataset.addDataSource( imageDataSource );
+					dataset.putDataSource( imageDataSource );
 				}
 			}
 		}

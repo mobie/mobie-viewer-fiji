@@ -120,7 +120,7 @@ public class MoBIE
 			initImageJAndMoBIE();
 			initProject( IOHelper.getFileName( uri ) );
 
-			CollectionTableDataSetter dataSetter = new CollectionTableDataSetter( table );
+			CollectionTableDataSetter dataSetter = new CollectionTableDataSetter( table, settings.values.getDataRoot() );
 			dataSetter.addToDataset( dataset );
 			dataset.is2D( false ); // TODO: determine from data?!
 

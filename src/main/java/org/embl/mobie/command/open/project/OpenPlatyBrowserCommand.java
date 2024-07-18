@@ -49,7 +49,7 @@ public class OpenPlatyBrowserCommand implements Command
 
 		try
 		{
-			new MoBIE( "https://github.com/mobie/platybrowser-project", settings );
+			new MoBIE( "https://github.com/mobie/platybrowser-project",  settings );
 		}
 		catch ( IOException e )
 		{

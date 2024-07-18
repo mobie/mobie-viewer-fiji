@@ -28,7 +28,6 @@
  */
 package projects;
 
-import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import net.imagej.ImageJ;
@@ -42,7 +41,7 @@ public class OpenLocalAutophagosomesEM
 		new ImageJ().ui().showUI();
         try {
             new MoBIE("/g/kreshuk/pape/work/my_projects/autophagosoms-clem/data",
-                    MoBIESettings.settings() );
+                   MoBIESettings.settings() );
         } catch (IOException e) {
             e.printStackTrace();
         }

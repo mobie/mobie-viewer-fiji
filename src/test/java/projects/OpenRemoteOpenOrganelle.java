@@ -33,7 +33,6 @@ import org.embl.mobie.MoBIESettings;
 import net.imagej.ImageJ;
 
 import java.io.IOException;
-import org.embl.mobie.io.ImageDataFormat;
 
 public class OpenRemoteOpenOrganelle
 {
@@ -42,7 +41,7 @@ public class OpenRemoteOpenOrganelle
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
         try {
-            new MoBIE("https://github.com/mobie/open-organelle-test", MoBIESettings.settings() );
+            new MoBIE("https://github.com/mobie/open-organelle-test",MoBIESettings.settings() );
         } catch (IOException e) {
             e.printStackTrace();
         }

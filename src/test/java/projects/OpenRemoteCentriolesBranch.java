@@ -33,7 +33,6 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 
 import java.io.IOException;
-import org.embl.mobie.io.ImageDataFormat;
 
 public class OpenRemoteCentriolesBranch
 {
@@ -44,7 +43,7 @@ public class OpenRemoteCentriolesBranch
 
 		try {
 			new MoBIE("https://github.com/mobie/centrioles-tomo-datasets",
-					MoBIESettings.settings().gitProjectBranch( "grid-test-tomo" ) );
+                   MoBIESettings.settings().gitProjectBranch( "grid-test-tomo" ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

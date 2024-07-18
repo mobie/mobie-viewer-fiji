@@ -33,7 +33,6 @@ import org.embl.mobie.MoBIESettings;
 import net.imagej.ImageJ;
 
 import java.io.IOException;
-import org.embl.mobie.io.ImageDataFormat;
 
 public class OpenRemoteTomograms
 {
@@ -44,7 +43,7 @@ public class OpenRemoteTomograms
 
 		try {
 			new MoBIE("https://github.com/mobie/covid-tomo-datasets",
-					MoBIESettings.settings() );
+                   MoBIESettings.settings() );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

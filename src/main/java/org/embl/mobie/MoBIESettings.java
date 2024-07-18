@@ -108,12 +108,6 @@ public class MoBIESettings
 		return this;
 	}
 
-	public MoBIESettings appendGroovyCode( String groovyCode )
-	{
-		this.values.groovyScript += groovyCode;
-		return this;
-	}
-
 	public MoBIESettings openedFromCLI( Boolean cli )
 	{
 		this.values.openedFromCLI = cli;
@@ -123,6 +117,12 @@ public class MoBIESettings
 	public MoBIESettings projectType( ProjectType projectType )
 	{
 		this.values.projectType = projectType;
+		return this;
+	}
+
+	public MoBIESettings dataRoot( String dataRoot )
+	{
+		this.values.dataRoot = dataRoot;
 		return this;
 	}
 
@@ -141,7 +141,12 @@ public class MoBIESettings
 		private VoxelDimensions voxelDimensions = null;
 		private Boolean openedFromCLI = false; // started from CLI
 		private ProjectType projectType = ProjectType.MoBIEJSON;
-		private String groovyScript = "";
+		private String dataRoot = null;
+
+		public String getDataRoot()
+		{
+			return dataRoot;
+		}
 
 		public VoxelDimensions getVoxelDimensions()
 		{

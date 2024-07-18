@@ -91,7 +91,7 @@ public class MobieBdvSupplier implements IBdvSupplier {
         JFrame bdvFrame = (JFrame) SwingUtilities.getWindowAncestor(bdvHandle.getViewerPanel());
 
         // Get the existing menu bar
-        // Here we could add or remove stuff...
+        // TODO: Here we could add or remove stuff...
         JMenuBar menuBar = bdvFrame.getJMenuBar();
 
         setTimepointTextColor( bdvHandle );

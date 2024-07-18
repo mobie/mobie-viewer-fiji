@@ -119,4 +119,9 @@ public class DefaultAnnotationLabelImage< A extends Annotation > implements Anno
 		return labelImage;
 	}
 
+	@Override
+	public AnnotationAdapter< A > getAnnotationAdapter()
+	{
+		return annotationAdapter;
+	}
 }

@@ -40,7 +40,7 @@ public class OpenLocalJulianNoTables
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		final MoBIE moBIE = new MoBIE("/Volumes/emcf/hennies/for_constantin/mobie_no_table_test/", new MoBIESettings() );
+		final MoBIE moBIE = new MoBIE("/Volumes/emcf/hennies/for_constantin/mobie_no_table_test/",  new MoBIESettings() );
 		moBIE.getViewManager().show( "seg-test" );
 	}
 }

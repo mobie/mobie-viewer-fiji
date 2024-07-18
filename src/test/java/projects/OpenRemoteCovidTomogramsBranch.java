@@ -43,7 +43,7 @@ public class OpenRemoteCovidTomogramsBranch
 
 		try {
 			new MoBIE("https://github.com/mobie/covid-tomo-datasets",
-					MoBIESettings.settings().gitProjectBranch( "mobie3" ).view( "s5_mock_segmentation" ) );
+                   MoBIESettings.settings().gitProjectBranch( "mobie3" ).view( "s5_mock_segmentation" ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

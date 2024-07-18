@@ -28,7 +28,6 @@
  */
 package projects;
 
-import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import net.imagej.ImageJ;
@@ -43,7 +42,7 @@ public class OpenLocalCovidPlate
 		imageJ.ui().showUI();
 
 		try {
-			new MoBIE("/g/kreshuk/pape/Work/mobie/covid-if-project/data", MoBIESettings.settings() );
+			new MoBIE("/g/kreshuk/pape/Work/mobie/covid-if-project/data",MoBIESettings.settings() );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

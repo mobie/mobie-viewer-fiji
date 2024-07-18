@@ -145,7 +145,7 @@ public class HCSPlateAdder
 						//
 						String siteID = getSiteID( plate, channel, well, site );
 						ImageDataSource imageDataSource = createImageDataSource( channel, site, siteID );
-						dataset.addDataSource( imageDataSource );
+						dataset.putDataSource( imageDataSource );
 
 						// add site image source to site grid
 						siteGrid.sources.add( imageDataSource.getName() );
@@ -166,7 +166,7 @@ public class HCSPlateAdder
 						// the one site is the well
 						//
 						ImageDataSource imageDataSource = createImageDataSource( channel, site, wellID );
-						dataset.addDataSource( imageDataSource );
+						dataset.putDataSource( imageDataSource );
 					}
 				}
 

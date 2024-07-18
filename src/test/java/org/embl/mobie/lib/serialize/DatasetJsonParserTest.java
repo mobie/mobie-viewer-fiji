@@ -79,7 +79,7 @@ class DatasetJsonParserTest {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        final MoBIE moBIE = new MoBIE("https://github.com/mobie/platybrowser-project", MoBIESettings.settings());
+        final MoBIE moBIE = new MoBIE("https://github.com/mobie/platybrowser-project",MoBIESettings.settings());
 
         // show a view with a segmentation and
         // selected cells that loads fast, to test saving

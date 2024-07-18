@@ -110,7 +110,7 @@ public class CreateRafaelProject
 		}
 
 		// Show the project in MoBIE
-		new MoBIE( projectDirectory, new MoBIESettings() );
+		new MoBIE( projectDirectory,  new MoBIESettings() );
 	}
 
 	private static ImagePlus cropAndClearOutside( ImagePlus imp, Roi roi )

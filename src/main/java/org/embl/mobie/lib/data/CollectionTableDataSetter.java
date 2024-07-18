@@ -31,10 +31,12 @@ import java.util.List;
 public class CollectionTableDataSetter
 {
     private final Table table;
+    private final String rootPath;
 
-    public CollectionTableDataSetter( Table table )
+    public CollectionTableDataSetter( Table table, String rootPath )
     {
         this.table = table;
+        this.rootPath = rootPath;
     }
 
     public void addToDataset( Dataset dataset )
@@ -45,10 +47,12 @@ public class CollectionTableDataSetter
         for ( Row row : table )
         {
             final StorageLocation storageLocation = new StorageLocation();
+
             storageLocation.absolutePath = getUri( row );
+            if ( rootPath != null )
+                storageLocation.absolutePath = IOHelper.combinePath( rootPath, storageLocation.absolutePath );
+
             ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( storageLocation.absolutePath );
-            // FIXME: how to decide?
-            //imageDataFormat = ImageDataFormat.BioFormats;
             storageLocation.setChannel( getChannel( row ) ); // TODO: Fetch from table or URI? https://forum.image.sc/t/loading-only-one-channel-from-an-ome-zarr/97798
             String imageName = getName( row );
             String pixelType = getPixelType( row );
@@ -65,7 +69,7 @@ public class CollectionTableDataSetter
                         );
 
                 segmentationDataSource.preInit( false );
-                dataset.addDataSource( segmentationDataSource );
+                dataset.putDataSource( segmentationDataSource );
 
                 display = createSegmentationDisplay(
                         imageName,
@@ -75,7 +79,7 @@ public class CollectionTableDataSetter
             {
                 final ImageDataSource imageDataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
                 imageDataSource.preInit( false );
-                dataset.addDataSource( imageDataSource );
+                dataset.putDataSource( imageDataSource );
 
                 display = createImageDisplay(
                         imageName,
@@ -84,7 +88,8 @@ public class CollectionTableDataSetter
 
             addDisplayToViews( dataset, display, row );
 
-            IJ.log("## " + imageName );
+            IJ.log(" " );
+            IJ.log("Name: " + imageName );
             IJ.log("URI: " + storageLocation.absolutePath );
             IJ.log("Opener: " + imageDataFormat );
             IJ.log("Type: " + pixelType );
@@ -147,7 +152,7 @@ public class CollectionTableDataSetter
         {
             final View newView = new View(
                     viewName,
-                    getGroup( display ),
+                    getGroup( display, row ),
                     displays,
                     transforms, // asserting that display name == image name
                     null,
@@ -160,10 +165,21 @@ public class CollectionTableDataSetter
     }
 
     @NotNull
-    private static String getGroup( Display< ? > display )
+    private static String getGroup( Display< ? > display, Row row )
     {
-        // TODO: fetch from table
-        return "views";
+        try
+        {
+            String name = row.getString( CollectionTableConstants.GROUP );
+
+            if ( name.isEmpty() )
+                return "views";
+
+            return name;
+        }
+        catch ( Exception e )
+        {
+            return "views";
+        }
     }
 
     private static String getViewName( Display< ? > display, Row row )

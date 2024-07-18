@@ -28,7 +28,6 @@
  */
 package projects;
 
-import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import net.imagej.ImageJ;
@@ -43,7 +42,7 @@ public class OpenLocalCovidEMCF
 		imageJ.ui().showUI();
 		try {
 			new MoBIE("/Volumes/emcf/common/5792_Sars-Cov-2/covid-em/data",
-					MoBIESettings.settings() );
+                   MoBIESettings.settings() );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

@@ -41,7 +41,7 @@ public class OpenLocalBeckwith
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		final MoBIE moBIE = new MoBIE("/g/cba/exchange/marianne-beckwidth/220509_MSB26_sample2_MoBIE", new MoBIESettings().view( "default" ) );
+		final MoBIE moBIE = new MoBIE("/g/cba/exchange/marianne-beckwidth/220509_MSB26_sample2_MoBIE",  new MoBIESettings().view( "default" ) );
 
 	}
 }

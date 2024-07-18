@@ -1,4 +1,4 @@
 uri	type	affine	color	view
-/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/blobs.tif	intensities	(1,0,0,-80,0,1,0,0,0,0,1,0)	green	
-/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/blobs.tif	intensities			segmented blobs
-/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/blobs-labels.tif	labels			segmented blobs
+collections/blobs.tif	intensities	(10,0,0,0,0,10,0,0,0,0,1,0)		segmented blobs
+collections/blobs-labels.tif	labels	(10,0,0,0,0,10,0,0,0,0,1,0)		segmented blobs
+collections/mri-stack	intensities	(10,0,0,0,0,10,0,0,0,0,100,0)		mri

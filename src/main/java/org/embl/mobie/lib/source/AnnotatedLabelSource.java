@@ -58,7 +58,7 @@ public class AnnotatedLabelSource< T extends IntegerType< T >, A extends Annotat
     {
         return Converters.convert( source.getSource( t, level ), ( input, output ) -> {
             setOutput( input, t, output );
-        }, new AnnotationType( annotationAdapter.createVariable() ) );
+        }, new AnnotationType()  ); // annotationAdapter.createVariable()
     }
 
     @Override
@@ -82,6 +82,7 @@ public class AnnotatedLabelSource< T extends IntegerType< T >, A extends Annotat
     @Override
     public AnnotationType< A > getType()
     {
-        return new AnnotationType( annotationAdapter.createVariable() );
+        //return new AnnotationType( annotationAdapter.createVariable() );
+        return new AnnotationType( null );
     }
 }

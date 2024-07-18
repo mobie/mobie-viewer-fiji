@@ -33,7 +33,6 @@ import org.embl.mobie.MoBIESettings;
 import net.imagej.ImageJ;
 
 import java.io.IOException;
-import org.embl.mobie.io.ImageDataFormat;
 
 public class OpenLocalPlankton
 {
@@ -42,7 +41,7 @@ public class OpenLocalPlankton
 		new ImageJ().ui().showUI();
 		try {
 			new MoBIE("/Volumes/emcf/pape/plankton-fibsem-project",
-					MoBIESettings.settings().dataset( "galdieria" ) );
+                   MoBIESettings.settings().dataset( "galdieria" ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

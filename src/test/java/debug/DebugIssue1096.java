@@ -43,6 +43,6 @@ public class DebugIssue1096
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        new MoBIE("/Volumes/kreshuk/hellgoth/mobie_project_shared/culture-collections", MoBIESettings.settings() );
+        new MoBIE("/Volumes/kreshuk/hellgoth/mobie_project_shared/culture-collections",MoBIESettings.settings() );
     }
 }

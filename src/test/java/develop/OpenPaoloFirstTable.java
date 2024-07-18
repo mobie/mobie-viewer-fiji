@@ -12,11 +12,13 @@ public class OpenPaoloFirstTable
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        String tablePath = "/Users/tischer/Desktop/Paolo.txt";
-        File tableFile = new File( tablePath );
+//        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+//        command.table = new File( "/Users/tischer/Desktop/Paolo.txt" );
+//        command.run();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.table = tableFile;
+        command.table = new File( "/Users/tischer/Desktop/Paolo-relative.txt" );
+        command.dataRoot = new File( "/Volumes/emcf/ronchi/MRC-MM/aligned" );
         command.run();
     }
 }

@@ -73,7 +73,7 @@ public class Dataset
 		return sources;
 	}
 
-	public void addDataSource( DataSource dataSource )
+	public void putDataSource( DataSource dataSource )
 	{
 		sources.put( dataSource.getName(), dataSource );
 	}

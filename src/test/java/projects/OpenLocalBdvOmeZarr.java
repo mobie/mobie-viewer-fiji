@@ -28,7 +28,6 @@
  */
 package projects;
 
-import org.embl.mobie.io.ImageDataFormat;
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
@@ -40,6 +39,6 @@ public class OpenLocalBdvOmeZarr {
     {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        final MoBIE moBIE = new MoBIE("/home/katerina/Documents/embl/mnt/kreshuk/pape/Work/mobie/covid-em-datasets/ngff-example/data", MoBIESettings.settings());
+        final MoBIE moBIE = new MoBIE("/home/katerina/Documents/embl/mnt/kreshuk/pape/Work/mobie/covid-em-datasets/ngff-example/data",MoBIESettings.settings());
     }
 }

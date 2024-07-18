@@ -31,15 +31,12 @@ package org.embl.mobie.command.open.project;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.io.DataFormats;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URL;
 
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open MoBIE Project..." )

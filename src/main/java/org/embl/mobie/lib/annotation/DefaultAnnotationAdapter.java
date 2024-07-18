@@ -32,30 +32,39 @@ import org.embl.mobie.lib.table.AnnData;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 public class DefaultAnnotationAdapter< A extends Annotation > implements AnnotationAdapter< A >
 {
 	private final AtomicBoolean throwError = new AtomicBoolean( true );
 	private final AnnData< A > annData;
 	private final String source;
+	private final A annotation;
 	private Map< String, A > stlToAnnotation; // source, timepoint, label
 
 	public DefaultAnnotationAdapter( AnnData< A > annData )
 	{
 		this.annData = annData;
 		this.source = null;
+		this.annotation = null;
 	}
 
 	public DefaultAnnotationAdapter( AnnData< A > annData, String source )
 	{
 		this.annData = annData;
 		this.source = source;
+		this.annotation = null;
 	}
 
+	public DefaultAnnotationAdapter( AnnData< A > annData, String source, A annotation )
+	{
+		this.annData = annData;
+		this.source = source;
+		this.annotation = annotation;
+	}
+
+	// FIXME: Can we get rid of this? Currently not used...
 	@Override
 	public A createVariable()
 	{
@@ -87,6 +96,7 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 
 		if ( annotation == null )
 		{
+			// FIXME: Check whether this could be done lazy?
 			if ( throwError.get() )
 			{
 				System.err.println( "AnnotationAdapter: Missing annotation: " + source+ "; time point = " + timePoint + "; label = " + label + "\nSuppressing further errors of that kind." );

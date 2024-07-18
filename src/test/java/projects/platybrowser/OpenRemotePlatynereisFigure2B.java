@@ -41,6 +41,6 @@ public class OpenRemotePlatynereisFigure2B
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		final MoBIE moBIE = new MoBIE( "https://github.com/platybrowser/platybrowser", new MoBIESettings().view( "Figure 2B: Epithelial cell segmentation" ) );
+		final MoBIE moBIE = new MoBIE( "https://github.com/platybrowser/platybrowser",  new MoBIESettings().view( "Figure 2B: Epithelial cell segmentation" ) );
 	}
 }

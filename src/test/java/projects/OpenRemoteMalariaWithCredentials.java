@@ -43,7 +43,7 @@ public class OpenRemoteMalariaWithCredentials
 
 		try {
 			new MoBIE("https://s3.embl.de/plasmodium-oocysts/mobie",
-					MoBIESettings.settings().s3AccessAndSecretKey( new String[]{ "DstL6Ju", "r4bqZzZsyJde9"} ) );
+                   MoBIESettings.settings().s3AccessAndSecretKey( new String[]{ "DstL6Ju", "r4bqZzZsyJde9"} ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

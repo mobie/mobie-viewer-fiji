@@ -41,7 +41,7 @@ public class OpenLocalShila
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 		try {
-			new MoBIE("/Volumes/kreshuk/data/marioni/shila/mouse-atlas-2020/ngff/", new MoBIESettings() );
+			new MoBIE("/Volumes/kreshuk/data/marioni/shila/mouse-atlas-2020/ngff/",  new MoBIESettings() );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

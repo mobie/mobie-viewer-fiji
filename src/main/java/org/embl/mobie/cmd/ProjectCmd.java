@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.cmd;
 
-import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import picocli.CommandLine;

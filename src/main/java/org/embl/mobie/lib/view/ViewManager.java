@@ -239,6 +239,8 @@ public class ViewManager
 	{
 		final long startTime = System.currentTimeMillis();
 
+		IJ.log("Opening view \"" + view.getName() + "\"..." );
+
 		if ( view.isExclusive() )
 		{
 			removeAllSourceDisplays( true );
@@ -306,7 +308,7 @@ public class ViewManager
 		userInterface.setImageNameOverlay( imageNameOverlay );
 		imageNameOverlay.setActive( view.overlayNames() );
 
-		IJ.log("Opened view \"" + view.getName() + "\" in " + (System.currentTimeMillis() - startTime) + " ms." );
+		IJ.log("...done in " + (System.currentTimeMillis() - startTime) + " ms." );
 		if ( view.getDescription() != null )
 			IJ.log( "View description: \"" + view.getDescription() + "\"" );
 
@@ -327,7 +329,11 @@ public class ViewManager
 
 		// if a view is created on the fly in a running project, e.g. due to an image registration
 		// the data sources may already be present and thus do not need to be instantiated
-		dataSources = dataSources.stream().filter( ds -> ! DataStore.containsImage( ds.getName() ) ).collect( Collectors.toList() );
+		// FIXME: the issue here is that then an image may exist already and a transformation is applied twice (see below)
+		//    example: public class OpenPaoloFirstTable  => view the first image twice
+		// dataSources = dataSources.stream()
+		//		.filter( ds -> ! DataStore.containsImage( ds.getName() ) )
+		//		.collect( Collectors.toList() );
 
 		for ( DataSource dataSource : dataSources )
 		{
@@ -363,6 +369,7 @@ public class ViewManager
 		final List< Transformation > transformations = view.transformations();
 		if ( transformations != null )
 		{
+			// FIXME: the issue here is that then an image may exist already and a transformation is applied twice (see above)
 			for ( Transformation transformation : transformations )
 			{
 				if ( transformation instanceof ImageTransformation )

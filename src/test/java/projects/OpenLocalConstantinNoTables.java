@@ -29,7 +29,6 @@
 package projects;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 
@@ -41,6 +40,6 @@ public class OpenLocalConstantinNoTables
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		final MoBIE moBIE = new MoBIE("/Volumes/emcf/pape/jil", MoBIESettings.settings());
+		final MoBIE moBIE = new MoBIE("/Volumes/emcf/pape/jil",MoBIESettings.settings());
 	}
 }

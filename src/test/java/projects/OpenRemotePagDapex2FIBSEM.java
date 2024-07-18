@@ -41,7 +41,7 @@ public class OpenRemotePagDapex2FIBSEM
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 		try {
-			new MoBIE("https://github.com/mobie/pag-dapex2-fibsem", MoBIESettings.settings().gitProjectBranch( "mobie3" ) );
+			new MoBIE("https://github.com/mobie/pag-dapex2-fibsem",MoBIESettings.settings().gitProjectBranch( "mobie3" ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

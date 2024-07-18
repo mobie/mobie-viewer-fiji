@@ -39,6 +39,6 @@ public class OpenLocalKarel
     public static void main(String[] args) throws IOException {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        new MoBIE( "/Volumes/schwab/Karel/MOBIE/MOBIE1_bc", new MoBIESettings() );
+        new MoBIE( "/Volumes/schwab/Karel/MOBIE/MOBIE1_bc",  new MoBIESettings() );
     }
 }

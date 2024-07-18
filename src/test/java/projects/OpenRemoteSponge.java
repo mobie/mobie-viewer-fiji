@@ -41,6 +41,6 @@ public class OpenRemoteSponge
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/sponge-fibsem-project", MoBIESettings.settings().gitProjectBranch( "mobie3" ).view( "fibsem-cell" ) );
+		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/sponge-fibsem-project",MoBIESettings.settings().gitProjectBranch( "mobie3" ).view( "fibsem-cell" ) );
 	}
 }
