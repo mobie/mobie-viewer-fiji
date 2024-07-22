@@ -148,7 +148,7 @@ public class GridSourcesDataSetter
 					final SegmentationDisplay< AnnotatedSegment > segmentationDisplay
 							= new SegmentationDisplay<>( source, Collections.singletonList( source ) );
 					final int numLabelTables = ( ( LabelGridSources ) sources ).getNumLabelTables();
-					segmentationDisplay.setShowTable( numLabelTables > 0 );
+					segmentationDisplay.showTable( numLabelTables > 0 );
 					displays.add( segmentationDisplay );
 				}
 				else
@@ -245,7 +245,7 @@ public class GridSourcesDataSetter
 					final SegmentationDisplay< AnnotatedSegment > segmentationDisplay
 							= new SegmentationDisplay<>( source, Collections.singletonList( source ) );
 					final int numLabelTables = ( ( LabelGridSources ) sources ).getNumLabelTables();
-					segmentationDisplay.setShowTable( numLabelTables > 0 );
+					segmentationDisplay.showTable( numLabelTables > 0 );
 					displays.add( segmentationDisplay );
 				}
 				else
@@ -279,7 +279,7 @@ public class GridSourcesDataSetter
 					// SegmentationDisplay
 					final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( grid.getName(), Collections.singletonList( grid.getName() ) );
 					final int numLabelTables = ( ( LabelGridSources ) sources ).getNumLabelTables();
-					segmentationDisplay.setShowTable( numLabelTables > 0 );
+					segmentationDisplay.showTable( numLabelTables > 0 );
 					displays.add( segmentationDisplay );
 				}
 				else
@@ -300,7 +300,7 @@ public class GridSourcesDataSetter
 					// SegmentationDisplay
 					final SegmentationDisplay< AnnotatedSegment > segmentationDisplay = new SegmentationDisplay<>( sources.getName(), sourceNames );
 					final int numLabelTables = ( ( LabelGridSources ) sources ).getNumLabelTables();
-					segmentationDisplay.setShowTable( numLabelTables > 0 );
+					segmentationDisplay.showTable( numLabelTables > 0 );
 					displays.add( segmentationDisplay );
 				}
 				else

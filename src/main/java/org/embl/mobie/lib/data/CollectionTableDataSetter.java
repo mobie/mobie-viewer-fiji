@@ -25,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -63,12 +62,14 @@ public class CollectionTableDataSetter
             Display< ? > display;
             if ( pixelType.equals( CollectionTableConstants.LABELS )  )
             {
+                TableSource tableSource = getTable( row, rootPath );
+
                 SegmentationDataSource segmentationDataSource =
                         SegmentationDataSource.create(
                                 imageName,
                                 imageDataFormat,
                                 storageLocation,
-                                getTable( row, rootPath )
+                                tableSource
                         );
 
                 segmentationDataSource.preInit( false );
@@ -76,7 +77,8 @@ public class CollectionTableDataSetter
 
                 display = createSegmentationDisplay(
                         imageName,
-                        row );
+                        row,
+                        tableSource != null );
             }
             else // intensities
             {
@@ -220,7 +222,7 @@ public class CollectionTableDataSetter
     }
 
     @NotNull
-    private static SegmentationDisplay< ? > createSegmentationDisplay( String name, Row row )
+    private static SegmentationDisplay< ? > createSegmentationDisplay( String name, Row row, boolean showTable )
     {
         final SegmentationDisplay< ? > display =
                 new SegmentationDisplay<>(
@@ -228,6 +230,7 @@ public class CollectionTableDataSetter
                         Arrays.asList( name ) );
 
         display.setBlendingMode( getBlendingMode( row ) );
+        display.showTable( showTable );
 
         return display;
     }
