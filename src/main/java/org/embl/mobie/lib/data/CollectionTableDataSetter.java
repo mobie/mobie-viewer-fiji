@@ -17,12 +17,15 @@ import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
+import org.embl.mobie.lib.table.TableDataFormat;
+import org.embl.mobie.lib.table.TableSource;
 import org.embl.mobie.lib.table.columns.CollectionTableConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -65,7 +68,7 @@ public class CollectionTableDataSetter
                                 imageName,
                                 imageDataFormat,
                                 storageLocation,
-                                null // TODO: label table path could be fetched from collection table
+                                getTable( row, rootPath )
                         );
 
                 segmentationDataSource.preInit( false );
@@ -93,6 +96,23 @@ public class CollectionTableDataSetter
             IJ.log("URI: " + storageLocation.absolutePath );
             IJ.log("Opener: " + imageDataFormat );
             IJ.log("Type: " + pixelType );
+        }
+    }
+
+    private static TableSource getTable( Row row, String rootPath )
+    {
+        try {
+            String tablePath = row.getString( CollectionTableConstants.LABEL_TABLE );
+            if ( rootPath != null )
+                tablePath = IOHelper.combinePath( rootPath, tablePath );
+            StorageLocation storageLocation = new StorageLocation();
+            storageLocation.absolutePath = IOHelper.getParentLocation( tablePath );
+            storageLocation.defaultChunk = IOHelper.getFileName( tablePath );
+            return new TableSource( TableDataFormat.fromPath( tablePath ), storageLocation );
+        }
+        catch ( Exception e )
+        {
+            return null;
         }
     }
 

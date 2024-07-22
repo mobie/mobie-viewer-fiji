@@ -96,8 +96,11 @@ public class LabelGridSources extends ImageGridSources
 			final File tableFile = new File( labelTablePaths.get( tableIndex ) );
 			storageLocation.absolutePath = tableFile.getParent();
 			storageLocation.defaultChunk = tableFile.getName();
-			final TableDataFormat tableDataFormat = TableDataFormat.fromPath( labelTablePaths.get( tableIndex ) );
-			final TableSource tableSource = new TableSource( tableDataFormat, storageLocation );
+
+			final TableSource tableSource =
+					new TableSource(
+							TableDataFormat.fromPath( labelTablePaths.get( tableIndex ) ),
+							storageLocation );
 			nameToLabelTable.put( labelMaskNames.get( tableIndex ), tableSource );
 		}
 	}

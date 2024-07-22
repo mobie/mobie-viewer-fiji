@@ -62,11 +62,10 @@ public class OpenCollectionTableCommand implements Command {
 
 		final MoBIESettings settings = new MoBIESettings()
 				.projectType( ProjectType.CollectionTable )
-				.dataRoot( dataRoot.getAbsolutePath() );
+				.dataRoot( dataRoot == null ? null : dataRoot.getAbsolutePath() );
 
 		try
 		{
-			String rootPath = dataRoot == null ? null : dataRoot.getAbsolutePath();
 			new MoBIE( MoBIEHelper.toURI( table ), settings );
 		}
 		catch ( IOException e )

@@ -34,6 +34,7 @@ import bdv.viewer.SourceAndConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.ProjectType;
 import org.embl.mobie.command.widget.SelectableImages;
 import org.embl.mobie.command.widget.SwingSelectableImagesWidget;
 import org.embl.mobie.lib.MoBIEHelper;
@@ -149,16 +150,24 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
                     affineTransformation,
                     movingImage.getName() + ", " + suffix );
 
-            if ( MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view ) )
+            if( MoBIE.getInstance().getSettings().values.getProjectType().equals( ProjectType.CollectionTable ) )
             {
-                // Show the transformed image
+                // only add view
                 MoBIE.getInstance().getViewManager().show( view );
             }
             else
             {
-                // TODO: if a user clicks "Cancel" in-between to sources this will create a mess
-                //    Probably anyway better we save all the transformed sources in one go.
-                return false;
+                // save and add view
+                if ( MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view ) )
+                {
+                    MoBIE.getInstance().getViewManager().show( view );
+                }
+                else
+                {
+                    // FIXME: if a user clicks "Cancel" in-between two sources this will create a mess
+                    //    ...probably anyway better we save all the transformed sources in one go.
+                    return false;
+                }
             }
         }
 

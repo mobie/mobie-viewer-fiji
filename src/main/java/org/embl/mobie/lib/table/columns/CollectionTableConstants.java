@@ -180,4 +180,23 @@ public class CollectionTableConstants
      *   divide the views into groups.
      */
     public static final String GROUP = "group";
+
+    /**
+     * The "labels_table" column MAY be present.
+     *
+     * The value is ONLY used when the "type" column has the value "labels",
+     * otherwise it is ignored. The value MUST be a path to a table,
+     * where each row matches to one label in the labels image.
+     * For supported columns of this table see, e.g.
+     * {@code MoBIESegmentColumnNames} or {@code SkimageSegmentColumnNames}.
+     *
+     * Supported values:
+     * - A valid path to a table.
+     *
+     * Default value: N/A
+     *
+     * Use cases:
+     * - Exploration of measurements corresponding to the labels
+     */
+    public static final String LABEL_TABLE = "labels_table";
 }

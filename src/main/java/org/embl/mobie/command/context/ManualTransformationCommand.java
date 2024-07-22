@@ -101,8 +101,6 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 
 		getInfo().getMutableInput( "status", String.class ).setValue( this, INACTIVE );
 
-		// TODO: make the non-transformed sources invisible
-
 		// https://imagesc.zulipchat.com/#narrow/stream/327238-Fiji/topic/Close.20Scijava.20Command.20UI
 		UserInterfaceHelper.closeWindowByName( COMMAND_NAME );
 	}
