@@ -46,23 +46,48 @@ public class OpenCollectionTableCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter( label = "Table Path", required = true )
+	enum DataRoot{
+		PathsInTableAreAbsolute,
+		UseTableFolder,
+		UseBelowDataRootFolder
+	}
+
+	@Parameter( label = "Table Path")
 	public File table;
+
+	@Parameter( label = "Data Root",
+			description = "Use this is if the paths to the images and labels in the table are relative." )
+	public DataRoot dataRoot = DataRoot.PathsInTableAreAbsolute;
 
 	@Parameter( label = "Data Root Folder",
 			style = "directory",
-			description = "Use this is if the paths to the images and labels in the table are relative.",
+			description = "The root folder of the data (i.e., images and labels) in the table.",
 			required = false )
-	public File dataRoot;
+	public File dataRootFile;
 
 	@Override
 	public void run()
 	{
 		DebugTools.setRootLevel( "OFF" );
 
+		String dataRootString;
+		switch ( dataRoot )
+		{
+			case UseBelowDataRootFolder:
+				dataRootString = dataRootFile == null ? null : dataRootFile.getAbsolutePath();
+				break;
+			case UseTableFolder:
+				dataRootString = table.getParent();
+				break;
+			case PathsInTableAreAbsolute:
+			default:
+				dataRootString = null;
+				break;
+		}
+
 		final MoBIESettings settings = new MoBIESettings()
 				.projectType( ProjectType.CollectionTable )
-				.dataRoot( dataRoot == null ? null : dataRoot.getAbsolutePath() );
+				.dataRoot( dataRootString );
 
 		try
 		{
