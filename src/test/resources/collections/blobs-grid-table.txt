@@ -1,0 +1,5 @@
+uri	type	affine	color	view	labels_table
+blobs.tif	intensities	(10,0,0,0,0,10,0,0,0,0,1,0)		grid_intensities	
+blobs-labels.tif	labels	(10,0,0,0,0,10,0,0,0,0,1,0)		grid_labels	blobs-labels.csv
+blobs2.tif	intensities	(10,0,0,0,0,10,0,0,0,0,1,0)		grid_intensities	
+blobs2-labels.tif	labels	(10,0,0,0,0,10,0,0,0,0,1,0)		grid_labels	blobs2-labels.csv
