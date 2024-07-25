@@ -156,8 +156,8 @@ public class UserInterfaceHelper
 		final GenericDialog gd = new GenericDialog("Choose source");
 		gd.addChoice("Load from", new String[]{ FileLocation.CurrentProject.toString(), FileLocation.ExternalFile.toString()}, FileLocation.CurrentProject.toString());
 		gd.showDialog();
-		if (gd.wasCanceled()) return null;
-		return FileLocation.valueOf(gd.getNextChoice());
+		if ( gd.wasCanceled() ) return null;
+		return FileLocation.fromString( gd.getNextChoice() );
 	}
 
 	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...

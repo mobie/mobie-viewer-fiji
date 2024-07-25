@@ -45,10 +45,9 @@ public class OpenMoBIEProjectBranchCommand extends OpenMoBIEProjectCommand
 	@Override
 	public void run()
 	{
-		settings.preferentialDataLocation( DataFormats.Location.valueOf( location ) )
+		settings.preferentialDataLocation( location )
 				.gitProjectBranch( projectBranch );
 
 		super.run();
 	}
 }
-

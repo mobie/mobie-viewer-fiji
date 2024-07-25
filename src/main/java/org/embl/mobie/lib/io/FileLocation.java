@@ -43,4 +43,13 @@ public enum FileLocation
     public String toString() {
         return displayName;
     }
+
+    public static FileLocation fromString(String text) {
+        for (FileLocation fileLocation : FileLocation.values()) {
+            if (fileLocation.toString().equalsIgnoreCase(text)) {
+                return fileLocation;
+            }
+        }
+        throw new EnumConstantNotPresentException(FileLocation.class, text);
+    }
 }

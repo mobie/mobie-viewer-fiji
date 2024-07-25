@@ -48,19 +48,19 @@ public class OpenMoBIEProjectCommand implements Command
 	@Parameter ( label = "Project URI" )
 	public String uri = "https://github.com/mobie/platybrowser-datasets";
 
-	@Parameter ( label = "Preferentially Fetch Data From", choices = {"Remote", "Local"} )
-	public String location = "Remote";
+	@Parameter ( label = "Preferentially Fetch Data From" )
+	public DataFormats.Location location = DataFormats.Location.Remote;
 
 	protected MoBIESettings settings = MoBIESettings.settings();
 
 	@Override
 	public void run()
 	{
-		settings.preferentialDataLocation( DataFormats.Location.valueOf( location ) );
+		settings.preferentialDataLocation( location );
 
 		try
 		{
-			new MoBIE( uri, settings );
+			new MoBIE( uri.trim(), settings );
 		}
 		catch ( IOException e )
 		{

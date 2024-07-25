@@ -76,7 +76,7 @@ public class OpenTableCommand implements Command {
 	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImage;
 
 	@Parameter( label = "Grid", description = MoBIEHelper.GRID_TYPE_HELP )
-	public GridType gridType = GridType.Transformed;
+	public GridType gridType = GridType.Stitched;
 
 	@Override
 	public void run()
