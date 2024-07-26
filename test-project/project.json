@@ -1,8 +1,0 @@
-{
-	"datasets": [
-		"dataset"
-	],
-	"defaultDataset": "dataset",
-	"specVersion": "0.3.0",
-	"references": []
-}
