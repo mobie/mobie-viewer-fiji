@@ -1,0 +1,70 @@
+{
+  "is2D": false,
+  "defaultLocation": {
+    "position": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "timepoint": 0
+  },
+  "sources": {
+    "MRI": {
+      "image": {
+        "imageData": {
+          "ome.zarr": {
+            "relativePath": "images/MRI.ome.zarr"
+          }
+        }
+      }
+    }
+  },
+  "views": {
+    "MRI": {
+      "uiSelectionGroup": "views",
+      "sourceDisplays": [
+        {
+          "imageDisplay": {
+            "sources": [
+              "MRI"
+            ],
+            "color": "r255-g255-b255-a255",
+            "contrastLimits": [
+              0.0,
+              255.0
+            ],
+            "showImagesIn3d": false,
+            "invert": false,
+            "name": "MRI",
+            "opacity": 1.0,
+            "visible": true
+          }
+        }
+      ],
+      "isExclusive": false
+    },
+    "default": {
+      "uiSelectionGroup": "bookmark",
+      "sourceDisplays": [
+        {
+          "imageDisplay": {
+            "sources": [
+              "MRI"
+            ],
+            "color": "r255-g255-b255-a255",
+            "contrastLimits": [
+              0.0,
+              255.0
+            ],
+            "showImagesIn3d": false,
+            "invert": false,
+            "name": "MRI",
+            "opacity": 1.0,
+            "visible": true
+          }
+        }
+      ],
+      "isExclusive": true
+    }
+  }
+}

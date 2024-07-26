@@ -1,0 +1,13 @@
+{
+  "is2D": false,
+  "defaultLocation": {
+    "position": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "timepoint": 0
+  },
+  "sources": {},
+  "views": {}
+}

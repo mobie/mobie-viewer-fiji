@@ -34,6 +34,7 @@ import bdv.viewer.BigWarpViewerPanel;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TransformListener;
 import bigwarp.BigWarp;
+import bigwarp.transforms.BigWarpTransform;
 import jj2000.j2k.codestream.HeaderInfo;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.transform.TransformHelper;
@@ -115,7 +116,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 		final AffineTransform3D normalisedViewerTransform = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
 		applyViewerTransform( normalisedViewerTransform, bigWarp.getViewerFrameQ().getViewerPanel() );
 		applyViewerTransform( normalisedViewerTransform, bigWarp.getViewerFrameP().getViewerPanel() );
-		bigWarp.setTransformType( TransformTypeSelectDialog.AFFINE );
+		bigWarp.setTransformType( BigWarpTransform.AFFINE );
 		bigWarp.addTransformListener( this );
 	}
 
@@ -136,9 +137,9 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 	public void transformChanged( InvertibleRealTransform transform )
 	{
 		final String transformType = bigWarp.getTransformType();
-		if ( transformType.equals( TransformTypeSelectDialog.TPS ) )
+		if ( transformType.equals( BigWarpTransform.TPS ) )
 		{
-			System.err.println( TransformTypeSelectDialog.TPS + "is currently not supported by MoBIE please choose any of the other transform types by selecting one of the BigWarp windows and pressing F2.");
+			System.err.println( BigWarpTransform.TPS + "is currently not supported by MoBIE please choose any of the other transform types by selecting one of the BigWarp windows and pressing F2.");
 		}
 	}
 

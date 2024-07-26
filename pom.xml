@@ -88,7 +88,7 @@
         <imagej-utils.version>0.7.0</imagej-utils.version>
 
         <bigdataviewer-playground.version>0.9.0</bigdataviewer-playground.version>
-        <bigwarp_fiji.version>9.1.2</bigwarp_fiji.version>
+        <bigwarp_fiji.version>9.1.3</bigwarp_fiji.version>
 
         <trove.version>1.0.2</trove.version>
         <annotations.version>16.0.2</annotations.version>
