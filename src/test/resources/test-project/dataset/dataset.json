@@ -44,7 +44,7 @@
       "isExclusive": false
     },
     "default": {
-      "uiSelectionGroup": "bookmark",
+      "uiSelectionGroup": "views",
       "sourceDisplays": [
         {
           "imageDisplay": {

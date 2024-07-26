@@ -233,14 +233,14 @@ public class DatasetSerializer
     private void addNewDefaultImageView( Dataset dataset, String imageName, double[] contrastLimits, String colour,
 										 AffineTransform3D sourceTransform )
     {
-        View view = createImageView( imageName, "bookmark", true, contrastLimits, colour,
+        View view = createImageView( imageName, "views", true, contrastLimits, colour,
                 sourceTransform );
         dataset.views().put( View.DEFAULT, view );
     }
 
     private void addNewDefaultSegmentationView( Dataset dataset, String imageName, AffineTransform3D sourceTransform )
     {
-        View view = createSegmentationView( imageName, "bookmark", true, sourceTransform );
+        View view = createSegmentationView( imageName, "views", true, sourceTransform );
         dataset.views().put( View.DEFAULT, view );
     }
 

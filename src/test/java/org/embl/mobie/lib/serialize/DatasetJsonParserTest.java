@@ -49,11 +49,8 @@ import static org.embl.mobie.lib.create.JSONValidator.validate;
 class DatasetJsonParserTest {
 
     private File tempDir;
-    private static JSONObject datasetSchema;
     private Dataset dataset;
     private final String viewName = View.DEFAULT;
-    private final String uiSelectionGroup = "bookmark";
-    private final boolean isExclusive = true;
     private DatasetJsonParser datasetJsonParser;
     private String datasetJsonName = "dataset.json";
 
