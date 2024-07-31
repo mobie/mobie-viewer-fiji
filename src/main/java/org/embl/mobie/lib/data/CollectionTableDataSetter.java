@@ -243,12 +243,36 @@ public class CollectionTableDataSetter
                 1.0,
                 Collections.singletonList( imageName ),
                 getColor( row ), // ColorHelper.getString( metadata.getColor() ),
-                null, //new double[]{ metadata.minIntensity(), metadata.minIntensity() }
+                getContrastLimits( row ), //new double[]{ metadata.minIntensity(), metadata.minIntensity() }
                 getBlendingMode( row ),
                 false
                 );
 
         return display;
+    }
+
+    private static double[] getContrastLimits( Row row )
+    {
+        try
+        {
+            String string = row.getString( CollectionTableConstants.CONTRAST_LIMITS );
+            string = string.replace("(", "").replace(")", "");
+            String[] strings = string.split(",");
+            double[] doubles = new double[strings.length];
+            for (int i = 0; i < strings.length; i++) {
+                doubles[i] = Double.parseDouble(strings[i].trim());
+            }
+
+            if ( doubles.length != 2 )
+                throw new UnsupportedOperationException("Contrast limits must have exactly two values: (min, max).\n" +
+                        "This table cell entry does not adhere to this specification: " + string );
+
+            return doubles;
+        }
+        catch ( Exception e )
+        {
+            return null;
+        }
     }
 
     private static BlendingMode getBlendingMode( Row row )

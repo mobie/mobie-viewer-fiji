@@ -1,1 +1,0 @@
-run("Open Image and Labels...", "image=/Volumes/Microbial_Predation_Analysis_Dev/Interval_output/Source/.*.tif labels=/Volumes/Microbial_Predation_Analysis_Dev/Interval_output/.*_profile_labels.tif table=/Volumes/Microbial_Predation_Analysis_Dev/Interval_output/.*_measurements.csv spatialcalibration=FromTable gridtype=Transformed");

@@ -46,13 +46,13 @@ public class OpenCollectionTableCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	enum DataRoot{
+	public static enum DataRoot{
 		PathsInTableAreAbsolute,
 		UseTableFolder,
 		UseBelowDataRootFolder
 	}
 
-	@Parameter( label = "Table Path")
+	@Parameter( label = "Table Path" )
 	public File table;
 
 	@Parameter( label = "Data Root",

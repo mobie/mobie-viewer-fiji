@@ -14,7 +14,8 @@ public class OpenBlobsCollectionTable
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.table = new File( "src/test/resources/collections/blobs-table.txt" );
-        command.dataRootFile = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources" );
+        command.dataRoot = OpenCollectionTableCommand.DataRoot.UseBelowDataRootFolder;
+        command.dataRootFile = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
         command.run();
     }
 }

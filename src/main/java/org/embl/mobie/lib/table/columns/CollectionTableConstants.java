@@ -116,8 +116,8 @@ public class CollectionTableConstants
      *
      * Supported values:
      * - bracketed, comma separated, row packed floating point values
-     * - e.g., identity transform: "(1,0,0,0,0,1,0,0,0,0,1,0)"
-     * - e.g., shift along x-axis: "(1,0,0,-105.34,0,1,0,0,0,0,1,0)"
+     * - e.g., identity transform: (1,0,0,0,0,1,0,0,0,0,1,0)
+     * - e.g., shift along x-axis: (1,0,0,-105.34,0,1,0,0,0,0,1,0)
      *
      * Default value: There is no default value.
      * No transformation will be applied if
@@ -127,13 +127,6 @@ public class CollectionTableConstants
      * Notes:
      * - This affine transformation will be applied on top of any transformation
      *   that can be discovered within the image URI
-     *
-     * Discussion points:
-     * - If one would NOT have COMMA to separate the values of the affine
-     *   also a CSV would be fine as a table format (current we need TAB)
-     *   - For instance, we could use space as a separator instead of comma
-     *   - If someone opens the table by chance in Excel, using both TAB and COMMA as a separator
-     *     it can lead to a major fuck-up that can initially even go unnoticed
      */
     public static final String AFFINE = "affine";
 
@@ -185,13 +178,12 @@ public class CollectionTableConstants
      * The "labels_table" column MAY be present.
      *
      * The value is ONLY used when the "type" column has the value "labels",
-     * otherwise it is ignored. The value MUST be a path to a table,
-     * where each row matches to one label in the labels image.
-     * For supported columns of this table see, e.g.
-     * {@code MoBIESegmentColumnNames} or {@code SkimageSegmentColumnNames}.
+     * otherwise it is ignored.
      *
      * Supported values:
-     * - A valid path to a table.
+     * - A valid path to a "segmentation" table.
+     * - For supported columns in segmentation tables see, e.g.
+     *   {@code MoBIESegmentColumnNames} or {@code SkimageSegmentColumnNames}.
      *
      * Default value: N/A
      *
@@ -199,4 +191,24 @@ public class CollectionTableConstants
      * - Exploration of measurements corresponding to the labels
      */
     public static final String LABEL_TABLE = "labels_table";
+
+    /**
+     * The "contrast_limits" column MAY be present.
+     *
+     * The value is ONLY used when the "type" column has the value "intensities",
+     * or if the "type" column is absent, which causes the type to default to "intensities",
+     * otherwise this value is ignored.
+     * Supported values:
+     * - Bracketed, comma separated list of min and max,  e.g.
+     *   - (10,240)
+     *
+     * Default value: N/A
+     *
+     * Use cases:
+     * - Adjust the contrast limits such that the intensities are readily visible
+     *
+     * Notes:
+     * - One could consider supporting "auto" here as another supported value
+     */
+    public static final String CONTRAST_LIMITS = "contrast_limits";
 }
