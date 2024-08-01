@@ -80,6 +80,7 @@ public enum HCSPattern
 	example:
 	B3-3-C2.tif
 	well = B3, site = 3, channel = C2
+	time point is encoded in the folder
 	 */
 	private static final String INCUCYTE_RAW = ".*[/\\\\](?<"+ TIME +">\\d+)[/\\\\]\\d+[/\\\\](?<"+WELL+">[A-Z]{1}[0-9]{1,2})-(?<"+SITE+">[0-9]{1,2})-(?<"+CHANNEL+">.*).tif$";
 

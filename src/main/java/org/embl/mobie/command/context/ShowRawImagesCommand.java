@@ -60,8 +60,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Show " + ShowRasterImagesCommand.RAW + " Images" )
-public class ShowRasterImagesCommand< T extends NumericType< T > > implements BdvPlaygroundActionCommand
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Show " + ShowRawImagesCommand.RAW + " Images" )
+public class ShowRawImagesCommand< T extends NumericType< T > > implements BdvPlaygroundActionCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 

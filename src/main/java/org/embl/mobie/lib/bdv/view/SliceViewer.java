@@ -31,7 +31,6 @@ package org.embl.mobie.lib.bdv.view;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.context.*;
 import org.embl.mobie.command.context.CurrentLocationLoggerCommand;
@@ -61,9 +60,6 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -150,7 +146,7 @@ public class SliceViewer
 		actions.add( SourceAndConverterService.getCommandName( SourcesInfoCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( CurrentLocationLoggerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ScreenShotMakerCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( ShowRasterImagesCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( ShowRawImagesCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( BigWarpRegistrationCommand.class ) );
 		//actions.add( SourceAndConverterService.getCommandName( AutomaticRegistrationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ManualTransformationCommand.class ) );

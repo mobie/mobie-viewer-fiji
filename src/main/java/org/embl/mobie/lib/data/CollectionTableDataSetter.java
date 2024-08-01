@@ -125,6 +125,22 @@ public class CollectionTableDataSetter
 
     private static String getName( Row row )
     {
+        try {
+            String string = row.getString( CollectionTableConstants.NAME );
+            if ( string.isEmpty() )
+                return getNameFromURI( row );
+            else
+                return string;
+        }
+        catch ( Exception e )
+        {
+            return getNameFromURI( row );
+        }
+    }
+
+    @Nullable
+    private static String getNameFromURI( Row row )
+    {
         String uri = getUri( row );
         return FilenameUtils.removeExtension( IOHelper.getFileName( uri ) );
     }

@@ -35,6 +35,28 @@ public class CollectionTableConstants
     public static final String URI = "uri";
 
     /**
+     * The "name" column MAY be present.
+     *
+     * This "name" will determined how the data is called within MoBIE.
+     * In the MoBIE UI this name will show up as a label where the
+     * display settings can be assigned.
+     *
+     * This is useful for assigning data a nice and meaningful names.
+     *
+     * This is important if two image data sets have the same file name,
+     * because in this case they would "overwrite" each other in MoBIE
+     * and only the last one in the table would be accessible.
+     *
+     * Supported values:
+     * - Free text
+     *
+     * Default value:
+     * - If the column is absent or the cell is empty a name will be automatically assigned
+     *   from the file name part of the URI
+     */
+    public static final String NAME = "name";
+
+    /**
      * The "type" column MAY be present.
      *
      * It specifies what pixel type the data is.

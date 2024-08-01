@@ -32,21 +32,9 @@ import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.viewer.SourceAndConverter;
-import mpicbg.spim.data.sequence.ViewSetup;
-import net.imglib2.Dimensions;
-import net.jpountz.lz4.LZ4FrameOutputStream;
-import org.embl.mobie.command.context.ScreenShotMakerCommand;
-import org.embl.mobie.command.context.ShowRasterImagesCommand;
-import org.embl.mobie.lib.bdv.SourcesAtMousePositionSupplier;
-import org.embl.mobie.lib.source.SourceHelper;
-import org.scijava.ui.behaviour.io.InputTriggerConfig;
-import org.scijava.ui.behaviour.util.Behaviours;
-import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class OMEZarrViewer
