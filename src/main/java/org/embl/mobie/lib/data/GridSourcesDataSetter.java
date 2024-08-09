@@ -118,16 +118,16 @@ public class GridSourcesDataSetter
 		// all sources will have the same grid type
 		// thus it suffices to check the first one
 		// ( obviously this smells as if this logic could be improved )
-		if ( allSources.get( 0 ).getGridType().equals( GridType.None ) )
-		{
-			addIndividualViews( dataset, allSources );
-		}
-		else
-		{
+//		if ( allSources.get( 0 ).getGridType().equals( GridType.None ) )
+//		{
+//			addIndividualViews( dataset, allSources );
+//		}
+//		else
+//		{
 			// create a grid view for all sources
 			// assuming that they all live in the same grid
 			addGridView( dataset, allSources );
-		}
+//		}
 	}
 
 	// This assumes that all the individual views are similar

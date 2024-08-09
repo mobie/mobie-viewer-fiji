@@ -30,7 +30,6 @@ package org.embl.mobie.lib.transform;
 
 public enum GridType
 {
-	None,
-	Stitched,
-	Transformed;
+	Transformed,
+	Stitched;
 }
