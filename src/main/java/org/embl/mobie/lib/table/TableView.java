@@ -50,6 +50,7 @@ import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.select.SelectionModel;
 import org.embl.mobie.ui.ColumnColoringModelDialog;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.ui.StringArraySelectorDialog;
 import org.embl.mobie.ui.UserInterfaceHelper;
 
 import javax.swing.*;
@@ -371,12 +372,13 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
 				{
-					final String[] columnNames = Tables.getColumnNamesAsArray( jTable );
-					final GenericDialog gd = new GenericDialog( "Focus Column" );
-					gd.addChoice( "Column", columnNames, columnNames[ 0 ] );
-					gd.showDialog();
-					if ( gd.wasCanceled() ) return;
-					final String columnName = gd.getNextChoice();
+					StringArraySelectorDialog dialog =
+							new StringArraySelectorDialog(
+									"Column Selector",
+									Tables.getColumnNamesAsArray( jTable )
+							);
+					if ( ! dialog.show() ) return;
+					final String columnName = dialog.getSelectedItem();
 					int columnIndex = jTable.getColumnModel().getColumnIndex( columnName );
 					JViewport viewport = (JViewport) jTable.getParent();
 					Rectangle rect = jTable.getCellRect(0, columnIndex, true);

@@ -1237,7 +1237,7 @@ public class UserInterfaceHelper
 											 BdvHandle bdvHandle,
 											 List< Source< ? > > sources )
 	{
-		JButton button =  getIconButton( "focus.png" );
+		JButton button = getIconButton( "focus.png" );
 		button.setToolTipText( "Fit image to viewer" );
 
 		button.addActionListener( e ->

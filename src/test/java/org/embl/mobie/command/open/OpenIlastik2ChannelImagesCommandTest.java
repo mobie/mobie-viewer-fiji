@@ -29,22 +29,23 @@
 package org.embl.mobie.command.open;
 
 import net.imagej.ImageJ;
+import org.embl.mobie.lib.transform.GridType;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-public class OpenIlastik2DImageAndSegmentationCommandTest
+public class OpenIlastik2ChannelImagesCommandTest
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	//@Test
+	@Test
 	public void test( )
 	{
 		new ImageJ().ui().showUI(); // initialise SciJava Services
 
-		final OpenImageAndLabelsCommand command = new OpenImageAndLabelsCommand();
-		command.image = new File( "src/test/resources/ilastik-2d/image.tif" );
-		command.labels = new File( "src/test/resources/ilastik-2d/labels.h5" );
-		command.table = new File( "src/test/resources/ilastik-2d/table.csv" );
+		final OpenMultipleImagesAndLabelsCommand command = new OpenMultipleImagesAndLabelsCommand();
+		command.image0 = new File( "src/test/resources/ilastik-2d/probabilities-2channels.h5;0" );
+		command.image1 = new File( "src/test/resources/ilastik-2d/probabilities-2channels.h5;1" );
 		command.run();
 	}
 }
