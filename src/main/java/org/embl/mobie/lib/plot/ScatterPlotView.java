@@ -57,7 +57,7 @@ import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.table.AnnotationTableModel;
 import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
 import org.embl.mobie.lib.transform.TransformHelper;
-import org.embl.mobie.ui.ColumnColoringModelDialog;
+import org.embl.mobie.ui.ColorByColumnDialog;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -243,7 +243,8 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		BdvPopupMenus.addAction( bdvHandle, "Color by Column...",
 				( x, y ) ->
 				{
-					final ColoringModel< A > coloringModel = new ColumnColoringModelDialog<>( tableModel  ).showDialog();
+					final ColoringModel< A > coloringModel =
+							new ColorByColumnDialog<>( tableModel  ).show();
 
 					if ( coloringModel != null )
 						this.coloringModel.setColoringModel( coloringModel );

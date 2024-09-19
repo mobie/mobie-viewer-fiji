@@ -48,7 +48,7 @@ import org.embl.mobie.lib.plot.ScatterPlotDialog;
 import org.embl.mobie.lib.plot.ScatterPlotView;
 import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.select.SelectionModel;
-import org.embl.mobie.ui.ColumnColoringModelDialog;
+import org.embl.mobie.ui.ColorByColumnDialog;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.ui.StringArraySelectorDialog;
 import org.embl.mobie.ui.UserInterfaceHelper;
@@ -727,7 +727,8 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	public void showColorByColumnDialog()
 	{
-		final ColoringModel< A > coloringModel = new ColumnColoringModelDialog<>( tableModel  ).showDialog();
+		final ColoringModel< A > coloringModel =
+				new ColorByColumnDialog<>( tableModel  ).show();
 
 		if ( coloringModel != null )
 			this.coloringModel.setColoringModel( coloringModel );

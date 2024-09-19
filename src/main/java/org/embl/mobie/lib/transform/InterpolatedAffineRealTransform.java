@@ -50,7 +50,7 @@ public class InterpolatedAffineRealTransform implements RealTransform {
         this.name = name;
         // globalToSource is needed to know which z-position in the source corresponds
         // to the given global position in the {@code apply( ... )} method
-        // because the z-position in the source is the key in the {@code transforms}
+        // because the z-position in the source is the key in the {@code transforms} map
         this.globalToSource = globalToSource;
         transforms = new TreeMap<>();
         cache = new ConcurrentHashMap<>();

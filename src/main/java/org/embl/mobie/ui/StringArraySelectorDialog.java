@@ -44,7 +44,7 @@ public class StringArraySelectorDialog
         arrayComboBox = new JComboBox<>( array );
         Dimension maximumSize = new Dimension( 300, 20 );
         arrayComboBox.setMaximumSize( maximumSize );
-        selectionPanel.add( new JLabel("Select item:  ") );
+        selectionPanel.add( new JLabel("Select:  ") );
         selectionPanel.add( arrayComboBox );
 
         dialog.add( selectionPanel );
