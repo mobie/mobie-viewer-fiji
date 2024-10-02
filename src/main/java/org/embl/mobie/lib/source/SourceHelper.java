@@ -31,10 +31,7 @@ package org.embl.mobie.lib.source;
 import bdv.AbstractSpimSource;
 import bdv.SpimSource;
 import bdv.tools.transformation.TransformedSource;
-import bdv.util.AbstractSource;
-import bdv.util.Affine3DHelpers;
-import bdv.util.BdvHandle;
-import bdv.util.ResampledSource;
+import bdv.util.*;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
@@ -132,6 +129,10 @@ public abstract class SourceHelper
 	public static void fetchRootSources( Source< ? > source, Collection< Source< ? > > rootSources )
 	{
 		if ( source instanceof SpimSource )
+		{
+			rootSources.add( source );
+		}
+		else if ( source instanceof RandomAccessibleIntervalMipmapSource4D )
 		{
 			rootSources.add( source );
 		}

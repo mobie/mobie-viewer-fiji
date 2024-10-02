@@ -58,8 +58,8 @@ public class SourcesInfoCommand implements BdvPlaygroundActionCommand
     @Parameter
     public BdvHandle bdvHandle;
 
-    @Parameter (label = "Show transformation history")
-    public Boolean showTransformationHistory = false;
+    //@Parameter (label = "Show transformation history")
+    public Boolean showTransformationHistory = true;
 
     @Override
     public void run()

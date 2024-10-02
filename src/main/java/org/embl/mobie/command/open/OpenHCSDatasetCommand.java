@@ -72,8 +72,8 @@ public class OpenHCSDatasetCommand implements Command
 	@Parameter ( label = "Voxel Dimensions" )
 	public VoxelDimensionFetching voxelDimensionFetching = VoxelDimensionFetching.FromImageFiles;
 
-	@Parameter ( label = "OME-XML (optional)",
-			description = "This is used if the option FromOMEXML is chosen to for" +
+	@Parameter ( label = "( OME-XML)",
+			description = "Optional. This is used if the option FromOMEXML is chosen to for" +
 					" determining the Voxel Dimensions",
 			persist = false, required = false )
 	public File omeXML;

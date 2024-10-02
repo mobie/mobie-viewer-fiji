@@ -53,7 +53,7 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Abstract
 
 	public List< String > getSources()
 	{
-		return Collections.unmodifiableList( sources );
+		return sources;
 	}
 
 	public Double[] getResolution3dView(){ return resolution3dView; }

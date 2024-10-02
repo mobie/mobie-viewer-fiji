@@ -164,7 +164,6 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		return blendingMode != null ? blendingMode : BlendingMode.Sum;
 	}
 
-
 	public Double[] getResolution3dView() { return resolution3dView; }
 
 	public boolean showImagesIn3d()

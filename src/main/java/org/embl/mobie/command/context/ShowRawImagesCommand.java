@@ -149,12 +149,12 @@ public class ShowRawImagesCommand< T extends NumericType< T > > implements BdvPl
 
 	private void showImagePlus( Source< T > source, int level )
 	{
-		IJ.log(source.getName() + ": " + RAW + " data = " + source.getName() );
+		IJ.log( RAW + " data name = " + source.getName() );
 
 		long[] dimensions = source.getSource( 0, level ).dimensionsAsLongArray();
 
-		IJ.log( source.getName() + ": Exporting at resolution level = " + level );
-		IJ.log( source.getName() + ": [nx, yz, nz] = " + Arrays.toString( dimensions ) );
+		IJ.log( "Exporting at resolution level = " + level );
+		IJ.log( "[nx, yz, nz] = " + Arrays.toString( dimensions ) );
 
 		final AffineTransform3D sourceTransform = new AffineTransform3D();
 		source.getSourceTransform( 0, level, sourceTransform );
@@ -171,10 +171,10 @@ public class ShowRawImagesCommand< T extends NumericType< T > > implements BdvPl
 			rootSourceScale[ d ] = Affine3DHelpers.extractScale( rootSourceTransform, d );
 		}
 
-		IJ.log( source.getName() + ": Scale = " + Arrays.toString( sourceScale ) );
-		IJ.log( source.getName() + ": Transform = " + sourceTransform );
-		IJ.log( source.getName() + ": " + RAW + " data scale = " + Arrays.toString( rootSourceScale ) );
-		IJ.log( source.getName() + ": " + RAW + " data transform = " + rootSourceTransform );
+		IJ.log( "Scale = " + Arrays.toString( sourceScale ) );
+		IJ.log( "Transform = " + sourceTransform );
+		IJ.log( RAW + " data scale = " + Arrays.toString( rootSourceScale ) );
+		IJ.log( RAW + " data transform = " + rootSourceTransform );
 
 		final ImagePlus imagePlus = getImagePlus( source, level );
 		imagePlus.getCalibration().setUnit( source.getVoxelDimensions().unit() );
@@ -184,7 +184,7 @@ public class ShowRawImagesCommand< T extends NumericType< T > > implements BdvPl
 
 		imagePlus.show();
 
-		IJ.log(source.getName() + ": Export done!" );
+		IJ.log("Export done!" );
 	}
 
 	private Source< T > getRootSource( Source< T > source )

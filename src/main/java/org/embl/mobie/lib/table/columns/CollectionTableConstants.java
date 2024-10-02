@@ -16,7 +16,7 @@ package org.embl.mobie.lib.table.columns;
 public class CollectionTableConstants
 {
     /**
-     * The "uri" column MUST be present.
+     * The "uri" column MUST be present, and it MUST point to a valid image dataset.
      *
      * The same URI MAY be present several times in the same table;
      * this can be useful to display the same data within various views,
@@ -233,4 +233,27 @@ public class CollectionTableConstants
      * - One could consider supporting "auto" here as another supported value
      */
     public static final String CONTRAST_LIMITS = "contrast_limits";
+
+    /**
+     * The "grid_id" column MAY be present.
+     *
+     * All images or segmentations that share the same grid_id will be shown together
+     * as a grid view.
+     *
+     * All images or segmentations in a grid view will be displayed with the same
+     * display settings, thus they SHOULD have the same "contrast_limits" and "color".
+     * If those entries are not the same, MoBIE will randomly apply one of them.
+     *
+     * Images or segmentations with the same grid_id MUST be part of the same "view"
+     *
+     * Supported values:
+     * - Free text
+     *
+     * Default value: N/A
+     *
+     * Use cases:
+     * - Display similar data together such that it can be readily compared
+     * - Plate/well based high-throughput microscopy data is a typical use-case
+     */
+    public static final String GRID = "grid_id";
 }

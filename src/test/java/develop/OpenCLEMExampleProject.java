@@ -29,19 +29,18 @@
 package develop;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.omezarr.OpenOMEZARRCommand;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 
-import java.io.File;
+import java.io.IOException;
 
-public class OpenOMEZarr
+public class OpenCLEMExampleProject
 {
-    public static void main( String[] args )
-    {
-        final ImageJ imageJ = new ImageJ();
-        imageJ.ui().showUI();
+	public static void main( String[] args ) throws IOException
+	{
+		final ImageJ imageJ = new ImageJ();
+		imageJ.ui().showUI();
 
-        OpenOMEZARRCommand command = new OpenOMEZARRCommand();
-        command.omeZarrDirectory = new File( "/Volumes/cba/exchange/ome-zarr/bugra/Result-Image-Zarr/Result-Image--WA01--P0001--T0001--001.ome.zarr" );
-        command.run();
-    }
+		new MoBIE("https://github.com/mobie/clem-example-project/", MoBIESettings.settings() );
+	}
 }
