@@ -50,13 +50,13 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
-public class HCSPlateAdder
+public class HCSDataSetter
 {
 	private final Plate plate;
 	private final double wellMargin;
 	private final double siteMargin;
 
-	public HCSPlateAdder( Plate plate, double wellMargin, double siteMargin  )
+	public HCSDataSetter( Plate plate, double wellMargin, double siteMargin  )
 	{
 		this.plate = plate;
 		this.wellMargin = wellMargin;

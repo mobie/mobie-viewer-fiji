@@ -3,27 +3,29 @@ package org.embl.mobie.lib.data;
 import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.io.FilenameUtils;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.io.StorageLocation;
-import org.embl.mobie.lib.serialize.Dataset;
-import org.embl.mobie.lib.serialize.ImageDataSource;
-import org.embl.mobie.lib.serialize.SegmentationDataSource;
-import org.embl.mobie.lib.serialize.View;
+import org.embl.mobie.lib.serialize.*;
 import org.embl.mobie.lib.serialize.display.Display;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
+import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.GridTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
+import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
 import org.embl.mobie.lib.table.columns.CollectionTableConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tech.tablesaw.api.Row;
+import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 
 import java.util.*;
@@ -102,11 +104,11 @@ public class CollectionTableDataSetter
             if ( gridId == null )
             {
                 addDisplayToViews(
-                        dataset,
                         getViewName( display, row ),
                         getGroupName( display, row ),
                         display,
-                        getTransformations( display.getSources(), row ) );
+                        getTransformations( display.getSources(), row ),
+                        dataset.views() );
             }
             else
             {
@@ -148,11 +150,40 @@ public class CollectionTableDataSetter
             transformations.add( grid );
 
             addDisplayToViews(
-                    dataset,
                     gridToView.get( gridId ),
                     viewToGroup.get( gridToView.get( gridId ) ),
                     display,
-                    transformations );
+                    transformations,
+                    dataset.views() );
+
+            // Create region table
+
+            Table regionTable = Table.create( display.getName() );
+            regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, display.getSources() ) );
+            // TODO: Add path to source (storageLocation.absolutePath)
+            // regionTable.addColumns( StringColumn.create( "source_path", new ArrayList<>( nameToFullPath.values() ) ) );
+            final StorageLocation storageLocation = new StorageLocation();
+            storageLocation.data = regionTable;
+            final RegionTableSource regionTableSource = new RegionTableSource( regionTable.name() );
+            regionTableSource.addTable( TableDataFormat.Table, storageLocation );
+            DataStore.addRawData( regionTableSource );
+
+            // Create RegionDisplay
+
+            final RegionDisplay< AnnotatedRegion > gridRegionDisplay = new RegionDisplay<>( display.getName() );
+            gridRegionDisplay.sources = new LinkedHashMap<>();
+            gridRegionDisplay.tableSource = regionTable.name();
+            gridRegionDisplay.showAsBoundaries( true );
+            gridRegionDisplay.setBoundaryThickness( 0.1 );
+            gridRegionDisplay.boundaryThicknessIsRelative( true );
+            gridRegionDisplay.setRelativeDilation( 0.1 );
+
+            for ( String source : display.getSources() )
+                gridRegionDisplay.sources.put( source, Collections.singletonList( source ) );
+
+
+
+            dataset.views().get( gridToView.get( gridId ) ).displays().add( gridRegionDisplay );
         }
 
     }
@@ -236,18 +267,18 @@ public class CollectionTableDataSetter
 
 
     @NotNull
-    private static void addDisplayToViews( Dataset dataset,
-                                           String viewName,
+    private static void addDisplayToViews( String viewName,
                                            String groupName,
                                            Display< ? > display,
-                                           List< Transformation > transforms )
+                                           List< Transformation > transforms,
+                                           final Map< String, View > views )
     {
         ArrayList< Display< ? > > displays = new ArrayList<>();
         displays.add( display );
 
-        if ( dataset.views().containsKey( viewName ) )
+        if ( views.containsKey( viewName ) )
         {
-            View existingView = dataset.views().get( viewName );
+            View existingView = views.get( viewName );
             existingView.transformations().addAll( transforms );
             existingView.displays().addAll( displays );
             // if several images are combined into the
@@ -265,7 +296,7 @@ public class CollectionTableDataSetter
                     false,
                     null );
 
-            dataset.views().put( newView.getName(), newView );
+            views.put( newView.getName(), newView );
         }
 
     }

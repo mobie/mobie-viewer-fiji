@@ -42,7 +42,7 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.lib.*;
 import org.embl.mobie.lib.data.*;
-import org.embl.mobie.lib.hcs.HCSPlateAdder;
+import org.embl.mobie.lib.hcs.HCSDataSetter;
 import org.embl.mobie.lib.hcs.Plate;
 import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.image.Image;
@@ -273,7 +273,7 @@ public class MoBIE
 	{
 		initProject( "HCS" );
 		final Plate plate = new Plate( projectLocation, voxelDimensions );
-		new HCSPlateAdder( plate, wellMargin, siteMargin ).addPlateToDataset( dataset );
+		new HCSDataSetter( plate, wellMargin, siteMargin ).addPlateToDataset( dataset );
 		initUiAndShowView( dataset.views().keySet().iterator().next() );
 	}
 
