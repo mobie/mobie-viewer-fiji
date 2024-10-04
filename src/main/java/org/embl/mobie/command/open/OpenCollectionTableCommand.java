@@ -56,12 +56,12 @@ public class OpenCollectionTableCommand implements Command {
 	public File table;
 
 	@Parameter( label = "Data Root",
-			description = "Use this is if the paths to the images and labels in the table are relative." )
+			description = "Specify whether the data URIs in the table are absolute or relative." )
 	public DataRoot dataRoot = DataRoot.PathsInTableAreAbsolute;
 
-	@Parameter( label = "Data Root Folder",
+	@Parameter( label = "( Data Root Folder )",
 			style = "directory",
-			description = "The root folder of the data (i.e., images and labels) in the table.",
+			description = "Optional. Use this is if the paths to the images and labels in the table are relative.",
 			required = false )
 	public File dataRootFile;
 

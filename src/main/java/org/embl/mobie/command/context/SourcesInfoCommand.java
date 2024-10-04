@@ -97,6 +97,7 @@ public class SourcesInfoCommand implements BdvPlaygroundActionCommand
 
             if ( showTransformationHistory )
             {
+                IJ.log( "## Transformation history" );
                 transformations.forEach( transformation ->
                 {
                     IJ.log( transformation.toString() );

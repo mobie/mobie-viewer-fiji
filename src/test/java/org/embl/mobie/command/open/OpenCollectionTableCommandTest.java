@@ -10,7 +10,7 @@ public class OpenCollectionTableCommandTest
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     @Test
-    public void simpleTable( )
+    public void blobsTable( )
     {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
@@ -19,6 +19,19 @@ public class OpenCollectionTableCommandTest
         command.table = new File( "src/test/resources/collections/blobs-table.txt" );
         command.dataRoot = OpenCollectionTableCommand.DataRoot.UseBelowDataRootFolder;
         command.dataRootFile = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.run();
+    }
+
+
+    @Test
+    public void clemTable( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.table = new File( "src/test/resources/collections/clem-table.txt" );
+        command.dataRoot = OpenCollectionTableCommand.DataRoot.PathsInTableAreAbsolute;
         command.run();
     }
 
@@ -37,6 +50,6 @@ public class OpenCollectionTableCommandTest
 
     public static void main( String[] args )
     {
-        new OpenCollectionTableCommandTest().gridTable();
+        new OpenCollectionTableCommandTest().clemTable();
     }
 }
