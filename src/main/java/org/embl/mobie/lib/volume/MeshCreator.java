@@ -47,7 +47,7 @@ import net.imglib2.algorithm.neighborhood.DiamondShape;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.Views;
-import org.scijava.vecmath.Point3f;
+import org.jogamp.vecmath.Point3f;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import javax.annotation.Nullable;

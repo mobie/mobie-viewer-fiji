@@ -4,16 +4,16 @@
     <parent>
         <groupId>org.scijava</groupId>
         <artifactId>pom-scijava</artifactId>
-        <version>37.0.0</version>
+        <version>39.0.0</version>
     </parent>
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
     <version>5.3.10-SNAPSHOT</version>
+
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
 
-    <!--  ../scijava-scripts/release-version.sh - -skip-version-check - -skip-license-update -->
-    <!-- ../scijava-scripts/release-version.sh - -skip-version-check  - -skip-license-update -->
+    <!-- ../scijava-scripts/release-version.sh - -skip-version-check - -skip-license-update -->
 
     <!-- force javadoc generation to fetch errors:    -->
     <!-- mvn javadoc:javadoc | grep error -->
@@ -24,7 +24,7 @@
     <inceptionYear>2018</inceptionYear>
     <organization>
         <name>EMBL</name>
-        <url>http://embl.de/</url>
+        <url>https://embl.de/</url>
     </organization>
     <licenses>
         <license>
@@ -60,14 +60,14 @@
     <mailingLists>
         <mailingList>
             <name>Image.sc Forum</name>
-            <archive>https://forum.image.sc/</archive>
+            <archive>https://forum.image.sc/tag/mobie</archive>
         </mailingList>
     </mailingLists>
     <scm>
         <connection>scm:git:https://github.com/mobie/mobie-viewer-fiji</connection>
         <developerConnection>scm:git:git@github.com:mobie/mobie-viewer-fiji</developerConnection>
-        <tag>mobie-viewer-fiji-5.2.2</tag>
         <url>https://github.com/mobie/mobie-viewer-fiji</url>
+        <tag>HEAD</tag>
     </scm>
     <issueManagement>
         <system>GitHub</system>
@@ -81,43 +81,38 @@
         <package-name>de.embl.cba.mobie</package-name>
         <license.licenseName>bsd_2</license.licenseName>
         <license.copyrightOwners>EMBL</license.copyrightOwners>
-        <enforcer.skip>true</enforcer.skip>
 
+        <!--
+        Classes: com.sun.istack.*
+        Part of: com.sun.xml.bind:jaxb-impl, com.sun.istack:istack-commons-runtime
+        Enables: de.embl.cba:imagej-utils + net.tlabs-data:tablesaw_0.43.1-parquet
+        ==
+        Classes: shaded.parquet.it.unimi.dsi.fastutil.*
+        Part of: jakarta.xml.bind:jakarta.xml.bind-api, javax.xml.bind:jaxb-api
+        Enables: net.tlabs-data:tablesaw_0.43.1-parquet
+        ==
+        Classes: javax.xml.bind.*
+        Part of: jakarta.xml.bind:jakarta.xml.bind-api + javax.xml.bind:jaxb-api
+        Enables: de.embl.cba:imagej-utils + net.tlabs-data:tablesaw_0.43.1-parquet
+        ==
+        Classes: com.sun.xml.bind.*
+        Part of: com.sun.xml.bind:jaxb-impl + org.glassfish.jaxb:jaxb-runtime
+        Enables: net.tlabs-data:tablesaw_0.43.1-parquet + de.embl.cba:imagej-utils
+        ==
+        Classes: com.sun.xml.txw2.*
+        Part of: com.sun.xml.bind:jaxb-impl, org.glassfish.jaxb:txw2
+        Enables: net.tlabs-data:tablesaw_0.43.1-parquet + de.embl.cba:imagej-utils
+        -->
+        <allowedDuplicateClasses>${scijava.allowedDuplicateClasses},com.sun.istack.*,shaded.parquet.it.unimi.dsi.fastutil.*,javax.xml.bind.*,com.sun.xml.bind.*,com.sun.xml.txw2.*</allowedDuplicateClasses>
+
+        <bigdataviewer-playground.version>0.10.7</bigdataviewer-playground.version>
         <mobie-io.version>3.0.4</mobie-io.version>
         <imagej-utils.version>0.7.0</imagej-utils.version>
-
-        <bigdataviewer-playground.version>0.9.0</bigdataviewer-playground.version>
-        <bigwarp_fiji.version>9.1.3</bigwarp_fiji.version>
-
-        <trove.version>1.0.2</trove.version>
         <annotations.version>16.0.2</annotations.version>
+        <trove.version>1.0.2</trove.version>
 
-        <n5-aws-s3.version>4.2.0</n5-aws-s3.version>
-        <n5-blosc.version>1.1.1</n5-blosc.version>
-        <n5-google-cloud.version>4.1.0</n5-google-cloud.version>
-        <n5-hdf5.version>2.2.0</n5-hdf5.version>
-        <n5-ij.version>4.2.1</n5-ij.version>
-        <n5-imglib2.version>7.0.0</n5-imglib2.version>
-        <n5-universe.version>1.6.0</n5-universe.version>
-        <n5-viewer_fiji.version>6.1.1</n5-viewer_fiji.version>
-        <n5-zarr.version>1.3.4</n5-zarr.version>
-        <n5-zstandard.version>1.0.2</n5-zstandard.version>
-        <n5.version>3.2.0</n5.version>
-
-        <bigdataviewer-core.version>10.4.13</bigdataviewer-core.version>
-        <bigdataviewer-vistools.version>1.0.0-beta-34</bigdataviewer-vistools.version>
-
-        <!-- Version 1.6.0-scijava-3-SNAPSHOT of j3dcore addresses a minor issue
-        https://github.com/fiji/3D_Viewer/issues/26
-
-        1.6.0-scijava-3-SNAPSHOT is not released on any repository,
-        so you'd have to build it locally from https://github.com/scijava/java3d-core
-
-        Alternatively, as the fix included in 1.6.0-scijava-3-SNAPSHOT is not critical,
-        the easiest is to use version 1.6.0-scijava-2 instead, which is available
-        on a central repository.
-        -->
-        <j3dcore.version>1.6.0-scijava-2</j3dcore.version>
+        <TurboReg_.version>2.0.0</TurboReg_.version>
+        <everit-json-schema.version>1.14.2</everit-json-schema.version>
 
         <!-- TableSaw -->
         <tablesaw-core.version>0.43.1</tablesaw-core.version>
@@ -152,7 +147,7 @@
             <!-- TurboReg Registration, TODO: could come from update site BIG-EPFL -->
             <groupId>sc.fiji</groupId>
             <artifactId>TurboReg_</artifactId>
-            <version>2.0.0</version>
+            <version>${TurboReg_.version}</version>
         </dependency>
         <dependency>
             <groupId>sc.fiji</groupId>
@@ -179,10 +174,6 @@
         </dependency>
         <dependency>
             <groupId>sc.fiji</groupId>
-            <artifactId>bigdataviewer-vistools</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>sc.fiji</groupId>
             <artifactId>spim_data</artifactId>
         </dependency>
         <dependency>
@@ -191,14 +182,12 @@
             <version>${mobie-io.version}</version>
         </dependency>
         <dependency>
-            <!--  https://github.com/fiji/3D_Viewer/pull/33#event-8572718504  -->
             <groupId>sc.fiji</groupId>
             <artifactId>3D_Viewer</artifactId>
-            <version>4.0.5</version>
         </dependency>
         <dependency>
-            <groupId>org.scijava</groupId>
-            <artifactId>j3dcore</artifactId>
+            <groupId>org.jogamp.java3d</groupId>
+            <artifactId>java3d-core</artifactId>
         </dependency>
         <dependency>
             <groupId>de.embl.cba</groupId>
@@ -238,6 +227,12 @@
             <groupId>net.tlabs-data</groupId>
             <artifactId>tablesaw_${tablesaw-core.version}-parquet</artifactId>
             <version>${tablesaw-parquet.version}</version>
+            <exclusions>
+              <exclusion>
+                <groupId>javax.activation</groupId>
+                <artifactId>javax.activation-api</artifactId>
+              </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>info.picocli</groupId>
@@ -265,7 +260,7 @@
         <dependency>
             <groupId>com.github.erosb</groupId>
             <artifactId>everit-json-schema</artifactId>
-            <version>1.14.2</version>
+            <version>${everit-json-schema.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
