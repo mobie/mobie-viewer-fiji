@@ -28,6 +28,9 @@
  */
 package org.embl.mobie.lib.source;
 
+import static net.imglib2.view.fluent.RandomAccessibleIntervalView.Extension.value;
+import static net.imglib2.view.fluent.RandomAccessibleView.Interpolation.nearestNeighbor;
+
 import bdv.util.DefaultInterpolators;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
@@ -52,7 +55,7 @@ public class RandomAccessibleIntervalMipmapSource< T extends Type< T > > impleme
 	private final VoxelDimensions voxelDimensions;
 	private final T type;
 	private final String name;
-	private final DefaultInterpolators< ? extends NumericType > interpolators;
+	private final DefaultInterpolators interpolators;
 
 	public RandomAccessibleIntervalMipmapSource(
 			final List< RandomAccessibleInterval< T > > rais,
@@ -118,9 +121,9 @@ public class RandomAccessibleIntervalMipmapSource< T extends Type< T > > impleme
 		}
 		else
 		{
-			final T outOfBoundsVariable = type.createVariable();
-			final RandomAccessible ra = new ExtendedRandomAccessibleInterval<>( getSource( t, level ), new OutOfBoundsConstantValueFactory<>( outOfBoundsVariable ) );
-			return Views.interpolate( ra, new NearestNeighborInterpolatorFactory< T >() );
+			return getSource( t, level ).view()
+					.extend( value( type.createVariable() ) )
+					.interpolate( nearestNeighbor() );
 		}
 	}
 
