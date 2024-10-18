@@ -93,8 +93,6 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 	{
 		final ArrayList< AS > annotations = annData.getTable().annotations();
 		kdTree = new KDTree( annotations, annotations );
-		// TODO: there is a KDTreeFloat implementation in this repo that we could use
-		//   to save memory
 
 		if ( boundingBoxMin == null )
 			boundingBoxMin = kdTree.minAsDoubleArray();

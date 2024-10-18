@@ -38,6 +38,7 @@ import ij3d.Content;
 import ij3d.ContentConstants;
 import ij3d.Image3DUniverse;
 import ij3d.UniverseListener;
+import ij3d.Utils;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.RealUnsignedByteConverter;
 import net.imglib2.display.ColorConverter;
@@ -53,9 +54,9 @@ import net.imglib2.view.Views;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
-import org.scijava.java3d.Transform3D;
-import org.scijava.java3d.View;
-import org.scijava.vecmath.Color3f;
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.View;
+import org.jogamp.vecmath.Color3f;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.awt.*;
@@ -212,7 +213,7 @@ public class ImageVolumeViewer
 		IJ.log( VOLUME_VIEWER + source.getName() + " transformation:\n" + transform3D );
 		content.applyTransform( transform3D );
 
-		Color3f color = new Color3f( ColorHelper.getColor( argbType ) );
+		Color3f color = Utils.toColor3f( ColorHelper.getColor( argbType ) );
 		content.setColor( color );
 		content.setTransparency( transparency );
 		content.setLocked( true );

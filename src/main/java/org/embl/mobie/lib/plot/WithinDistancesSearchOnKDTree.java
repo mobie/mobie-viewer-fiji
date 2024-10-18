@@ -53,7 +53,7 @@ public class WithinDistancesSearchOnKDTree< T >
 		this.tree = tree;
 		this.n = tree.numDimensions();
 		this.pos = new float[ n ];
-		this.resultPoints = new ArrayList< ValuePair< KDTreeNode< T >, Double > >();
+		this.resultPoints = new ArrayList<>();
 	}
 
 	public void search( final RealLocalizable reference, final double[] distances, final boolean sortResults )
@@ -93,11 +93,11 @@ public class WithinDistancesSearchOnKDTree< T >
 			}
 		}
 
-		Double distance = Double.valueOf( 0 ); // TODO: If we want round dots and if we want to sort
+		// TODO: If we want round dots and if we want to sort
 
 		if ( closeEnough )
 		{
-			resultPoints.add( new ValuePair< KDTreeNode< T >, Double >( current, distance ) );
+			resultPoints.add( new ValuePair<>( current, 0.0 ) );
 		}
 
 		final double axisDiff = pos[ current.getSplitDimension() ] - current.getSplitCoordinate();
@@ -105,8 +105,21 @@ public class WithinDistancesSearchOnKDTree< T >
 		final double axisAbsDistance = Math.abs( axisDiff );
 
 		// search the near branch
-		final KDTreeNode< T > nearChild = leftIsNearBranch ? current.left : current.right;
-		final KDTreeNode< T > awayChild = leftIsNearBranch ? current.right : current.left;
+		final KDTreeNode< T > nearChild = leftIsNearBranch ? current.left() : current.right();
+		final KDTreeNode< T > awayChild = leftIsNearBranch ? current.right() : current.left();
+
+		// TODO: Revise for efficiency:
+		//       current.left() and current.right() are deprecated.
+		//       They will create new KDTreeNode instances everytime.
+		//       Searches on the KDTree are now implemented on net.imglib2.kdtree.KDTreeImpl (which has the tree structure but no associated values).
+		//       See for example net.imglib2.kdtree.RadiusNeighborSearchImpl
+		//       	https://github.com/imglib/imglib2/blob/e6545cc41cabdcd16aba5f655fe9f92b9789797a/src/main/java/net/imglib2/kdtree/RadiusNeighborSearchImpl.java#L46
+		//       This is then wrapped to present the results as KDTreeNodes.
+		//       See for example net.imglib2.neighborsearch.RadiusNeighborSearchOnKDTree
+		//       	https://github.com/imglib/imglib2/blob/e6545cc41cabdcd16aba5f655fe9f92b9789797a/src/main/java/net/imglib2/neighborsearch/RadiusNeighborSearchOnKDTree.java#L50
+		//       WithinDistancesSearchOnKDTree seems to be a slightly modified RadiusNeighborSearchOnKDTree?
+		//       So it should be relatively easy to adapt.
+
 		if ( nearChild != null )
 			searchNode( nearChild, distances );
 

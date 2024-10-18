@@ -28,7 +28,7 @@
  */
 package develop;
 
-import org.scijava.java3d.VirtualUniverse;
+import org.jogamp.java3d.VirtualUniverse;
 
 public class TestVirtualUniverse
 {
