@@ -41,6 +41,7 @@ import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.lib.*;
+import org.embl.mobie.lib.bdv.BdvViewingMode;
 import org.embl.mobie.lib.data.*;
 import org.embl.mobie.lib.hcs.HCSDataSetter;
 import org.embl.mobie.lib.hcs.Plate;
@@ -52,6 +53,7 @@ import org.embl.mobie.lib.io.DataFormats;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.*;
 import org.embl.mobie.lib.table.TableDataFormat;
+import org.embl.mobie.lib.table.columns.CollectionTableConstants;
 import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.transform.GridType;
 import org.embl.mobie.lib.view.ViewManager;
@@ -61,6 +63,7 @@ import org.embl.mobie.ui.WindowArrangementHelper;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
@@ -74,8 +77,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-import static org.embl.mobie.io.util.IOHelper.combinePath;
-import static org.embl.mobie.io.util.IOHelper.getFileName;
+import static org.embl.mobie.io.util.IOHelper.*;
+import static org.embl.mobie.lib.table.saw.TableOpener.determineDelimiter;
 
 public class MoBIE
 {
@@ -115,7 +118,19 @@ public class MoBIE
 			IJ.log("\n# MoBIE" );
 			IJ.log("Opening collection table: " + uri );
 
-			final Table table = TableOpener.openDelimitedTextFile( uri );
+			// Read the table
+
+			HashMap< String, ColumnType > nameToType = new HashMap<>();
+			nameToType.put( CollectionTableConstants.GRID, ColumnType.STRING );
+			nameToType.put( CollectionTableConstants.VIEW, ColumnType.STRING );
+
+			String content = IOHelper.read( uri );
+			CsvReadOptions.Builder builder =
+					CsvReadOptions.builderFromString( content )
+							.separator( determineDelimiter( uri )  )
+							.missingValueIndicator( "na", "none", "nan" )
+							.columnTypesPartial( nameToType );
+			Table table = Table.read().usingOptions( builder );
 
 			initImageJAndMoBIE();
 			initProject( IOHelper.getFileName( uri ) );
@@ -416,7 +431,9 @@ public class MoBIE
 	{
 		userInterface = new UserInterface( this );
 		adjustLogWindow( userInterface );
-		viewManager = new ViewManager( this, userInterface, dataset.is2D() );
+
+		boolean is2D = dataset.is2D() || settings.values.getBdvViewingMode().equals( BdvViewingMode.TwoDimensional );
+		viewManager = new ViewManager( this, userInterface, is2D );
 	}
 
 	private View getView( String viewName, Dataset dataset )

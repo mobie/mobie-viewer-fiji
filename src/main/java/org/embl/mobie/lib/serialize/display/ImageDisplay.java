@@ -41,9 +41,7 @@ import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.NumericType;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay< T >
@@ -59,6 +57,13 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	// Runtime
 	public transient ImageSliceView< ?> imageSliceView;
 	public transient ImageVolumeViewer imageVolumeViewer;
+
+	private transient Map< String, double[] > sourceToContrastLimits = new HashMap<>();
+
+	// Gson deserialization
+	public ImageDisplay()
+	{
+	}
 
 	public ImageDisplay(
 			String name,
@@ -83,18 +88,27 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		this.contrastLimits = contrastLimits;
 		this.showImagesIn3d = showImagesIn3d;
 		this.resolution3dView = resolution3dView;
+		setContrastLimits();
 	}
 
-	// Gson deserialization
-	public ImageDisplay() {}
+	private void setContrastLimits()
+	{
+		for ( String source : sources )
+			sourceToContrastLimits.put( source, contrastLimits );
+	}
+
+	public ImageDisplay( String name )
+	{
+		this.name = name;
+	}
 
 	public ImageDisplay( String name, String sourceName )
 	{
 		this.name = name;
 		this.sources = Collections.singletonList( sourceName );
+		setContrastLimits();
 	}
 
-	// Project creator serialization
 	public ImageDisplay(
 			String name,
 			double opacity,
@@ -111,6 +125,7 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		this.contrastLimits = contrastLimits;
 		this.blendingMode = blendingMode;
 		this.showImagesIn3d = showImagesIn3d;
+		setContrastLimits();
 	}
 
 	/*
@@ -142,15 +157,14 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		}
 	}
 
-
 	public String getColor()
 	{
 		return color;
 	}
 
-	public double[] getContrastLimits()
+	public double[] getContrastLimits( String source )
 	{
-		return contrastLimits;
+		return sourceToContrastLimits.get( source );
 	}
 
 	public boolean invert()
@@ -177,6 +191,11 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		return sources;
 	}
 
+	public void addSource( String source, double[] contrastLimits )
+	{
+		sources.add( source );
+		sourceToContrastLimits.put( source, contrastLimits );
+	}
 
 	public void setDisplaySettings( SourceAndConverter< ? > sourceAndConverter )
 	{
@@ -204,4 +223,6 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 
 		blendingMode = ( BlendingMode ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.class.getName() );
 	}
+
+
 }

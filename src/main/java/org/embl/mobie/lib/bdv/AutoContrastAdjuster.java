@@ -4,6 +4,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.gui.Roi;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 
 import java.util.Collections;
@@ -26,7 +27,12 @@ public class AutoContrastAdjuster
         ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, "" );
         screenShotMaker.run( Collections.singletonList( sourceAndConverter ), 4 * viewerVoxelSpacing );
         ImagePlus imagePlus = screenShotMaker.getCompositeImagePlus();
-        IJ.run(imagePlus, "Enhance Contrast", "saturated=0.35");
-        return new double[]{ imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
+        Roi[] rois = screenShotMaker.getMasks();
+        if ( rois != null && rois.length > 0 )
+            imagePlus.setRoi( rois[ 0 ] );
+        IJ.run( imagePlus, "Enhance Contrast", "saturated=0.35" );
+        // imagePlus.show();
+        double[] minMax = { imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
+        return minMax;
     }
 }

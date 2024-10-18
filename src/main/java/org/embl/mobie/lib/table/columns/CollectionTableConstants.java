@@ -221,8 +221,8 @@ public class CollectionTableConstants
      * or if the "type" column is absent, which causes the type to default to "intensities",
      * otherwise this value is ignored.
      * Supported values:
-     * - Bracketed, comma separated list of min and max,  e.g.
-     *   - (10,240)
+     * - Bracketed, semicolon separated list of min and max, e.g.
+     *   - (10;240)
      *
      * Default value: N/A
      *
@@ -235,16 +235,16 @@ public class CollectionTableConstants
     public static final String CONTRAST_LIMITS = "contrast_limits";
 
     /**
-     * The "grid_id" column MAY be present.
+     * The "grid" column MAY be present.
      *
-     * All images or segmentations that share the same grid_id will be shown together
+     * All images or segmentations that share the same "grid" will be shown together
      * as a grid view.
      *
      * All images or segmentations in a grid view will be displayed with the same
      * display settings, thus they SHOULD have the same "contrast_limits" and "color".
      * If those entries are not the same, MoBIE will randomly apply one of them.
      *
-     * Images or segmentations with the same grid_id MUST be part of the same "view"
+     * Images or segmentations within the same "grid" MUST be part of the same "view"
      *
      * Supported values:
      * - Free text
@@ -255,5 +255,5 @@ public class CollectionTableConstants
      * - Display similar data together such that it can be readily compared
      * - Plate/well based high-throughput microscopy data is a typical use-case
      */
-    public static final String GRID = "grid_id";
+    public static final String GRID = "grid";
 }

@@ -55,6 +55,7 @@ import java.util.regex.Pattern;
 
 import static org.embl.mobie.io.util.IOHelper.combinePath;
 import static org.embl.mobie.io.util.IOHelper.getPaths;
+import static sc.fiji.bdvpg.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
 
 
 public abstract class MoBIEHelper
@@ -357,5 +358,21 @@ public abstract class MoBIEHelper
 		}
 
 		return string;
+	}
+
+	public static List< SourceAndConverter< ? > > getVisibleSacsInCurrentView( final BdvHandle bdvHandle )
+	{
+		final List< SourceAndConverter <?> > visibleSacs = getVisibleSacs( bdvHandle );
+
+		List< SourceAndConverter< ? > > sacs = new ArrayList<>();
+		for ( SourceAndConverter< ?  > sac : visibleSacs )
+		{
+			// TODO: can we determine from BDV whether a source is intersecting viewer plane?
+			//       why do we need is2D=false ?
+			if ( ! isSourceIntersectingCurrentView( bdvHandle, sac.getSpimSource(), false ) )
+				continue;
+			sacs.add( sac );
+		}
+		return sacs;
 	}
 }

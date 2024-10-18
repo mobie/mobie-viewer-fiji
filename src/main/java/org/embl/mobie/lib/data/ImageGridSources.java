@@ -198,14 +198,7 @@ public class ImageGridSources
 		RandomAccessibleInterval< ? > lowResRAI = source.getSource( 0, source.getNumMipmapLevels() - 1 );
 		long numElements = Intervals.numElements( lowResRAI.dimensionsAsLongArray() );
 		if ( numElements < 1024 * 1024 )
-		{
-			IJ.log( "Computing contrast limits from image data..." );
 			metadata.contrastLimits = SourceHelper.estimateMinMax( ( RandomAccessibleInterval ) lowResRAI );
-		}
-		else
-		{
-			IJ.log( "Image is large, thus taking contrast limits from datatype range." );
-		}
 
 		IJ.log( "Contrast limits: " + Arrays.toString( metadata.contrastLimits ) );
 		IJ.log( "Fetched metadata in " + ( System.currentTimeMillis() - start ) + " ms." );
@@ -214,7 +207,7 @@ public class ImageGridSources
 
 	private static String applyPathMapping( String pathMapping, String path )
 	{
-		if ( pathMapping != null )
+		if ( pathMapping != null && ! pathMapping.isEmpty() )
 		{
 			String[] fromTo = pathMapping.split( "," );
 			String from = fromTo[ 0 ];

@@ -34,6 +34,7 @@ import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.ProjectType;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.bdv.BdvViewingMode;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -65,6 +66,12 @@ public class OpenCollectionTableCommand implements Command {
 			required = false )
 	public File dataRootFile;
 
+	@Parameter( label = "Viewing mode",
+			description = "Volumetric viewing enables arbitrary plane slicing. Planar viewing mode will restrict browsing to the XY, YZ, or XZ planes.",
+			required = false )
+	public BdvViewingMode bdvViewingMode = BdvViewingMode.ThreeDimensional;
+
+
 	@Override
 	public void run()
 	{
@@ -87,7 +94,8 @@ public class OpenCollectionTableCommand implements Command {
 
 		final MoBIESettings settings = new MoBIESettings()
 				.projectType( ProjectType.CollectionTable )
-				.dataRoot( dataRootString );
+				.dataRoot( dataRootString )
+				.bdvViewingMode( bdvViewingMode );
 
 		try
 		{

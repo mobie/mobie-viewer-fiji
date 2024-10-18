@@ -37,8 +37,6 @@ import org.embl.mobie.lib.volume.MeshTransformer;
 
 public class TableSawAnnotatedSegment extends AbstractTableSawAnnotation implements AnnotatedSegment
 {
-	private static final String[] idColumns = new String[]{ ColumnNames.LABEL_ID, ColumnNames.TIMEPOINT };
-
 	private final int timePoint;
 	private final int labelId;
 	private final double[] position;

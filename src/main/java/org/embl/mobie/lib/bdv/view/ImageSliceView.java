@@ -119,11 +119,15 @@ public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceV
 
 	private void adaptContrastLimits( SourceAndConverter< ? > sourceAndConverter )
 	{
-		double[] contrastLimits = display.getContrastLimits();
+		double[] contrastLimits = display.getContrastLimits(
+				sourceAndConverter.getSpimSource().getName() );
 
 		if ( contrastLimits != null )
 		{
-			final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter );
+			final ConverterSetup converterSetup =
+					SourceAndConverterServices
+							.getSourceAndConverterService()
+							.getConverterSetup( sourceAndConverter );
 			converterSetup.setDisplayRange( contrastLimits[ 0 ], contrastLimits[ 1 ] );
 		}
 	}

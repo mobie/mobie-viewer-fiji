@@ -18,12 +18,10 @@ public class ColorByColumnDialog< A extends Annotation >
     private static String lut;
     private static String columnName;
     private static boolean paintZeroTransparent;
-
     private final AnnotationTableModel< A > table;
     private JComboBox< String > columnComboBox;
     private JComboBox< String > lutComboBox;
     private JCheckBox paintZeroTransparentCheckBox;
-
     private boolean isOkPressed;
 
     public ColorByColumnDialog( AnnotationTableModel< A > table )
@@ -46,7 +44,7 @@ public class ColorByColumnDialog< A extends Annotation >
 
         addOKCancelButton( dialog );
 
-        dialog.setPreferredSize( new Dimension( 250, 200 ) );
+        //dialog.setPreferredSize( new Dimension( 250, 200 ) );
         dialog.setLocation(
                 Toolkit.getDefaultToolkit().getScreenSize().width / 2 - 200,
                 Toolkit.getDefaultToolkit().getScreenSize().height / 2 - 200

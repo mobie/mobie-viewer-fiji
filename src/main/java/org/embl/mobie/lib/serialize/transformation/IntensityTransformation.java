@@ -26,41 +26,32 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.annotation;
+package org.embl.mobie.lib.serialize.transformation;
 
-import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.util.ValuePair;
 
-public interface Annotation extends Location
+import java.util.List;
+
+public class IntensityTransformation extends AbstractImageTransformation
 {
-	String uuid();
+	private final double min;
+	private final double max;
 
-	// Data source (can be a table or a label mask image)
-	String source();
+	public IntensityTransformation( String name, double min, double max, List< String > sources ) {
+		this( name, min, max, sources, null );
+	}
 
-	// Integer label for representing the annotation as a
-	// region in one time point of a label image
-	int label();
+	public IntensityTransformation( String name, double min, double max, List< String > sources, List< String > sourceNamesAfterTransform )
+	{
+		this.min = min;
+		this.max = max;
+		this.name = name;
+		this.sources = sources;
+		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
+	}
 
-	// For retrieving features (measurements)
-	// (typically: feature = column in an annotation table)
-	Object getValue( String feature );
-
-	// For retrieving numerical features (measurements)
-	// (typically: feature = column in an annotation table)
-	Double getNumber( String feature );
-
-	// For adding text annotations
-	void setString( String columnName, String value );
-
-	// For adding numeric annotations
-	void setNumber( String columnName, double value );
-
-	// Transform the spatial coordinates of this annotation.
-	//
-	// However, there are other ways to transform annotations,
-	// which create a copy of the annotation,
-	// e.g. using {@code AffineTransformedAnnotatedSegment};
-	// use those methods if you need both the transformed and
-	// untransformed annotations.
-	void transform( AffineTransform3D affineTransform3D );
+	public ValuePair< Double, Double > getMinMax()
+	{
+		return new ValuePair( min, max );
+	}
 }

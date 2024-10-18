@@ -322,117 +322,13 @@ public class UserInterfaceHelper
 		return displaySettingsScrollPane;
 	}
 
-	public JPanel createDisplaySettingsPanel( JScrollPane displaySettingsScrollPane ) {
+	public JPanel createDisplaySettingsPanel( JScrollPane displaySettingsScrollPane )
+	{
 		final JPanel panel = new JPanel();
-		panel.setLayout( new BoxLayout(panel, BoxLayout.Y_AXIS ) );
+		panel.setLayout( new BoxLayout( panel, BoxLayout.Y_AXIS ) );
 		panel.setAlignmentX( Component.LEFT_ALIGNMENT );
 		panel.add( displaySettingsScrollPane );
 		return panel;
-	}
-
-	public static JFrame showContrastLimitsDialog(
-			String name,
-			List< ? extends SourceAndConverter< ? > > sacs,
-			BdvHandle bdvHandle )
-	{
-		ISourceAndConverterService service = SourceAndConverterServices.getSourceAndConverterService();
-
-		List< ConverterSetup > converterSetups = sacs
-				.stream()
-				.map( sac -> service.getConverterSetup( sac ) )
-				.collect( Collectors.toList() );
-
-		List< ? extends Converter< ?, ARGBType > > converters = sacs
-				.stream()
-				.map( sac -> sac.getConverter() )
-				.collect( Collectors.toList() );
-
-		JFrame frame = new JFrame( name );
-		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-
-		final double currentContrastLimitsMin = converterSetups.get( 0 ).getDisplayRangeMin();
-		final double currentContrastLimitsMax = converterSetups.get( 0 ).getDisplayRangeMax();
-		final double absCurrentRange = Math.abs( currentContrastLimitsMax - currentContrastLimitsMin );
-
-		final double rangeFactor = 1.0; // could be changed...
-
-		final double rangeMin = currentContrastLimitsMin - rangeFactor * absCurrentRange;
-		final double rangeMax = currentContrastLimitsMax + rangeFactor * absCurrentRange;
-
-		final BoundedValueDouble min =
-				new BoundedValueDouble(
-						rangeMin,
-						rangeMax,
-						currentContrastLimitsMin );
-
-		final BoundedValueDouble max =
-				new BoundedValueDouble(
-						rangeMin,
-						rangeMax,
-						currentContrastLimitsMax );
-
-		double spinnerStepSize = absCurrentRange / 100.0;
-
-		JPanel panel = new JPanel();
-		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
-		final SliderPanelDouble minSlider =
-				new SliderPanelDouble( "Min", min, spinnerStepSize );
-		minSlider.setNumColummns( 10 );
-
-		// TODO: adapt the number of decimal places to the current range
-		minSlider.setDecimalFormat( "#####.####" );
-
-		final SliderPanelDouble maxSlider =
-				new SliderPanelDouble( "Max", max, spinnerStepSize );
-		maxSlider.setNumColummns( 10 );
-		maxSlider.setDecimalFormat( "#####.####" );
-		//maxSlider.setDecimalFormat( "####E0" );
-
-		final BrightnessUpdateListener brightnessUpdateListener = new BrightnessUpdateListener( min, max, minSlider, maxSlider, converterSetups );
-
-		min.setUpdateListener( brightnessUpdateListener );
-		max.setUpdateListener( brightnessUpdateListener );
-
-		panel.add( minSlider );
-		panel.add( maxSlider );
-
-		boolean isInvert = false;
-		for ( Converter< ?, ARGBType > converter : converters )
-		{
-			if ( converter instanceof MoBIEColorConverter )
-			{
-				isInvert = ( ( MoBIEColorConverter ) converter ).invert();
-				break;
-			}
-		}
-		JCheckBox invertCheckBox = new JCheckBox( "Invert LUT" );
-		invertCheckBox.setSelected( isInvert );
-		invertCheckBox.setToolTipText( "Invert the current LUT" );
-		invertCheckBox.addActionListener( e ->
-        {
-			for ( Converter< ?, ARGBType > converter : converters )
-			{
-				if ( converter instanceof MoBIEColorConverter )
-				{
-					( ( MoBIEColorConverter ) converter ).invert( invertCheckBox.isSelected() );
-				}
-			}
-			bdvHandle.getViewerPanel().requestRepaint();
-        } );
-
-		panel.add( invertCheckBox );
-
-		frame.setContentPane( panel );
-
-		//Display the window.
-		frame.setBounds( MouseInfo.getPointerInfo().getLocation().x,
-				MouseInfo.getPointerInfo().getLocation().y,
-				120, 10);
-		frame.setResizable( false );
-		frame.pack();
-		frame.setVisible( true );
-
-		return frame;
 	}
 
 	public static JFrame showContrastDialog(
@@ -441,7 +337,10 @@ public class UserInterfaceHelper
 			BdvHandle bdvHandle,
 			boolean addContrastLimitUI )
 	{
-		ISourceAndConverterService service = SourceAndConverterServices.getSourceAndConverterService();
+		ISourceAndConverterService service =
+				SourceAndConverterServices.getSourceAndConverterService();
+
+		SourceAndConverterProvider sacProvider = new SourceAndConverterProvider( bdvHandle, sacs );
 
 		JFrame frame = new JFrame( name );
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
@@ -452,12 +351,14 @@ public class UserInterfaceHelper
 		{
 			// Contrast Limits
 			//
-			List< ConverterSetup > converterSetups = sacs
+			List< ConverterSetup > converterSetups =
+					sacProvider.get()
 					.stream()
 					.map( sac -> service.getConverterSetup( sac ) )
 					.collect( Collectors.toList() );
 
-			List< ? extends Converter< ?, ARGBType > > converters = sacs
+			List< ? extends Converter< ?, ARGBType > > converters =
+					sacProvider.get()
 					.stream()
 					.map( sac -> sac.getConverter() )
 					.collect( Collectors.toList() );
@@ -498,7 +399,13 @@ public class UserInterfaceHelper
 			maxSlider.setNumColummns( 10 );
 			maxSlider.setDecimalFormat( decimalFormat );
 
-			final BrightnessUpdateListener brightnessUpdateListener = new BrightnessUpdateListener( min, max, minSlider, maxSlider, converterSetups );
+			final BrightnessUpdateListener brightnessUpdateListener =
+					new BrightnessUpdateListener(
+							min,
+							max,
+							minSlider,
+							maxSlider,
+							sacProvider );
 
 			min.setUpdateListener( brightnessUpdateListener );
 			max.setUpdateListener( brightnessUpdateListener );
@@ -561,7 +468,8 @@ public class UserInterfaceHelper
 		blendingModeComboBox.setSelectedItem( currentBlendingMode );
 		blendingModeComboBox.addActionListener( e ->
 		{
-			for ( SourceAndConverter< ? > sourceAndConverter : sacs )
+			List< ? extends SourceAndConverter< ? > > sourceAndConverters = sacProvider.get();
+			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 			{
 				service.setMetadata( sourceAndConverter,
 						BlendingMode.class.getName(),
@@ -591,14 +499,33 @@ public class UserInterfaceHelper
 		opacitySlider.setDecimalFormat( "#.##" );
 
 		final OpacityUpdateListener opacityUpdateListener =
-				new OpacityUpdateListener( selection, opacitySlider, sacs, bdvHandle );
+				new OpacityUpdateListener(
+						selection,
+						opacitySlider,
+						sacProvider,
+						bdvHandle );
 
 		selection.setUpdateListener( opacityUpdateListener );
 		JPanel opacityPanel = SwingHelper.horizontalLayoutPanel();
 		opacityPanel.add( opacitySlider );
 		panel.add( opacityPanel );
 
-		//Display the window.
+		if ( sacs.size() > 1 )
+		{
+			JCheckBox modifyOnlyVisibleSources = new JCheckBox( "Change settings only for sources in current view" );
+			modifyOnlyVisibleSources.setSelected( false );
+			modifyOnlyVisibleSources.setToolTipText( "If checked, only the sources inside the current BDV window will be modified." );
+			modifyOnlyVisibleSources.addActionListener( e ->
+			{
+				sacProvider.onlyVisible( modifyOnlyVisibleSources.isSelected() );
+			} );
+			JPanel modifyOnlyVisiblePanel = SwingHelper.horizontalLayoutPanel();
+			modifyOnlyVisiblePanel.add( modifyOnlyVisibleSources );
+			panel.add( modifyOnlyVisiblePanel );
+			panel.add( new JLabel( "" ) );
+		}
+
+		// Display the window
 		frame.setContentPane( panel );
 		frame.setBounds( MouseInfo.getPointerInfo().getLocation().x,
 				MouseInfo.getPointerInfo().getLocation().y,
@@ -655,18 +582,19 @@ public class UserInterfaceHelper
 
 	public static class OpacityUpdateListener implements BoundedValueDouble.UpdateListener
 	{
-		final private List< ? extends SourceAndConverter< ? > > sourceAndConverters;
+		final private SourceAndConverterProvider sacProvider;
 		private final BdvHandle bdvHandle;
 		final private BoundedValueDouble value;
 		private final SliderPanelDouble slider;
 
 		public OpacityUpdateListener( BoundedValueDouble value,
 									  SliderPanelDouble slider,
-									  List< ? extends SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
+									  SourceAndConverterProvider sourceAndConverterProvider,
+									  BdvHandle bdvHandle )
 		{
 			this.value = value;
 			this.slider = slider;
-			this.sourceAndConverters = sourceAndConverters;
+			this.sacProvider = sourceAndConverterProvider;
 			this.bdvHandle = bdvHandle;
 		}
 
@@ -674,6 +602,8 @@ public class UserInterfaceHelper
 		public void update()
 		{
 			slider.update();
+
+			List< ? extends SourceAndConverter< ? > > sourceAndConverters = sacProvider.get();
 
 			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 			{
@@ -1261,28 +1191,11 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-	public static JButton createImageDisplayBrightnessButton( ImageDisplay< ? > imageDisplay )
-	{
-		JButton button = getIconButton( "contrast.png" );
-		button.setToolTipText( "Change brightness/contrast" );
-
-		button.addActionListener( e ->
-		{
-			JFrame jFrame = UserInterfaceHelper.showContrastLimitsDialog(
-					imageDisplay.getName(),
-					imageDisplay.sourceAndConverters(),
-					imageDisplay.imageSliceView.getSliceViewer().getBdvHandle() );
-			MoBIEWindowManager.addWindow( jFrame );
-		} );
-
-		return button;
-	}
-
 	public static JButton createContrastButton(
-			List< ? extends SourceAndConverter< ? > > sourceAndConverters,
-			String name,
-			BdvHandle bdvHandle,
-			boolean addContrastLimitUI )
+			final List< ? extends SourceAndConverter< ? > > sacs,
+			final String name,
+			final BdvHandle bdvHandle,
+			final boolean addContrastLimitUI )
 	{
 		JButton button = getIconButton( "contrast.png" );
 		button.setToolTipText( "Change opacity and contrast limits" );
@@ -1291,10 +1204,11 @@ public class UserInterfaceHelper
 		{
 			JFrame jFrame = showContrastDialog(
 					name,
-					sourceAndConverters,
+					sacs, // sacs,
 					bdvHandle,
 					addContrastLimitUI
 			);
+
 			MoBIEWindowManager.addWindow( jFrame );
 		} );
 

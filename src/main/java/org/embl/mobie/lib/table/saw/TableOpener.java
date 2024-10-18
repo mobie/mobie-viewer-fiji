@@ -1,4 +1,4 @@
-/*-
+/*
  * #%L
  * Fiji viewer for MoBIE projects
  * %%
@@ -207,17 +207,10 @@ public class TableOpener
 
 	public static Table openDelimitedTextFile( String path, char separator )
 	{
-		String content = null;
-		try
-		{
-			content = IOHelper.read( path );
-		}
-		catch ( IOException e )
-		{
-			throw new RuntimeException( e );
-		}
+		String content = readContent( path );
 
-		content = dealWithTwoHeaderRowsIfNeeded( separator, content );
+		// FIXME: This is brittle; don't always do this, this is only for CellProfiler!
+		// content = dealWithTwoHeaderRowsIfNeeded( separator, content );
 
 		CsvReadOptions.Builder builder =
 				CsvReadOptions.builderFromString( content )
@@ -227,12 +220,29 @@ public class TableOpener
 		return Table.read().usingOptions( builder );
 	}
 
+	private static String readContent( String path )
+	{
+		String content = null;
+		try
+		{
+			content = IOHelper.read( path );
+		}
+		catch ( IOException e )
+		{
+			throw new RuntimeException( e );
+		}
+		return content;
+	}
+
 	private static String dealWithTwoHeaderRowsIfNeeded( char separator, String content )
 	{
-		String[] lines = content.split( System.lineSeparator() );
+		String[] lines = content.split( "\\r?\\n" );
+
 		final String[] columns = lines[ 0 ].split( "" + separator );
-		final Map< String, Long > collect = Arrays.stream( columns ).collect( Collectors.groupingBy( Function.identity(), Collectors.counting() ) );
+		final Map< String, Long > collect = Arrays.stream( columns )
+				.collect( Collectors.groupingBy( Function.identity(), Collectors.counting() ) );
 		boolean containsDuplicateColumnNames = false;
+
 		for ( String column : collect.keySet() )
 		{
 			if ( collect.get( column ) > 1 )
@@ -243,6 +253,8 @@ public class TableOpener
 			}
 		}
 
+		// FIXME: this may not always be desired, maybe we just want to throw an error here...
+		//        maybe better to explicitly figure out whether this is a CellProfiler table?
 		if ( containsDuplicateColumnNames )
 		{
 			IJ.log("[WARNING] Trying now to open the table assuming that there are two header rows...");

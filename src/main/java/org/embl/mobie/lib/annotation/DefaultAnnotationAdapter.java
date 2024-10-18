@@ -91,7 +91,7 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 			source = this.source;
 		}
 
-		final String stl = stlKey( source, timePoint, label );
+		final String stl = createKey( source, timePoint, label );
 		final A annotation = stlToAnnotation.get( stl );
 
 		if ( annotation == null )
@@ -117,11 +117,11 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 		while( iterator.hasNext() )
 		{
 			A annotation = iterator.next();
-			stlToAnnotation.put( stlKey( annotation.source(), annotation.timePoint(), annotation.label() ), annotation );
+			stlToAnnotation.put( createKey( annotation.source(), annotation.timePoint(), annotation.label() ), annotation );
 		}
 	}
 
-	private String stlKey( String source, int timePoint, int label )
+	private String createKey( String source, int timePoint, int label )
 	{
 		return source + ";" + timePoint + ";" + label;
 	}

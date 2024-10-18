@@ -75,7 +75,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getLevel;
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getViewerVoxelSpacing;
-import static sc.fiji.bdvpg.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
 
 public class ScreenShotMaker
 {
@@ -110,7 +109,7 @@ public class ScreenShotMaker
 
     public void run( Double targetSamplingInXY )
     {
-        List< SourceAndConverter< ? > > sacs = getVisibleSourceAndConverters();
+        List< SourceAndConverter< ? > > sacs = MoBIEHelper.getVisibleSacsInCurrentView( bdvHandle );
 
         run( sacs, targetSamplingInXY );
     }
@@ -280,22 +279,6 @@ public class ScreenShotMaker
     public AffineTransform3D getCanvasToGlobalTransform()
     {
         return canvasToGlobalTransform;
-    }
-
-    private List< SourceAndConverter< ? > > getVisibleSourceAndConverters()
-    {
-        final List< SourceAndConverter <?> > visibleSacs = MoBIEHelper.getVisibleSacs( bdvHandle );
-
-        List< SourceAndConverter< ? > > sacs = new ArrayList<>();
-        for ( SourceAndConverter< ?  > sac : visibleSacs )
-        {
-            // TODO: can we determine from BDV whether a source is intersecting viewer plane?
-            //       why do we need is2D=false ?
-            if ( ! isSourceIntersectingCurrentView( bdvHandle, sac.getSpimSource(), false ) )
-                continue;
-            sacs.add( sac );
-        }
-        return sacs;
     }
 
     private void setArgbPixelValue( Converter converter, RealRandomAccess< ? > access, RandomAccess< ARGBType > argbCaptureAccess, ARGBType argbType )
