@@ -31,12 +31,14 @@ package org.embl.mobie.ui;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BoundedValueDouble;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class BrightnessUpdateListener implements BoundedValueDouble.UpdateListener
 {
-	final private List< ConverterSetup > converterSetups;
+	final private SourceAndConverterProvider sourceAndConverterProvider;
  	final private BoundedValueDouble min;
 	final private BoundedValueDouble max;
 	private final SliderPanelDouble minSlider;
@@ -46,13 +48,13 @@ public class BrightnessUpdateListener implements BoundedValueDouble.UpdateListen
 									 BoundedValueDouble max,
 									 SliderPanelDouble minSlider,
 									 SliderPanelDouble maxSlider,
-									 List< ConverterSetup > converterSetups )
+									 SourceAndConverterProvider sourceAndConverterProvider )
 	{
 		this.min = min;
 		this.max = max;
 		this.minSlider = minSlider;
 		this.maxSlider = maxSlider;
-		this.converterSetups = converterSetups;
+		this.sourceAndConverterProvider = sourceAndConverterProvider;
 	}
 
 	@Override
@@ -88,9 +90,9 @@ public class BrightnessUpdateListener implements BoundedValueDouble.UpdateListen
 		minSlider.update();
 		maxSlider.update();
 
-		for ( ConverterSetup converterSetup : converterSetups )
-		{
-			converterSetup.setDisplayRange( minCurrentValue, maxCurrentValue );
-		}
+		sourceAndConverterProvider.get()
+				.stream()
+				.map( sac -> SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ) )
+				.forEach( cs -> cs.setDisplayRange( minCurrentValue, maxCurrentValue ) );
 	}
 }

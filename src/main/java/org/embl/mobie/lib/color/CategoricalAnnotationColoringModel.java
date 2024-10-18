@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.color;
 
+import IceInternal.Ex;
 import org.embl.mobie.lib.annotation.Annotation;
 
 import org.embl.mobie.lib.color.lut.ColumnARGBLut;
@@ -46,8 +47,8 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 	private int randomSeed;
 
 	public CategoricalAnnotationColoringModel(
-			final String columnName, @Nullable
-			final String lutName )
+			final String columnName,
+			@Nullable final String lutName )
 	{
 		this.columnName = columnName;
 		this.lut = LUTs.getLut( lutName );
@@ -106,10 +107,24 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 
 		// random color
 		//
- 		if ( inputToRandomColor.keySet().contains( categoricalValue ) )
+		synchronized ( inputToRandomColor )
 		{
-			output.set( inputToRandomColor.get( categoricalValue ) );
-			return;
+			if ( inputToRandomColor.keySet().contains( categoricalValue ) )
+			{
+				try
+				{
+					output.set( inputToRandomColor.get( categoricalValue ) );
+					return;
+				}
+				catch ( Exception e )
+				{
+					// There used to be a concurrency issue when calling setRandomSeed( .. )
+					// while inputToRandomColor was being queried.
+					// Adding the synchronized ( inputToRandomColor ) blocks seems to have fixed this.
+					// However, since this is just for visualisation, leaving the catch( ) here
+					// does not hurt, and will prevent crashes.
+				}
+			}
 		}
 
 		final double random = createRandom( categoricalValue.hashCode() );
@@ -133,12 +148,15 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 
 	public void setRandomSeed( int randomSeed )
 	{
-		if ( randomSeed == this.randomSeed )
-			return;
+		synchronized ( inputToRandomColor )
+		{
+			if ( randomSeed == this.randomSeed )
+				return;
 
-		inputToRandomColor.clear();
-		this.randomSeed = randomSeed;
-		notifyColoringListeners();
+			inputToRandomColor.clear();
+			this.randomSeed = randomSeed;
+			notifyColoringListeners();
+		}
 	}
 
 	public int getRandomSeed()

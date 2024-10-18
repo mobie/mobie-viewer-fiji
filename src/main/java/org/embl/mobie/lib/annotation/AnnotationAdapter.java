@@ -39,6 +39,6 @@ public interface AnnotationAdapter< A extends Annotation >
 	A getAnnotation( String source, int timePoint, int label );
 
 	// Init the mapping, this may cause loading of a table and should
-	// does only be done once needed.
+	// thus only be done once needed.
 	void init();
 }

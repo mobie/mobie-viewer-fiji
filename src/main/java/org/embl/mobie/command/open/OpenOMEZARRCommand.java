@@ -45,19 +45,31 @@ public class OpenOMEZARRCommand implements Command {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    @Parameter( label = "Image URI", description = "Local path or S3 address to an OME-Zarr multi-scale image.")
-    public String image = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
+    @Parameter( label = "Multi-scale Image URI",
+            description = "Local path or S3 address to an OME-Zarr multi-scale image."
+    )
+    public String image; // = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
 
-    @Parameter( label = "( Labels URI )", description = "Optional. Local path or S3 address to an OME-Zarr label mask multi-scale image.", required = false )
-    public String labels = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr/labels/cells";
+    @Parameter( label = "( Labels URI )",
+            description = "Optional. Local path or S3 address to an OME-Zarr label mask multi-scale image.",
+            required = false )
+    public String labels; // = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr/labels/cells";
 
-    @Parameter( label = "( Labels Table URI )", description = "Optional. Local path or S3 address to an table with label mask features.", required = false )
-    public String table; // FIXME: Add a cells table
+    @Parameter( label = "( Labels Table URI )",
+            description = "Optional. Local path or S3 address to an table with label mask features.",
+            required = false )
+    public String table; // FIXME: Add a cells table example
 
-    @Parameter ( label = "( S3 Access Key )", description = "Optional. Access key for a protected S3 bucket.", persist = false )
+    @Parameter ( label = "( S3 Access Key )",
+            description = "Optional. Access key for a protected S3 bucket.",
+            persist = false,
+            required = false )
     public String s3AccessKey;
 
-    @Parameter ( label = "( S3 Secret Key )", description = "Optional. Secret key for a protected S3 bucket.", persist = false )
+    @Parameter ( label = "( S3 Secret Key )",
+            description = "Optional. Secret key for a protected S3 bucket.",
+            persist = false,
+            required = false )
     public String s3SecretKey;
 
     @Override
@@ -69,13 +81,13 @@ public class OpenOMEZARRCommand implements Command {
             settings.s3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } );
 
         final ArrayList< String > imageList = new ArrayList<>();
-        if ( image != null ) imageList.add( image );
+        if ( image != null && ! image.isEmpty() ) imageList.add( image );
 
         final ArrayList< String > labelsList = new ArrayList<>();
-        if ( labels != null ) labelsList.add( labels );
+        if ( labels != null && ! labels.isEmpty() ) labelsList.add( labels );
 
         final ArrayList< String > tablesList = new ArrayList<>();
-        if ( table != null ) tablesList.add( table );
+        if ( table != null && ! table.isEmpty() ) tablesList.add( table );
 
         try
         {

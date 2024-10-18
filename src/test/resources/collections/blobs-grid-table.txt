@@ -1,5 +1,5 @@
-uri	name	type	affine	view	color	grid_id
-blobs.tif	blobs1	intensities	(10,0,0,0,0,10,0,0,0,0,1,0)	segmented blobs		blob images
-blobs-labels.tif	labels1	labels	(10,0,0,0,0,10,0,0,0,0,1,0)	segmented blobs		blob segmentations
-blobs.tif	blobs2	intensities	(10,0,0,0,0,10,0,0,0,0,1,0)	segmented blobs		blob images
-blobs-labels.tif	labels2	labels	(10,0,0,0,0,10,0,0,0,0,1,0)	segmented blobs		blob segmentations
+uri	name	type	contrast_limits	affine	view	color	grid
+blobs.tif	blobs1	intensities	"(0;255)"	(10,0,0,0,0,10,0,0,0,0,1,0)	segmented blobs	green	blob images
+blobs-labels.tif	labels1	labels		(10,0,0,0,0,10,0,0,0,0,1,0)	segmented blobs		blob segmentations
+blobs.tif	blobs2	intensities	"(50;200)"	(10,0,0,0,0,10,0,0,0,0,1,0)	segmented blobs	green	blob images
+blobs-labels.tif	labels2	labels		(10,0,0,0,0,10,0,0,0,0,1,0)	segmented blobs		blob segmentations

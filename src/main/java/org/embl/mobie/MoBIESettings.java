@@ -29,6 +29,7 @@
 package org.embl.mobie;
 
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import org.embl.mobie.lib.bdv.BdvViewingMode;
 import org.embl.mobie.lib.io.DataFormats;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.table.TableDataFormat;
@@ -126,6 +127,11 @@ public class MoBIESettings
 		return this;
 	}
 
+	public MoBIESettings bdvViewingMode( BdvViewingMode bdvViewingMode )
+	{
+		this.values.bdvViewingMode = bdvViewingMode;
+		return this;
+	}
 
 	public static class Values
 	{
@@ -142,6 +148,8 @@ public class MoBIESettings
 		private Boolean openedFromCLI = false; // started from CLI
 		private ProjectType projectType = ProjectType.MoBIEJSON;
 		private String dataRoot = null;
+
+		private BdvViewingMode bdvViewingMode = BdvViewingMode.ThreeDimensional;
 
 		public String getDataRoot()
 		{
@@ -211,6 +219,11 @@ public class MoBIESettings
 		public ProjectType getProjectType()
 		{
 			return projectType;
+		}
+
+		public BdvViewingMode getBdvViewingMode()
+		{
+			return bdvViewingMode;
 		}
 	}
 }

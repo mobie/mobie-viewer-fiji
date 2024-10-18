@@ -58,7 +58,7 @@ public class ImageTransformer
 			transformedImageName = image.getName();
 
 		// FIXME The below will destroy the Transformation History of this image
-		//       Not sure why we have this? For performance??
+		//       Not sure why we had this? For performance??
 //		if( transformedImageName == null || image.getName().equals( transformedImageName ) )
 //		{
 //			// in place transformation

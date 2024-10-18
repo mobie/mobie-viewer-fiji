@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open;
+package org.embl.mobie.command.open.special;
 
 import loci.common.DebugTools;
 import org.embl.mobie.MoBIE;
@@ -35,6 +35,7 @@ import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.transform.GridType;
+import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -46,53 +47,36 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Table..." )
-public class OpenTableCommand implements Command {
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Special>Open Microglia Morphometry Table..." )
+public class OpenMicrogliaTableCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter( label = "Table Path", required = true )
+	@Parameter( label = "Table", required = true )
 	public File table;
 
-	@Parameter( label = "Image Path Column(s)",
-			required = true,
-			description = "The name(s) of the table columns containing paths to images that you want to open.\n" +
-					"You can enter multiple columns using comma-separation.\n" +
-					"Example:\n" +
-					"Path_DAPI,Path_GFP"
-	)
-	public String images;
-
-	@Parameter( label = "Labels Path Column(s)",
-			required = false,
-			description = "Optional.\n" +
-					"The name(s) of the table columns containing paths to label masks that you want to open.\n" +
-					"You can enter multiple columns using comma-separation.\n" +
-					"Example:\n" +
-					"Path_Nuclei_Labels,Path_Cell_Labels"
-	)
-	public String labels;
-
-	@Parameter( label = "Data Root Folder",
-			style = "directory",
-			description = "Optional.\n" +
-					"Use this is if the paths to the images and labels in the table are relative.",
+	@Parameter(visibility = ItemVisibility.MESSAGE,
+			persist = false,
 			required = false )
-	public File root;
+	private String message = "Opens tables created with the Microglia-Morphometry plugin.";
 
-	@Parameter( label = "Path Mapping: From,To",
-			description = "Optional.\n" +
-					"Use this if the data was analysed on a different computer.\n" +
-					"Example mapping Linux to MacOS:\n" +
-					"/g,/Volumes",
-			required = false )
-	public String pathMapping;
+	@Parameter(visibility = ItemVisibility.MESSAGE,
+			persist = false,
+			required = false)
+	private String info = "More info: https://github.com/embl-cba/microglia-morphometry";
 
-	@Parameter( label = "Spatial Calibration" )
-	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImage;
 
-	@Parameter( label = "Grid", description = MoBIEHelper.GRID_TYPE_HELP )
-	public GridType gridType = GridType.Transformed;
+	private String images = "Path_Intensities,Path_Skeletons,Path_Annotations";
+
+	private String labels = "Path_LabelMasks";
+
+	private File root;
+
+	private String pathMapping;
+
+	private SpatialCalibration spatialCalibration = SpatialCalibration.FromImage;
+
+	private GridType gridType = GridType.Transformed;
 
 	@Override
 	public void run()
@@ -100,13 +84,14 @@ public class OpenTableCommand implements Command {
 		run( gridType );
 	}
 
-	public void run( GridType gridType )
+	private void run( GridType gridType )
 	{
 		DebugTools.setRootLevel( "OFF" );
 
 		final MoBIESettings settings = new MoBIESettings();
 
 		spatialCalibration.setVoxelDimensions( settings, table != null ? table.getAbsolutePath() : null  );
+		root = table.getParentFile();
 
 		List< String > imageList = new ArrayList<>();
 		if ( images != null && ! images.equals( "" ) )

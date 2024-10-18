@@ -1,0 +1,4 @@
+uri	name	type	affine	rescale_intensities	contrast_limits	view	labels_table
+blobs.tif	BLOBS	intensities	(10,0,0,0,0,10,0,0,0,0,1,0)	"(20;200)"	"(20;200)"	segmented blobs	
+blobs-labels.tif		labels	(10,0,0,0,0,10,0,0,0,0,1,0)			segmented blobs	blobs-labels.csv
+mri-stack		intensities	(10,0,0,0,0,10,0,0,0,0,100,0)	"(20;150)"	"(20;150)"	mri	

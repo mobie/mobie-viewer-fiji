@@ -351,6 +351,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private JMenuItem createSaveColumnsAsMenuItem()
 	{
+		// FIXME: Copy the TableUIs code from ij-utils here
 		final JMenuItem menuItem = new JMenuItem( "Save Columns As..." );
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () -> TableUIs.saveColumns( jTable ) ) );

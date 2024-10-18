@@ -40,15 +40,13 @@ public class LazyAnnotatedSegmentAdapter implements AnnotationAdapter< Annotated
 {
 	private final String name;
 	private final LazyAnnotatedSegmentTableModel tableModel;
-	private Map< String, AnnotatedSegment > uuidToAnnotation;
 	private Map< String, AnnotatedSegment > stlToAnnotation; // source, timepoint, label
 
 	public LazyAnnotatedSegmentAdapter( String name, LazyAnnotatedSegmentTableModel tableModel )
 	{
 		this.name = name;
 		this.tableModel = tableModel;
-		uuidToAnnotation = new ConcurrentHashMap<>();
-		stlToAnnotation = new ConcurrentHashMap<>();
+		this.stlToAnnotation = new ConcurrentHashMap<>();
 	}
 
 	@Override

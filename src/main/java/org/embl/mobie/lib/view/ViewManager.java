@@ -250,9 +250,9 @@ public class ViewManager
 
 		final boolean viewerWasEmpty = currentDisplays.size() == 0;
 
-		// init and transform the data of this view
-		// currently, data is reloaded every time a view is shown
-		// this is a bit expensive, but simpler and has the
+		// Init and transform the data of this view.
+		// Currently, data is reloaded every time a view is shown.
+		// This is a bit expensive, but simpler and has the
 		// advantage that one could change the data on disk
 		// and use MoBIE to interactively view changes
 		initData( view );
@@ -329,8 +329,9 @@ public class ViewManager
 
 		// if a view is created on the fly in a running project, e.g. due to an image registration
 		// the data sources may already be present and thus do not need to be instantiated
-		// FIXME: the issue here is that then an image may exist already and a transformation is applied twice (see below)
+		// HOWEVER: the issue here is that then an image may exist already and a transformation is applied twice (see below)
 		//    example: public class OpenPaoloFirstTable  => view the first image twice
+		// Thus, currently we reload the data
 		// dataSources = dataSources.stream()
 		//		.filter( ds -> ! DataStore.containsImage( ds.getName() ) )
 		//		.collect( Collectors.toList() );
@@ -365,7 +366,11 @@ public class ViewManager
 		// transform images
 		// this may create new images with new names
 
-		// TODO factor this out int an image transformer class
+		// TODO factor this out into an image transformer class
+
+		// TODO: Explore whether there could be an IntensityTransformation for Yannick's gridView use case
+		//       The code could be very similar to what is used in AnnotatedLabelSource
+
 		final List< Transformation > transformations = view.transformations();
 		if ( transformations != null )
 		{

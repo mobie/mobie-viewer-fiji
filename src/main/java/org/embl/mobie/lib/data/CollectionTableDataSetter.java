@@ -1,6 +1,7 @@
 package org.embl.mobie.lib.data;
 
 import ij.IJ;
+import net.imagej.omero.roi.ellipse.ImageJToOMEROEllipse;
 import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.DataStore;
@@ -11,10 +12,7 @@ import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.*;
-import org.embl.mobie.lib.serialize.display.Display;
-import org.embl.mobie.lib.serialize.display.ImageDisplay;
-import org.embl.mobie.lib.serialize.display.RegionDisplay;
-import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
+import org.embl.mobie.lib.serialize.display.*;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.GridTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
@@ -27,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
+import tech.tablesaw.selection.Selection;
 
 import java.util.*;
 
@@ -39,7 +38,7 @@ public class CollectionTableDataSetter
     private final Map< String, List< Transformation > > gridToTransformations = new HashMap<>();
     private final Map< String, String > gridToView = new HashMap<>();
     private final Map< String, String > viewToGroup = new HashMap<>();
-
+    private final Map< String, List< Integer > > gridToRowIndices = new HashMap<>();
 
 
     public CollectionTableDataSetter( Table table, String rootPath )
@@ -94,6 +93,7 @@ public class CollectionTableDataSetter
                 imageDataSource.preInit( false );
                 dataset.putDataSource( imageDataSource );
 
+                // TODO create a GridDisplay is adequate
                 display = createImageDisplay(
                     imageName,
                     row );
@@ -103,34 +103,46 @@ public class CollectionTableDataSetter
 
             if ( gridId == null )
             {
-                addDisplayToViews(
+                addDisplayToView(
                         getViewName( display, row ),
                         getGroupName( display, row ),
                         display,
-                        getTransformations( display.getSources(), row ),
+                        getAffineTransformationAsList( display.getSources(), row ),
                         dataset.views() );
             }
             else
             {
+                gridToRowIndices
+                        .computeIfAbsent( gridId, k -> new ArrayList<>() )
+                        .add( row.getRowNumber() );
+
                 String viewName = getViewName( display, row );
                 gridToView.put( gridId, viewName );
                 viewToGroup.put( viewName, getGroupName( display, row ) );
 
-                // Add image to the grid display
-
                 if ( gridToDisplay.containsKey( gridId ) )
                 {
-                    gridToDisplay.get( gridId ).getSources().add( imageName );
+                    // Add image to existing image display
+                    Display< ? > existingDisplay = gridToDisplay.get( gridId );
+
+                    if ( existingDisplay instanceof SegmentationDisplay )
+                    {
+                        existingDisplay.getSources().add( imageName );
+                    }
+                    else if ( existingDisplay instanceof ImageDisplay )
+                    {
+                        ( ( ImageDisplay ) existingDisplay ).addSource( imageName, getContrastLimits( row ) );
+                    }
                 }
                 else
                 {
-                    // TODO: the display name should be the grid_id !
+                    // Register the display
                     gridToDisplay.put( gridId, display );
                 }
 
                 gridToTransformations
                         .computeIfAbsent( gridId, k -> new ArrayList<>() )
-                        .addAll( getTransformations( Collections.singletonList( imageName ), row ) );
+                        .addAll( getAffineTransformationAsList( Collections.singletonList( imageName ), row ) );
             }
 
             IJ.log(" " );
@@ -149,16 +161,22 @@ public class CollectionTableDataSetter
             GridTransformation grid = new GridTransformation( display.getSources() );
             transformations.add( grid );
 
-            addDisplayToViews(
+            View gridView = addDisplayToView(
                     gridToView.get( gridId ),
                     viewToGroup.get( gridToView.get( gridId ) ),
                     display,
                     transformations,
                     dataset.views() );
 
-            // Create region table
+            gridView.setExclusive( true );
+            gridView.overlayNames( true );
 
-            Table regionTable = Table.create( display.getName() );
+            // Create grid regions table
+            Selection rowSelection = Selection
+                    .with( gridToRowIndices.get( gridId )
+                            .stream().mapToInt( i -> i ).toArray() );
+            Table regionTable = table.where( rowSelection );
+            regionTable.setName( display.getName() + " grid" );
             regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, display.getSources() ) );
             // TODO: Add path to source (storageLocation.absolutePath)
             // regionTable.addColumns( StringColumn.create( "source_path", new ArrayList<>( nameToFullPath.values() ) ) );
@@ -169,8 +187,8 @@ public class CollectionTableDataSetter
             DataStore.addRawData( regionTableSource );
 
             // Create RegionDisplay
-
-            final RegionDisplay< AnnotatedRegion > gridRegionDisplay = new RegionDisplay<>( display.getName() );
+            final RegionDisplay< AnnotatedRegion > gridRegionDisplay =
+                    new RegionDisplay<>( regionTable.name() );
             gridRegionDisplay.sources = new LinkedHashMap<>();
             gridRegionDisplay.tableSource = regionTable.name();
             gridRegionDisplay.showAsBoundaries( true );
@@ -207,7 +225,12 @@ public class CollectionTableDataSetter
 
     private static String getUri( Row row )
     {
-        return row.getString( CollectionTableConstants.URI );
+        String string = row.getString( CollectionTableConstants.URI );
+
+        if ( string.isEmpty() )
+            throw new RuntimeException("Encountered empty cell in uri column, please add a valid uri!");
+
+        return string;
     }
 
     private static String getName( Row row )
@@ -234,8 +257,13 @@ public class CollectionTableDataSetter
 
     private static String getPixelType( Row row )
     {
-        try {
-            return row.getString( CollectionTableConstants.TYPE );
+        try
+        {
+            String string = row.getString( CollectionTableConstants.TYPE );
+            if ( string.isEmpty() )
+                return CollectionTableConstants.INTENSITIES;
+
+            return string;
         }
         catch ( Exception e )
         {
@@ -246,7 +274,12 @@ public class CollectionTableDataSetter
     private static String getGridId( Row row )
     {
         try {
-            return row.getString( CollectionTableConstants.GRID );
+            String string = row.getString( CollectionTableConstants.GRID );
+
+            if ( string.isEmpty() )
+                return null;
+
+            return string;
         }
         catch ( Exception e )
         {
@@ -266,12 +299,11 @@ public class CollectionTableDataSetter
     }
 
 
-    @NotNull
-    private static void addDisplayToViews( String viewName,
-                                           String groupName,
-                                           Display< ? > display,
-                                           List< Transformation > transforms,
-                                           final Map< String, View > views )
+    private static View addDisplayToView( String viewName,
+                                          String groupName,
+                                          Display< ? > display,
+                                          List< Transformation > transforms,
+                                          final Map< String, View > views )
     {
         ArrayList< Display< ? > > displays = new ArrayList<>();
         displays.add( display );
@@ -284,6 +316,7 @@ public class CollectionTableDataSetter
             // if several images are combined into the
             // same view we make it exclusive
             existingView.setExclusive( true );
+            return existingView;
         }
         else
         {
@@ -297,8 +330,8 @@ public class CollectionTableDataSetter
                     null );
 
             views.put( newView.getName(), newView );
+            return newView;
         }
-
     }
 
     @NotNull
@@ -357,7 +390,7 @@ public class CollectionTableDataSetter
     @NotNull
     private static ImageDisplay< ? > createImageDisplay( String sourceName, Row row )
     {
-        final ImageDisplay< ? > display = new ImageDisplay<>(
+        return new ImageDisplay<>(
                 getDisplayName( row, sourceName ),
                 1.0,
                 new ArrayList<>( Arrays.asList( sourceName ) ),
@@ -365,9 +398,7 @@ public class CollectionTableDataSetter
                 getContrastLimits( row ), //new double[]{ metadata.minIntensity(), metadata.minIntensity() }
                 getBlendingMode( row ),
                 false
-                );
-
-        return display;
+        );
     }
 
     private static String getDisplayName( Row row, String sourceName )
@@ -384,7 +415,7 @@ public class CollectionTableDataSetter
         {
             String string = row.getString( CollectionTableConstants.CONTRAST_LIMITS );
             string = string.replace("(", "").replace(")", "");
-            String[] strings = string.split(",");
+            String[] strings = string.split("[,;]");
             double[] doubles = new double[strings.length];
             for (int i = 0; i < strings.length; i++) {
                 doubles[i] = Double.parseDouble(strings[i].trim());
@@ -419,13 +450,16 @@ public class CollectionTableDataSetter
         }
     }
 
-    @Nullable
-    private static List< Transformation > getTransformations( List< String > sources, Row row )
+    // Note that this returns just a single AffineTransformation.
+    // The fact that it returns a list is just for convenient consumption of
+    // the downstream methods.
+    private static List< Transformation > getIntensityTransformationAsList( List< String > sources, Row row )
     {
         ArrayList< Transformation > transformations = new ArrayList<>();
 
         try
         {
+            // FIXME TODO
             String string = row.getString( CollectionTableConstants.AFFINE );
             string = string.replace("(", "").replace(")", "");
             String[] strings = string.split(",");
@@ -448,6 +482,40 @@ public class CollectionTableDataSetter
 
         return transformations;
     }
+
+
+    // Note that this returns just a single AffineTransformation.
+    // The fact that it returns a list is just for convenient consumption of
+    // the downstream methods.
+    private static List< Transformation > getAffineTransformationAsList( List< String > sources, Row row )
+    {
+        ArrayList< Transformation > transformations = new ArrayList<>();
+
+        try
+        {
+            String string = row.getString( CollectionTableConstants.AFFINE );
+            string = string.replace("(", "").replace(")", "");
+            String[] strings = string.split(",");
+            double[] doubles = new double[strings.length];
+            for (int i = 0; i < strings.length; i++) {
+                doubles[i] = Double.parseDouble(strings[i].trim());
+            }
+
+            AffineTransformation affine = new AffineTransformation(
+                    "Affine",
+                    doubles,
+                    sources );
+
+            transformations.add( affine );
+        }
+        catch ( Exception e )
+        {
+            // Do not add a transformation
+        }
+
+        return transformations;
+    }
+
 
     private static String getColor( Row row )
     {

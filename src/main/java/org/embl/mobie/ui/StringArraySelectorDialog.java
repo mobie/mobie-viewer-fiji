@@ -20,11 +20,8 @@ public class StringArraySelectorDialog
 {
     private final String title;
     private final String[] array;
-
     private JComboBox< String > arrayComboBox;
-
     private boolean isOkPressed;
-
     private JDialog dialog;
 
     public StringArraySelectorDialog( String title, String[] array )
@@ -70,7 +67,7 @@ public class StringArraySelectorDialog
             dialog.setVisible( false );
         } );
 
-        dialog.setPreferredSize( new Dimension( 250, 120 ) );
+        //dialog.setPreferredSize( new Dimension( 250, 120 ) );
         dialog.setLocation(
                 Toolkit.getDefaultToolkit().getScreenSize().width / 2 - 200,
                 Toolkit.getDefaultToolkit().getScreenSize().height / 2 - 200
