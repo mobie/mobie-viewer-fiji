@@ -133,7 +133,7 @@ public class ImageGridSources
 			for ( int rowIndex = 0; rowIndex < numRows; rowIndex++ )
 			{
 				String fileName = table.getString( rowIndex, imageColumn );
-				String folder = table.getString( rowIndex, folderColumn );
+				String folder = root != null ? root : table.getString( rowIndex, folderColumn );
 				String path = IOHelper.combinePath( folder, fileName );
 				String imageName = createImageName( channelIndex, fileName );
 				nameToFullPath.put( imageName, applyPathMapping( pathMapping, path ) );
