@@ -41,8 +41,8 @@ public class OpenOMEZarrWithLabelsFromS3
         imageJ.ui().showUI();
 
         OpenMultipleImagesAndLabelsCommand command = new OpenMultipleImagesAndLabelsCommand();
-        command.image0 = new File( "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr" );
-        command.labels0 = new File( "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr/labels/cells" );
+        command.image0 =  "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
+        command.labels0 =  "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr/labels/cells";
         command.run();
     }
 }

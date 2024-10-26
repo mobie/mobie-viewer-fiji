@@ -42,10 +42,10 @@ public class OpenIlastikImagesAndSegmentationsCommandTest
 		new ImageJ().ui().showUI(); // initialise SciJava Services
 
 		final OpenMultipleImagesAndLabelsCommand command = new OpenMultipleImagesAndLabelsCommand();
-		command.image0 = new File( "src/test/resources/ilastik-multiple/raw/iso.*.png" );
-		command.image1 = new File( "src/test/resources/ilastik-multiple/pc/iso..*_Probabilities.h5" );
-		command.labels0 = new File( "src/test/resources/ilastik-multiple/oc/iso..*_Object Identities.h5" );
-		command.table0 = new File( "src/test/resources/ilastik-multiple/oc/iso..*_table.csv" );
+		command.image0 = "src/test/resources/ilastik-multiple/raw/iso.*.png";
+		command.image1 = "src/test/resources/ilastik-multiple/pc/iso..*_Probabilities.h5";
+		command.labels0 = "src/test/resources/ilastik-multiple/oc/iso..*_Object Identities.h5";
+		command.table0 = "src/test/resources/ilastik-multiple/oc/iso..*_table.csv";
 		command.run();
 	}
 }

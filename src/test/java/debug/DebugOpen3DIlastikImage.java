@@ -11,7 +11,7 @@ public class DebugOpen3DIlastikImage
     {
         new ImageJ().ui().showUI();
         OpenImageAndLabelsCommand command = new OpenImageAndLabelsCommand();
-        command.image = new File("/Users/tischer/Downloads/export.h5");
+        command.image = "/Users/tischer/Downloads/export.h5";
         command.run();
     }
 }

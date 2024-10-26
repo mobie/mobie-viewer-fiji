@@ -351,7 +351,8 @@ public abstract class MoBIEHelper
 	{
 		String string = file.toString();
 
-		if (string.startsWith("https:/") || string.startsWith("http:/")) {
+		if (string.startsWith("https:/") || string.startsWith("http:/"))
+		{
 			string = string
 					.replaceFirst("https:/", "https://")
 					.replaceFirst("http:/", "http://");
@@ -374,5 +375,10 @@ public abstract class MoBIEHelper
 			sacs.add( sac );
 		}
 		return sacs;
+	}
+
+	public static boolean notNullOrEmpty( final String string )
+	{
+		return string != null && !string.isEmpty();
 	}
 }

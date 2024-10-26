@@ -43,9 +43,9 @@ public class OpenIlastikImageAndSegmentationCommandTest
 		new ImageJ().ui().showUI(); // initialise SciJava Services
 
 		final OpenImageAndLabelsCommand command = new OpenImageAndLabelsCommand();
-		command.image = new File( "src/test/resources/ilastik-2d/probabilities.h5" );
-		command.labels = new File( "src/test/resources/ilastik-2d/labels.h5" );
-		command.table = new File( "src/test/resources/ilastik-2d/table.csv" );
+		command.image = "src/test/resources/ilastik-2d/probabilities.h5";
+		command.labels = "src/test/resources/ilastik-2d/labels.h5";
+		command.table = "src/test/resources/ilastik-2d/table.csv";
 		command.run();
 	}
 }

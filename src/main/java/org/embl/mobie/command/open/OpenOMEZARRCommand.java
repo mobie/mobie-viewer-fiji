@@ -77,17 +77,17 @@ public class OpenOMEZARRCommand implements Command {
 
         final MoBIESettings settings = new MoBIESettings();
 
-        if ( s3AccessKey != null && ! s3AccessKey.isEmpty() )
+        if ( MoBIEHelper.notNullOrEmpty( s3AccessKey ) )
             settings.s3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } );
 
         final ArrayList< String > imageList = new ArrayList<>();
-        if ( image != null && ! image.isEmpty() ) imageList.add( image );
+        if ( MoBIEHelper.notNullOrEmpty( image ) ) imageList.add( image );
 
         final ArrayList< String > labelsList = new ArrayList<>();
-        if ( labels != null && ! labels.isEmpty() ) labelsList.add( labels );
+        if ( MoBIEHelper.notNullOrEmpty( labels ) ) labelsList.add( labels );
 
         final ArrayList< String > tablesList = new ArrayList<>();
-        if ( table != null && ! table.isEmpty() ) tablesList.add( table );
+        if ( MoBIEHelper.notNullOrEmpty( table ) ) tablesList.add( table );
 
         try
         {

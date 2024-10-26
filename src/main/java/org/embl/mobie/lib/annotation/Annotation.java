@@ -57,9 +57,9 @@ public interface Annotation extends Location
 
 	// Transform the spatial coordinates of this annotation.
 	//
-	// However, there are other ways to transform annotations,
+	// Note that there are other ways to transform annotations,
 	// which create a copy of the annotation,
-	// e.g. using {@code AffineTransformedAnnotatedSegment};
+	// e.g., using {@code AffineTransformedAnnotatedSegment};
 	// use those methods if you need both the transformed and
 	// untransformed annotations.
 	void transform( AffineTransform3D affineTransform3D );

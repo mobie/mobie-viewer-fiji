@@ -36,6 +36,8 @@ import ij.gui.GenericDialog;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.annotation.AnnotationUI;
 import org.embl.mobie.lib.annotation.Annotation;
+import org.embl.mobie.lib.bdv.AnnotationOverlay;
+import org.embl.mobie.lib.bdv.view.SliceViewer;
 import org.embl.mobie.lib.color.CategoricalAnnotationColoringModel;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.ColoringListener;
@@ -77,6 +79,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private final SelectionModel< A > selectionModel;
 	private final MobieColoringModel< A > coloringModel;
 	private final String tableName;
+	private final SliceViewer sliceViewer;
 	private JTable jTable;
 	private int recentlySelectedRowInView;
 	private RowSelectionMode selectionMode = RowSelectionMode.FocusOnly;
@@ -84,6 +87,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private SwingTableModel swingTableModel;
 	private boolean controlKeyPressed;
 	private boolean doubleClick;
+	private AnnotationOverlay annotationOverlay;
 
 	private enum RowSelectionMode
 	{
@@ -100,6 +104,13 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		this.tableName = display.getName();
 		this.recentlySelectedRowInView = -1;
 
+		// TODO: conceptually does not feel correct
+		//  that the TableView would need
+		//  to know about the sliceViewer, but we need this reference
+		//  in order to overlay annotations, and implementing
+		//  some other (better) way feels like too much work right now
+		this.sliceViewer = display.sliceViewer;
+
 		tableModel.addAnnotationListener( this );
 		configureJTable();
 		installSelectionModelNotification();
@@ -113,7 +124,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	public void show()
 	{
-		// Prefetch the columns and wait a bit as this hopefully makes it less likely that
+		// Prefetch columns and wait a bit as this hopefully makes it less likely that
 		// there are errors thrown by Java Swing when rendering the table window
 		// below during frame.pack()
 		TableColumnModel columnModel = jTable.getColumnModel();
@@ -231,9 +242,12 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private JMenu createAnnotateMenu()
 	{
-		JMenu menu = new JMenu( "Annotate" );
+		JMenu menu = new JMenu( "Annotations" );
 		menu.add( startNewAnnotationMenuItem() );
 		menu.add( continueAnnotationMenuItem() );
+		menu.add( overlayAnnotationMenuItem() );
+		menu.add( removeAnnotationOverlayMenuItem() );
+
 		return menu;
 	}
 
@@ -445,11 +459,56 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		return menuItem;
 	}
 
+	private JMenuItem overlayAnnotationMenuItem()
+	{
+		final JMenuItem menuItem = new JMenuItem( "Overlay Annotation..." );
+
+		menuItem.addActionListener( e -> overlayAnnotationDialog() );
+
+		return menuItem;
+	}
+
+	private JMenuItem removeAnnotationOverlayMenuItem()
+	{
+		final JMenuItem menuItem = new JMenuItem( "Remove Annotation Overlay" );
+
+		menuItem.addActionListener( e ->
+		{
+			if ( annotationOverlay != null )
+			{
+				annotationOverlay.close();
+				annotationOverlay = null;
+			}
+
+		} );
+
+		return menuItem;
+	}
+
+	private void overlayAnnotationDialog()
+	{
+		SwingUtilities.invokeLater( () ->
+		{
+			final String annotationColumn = TableUIs.selectColumnNameUI(
+					jTable,
+					"Annotation column" );
+
+			if ( annotationOverlay != null )
+			{
+				annotationOverlay.close();
+			}
+
+			annotationOverlay = new AnnotationOverlay( sliceViewer, tableModel.annotations(), annotationColumn );
+		});
+	}
+
 	public void showContinueAnnotationDialog()
 	{
 		SwingUtilities.invokeLater( () ->
 		{
-			final String annotationColumn = TableUIs.selectColumnNameUI( jTable, "Annotation column" );
+			final String annotationColumn = TableUIs.selectColumnNameUI(
+					jTable,
+					"Annotation column" );
 			continueAnnotation( annotationColumn );
 		});
 	}
@@ -539,6 +598,8 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		if ( columnName == null ) return;
 		continueAnnotation( columnName );
 	}
+
+
 
 	private String showAddStringColumnDialog()
 	{

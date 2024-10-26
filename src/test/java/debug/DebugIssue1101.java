@@ -39,7 +39,7 @@ public class DebugIssue1101
     {
         new ImageJ().ui().showUI();
         final OpenMultipleImagesAndLabelsCommand command = new OpenMultipleImagesAndLabelsCommand();
-        command.image0 = new File( "/Users/tischer/Downloads/example-png-no-open/iso.*.png" );
+        command.image0 = "/Users/tischer/Downloads/example-png-no-open/iso.*.png";
         command.run();
     }
 }

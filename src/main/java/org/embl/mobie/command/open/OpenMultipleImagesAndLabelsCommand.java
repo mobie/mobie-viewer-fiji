@@ -38,7 +38,6 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -47,29 +46,23 @@ public class OpenMultipleImagesAndLabelsCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter( label = "Image URI", required = false )
-	public File image0;
+	@Parameter( label = "Image URI", style = "both", required = false )
+	public String image0;
+	@Parameter( label = "Image URI", style = "both", required = false )
+	public String image1;
+	@Parameter( label = "Image URI", style = "both", required = false )
+	public String image2;
+	@Parameter( label = "Image URI", style = "both", required = false )
+	public String image3;
 
-	@Parameter( label = "Image URI", required = false )
-	public File image1;
-
-	@Parameter( label = "Image URI", required = false )
-	public File image2;
-
-	@Parameter( label = "Image URI", required = false )
-	public File image3;
-
-	@Parameter( label = "Labels URI", required = false )
-	public File labels0;
-
-	@Parameter( label = "Labels Table URI", required = false )
-	public File table0;
-
-	@Parameter( label = "Labels URI", required = false )
-	public File labels1;
-
-	@Parameter( label = "Labels Table URI", required = false )
-	public File table1;
+	@Parameter( label = "Labels URI", style = "both", required = false )
+	public String labels0;
+	@Parameter( label = "Labels Table URI", style = "both", required = false )
+	public String table0;
+	@Parameter( label = "Labels URI", style = "both", required = false )
+	public String labels1;
+	@Parameter( label = "Labels Table URI", style = "both", required = false )
+	public String table1;
 
 	@Parameter( label = "Spatial Calibration" )
 	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImage;
@@ -83,20 +76,20 @@ public class OpenMultipleImagesAndLabelsCommand implements Command {
 		final MoBIESettings settings = new MoBIESettings();
 
 		final ArrayList< String > imageList = new ArrayList<>();
-		if ( image0 != null ) imageList.add( MoBIEHelper.toURI( image0 ) );
-		if ( image1 != null ) imageList.add( MoBIEHelper.toURI( image1 ) );
-		if ( image2 != null ) imageList.add( MoBIEHelper.toURI( image2 ) );
-		if ( image3 != null ) imageList.add( MoBIEHelper.toURI( image3 ) );
+		if ( MoBIEHelper.notNullOrEmpty( image0 ) ) imageList.add( image0 );
+		if ( MoBIEHelper.notNullOrEmpty( image1 ) ) imageList.add( image1 );
+		if ( MoBIEHelper.notNullOrEmpty( image2 ) ) imageList.add( image2 );
+		if ( MoBIEHelper.notNullOrEmpty( image3 ) ) imageList.add( image3 );
 
 		final ArrayList< String > labelsList = new ArrayList<>();
-		if ( labels0 != null ) labelsList.add( MoBIEHelper.toURI( labels0 ) );
-		if ( labels1 != null ) labelsList.add( MoBIEHelper.toURI( labels1 ) );
+		if ( MoBIEHelper.notNullOrEmpty( labels0 ) ) labelsList.add( labels0 );
+		if ( MoBIEHelper.notNullOrEmpty( labels1 ) ) labelsList.add( labels1 );
 
 		final ArrayList< String > tablesList = new ArrayList<>();
-		if ( table0 != null ) tablesList.add( MoBIEHelper.toURI( table0 ) );
-		if ( table1 != null ) tablesList.add( MoBIEHelper.toURI( table1 ) );
+		if ( MoBIEHelper.notNullOrEmpty( table0 ) ) tablesList.add( table0 );
+		if ( MoBIEHelper.notNullOrEmpty( table1 ) ) tablesList.add( table1 );
 
-		spatialCalibration.setVoxelDimensions( settings, table0 != null ? MoBIEHelper.toURI( table0 ) : null );
+		spatialCalibration.setVoxelDimensions( settings, MoBIEHelper.notNullOrEmpty( table0 )  ? table0 : null );
 
 		try
 		{
@@ -107,4 +100,5 @@ public class OpenMultipleImagesAndLabelsCommand implements Command {
 			throw new RuntimeException( e );
 		}
 	}
+
 }

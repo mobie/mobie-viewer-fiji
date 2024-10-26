@@ -49,13 +49,13 @@ public class OpenImageAndLabelsCommand implements Command {
 
 	// TODO: https://forum.image.sc/t/scijava-ui-open-both-file-and-directory/97389
 	@Parameter( label = "Image URI", style = "both", required = false )
-	public File image;
+	public String image;
 
 	@Parameter( label = "Label Mask URI", style = "both", required = false )
-	public File labels;
+	public String labels;
 
 	@Parameter( label = "Label Mask Table URI", required = false )
-	public File table;
+	public String table;
 
 	@Parameter( label = "Spatial Calibration" )
 	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImage;
@@ -69,18 +69,16 @@ public class OpenImageAndLabelsCommand implements Command {
 		final MoBIESettings settings = new MoBIESettings();
 
 		final ArrayList< String > imageList = new ArrayList<>();
-		if ( image != null ) imageList.add( MoBIEHelper.toURI( image ) );
+		if ( MoBIEHelper.notNullOrEmpty( image ) ) imageList.add( image );
 
 		final ArrayList< String > labelsList = new ArrayList<>();
-		if ( labels != null ) labelsList.add( MoBIEHelper.toURI( labels ) );
+		if ( MoBIEHelper.notNullOrEmpty( labels ) ) labelsList.add( labels );
 
 		final ArrayList< String > tablesList = new ArrayList<>();
-		if ( table != null )
-		{
-			tablesList.add( MoBIEHelper.toURI( table ) );
-		}
+		if ( MoBIEHelper.notNullOrEmpty( table ) ) tablesList.add( table );
 
-		spatialCalibration.setVoxelDimensions( settings, table != null ? MoBIEHelper.toURI( table ) : null );
+
+		spatialCalibration.setVoxelDimensions( settings, MoBIEHelper.notNullOrEmpty( table ) ? table : null );
 
 		try
 		{

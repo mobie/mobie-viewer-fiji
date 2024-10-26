@@ -43,7 +43,7 @@ public class OpenIlastik2ChannelImageCommandTest
 		new ImageJ().ui().showUI(); // initialise SciJava Services
 
 		final OpenImageAndLabelsCommand command = new OpenImageAndLabelsCommand();
-		command.image = new File( "src/test/resources/ilastik-2d/probabilities-2channels.h5" );
+		command.image = "src/test/resources/ilastik-2d/probabilities-2channels.h5";
 		command.run();
 	}
 }

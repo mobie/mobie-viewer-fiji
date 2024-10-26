@@ -98,7 +98,7 @@ public class SliceViewer
 			tileRenderOverlay = false; // don't show twice
 		}
 
-		imageNameOverlay = new ImageNameOverlay( bdvHandle, this );
+		imageNameOverlay = new ImageNameOverlay( this );
 
 		installContextMenuAndKeyboardShortCuts();
 

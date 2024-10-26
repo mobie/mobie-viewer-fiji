@@ -13,9 +13,9 @@ public class WorkshopI2K2024
         imageJ.ui().showUI();
 
         OpenImageAndLabelsCommand command = new OpenImageAndLabelsCommand();
-        command.image = new File("/Users/tischer/Documents/cellprofiler-practical-NeuBIAS-Lisbon-2017/batch_qc_practical/Well_.*_C0.tif");
-        command.labels = new File("/Users/tischer/Documents/cellprofiler-practical-NeuBIAS-Lisbon-2017/batch_qc_practical/Well_.*_nuclei_labels.tiff");
-        command.table = new File("/Users/tischer/Documents/cellprofiler-practical-NeuBIAS-Lisbon-2017/batch_qc_practical/Well_.*_nuclei.txt");
+        command.image = "/Users/tischer/Documents/cellprofiler-practical-NeuBIAS-Lisbon-2017/batch_qc_practical/Well_.*_C0.tif";
+        command.labels = "/Users/tischer/Documents/cellprofiler-practical-NeuBIAS-Lisbon-2017/batch_qc_practical/Well_.*_nuclei_labels.tiff";
+        command.table = "/Users/tischer/Documents/cellprofiler-practical-NeuBIAS-Lisbon-2017/batch_qc_practical/Well_.*_nuclei.txt";
         command.run();
     }
 }
