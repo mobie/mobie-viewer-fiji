@@ -12,7 +12,7 @@ public class UriParser
         parseUri( new URI( "file:/Volumes/test" ) );
         parseUri( new URI( "/Volumes/test" ) );
         parseUri( new URI( "https://fiji.sc" ) );
-        parseUri( new URI("C:/test") );
+        parseUri( new URI( "C:/test") );
     }
 
     public static void parseUri( URI uri ) throws MalformedURLException, URISyntaxException
@@ -21,12 +21,12 @@ public class UriParser
         {
             System.out.println("--");
             System.out.println("Missing schema, treating as file." );
-            treatAsFile( new URI( "file:" + uri ) );
+            asFile( new URI( "file:" + uri ) );
         }
         else if ( uri.getScheme().contains( "file" ) )
         {
             System.out.println("--");
-            treatAsFile( uri );
+            asFile( uri );
         }
         else if ( uri.getScheme().contains( "http" ) )
         {
@@ -38,11 +38,11 @@ public class UriParser
         {
             System.out.println("--");
             System.out.println("Unknown schema: " + uri.getScheme() + ", treating as File." );
-            treatAsFile( new URI( "file:" + uri ) );
+            asFile( new URI( "file:" + uri ) );
         }
     }
 
-    private static void treatAsFile( URI uri ) throws MalformedURLException
+    private static void asFile( URI uri ) throws MalformedURLException
     {
         String path = uri.toURL().getPath();
         File file = new File( path );
