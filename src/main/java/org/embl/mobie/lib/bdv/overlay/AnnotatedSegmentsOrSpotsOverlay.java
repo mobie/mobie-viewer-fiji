@@ -29,29 +29,27 @@
 package org.embl.mobie.lib.bdv.overlay;
 
 import bdv.util.*;
-import bdv.viewer.ViewerState;
-import net.imglib2.FinalRealInterval;
+import bdv.viewer.TransformListener;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.roi.RealMaskRealInterval;
-import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.Annotation;
-import org.embl.mobie.lib.bdv.ActiveListener;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
-import org.embl.mobie.lib.select.Listeners;
-import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 
 import java.awt.*;
 import java.util.ArrayList;
 
 public class AnnotatedSegmentsOrSpotsOverlay< A extends Annotation >
-		extends BdvOverlay implements AnnotationOverlay
+		extends BdvOverlay implements AnnotationOverlay, TransformListener< AffineTransform3D >
 {
 	private final SliceViewer sliceViewer;
 	private final ArrayList< A > annotations;
+	private final ArrayList< OverlayItem > overlayItems;
 	private final String annotationColumn;
 	private BdvOverlaySource< AnnotatedSegmentsOrSpotsOverlay > overlaySource;
 	public static final int MAX_FONT_SIZE = 20;
 	private static final Font font = new Font( "Monospaced", Font.PLAIN, MAX_FONT_SIZE );
+	private AffineTransform3D viewerTransform;
+
+	private long start;
 
 	public AnnotatedSegmentsOrSpotsOverlay(
 			SliceViewer sliceViewer,
@@ -67,6 +65,10 @@ public class AnnotatedSegmentsOrSpotsOverlay< A extends Annotation >
 				"annotationOverlay",
 				BdvOptions.options().addTo( sliceViewer.getBdvHandle() ) );
 
+		this.overlayItems = new ArrayList<>();
+		this.viewerTransform = sliceViewer.getBdvHandle().getViewerPanel().state().getViewerTransform();
+		sliceViewer.getBdvHandle().getViewerPanel().transformListeners().add( this );
+
 		// The below seems needed probably due a bug:
 		// https://imagesc.zulipchat.com/#narrow/stream/327326-BigDataViewer/topic/BdvOverlay.20and.20Timepoints
 		// https://github.com/mobie/mobie-viewer-fiji/issues/976
@@ -81,50 +83,75 @@ public class AnnotatedSegmentsOrSpotsOverlay< A extends Annotation >
 	}
 
 	@Override
-	protected void draw( Graphics2D g )
+	protected synchronized void draw( Graphics2D g )
 	{
-		// TODO: If there are 10k annotations that slows down the BDV rendering
-
-		BdvHandle bdvHandle = sliceViewer.getBdvHandle();
-		final AffineTransform3D viewerTransform = bdvHandle.getViewerPanel().state().getViewerTransform();
-		//double scale = Affine3DHelpers.extractScale( viewerTransform, 2 );
-		int width = bdvHandle.getViewerPanel().getWidth();
-		int height = bdvHandle.getViewerPanel().getHeight();
-
 		if ( annotations == null || annotations.size() == 0 )
 			return;
 
-		OverlayTextItem item = new OverlayTextItem();
+		if ( viewerTransform != null )
+		{
+			start = System.currentTimeMillis();
+			updateOverlayItems( g );
+			viewerTransform = null;
+			// System.out.println( "updated " + annotations.size() + " annotations in [ms] " + ( System.currentTimeMillis() - start ) );
+		}
+
+		start = System.currentTimeMillis();
+		g.setColor( Color.WHITE ); // TODO make the color configurable
+		for ( OverlayItem overlayItem : overlayItems )
+		{
+			g.drawString( overlayItem.text, overlayItem.x, overlayItem.y );
+		}
+		// System.out.println( "drawn " + overlayItems.size() +  " overlay items in [ms] " + ( System.currentTimeMillis() - start ) );
+	}
+
+	private void updateOverlayItems( Graphics2D g )
+	{
+		BdvHandle bdvHandle = sliceViewer.getBdvHandle();
+		int width = bdvHandle.getViewerPanel().getWidth();
+		int height = bdvHandle.getViewerPanel().getHeight();
+
 		double[] globalPosition = new double[ 3 ];
-		double[] viewPosition = new double[ 3 ];
+
+		this.overlayItems.clear();
 
 		for ( A annotation : annotations )
 		{
+			double[] viewPosition = new double[ 3 ];
+
 			annotation.localize( globalPosition );
 			viewerTransform.apply( globalPosition, viewPosition );
 
 			if ( viewPosition[ 0 ] < 0
 					|| viewPosition[ 1 ] < 0
-				|| viewPosition[ 0 ] > width
-					|| viewPosition[ 1 ] > height )
+					|| viewPosition[ 0 ] > width
+					|| viewPosition[ 1 ] > height
+					|| Math.abs( viewPosition[ 2 ] ) > 15 // TODO this is a bit random...
+			)
 				continue;
 
-			// final double depth = Math.abs( viewPosition[ 2 ] ) / scale;
-			//System.out.println( text + ": " + depth + "; " + Math.abs( viewPosition[ 2 ] ));
-			//float computedFontSize = ( float ) ( 3.0 * AnnotationOverlay.MAX_FONT_SIZE / Math.sqrt( numAnnotations ) );
+			// changing the font size turns out to be expensive during rendering,
+			// thus we don't do it
+			//float fontSize = ( float ) ( MAX_FONT_SIZE - Math.abs( viewPosition[ 2 ] ) );
+			//if ( fontSize < 2 )
+			//	continue;
 
-			float fontSize = (float) ( MAX_FONT_SIZE - Math.abs( viewPosition[ 2 ] ) );
-			if ( fontSize < 2 )
-				continue;
+			OverlayItem overlayItem = new OverlayItem();
+			//overlayItem.font = font.deriveFont( Math.min( MAX_FONT_SIZE, fontSize ) );
+			overlayItem.text = annotation.getValue( annotationColumn ).toString();
+			//g.setFont( font.deriveFont( Math.min( MAX_FONT_SIZE, fontSize ) ) );
+			overlayItem.width = g.getFontMetrics().stringWidth( overlayItem.text );
+			overlayItem.height = g.getFontMetrics().getHeight();
+			overlayItem.x = ( int ) ( viewPosition[ 0 ] - overlayItem.width / 2 );
+			overlayItem.y = ( int ) ( viewPosition[ 1 ] + 1.5 * overlayItem.height ); // paint a bit below (good for points)
 
-			g.setFont( font.deriveFont( Math.min( MAX_FONT_SIZE, fontSize ) ) );
-			item.text = annotation.getValue( annotationColumn ).toString();
-			item.width = g.getFontMetrics().stringWidth( item.text );
-			item.height = g.getFontMetrics().getHeight();
-			item.x = ( int ) ( viewPosition[ 0 ]  - item.width / 2 );
-			item.y = ( int ) ( viewPosition[ 1 ] + 1.5 * item.height ); // paint a bit below (good for points)
-
-			OverlayHelper.drawTextWithBackground( g, item );
+			overlayItems.add( overlayItem );
 		}
+	}
+
+	@Override
+	public void transformChanged( AffineTransform3D transform )
+	{
+		this.viewerTransform = transform;
 	}
 }

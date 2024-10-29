@@ -6,11 +6,10 @@ import java.awt.*;
 
 public class OverlayHelper
 {
-    public static void drawTextWithBackground( Graphics2D g, OverlayTextItem item )
+    public static void drawTextWithBackground( Graphics2D g, OverlayItem item )
     {
         // draw background (this helps with https://github.com/mobie/mobie-viewer-fiji/issues/1013)
-        // TODO in addition, one could also determine all the text bounds as an Interval
-        //   and then only draw the names that don't overlap with something that has been drawn already
+        // but this is slow, if there are many annotations
         g.setColor( Color.BLACK );
         g.fillRect(
                 item.x,
@@ -20,10 +19,11 @@ public class OverlayHelper
 
         // draw text
         g.setColor( Color.WHITE );
+        g.setFont( item.font ); // <= this is slow
         g.drawString( item.text, item.x, item.y );
     }
 
-    public static OverlayTextItem itemFromBounds(
+    public static OverlayItem itemFromBounds(
             Graphics2D g,
             FinalRealInterval bounds,
             String text,
@@ -38,8 +38,9 @@ public class OverlayHelper
         Font finalFont = font.deriveFont( finalFontSize );
         g.setFont( finalFont );
 
-        final OverlayTextItem item = new OverlayTextItem();
+        final OverlayItem item = new OverlayItem();
         item.text = text;
+        item.font = finalFont;
         item.width = g.getFontMetrics().stringWidth( text );
         item.height = g.getFontMetrics().getHeight();
         item.x = (int) ( center - item.width / 2.0 );

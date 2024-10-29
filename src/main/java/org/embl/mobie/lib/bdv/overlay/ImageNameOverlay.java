@@ -49,8 +49,8 @@ import org.embl.mobie.lib.image.StitchedImage;
 import org.embl.mobie.lib.select.Listeners;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 
-import java.awt.Font;
-import java.awt.Graphics2D;
+import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,14 +60,17 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 {
 	private final BdvHandle bdvHandle;
 	private final SliceViewer sliceViewer;
-	private Map< String, FinalRealInterval > imageNameToBounds = new ConcurrentHashMap< >();
 	private BdvOverlaySource< ImageNameOverlay > overlaySource;
+
+	private List< OverlayItem > overlayItems = new ArrayList<>();
 	private boolean isActive;
 	public static final int MAX_FONT_SIZE = 20;
 	private static final Font font = new Font( "Monospaced", Font.PLAIN, MAX_FONT_SIZE );
 
 	protected final Listeners.SynchronizedList< ActiveListener > activeListeners
 			= new Listeners.SynchronizedList< >(  );
+
+	private AffineTransform3D viewerTransform;
 
 	public ImageNameOverlay( SliceViewer sliceViewer )
 	{
@@ -106,27 +109,18 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 			activeListener.isActive( isActive );
 		}
 
-		updateImages();
 		bdvHandle.getViewerPanel().requestRepaint();
-	}
-
-	public boolean isActive()
-	{
-		return isActive;
 	}
 
 	@Override
 	public void transformChanged( AffineTransform3D transform3D )
 	{
-		if ( isActive )
-		{
-			updateImages();
-		}
+		this.viewerTransform = transform3D;
 	}
 
-	private synchronized void updateImages()
+	private void updateOverlayItems( Graphics2D g )
 	{
-		imageNameToBounds.clear();
+		overlayItems.clear();
 
 		final ViewerState viewerState = bdvHandle.getViewerPanel().state().snapshot();
 
@@ -151,37 +145,57 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 
 				for ( Image< ? > tileImage : tileImages )
 				{
-					addImageIfVisible( viewerTransform, viewerInterval, tileImage );
+					final RealMaskRealInterval imageMask = tileImage.getMask();
+					final FinalRealInterval intersect = Intervals.intersect( viewerInterval, imageMask );
+					if ( ! Intervals.isEmpty( intersect ) )
+					{
+						overlayItems.add(
+								OverlayHelper.itemFromBounds(
+										g,
+										viewerTransform.estimateBounds( imageMask ),
+										image.getName(),
+										font )
+						);
+					}
 				}
-
 				continue;
 			}
 
-			addImageIfVisible( viewerTransform, viewerInterval, image );
-		}
-	}
-
-	private void addImageIfVisible( AffineTransform3D viewerTransform, FinalRealInterval viewerInterval, Image< ? > image )
-	{
-		final RealMaskRealInterval imageMask = image.getMask();
-		final FinalRealInterval intersect = Intervals.intersect( viewerInterval, imageMask );
-		if ( ! Intervals.isEmpty( intersect ) )
-		{
-			imageNameToBounds.put( image.getName(), viewerTransform.estimateBounds( imageMask ) );
+			final RealMaskRealInterval imageMask = image.getMask();
+			final FinalRealInterval intersect = Intervals.intersect( viewerInterval, imageMask );
+			if ( ! Intervals.isEmpty( intersect ) )
+			{
+				// TODO: This will be slow if there are many
+				//   Consider simplification, e.g. do not paint the black background
+				//	 But rather exclude over-painting by checking overlap with already existing
+				//   overlay Items
+				overlayItems.add(
+						OverlayHelper.itemFromBounds(
+							g,
+							viewerTransform.estimateBounds( imageMask ),
+							image.getName(),
+							font )
+				);
+			}
 		}
 	}
 
 	@Override
-	protected void draw( Graphics2D g )
+	protected synchronized void draw( Graphics2D g )
 	{
-		for ( Map.Entry< String, FinalRealInterval > entry : imageNameToBounds.entrySet() )
+		if ( viewerTransform != null )
 		{
-			final FinalRealInterval bounds = entry.getValue();
-			final String imageName = entry.getKey();
+			updateOverlayItems( g );
+			viewerTransform = null;
+		}
 
-			OverlayTextItem item = OverlayHelper.itemFromBounds( g, bounds, imageName, font );
-
-			OverlayHelper.drawTextWithBackground( g, item );
+		for ( OverlayItem overlayItem : overlayItems )
+		{
+			// TODO: This will be slow if there are many
+			//   Consider simplification, e.g. do not paint the black background
+			//	 But rather exclude over-painting by checking overlap with already existing
+			//   overlay Items
+			OverlayHelper.drawTextWithBackground( g, overlayItem );
 		}
 	}
 

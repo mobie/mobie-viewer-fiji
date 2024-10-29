@@ -29,6 +29,7 @@
 package org.embl.mobie.lib.bdv.overlay;
 
 import bdv.util.*;
+import bdv.viewer.TransformListener;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
@@ -41,28 +42,35 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class AnnotatedRegionsOverlay< AR extends AnnotatedRegion >
-		extends BdvOverlay implements AnnotationOverlay
+		extends BdvOverlay implements AnnotationOverlay, TransformListener< AffineTransform3D >
 {
 	private final SliceViewer sliceViewer;
-	private final ArrayList< AR > annotatedRegions;
+	private final ArrayList< AR > annotations;
 	private final String annotationColumn;
 	private BdvOverlaySource< AnnotatedRegionsOverlay > overlaySource;
 	public static final int MAX_FONT_SIZE = 20;
 	private static final Font font = new Font( "Monospaced", Font.PLAIN, MAX_FONT_SIZE );
+	private AffineTransform3D viewerTransform;
+	private ArrayList< OverlayItem > overlayItems = new ArrayList<>();
+	private long start;
 
 	public AnnotatedRegionsOverlay(
 			SliceViewer sliceViewer,
-			ArrayList< AR > annotatedRegions,
+			ArrayList< AR > annotations,
 			String annotationColumn )
 	{
 		this.sliceViewer = sliceViewer;
-		this.annotatedRegions = annotatedRegions;
+		this.annotations = annotations;
 		this.annotationColumn = annotationColumn;
 
 		this.overlaySource = BdvFunctions.showOverlay(
 				this,
 				"annotationOverlay",
 				BdvOptions.options().addTo( sliceViewer.getBdvHandle() ) );
+
+		this.viewerTransform = sliceViewer.getBdvHandle().getViewerPanel().state().getViewerTransform();
+
+		sliceViewer.getBdvHandle().getViewerPanel().transformListeners().add( this );
 
 		// The below seems needed probably due a bug:
 		// https://imagesc.zulipchat.com/#narrow/stream/327326-BigDataViewer/topic/BdvOverlay.20and.20Timepoints
@@ -78,39 +86,53 @@ public class AnnotatedRegionsOverlay< AR extends AnnotatedRegion >
 	}
 
 	@Override
-	protected void draw( Graphics2D g )
+	protected synchronized void draw( Graphics2D g )
 	{
-		BdvHandle bdvHandle = sliceViewer.getBdvHandle();
-		final AffineTransform3D viewerTransform = bdvHandle.getViewerPanel().state().getViewerTransform();
+		if ( viewerTransform != null )
+		{
+			start = System.currentTimeMillis();
+			updateOverlayItems( g );
+			viewerTransform = null;
+//			System.out.println( "updated " + annotations.size() + " annotations in [ms] " + ( System.currentTimeMillis() - start ) );
+		}
 
+		start = System.currentTimeMillis();
+		for ( OverlayItem overlayItem : overlayItems )
+		{
+			OverlayHelper.drawTextWithBackground( g, overlayItem );
+		}
+//		System.out.println( "drawn " + overlayItems.size() +  " overlay items in [ms] " + ( System.currentTimeMillis() - start ) );
+	}
+
+	private void updateOverlayItems( Graphics2D g )
+	{
+		overlayItems.clear();
+
+		BdvHandle bdvHandle = sliceViewer.getBdvHandle();
 		FinalRealInterval viewerInterval = BdvHandleHelper.getViewerGlobalBoundingInterval( bdvHandle );
 
-		ArrayList< AR > visibleRegions = new ArrayList<>();
-		for ( AR annotatedRegion : annotatedRegions )
+		for ( AR annotatedRegion : annotations )
 		{
-			if ( Intervals.isEmpty( Intervals.intersect( viewerInterval, annotatedRegion.getMask() ) ) )
+			if ( ! Intervals.isEmpty( Intervals.intersect( viewerInterval, annotatedRegion.getMask() ) ) )
 			{
-				continue; // The region is not currently visible on the canvas
-			}
-			else
-			{
-				visibleRegions.add( annotatedRegion );
+				final RealMaskRealInterval mask = annotatedRegion.getMask();
+				FinalRealInterval bounds = viewerTransform.estimateBounds( mask );
+
+				OverlayItem overlayItem = OverlayHelper.itemFromBounds(
+						g,
+						bounds,
+						annotatedRegion.getValue( annotationColumn ).toString(),
+						font
+				);
+
+				overlayItems.add( overlayItem );
 			}
 		}
+	}
 
-		for ( AR annotation : visibleRegions )
-		{
-			final RealMaskRealInterval mask = annotation.getMask();
-			FinalRealInterval bounds = viewerTransform.estimateBounds( mask );
-
-			OverlayTextItem item = OverlayHelper.itemFromBounds(
-					g,
-					bounds,
-					annotation.getValue( annotationColumn ).toString(),
-					font
-			);
-
-			OverlayHelper.drawTextWithBackground( g, item );
-		}
+	@Override
+	public void transformChanged( AffineTransform3D transform )
+	{
+		this.viewerTransform = transform;
 	}
 }
