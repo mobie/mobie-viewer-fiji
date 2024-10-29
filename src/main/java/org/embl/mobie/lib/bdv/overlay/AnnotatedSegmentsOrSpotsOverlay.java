@@ -26,16 +26,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.bdv;
+package org.embl.mobie.lib.bdv.overlay;
 
 import bdv.util.*;
 import bdv.viewer.ViewerState;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
-import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.Annotation;
+import org.embl.mobie.lib.bdv.ActiveListener;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
 import org.embl.mobie.lib.select.Listeners;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
@@ -43,20 +43,20 @@ import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import java.awt.*;
 import java.util.ArrayList;
 
-public class AnnotationOverlay< A extends Annotation > extends BdvOverlay
+public class AnnotatedSegmentsOrSpotsOverlay< A extends Annotation >
+		extends BdvOverlay implements AnnotationOverlay
 {
 	private final SliceViewer sliceViewer;
 	private final ArrayList< A > annotations;
 	private final String annotationColumn;
-	private BdvOverlaySource< AnnotationOverlay > overlaySource;
+	private BdvOverlaySource< AnnotatedSegmentsOrSpotsOverlay > overlaySource;
 	public static final int MAX_FONT_SIZE = 20;
 	private static final Font font = new Font( "Monospaced", Font.PLAIN, MAX_FONT_SIZE );
 
-	protected final Listeners.SynchronizedList< ActiveListener > listeners
-			= new Listeners.SynchronizedList< ActiveListener >(  );
-	private AffineTransform3D viewerTransform;
-
-	public AnnotationOverlay( SliceViewer sliceViewer, ArrayList< A > annotations, String annotationColumn )
+	public AnnotatedSegmentsOrSpotsOverlay(
+			SliceViewer sliceViewer,
+			ArrayList< A > annotations,
+			String annotationColumn )
 	{
 		this.sliceViewer = sliceViewer;
 		this.annotations = annotations;
@@ -73,6 +73,7 @@ public class AnnotationOverlay< A extends Annotation > extends BdvOverlay
 		sliceViewer.updateTimepointSlider();
 	}
 
+	@Override
 	public void close()
 	{
 		overlaySource.removeFromBdv();
@@ -82,65 +83,48 @@ public class AnnotationOverlay< A extends Annotation > extends BdvOverlay
 	@Override
 	protected void draw( Graphics2D g )
 	{
-		final ViewerState viewerState = sliceViewer.getBdvHandle().getViewerPanel().state().snapshot();
-		viewerTransform = viewerState.getViewerTransform();
-		FinalRealInterval viewerInterval = BdvHandleHelper.getViewerGlobalBoundingInterval( sliceViewer.getBdvHandle() );
-		double[] min = viewerInterval.minAsDoubleArray();
-		double[] max = viewerInterval.maxAsDoubleArray();
+		// TODO: If there are 10k annotations that slows down the BDV rendering
 
-		// add some extent along the z-axis (which is otherwise 0)
-		double zMargin = ( max[ 0 ] - min[ 0 ] ) / 100; // FIXME: how much??
-		min[ 2 ] -= zMargin;
-		max[ 2 ] += zMargin;
-		FinalRealInterval expandedViewerGlobalInterval = new FinalRealInterval( min, max );
+		BdvHandle bdvHandle = sliceViewer.getBdvHandle();
+		final AffineTransform3D viewerTransform = bdvHandle.getViewerPanel().state().getViewerTransform();
+		//double scale = Affine3DHelpers.extractScale( viewerTransform, 2 );
+		int width = bdvHandle.getViewerPanel().getWidth();
+		int height = bdvHandle.getViewerPanel().getHeight();
 
-		ArrayList< A > visibleAnnotations = new ArrayList<>();
+		if ( annotations == null || annotations.size() == 0 )
+			return;
+
+		OverlayTextItem item = new OverlayTextItem();
+		double[] globalPosition = new double[ 3 ];
+		double[] viewPosition = new double[ 3 ];
+
 		for ( A annotation : annotations )
 		{
-			if ( Intervals.contains( expandedViewerGlobalInterval, annotation ) )
-			{
-				visibleAnnotations.add( annotation );
-			}
+			annotation.localize( globalPosition );
+			viewerTransform.apply( globalPosition, viewPosition );
+
+			if ( viewPosition[ 0 ] < 0
+					|| viewPosition[ 1 ] < 0
+				|| viewPosition[ 0 ] > width
+					|| viewPosition[ 1 ] > height )
+				continue;
+
+			// final double depth = Math.abs( viewPosition[ 2 ] ) / scale;
+			//System.out.println( text + ": " + depth + "; " + Math.abs( viewPosition[ 2 ] ));
+			//float computedFontSize = ( float ) ( 3.0 * AnnotationOverlay.MAX_FONT_SIZE / Math.sqrt( numAnnotations ) );
+
+			float fontSize = (float) ( MAX_FONT_SIZE - Math.abs( viewPosition[ 2 ] ) );
+			if ( fontSize < 2 )
+				continue;
+
+			g.setFont( font.deriveFont( Math.min( MAX_FONT_SIZE, fontSize ) ) );
+			item.text = annotation.getValue( annotationColumn ).toString();
+			item.width = g.getFontMetrics().stringWidth( item.text );
+			item.height = g.getFontMetrics().getHeight();
+			item.x = ( int ) ( viewPosition[ 0 ]  - item.width / 2 );
+			item.y = ( int ) ( viewPosition[ 1 ] + 1.5 * item.height ); // paint a bit below (good for points)
+
+			OverlayHelper.drawTextWithBackground( g, item );
 		}
-
-		for ( A annotation : visibleAnnotations )
-		{
-			if ( annotation instanceof AnnotatedRegion )
-			{
-				// use the bounds
-				final RealMaskRealInterval mask = ( ( AnnotatedRegion ) annotation ).getMask();
-				FinalRealInterval bounds = viewerTransform.estimateBounds( mask );
-
-				OverlayStringItem item = OverlayHelper.itemFromBounds(
-						g,
-						bounds,
-						annotation.getValue( annotationColumn ).toString(),
-						font
-				);
-
-				OverlayHelper.drawTextWithBackground( g, item );
-			}
-			else
-			{
-				// only use the location
-				double[] canvasPosition = new double[ 3 ];
-				viewerTransform.apply( annotation.positionAsDoubleArray(), canvasPosition );
-
-				OverlayStringItem item = OverlayHelper.itemFromLocation(
-						g,
-						annotation.getValue( annotationColumn ).toString(),
-						canvasPosition,
-						visibleAnnotations.size(),
-						font );
-
-				OverlayHelper.drawTextWithBackground( g, item );
-			}
-		}
-	}
-
-
-	public void addListener( ActiveListener activeListener )
-	{
-		listeners.add( activeListener );
 	}
 }

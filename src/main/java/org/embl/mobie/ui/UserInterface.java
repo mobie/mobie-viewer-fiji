@@ -28,9 +28,8 @@
  */
 package org.embl.mobie.ui;
 
-import ij.IJ;
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.lib.bdv.ImageNameOverlay;
+import org.embl.mobie.lib.bdv.overlay.ImageNameOverlay;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;

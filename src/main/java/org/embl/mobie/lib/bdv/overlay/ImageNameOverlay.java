@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.bdv;
+package org.embl.mobie.lib.bdv.overlay;
 
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
@@ -41,6 +41,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.bdv.ActiveListener;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
@@ -176,9 +177,9 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 		for ( Map.Entry< String, FinalRealInterval > entry : imageNameToBounds.entrySet() )
 		{
 			final FinalRealInterval bounds = entry.getValue();
-			final String name = entry.getKey();
+			final String imageName = entry.getKey();
 
-			OverlayStringItem item = OverlayHelper.itemFromBounds( g, bounds, name, font );
+			OverlayTextItem item = OverlayHelper.itemFromBounds( g, bounds, imageName, font );
 
 			OverlayHelper.drawTextWithBackground( g, item );
 		}

@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.bdv;
+package org.embl.mobie.lib.bdv.overlay;
 
 import bdv.util.Affine3DHelpers;
 import bdv.util.BdvOverlay;

@@ -34,7 +34,7 @@ import bdv.util.BdvOptions;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.lib.bdv.CircleOverlay;
+import org.embl.mobie.lib.bdv.overlay.CircleOverlay;
 import org.embl.mobie.lib.bdv.CalibratedMousePositionProvider;
 import org.embl.mobie.command.CommandConstants;
 import org.scijava.plugin.Parameter;

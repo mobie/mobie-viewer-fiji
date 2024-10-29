@@ -28,15 +28,19 @@
  */
 package org.embl.mobie.lib.table;
 
+import bdv.util.BdvOverlay;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.TableUIs;
 import de.embl.cba.tables.Tables;
 import ij.IJ;
 import ij.gui.GenericDialog;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.AnnotationUI;
 import org.embl.mobie.lib.annotation.Annotation;
-import org.embl.mobie.lib.bdv.AnnotationOverlay;
+import org.embl.mobie.lib.bdv.overlay.AnnotatedRegionsOverlay;
+import org.embl.mobie.lib.bdv.overlay.AnnotatedSegmentsOrSpotsOverlay;
+import org.embl.mobie.lib.bdv.overlay.AnnotationOverlay;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
 import org.embl.mobie.lib.color.CategoricalAnnotationColoringModel;
 import org.embl.mobie.lib.color.ColorHelper;
@@ -498,7 +502,14 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				annotationOverlay.close();
 			}
 
-			annotationOverlay = new AnnotationOverlay( sliceViewer, tableModel.annotations(), annotationColumn );
+			if ( tableModel.annotations().get( 0 ) instanceof AnnotatedRegion )
+			{
+				annotationOverlay = new AnnotatedRegionsOverlay( sliceViewer, tableModel.annotations(), annotationColumn );
+			}
+			else
+			{
+				annotationOverlay = new AnnotatedSegmentsOrSpotsOverlay( sliceViewer, tableModel.annotations(), annotationColumn );
+			}
 		});
 	}
 

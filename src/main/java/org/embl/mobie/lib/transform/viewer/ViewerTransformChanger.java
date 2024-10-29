@@ -34,7 +34,7 @@ import bdv.util.BdvOptions;
 import bdv.util.BdvOverlay;
 import bdv.util.BdvOverlaySource;
 import bdv.viewer.animate.SimilarityTransformAnimator;
-import org.embl.mobie.lib.bdv.CircleOverlay;
+import org.embl.mobie.lib.bdv.overlay.CircleOverlay;
 import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.serialize.transformation.NormalizedAffineViewerTransform;

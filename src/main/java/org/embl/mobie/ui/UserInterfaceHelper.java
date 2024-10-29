@@ -880,7 +880,7 @@ public class UserInterfaceHelper
 			} );
 		} );
 
-		overlayNamesCheckbox = new JCheckBox( "overlay names" );
+		overlayNamesCheckbox = new JCheckBox( "overlay image names" );
 		overlayNamesCheckbox.setSelected( false );
 		overlayNamesCheckbox.addActionListener( e -> new Thread( () ->
 				moBIE.getViewManager().getSliceViewer()
