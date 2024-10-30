@@ -88,6 +88,9 @@ public class AnnotatedRegionsOverlay< AR extends AnnotatedRegion >
 	@Override
 	protected synchronized void draw( Graphics2D g )
 	{
+		if ( annotationColumn == null || annotations == null || annotations.isEmpty() )
+			return;
+
 		if ( viewerTransform != null )
 		{
 			start = System.currentTimeMillis();

@@ -497,6 +497,9 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 					jTable,
 					"Annotation column" );
 
+			if ( annotationColumn == null )
+				return;
+
 			if ( annotationOverlay != null )
 			{
 				annotationOverlay.close();

@@ -85,7 +85,7 @@ public class AnnotatedSegmentsOrSpotsOverlay< A extends Annotation >
 	@Override
 	protected synchronized void draw( Graphics2D g )
 	{
-		if ( annotations == null || annotations.size() == 0 )
+		if ( annotationColumn == null || annotations == null || annotations.size() == 0 )
 			return;
 
 		if ( viewerTransform != null )
