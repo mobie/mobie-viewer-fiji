@@ -28,11 +28,7 @@
  */
 package org.embl.mobie.lib.bdv.overlay;
 
-import bdv.util.BdvFunctions;
-import bdv.util.BdvHandle;
-import bdv.util.BdvOptions;
-import bdv.util.BdvOverlay;
-import bdv.util.BdvOverlaySource;
+import bdv.util.*;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TransformListener;
 import bdv.viewer.ViewerState;
@@ -52,9 +48,7 @@ import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class ImageNameOverlay extends BdvOverlay implements TransformListener< AffineTransform3D >
 {
@@ -136,10 +130,9 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 
 			if ( image instanceof RegionAnnotationImage )
 			{
-				continue;
+				// Do nothing
 			}
-
-			if ( image instanceof StitchedImage )
+			else if ( image instanceof StitchedImage )
 			{
 				final List< ? extends Image< ? > > tileImages = ( ( StitchedImage< ?, ? > ) image ).getTileImages();
 
@@ -149,35 +142,43 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 					final FinalRealInterval intersect = Intervals.intersect( viewerInterval, imageMask );
 					if ( ! Intervals.isEmpty( intersect ) )
 					{
-						overlayItems.add(
-								OverlayHelper.itemFromBounds(
-										g,
-										viewerTransform.estimateBounds( imageMask ),
-										image.getName(),
-										font )
-						);
+						createAndAddNewOverlayItem( g, viewerTransform, imageMask, image );
 					}
 				}
-				continue;
 			}
-
-			final RealMaskRealInterval imageMask = image.getMask();
-			final FinalRealInterval intersect = Intervals.intersect( viewerInterval, imageMask );
-			if ( ! Intervals.isEmpty( intersect ) )
+			else
 			{
-				// TODO: This will be slow if there are many
-				//   Consider simplification, e.g. do not paint the black background
-				//	 But rather exclude over-painting by checking overlap with already existing
-				//   overlay Items
-				overlayItems.add(
-						OverlayHelper.itemFromBounds(
-							g,
-							viewerTransform.estimateBounds( imageMask ),
-							image.getName(),
-							font )
-				);
+				final RealMaskRealInterval imageMask = image.getMask();
+				final FinalRealInterval intersect = Intervals.intersect( viewerInterval, imageMask );
+				if ( !Intervals.isEmpty( intersect ) )
+				{
+					createAndAddNewOverlayItem( g, viewerTransform, imageMask, image );
+				}
 			}
 		}
+	}
+
+	private void createAndAddNewOverlayItem( Graphics2D g, AffineTransform3D viewerTransform, RealMaskRealInterval imageMask, Image< ? > image )
+	{
+		OverlayItem newItem = OverlayHelper.itemFromBounds(
+				g,
+				viewerTransform.estimateBounds( imageMask ),
+				image.getName(),
+				font );
+
+		boolean addItem = true;
+		for ( OverlayItem item : overlayItems )
+		{
+			// TODO: This could be changed such that small overlaps are tolerated
+			if ( ! Intervals.isEmpty( Intervals.intersect( item.interval, newItem.interval ) ) )
+			{
+				addItem = false;
+				break;
+			}
+		}
+
+		if ( addItem )
+			overlayItems.add( newItem );
 	}
 
 	@Override
@@ -191,11 +192,7 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 
 		for ( OverlayItem overlayItem : overlayItems )
 		{
-			// TODO: This will be slow if there are many
-			//   Consider simplification, e.g. do not paint the black background
-			//	 But rather exclude over-painting by checking overlap with already existing
-			//   overlay Items
-			OverlayHelper.drawTextWithBackground( g, overlayItem );
+			OverlayHelper.drawTextWithBackground( g, overlayItem, false );
 		}
 	}
 

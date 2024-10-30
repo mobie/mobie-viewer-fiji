@@ -99,7 +99,7 @@ public class AnnotatedRegionsOverlay< AR extends AnnotatedRegion >
 		start = System.currentTimeMillis();
 		for ( OverlayItem overlayItem : overlayItems )
 		{
-			OverlayHelper.drawTextWithBackground( g, overlayItem );
+			OverlayHelper.drawTextWithBackground( g, overlayItem, false );
 		}
 //		System.out.println( "drawn " + overlayItems.size() +  " overlay items in [ms] " + ( System.currentTimeMillis() - start ) );
 	}
@@ -118,14 +118,14 @@ public class AnnotatedRegionsOverlay< AR extends AnnotatedRegion >
 				final RealMaskRealInterval mask = annotatedRegion.getMask();
 				FinalRealInterval bounds = viewerTransform.estimateBounds( mask );
 
-				OverlayItem overlayItem = OverlayHelper.itemFromBounds(
+				OverlayItem newItem = OverlayHelper.itemFromBounds(
 						g,
 						bounds,
 						annotatedRegion.getValue( annotationColumn ).toString(),
 						font
 				);
 
-				overlayItems.add( overlayItem );
+				overlayItems.add( newItem );
 			}
 		}
 	}

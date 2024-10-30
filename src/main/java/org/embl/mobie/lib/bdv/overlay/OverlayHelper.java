@@ -1,21 +1,25 @@
 package org.embl.mobie.lib.bdv.overlay;
 
+import net.imglib2.FinalInterval;
 import net.imglib2.FinalRealInterval;
 
 import java.awt.*;
 
 public class OverlayHelper
 {
-    public static void drawTextWithBackground( Graphics2D g, OverlayItem item )
+    public static void drawTextWithBackground( Graphics2D g, OverlayItem item, final boolean drawBackground )
     {
         // draw background (this helps with https://github.com/mobie/mobie-viewer-fiji/issues/1013)
         // but this is slow, if there are many annotations
-        g.setColor( Color.BLACK );
-        g.fillRect(
-                item.x,
-                item.y - item.height + g.getFontMetrics().getDescent(),
-                item.width,
-                item.height );
+        if ( drawBackground )
+        {
+            g.setColor( Color.BLACK );
+            g.fillRect(
+                    ( int ) item.interval.min( 0 ),
+                    ( int ) item.interval.min( 1 ),
+                    ( int ) item.interval.dimension( 0 ),
+                    ( int ) item.interval.dimension( 1 ) );
+        }
 
         // draw text
         g.setColor( Color.WHITE );
@@ -45,6 +49,12 @@ public class OverlayHelper
         item.height = g.getFontMetrics().getHeight();
         item.x = (int) ( center - item.width / 2.0 );
         item.y = (int) ( bounds.realMax( 1 ) + 1.1F * finalFont.getSize() );
+        item.interval = FinalInterval.createMinSize(
+                item.x,
+                item.y - item.height + g.getFontMetrics().getDescent(),
+                item.width,
+                item.height );
+
         return item;
     }
 
