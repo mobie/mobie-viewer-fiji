@@ -67,6 +67,7 @@ import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.table.AnnData;
+import org.embl.mobie.lib.table.TableView;
 import org.embl.mobie.lib.transform.viewer.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
 import org.embl.mobie.lib.transform.viewer.ViewerTransform;
@@ -554,7 +555,7 @@ public class UserInterfaceHelper
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() );
-		panel.add( createWindowVisibilityCheckbox( display.showTable(), display.tableView.getWindow() ) );
+		panel.add( createTableVisibilityCheckbox( display.tableView, display.showTable() ) );
 		panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotView, display.showScatterPlot() ) );
 		return panel;
 	}
@@ -575,7 +576,7 @@ public class UserInterfaceHelper
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() );
-		panel.add( createWindowVisibilityCheckbox( display.showTable(), display.tableView.getWindow() ) );
+		panel.add( createTableVisibilityCheckbox( display.tableView, display.showTable() ) );
 		panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotView, display.showScatterPlot() ) );
 		return panel;
 	}
@@ -709,14 +710,14 @@ public class UserInterfaceHelper
 		panel.add( createRemoveButton( display ) );
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
+
 		final AnnData annData = display.getAnnData();
-		display.images();
 		if ( annData != null )
 		{
 			// segments 3D view
 			panel.add( createSegmentsVolumeViewerVisibilityCheckbox( display ) );
 			// table view
-			panel.add( createWindowVisibilityCheckbox( display.showTable(), display.tableView.getWindow() ) );
+			panel.add( createTableVisibilityCheckbox( display.tableView, display.showTable() ) );
 			// scatter plot view
 			panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotView, display.showScatterPlot() ) );
 		}
@@ -1070,24 +1071,27 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	private static JCheckBox createWindowVisibilityCheckbox(
-			boolean isVisible,
-			Window window )
+	private static Component createTableVisibilityCheckbox(
+			TableView tableView,
+			boolean isVisible )
 	{
+		if ( tableView == null )
+			return createCheckboxPlaceholder();
+
 		JCheckBox checkBox = new JCheckBox( "T" );
-		checkBox.setToolTipText( "Toggle window visibility" );
+		checkBox.setToolTipText( "Toggle table visibility" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 		try
 		{
-			window.setVisible( isVisible );
+			tableView.setVisible( isVisible );
 		}
 		catch ( Exception e )
 		{
-			IJ.log( "Error making visible " + window );
+			IJ.log( "Error making visible " + tableView );
 		}
-		checkBox.addActionListener( e -> SwingUtilities.invokeLater( () -> window.setVisible( checkBox.isSelected() ) ) );
-		window.addWindowListener(
+		checkBox.addActionListener( e -> SwingUtilities.invokeLater( () -> tableView.setVisible( checkBox.isSelected() ) ) );
+		tableView.getWindow().addWindowListener(
 				new WindowAdapter() {
 					public void windowClosing( WindowEvent ev) {
 						checkBox.setSelected( false );
@@ -1097,10 +1101,13 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	private static JCheckBox createScatterPlotViewerVisibilityCheckbox(
+	private static Component createScatterPlotViewerVisibilityCheckbox(
 			ScatterPlotView< ? > scatterPlotView,
 			boolean isVisible )
 	{
+		if ( scatterPlotView == null )
+			return createCheckboxPlaceholder();
+
 		JCheckBox checkBox = new JCheckBox( "P" );
 		checkBox.setToolTipText( "Toggle scatter plot visibility" );
 		checkBox.setSelected( isVisible );

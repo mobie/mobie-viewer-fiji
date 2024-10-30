@@ -663,9 +663,17 @@ public class ViewManager
 			//
 			annotationDisplay.sliceViewer = sliceViewer;
 			annotationDisplay.sliceView = new AnnotationSliceView<>( moBIE, annotationDisplay );
-			initTableView( annotationDisplay );
-			IJ.wait( 500 ); // TODO https://github.com/mobie/mobie-viewer-fiji/issues/1146
-			initScatterPlotView( annotationDisplay );
+
+			if( annotationDisplay.getAnnData().getTable().annotations().size() > 0 )
+			{
+				// if there are no annotations to start with there is no table
+				// and the table is built on the fly.
+				// in this case we do not want to show the table
+				// https://github.com/mobie/mobie-viewer-fiji/issues/1184
+				initTableView( annotationDisplay );
+				initScatterPlotView( annotationDisplay );
+			}
+
 			if ( annotationDisplay instanceof SegmentationDisplay )
 				initSegmentVolumeViewer( ( SegmentationDisplay ) annotationDisplay );
 		}
