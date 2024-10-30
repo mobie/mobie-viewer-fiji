@@ -169,7 +169,7 @@ public class CollectionTableDataSetter
                     dataset.views() );
 
             gridView.setExclusive( true );
-            gridView.overlayNames( true );
+            gridView.overlayNames( false ); // <- TODO: exchange this with the showing the regionId column as an annotation overlay!
 
             // Create grid regions table
             Selection rowSelection = Selection

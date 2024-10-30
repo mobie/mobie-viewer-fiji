@@ -125,7 +125,7 @@ public class AnnotatedRegionsOverlay< AR extends AnnotatedRegion >
 						g,
 						bounds,
 						annotatedRegion.getValue( annotationColumn ).toString(),
-						font
+						g.getFont()
 				);
 
 				overlayItems.add( newItem );

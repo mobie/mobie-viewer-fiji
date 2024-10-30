@@ -347,7 +347,11 @@ public class GridSourcesDataSetter
 				viewerTransform,
 				false,
 				null );
-		view.overlayNames( true );
+
+		// TODO: Replace this with showing the regionID annotation text column; this would need to be communicated
+		//   somehow to the table view
+		view.overlayNames( false );
+
 		dataset.views().put( view.getName(), view );
 	}
 }

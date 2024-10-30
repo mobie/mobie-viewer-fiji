@@ -76,7 +76,6 @@ public class UserInterface
 	}
 
 
-
 	private void configureWindowClosing( MoBIE moBIE )
 	{
 		frame.addWindowListener(

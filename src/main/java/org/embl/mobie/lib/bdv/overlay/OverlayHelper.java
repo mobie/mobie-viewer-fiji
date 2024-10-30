@@ -37,23 +37,28 @@ public class OverlayHelper
         final double center = ( bounds.realMax( 0 ) + bounds.realMin( 0 ) ) / 2.0;
 
         g.setFont( font );
-        final float computedFontSize = ( float ) ( 1.0F * ImageNameOverlay.MAX_FONT_SIZE * width / ( 1.0F * g.getFontMetrics().stringWidth( text ) ) );
-        final float finalFontSize = Math.min( ImageNameOverlay.MAX_FONT_SIZE, computedFontSize );
-        Font finalFont = font.deriveFont( finalFontSize );
-        g.setFont( finalFont );
+
+        if ( g.getFontMetrics().stringWidth( text ) > width )
+        {
+            float adaptedFontSize = (float) ( font.getSize() * ( 1.0 * width / g.getFontMetrics().stringWidth( text ) ) );
+            Font adaptedFont = font.deriveFont( adaptedFontSize );
+            g.setFont( adaptedFont );
+        }
 
         final OverlayItem item = new OverlayItem();
         item.text = text;
-        item.font = finalFont;
+        item.font = g.getFont();
         item.width = g.getFontMetrics().stringWidth( text );
         item.height = g.getFontMetrics().getHeight();
         item.x = (int) ( center - item.width / 2.0 );
-        item.y = (int) ( bounds.realMax( 1 ) + 1.1F * finalFont.getSize() );
+        item.y = (int) ( bounds.realMax( 1 ) + 1.1F * item.font.getSize() );
         item.interval = FinalInterval.createMinSize(
                 item.x,
                 item.y - item.height + g.getFontMetrics().getDescent(),
                 item.width,
                 item.height );
+
+        g.setFont( font ); // reset the original font
 
         return item;
     }
