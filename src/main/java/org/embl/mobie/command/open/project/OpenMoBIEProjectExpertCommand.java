@@ -29,8 +29,8 @@
 package org.embl.mobie.command.open.project;
 
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.MoBIEHelper;
-import org.embl.mobie.lib.ThreadHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
+import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;

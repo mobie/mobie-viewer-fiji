@@ -28,7 +28,7 @@
  */
 package org.embl.mobie.lib.serialize.transformation;
 
-import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 
 import java.util.*;
 

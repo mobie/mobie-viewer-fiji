@@ -30,7 +30,8 @@ package org.embl.mobie.lib.table;
 
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.DataStore;
-import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.table.columns.ColumnNames;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.RegionTableSource;

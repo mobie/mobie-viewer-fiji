@@ -35,7 +35,7 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.imagedata.ImagePlusImageData;
-import org.embl.mobie.lib.ThreadHelper;
+import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.scijava.Initializable;

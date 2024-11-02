@@ -40,7 +40,7 @@ import ij.process.ImageConverter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.align.TurboReg2DAligner;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
 import org.embl.mobie.lib.align.SIFT2DAligner;

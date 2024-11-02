@@ -31,7 +31,7 @@ package org.embl.mobie.command.widget;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.jetbrains.annotations.NotNull;
 import org.scijava.Priority;
 import org.scijava.plugin.Plugin;

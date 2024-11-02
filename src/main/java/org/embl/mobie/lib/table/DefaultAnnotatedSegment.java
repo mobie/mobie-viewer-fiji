@@ -31,6 +31,7 @@ package org.embl.mobie.lib.table;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
+import org.embl.mobie.lib.table.columns.ColumnNames;
 
 import java.util.HashMap;
 

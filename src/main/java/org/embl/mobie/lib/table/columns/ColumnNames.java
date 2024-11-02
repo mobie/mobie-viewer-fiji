@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.table;
+package org.embl.mobie.lib.table.columns;
 
 public class ColumnNames
 {

@@ -143,7 +143,8 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 					final String someRegion = display.sources.keySet().iterator().next();
 					final String someSource = display.sources.get( someRegion ).get( 0 );
 					final RealMaskRealInterval mask = DataStore.getImage( someSource ).getMask();
-					final double width = mask.realMax( 0 ) - mask.realMin( 0 );
+					double width = mask.realMax( 0 ) - mask.realMin( 0 );
+					width = Math.min( width, mask.realMax( 1 ) - mask.realMin( 1 ) );
 					boundaryThickness = width * boundaryThickness;
 				}
 			}

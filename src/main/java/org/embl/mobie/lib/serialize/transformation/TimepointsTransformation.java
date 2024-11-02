@@ -28,8 +28,6 @@
  */
 package org.embl.mobie.lib.serialize.transformation;
 
-import org.embl.mobie.lib.MoBIEHelper;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;

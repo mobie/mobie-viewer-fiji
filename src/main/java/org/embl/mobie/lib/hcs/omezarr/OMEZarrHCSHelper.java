@@ -32,8 +32,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import ij.IJ;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.lib.MoBIEHelper;
-import org.embl.mobie.lib.ThreadHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
+import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.serialize.JsonHelper;
 
 import java.io.IOException;

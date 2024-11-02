@@ -30,7 +30,7 @@ package org.embl.mobie.lib.transform;
 
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.IntegerType;
-import org.embl.mobie.lib.ThreadHelper;
+import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;

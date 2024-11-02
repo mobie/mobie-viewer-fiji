@@ -31,7 +31,7 @@ package org.embl.mobie.lib.table;
 import ij.IJ;
 import ij.gui.GenericDialog;
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.color.ColoringModels;
 import org.embl.mobie.lib.color.MobieColoringModel;

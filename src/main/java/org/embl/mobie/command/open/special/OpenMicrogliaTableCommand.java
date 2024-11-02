@@ -33,7 +33,6 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.SpatialCalibration;
-import org.embl.mobie.lib.MoBIEHelper;
 import org.embl.mobie.lib.transform.GridType;
 import org.scijava.ItemVisibility;
 import org.scijava.command.Command;

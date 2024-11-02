@@ -56,6 +56,8 @@ import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.columns.CollectionTableConstants;
 import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.transform.GridType;
+import org.embl.mobie.lib.util.MoBIEHelper;
+import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.view.ViewManager;
 import org.embl.mobie.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.ui.UserInterface;
@@ -137,7 +139,7 @@ public class MoBIE
 
 			CollectionTableDataSetter dataSetter = new CollectionTableDataSetter( table, settings.values.getDataRoot() );
 			dataSetter.addToDataset( dataset );
-			dataset.is2D( false ); // TODO: determine from data?!
+			dataset.is2D( settings.values.getBdvViewingMode().equals( BdvViewingMode.TwoDimensional ) );
 
 			initUiAndShowView( dataset.views().values().iterator().next().getName() );
 		}

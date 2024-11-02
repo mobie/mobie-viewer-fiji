@@ -29,7 +29,7 @@
 package org.embl.mobie.lib.create;
 
 import de.embl.cba.tables.color.ColoringLuts;
-import org.embl.mobie.lib.table.ColumnNames;
+import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.display.Display;
@@ -48,7 +48,6 @@ import org.embl.mobie.io.util.IOHelper;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

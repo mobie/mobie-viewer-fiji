@@ -45,7 +45,7 @@ import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.transformation.*;
 import org.embl.mobie.lib.source.Metadata;
-import org.embl.mobie.lib.table.ColumnNames;
+import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
 import org.embl.mobie.lib.transform.GridType;

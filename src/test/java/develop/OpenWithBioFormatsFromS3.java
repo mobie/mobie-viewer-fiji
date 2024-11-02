@@ -33,7 +33,6 @@ import loci.common.ByteArrayHandle;
 import loci.common.DebugTools;
 import loci.common.Location;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.lib.MoBIEHelper;
 
 import java.io.*;
 

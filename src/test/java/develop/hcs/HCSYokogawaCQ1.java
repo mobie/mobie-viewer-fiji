@@ -29,11 +29,10 @@
 package develop.hcs;
 
 import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imagej.ImageJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 
 import java.io.IOException;
 

@@ -51,9 +51,9 @@ public class View
 
 	private ViewerTransform viewerTransform = null;
 
-	private Boolean isExclusive = null;
+	private Boolean isExclusive;
 
-	private String description; // TODO: make part of the spec
+	private String description; // TODO add to JSON spec?
 
 	// Runtime
 	//

@@ -37,7 +37,7 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.ProjectType;
 import org.embl.mobie.command.widget.SelectableImages;
 import org.embl.mobie.command.widget.SwingSelectableImagesWidget;
-import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.serialize.View;

@@ -28,7 +28,7 @@
  */
 package org.embl.mobie.lib.table.saw;
 
-import org.embl.mobie.lib.table.ColumnNames;
+import org.embl.mobie.lib.table.columns.ColumnNames;
 import tech.tablesaw.api.Table;
 
 import java.util.ArrayList;

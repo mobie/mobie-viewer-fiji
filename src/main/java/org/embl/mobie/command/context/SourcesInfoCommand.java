@@ -35,7 +35,7 @@ import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.io.ImageDataInfo;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;

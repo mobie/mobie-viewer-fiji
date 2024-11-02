@@ -30,7 +30,7 @@ package org.embl.mobie.lib.table.saw;
 
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
-import org.embl.mobie.lib.table.ColumnNames;
+import org.embl.mobie.lib.table.columns.ColumnNames;
 
 public class TableSawAnnotatedSpot extends AbstractTableSawAnnotation implements AnnotatedSpot
 {

@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib;
+package org.embl.mobie.ui;
 
 import bdv.tools.HelpDialog;
 import ij.IJ;

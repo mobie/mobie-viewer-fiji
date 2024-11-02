@@ -28,7 +28,7 @@
  */
 package develop;
 
-import org.embl.mobie.lib.ThreadHelper;
+import org.embl.mobie.lib.util.ThreadHelper;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 

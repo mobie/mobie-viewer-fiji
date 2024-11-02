@@ -30,7 +30,6 @@ package org.embl.mobie.cmd;
 
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.lib.MoBIEHelper;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 

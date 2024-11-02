@@ -48,6 +48,7 @@ public class DataFormats
 			add( ImageDataFormat.BdvN5S3 );
 			add( ImageDataFormat.OpenOrganelleS3 );
 			add( ImageDataFormat.BioFormatsS3 );
+			add( ImageDataFormat.N5 );
 		}
 	};
 

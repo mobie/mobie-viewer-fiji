@@ -33,7 +33,7 @@ import ij.measure.ResultsTable;
 import net.thisptr.jackson.jq.internal.misc.Strings;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
-import org.embl.mobie.lib.table.ColumnNames;
+import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.columns.SegmentColumnNames;
 import tech.tablesaw.api.ColumnType;

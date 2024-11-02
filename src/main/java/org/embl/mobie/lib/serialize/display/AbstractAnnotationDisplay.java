@@ -52,7 +52,7 @@ import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.table.AnnDataHelper;
-import org.embl.mobie.lib.table.ColumnNames;
+import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.table.TableView;
 import net.imglib2.util.ValuePair;
 

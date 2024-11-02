@@ -122,6 +122,7 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 
 		FinalRealInterval viewerInterval = BdvHandleHelper.getViewerGlobalBoundingInterval( bdvHandle );
 
+
 		final Set< SourceAndConverter< ? > > sourceAndConverters = viewerState.getVisibleAndPresentSources();
 
 		for ( final SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )

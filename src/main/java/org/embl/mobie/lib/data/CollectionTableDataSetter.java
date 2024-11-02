@@ -1,7 +1,6 @@
 package org.embl.mobie.lib.data;
 
 import ij.IJ;
-import net.imagej.omero.roi.ellipse.ImageJToOMEROEllipse;
 import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.DataStore;
@@ -16,7 +15,7 @@ import org.embl.mobie.lib.serialize.display.*;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.GridTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
-import org.embl.mobie.lib.table.ColumnNames;
+import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
 import org.embl.mobie.lib.table.columns.CollectionTableConstants;
@@ -34,12 +33,13 @@ public class CollectionTableDataSetter
     private final Table table;
     private final String rootPath;
 
-    private final Map< String, Display< ? > > gridToDisplay = new HashMap<>();
-    private final Map< String, List< Transformation > > gridToTransformations = new HashMap<>();
-    private final Map< String, String > gridToView = new HashMap<>();
-    private final Map< String, String > viewToGroup = new HashMap<>();
-    private final Map< String, List< Integer > > gridToRowIndices = new HashMap<>();
+    private final Map< String, String > viewToGroup = new LinkedHashMap<>();
 
+    private final Map< String, Display< ? > > gridToDisplay = new LinkedHashMap<>();
+    private final Map< String, List< Transformation > > gridToTransformations = new LinkedHashMap<>();
+    private final Map< String, String > gridToView = new LinkedHashMap<>();
+    private final Map< String, List< Integer > > gridToRowIndices = new LinkedHashMap<>();
+    private final Map< String, Boolean > gridToExclusive = new LinkedHashMap<>();
 
     public CollectionTableDataSetter( Table table, String rootPath )
     {
@@ -89,11 +89,13 @@ public class CollectionTableDataSetter
             }
             else // intensities
             {
-                final ImageDataSource imageDataSource = new ImageDataSource( imageName, imageDataFormat, storageLocation );
+                final ImageDataSource imageDataSource = new ImageDataSource(
+                        imageName,
+                        imageDataFormat,
+                        storageLocation );
                 imageDataSource.preInit( false );
                 dataset.putDataSource( imageDataSource );
 
-                // TODO create a GridDisplay is adequate
                 display = createImageDisplay(
                     imageName,
                     row );
@@ -106,6 +108,7 @@ public class CollectionTableDataSetter
                 addDisplayToView(
                         getViewName( display, row ),
                         getGroupName( display, row ),
+                        getExclusive( row ),
                         display,
                         getAffineTransformationAsList( display.getSources(), row ),
                         dataset.views() );
@@ -116,9 +119,10 @@ public class CollectionTableDataSetter
                         .computeIfAbsent( gridId, k -> new ArrayList<>() )
                         .add( row.getRowNumber() );
 
-                String viewName = getViewName( display, row );
-                gridToView.put( gridId, viewName );
-                viewToGroup.put( viewName, getGroupName( display, row ) );
+                String gridViewName = getViewName( display, row ); // defaults to display=grid name if view name is absent
+                gridToView.put( gridId, gridViewName );
+                gridToExclusive.put( gridId, getExclusive( row ) );
+                viewToGroup.put( gridViewName, getGroupName( display, row ) );
 
                 if ( gridToDisplay.containsKey( gridId ) )
                 {
@@ -161,15 +165,17 @@ public class CollectionTableDataSetter
             GridTransformation grid = new GridTransformation( display.getSources() );
             transformations.add( grid );
 
+            String viewName = gridToView.get( gridId );
+
             View gridView = addDisplayToView(
-                    gridToView.get( gridId ),
-                    viewToGroup.get( gridToView.get( gridId ) ),
+                    viewName,
+                    viewToGroup.get( viewName ),
+                    gridToExclusive.get( gridId ),
                     display,
                     transformations,
                     dataset.views() );
 
-            gridView.setExclusive( true );
-            gridView.overlayNames( false ); // <- TODO: exchange this with the showing the regionId column as an annotation overlay!
+            gridView.overlayNames( false ); // TODO: exchange this with the showing the regionId column as an annotation overlay!
 
             // Create grid regions table
             Selection rowSelection = Selection
@@ -199,17 +205,30 @@ public class CollectionTableDataSetter
             for ( String source : display.getSources() )
                 gridRegionDisplay.sources.put( source, Collections.singletonList( source ) );
 
-
-
-            dataset.views().get( gridToView.get( gridId ) ).displays().add( gridRegionDisplay );
+            dataset.views().get( viewName ).displays().add( gridRegionDisplay );
         }
 
+    }
+
+    private static boolean getExclusive( Row row )
+    {
+        try {
+            String string = row.getString( CollectionTableConstants.EXCLUSIVE );
+            if ( string.toLowerCase().equals( CollectionTableConstants.TRUE ) )
+                return true;
+            else
+                return false;
+        }
+        catch ( Exception e )
+        {
+            return false;
+        }
     }
 
     private static TableSource getTable( Row row, String rootPath )
     {
         try {
-            String tablePath = row.getString( CollectionTableConstants.LABEL_TABLE );
+            String tablePath = row.getString( CollectionTableConstants.LABELS_TABLE );
             if ( rootPath != null )
                 tablePath = IOHelper.combinePath( rootPath, tablePath );
             StorageLocation storageLocation = new StorageLocation();
@@ -301,6 +320,7 @@ public class CollectionTableDataSetter
 
     private static View addDisplayToView( String viewName,
                                           String groupName,
+                                          boolean exclusive,
                                           Display< ? > display,
                                           List< Transformation > transforms,
                                           final Map< String, View > views )
@@ -313,9 +333,6 @@ public class CollectionTableDataSetter
             View existingView = views.get( viewName );
             existingView.transformations().addAll( transforms );
             existingView.displays().addAll( displays );
-            // if several images are combined into the
-            // same view we make it exclusive
-            existingView.setExclusive( true );
             return existingView;
         }
         else
@@ -326,7 +343,7 @@ public class CollectionTableDataSetter
                     displays,
                     transforms,
                     null,
-                    false,
+                    exclusive,
                     null );
 
             views.put( newView.getName(), newView );
@@ -358,7 +375,7 @@ public class CollectionTableDataSetter
         {
             String name = row.getString( CollectionTableConstants.VIEW );
 
-            if ( name.isEmpty() )
+            if ( name == null || name.isEmpty() )
                 return display.getName();
 
             return name;

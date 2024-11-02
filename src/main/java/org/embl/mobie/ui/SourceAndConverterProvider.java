@@ -2,7 +2,7 @@ package org.embl.mobie.ui;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 
 import java.util.List;
 import java.util.stream.Collectors;

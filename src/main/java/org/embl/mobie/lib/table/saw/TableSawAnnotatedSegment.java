@@ -32,7 +32,6 @@ import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
-import org.embl.mobie.lib.table.ColumnNames;
 import org.embl.mobie.lib.volume.MeshTransformer;
 
 public class TableSawAnnotatedSegment extends AbstractTableSawAnnotation implements AnnotatedSegment

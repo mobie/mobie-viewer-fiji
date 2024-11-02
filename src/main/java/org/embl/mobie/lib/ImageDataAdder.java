@@ -42,6 +42,7 @@ import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.table.TableDataFormat;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.janelia.saalfeldlab.n5.universe.metadata.canonical.CanonicalDatasetMetadata;
 
 import java.io.File;

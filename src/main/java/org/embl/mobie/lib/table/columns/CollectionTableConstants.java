@@ -107,10 +107,10 @@ public class CollectionTableConstants
      * - e.g., "r(0)-g(255)-b(0)-a(255)"
      * - e.g., "white", "red", ....
      *
-     * Default value: "white"
-     * The default value will be assigned if
-     * - this column is absent.
-     * - the value cannot be parsed to a color by [this code]().
+     * Default: "white"
+     * If the column is absent or the value cannot be parsed,
+     * the color will be "white".
+     *
      */
     public static final String COLOR = "color";
 
@@ -119,12 +119,14 @@ public class CollectionTableConstants
      *
      * The value determines the blending mode for this image.
      *
-     * The value MUST be one of "sum" or "alpha".
+     * Supported values:
+     * - "sum"
+     * - "alpha"
      *
-     * Default value: "sum"
-     * The default value will be assigned if
-     * - this column is absent.
-     * - the value cannot be parsed to a {@code BlendingMode}
+     * Default: "sum"
+     * If the column is absent or the value is not supported,
+     * the blending mode will be "sum".
+     *
      */
     public static final String BLEND = "blend";
 
@@ -141,10 +143,10 @@ public class CollectionTableConstants
      * - e.g., identity transform: (1,0,0,0,0,1,0,0,0,0,1,0)
      * - e.g., shift along x-axis: (1,0,0,-105.34,0,1,0,0,0,0,1,0)
      *
-     * Default value: There is no default value.
-     * No transformation will be applied if
-     * - this column is absent.
-     * - the given value cannot be parsed.
+     * Default: No transformation
+     * If the column is absent or the value cannot be parsed no
+     * additional transformation will be applied on top of the
+     * transformation that is found within the image data itself.
      *
      * Notes:
      * - This affine transformation will be applied on top of any transformation
@@ -161,20 +163,45 @@ public class CollectionTableConstants
      * Supported values:
      * - Free text
      *
-     * Default value: There is no default value.
-     * No additional view will be assigned if
-     * - this column is absent.
-     * - the value is empty.
+     * Default: value determined from NAME column
+     * If the column is absent or if the value is an empty string,
+     * the name of the view will be set equal to value determined
+     * by the NAME column (see above).
      *
      * Use cases:
-     * - One can add data from the same URI a second time, but
-     *   with a different "affine" transform, or a different "channel"
      * - One can combine several images into the same view, e.g.
      *   different channels of the same image, or an image and a corresponding
      *   label mask (segmentation) image, or several (registered) images of
      *   a CLEM experiment.
      */
     public static final String VIEW = "view";
+
+    /**
+     * The "exclusive" column MAY be present.
+     *
+     * The value will determine whether the view that is associated to
+     * this row will be exclusive.
+     * If exclusive = true, upon showing the view all currently displayed
+     * items will be removed.
+     * If exclusive = false, the view will be display in addition to all
+     * currently displayed items.
+     *
+     * Supported values:
+     * - "true"
+     * - "false"
+     *
+     * Default: "false"
+     * If the column is absent or the String is none of the supported values
+     * the view will not be exclusive.
+     *
+     * Use cases:
+     * - If there is data in the table that is displayed in different coordinate systems
+     *   it can make sense to avoid that they will be shown together.
+     */
+    public static final String EXCLUSIVE = "exclusive";
+    public static final String TRUE = "true";
+    public static final String FALSE = "false"; // default
+
 
     /**
      * The "group" column MAY be present.
@@ -185,10 +212,10 @@ public class CollectionTableConstants
      * Supported values:
      * - Free text
      *
-     * Default value: "views"
-     * The default value will be assigned if
-     * - this column is absent.
-     * - the table cell is empty.
+     * Default: "views"
+     * If the column is absent or contains an empty string the
+     * view that corresponds to this row will be put in
+     * a UI selection group called "views".
      *
      * Use cases:
      * - If you have a lot of data it can be helpful to
@@ -207,12 +234,14 @@ public class CollectionTableConstants
      * - For supported columns in segmentation tables see, e.g.
      *   {@code MoBIESegmentColumnNames} or {@code SkimageSegmentColumnNames}.
      *
-     * Default value: N/A
+     * Default:
+     * If the column is absent or contains an empty string
+     * no labels table will be loaded.
      *
      * Use cases:
      * - Exploration of measurements corresponding to the labels
      */
-    public static final String LABEL_TABLE = "labels_table";
+    public static final String LABELS_TABLE = "labels_table";
 
     /**
      * The "contrast_limits" column MAY be present.
@@ -224,13 +253,15 @@ public class CollectionTableConstants
      * - Bracketed, semicolon separated list of min and max, e.g.
      *   - (10;240)
      *
-     * Default value: N/A
+     * Default:
+     * If the column is absent or can't be parsed, MoBIE will apply an
+     * auto-contrast algorithm, if the data is not too big. // TODO explain more
+     * If the data is too big, the contrast limits will be set to
+     * the limits of the pixel data type.
      *
      * Use cases:
      * - Adjust the contrast limits such that the intensities are readily visible
      *
-     * Notes:
-     * - One could consider supporting "auto" here as another supported value
      */
     public static final String CONTRAST_LIMITS = "contrast_limits";
 
@@ -249,7 +280,9 @@ public class CollectionTableConstants
      * Supported values:
      * - Free text
      *
-     * Default value: N/A
+     * Default: No grid
+     * If the column is absent or contains an empty string the
+     * data in this row will not be part of a grid.
      *
      * Use cases:
      * - Display similar data together such that it can be readily compared

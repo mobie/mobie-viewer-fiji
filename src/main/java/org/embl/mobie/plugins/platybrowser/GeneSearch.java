@@ -33,7 +33,7 @@ import de.embl.cba.tables.TableUIs;
 import ij.IJ;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.lib.ThreadHelper;
+import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.serialize.DataSource;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.ImageDataSource;

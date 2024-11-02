@@ -29,10 +29,9 @@
 package org.embl.mobie.lib.create;
 
 import mpicbg.spim.data.SpimDataException;
-import net.imagej.patcher.LegacyInjector;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.lib.MoBIEHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.serialize.*;
 
 import java.io.File;

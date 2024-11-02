@@ -28,8 +28,6 @@
  */
 package org.embl.mobie.lib.table.columns;
 
-import org.embl.mobie.lib.table.ColumnNames;
-
 import java.util.Collection;
 
 public class MoBIESegmentColumnNames implements SegmentColumnNames

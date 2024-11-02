@@ -47,7 +47,6 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.bdv.AutoContrastAdjuster;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.io.FileLocation;
-import org.embl.mobie.lib.MoBIEInfo;
 import org.embl.mobie.lib.Services;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.OpacityHelper;
@@ -712,7 +711,7 @@ public class UserInterfaceHelper
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 
 		final AnnData annData = display.getAnnData();
-		if ( annData != null )
+		if ( annData != null ) // TODO: can annData ever be null??
 		{
 			// segments 3D view
 			panel.add( createSegmentsVolumeViewerVisibilityCheckbox( display ) );

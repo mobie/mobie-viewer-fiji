@@ -44,7 +44,7 @@ import org.embl.mobie.io.toml.TPosition;
 import org.embl.mobie.io.toml.ZPosition;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
-import org.embl.mobie.lib.ThreadHelper;
+import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.hcs.omezarr.OMEZarrHCSHelper;
 

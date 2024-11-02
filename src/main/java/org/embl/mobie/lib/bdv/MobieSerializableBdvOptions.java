@@ -31,7 +31,7 @@ package org.embl.mobie.lib.bdv;
 import bdv.util.AxisOrder;
 import bdv.util.BdvOptions;
 import bdv.viewer.render.AccumulateProjectorFactory;
-import org.embl.mobie.lib.ThreadHelper;
+import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.bdv.blend.AccumulateAlphaBlendingProjectorARGBFactory;
 import net.imglib2.type.numeric.ARGBType;
 
