@@ -289,9 +289,10 @@ public class ViewManager
 		// the viewer transform has already been adjusted above.
 		if ( view.getViewerTransform() == null && currentDisplays.size() > 0 && viewerWasEmpty )
 		{
-			new MoBIEViewerTransformAdjuster(
+			AffineTransform3D viewerTransform = MoBIEViewerTransformAdjuster.getViewerTransform(
 					sliceViewer.getBdvHandle(),
-					currentDisplays.get( 0 ) ).applyMultiSourceTransform();
+					currentDisplays.get( 0 ) );
+			sliceViewer.getBdvHandle().getViewerPanel().state().setViewerTransform( viewerTransform );
 		}
 
 		// adapt time point
@@ -365,12 +366,6 @@ public class ViewManager
 
 		// transform images
 		// this may create new images with new names
-
-		// TODO factor this out into an image transformer class
-
-		// TODO: Explore whether there could be an IntensityTransformation for Yannick's gridView use case
-		//       The code could be very similar to what is used in AnnotatedLabelSource
-
 		final List< Transformation > transformations = view.transformations();
 		if ( transformations != null )
 		{
@@ -387,7 +382,8 @@ public class ViewManager
 
 						for ( Image< ? > image : images )
 						{
-							DataStore.addImage( ImageTransformer.affineTransform( image, affineTransformation ) );
+							Image< ? > transformedImage = ImageTransformer.affineTransform( image, affineTransformation );
+							DataStore.addImage( transformedImage );
 						}
 					}
 					else if ( transformation instanceof CropTransformation )
@@ -483,48 +479,10 @@ public class ViewManager
 					}
 					else if ( transformation instanceof GridTransformation )
 					{
-						// FIXME: move this into the ImageTransformer class
-						final GridTransformation gridTransformation = ( GridTransformation ) transformation;
+						final List< ? extends Image< ? > > translatedImages =
+								GridTransformation.translateImages( ( GridTransformation ) transformation );
 
-						final List< List< String > > nestedSources = gridTransformation.nestedSources;
-						final List< List< ? extends Image< ? > > > nestedImages = new ArrayList<>();
-						for ( List< String > sources : nestedSources )
-						{
-							final List< ? extends Image< ? > > images = DataStore.getImageList( sources );
-							nestedImages.add( images );
-						}
-
-						// The size of the tile of the grid is the size of the
-						// largest union mask of the images at
-						// the grid positions.
-						double[] tileRealDimensions = new double[ 2 ];
-						for ( List< ? extends Image< ? > > images : nestedImages )
-						{
-							final RealMaskRealInterval unionMask = TransformHelper.union( images );
-							final double[] realDimensions = TransformHelper.getRealDimensions( unionMask );
-							for ( int d = 0; d < 2; d++ )
-								tileRealDimensions[ d ] = Math.max( realDimensions[ d ], tileRealDimensions[ d ] );
-						}
-
-						// Add a margin to the tiles
-						for ( int d = 0; d < 2; d++ )
-						{
-							tileRealDimensions[ d ] = tileRealDimensions[ d ] * ( 1.0 + 2 * gridTransformation.margin );
-						}
-
-						// Compute the corresponding offset of where to place
-						// the images within the tile
-						final double[] offset = new double[ 2 ];
-						for ( int d = 0; d < 2; d++ )
-						{
-							offset[ d ] = tileRealDimensions[ d ] * gridTransformation.margin;
-						}
-
-						final List< int[] > gridPositions = gridTransformation.positions == null ? TransformHelper.createGridPositions( nestedSources.size() ) : gridTransformation.positions;
-
-						final List< ? extends Image< ? > > transformedImages = ImageTransformer.gridTransform( nestedImages, gridTransformation.transformedNames, gridPositions, tileRealDimensions, gridTransformation.centerAtOrigin, offset );
-
-						DataStore.putImages( transformedImages );
+						DataStore.putImages( translatedImages );
 					}
 					else
 					{

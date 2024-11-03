@@ -3,6 +3,7 @@ package org.embl.mobie.lib.util;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.table.columns.CollectionTableConstants;
 import org.janelia.saalfeldlab.n5.N5Reader;
 import org.janelia.saalfeldlab.n5.N5URI;
@@ -25,20 +26,24 @@ public class OpenOrganelleCollectionTableCreator
 {
     public static void main( String[] args ) throws URISyntaxException, ExecutionException, InterruptedException
     {
+        // find uris on https://openorganelle.janelia.org/datasets
+
         String[] uris = {
                 "s3://janelia-cosem-datasets/jrc_macrophage-2/jrc_macrophage-2.n5",
                 "s3://janelia-cosem-datasets/jrc_hela-3/jrc_hela-3.n5",
-                "s3://janelia-cosem-datasets/jrc_jurkat-1/jrc_jurkat-1.n5"
+                "s3://janelia-cosem-datasets/jrc_jurkat-1/jrc_jurkat-1.n5",
+                "s3://janelia-cosem-datasets/jrc_hela-2/jrc_hela-2.n5",
+                "s3://janelia-cosem-datasets/jrc_hela-1/jrc_hela-1.n5",
+                "s3://janelia-cosem-datasets/jrc_mus-liver/jrc_mus-liver.n5"
         };
 
         String imagesPath = "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/uriToImages.json";
 
-        // fetchImagesFromUris( imagesPath, uris );
+//        fetchImagesFromUris( imagesPath, uris );
 
         Map< String, List< String > > uriToImages = readImages( imagesPath );
 
-        String tablePath = "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/open-organelle.txt";
-
+        String tablePath = "src/main/resources/open-organelle.txt";
         createCollectionTable( uriToImages, tablePath );
 
         System.exit( 0 );
@@ -85,7 +90,12 @@ public class OpenOrganelleCollectionTableCreator
 
     private static void createCollectionTable( Map< String, List< String > > uriToImages, final String tablePath )
     {
-        String[] imagesAndLabels = { "em/fibsem-uint16", "labels/pm_seg" };
+        String[] imagesAndLabels = {
+                "em/fibsem-uint16",
+                "labels/nucleus_seg",
+                "labels/pm_seg",
+                "labels/chrom_seg",
+                "labels/mito_seg" };
 
         Table table = Table.create( "OpenOrganelle" );
 
@@ -96,7 +106,8 @@ public class OpenOrganelleCollectionTableCreator
         StringColumn typeColumn = StringColumn.create( CollectionTableConstants.TYPE, numRows );
         StringColumn gridColumn = StringColumn.create( CollectionTableConstants.GRID, numRows );
         StringColumn nameColumn = StringColumn.create( CollectionTableConstants.NAME, numRows );
-        StringColumn contrastColumn = StringColumn.create( CollectionTableConstants.NAME, numRows );
+        StringColumn contrastColumn = StringColumn.create( CollectionTableConstants.CONTRAST_LIMITS, numRows );
+        StringColumn affineColumn = StringColumn.create( CollectionTableConstants.AFFINE, numRows );
 
         table.addColumns(
                 uriColumn,
@@ -104,13 +115,27 @@ public class OpenOrganelleCollectionTableCreator
                 typeColumn,
                 gridColumn,
                 contrastColumn );
+        // ,affineColumn );
 
+        AffineTransform3D transform3D = new AffineTransform3D();
+        transform3D.rotate( 0, Math.PI / 2.0 );
+
+        String rotate = "(1,0,0,0,0,0,-1,0,0,1,0,0)";
         int rowIndex = 0;
 
         for ( String relativePath : imagesAndLabels )
         {
             for ( String uri : uriToImages.keySet() )
             {
+                int size = uriToImages.get( uri ).stream()
+                        .filter( image -> image.contains( relativePath ) )
+                        .collect( Collectors.toList() ).size();
+
+                if ( size != 1 )
+                {
+                    System.out.println( "" + size + "; "  + relativePath + "; " + uri );
+                }
+
                 String sampleName = Arrays.stream( uri.split( "/" ) )
                         .filter( s -> s.contains( ".n5" ) )
                         .map( s -> s.replace( ".n5", "" ) )
@@ -129,7 +154,7 @@ public class OpenOrganelleCollectionTableCreator
                 gridColumn.set( rowIndex, relativePath  );
                 nameColumn.set( rowIndex, sampleName + "/" + relativePath );
                 contrastColumn.set( rowIndex, contrast );
-
+                affineColumn.set( rowIndex, rotate );
                 rowIndex++;
             }
         }

@@ -51,7 +51,7 @@ public class ViewSaverDialog
         //
         if ( view.getName() == null )
         {
-            JPanel viewNamePanel = SwingHelper.horizontalLayoutPanel();
+            JPanel viewNamePanel = SwingHelper.horizontalFlowLayoutPanel();
             viewName = new JTextField( "", 15 );
             viewName.setMaximumSize( maximumSize );
             viewNamePanel.add( new JLabel("View name:  ") );
@@ -65,13 +65,13 @@ public class ViewSaverDialog
 
         // Save location
         //
-        JPanel locationPanel = SwingHelper.horizontalLayoutPanel();
+        JPanel locationPanel = SwingHelper.horizontalFlowLayoutPanel();
         fileLocation.setMaximumSize( maximumSize );
         locationPanel.add( new JLabel("Save location:  ") );
         locationPanel.add( fileLocation );
         dialog.add( locationPanel );
 
-        JPanel jsonPathPanel = SwingHelper.horizontalLayoutPanel();
+        JPanel jsonPathPanel = SwingHelper.horizontalFlowLayoutPanel();
         viewJsonPath.setMaximumSize( maximumSize );
         JButton browseButton = getBrowseButton();
         jsonPathPanel.add( new JLabel("File path:  ") );
@@ -97,7 +97,7 @@ public class ViewSaverDialog
 
         // Selection group for UI
         //
-        JPanel viewGroupPanel = SwingHelper.horizontalLayoutPanel();
+        JPanel viewGroupPanel = SwingHelper.horizontalFlowLayoutPanel();
         String[] viewGroupChoices = getViewGroupChoices();
         viewGroup = new JComboBox<>( viewGroupChoices );
         if ( selectedViewGroup != null &&
@@ -110,7 +110,7 @@ public class ViewSaverDialog
         viewGroupPanel.add( viewGroup );
         dialog.add( viewGroupPanel );
 
-        JPanel newGroupPanel = SwingHelper.horizontalLayoutPanel();
+        JPanel newGroupPanel = SwingHelper.horizontalFlowLayoutPanel();
         newGroup = new JTextField( "", 30 );
         newGroup.setMaximumSize( maximumSize );
         newGroupPanel.add( new JLabel("Group name:   ") );
@@ -134,7 +134,7 @@ public class ViewSaverDialog
 
         // Exclusive
         //
-        JPanel checkBoxPanel = SwingHelper.horizontalLayoutPanel();
+        JPanel checkBoxPanel = SwingHelper.horizontalFlowLayoutPanel();
         checkBoxPanel.add( makeViewExclusive );
         dialog.add( checkBoxPanel );
 

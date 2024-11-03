@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.lib.create.ui;
 
-import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
@@ -327,7 +326,7 @@ public class ProjectsCreatorUI extends JFrame {
     }
 
     private void addButtonsPanel() {
-        final JPanel buttonsPanel = SwingUtils.horizontalLayoutPanel();
+        final JPanel buttonsPanel = SwingHelper.horizontalBoxLayoutPanel();
 
         JButton remoteButton = new JButton("Add/update remote");
         JButton openMoBIEButton = new JButton("Open in MoBIE");

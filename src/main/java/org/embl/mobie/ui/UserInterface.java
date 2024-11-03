@@ -147,7 +147,7 @@ public class UserInterface
 	public void addViews( Map<String, View > views )
 	{
 		MoBIELaf.MoBIELafOn();
-		userInterfaceHelper.addViewsToSelectionPanel( views );
+		userInterfaceHelper.addViewsToViewSelectionPanel( views );
 		refreshSelection();
 		MoBIELaf.MoBIELafOff();
 	}

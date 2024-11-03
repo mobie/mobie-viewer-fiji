@@ -83,6 +83,12 @@ public class AnnotatedSegmentsOrSpotsOverlay< A extends Annotation >
 	}
 
 	@Override
+	public void setVisible( boolean visible )
+	{
+		overlaySource.setActive( visible );
+	}
+
+	@Override
 	protected synchronized void draw( Graphics2D g )
 	{
 		if ( annotationColumn == null || annotations == null || annotations.size() == 0 )

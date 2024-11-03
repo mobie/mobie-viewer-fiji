@@ -25,12 +25,15 @@ public class AutoContrastAdjuster
     {
         double viewerVoxelSpacing = BdvHandleHelper.getViewerVoxelSpacing( bdvHandle );
         ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, "" );
-        screenShotMaker.run( Collections.singletonList( sourceAndConverter ), 4 * viewerVoxelSpacing );
+        screenShotMaker.run(
+                Collections.singletonList( sourceAndConverter ),
+                16 * viewerVoxelSpacing // times 16 to make it faster
+        );
         ImagePlus imagePlus = screenShotMaker.getCompositeImagePlus();
         Roi[] rois = screenShotMaker.getMasks();
         if ( rois != null && rois.length > 0 )
             imagePlus.setRoi( rois[ 0 ] );
-        IJ.run( imagePlus, "Enhance Contrast", "saturated=0.35" );
+        IJ.run( imagePlus, "Enhance Contrast", "saturated=0.03" );
         // imagePlus.show();
         double[] minMax = { imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
         return minMax;

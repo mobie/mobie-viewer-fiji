@@ -39,6 +39,7 @@ import net.imglib2.Volatile;
 import net.imglib2.realtransform.*;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
+import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.lib.image.*;
 import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
@@ -100,7 +101,10 @@ public class TransformHelper
 		return center;
 	}
 
-	public static AffineTransform3D createTranslationTransform( double translationX, double translationY, Image< ? > image, boolean centerAtOrigin )
+	public static AffineTransform3D createTranslationTransform(
+			final Image< ? > image,
+			final boolean centerAtOrigin,
+			final double[] translation )
 	{
 		AffineTransform3D translationTransform = new AffineTransform3D();
 		if ( centerAtOrigin )
@@ -111,7 +115,7 @@ public class TransformHelper
 		}
 		// System.out.println( "Image: " + image.getName() );
 		// System.out.println( "Translation: " + translationX + ", " + translationY );
-		translationTransform.translate( translationX, translationY, 0 );
+		translationTransform.translate( translation );
 		return translationTransform;
 	}
 
@@ -262,25 +266,6 @@ public class TransformHelper
 		return collect;
 	}
 
-	public static ArrayList< int[] > createGridPositions( int numPositions )
-	{
-		final int numX = ( int ) Math.ceil( Math.sqrt( numPositions ) );
-		ArrayList< int[] > positions = new ArrayList<>();
-		int xPositionIndex = 0;
-		int yPositionIndex = 0;
-		for ( int gridIndex = 0; gridIndex < numPositions; gridIndex++ )
-		{
-			if ( xPositionIndex == numX )
-			{
-				xPositionIndex = 0;
-				yPositionIndex++;
-			}
-			positions.add( new int[]{ xPositionIndex, yPositionIndex }  );
-			xPositionIndex++;
-		}
-		return positions;
-	}
-
 	// The evaluation of the resulting masks is slower than in
 	// create createUnionBox, but it takes rotations into account.
 	// FIXME: This currently does not really work, because in {@code TableSawAnnotatedRegion}
@@ -405,12 +390,17 @@ public class TransformHelper
 			transformations.add( transformedImage.getTransformation() );
 			collectTransformations( transformedImage.getWrappedImage(), transformations );
 		}
+		else if ( image instanceof AnnotationLabelImage )
+		{
+			Image< ? extends IntegerType< ? > > labelImage = ( ( AnnotationLabelImage< ? > ) image ).getLabelImage();
+			collectTransformations( labelImage, transformations );
+		}
 		else
 		{
 			AffineTransform3D affineTransform3D = new AffineTransform3D();
 			image.getSourcePair().getSource().getSourceTransform( 0, 0, affineTransform3D  );
 			AffineTransformation affineTransformation = new AffineTransformation(
-					"image transform",
+					"original image transform",
 					affineTransform3D,
 					Collections.singletonList( image.getName() ) );
 			transformations.add( affineTransformation );

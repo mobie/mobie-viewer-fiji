@@ -32,6 +32,7 @@ import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 
+// FIXME: This should implement ImageWrapper and then return the LabelImage also as wrapped image
 public interface AnnotationLabelImage< A extends Annotation > extends AnnotationImage< A >
 {
 	Image< ? extends IntegerType< ? > > getLabelImage();

@@ -90,10 +90,20 @@ public class SwingHelper
 		}
 	}
 
-	public static JPanel horizontalLayoutPanel()
+	public static JPanel horizontalFlowLayoutPanel()
 	{
-		JPanel panel = new JPanel( new FlowLayout( FlowLayout.LEFT ) );
+		JPanel panel = new JPanel( new FlowLayout( FlowLayout.RIGHT ) );
 		panel.setBorder( BorderFactory.createEmptyBorder(2, 2, 2, 2) );
+		return panel;
+	}
+
+	public static JPanel horizontalBoxLayoutPanel()
+	{
+		JPanel panel = new JPanel();
+		panel.setLayout( new BoxLayout( panel, BoxLayout.LINE_AXIS ) );
+		panel.setBorder( BorderFactory.createEmptyBorder(0, 10, 10, 10) );
+		panel.add( Box.createHorizontalGlue() );
+		panel.setAlignmentX( Component.LEFT_ALIGNMENT );
 		return panel;
 	}
 

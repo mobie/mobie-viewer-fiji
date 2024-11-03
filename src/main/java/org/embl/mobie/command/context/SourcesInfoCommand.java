@@ -35,6 +35,7 @@ import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.io.ImageDataInfo;
@@ -69,11 +70,14 @@ public class SourcesInfoCommand implements BdvPlaygroundActionCommand
         visibleSacs.forEach( sac ->
         {
             Image< ? > image = DataStore.sourceToImage().get( sac );
+            if ( image instanceof RegionAnnotationImage )
+                return;
+
             ImageDataInfo imageDataInfo = MoBIEHelper.fetchImageDataInfo( image );
 
             Source< ? > source = sac.getSpimSource();
-            AffineTransform3D transform3D = new AffineTransform3D();
-            sac.getSpimSource().getSourceTransform( t, 0, transform3D );
+            AffineTransform3D sourceTransform = new AffineTransform3D();
+            sac.getSpimSource().getSourceTransform( t, 0, sourceTransform );
 
             IJ.log( "" );
             IJ.log( "# " + source.getName() );
@@ -88,11 +92,11 @@ public class SourcesInfoCommand implements BdvPlaygroundActionCommand
             Transformation imageTransformation = transformations.get( 0 );
             if ( imageTransformation instanceof AffineTransformation )
             {
-                AffineTransform3D imageTransform = ( ( AffineTransformation ) imageTransformation ).getAffineTransform3D();
-                IJ.log( "Original image transformation: " + MoBIEHelper.print( imageTransform.getRowPackedCopy(), 3 ) );
-                AffineTransform3D additionalTransform = transform3D.copy().concatenate( imageTransform.inverse() );
-                IJ.log( "Additional MoBIE transformation: " + MoBIEHelper.print( additionalTransform.getRowPackedCopy(), 3 ) );
-                IJ.log( "Total transformation: " +  MoBIEHelper.print( transform3D.getRowPackedCopy(), 3 )  );
+                AffineTransform3D initialTransform = ( ( AffineTransformation ) imageTransformation ).getAffineTransform3D();
+                IJ.log( "Original image transformation: " + MoBIEHelper.print( initialTransform.getRowPackedCopy(), 3 ) );
+                AffineTransform3D additionalTransform = sourceTransform.copy().concatenate( initialTransform.inverse() );
+                IJ.log( "Combined additional transformation: " + MoBIEHelper.print( additionalTransform.getRowPackedCopy(), 3 ) );
+                IJ.log( "Total transformation: " +  MoBIEHelper.print( sourceTransform.getRowPackedCopy(), 3 )  );
             }
 
             if ( showTransformationHistory )

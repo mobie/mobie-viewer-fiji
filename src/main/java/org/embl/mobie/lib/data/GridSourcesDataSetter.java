@@ -208,7 +208,7 @@ public class GridSourcesDataSetter
 				regionDisplay.tableSource = regionTableSource.getName();
 				regionDisplay.showAsBoundaries( true );
 				regionDisplay.boundaryThicknessIsRelative( true );
-				regionDisplay.setBoundaryThickness( 0.05 );
+				regionDisplay.setBoundaryThickness( 0.025 );
 				regionDisplay.setRelativeDilation( 2 * regionDisplay.getBoundaryThickness() );
 				regionDisplay.setOpacity( 1.0 );
 

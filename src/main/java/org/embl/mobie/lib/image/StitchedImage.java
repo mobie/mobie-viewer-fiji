@@ -55,13 +55,13 @@ import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.serialize.transformation.GridTransformation;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.io.Status;
 import org.embl.mobie.lib.source.MoBIEVolatileTypeMatcher;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.transform.TransformHelper;
-import org.embl.mobie.lib.transform.ImageTransformer;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -199,7 +199,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	{
 		if ( positions == null )
 		{
-			this.positions = TransformHelper.createGridPositions( images.size() );
+			this.positions = GridTransformation.createGridPositions( images.size() );
 		}
 		else
 		{
@@ -310,7 +310,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			}
 		}
 
-		ImageTransformer.gridTransform( nestedImages, nestedTransformedNames, positions, tileRealDimensions, false, offset );
+		GridTransformation.gridTransform( nestedImages, nestedTransformedNames, positions, tileRealDimensions, false, offset );
 
 		if ( debug )
 		{

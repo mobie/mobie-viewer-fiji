@@ -115,6 +115,10 @@ public class CollectionTableDataSetter
             }
             else
             {
+                // FIXME: This is for creating the gridRegionDisplay
+                //    If we only want one RegionDisplay for a grid then
+                //    we have an issue, because there can be multiple table rows
+                //    that belong to the same region
                 gridToRowIndices
                         .computeIfAbsent( gridId, k -> new ArrayList<>() )
                         .add( row.getRowNumber() );
@@ -184,8 +188,6 @@ public class CollectionTableDataSetter
             Table regionTable = table.where( rowSelection );
             regionTable.setName( display.getName() + " grid" );
             regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, display.getSources() ) );
-            // TODO: Add path to source (storageLocation.absolutePath)
-            // regionTable.addColumns( StringColumn.create( "source_path", new ArrayList<>( nameToFullPath.values() ) ) );
             final StorageLocation storageLocation = new StorageLocation();
             storageLocation.data = regionTable;
             final RegionTableSource regionTableSource = new RegionTableSource( regionTable.name() );
@@ -193,18 +195,20 @@ public class CollectionTableDataSetter
             DataStore.addRawData( regionTableSource );
 
             // Create RegionDisplay
+
             final RegionDisplay< AnnotatedRegion > gridRegionDisplay =
                     new RegionDisplay<>( regionTable.name() );
             gridRegionDisplay.sources = new LinkedHashMap<>();
             gridRegionDisplay.tableSource = regionTable.name();
             gridRegionDisplay.showAsBoundaries( true );
-            gridRegionDisplay.setBoundaryThickness( 0.1 );
+            gridRegionDisplay.setBoundaryThickness( 0.05 );
             gridRegionDisplay.boundaryThicknessIsRelative( true );
-            gridRegionDisplay.setRelativeDilation( 0.1 );
+            gridRegionDisplay.setRelativeDilation( 2 * gridRegionDisplay.getBoundaryThickness() );
 
             for ( String source : display.getSources() )
                 gridRegionDisplay.sources.put( source, Collections.singletonList( source ) );
 
+            // TODO: in some cases only do this once for several grids
             dataset.views().get( viewName ).displays().add( gridRegionDisplay );
         }
 

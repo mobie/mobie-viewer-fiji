@@ -37,7 +37,7 @@ import org.scijava.plugin.Plugin;
 import java.io.IOException;
 
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open PlatyBrowser")
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open PlatyBrowser")
 public class OpenPlatyBrowserCommand implements Command
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }

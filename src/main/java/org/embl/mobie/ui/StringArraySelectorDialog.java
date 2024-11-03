@@ -1,20 +1,7 @@
 package org.embl.mobie.ui;
 
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.lib.io.FileLocation;
-import org.embl.mobie.lib.serialize.View;
-import org.jetbrains.annotations.NotNull;
-
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.io.File;
-import java.util.Arrays;
-
-import static org.embl.mobie.lib.view.save.ViewSaver.CREATE_SELECTION_GROUP;
 
 public class StringArraySelectorDialog
 {
@@ -37,7 +24,7 @@ public class StringArraySelectorDialog
 
         // Array item selection
         //
-        JPanel selectionPanel = SwingHelper.horizontalLayoutPanel();
+        JPanel selectionPanel = SwingHelper.horizontalFlowLayoutPanel();
         arrayComboBox = new JComboBox<>( array );
         Dimension maximumSize = new Dimension( 300, 20 );
         arrayComboBox.setMaximumSize( maximumSize );

@@ -33,12 +33,16 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.SynchronizedViewerState;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.util.LinAlgHelpers;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.lib.color.AnnotationARGBConverter;
@@ -56,6 +60,8 @@ import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.BoundarySource;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.source.VolatileBoundarySource;
+import org.embl.mobie.lib.table.saw.TableSawAnnotatedImages;
+import org.embl.mobie.lib.transform.viewer.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -142,10 +148,17 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 				{
 					final String someRegion = display.sources.keySet().iterator().next();
 					final String someSource = display.sources.get( someRegion ).get( 0 );
-					final RealMaskRealInterval mask = DataStore.getImage( someSource ).getMask();
-					double width = mask.realMax( 0 ) - mask.realMin( 0 );
-					width = Math.min( width, mask.realMax( 1 ) - mask.realMin( 1 ) );
-					boundaryThickness = width * boundaryThickness;
+					Image< ? > image = DataStore.getImage( someSource );
+					final RealMaskRealInterval mask = image.getMask();
+					RandomAccessibleInterval< ? extends Volatile< ? > > source = image.getSourcePair().getVolatileSource().getSource( 0, 0 );
+					long[] dimensions = source.dimensionsAsLongArray();
+					double[] realDimensions = new double[3];
+					LinAlgHelpers.subtract( mask.maxAsDoubleArray(), mask.minAsDoubleArray(), realDimensions );
+					double minimalExtent = Double.MAX_VALUE;
+					for ( int d = 0; d < 3; d++ )
+						if ( dimensions[d] > 1 )
+							minimalExtent = Math.min( minimalExtent, realDimensions[d ] );
+					boundaryThickness = minimalExtent * boundaryThickness;
 				}
 			}
 		}
@@ -175,7 +188,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 	public synchronized void focusEvent( A selection, Object initiator )
 	{
 		if ( initiator instanceof SliceViewAnnotationSelector )
-			return;
+			return; // such that it is not focussed twice
 
 		final BdvHandle bdvHandle = getSliceViewer().getBdvHandle();
 		final SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
@@ -184,11 +197,23 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		if ( timepoint != null )
 			state.setCurrentTimepoint( timepoint );
 
-		final double[] position = selection.positionAsDoubleArray();
-		if ( position != null )
-			new sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger(
+		AffineTransform3D viewerTransform;
+		if ( selection instanceof AnnotatedRegion )
+		{
+			RealMaskRealInterval mask = ( ( AnnotatedRegion ) selection ).getMask();
+			viewerTransform = MoBIEViewerTransformAdjuster.getViewerTransform( bdvHandle, mask );
+		}
+		else
+		{
+			final double[] position = selection.positionAsDoubleArray();
+			if ( position == null ) return;
+			viewerTransform = BdvPlaygroundHelper.getViewerTransformWithNewCenter( bdvHandle, position );
+
+		}
+
+		new sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger(
 				bdvHandle,
-				BdvPlaygroundHelper.getViewerTransformWithNewCenter( bdvHandle, position ),
+				viewerTransform,
 				false,
 				ViewerTransformChanger.animationDurationMillis ).run();
 	}

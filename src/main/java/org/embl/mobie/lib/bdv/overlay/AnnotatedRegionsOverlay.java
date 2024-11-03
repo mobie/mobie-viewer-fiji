@@ -86,6 +86,12 @@ public class AnnotatedRegionsOverlay< AR extends AnnotatedRegion >
 	}
 
 	@Override
+	public void setVisible( boolean visible )
+	{
+		overlaySource.setActive( visible );
+	}
+
+	@Override
 	protected synchronized void draw( Graphics2D g )
 	{
 		if ( annotationColumn == null || annotations == null || annotations.isEmpty() )

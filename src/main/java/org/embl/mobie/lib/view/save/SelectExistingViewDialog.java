@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.lib.view.save;
 
-import de.embl.cba.tables.SwingUtils;
 import org.embl.mobie.lib.create.ProjectCreatorHelper;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.ui.MoBIELaf;
@@ -102,10 +101,10 @@ public class SelectExistingViewDialog {
         setComboBoxDimensions( viewsComboBox );
         groupsComboBox.addItemListener( new SyncGroupAndViewComboBox() );
 
-        JPanel groupPanel = SwingUtils.horizontalLayoutPanel();
+        JPanel groupPanel = SwingHelper.horizontalBoxLayoutPanel();
         groupPanel.add( SwingHelper.getJLabel("Ui selection group", 120, 10));
         groupPanel.add( groupsComboBox );
-        JPanel viewPanel = SwingUtils.horizontalLayoutPanel();
+        JPanel viewPanel = SwingHelper.horizontalBoxLayoutPanel();
         viewPanel.add( SwingHelper.getJLabel("View name", 120, 10));
         viewPanel.add( viewsComboBox );
 
@@ -114,7 +113,7 @@ public class SelectExistingViewDialog {
     }
 
     private void createAcceptPanel() {
-        JPanel acceptPanel = SwingUtils.horizontalLayoutPanel();
+        JPanel acceptPanel = SwingHelper.horizontalBoxLayoutPanel();
         JButton selectButton = SwingHelper.createButton("Select");
         selectButton.addActionListener( e ->
         {

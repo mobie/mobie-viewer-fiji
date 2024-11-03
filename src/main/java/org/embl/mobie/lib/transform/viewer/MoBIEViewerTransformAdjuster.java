@@ -36,29 +36,22 @@ import net.imglib2.Interval;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.LinAlgHelpers;
-import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.serialize.display.Display;
 import org.embl.mobie.lib.transform.TransformHelper;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class MoBIEViewerTransformAdjuster {
-	private final BdvHandle bdvHandle;
-	private final List< ? extends Source< ? > > sources;
 
-	public MoBIEViewerTransformAdjuster( BdvHandle bdvHandle, Display< ? > display) {
-		this.bdvHandle = bdvHandle;
-		// TODO: It may be better to use display.images() here instead, but not sure
-		this.sources = display.sourceAndConverters().stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() );
+	public static AffineTransform3D getViewerTransform( BdvHandle bdvHandle, Display< ? > display )
+	{
+		return getViewerTransform( bdvHandle, display.sourceAndConverters().stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) );
 	}
 
-	public MoBIEViewerTransformAdjuster( BdvHandle bdvHandle, List< ? extends Source< ? > > sources) {
-		this.bdvHandle = bdvHandle;
-		this.sources = sources;
-	}
-
-	public AffineTransform3D getSingleSourceTransform()
+	// This is a copy of the code in BDV
+	public static AffineTransform3D getViewerTransform( BdvHandle bdvHandle, Source< ? > source )
 	{
 		SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
 		int viewerWidth = bdvHandle.getBdvHandle().getViewerPanel().getWidth();
@@ -66,7 +59,6 @@ public class MoBIEViewerTransformAdjuster {
 		double cX = (double)viewerWidth / 2.0D;
 		double cY = (double)viewerHeight / 2.0D;
 		int timepoint = state.getCurrentTimepoint();
-		Source< ? > source = sources.get( 0 );
 		if (! source.isPresent(timepoint)) {
 			return new AffineTransform3D();
 		} else {
@@ -116,19 +108,22 @@ public class MoBIEViewerTransformAdjuster {
 		}
 	}
 
-	// TODO: This does not seem to work well if one of the sources
+	// FIXME: This does not seem to work well if one of the sources
 	//   contains a rotation: https://github.com/mobie/mobie-viewer-fiji/issues/1154
 	//   For debugging this also a single source would suffice.
-	public AffineTransform3D getMultiSourceTransform() {
+	public static AffineTransform3D getViewerTransform( BdvHandle bdvHandle, List< Source< ? > > sources )
+	{
 		SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
-		final RealInterval mask = TransformHelper.createMask( sources, state.getCurrentTimepoint() );
-		final AffineTransform3D transform = TransformHelper.getIntervalViewerTransform( bdvHandle, mask );
+		final AffineTransform3D transform = getViewerTransform( bdvHandle, TransformHelper.createMask( sources, state.getCurrentTimepoint() ) );
 		return transform;
 	}
 
-	public void applyMultiSourceTransform()
+	@NotNull
+	public static AffineTransform3D getViewerTransform( BdvHandle bdvHandle, final RealInterval mask )
 	{
-		bdvHandle.getViewerPanel().state().setViewerTransform( getMultiSourceTransform() );
+		final AffineTransform3D transform =
+				TransformHelper.getIntervalViewerTransform( bdvHandle, mask );
+		return transform;
 	}
 
 }

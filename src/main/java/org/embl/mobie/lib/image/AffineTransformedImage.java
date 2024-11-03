@@ -32,6 +32,7 @@ import bdv.tools.transformation.TransformedSource;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
+import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.transform.TransformHelper;
 
@@ -46,12 +47,15 @@ public class AffineTransformedImage< T > implements Image< T >, TransformedImage
 	private RealMaskRealInterval mask;
 	private DefaultSourcePair< T > sourcePair;
 
-
-	public AffineTransformedImage( Image< T > image,  String transformedImageName, AffineTransform3D affineTransform3D )
+	public AffineTransformedImage(
+			Image< T > image,
+			String transformedImageName,
+			AffineTransformation transformation )
 	{
 		this.image = image;
 		this.name = transformedImageName;
-		this.affineTransform3D = affineTransform3D;
+		this.transformation = transformation;
+		this.affineTransform3D = transformation.getAffineTransform3D();
 	}
 
 	public Transformation getTransformation()

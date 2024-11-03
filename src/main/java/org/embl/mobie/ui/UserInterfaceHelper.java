@@ -34,7 +34,6 @@ import bdv.util.BdvHandle;
 import bdv.util.BoundedValueDouble;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
 import ij.gui.GenericDialog;
 import net.imglib2.converter.Converter;
@@ -340,7 +339,8 @@ public class UserInterfaceHelper
 		ISourceAndConverterService service =
 				SourceAndConverterServices.getSourceAndConverterService();
 
-		SourceAndConverterProvider sacProvider = new SourceAndConverterProvider( bdvHandle, sacs );
+		SacProvider sacProvider = new SacProvider( bdvHandle, sacs );
+		List< ? extends SourceAndConverter< ? > > currentSacs = sacProvider.get();
 
 		JFrame frame = new JFrame( name );
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
@@ -410,23 +410,37 @@ public class UserInterfaceHelper
 			min.setUpdateListener( brightnessUpdateListener );
 			max.setUpdateListener( brightnessUpdateListener );
 
-			JPanel minPanel = SwingHelper.horizontalLayoutPanel();
+			JPanel minPanel = SwingHelper.horizontalFlowLayoutPanel();
 			minPanel.add( minSlider );
 			panel.add( minPanel );
 
-			JPanel maxPanel = SwingHelper.horizontalLayoutPanel();
+			JPanel maxPanel = SwingHelper.horizontalFlowLayoutPanel();
 			maxPanel.add( maxSlider );
 			panel.add( maxPanel );
 
 			JButton autoButton = new JButton("Auto Contrast");
 			autoButton.addActionListener( e ->
 			{
-				AutoContrastAdjuster contrastAdjuster = new AutoContrastAdjuster( bdvHandle, sacs.get( 0 ) );
+				List< SourceAndConverter< ? > > onCanvasSacs = sacProvider.getOnCanvas();
+				if ( onCanvasSacs.size() == 0 )
+				{
+					IJ.log( "[WARNING] The image is currently not visible and thus the contrast cannot be determined." );
+					return;
+				}
+
+
+				SourceAndConverter< ? > onCanvasSac = onCanvasSacs.get( 0 );
+
+				AutoContrastAdjuster contrastAdjuster =
+						new AutoContrastAdjuster(
+								bdvHandle,
+								onCanvasSac
+						);
 				double[] minMax = contrastAdjuster.computeMinMax();
 				min.setCurrentValue( minMax[ 0 ] );
 				max.setCurrentValue( minMax[ 1 ] );
 			});
-			JPanel autoPanel = SwingHelper.horizontalLayoutPanel();
+			JPanel autoPanel = SwingHelper.horizontalFlowLayoutPanel();
 			autoPanel.add( autoButton );
 			panel.add( autoPanel );
 
@@ -453,18 +467,20 @@ public class UserInterfaceHelper
 				}
 				bdvHandle.getViewerPanel().requestRepaint();
 			} );
-			JPanel invertPanel = SwingHelper.horizontalLayoutPanel();
+			JPanel invertPanel = SwingHelper.horizontalFlowLayoutPanel();
 			invertPanel.add( invertCheckBox );
 			panel.add( invertPanel );
 			panel.add( new JLabel("") ); // create some Luft
 		}
 
 		// Blending mode
-		JPanel blendingPanel = SwingHelper.horizontalLayoutPanel();
+		JPanel blendingPanel = SwingHelper.horizontalFlowLayoutPanel();
 		blendingPanel.add( new JLabel("Blending  ") );
 		JComboBox< BlendingMode > blendingModeComboBox = new JComboBox<>(
 				new BlendingMode[]{ BlendingMode.Sum, BlendingMode.Alpha } );
-		BlendingMode currentBlendingMode = ( BlendingMode ) service.getMetadata( sacs.get( 0 ), BlendingMode.class.getName() );
+		BlendingMode currentBlendingMode = ( BlendingMode ) service.getMetadata(
+				currentSacs.get( 0 ),
+				BlendingMode.class.getName() );
 		blendingModeComboBox.setSelectedItem( currentBlendingMode );
 		blendingModeComboBox.addActionListener( e ->
 		{
@@ -486,7 +502,7 @@ public class UserInterfaceHelper
 		//   an OpacityAdjuster; how to do this more cleanly?
 		//   Maybe we should rather operate on the coloring model that is
 		//   wrapped in the converter?
-		final double current = ( ( OpacityAdjuster ) sacs.get( 0 ).getConverter()).getOpacity();
+		final double current = ( ( OpacityAdjuster ) currentSacs.get( 0 ).getConverter()).getOpacity();
 
 		final BoundedValueDouble selection =
 				new BoundedValueDouble(
@@ -506,11 +522,11 @@ public class UserInterfaceHelper
 						bdvHandle );
 
 		selection.setUpdateListener( opacityUpdateListener );
-		JPanel opacityPanel = SwingHelper.horizontalLayoutPanel();
+		JPanel opacityPanel = SwingHelper.horizontalFlowLayoutPanel();
 		opacityPanel.add( opacitySlider );
 		panel.add( opacityPanel );
 
-		if ( sacs.size() > 1 )
+		if ( currentSacs.size() > 1 )
 		{
 			JCheckBox modifyOnlyVisibleSources = new JCheckBox( "Change settings only for sources in current view" );
 			modifyOnlyVisibleSources.setSelected( false );
@@ -519,7 +535,7 @@ public class UserInterfaceHelper
 			{
 				sacProvider.onlyVisible( modifyOnlyVisibleSources.isSelected() );
 			} );
-			JPanel modifyOnlyVisiblePanel = SwingHelper.horizontalLayoutPanel();
+			JPanel modifyOnlyVisiblePanel = SwingHelper.horizontalFlowLayoutPanel();
 			modifyOnlyVisiblePanel.add( modifyOnlyVisibleSources );
 			panel.add( modifyOnlyVisiblePanel );
 			panel.add( new JLabel( "" ) );
@@ -552,7 +568,7 @@ public class UserInterfaceHelper
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( space() );
-		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
+		panel.add( createCheckboxPlaceholder() );
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createTableVisibilityCheckbox( display.tableView, display.showTable() ) );
 		panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotView, display.showScatterPlot() ) );
@@ -582,19 +598,19 @@ public class UserInterfaceHelper
 
 	public static class OpacityUpdateListener implements BoundedValueDouble.UpdateListener
 	{
-		final private SourceAndConverterProvider sacProvider;
+		final private SacProvider sacProvider;
 		private final BdvHandle bdvHandle;
 		final private BoundedValueDouble value;
 		private final SliderPanelDouble slider;
 
 		public OpacityUpdateListener( BoundedValueDouble value,
 									  SliderPanelDouble slider,
-									  SourceAndConverterProvider sourceAndConverterProvider,
+									  SacProvider sacProvider,
 									  BdvHandle bdvHandle )
 		{
 			this.value = value;
 			this.slider = slider;
-			this.sacProvider = sourceAndConverterProvider;
+			this.sacProvider = sacProvider;
 			this.bdvHandle = bdvHandle;
 		}
 
@@ -782,12 +798,12 @@ public class UserInterfaceHelper
 		viewSelectionPanel = new JPanel( new BorderLayout() );
 		viewSelectionPanel.setLayout( new BoxLayout( viewSelectionPanel, BoxLayout.Y_AXIS ) );
 
-		addViewsToSelectionPanel( views );
+		addViewsToViewSelectionPanel( views );
 
 		return viewSelectionPanel;
 	}
 
-	public void addViewsToSelectionPanel( Map< String, View > views )
+	public void addViewsToViewSelectionPanel( Map< String, View > views )
 	{
 		for ( String viewName : views.keySet() )
 		{
@@ -866,7 +882,7 @@ public class UserInterfaceHelper
 
 	private JPanel createClearAndSourceNamesOverlayPanel( MoBIE moBIE )
 	{
-		final JPanel panel = SwingUtils.horizontalLayoutPanel();
+		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
 
 		final JButton button = SwingHelper.createButton( "clear", new Dimension( 80, SwingHelper.TEXT_FIELD_HEIGHT ) );
 		button.addActionListener( e ->
@@ -894,7 +910,7 @@ public class UserInterfaceHelper
 
 	private JPanel createViewSelectionPanel( MoBIE moBIE, String panelName, Map< String, View > views )
 	{
-		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+		final JPanel horizontalLayoutPanel = SwingHelper.horizontalBoxLayoutPanel();
 
 		final JComboBox< String > comboBox = new JComboBox<>( views.keySet().toArray( new String[ 0 ] ) );
 
@@ -922,11 +938,12 @@ public class UserInterfaceHelper
 
 	public JPanel createMoveToLocationPanel( ViewerTransform transform )
 	{
-		final JPanel panel = SwingUtils.horizontalLayoutPanel();
+		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
 		final JButton button = SwingHelper.createButton( MOVE );
 		final JTextField jTextField = new JTextField( ViewerTransform.toString( transform ) );
-		jTextField.setPreferredSize( new Dimension( SwingHelper.COMBOBOX_WIDTH - 3, SwingHelper.TEXT_FIELD_HEIGHT ) );
-		jTextField.setMaximumSize( new Dimension( SwingHelper.COMBOBOX_WIDTH - 3, SwingHelper.TEXT_FIELD_HEIGHT ) );
+		jTextField.setPreferredSize( new Dimension( SwingHelper.COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
+		jTextField.setMinimumSize( new Dimension( SwingHelper.COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
+		jTextField.setMaximumSize( new Dimension( Integer.MAX_VALUE, SwingHelper.TEXT_FIELD_HEIGHT ) );
 		button.addActionListener( e ->
 		{
 			ViewerTransform viewerTransform = ViewerTransform.toViewerTransform( jTextField.getText() );
@@ -942,7 +959,7 @@ public class UserInterfaceHelper
 
 	public JPanel createInfoPanel( String projectLocation, Project project )
 	{
-		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
 
 		final JButton button = SwingHelper.createButton( HELP );
 
@@ -956,16 +973,16 @@ public class UserInterfaceHelper
 		} );
 		comboBox.setPrototypeDisplayValue( PROTOTYPE_DISPLAY_VALUE  );
 
-		horizontalLayoutPanel.setSize( 0, 80 );
+		panel.setSize( 0, 80 );
 		final ImageIcon icon = createIcon( 80 );
 		final JLabel moBIE = new JLabel( "                   " );
 		moBIE.setIcon( icon );
 
-		horizontalLayoutPanel.add( moBIE );
-		horizontalLayoutPanel.add( comboBox );
-		horizontalLayoutPanel.add( button );
+		panel.add( moBIE );
+		panel.add( comboBox );
+		panel.add( button );
 
-		return horizontalLayoutPanel;
+		return panel;
 	}
 
 	public ImageIcon createIcon( int size )
@@ -978,7 +995,7 @@ public class UserInterfaceHelper
 
 	public JPanel createDatasetSelectionPanel( )
 	{
-		final JPanel panel = SwingUtils.horizontalLayoutPanel();
+		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
 
 		final JComboBox< String > comboBox = new JComboBox<>( moBIE.getDatasets().toArray( new String[ 0 ] ) );
 
@@ -1044,7 +1061,6 @@ public class UserInterfaceHelper
 
 		return checkBox;
 	}
-
 
 	private static JCheckBox createSliceViewerVisibilityCheckbox(
 			boolean isVisible,
@@ -1180,16 +1196,20 @@ public class UserInterfaceHelper
 		{
 			if ( sources.size() == 1 )
 			{
-				final AffineTransform3D transform = new MoBIEViewerTransformAdjuster(
-						sourceDisplay.sliceViewer.getBdvHandle(),
-						sources ).getSingleSourceTransform();
+				final AffineTransform3D transform =
+						MoBIEViewerTransformAdjuster.getViewerTransform(
+								sourceDisplay.sliceViewer.getBdvHandle(),
+								sources.get( 0 )
+						);
 				ViewerTransformChanger.apply( bdvHandle, transform, ViewerTransformChanger.animationDurationMillis );
 			}
 			else
 			{
-				final AffineTransform3D transform = new MoBIEViewerTransformAdjuster(
-						sourceDisplay.sliceViewer.getBdvHandle(),
-						sources ).getMultiSourceTransform();
+				final AffineTransform3D transform =
+						MoBIEViewerTransformAdjuster.getViewerTransform(
+							sourceDisplay.sliceViewer.getBdvHandle(),
+							sources );
+
 				ViewerTransformChanger.apply( bdvHandle, transform, ViewerTransformChanger.animationDurationMillis );
 			}
 		} );

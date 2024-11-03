@@ -77,9 +77,9 @@ public class HCSDataSetter
 		final RegionDisplay< AnnotatedRegion > wellDisplay = new RegionDisplay<>( "wells" );
 		wellDisplay.sources = new LinkedHashMap<>();
 		wellDisplay.showAsBoundaries( true );
-		wellDisplay.setBoundaryThickness( 0.1 );
+		wellDisplay.setBoundaryThickness( 0.05 );
 		wellDisplay.boundaryThicknessIsRelative( true );
-		wellDisplay.setRelativeDilation( 0.1 );
+		wellDisplay.setRelativeDilation( 2 * wellDisplay.getBoundaryThickness() );
 
 		// wells should be displayed for all time-points.
 		// currently, the below code assumes that the time-points

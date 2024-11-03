@@ -54,6 +54,8 @@ import org.embl.mobie.lib.plot.ScatterPlotDialog;
 import org.embl.mobie.lib.plot.ScatterPlotView;
 import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.select.SelectionModel;
+import org.embl.mobie.lib.serialize.display.RegionDisplay;
+import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.ui.ColorByColumnDialog;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.ui.StringArraySelectorDialog;
@@ -73,6 +75,9 @@ import java.util.Collection;
 import java.util.List;
 
 import org.embl.mobie.lib.io.FileLocation;
+import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
+
 import static org.embl.mobie.ui.UserInterfaceHelper.loadFromProjectOrFileSystemDialog;
 
 public class TableView< A extends Annotation > implements SelectionListener< A >, ColoringListener, AnnotationListener< A >
@@ -84,6 +89,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private final MobieColoringModel< A > coloringModel;
 	private final String tableName;
 	private final SliceViewer sliceViewer;
+	private final AbstractAnnotationDisplay< A > display;
 	private JTable jTable;
 	private int recentlySelectedRowInView;
 	private RowSelectionMode selectionMode = RowSelectionMode.FocusOnly;
@@ -102,6 +108,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	public TableView( AbstractAnnotationDisplay< A > display )
 	{
+		this.display = display;
 		this.tableModel = display.getAnnData().getTable();
 		this.coloringModel = display.coloringModel;
 		this.selectionModel = display.selectionModel;
@@ -124,6 +131,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	public void close()
 	{
 		frame.dispose();
+		if ( annotationOverlay != null ) annotationOverlay.close();
 	}
 
 	public void show()
@@ -178,6 +186,17 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				frame.setVisible( false );
 			}
 		});	//frame.pack();
+
+		if ( display instanceof RegionDisplay )
+		{
+			if ( annotationOverlay != null )
+				annotationOverlay.close();
+
+			annotationOverlay = new AnnotatedRegionsOverlay(
+					sliceViewer,
+					tableModel.annotations(),
+					ColumnNames.REGION_ID );
+		}
 	}
 
 	private void configureJTable()
@@ -649,7 +668,22 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	public void setVisible( boolean visible )
 	{
-		SwingUtilities.invokeLater( () -> frame.setVisible( visible ) );
+		SwingUtilities.invokeLater(
+				() ->
+				{
+					frame.setVisible( visible );
+
+					if ( annotationOverlay != null )
+						annotationOverlay.setVisible( visible );
+
+					if ( display instanceof RegionDisplay )
+					{
+						SourceAndConverterBdvDisplayService service = SourceAndConverterServices.getBdvDisplayService();
+						display.sourceAndConverters().forEach(
+								sac -> service.setVisible( sac, visible ) );
+					}
+				}
+		);
 	}
 
 	public void addStringColumn( String column )

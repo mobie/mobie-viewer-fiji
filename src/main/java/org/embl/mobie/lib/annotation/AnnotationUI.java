@@ -29,7 +29,6 @@
 package org.embl.mobie.lib.annotation;
 
 import de.embl.cba.tables.Logger;
-import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.color.CategoricalAnnotationColoringModel;
@@ -40,16 +39,13 @@ import org.embl.mobie.lib.select.SelectionModel;
 import org.embl.mobie.lib.table.AnnotationTableModel;
 import org.embl.mobie.lib.table.DefaultValues;
 import org.embl.mobie.ui.MoBIELaf;
+import org.embl.mobie.ui.SwingHelper;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.embl.mobie.lib.color.lut.LUTs.DARK_GREY;
@@ -166,7 +162,7 @@ public class AnnotationUI< A extends Annotation > extends JFrame implements Sele
 
 	private void addCreateCategoryButton()
 	{
-		final JPanel panel = SwingUtils.horizontalLayoutPanel();
+		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
 		final JButton button = new JButton( "Create new category" );
 		final JTextField textField = new JTextField( "nice_cell" );
 		panel.add( button );
@@ -190,7 +186,7 @@ public class AnnotationUI< A extends Annotation > extends JFrame implements Sele
 		annotationButtonsPanel.setBorder( BorderFactory.createEmptyBorder(0,10,10,10) );
 		panel.add( annotationButtonsPanel );
 
-		final JPanel panel = SwingUtils.horizontalLayoutPanel();
+		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
 		panel.add( new JLabel( "Annotate selected " + objectName + "(s) as:" ) );
 		panel.add( new JLabel( "      " ) );
 		annotationButtonsPanel.add( panel );
@@ -219,7 +215,7 @@ public class AnnotationUI< A extends Annotation > extends JFrame implements Sele
 
 		annotationNames.add( annotationName );
 
-		final JPanel panel = SwingUtils.horizontalLayoutPanel();
+		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
 		final JButton annotateButton = new JButton( String.format("%1$15s", annotationName) );
 		annotateButton.setFont( new Font("monospaced", Font.PLAIN, 12) );
 		annotateButton.setOpaque( true );
@@ -271,7 +267,7 @@ public class AnnotationUI< A extends Annotation > extends JFrame implements Sele
 
 	private void addSelectPreviousAndNextPanel( )
 	{
-		final JPanel panel = SwingUtils.horizontalLayoutPanel();
+		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
 		final JButton clear = createClearSelectionButton();
 		final JButton previous = createSelectPreviousButton();
 		final JButton next = createSelectNextButton();
@@ -283,7 +279,7 @@ public class AnnotationUI< A extends Annotation > extends JFrame implements Sele
 
 	private void addSelectIDPanel( )
 	{
-		final JPanel panel = SwingUtils.horizontalLayoutPanel();
+		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
 		final JButton button = createSelectButton();
 		selectAnnotationTextField = new JTextField( "" );
 		selectAnnotationTextField.setText( "1" );
@@ -463,7 +459,7 @@ public class AnnotationUI< A extends Annotation > extends JFrame implements Sele
 
 	private void addSkipNonePanel( )
 	{
-		final JPanel panel = SwingUtils.horizontalLayoutPanel();
+		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
 
 		final JCheckBox checkBox = new JCheckBox( "Skip \"None\" & \"NaN\"" );
 		checkBox.setSelected( false );
@@ -479,7 +475,7 @@ public class AnnotationUI< A extends Annotation > extends JFrame implements Sele
 
 	private void addKeepSelectedPanel( )
 	{
-		final JPanel panel = SwingUtils.horizontalLayoutPanel();
+		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
 
 		final JCheckBox checkBox = new JCheckBox( "Keep "+ objectName +"(s) selected after assignment" );
 		checkBox.setSelected( false );

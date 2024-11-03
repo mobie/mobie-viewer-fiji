@@ -245,10 +245,20 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 		}
 
 		if ( coloringModel instanceof CategoricalAnnotationColoringModel )
+		{
 			this.randomColorSeed = ( ( CategoricalAnnotationColoringModel ) coloringModel ).getRandomSeed();
+		}
 
-		this.showScatterPlot = annotationDisplay.scatterPlotView.isVisible();
-		this.scatterPlotAxes = annotationDisplay.scatterPlotView.getSettings().selectedColumns;
+		if ( annotationDisplay.scatterPlotView != null )
+		{
+			this.showScatterPlot = annotationDisplay.scatterPlotView.isVisible();
+			this.scatterPlotAxes = annotationDisplay.scatterPlotView.getSettings().selectedColumns;
+		}
+		else
+		{
+			this.showScatterPlot = false;
+		}
+
 		this.additionalTables = annotationDisplay.additionalTables;
 
 		final LinkedHashSet< String > loadedTableChunks = annotationDisplay.annData.getTable().getLoadedTableChunks();
@@ -264,7 +274,10 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 			}
 		}
 
-		this.showTable = annotationDisplay.tableView.getWindow().isVisible();
+		if ( annotationDisplay.tableView != null )
+			this.showTable = annotationDisplay.tableView.getWindow().isVisible();
+		else
+			this.showTable = false;
 
 		final BoundarySource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
 		this.showAsBoundaries = boundarySource.showAsBoundaries();

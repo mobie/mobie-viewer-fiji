@@ -32,9 +32,11 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.io.imagedata.ImageData;
+import org.embl.mobie.lib.image.AnnotationLabelImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.ImageDataImage;
 import org.embl.mobie.lib.image.TransformedImage;
@@ -74,6 +76,11 @@ public abstract class MoBIEHelper
 			TransformedImage transformedImage = ( TransformedImage ) image;
 			Image< ? > wrappedImage = transformedImage.getWrappedImage();
 			return fetchImageDataInfo( wrappedImage );
+		}
+		else if ( image instanceof AnnotationLabelImage )
+		{
+			Image< ? extends IntegerType< ? > > labelImage = ( ( AnnotationLabelImage< ? > ) image ).getLabelImage();
+			return fetchImageDataInfo( labelImage );
 		}
 		else
 		{

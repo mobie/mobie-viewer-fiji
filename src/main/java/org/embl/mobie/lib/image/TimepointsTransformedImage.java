@@ -127,6 +127,7 @@ public class TimepointsTransformedImage< T > implements Image< T >, TransformedI
 	}
 
 	@Override
+	@Deprecated // FIXME This should not be used!
 	public void setTransformation( Transformation transformation )
 	{
 		this.transformation = transformation;

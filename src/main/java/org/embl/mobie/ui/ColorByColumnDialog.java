@@ -100,7 +100,7 @@ public class ColorByColumnDialog< A extends Annotation >
 
     private void addPaintZeroTransparentCheckbox( JDialog dialog )
     {
-        JPanel panel = SwingHelper.horizontalLayoutPanel();
+        JPanel panel = SwingHelper.horizontalFlowLayoutPanel();
         paintZeroTransparentCheckBox = new JCheckBox( );
         panel.add( new JLabel("Paint zero transparent:  ") );
         panel.add( paintZeroTransparentCheckBox );
@@ -109,7 +109,7 @@ public class ColorByColumnDialog< A extends Annotation >
 
     private void addColumnSelection( JDialog dialog )
     {
-        JPanel panel = SwingHelper.horizontalLayoutPanel();
+        JPanel panel = SwingHelper.horizontalFlowLayoutPanel();
         columnComboBox = new JComboBox<>( table.columnNames().toArray( new String[ 0 ] ) );
         Dimension maximumSize = new Dimension( 300, 20 );
         columnComboBox.setMaximumSize( maximumSize );
@@ -120,7 +120,7 @@ public class ColorByColumnDialog< A extends Annotation >
 
     private void addLutSelection( JDialog dialog )
     {
-        JPanel panel = SwingHelper.horizontalLayoutPanel();
+        JPanel panel = SwingHelper.horizontalFlowLayoutPanel();
         lutComboBox = new JComboBox<>( COLORING_LUTS );
         lutComboBox.setSelectedItem( lut == null ? COLORING_LUTS[ 0 ] : lut );
         Dimension maximumSize = new Dimension( 300, 20 );

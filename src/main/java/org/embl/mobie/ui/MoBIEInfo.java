@@ -42,7 +42,7 @@ public class MoBIEInfo
 	public static final String MOBIE_GITHUB = "MoBIE Source Code";
 	public static final String MOBIE_DOCUMENTATION = "MoBIE Documentation";
 	public static final String BIG_DATA_VIEWER = "BigDataViewer Help";
-	public static final String PROJECT_REPOSITORY = "Project Repository";
+	public static final String PROJECT_SOURCE = "Project Source";
 	public static final String PROJECT_REFERENCES = "Project References";
 	private final String projectLocation;
 	private final Project project;
@@ -56,7 +56,7 @@ public class MoBIEInfo
 	public String[] getInfoChoices()
 	{
 		return new String[]{
-				PROJECT_REPOSITORY,
+				PROJECT_SOURCE,
 				PROJECT_REFERENCES,
 				MOBIE_PUBLICATION,
 				MOBIE_GITHUB,
@@ -77,12 +77,21 @@ public class MoBIEInfo
 			case MOBIE_PUBLICATION:
 				IOHelper.openURI( "https://www.nature.com/articles/s41592-023-01776-4" );
 				break;
-			case PROJECT_REPOSITORY:
-				IOHelper.openURI( IOHelper.combinePath( projectLocation, "blob/master/README.md" ) );
+			case PROJECT_SOURCE:
+				if ( projectLocation.endsWith( ".txt" ) )
+				{
+					IJ.open( projectLocation );
+				}
+				else
+				{
+					IOHelper.openURI( IOHelper.combinePath( projectLocation, "blob/master/README.md" ) );
+				}
 				break;
 			case PROJECT_REFERENCES:
-				if ( project.getReferences() == null )
-					IJ.showMessage( "There are no references for this project.");
+				if ( project.getReferences() == null || project.getReferences().size() == 0 )
+				{
+					IJ.showMessage( "No project references found." );
+				}
 				else
 				{
 					for ( String reference : project.getReferences() )
