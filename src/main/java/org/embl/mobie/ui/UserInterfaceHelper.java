@@ -436,6 +436,7 @@ public class UserInterfaceHelper
 								bdvHandle,
 								onCanvasSac
 						);
+
 				double[] minMax = contrastAdjuster.computeMinMax();
 				min.setCurrentValue( minMax[ 0 ] );
 				max.setCurrentValue( minMax[ 1 ] );
@@ -682,9 +683,8 @@ public class UserInterfaceHelper
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createImageVolumeViewerVisibilityCheckbox( display ) );
+		panel.add( createBigImageVolumeViewerVisibilityCheckbox( display ) );
 		panel.add( createCheckboxPlaceholder() );
-		panel.add( createCheckboxPlaceholder() );
-
 
 		// make the panel color listen to color changes of the sources
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
@@ -1151,6 +1151,42 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
+	public static JCheckBox createBigImageVolumeViewerVisibilityCheckbox( ImageDisplay display )
+	{
+		JCheckBox checkBox = new JCheckBox( "BV" );
+		checkBox.setToolTipText( "Toggle dataset visibility" );
+		checkBox.setSelected( display.showImagesIn3d() );
+		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
+
+		checkBox.addActionListener( new ActionListener()
+		{
+			@Override
+			public void actionPerformed( ActionEvent e )
+			{
+				new Thread( () -> {
+						// FIXME: replace with display.bigVolumeViewer
+						display.imageVolumeViewer.showImages( checkBox.isSelected() );
+				}).start();
+			}
+		} );
+
+		display.imageVolumeViewer.getListeners().add( new VisibilityListener()
+		{
+			@Override
+			public void visibility( boolean isVisible )
+			{
+				SwingUtilities.invokeLater( () ->
+				{
+					checkBox.setSelected( isVisible );
+				});
+			}
+		} );
+
+		return checkBox;
+	}
+
+
+
 	public static JCheckBox createImageVolumeViewerVisibilityCheckbox( ImageDisplay display )
 	{
 		JCheckBox checkBox = new JCheckBox( "V" );
@@ -1164,7 +1200,7 @@ public class UserInterfaceHelper
 			public void actionPerformed( ActionEvent e )
 			{
 				new Thread( () -> {
-						display.imageVolumeViewer.showImages( checkBox.isSelected() );
+					display.imageVolumeViewer.showImages( checkBox.isSelected() );
 				}).start();
 			}
 		} );
@@ -1184,6 +1220,7 @@ public class UserInterfaceHelper
 
 		return checkBox;
 	}
+
 
 	public static JButton createFocusButton( AbstractDisplay< ? > sourceDisplay,
 											 BdvHandle bdvHandle,
