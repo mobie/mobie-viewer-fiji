@@ -1,7 +1,7 @@
 package org.embl.mobie.lib.bvv;
 
-import bvv.vistools.Bvv;
-import bvv.vistools.BvvFunctions;
+import btbvv.vistools.Bvv;
+import btbvv.vistools.BvvFunctions;
 
 public class BVVManager
 {
