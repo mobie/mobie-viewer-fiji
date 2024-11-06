@@ -16,6 +16,7 @@ import net.imglib2.util.Util;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 
 import bdv.viewer.SourceAndConverter;
+import btbvv.btuitools.GammaConverterSetup;
 import btbvv.vistools.Bvv;
 import btbvv.vistools.BvvFunctions;
 import btbvv.vistools.BvvHandleFrame;
@@ -104,10 +105,19 @@ public class ImageBVViewer
 			return;
 		}
 		
+		int nRenderMethod = 1;
+		
+		//consistent rendering of all sources
+		if(	bvv.getBvvHandle().getViewerPanel().state().getSources().size()>0)
+		{
+			GammaConverterSetup gConvSetup = ((GammaConverterSetup)bvv.getBvvHandle().getSetupAssignments().getConverterSetups().get( 0 ));	
+			nRenderMethod = gConvSetup.getRenderType();
+		}
+		
 		//assume it is always one source
 		BvvStackSource< ? >  bvvSource = BvvFunctions.show(BVVSourceToSpimDataWrapper.spimDataSourceWrap(sac.getSpimSource()), Bvv.options().addTo( bvvManager.get() )).get( 0 );		
 		
-		
+		bvvSource.setRenderType( nRenderMethod );
 		double displayRangeMin = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMin();
 		double displayRangeMax = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMax();
 		final ARGBType color = ( ( ColorConverter ) sac.getConverter() ).getColor();
