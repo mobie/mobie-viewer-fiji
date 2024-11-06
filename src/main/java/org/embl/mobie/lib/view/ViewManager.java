@@ -44,6 +44,8 @@ import org.embl.mobie.lib.bdv.overlay.ImageNameOverlay;
 import org.embl.mobie.lib.bdv.view.AnnotationSliceView;
 import org.embl.mobie.lib.bdv.view.ImageSliceView;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
+import org.embl.mobie.lib.bvv.BVVManager;
+import org.embl.mobie.lib.bvv.ImageBVViewer;
 import org.embl.mobie.lib.color.*;
 import org.embl.mobie.lib.color.lut.ColumnARGBLut;
 import org.embl.mobie.lib.color.lut.LUTs;
@@ -86,6 +88,7 @@ public class ViewManager
 	private final SourceAndConverterService sacService;
 	private List< Display > currentDisplays;
 	private final UniverseManager universeManager;
+	private final BVVManager bvvManager;
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewSaver viewSaver;
 
@@ -96,6 +99,7 @@ public class ViewManager
 		currentDisplays = new ArrayList<>();
 		sliceViewer = new SliceViewer( moBIE, is2D );
 		universeManager = new UniverseManager();
+		bvvManager = new BVVManager();
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
 		viewSaver = new ViewSaver( moBIE );
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
@@ -661,6 +665,7 @@ public class ViewManager
 		imageDisplay.sliceViewer = sliceViewer;
 		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay );
 		initImageVolumeViewer( imageDisplay );
+		initImageBVViewer( imageDisplay );
 	}
 
 	// compare with initSegmentationVolumeViewer
@@ -677,6 +682,16 @@ public class ViewManager
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 			sacService.setMetadata( sourceAndConverter, ImageVolumeViewer.class.getName(), imageDisplay.imageVolumeViewer );
 
+	}
+	
+	private void initImageBVViewer( ImageDisplay< ? > imageDisplay )
+	{
+		imageDisplay.imageBVViewer = new ImageBVViewer( imageDisplay.sourceAndConverters(), bvvManager );
+		imageDisplay.imageBVViewer.showImagesBVV( imageDisplay.showImagesIn3d() );
+		
+		final Collection< ? extends SourceAndConverter< ? > > sourceAndConverters = imageDisplay.sourceAndConverters();
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+			sacService.setMetadata( sourceAndConverter, ImageVolumeViewer.class.getName(), imageDisplay.imageBVViewer );
 	}
 
 	private void initTableView( AbstractAnnotationDisplay< ? extends Annotation > display )
@@ -743,6 +758,7 @@ public class ViewManager
 			final ImageDisplay imageDisplay = ( ImageDisplay ) display;
 			imageDisplay.imageSliceView.close( false );
 			imageDisplay.imageVolumeViewer.close();
+			imageDisplay.imageBVViewer.close();
 		}
 
 		userInterface.removeDisplaySettingsPanel( display );

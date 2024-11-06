@@ -45,6 +45,7 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.bdv.AutoContrastAdjuster;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
+import org.embl.mobie.lib.bvv.ImageBVViewer;
 import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.Services;
 import org.embl.mobie.lib.color.ColorHelper;
@@ -678,12 +679,13 @@ public class UserInterfaceHelper
 		panel.add( createColorButton( panel, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
 		//panel.add( createImageDisplayBrightnessButton( display ) );
 		panel.add( createImageRenderingSettingsButton( sourceAndConverters, display.imageVolumeViewer ) );
+		panel.add( createImageRenderingSettingsButton( sourceAndConverters, display.imageBVViewer ) );
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createImageVolumeViewerVisibilityCheckbox( display ) );
-		panel.add( createBigImageVolumeViewerVisibilityCheckbox( display ) );
+		panel.add( createImageBVViewerVisibilityCheckbox( display ) );
 		panel.add( createCheckboxPlaceholder() );
 
 		// make the panel color listen to color changes of the sources
@@ -757,6 +759,23 @@ public class UserInterfaceHelper
 				{
 					final SourceAndConverter[] sacArray = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
 					Services.commandService.run( ConfigureImageRenderingCommand.class, true, "sourceAndConverters", sacArray, "volumeViewer", imageVolumeViewer );
+				} ).start();
+			} );
+		} );
+		return button;
+	}
+	
+	private JButton createImageRenderingSettingsButton( List< ? extends SourceAndConverter< ? > > sourceAndConverters, ImageBVViewer imageBVViewer )
+	{
+		JButton button = getIconButton( "settings.png" );
+		button.addActionListener( e ->
+		{
+			SwingUtilities.invokeLater( () ->
+			{
+				new Thread( () ->
+				{
+					final SourceAndConverter[] sacArray = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
+					Services.commandService.run( ConfigureImageRenderingCommand.class, true, "sourceAndConverters", sacArray, "BVVViewer", imageBVViewer );
 				} ).start();
 			} );
 		} );
@@ -1151,7 +1170,7 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JCheckBox createBigImageVolumeViewerVisibilityCheckbox( ImageDisplay display )
+	public static JCheckBox createImageBVViewerVisibilityCheckbox( ImageDisplay display )
 	{
 		JCheckBox checkBox = new JCheckBox( "BV" );
 		checkBox.setToolTipText( "Toggle dataset visibility" );
@@ -1165,12 +1184,12 @@ public class UserInterfaceHelper
 			{
 				new Thread( () -> {
 						// FIXME: replace with display.bigVolumeViewer
-						display.imageVolumeViewer.showImages( checkBox.isSelected() );
+						display.imageBVViewer.showImagesBVV( checkBox.isSelected() );
 				}).start();
 			}
 		} );
 
-		display.imageVolumeViewer.getListeners().add( new VisibilityListener()
+		display.imageBVViewer.getListeners().add( new VisibilityListener()
 		{
 			@Override
 			public void visibility( boolean isVisible )

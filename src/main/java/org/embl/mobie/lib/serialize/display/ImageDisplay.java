@@ -34,6 +34,7 @@ import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.bdv.view.ImageSliceView;
+import org.embl.mobie.lib.bvv.ImageBVViewer;
 import org.embl.mobie.lib.color.OpacityHelper;
 import org.embl.mobie.lib.color.opacity.MoBIEColorConverter;
 import org.embl.mobie.lib.volume.ImageVolumeViewer;
@@ -57,6 +58,7 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	// Runtime
 	public transient ImageSliceView< ?> imageSliceView;
 	public transient ImageVolumeViewer imageVolumeViewer;
+	public transient ImageBVViewer imageBVViewer;
 
 	private transient Map< String, double[] > sourceToContrastLimits = new HashMap<>();
 
@@ -150,6 +152,11 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 					resolution3dView[i] = voxelSpacing[i];
 				}
 			}
+		}
+		
+		if ( imageDisplay.imageBVViewer != null )
+		{
+			this.showImagesIn3d = imageDisplay.imageBVViewer.getShowImages();
 		}
 
 		if ( imageDisplay.imageSliceView != null ) {
