@@ -20,6 +20,8 @@ import bvv.vistools.Bvv;
 import bvv.vistools.BvvFunctions;
 import bvv.vistools.BvvHandleFrame;
 import bvv.vistools.BvvStackSource;
+import ij.IJ;
+import mpicbg.spim.data.generic.AbstractSpimData;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 
@@ -93,6 +95,15 @@ public class ImageBVViewer
 	
 	void addSourceToBVV(SourceAndConverter< ? > sac)
 	{
+		
+		final AbstractSpimData< ? > spimData = BVVSourceToSpimDataWrapper.spimDataSourceWrap(sac.getSpimSource());
+		
+		if(spimData == null)
+		{
+			IJ.log( "Cannot display " +sac.getSpimSource().getName()+" in BVV, incompartible data type." );
+			return;
+		}
+		
 		//assume it is always one source
 		BvvStackSource< ? >  bvvSource = BvvFunctions.show(BVVSourceToSpimDataWrapper.spimDataSourceWrap(sac.getSpimSource()), Bvv.options().addTo( bvvManager.get() )).get( 0 );		
 		

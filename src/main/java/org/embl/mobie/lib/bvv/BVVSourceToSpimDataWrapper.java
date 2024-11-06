@@ -5,6 +5,10 @@ import java.util.HashMap;
 
 import net.imglib2.FinalDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.util.Util;
 
 import bdv.spimdata.SequenceDescriptionMinimal;
 import bdv.viewer.Source;
@@ -17,12 +21,20 @@ import mpicbg.spim.data.sequence.TimePoints;
 
 public class BVVSourceToSpimDataWrapper
 {
-	/** wraps UnsignedByte or UnsignedShort source to a cached spimdata 
-	 * (of UnsignedShort type) to display in BVV **/
+	/** wraps UnsignedByte, UnsignedShort or Float type source to a cached spimdata 
+	 * (of UnsignedShort type) to display in BVV, otherwise returns null **/
 	@SuppressWarnings( { "unchecked", "rawtypes" } )
 	public static AbstractSpimData< ? > spimDataSourceWrap(final Source<?> src_)
-	{
+	{		
+		Object type = Util.getTypeFromInterval( src_.getSource( 0, 0 ) );
+		
+		if(!(type instanceof FloatType  || type instanceof UnsignedShortType || type instanceof UnsignedByteType))
+		{
+			//System.err.println( "Volume view of image of type " + type + " is currently not supported.");
+			return null;
+		}
 		final BVVSourceToViewerSetupImgLoader imgLoader = new BVVSourceToViewerSetupImgLoader(src_);
+		
 		int numTimepoints = 0;
 		
 		final FinalDimensions size = new FinalDimensions( src_.getSource( 0, 0 ));
@@ -46,6 +58,7 @@ public class BVVSourceToSpimDataWrapper
 			//src_.getSourceTransform( t,0, transform );
 			registrations.add( new ViewRegistration( t, 0, transform ) );
 		}
+		
 		return new AbstractSpimData(null, seq, new ViewRegistrations( registrations));
 	}
 }
