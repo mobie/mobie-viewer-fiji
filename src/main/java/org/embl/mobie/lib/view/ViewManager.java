@@ -722,6 +722,9 @@ public class ViewManager
 
 	private void initSegmentVolumeViewer( SegmentationDisplay< ? extends AnnotatedSegment > display )
 	{
+		display.imageBVViewer = new ImageBVViewer( display.sourceAndConverters(), bvvManager );
+		display.imageBVViewer.showImagesBVV( false );
+
 		display.segmentVolumeViewer = new SegmentVolumeViewer( display.selectionModel, display.coloringModel, display.images(), universeManager );
 		Double[] resolution3dView = display.getResolution3dView();
 		if ( resolution3dView != null ) {

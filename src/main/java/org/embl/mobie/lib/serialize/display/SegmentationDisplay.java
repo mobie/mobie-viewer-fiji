@@ -30,6 +30,7 @@ package org.embl.mobie.lib.serialize.display;
 
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
+import org.embl.mobie.lib.bvv.ImageBVViewer;
 import org.embl.mobie.lib.color.lut.LUTs;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 
@@ -62,6 +63,8 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Abstract
 	{
 		this.resolution3dView = resolution3dView;
 	}
+
+	public transient ImageBVViewer imageBVViewer;
 
 	@Override
 	public Set< String > selectedAnnotationIds()

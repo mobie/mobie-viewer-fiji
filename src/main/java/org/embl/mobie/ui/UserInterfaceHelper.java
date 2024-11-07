@@ -679,7 +679,6 @@ public class UserInterfaceHelper
 		panel.add( createColorButton( panel, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
 		//panel.add( createImageDisplayBrightnessButton( display ) );
 		panel.add( createImageRenderingSettingsButton( sourceAndConverters, display.imageVolumeViewer ) );
-		panel.add( createImageRenderingSettingsButton( sourceAndConverters, display.imageBVViewer ) );
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( space() );
@@ -733,6 +732,8 @@ public class UserInterfaceHelper
 		{
 			// segments 3D view
 			panel.add( createSegmentsVolumeViewerVisibilityCheckbox( display ) );
+			// BVV view
+			panel.add( createSegmentationBVViewerVisibilityCheckbox( display ) );
 			// table view
 			panel.add( createTableVisibilityCheckbox( display.tableView, display.showTable() ) );
 			// scatter plot view
@@ -1185,6 +1186,39 @@ public class UserInterfaceHelper
 				new Thread( () -> {
 						// FIXME: replace with display.bigVolumeViewer
 						display.imageBVViewer.showImagesBVV( checkBox.isSelected() );
+				}).start();
+			}
+		} );
+
+		display.imageBVViewer.getListeners().add( new VisibilityListener()
+		{
+			@Override
+			public void visibility( boolean isVisible )
+			{
+				SwingUtilities.invokeLater( () ->
+				{
+					checkBox.setSelected( isVisible );
+				});
+			}
+		} );
+
+		return checkBox;
+	}
+
+	public static JCheckBox createSegmentationBVViewerVisibilityCheckbox( SegmentationDisplay display )
+	{
+		JCheckBox checkBox = new JCheckBox( "BV" );
+		checkBox.setToolTipText( "Toggle dataset visibility" );
+		checkBox.setSelected( false );
+		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
+
+		checkBox.addActionListener( new ActionListener()
+		{
+			@Override
+			public void actionPerformed( ActionEvent e )
+			{
+				new Thread( () -> {
+					display.imageBVViewer.showImagesBVV( checkBox.isSelected() );
 				}).start();
 			}
 		} );

@@ -7,12 +7,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import bdv.viewer.Source;
+import net.imglib2.RandomAccess;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
 
+import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.image.AnnotationLabelImage;
+import org.embl.mobie.lib.image.DefaultAnnotationLabelImage;
+import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 
 import bdv.viewer.SourceAndConverter;
@@ -23,7 +29,10 @@ import btbvv.vistools.BvvHandleFrame;
 import btbvv.vistools.BvvStackSource;
 import ij.IJ;
 import mpicbg.spim.data.generic.AbstractSpimData;
+import org.embl.mobie.lib.source.AnnotatedLabelSource;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
+
+import javax.xml.crypto.Data;
 
 
 public class ImageBVViewer
@@ -96,12 +105,15 @@ public class ImageBVViewer
 	
 	void addSourceToBVV(SourceAndConverter< ? > sac)
 	{
-		
-		final AbstractSpimData< ? > spimData = BVVSourceToSpimDataWrapper.spimDataSourceWrap(sac.getSpimSource());
+		Source< ? > source = getSource( sac );
+
+		final AbstractSpimData< ? > spimData = BVVSourceToSpimDataWrapper.spimDataSourceWrap( source );
 		
 		if(spimData == null)
 		{
-			IJ.log( "Cannot display " +sac.getSpimSource().getName()+" in BVV, incompartible data type." );
+			RandomAccess< ? > randomAccess = source.getSource( 0, 0 ).randomAccess();
+			IJ.log( "Cannot display " + source.getName() + " in BVV, incompatible data type:\n" +
+					randomAccess.get().getClass().getName() );
 			return;
 		}
 		
@@ -115,7 +127,7 @@ public class ImageBVViewer
 		}
 		
 		//assume it is always one source
-		BvvStackSource< ? >  bvvSource = BvvFunctions.show(BVVSourceToSpimDataWrapper.spimDataSourceWrap(sac.getSpimSource()), Bvv.options().addTo( bvvManager.get() )).get( 0 );		
+		BvvStackSource< ? >  bvvSource = BvvFunctions.show(BVVSourceToSpimDataWrapper.spimDataSourceWrap( source ), Bvv.options().addTo( bvvManager.get() )).get( 0 );
 		
 		bvvSource.setRenderType( nRenderMethod );
 		double displayRangeMin = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMin();
@@ -123,7 +135,7 @@ public class ImageBVViewer
 		final ARGBType color = ( ( ColorConverter ) sac.getConverter() ).getColor();
 		
 		
-		final Object type = Util.getTypeFromInterval( sac.getSpimSource().getSource( 0, 0 ) );
+		final Object type = Util.getTypeFromInterval( source.getSource( 0, 0 ) );
 		final double[] contrastLimits = new double[ 2 ];
 		contrastLimits[ 0 ] = 0;
 		if ( type instanceof UnsignedByteType )
@@ -146,7 +158,22 @@ public class ImageBVViewer
 		//sacToContent.put( sac, content ); ???
 		
 	}
-	
+
+	private static Source< ? > getSource( SourceAndConverter< ? > sac )
+	{
+		Image< ? > image = DataStore.getImage( sac.getSpimSource().getName() );
+		Source< ? > source;
+		if ( image instanceof AnnotationLabelImage )
+		{
+			source = ( ( AnnotationLabelImage<?> ) image ).getLabelImage().getSourcePair().getSource();
+		}
+		else
+		{
+			source = sac.getSpimSource();
+		}
+		return source;
+	}
+
 	void initBVV()
 	{
 		bvv = bvvManager.get();
