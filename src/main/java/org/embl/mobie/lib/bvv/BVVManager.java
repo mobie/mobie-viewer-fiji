@@ -6,16 +6,21 @@ import btbvv.vistools.BvvFunctions;
 public class BVVManager
 {
 	private Bvv bvv;
-	//BVV rendering parameters, can be changed/adjusted somewhere else
-	double dCam = 2000.;
 	
+	//BVV canvas rendering parameters, can be changed/adjusted somewhere else
+	
+	//parameters that can be changed at runtime
+	double dCam = 2000.;	
 	double dClipNear = 1000.;
 	double dClipFar = 15000.;			
+	
+	// parameters that require bvv restart, 
+	// see https://github.com/ekatrukha/BigTrace/wiki/Volume-Render-Settings
 	int renderWidth = 800;
 	int renderHeight = 600;
 	int numDitherSamples = 3; 
 	int cacheBlockSize = 32;
-	int  maxCacheSizeInMB = 500;
+	int maxCacheSizeInMB = 500;
 	int ditherWidth = 3;
 	
 	public synchronized Bvv get()
