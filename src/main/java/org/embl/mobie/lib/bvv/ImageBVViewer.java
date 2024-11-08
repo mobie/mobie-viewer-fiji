@@ -37,8 +37,9 @@ import javax.xml.crypto.Data;
 
 public class ImageBVViewer
 {
-	//public static final String BVV_VIEWER = "BigVolumeViewer: ";
+	
 	private final List< ? extends SourceAndConverter< ? > > sourceAndConverters;
+	@SuppressWarnings( "rawtypes" )
 	private ConcurrentHashMap< SourceAndConverter, BvvStackSource > sacToBvvSource;
 
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
@@ -46,8 +47,6 @@ public class ImageBVViewer
 	private final BVVManager bvvManager;
 	private Bvv bvv;
 	public BvvHandleFrame handle = null;
-	
-
 
 	
 	public ImageBVViewer(
@@ -122,6 +121,7 @@ public class ImageBVViewer
 		//consistent rendering of all sources
 		if(	bvv.getBvvHandle().getViewerPanel().state().getSources().size()>0)
 		{
+			@SuppressWarnings( "deprecation" )
 			GammaConverterSetup gConvSetup = ((GammaConverterSetup)bvv.getBvvHandle().getSetupAssignments().getConverterSetups().get( 0 ));	
 			nRenderMethod = gConvSetup.getRenderType();
 		}
@@ -153,9 +153,7 @@ public class ImageBVViewer
 		bvvSource.setDisplayRange( displayRangeMin, displayRangeMax );
 		bvvSource.setColor( color );
 		
-		//handle.getBigVolumeViewer().getViewerFrame().setTitle( BVV_VIEWER + sac.getSpimSource().getName());		
 		sacToBvvSource.put( sac, bvvSource );
-		//sacToContent.put( sac, content ); ???
 		
 	}
 
