@@ -6,6 +6,7 @@ import java.util.HashMap;
 import net.imglib2.FinalDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedLongType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
@@ -21,14 +22,17 @@ import mpicbg.spim.data.sequence.TimePoints;
 
 public class BVVSourceToSpimDataWrapper
 {
-	/** wraps UnsignedByte, UnsignedShort or Float type source to a cached spimdata 
+	/** wraps UnsignedByte, UnsignedShort, UnsignedLong or Float type source to a cached spimdata 
 	 * (of UnsignedShort type) to display in BVV, otherwise returns null **/
 	@SuppressWarnings( { "unchecked", "rawtypes" } )
 	public static AbstractSpimData< ? > spimDataSourceWrap(final Source<?> src_)
 	{		
 		Object type = Util.getTypeFromInterval( src_.getSource( 0, 0 ) );
 		
-		if(!(type instanceof FloatType  || type instanceof UnsignedShortType || type instanceof UnsignedByteType))
+		if(!(type instanceof FloatType  || 
+				type instanceof UnsignedShortType || 
+				type instanceof UnsignedByteType || 
+				type instanceof UnsignedLongType))
 		{
 			//System.err.println( "Volume view of image of type " + type + " is currently not supported.");
 			return null;

@@ -2,20 +2,25 @@ package org.embl.mobie.lib.bvv;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.IndexColorModel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import bdv.viewer.Source;
+
+import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.display.ColorConverter;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
 
 import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.color.lut.GlasbeyARGBLut;
 import org.embl.mobie.lib.image.AnnotationLabelImage;
 import org.embl.mobie.lib.image.DefaultAnnotationLabelImage;
 import org.embl.mobie.lib.image.Image;
@@ -29,6 +34,8 @@ import btbvv.vistools.BvvHandleFrame;
 import btbvv.vistools.BvvStackSource;
 import ij.IJ;
 import mpicbg.spim.data.generic.AbstractSpimData;
+import mpicbg.spim.data.sequence.VoxelDimensions;
+
 import org.embl.mobie.lib.source.AnnotatedLabelSource;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
@@ -132,35 +139,77 @@ public class ImageBVViewer
 		bvvSource.setRenderType( nRenderMethod );
 		double displayRangeMin = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMin();
 		double displayRangeMax = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMax();
-		final ARGBType color = ( ( ColorConverter ) sac.getConverter() ).getColor();
-		
-		
-		final Object type = Util.getTypeFromInterval( source.getSource( 0, 0 ) );
-		final double[] contrastLimits = new double[ 2 ];
-		contrastLimits[ 0 ] = 0;
-		if ( type instanceof UnsignedByteType )
-			contrastLimits[ 1 ] = 255;
-		else 
-			contrastLimits[ 1 ] = 65535;
-		//is maybe Double needed? probably not
-		if(type instanceof FloatType)
+		if(isAnnotation(sac))
 		{
-			displayRangeMin = 0.;
-			displayRangeMax = 65535;
+			bvvSource.setLUT(getGlasbeyICM(),"Glasbey");
+			bvvSource.setDisplayRange( 0, 255);
+
+			//VERSION 1
+			bvvSource.setAlphaRange( 0, 65535);
+			//empirically chosed
+			bvvSource.setAlphaGamma( 3.0 );
+			//VERSION 1 END
 			
+			//VERSION 2 (z-clipped)
+//			bvvSource.setAlphaRange( 0, 1 );
+//			bvvSource.setAlphaGamma( 1.0 );
+//
+//			double [] minI = source.getSource( 0, 0 ).minAsDoubleArray();
+//			double [] maxI = source.getSource( 0, 0 ).maxAsDoubleArray();
+//			minI[2]=0.5*maxI[2];
+//			VoxelDimensions ddd = source.getVoxelDimensions();
+//			for(int d=0;d<3;d++)
+//			{
+//				minI[d]*=ddd.dimension( d );
+//				maxI[d]*=ddd.dimension( d );
+//			}
+//			bvvSource.setClipInterval(new FinalRealInterval(minI,maxI));
+			//VERSION 2 END 
 		}
-		bvvSource.setDisplayRangeBounds( contrastLimits[0], contrastLimits[1]);
-		bvvSource.setDisplayRange( displayRangeMin, displayRangeMax );
-		bvvSource.setColor( color );
+		else
+		{
+			final ARGBType color = ( ( ColorConverter ) sac.getConverter() ).getColor();
+
+			bvvSource.setColor( color );
+			final Object type = Util.getTypeFromInterval( source.getSource( 0, 0 ) );
+			final double[] contrastLimits = new double[ 2 ];
+			contrastLimits[ 0 ] = 0;
+			if ( type instanceof UnsignedByteType )
+				contrastLimits[ 1 ] = 255;
+			else 
+				contrastLimits[ 1 ] = 65535;
+			//is maybe Double needed? probably not
+			if(type instanceof FloatType)
+			{
+				displayRangeMin = 0.;
+				displayRangeMax = 65535;
+				
+			}
+			bvvSource.setDisplayRangeBounds( contrastLimits[0], contrastLimits[1]);
+			bvvSource.setDisplayRange( displayRangeMin, displayRangeMax );
+		}
+
 		
 		sacToBvvSource.put( sac, bvvSource );
 		
 	}
 
+	private static boolean isAnnotation( SourceAndConverter< ? > sac )
+	{
+		if ( DataStore.getImage( sac.getSpimSource().getName() ) instanceof AnnotationLabelImage )
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 	private static Source< ? > getSource( SourceAndConverter< ? > sac )
 	{
 		Image< ? > image = DataStore.getImage( sac.getSpimSource().getName() );
 		Source< ? > source;
+		
 		if ( image instanceof AnnotationLabelImage )
 		{
 			source = ( ( AnnotationLabelImage<?> ) image ).getLabelImage().getSourcePair().getSource();
@@ -223,5 +272,21 @@ public class ImageBVViewer
 		return listeners;
 	}
 	
-	public boolean getShowImages() { return showImages; }	
+	public boolean getShowImages() { return showImages; }
+	
+	public static IndexColorModel getGlasbeyICM()
+	{
+		final GlasbeyARGBLut gARGB = new GlasbeyARGBLut();
+		final byte [][] colors = new byte [3][256];
+		int val;
+		for(int i=0;i<256;i++)
+		{
+			val =gARGB.getARGB( i );
+			colors[0][i] = ( byte ) ARGBType.red( val );
+			colors[1][i] = ( byte ) ARGBType.green( val );
+			colors[2][i] = ( byte ) ARGBType.blue( val );
+		}
+
+		return new IndexColorModel(8,256,colors[0],colors[1],colors[2]);
+	}
 }

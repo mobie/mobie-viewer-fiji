@@ -1,5 +1,6 @@
 package org.embl.mobie.lib.bvv;
 
+import java.math.BigInteger;
 import java.util.Random;
 
 import net.imglib2.Cursor;
@@ -17,6 +18,7 @@ import net.imglib2.img.cell.CellGrid;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedLongType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.type.volatiles.VolatileUnsignedShortType;
@@ -128,7 +130,7 @@ public class BVVSourceToViewerSetupImgLoader extends AbstractViewerSetupImgLoade
 		
 		if(!bFloat)
 		{
-			return convertByteShortRAIToShort(raiXYZ);
+			return convertByteShortLongRAIToShort(raiXYZ);
 		}
 		return convertRealRAIToShort(( RandomAccessibleInterval< FloatType > ) raiXYZ, dMin, dMax);
 			
@@ -213,7 +215,7 @@ public class BVVSourceToViewerSetupImgLoader extends AbstractViewerSetupImgLoade
 			IterableInterval< UnsignedShortType > iterRAI;
 			if(!bFloatType)
 			{
-				iterRAI = Views.flatIterable( convertByteShortRAIToShort(Views.interval( raiXYZ, new FinalInterval(intRange[0],intRange[1]))));				
+				iterRAI = Views.flatIterable( convertByteShortLongRAIToShort(Views.interval( raiXYZ, new FinalInterval(intRange[0],intRange[1]))));				
 			}
 			else
 			{
@@ -234,7 +236,7 @@ public class BVVSourceToViewerSetupImgLoader extends AbstractViewerSetupImgLoade
 
 	}
 	@SuppressWarnings( "unchecked" )
-	public static RandomAccessibleInterval< UnsignedShortType > convertByteShortRAIToShort(RandomAccessibleInterval< ? > raiXYZ)
+	public static RandomAccessibleInterval< UnsignedShortType > convertByteShortLongRAIToShort(RandomAccessibleInterval< ? > raiXYZ)
 	{
 	
 		Object typein = Util.getTypeFromInterval(raiXYZ);
@@ -247,6 +249,23 @@ public class BVVSourceToViewerSetupImgLoader extends AbstractViewerSetupImgLoade
 			return Converters.convert(
 					raiXYZ,
 					( i, o ) -> o.setInteger( ((UnsignedByteType) i).get() ),
+					new UnsignedShortType( ) );
+		}
+		else if ( typein instanceof UnsignedLongType )
+		{
+			return Converters.convert(
+					raiXYZ,
+					( i, o ) -> 
+					{
+						if(((UnsignedLongType)i).getBigInteger().compareTo( BigInteger.ZERO )==0)
+						{
+							o.setInteger(0);
+						}
+						else
+						{
+							o.setInteger( Math.abs(((UnsignedLongType) i).get())%255+1 );
+						}
+					},
 					new UnsignedShortType( ) );
 		}
 		else
