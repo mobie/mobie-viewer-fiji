@@ -10,11 +10,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import bdv.viewer.Source;
 
-import net.imglib2.FinalRealInterval;
+
 import net.imglib2.RandomAccess;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
-import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
@@ -25,7 +24,6 @@ import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import org.embl.mobie.lib.color.lut.GlasbeyARGBLut;
 import org.embl.mobie.lib.image.AnnotationLabelImage;
-import org.embl.mobie.lib.image.DefaultAnnotationLabelImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 
@@ -37,13 +35,9 @@ import btbvv.vistools.BvvHandleFrame;
 import btbvv.vistools.BvvStackSource;
 import ij.IJ;
 import mpicbg.spim.data.generic.AbstractSpimData;
-import mpicbg.spim.data.sequence.VoxelDimensions;
 
-import org.embl.mobie.lib.source.AnnotatedLabelSource;
 import org.embl.mobie.lib.source.AnnotationType;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
-
-import javax.xml.crypto.Data;
 
 
 public class ImageBVViewer
@@ -124,28 +118,6 @@ public class ImageBVViewer
 			IJ.log( "Cannot display " + source.getName() + " in BVV, incompatible data type:\n" +
 					randomAccess.get().getClass().getName() );
 			return;
-		}
-
-
-		Image< ? > image = DataStore.getImage( sac.getSpimSource().getName() );
-		if ( image instanceof AnnotationLabelImage )
-		{
-			AnnotationAdapter< Annotation > annotationAdapter = ( ( AnnotationLabelImage< Annotation > ) image ).getAnnotationAdapter();
-			Converter< AnnotationType, ARGBType > converter = ( Converter< AnnotationType, ARGBType > ) sac.getConverter();
-
-			// label index to ARGBType example
-			int label = 100;
-			int timePoint = 0;
-			Annotation annotation = annotationAdapter.getAnnotation( image.getName(), timePoint, label );
-			AnnotationType< Annotation > annotationType = new AnnotationType<>( annotation );
-			ARGBType argbType = new ARGBType(); // in the actual implementation this variable should be reused.
-			converter.convert( annotationType, argbType );
-			// the argbType should have the correct color.
-			System.out.println( argbType );
-		}
-		else
-		{
-			// do nothing, it is not a label mask image
 		}
 
 		int nRenderMethod = 1;
@@ -313,5 +285,43 @@ public class ImageBVViewer
 		}
 
 		return new IndexColorModel(8,256,colors[0],colors[1],colors[2]);
+	}
+	
+	/** returns RGB LUT from the annotation image, i.e. UnsignedLongType
+	 * valut to RGB. The size of LUT is #of labels + 1, 
+	 * since it adds Color.BLACK as zero values.  **/
+	
+	@SuppressWarnings( { "unchecked", "rawtypes" } )
+	public static IndexColorModel getAnnotationLUT(SourceAndConverter< ? > sac)
+	{
+		Image< ? > image = DataStore.getImage( sac.getSpimSource().getName() );
+		if ( image instanceof AnnotationLabelImage )
+		{
+			AnnotationAdapter< Annotation > annotationAdapter = ( ( AnnotationLabelImage< Annotation > ) image ).getAnnotationAdapter();
+			Converter< AnnotationType, ARGBType > converter = ( Converter< AnnotationType, ARGBType > ) sac.getConverter();
+
+			final int nAnnotationsNumber = ( ( AnnotationLabelImage<?> ) image ).getAnnData().getTable().numAnnotations();
+			
+			final byte [][] colors = new byte [3][nAnnotationsNumber+1];
+			ARGBType valARGB = new ARGBType();
+			int val;
+			
+			//zero is black
+			colors[0][0] = 0;
+			colors[1][0] = 0;
+			colors[2][0] = 0;
+			int timePoint = 0;
+			for(int label=1; label<=nAnnotationsNumber; label++)
+			{		
+				final Annotation annotation = annotationAdapter.getAnnotation( image.getName(), timePoint, label );
+				converter.convert(  new AnnotationType<>( annotation ), valARGB );
+				val = valARGB.get();
+				colors[0][label] = ( byte ) ARGBType.red( val );
+				colors[1][label] = ( byte ) ARGBType.green( val );
+				colors[2][label] = ( byte ) ARGBType.blue( val );
+			}
+			return new IndexColorModel(8,nAnnotationsNumber+1,colors[0],colors[1],colors[2]);
+		}
+		return null;
 	}
 }
