@@ -12,6 +12,7 @@ import bdv.viewer.Source;
 
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccess;
+import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
@@ -20,6 +21,8 @@ import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
 
 import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.annotation.Annotation;
+import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import org.embl.mobie.lib.color.lut.GlasbeyARGBLut;
 import org.embl.mobie.lib.image.AnnotationLabelImage;
 import org.embl.mobie.lib.image.DefaultAnnotationLabelImage;
@@ -37,6 +40,7 @@ import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 
 import org.embl.mobie.lib.source.AnnotatedLabelSource;
+import org.embl.mobie.lib.source.AnnotationType;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.xml.crypto.Data;
@@ -112,7 +116,6 @@ public class ImageBVViewer
 	void addSourceToBVV(SourceAndConverter< ? > sac)
 	{
 		Source< ? > source = getSource( sac );
-
 		final AbstractSpimData< ? > spimData = BVVSourceToSpimDataWrapper.spimDataSourceWrap( source );
 		
 		if(spimData == null)
@@ -122,7 +125,29 @@ public class ImageBVViewer
 					randomAccess.get().getClass().getName() );
 			return;
 		}
-		
+
+
+		Image< ? > image = DataStore.getImage( sac.getSpimSource().getName() );
+		if ( image instanceof AnnotationLabelImage )
+		{
+			AnnotationAdapter< Annotation > annotationAdapter = ( ( AnnotationLabelImage< Annotation > ) image ).getAnnotationAdapter();
+			Converter< AnnotationType, ARGBType > converter = ( Converter< AnnotationType, ARGBType > ) sac.getConverter();
+
+			// label index to ARGBType example
+			int label = 100;
+			int timePoint = 0;
+			Annotation annotation = annotationAdapter.getAnnotation( image.getName(), timePoint, label );
+			AnnotationType< Annotation > annotationType = new AnnotationType<>( annotation );
+			ARGBType argbType = new ARGBType(); // in the actual implementation this variable should be reused.
+			converter.convert( annotationType, argbType );
+			// the argbType should have the correct color.
+			System.out.println( argbType );
+		}
+		else
+		{
+			// do nothing, it is not a label mask image
+		}
+
 		int nRenderMethod = 1;
 		
 		//consistent rendering of all sources
@@ -135,7 +160,7 @@ public class ImageBVViewer
 		
 		//assume it is always one source
 		BvvStackSource< ? >  bvvSource = BvvFunctions.show(BVVSourceToSpimDataWrapper.spimDataSourceWrap( source ), Bvv.options().addTo( bvvManager.get() )).get( 0 );
-		
+
 		bvvSource.setRenderType( nRenderMethod );
 		double displayRangeMin = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMin();
 		double displayRangeMax = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMax();
@@ -146,11 +171,11 @@ public class ImageBVViewer
 
 			//VERSION 1
 			bvvSource.setAlphaRange( 0, 65535);
-			//empirically chosed
+			//empirically chosen
 			bvvSource.setAlphaGamma( 3.0 );
 			//VERSION 1 END
 			
-			//VERSION 2 (z-clipped)
+			// VERSION 2 (z-clipped)
 //			bvvSource.setAlphaRange( 0, 1 );
 //			bvvSource.setAlphaGamma( 1.0 );
 //
