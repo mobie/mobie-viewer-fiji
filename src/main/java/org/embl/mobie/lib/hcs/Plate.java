@@ -215,7 +215,7 @@ public class Plate
 					{
 						int datasetIndex = channel.getIndex();
 
-						IJ.log( "Fetching metadata for " + channelName + " from " + imagePath );
+						IJ.log( "Fetching metadata for \"" + channelName + "\" from " + imagePath );
 						Source< ? > source = imageData.getSourcePair( datasetIndex ).getA();
 						int numMipmapLevels = source.getNumMipmapLevels();
 						numSlices = ( int ) source.getSource( 0, 0 ).dimension( 2 );

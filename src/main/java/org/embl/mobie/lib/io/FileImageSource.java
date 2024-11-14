@@ -29,6 +29,7 @@
 package org.embl.mobie.lib.io;
 
 import org.apache.commons.io.FilenameUtils;
+import org.embl.mobie.lib.util.MoBIEHelper;
 
 import java.io.File;
 
@@ -63,7 +64,7 @@ public class FileImageSource
 		}
 		else
 		{
-			name = FilenameUtils.removeExtension( new File( split[ 0 ] ).getName() );
+			name = MoBIEHelper.removeExtension( new File( split[ 0 ] ).getName() );
 			path = split[ 0 ];
 		}
 	}

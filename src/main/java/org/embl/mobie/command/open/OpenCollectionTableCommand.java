@@ -71,6 +71,18 @@ public class OpenCollectionTableCommand implements Command {
 			required = false )
 	public BdvViewingMode bdvViewingMode = BdvViewingMode.ThreeDimensional;
 
+	@Parameter ( label = "( S3 Access Key )",
+			description = "Optional. Access key for a protected S3 bucket.",
+			persist = false,
+			required = false )
+	public String s3AccessKey;
+
+	@Parameter ( label = "( S3 Secret Key )",
+			description = "Optional. Secret key for a protected S3 bucket.",
+			persist = false,
+			required = false )
+	public String s3SecretKey;
+
 
 	@Override
 	public void run()
@@ -96,6 +108,9 @@ public class OpenCollectionTableCommand implements Command {
 				.projectType( ProjectType.CollectionTable )
 				.dataRoot( dataRootString )
 				.bdvViewingMode( bdvViewingMode );
+
+		if ( MoBIEHelper.notNullOrEmpty( s3AccessKey ) )
+			settings.s3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } );
 
 		try
 		{

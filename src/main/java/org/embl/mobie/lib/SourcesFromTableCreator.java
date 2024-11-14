@@ -29,6 +29,8 @@
 package org.embl.mobie.lib;
 
 import ij.IJ;
+import org.embl.mobie.DataStore;
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.lib.data.ImageGridSources;
 import org.embl.mobie.lib.data.LabelGridSources;
@@ -74,7 +76,8 @@ public class SourcesFromTableCreator
 				String relativeFolder = table.getString( 0, imageColumn.replace(  "FileName_", "PathName_" ) );
 				String referenceImagePath = MoBIEHelper.createAbsolutePath( root, fileName, relativeFolder );
 				IJ.log( "Determining number of channels of \"" + imageColumn + "\" from " + referenceImagePath + "..." );
-				int numChannels = ImageDataOpener.open( referenceImagePath, ThreadHelper.sharedQueue ).getNumDatasets();
+				ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( referenceImagePath );
+				int numChannels = DataStore.fetchImageData( referenceImagePath, imageDataFormat, ThreadHelper.sharedQueue ).getNumDatasets();
 				IJ.log( "Number of channels: " + numChannels );
 				for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
 				{

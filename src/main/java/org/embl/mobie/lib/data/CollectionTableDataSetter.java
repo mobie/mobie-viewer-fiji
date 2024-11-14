@@ -19,6 +19,7 @@ import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
 import org.embl.mobie.lib.table.columns.CollectionTableConstants;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tech.tablesaw.api.Row;
@@ -275,7 +276,7 @@ public class CollectionTableDataSetter
     private static String getNameFromURI( Row row )
     {
         String uri = getUri( row );
-        return FilenameUtils.removeExtension( IOHelper.getFileName( uri ) );
+        return MoBIEHelper.removeExtension( IOHelper.getFileName( uri ) );
     }
 
     private static String getPixelType( Row row )

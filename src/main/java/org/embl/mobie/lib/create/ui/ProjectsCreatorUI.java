@@ -42,6 +42,8 @@ import org.embl.mobie.lib.create.ProjectCreator;
 import org.embl.mobie.lib.create.ProjectCreatorHelper;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.Project;
+import org.embl.mobie.lib.util.MoBIEHelper;
+import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.ui.SwingHelper;
 import org.embl.mobie.ui.UserInterfaceHelper;
 
@@ -474,7 +476,7 @@ public class ProjectsCreatorUI extends JFrame {
             return;
         }
 
-        if ( ! is2D( ImageDataOpener.open( uri ) ) && projectCreator.getDataset( datasetName ).is2D() ) {
+        if ( ! is2D( ImageDataOpener.open( uri, ImageDataFormat.fromPath( uri ), ThreadHelper.sharedQueue ) ) && projectCreator.getDataset( datasetName ).is2D() ) {
             if ( ! changeDatasetDimensionDialog (datasetName ) ) {
                 return;
             }
@@ -632,7 +634,7 @@ public class ProjectsCreatorUI extends JFrame {
 
             final GenericDialog gd = new GenericDialog( "Add Current Image To MoBIE Project..." );
             gd.addMessage( "Make sure your voxel size, and unit,\n are set properly under Image > Properties...");
-            gd.addStringField( "Image Name", FilenameUtils.removeExtension(currentImage.getTitle()), 35 );
+            gd.addStringField( "Image Name", MoBIEHelper.removeExtension(currentImage.getTitle()), 35 );
             gd.addChoice( "Image Type", imageTypes, imageType.toString() );
             gd.addCheckbox("Make view exclusive", exclusive );
 

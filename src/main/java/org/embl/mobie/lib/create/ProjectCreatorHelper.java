@@ -33,11 +33,13 @@ import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import mpicbg.spim.data.SpimData;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.View;
+import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.view.AdditionalViews;
 import ucar.units.*;
 
@@ -135,7 +137,7 @@ public class ProjectCreatorHelper {
 
     public static boolean is2D( String uri )
     {
-        return is2D( ImageDataOpener.open( uri ) );
+        return is2D( ImageDataOpener.open( uri, ImageDataFormat.fromPath( uri ), ThreadHelper.sharedQueue ) );
     }
 
     public static boolean is2D( ImageData< ? > imageData ) {
@@ -289,7 +291,7 @@ public class ProjectCreatorHelper {
     //       see also: https://imagesc.zulipchat.com/#narrow/stream/327326-BigDataViewer/topic/N5.20viewer.20support.20for.20different.20voxel.20units.3F
     public static boolean isImageValid( String uri, String projectVoxelUnit )
     {
-        return isImageValid( ImageDataOpener.open( uri ), projectVoxelUnit );
+        return isImageValid( ImageDataOpener.open( uri, ImageDataFormat.fromPath( uri ), ThreadHelper.sharedQueue ), projectVoxelUnit );
     }
 
     public static boolean isImageValid(  ImageData< ? > imageData, String projectVoxelUnit )
