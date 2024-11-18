@@ -13,8 +13,8 @@ public class DebugOpenCollectionTableWithCredentials
         new ImageJ().ui().showUI();
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.table = new File("/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/standflow-table.txt");
-        command.s3AccessKey = "PyPxwMSjp23EX5ENWspO";
-        command.s3SecretKey = "3DBknEts4Cc8IuYzxNNDqFVGPvMHVJDroomYXdJl";
+        command.s3AccessKey = ""; // see Alexandra Mattermost
+        command.s3SecretKey = "";
         command.run();
     }
 }
