@@ -1,6 +1,5 @@
 package org.embl.mobie.lib.bvv;
 
-import java.math.BigInteger;
 import java.util.Random;
 
 import net.imglib2.Cursor;
@@ -257,14 +256,7 @@ public class BVVSourceToViewerSetupImgLoader extends AbstractViewerSetupImgLoade
 					raiXYZ,
 					( i, o ) -> 
 					{
-						if(((UnsignedLongType)i).getBigInteger().compareTo( BigInteger.ZERO )==0)
-						{
-							o.setInteger(0);
-						}
-						else
-						{
-							o.setInteger( Math.abs(((UnsignedLongType) i).get())%255+1 );
-						}
+						o.setInteger(((UnsignedLongType)i).getBigInteger().intValue());
 					},
 					new UnsignedShortType( ) );
 		}

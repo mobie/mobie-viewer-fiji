@@ -6,9 +6,9 @@ import org.scijava.ui.behaviour.DragBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 
-import btbvv.vistools.Bvv;
-import btbvv.vistools.BvvFunctions;
-import btbvv.vistools.BvvHandle;
+import bvvpg.vistools.Bvv;
+import bvvpg.vistools.BvvFunctions;
+import bvvpg.vistools.BvvHandle;
 
 public class BVVManager
 {

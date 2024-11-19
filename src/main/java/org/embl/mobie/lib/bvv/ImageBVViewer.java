@@ -28,11 +28,11 @@ import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 
 import bdv.viewer.SourceAndConverter;
-import btbvv.btuitools.GammaConverterSetup;
-import btbvv.vistools.Bvv;
-import btbvv.vistools.BvvFunctions;
-import btbvv.vistools.BvvHandleFrame;
-import btbvv.vistools.BvvStackSource;
+import bvvpg.pguitools.GammaConverterSetup;
+import bvvpg.vistools.Bvv;
+import bvvpg.vistools.BvvFunctions;
+import bvvpg.vistools.BvvHandleFrame;
+import bvvpg.vistools.BvvStackSource;
 import ij.IJ;
 import mpicbg.spim.data.generic.AbstractSpimData;
 
@@ -138,30 +138,15 @@ public class ImageBVViewer
 		double displayRangeMax = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMax();
 		if(isAnnotation(sac))
 		{
-			bvvSource.setLUT(getGlasbeyICM(),"Glasbey");
-			bvvSource.setDisplayRange( 0, 255);
-
-			//VERSION 1
-			bvvSource.setAlphaRange( 0, 65535);
-			//empirically chosen
-			bvvSource.setAlphaGamma( 3.0 );
-			//VERSION 1 END
 			
-			// VERSION 2 (z-clipped)
-//			bvvSource.setAlphaRange( 0, 1 );
-//			bvvSource.setAlphaGamma( 1.0 );
-//
-//			double [] minI = source.getSource( 0, 0 ).minAsDoubleArray();
-//			double [] maxI = source.getSource( 0, 0 ).maxAsDoubleArray();
-//			minI[2]=0.5*maxI[2];
-//			VoxelDimensions ddd = source.getVoxelDimensions();
-//			for(int d=0;d<3;d++)
-//			{
-//				minI[d]*=ddd.dimension( d );
-//				maxI[d]*=ddd.dimension( d );
-//			}
-//			bvvSource.setClipInterval(new FinalRealInterval(minI,maxI));
-			//VERSION 2 END 
+			final IndexColorModel icmAnnLUT = getAnnotationLUT(sac);
+			bvvSource.setLUT(icmAnnLUT,Integer.toString( icmAnnLUT.hashCode()));
+			bvvSource.setDisplayRangeBounds( 0, icmAnnLUT.getMapSize()-1);
+			bvvSource.setDisplayRange( 0, icmAnnLUT.getMapSize()-1);
+			bvvSource.setAlphaRangeBounds( 0,1);
+			bvvSource.setAlphaRange( 0,1);	
+			bvvSource.setVoxelRenderInterpolation( 0 );
+
 		}
 		else
 		{
@@ -185,7 +170,6 @@ public class ImageBVViewer
 			bvvSource.setDisplayRangeBounds( contrastLimits[0], contrastLimits[1]);
 			bvvSource.setDisplayRange( displayRangeMin, displayRangeMax );
 		}
-
 		
 		sacToBvvSource.put( sac, bvvSource );
 		
@@ -197,10 +181,7 @@ public class ImageBVViewer
 		{
 			return true;
 		}
-		else
-		{
-			return false;
-		}
+		return false;
 	}
 	private static Source< ? > getSource( SourceAndConverter< ? > sac )
 	{
@@ -288,8 +269,9 @@ public class ImageBVViewer
 	}
 	
 	/** returns RGB LUT from the annotation image, i.e. UnsignedLongType
-	 * valut to RGB. The size of LUT is #of labels + 1, 
-	 * since it adds Color.BLACK as zero values.  **/
+	 * value to RGB. The size of LUT is #of labels + 1, 
+	 * since it adds Color.BLACK as zero values. 
+	 * Works only if the number of labels is <=65535 **/
 	
 	@SuppressWarnings( { "unchecked", "rawtypes" } )
 	public static IndexColorModel getAnnotationLUT(SourceAndConverter< ? > sac)
@@ -320,7 +302,7 @@ public class ImageBVViewer
 				colors[1][label] = ( byte ) ARGBType.green( val );
 				colors[2][label] = ( byte ) ARGBType.blue( val );
 			}
-			return new IndexColorModel(8,nAnnotationsNumber+1,colors[0],colors[1],colors[2]);
+			return new IndexColorModel(16,nAnnotationsNumber+1,colors[0],colors[1],colors[2]);
 		}
 		return null;
 	}

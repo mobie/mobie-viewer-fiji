@@ -199,12 +199,12 @@
         <dependency>
 		<groupId>nl.uu.science.cellbiology</groupId>
 			<artifactId>bvv-playground</artifactId>
-			<version>0.2.9</version>
+			<version>0.3.0</version>
 		</dependency>
 		<dependency>
   			<groupId>com.formdev</groupId>
   			<artifactId>flatlaf-jide-oss</artifactId>
-  			<version>2.0</version>
+  			<version>3.0</version>
 		</dependency>
         <dependency>
             <groupId>org.scijava</groupId>
