@@ -28,11 +28,13 @@
  */
 package org.embl.mobie.command.context;
 
+import IceInternal.Ex;
 import bdv.util.BdvHandle;
 import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
@@ -70,38 +72,45 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
         if ( MoBIE.getInstance().getSettings().values.isOpenedFromCLI() )
             MoBIE.imageJ.ui().showUI();
 
+        AffineTransform3D viewerTransform = bdvHandle.getViewerPanel().state().getViewerTransform();
+
         // move viewer to numSlices below
+        viewerTransform.translate( 0, 0, - numSlices * sliceDistance );
+        bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
+        bdvHandle.getViewerPanel().requestRepaint();
 
         // collect all slices
-        ImagePlus imageplus =  null;
+        ImageStack rgbStack = new ImageStack();
         CompositeImage compositeImage = null;
         for ( int sliceIndex = 0; sliceIndex < numSlices; sliceIndex++ )
         {
             // adapt viewer transform
-
+            viewerTransform.translate( 0, 0, sliceDistance );
+            bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
+            bdvHandle.getViewerPanel().requestRepaint();
 
             ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, pixelUnit );
             screenShotMaker.run( targetSamplingInXY );
 
-            if ( sliceIndex == 0 )
+            try
             {
-                imageplus = screenShotMaker.getRGBImagePlus();
-                compositeImage = screenShotMaker.getCompositeImagePlus();
-            } else
+                rgbStack.addSlice( screenShotMaker.getRGBImagePlus().getProcessor() );
+            }
+            catch ( Exception e )
             {
-                // append RGB images
-                imageplus.getStack().addSlice( screenShotMaker.getRGBImagePlus().getProcessor() );
-
-                // append Float images
-                ImageStack stack = screenShotMaker.getCompositeImagePlus().getStack();
-                for ( int stackIndex = 0; stackIndex < stack.size(); stackIndex++ )
-                {
-                    compositeImage.getStack().addSlice( stack.getProcessor( stackIndex ) );
-                }
+                // FIXME
+                // it could be that there were no SACs visible in that slice
+                // which current causes an error, better would be to append an empty slice
+                // the challenge is that if that is the first slice we don't know the size and datatype
+                // of the ImageProcessor
+                IJ.log( "[WARNING] Skipping empty screen shot slice" );
             }
         }
 
-        imageplus.show();
-        compositeImage.show();
+        int size = rgbStack.size();
+        ImagePlus rgbImage = new ImagePlus( "RGB stack", rgbStack );
+        rgbImage.setDimensions( 1, rgbStack.size(), 1 );
+        rgbImage.show();
+        //compositeImage.show();
     }
 }

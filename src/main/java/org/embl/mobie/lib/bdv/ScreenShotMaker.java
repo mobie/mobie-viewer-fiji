@@ -123,8 +123,7 @@ public class ScreenShotMaker
         }
 
         final int timePoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
-        final AffineTransform3D viewerTransform = new AffineTransform3D();
-        bdvHandle.getViewerPanel().state().getViewerTransform( viewerTransform );
+        final AffineTransform3D viewerTransform = bdvHandle.getViewerPanel().state().getViewerTransform( );
         canvasToGlobalTransform = new AffineTransform3D();
         // target canvas to viewer canvas...
         double targetToViewer = targetVoxelSpacing / getViewerVoxelSpacing( bdvHandle );

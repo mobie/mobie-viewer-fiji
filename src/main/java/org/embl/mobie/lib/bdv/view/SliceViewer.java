@@ -147,6 +147,7 @@ public class SliceViewer
 		actions.add( SourceAndConverterService.getCommandName( SourcesInfoCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( CurrentLocationLoggerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ScreenShotMakerCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( ScreenShotStackMakerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ShowRawImagesCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( BigWarpRegistrationCommand.class ) );
 		//actions.add( SourceAndConverterService.getCommandName( AutomaticRegistrationCommand.class ) );
