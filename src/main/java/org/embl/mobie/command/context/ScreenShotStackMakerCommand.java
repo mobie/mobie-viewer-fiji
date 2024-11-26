@@ -38,6 +38,7 @@ import net.imglib2.util.LinAlgHelpers;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
+import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
@@ -51,14 +52,13 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     @Parameter(label="Slice distance (in above units)",
-            persist = true,
+            persist = false,
             min = "0.0",
-            style="format:#.00",
-            stepSize = "0.01")
-    public Double physicalSliceDistance = 1D;
+            style="format:#.000",
+            stepSize = "0.001")
+    public Double targetSamplingInZ = 1D;
 
-    @Parameter(label="Number of slices ab" +
-            "ove & below current",
+    @Parameter(label="Number of slices above & below current",
             description = "For example, entering 5 here will result in:\n5 above + 1 current + 5 below = 11 slices in total.",
             persist = false)
     public Integer numSlices = 5;
@@ -84,7 +84,7 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
         System.out.println( screenToPhysicalScale );
 
         // move viewer to starting point
-        viewerTransform.translate( 0, 0, - numSlices * physicalSliceDistance * screenToPhysicalScale );
+        viewerTransform.translate( 0, 0, - numSlices * targetSamplingInZ * screenToPhysicalScale );
         bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
         bdvHandle.getViewerPanel().requestRepaint();
 
@@ -97,7 +97,7 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
         for ( int sliceIndex = 0; sliceIndex < numSlices; sliceIndex++ )
         {
             // adapt viewer transform
-            viewerTransform.translate( 0, 0, physicalSliceDistance * screenToPhysicalScale );
+            viewerTransform.translate( 0, 0, targetSamplingInZ * screenToPhysicalScale );
             bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
             bdvHandle.getViewerPanel().requestRepaint();
 
@@ -131,7 +131,7 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
         bdvHandle.getViewerPanel().state().setViewerTransform( initialViewerTransform );
         bdvHandle.getViewerPanel().requestRepaint();
 
-        calibration.pixelDepth = physicalSliceDistance;
+        calibration.pixelDepth = targetSamplingInZ;
 
         ImagePlus rgbImage = new ImagePlus( "RGB stack", rgbStack );
         rgbImage.setDimensions( 1, rgbStack.size(), 1 );
@@ -142,5 +142,15 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
         compositeImage.setDimensions( compositeStack.size() / rgbStack.size(), rgbStack.size(), 1 );
         compositeImage.setCalibration( calibration );
         compositeImage.show();
+    }
+
+    @Override
+    public void initialize()
+    {
+        super.initialize();
+
+        final MutableModuleItem< Double > targetSamplingItem =
+                getInfo().getMutableInput("targetSamplingInZ", Double.class);
+        targetSamplingItem.setValue( this, getTargetSampling() );
     }
 }
