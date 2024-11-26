@@ -43,7 +43,8 @@ public enum HCSPattern
 	InCell, // https://github.com/embl-cba/plateviewer/issues/45
 	MolecularDevices,
 	YokogawaCQ1,
-	InCarta;
+	InCarta,
+	Araceli;
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -112,6 +113,15 @@ public enum HCSPattern
 
 	/*
 	example:
+	A1_s1_w1_z-m_20241121T095306Z_01a46354-f00a-4207-ba40-15c281fd4049_thumbnail.tiff
+	well = A1, site = 1, channel = 1
+
+	company: https://www.aracelibio.com/
+	 */
+	public static final String ARACELI = ".*(?<"+WELL+">[A-Z][0-9]{1,2})_s(?<"+SITE+">[0-9]{1,2})_w(?<"+CHANNEL+">[0-9])_z.*.tiff";
+
+	/*
+	example:
 	W0018F0001T0001Z001C1.tif
 	well = A - 01, site = 1, channel = 1
 	 */
@@ -158,6 +168,8 @@ public enum HCSPattern
 				return Pattern.compile( YOKOGAWACQ1 ).matcher( path );
 			case InCarta:
 				return Pattern.compile( INCARTA ).matcher( path );
+			case Araceli:
+				return Pattern.compile( ARACELI ).matcher( path );
 			default:
 			case IncuCyte:
 				return Pattern.compile( INCUCYTE ).matcher( path );
@@ -245,6 +257,7 @@ public enum HCSPattern
 			case MolecularDevices:
 			case IncuCyteRaw:
 			case InCarta:
+			case Araceli:
 				return true;
 			default:
 				return false;
@@ -259,6 +272,7 @@ public enum HCSPattern
 			case Operetta:
 			case MolecularDevices:
 			case InCell:
+			case Araceli:
 			case InCarta: // TODO could be made true
 				return false;
 			default:

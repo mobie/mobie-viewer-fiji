@@ -65,7 +65,8 @@ public class GridTransformation extends AbstractGridTransformation
 			List< int[] > positions,
 			double[] tileRealDimensions,
 			boolean centerAtOrigin,
-			double[] withinTileOffset )
+			double[] withinTileOffset,
+			final boolean transformInPlace )
 	{
 		final CopyOnWriteArrayList< ? extends Image< ? > > transformedImages = new CopyOnWriteArrayList<>();
 
@@ -91,7 +92,8 @@ public class GridTransformation extends AbstractGridTransformation
 									images,
 									transformedImageNames,
 									centerAtOrigin,
-									translation );
+									translation,
+									transformInPlace );
 
 					transformedImages.addAll( ( List ) translatedImages );
 				}
@@ -152,7 +154,8 @@ public class GridTransformation extends AbstractGridTransformation
 						gridPositions,
 						tileRealDimensions,
 						gridTransformation.centerAtOrigin,
-						offset );
+						offset,
+						false );
 
         return transformedImages;
     }

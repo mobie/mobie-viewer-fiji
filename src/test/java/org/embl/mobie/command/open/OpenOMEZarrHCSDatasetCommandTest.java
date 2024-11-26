@@ -20,4 +20,11 @@ class OpenOMEZarrHCSDatasetCommandTest
 
         // TODO: add a test assertion for ensuring the the number of channels is correct.
     }
+
+    public static void main( String[] args )
+    {
+        new OpenOMEZarrHCSDatasetCommandTest().test();
+    }
+
+
 }

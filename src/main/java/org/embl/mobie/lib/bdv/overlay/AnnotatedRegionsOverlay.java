@@ -82,6 +82,7 @@ public class AnnotatedRegionsOverlay< AR extends AnnotatedRegion >
 	public void close()
 	{
 		overlaySource.removeFromBdv();
+		sliceViewer.updateTimepointSlider();
 		sliceViewer.getBdvHandle().getViewerPanel().requestRepaint();
 	}
 

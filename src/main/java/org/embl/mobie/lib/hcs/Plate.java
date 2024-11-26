@@ -149,15 +149,10 @@ public class Plate
 						.filter( path -> operettaMetadata.contains( path ) ) // skip files like .DS_Store a.s.o.
 						.collect( Collectors.toList() );
 			}
-			else if ( hcsPattern.equals( HCSPattern.YokogawaCQ1 ) )
-			{
-				imageDataFormat = ImageDataFormat.Tiff;
-			}
-			else if ( hcsPattern.equals( HCSPattern.MolecularDevices ) )
-			{
-				imageDataFormat = ImageDataFormat.Tiff;
-			}
-			else if ( hcsPattern.equals( HCSPattern.InCarta ) )
+			else if ( hcsPattern.equals( HCSPattern.YokogawaCQ1 )
+					|| hcsPattern.equals( HCSPattern.MolecularDevices )
+					|| hcsPattern.equals( HCSPattern.InCarta )
+					|| hcsPattern.equals( HCSPattern.Araceli ) )
 			{
 				imageDataFormat = ImageDataFormat.Tiff;
 			}
