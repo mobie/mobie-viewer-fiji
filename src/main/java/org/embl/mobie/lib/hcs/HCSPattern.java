@@ -51,7 +51,6 @@ public enum HCSPattern
 	public static final String WELL = "W";
 	public static final String SITE = "S";
 	public static final String CHANNEL = "C";
-
 	public static final String TIME = "T";
 	public static final String SLICE = "Z";
 
@@ -85,7 +84,6 @@ public enum HCSPattern
 	 */
 	private static final String INCUCYTE_RAW = ".*[/\\\\](?<"+ TIME +">\\d+)[/\\\\]\\d+[/\\\\](?<"+WELL+">[A-Z]{1}[0-9]{1,2})-(?<"+SITE+">[0-9]{1,2})-(?<"+CHANNEL+">.*).tif$";
 
-
 	/*
 	examples:
 	MIP-2P-2sub_C05_s1_w146C9B2CD-0BB3-4B8A-9187-2805F4C90506.tif
@@ -95,14 +93,12 @@ public enum HCSPattern
 	 */
 	private static final String MOLDEV = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">.*)_w(?<"+CHANNEL+">[0-9])[^_thumb].*";
 
-
 	/*
 	example:
 	A - 01(fld 1 wv Green - dsRed z 3).tif
 	well = A - 01, site = 1, channel = 1
  	*/
 	public static final String INCELL = ".*(?<"+WELL+">[A-Z]{1} - [0-9]{2})\\(fld (?<"+SITE+">[0-9]{1}) (?<"+CHANNEL+">.*)\\).tif";
-
 
 	/*
 	example:
