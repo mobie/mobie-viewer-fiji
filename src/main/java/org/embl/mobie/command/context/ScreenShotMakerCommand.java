@@ -60,7 +60,7 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
             persist = false,
             callback = "showNumPixels",
             min = "0.0",
-            style="format:#.00000",
+            style="format:#.00",
             stepSize = "0.01")
     public Double targetSamplingInXY = 1D;
 

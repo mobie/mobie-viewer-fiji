@@ -57,7 +57,7 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
     @Parameter(label="Slice distance (in above units)",
             persist = false,
             min = "0.0",
-            style="format:#.00000",
+            style="format:#.00",
             stepSize = "0.01")
     public Double sliceDistance = 1D;
 
