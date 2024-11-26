@@ -51,13 +51,14 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     @Parameter(label="Slice distance (in above units)",
-            persist = false,
+            persist = true,
             min = "0.0",
             style="format:#.00",
             stepSize = "0.01")
     public Double physicalSliceDistance = 1D;
 
-    @Parameter(label="Number of slices above & below current",
+    @Parameter(label="Number of slices ab" +
+            "ove & below current",
             description = "For example, entering 5 here will result in:\n5 above + 1 current + 5 below = 11 slices in total.",
             persist = false)
     public Integer numSlices = 5;
