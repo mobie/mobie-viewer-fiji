@@ -122,8 +122,7 @@ public class ScreenShotMaker
             return;
         }
 
-        final int currentTimepoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
-
+        final int timePoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
         final AffineTransform3D viewerTransform = new AffineTransform3D();
         bdvHandle.getViewerPanel().state().getViewerTransform( viewerTransform );
         canvasToGlobalTransform = new AffineTransform3D();
@@ -167,7 +166,7 @@ public class ScreenShotMaker
             final Converter< ?, ? > converter = sac.getConverter();
             double[] displayRange = BdvHandleHelper.getDisplayRange( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ) );
             final int level = getLevel( source, targetVoxelSpacing );
-            final AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( source, currentTimepoint, level );
+            final AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( source, timePoint, level );
 
             // global to source
             AffineTransform3D targetCanvasToSourceTransform = canvasToGlobalTransform.copy();
@@ -185,8 +184,8 @@ public class ScreenShotMaker
                 (
                     ThreadHelper.ioExecutorService.submit( () ->
                     {
-                        RealRandomAccess< ? extends Type< ? > > sourceAccess = getRealRandomAccess( ( Source< Type< ? > > ) source, currentTimepoint, level, interpolate );
-                        WritableBox sourceMask = SourceHelper.estimateDataMask( source, currentTimepoint, level, true );
+                        RealRandomAccess< ? extends Type< ? > > sourceAccess = getRealRandomAccess( ( Source< Type< ? > > ) source, timePoint, level, interpolate );
+                        WritableBox sourceMask = SourceHelper.estimateDataMask( source, timePoint, level, true );
                         //RandomAccessibleInterval< ? > sourceInterval = source.getSource( currentTimepoint, level );
 
                         // to collect raw data

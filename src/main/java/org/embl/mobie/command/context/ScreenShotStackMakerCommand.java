@@ -29,7 +29,10 @@
 package org.embl.mobie.command.context;
 
 import bdv.util.BdvHandle;
+import ij.CompositeImage;
 import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
@@ -39,33 +42,27 @@ import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
-import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
-import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Take Screenshot")
-public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Take Screenshot Stack")
+public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
 {
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    public static final String CAPTURE_SIZE_PIXELS = "Capture size [pixels]: ";
-
-    @Parameter
-    public BdvHandle bdvHandle;
-
-    @Parameter(label="Sampling (in below units)",
+    @Parameter(label="Slice distance (in above units)",
             persist = false,
-            callback = "showNumPixels",
             min = "0.0",
             style="format:#.00000",
             stepSize = "0.01")
-    public Double targetSamplingInXY = 1D;
+    public Double sliceDistance = 1D;
 
-    @Parameter(label="Pixel unit", persist = false, choices = {"micrometer"} )
-    public String pixelUnit;
+    @Parameter(label="Number of slices above & below current",
+            description = "For example, entering 5 here will result in:\n5 above + 1 current + 5 below = 11 slices in total.",
+            persist = false)
+    public Integer numSlices = 5;
 
     @Override
     public void run()
@@ -73,38 +70,38 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
         if ( MoBIE.getInstance().getSettings().values.isOpenedFromCLI() )
             MoBIE.imageJ.ui().showUI();
 
-        ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, pixelUnit );
-        screenShotMaker.run( targetSamplingInXY );
-        screenShotMaker.getRGBImagePlus().show();
-        screenShotMaker.getCompositeImagePlus().show();
-    }
+        // move viewer to numSlices below
 
-    @Override
-    public void initialize() {
+        // collect all slices
+        ImagePlus imageplus =  null;
+        CompositeImage compositeImage = null;
+        for ( int sliceIndex = 0; sliceIndex < numSlices; sliceIndex++ )
+        {
+            // adapt viewer transform
 
-        IJ.log( "# ScreenShotMaker" );
 
-        // set pixel unit choices
-        //
-        final MutableModuleItem< String > pixelUnitItem = //
-                getInfo().getMutableInput("pixelUnit", String.class);
-        String pixelUnit = bdvHandle.getViewerPanel().state().getCurrentSource().getSpimSource().getVoxelDimensions().unit();
-        final ArrayList< String > units = new ArrayList<>();
-        units.add( pixelUnit );
-        pixelUnitItem.setChoices( units );
+            ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, pixelUnit );
+            screenShotMaker.run( targetSamplingInXY );
 
-        // init screenshot sampling
-        //
-        final MutableModuleItem< Double > targetSamplingItem = //
-                getInfo().getMutableInput("targetSamplingInXY", Double.class);
-        double viewerVoxelSpacing = BdvHandleHelper.getViewerVoxelSpacing( bdvHandle );
-        targetSamplingItem.setValue( this, 2 * viewerVoxelSpacing );
-    }
+            if ( sliceIndex == 0 )
+            {
+                imageplus = screenShotMaker.getRGBImagePlus();
+                compositeImage = screenShotMaker.getCompositeImagePlus();
+            } else
+            {
+                // append RGB images
+                imageplus.getStack().addSlice( screenShotMaker.getRGBImagePlus().getProcessor() );
 
-    // callback
-    private void showNumPixels()
-    {
-        final long[] sizeInPixels = ScreenShotMaker.getCaptureImageSizeInPixels( bdvHandle, targetSamplingInXY );
-        IJ.log( CAPTURE_SIZE_PIXELS + Arrays.toString( sizeInPixels ) );
+                // append Float images
+                ImageStack stack = screenShotMaker.getCompositeImagePlus().getStack();
+                for ( int stackIndex = 0; stackIndex < stack.size(); stackIndex++ )
+                {
+                    compositeImage.getStack().addSlice( stack.getProcessor( stackIndex ) );
+                }
+            }
+        }
+
+        imageplus.show();
+        compositeImage.show();
     }
 }
