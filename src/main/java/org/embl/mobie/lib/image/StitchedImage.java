@@ -310,7 +310,14 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			}
 		}
 
-		GridTransformation.gridTransform( nestedImages, nestedTransformedNames, positions, tileRealDimensions, false, offset );
+		GridTransformation.gridTransform(
+				nestedImages,
+				nestedTransformedNames,
+				positions,
+				tileRealDimensions,
+				false,
+				offset,
+				true );
 
 		if ( debug )
 		{

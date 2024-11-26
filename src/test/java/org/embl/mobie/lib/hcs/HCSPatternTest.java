@@ -46,6 +46,8 @@ class HCSPatternTest
 
 	private static final String yokogawaCQ1 = "W0018F0001T0001Z001C1.tif";
 
+	private static final String araceliBioscience = "A1_s1_w1_z-m_20241121T095306Z_01a46354-f00a-4207-ba40-15c281fd4049_thumbnail.tiff";
+
 	@Test
 	void fromPath()
 	{
@@ -66,5 +68,8 @@ class HCSPatternTest
 
 		final HCSPattern yokogawaCQ1 = HCSPattern.fromPath( HCSPatternTest.yokogawaCQ1 );
         assertEquals( yokogawaCQ1, HCSPattern.YokogawaCQ1 );
+
+		final HCSPattern araceli = HCSPattern.fromPath( HCSPatternTest.araceliBioscience );
+		assertEquals( araceli, HCSPattern.Araceli );
 	}
 }

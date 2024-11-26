@@ -509,8 +509,10 @@ public class ViewManager
 				// *after* the above transformations,
 				// which may create new images
 				// that could be referred to here.
-				AnnData< AnnotatedRegion > annData = new RegionDisplayAnnDataCreator( moBIE, ( RegionDisplay< ? > ) display ).createAnnData();
-				final RegionAnnotationImage< AnnotatedRegion > regionAnnotationImage = new RegionAnnotationImage( ( RegionDisplay< ? > ) display, annData );
+				AnnData< AnnotatedRegion > annData = new RegionDisplayAnnDataCreator(
+						moBIE, ( RegionDisplay< ? > ) display ).createAnnData();
+				final RegionAnnotationImage< AnnotatedRegion > regionAnnotationImage =
+						new RegionAnnotationImage( ( RegionDisplay< ? > ) display, annData );
 				// The region image has the same name as the display,
 				// thus it can be identified later to be the image that
 				// will be shown by this display (via {@code regionDisplay.getSources()})
