@@ -28,25 +28,20 @@
  */
 package org.embl.mobie.command.context;
 
-import IceInternal.Ex;
-import bdv.util.BdvHandle;
 import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.util.LinAlgHelpers;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
-import org.scijava.Initializable;
-import org.scijava.command.DynamicCommand;
-import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Take Screenshot Stack")
@@ -59,7 +54,7 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
             min = "0.0",
             style="format:#.00",
             stepSize = "0.01")
-    public Double sliceDistance = 1D;
+    public Double physicalSliceDistance = 1D;
 
     @Parameter(label="Number of slices above & below current",
             description = "For example, entering 5 here will result in:\n5 above + 1 current + 5 below = 11 slices in total.",
@@ -73,21 +68,37 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
             MoBIE.imageJ.ui().showUI();
 
         AffineTransform3D viewerTransform = bdvHandle.getViewerPanel().state().getViewerTransform();
+        AffineTransform3D initialViewerTransform = viewerTransform.copy();
 
-        // move viewer to numSlices below
-        viewerTransform.translate( 0, 0, - numSlices * sliceDistance );
+        // compute scaling from viewer to physical coordinates along the current viewing axis
+        double[] physicalA = new double[ 3 ];
+        double[] physicalB = new double[ 3 ];
+        double[] distance = new double[ 3 ];
+        viewerTransform.apply( new double[]{ 0, 0, 0 }, physicalA );
+        viewerTransform.apply( new double[]{ 0, 0, 1 }, physicalB );
+        LinAlgHelpers.subtract( physicalA, physicalB, distance );
+        System.out.println( Arrays.toString( distance ) );
+        double screenToPhysicalScale = LinAlgHelpers.length( distance );
+        System.out.println( screenToPhysicalScale );
+
+        // move viewer to starting point
+        viewerTransform.translate( 0, 0, -numSlices * physicalSliceDistance * screenToPhysicalScale );
         bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
         bdvHandle.getViewerPanel().requestRepaint();
 
         // collect all slices
         ImageStack rgbStack = new ImageStack();
-        CompositeImage compositeImage = null;
+        CompositeImage compositeImage = null; // TODO
+        numSlices = numSlices * 2 + 1;
+
         for ( int sliceIndex = 0; sliceIndex < numSlices; sliceIndex++ )
         {
             // adapt viewer transform
-            viewerTransform.translate( 0, 0, sliceDistance );
+            viewerTransform.translate( 0, 0, physicalSliceDistance * screenToPhysicalScale );
             bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
             bdvHandle.getViewerPanel().requestRepaint();
+
+            IJ.log( "Slice index " + sliceIndex + "; screen centre: " + Arrays.toString( BdvHandleHelper.getWindowCentreInCalibratedUnits( bdvHandle ) ) );
 
             ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, pixelUnit );
             screenShotMaker.run( targetSamplingInXY );
@@ -107,10 +118,11 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
             }
         }
 
-        int size = rgbStack.size();
         ImagePlus rgbImage = new ImagePlus( "RGB stack", rgbStack );
         rgbImage.setDimensions( 1, rgbStack.size(), 1 );
         rgbImage.show();
-        //compositeImage.show();
+
+        bdvHandle.getViewerPanel().state().setViewerTransform( initialViewerTransform );
+        bdvHandle.getViewerPanel().requestRepaint();
     }
 }
