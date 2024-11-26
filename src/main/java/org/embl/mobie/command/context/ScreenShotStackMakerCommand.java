@@ -32,6 +32,7 @@ import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.measure.Calibration;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.LinAlgHelpers;
 import org.embl.mobie.MoBIE;
@@ -82,14 +83,15 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
         System.out.println( screenToPhysicalScale );
 
         // move viewer to starting point
-        viewerTransform.translate( 0, 0, -numSlices * physicalSliceDistance * screenToPhysicalScale );
+        viewerTransform.translate( 0, 0, - numSlices * physicalSliceDistance * screenToPhysicalScale );
         bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
         bdvHandle.getViewerPanel().requestRepaint();
 
         // collect all slices
         ImageStack rgbStack = new ImageStack();
-        CompositeImage compositeImage = null; // TODO
+        ImageStack compositeStack = new ImageStack();
         numSlices = numSlices * 2 + 1;
+        Calibration calibration = null;
 
         for ( int sliceIndex = 0; sliceIndex < numSlices; sliceIndex++ )
         {
@@ -106,6 +108,13 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
             try
             {
                 rgbStack.addSlice( screenShotMaker.getRGBImagePlus().getProcessor() );
+                ImageStack stack = screenShotMaker.getCompositeImagePlus().getStack();
+                for ( int i = 0; i < stack.size(); i++ )
+                {
+                    compositeStack.addSlice( stack.getProcessor( i + 1 ) );
+                }
+
+                calibration = screenShotMaker.getRGBImagePlus().getCalibration();
             }
             catch ( Exception e )
             {
@@ -118,11 +127,19 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
             }
         }
 
-        ImagePlus rgbImage = new ImagePlus( "RGB stack", rgbStack );
-        rgbImage.setDimensions( 1, rgbStack.size(), 1 );
-        rgbImage.show();
-
         bdvHandle.getViewerPanel().state().setViewerTransform( initialViewerTransform );
         bdvHandle.getViewerPanel().requestRepaint();
+
+        calibration.pixelDepth = physicalSliceDistance;
+
+        ImagePlus rgbImage = new ImagePlus( "RGB stack", rgbStack );
+        rgbImage.setDimensions( 1, rgbStack.size(), 1 );
+        rgbImage.setCalibration( calibration );
+        rgbImage.show();
+
+        CompositeImage compositeImage = new CompositeImage( new ImagePlus( "Composite stack", compositeStack ) );
+        compositeImage.setDimensions( compositeStack.size() / rgbStack.size(), rgbStack.size(), 1 );
+        compositeImage.setCalibration( calibration );
+        compositeImage.show();
     }
 }
