@@ -47,6 +47,7 @@ import net.imglib2.ops.parse.token.Real;
 import net.imglib2.roi.geom.real.WritableBox;
 import net.imglib2.type.Type;
 import net.imglib2.type.logic.BitType;
+import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.integer.ByteType;
 import net.imglib2.type.numeric.integer.ShortType;
@@ -54,6 +55,10 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
+import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.image.AnnotationLabelImage;
+import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.annotation.Annotation;
@@ -162,17 +167,34 @@ public class ScreenShotMaker
         // IJ.log( ThreadHelper.getNumIoThreads() + " threads working on blocks of " + Arrays.toString( blockSize ) );
         final long currentTimeMillis = System.currentTimeMillis();
 
-        List< ? > types = sacs.stream()
-                .map( sac -> Util.getTypeFromInterval( sac.getSpimSource().getSource( 0, 0 ) ) )
+
+        ArrayList< Type > types = new ArrayList<>();
+        for ( SourceAndConverter< ? > sac : sacs )
+        {
+            Image< ? > image = DataStore.sourceToImage().get( sac );
+            if ( image instanceof RegionAnnotationImage )
+                continue;
+
+            if ( image instanceof AnnotationLabelImage )
+            {
+                RandomAccessibleInterval< ? extends IntegerType< ? > > source = ( ( AnnotationLabelImage< ? > ) image ).getLabelImage().getSourcePair().getSource().getSource( 0, 0 );
+                types.add( Util.getTypeFromInterval( source ) );
+            }
+            else
+            {
+                types.add( ( Type ) Util.getTypeFromInterval( sac.getSpimSource().getSource( 0, 0 ) ) );
+            }
+        }
+
+        List< SourceAndConverter< ? > > dataSacs = sacs.stream()
+                .filter( sac -> !( DataStore.sourceToImage().get( sac ) instanceof RegionAnnotationImage ) )
                 .collect( Collectors.toList() );
 
-        boolean allByte = sacs.stream()
-                .map( sac -> Util.getTypeFromInterval( sac.getSpimSource().getSource( 0, 0 ) ) )
+        boolean allByte = types.stream()
                 .allMatch( t -> t instanceof UnsignedByteType );
 
-        boolean allShort = sacs.stream()
-                .map( sac -> Util.getTypeFromInterval( sac.getSpimSource().getSource( 0, 0 ) ) )
-                .allMatch( t -> t instanceof UnsignedShortType );
+        boolean allByteOrShort = types.stream()
+                .allMatch( t -> ( t instanceof UnsignedShortType ) || ( t instanceof UnsignedByteType ) );
 
         for ( SourceAndConverter< ?  > sac : sacs )
         {
@@ -183,7 +205,7 @@ public class ScreenShotMaker
                 // ImageJ 8-bit
                 realRAI = ArrayImgs.unsignedBytes( screenshotDimensions[ 0 ], screenshotDimensions[ 1 ] );
             }
-            else if ( allShort )
+            else if ( allByteOrShort )
             {
                 // ImageJ 16-bit
                 realRAI = ArrayImgs.unsignedShorts( screenshotDimensions[ 0 ], screenshotDimensions[ 1 ] );
@@ -258,8 +280,10 @@ public class ScreenShotMaker
                             if ( sourceMask.test( new RealPoint( sourceRealPosition ) ) )
                             {
                                 maskAccess.get().set( true );
-                                setPixelValue( sourceAccess, targetAccess );
                                 setArgbPixelValue( converter, sourceAccess, argbAccess, argbType );
+
+                                if ( dataSacs.contains( sac ) )
+                                    setPixelValue( sourceAccess, targetAccess );
                             }
                             else
                             {
@@ -289,8 +313,11 @@ public class ScreenShotMaker
 
             ThreadHelper.waitUntilFinished( futures );
 
-            realCaptures.add( realRAI );
-            maskCaptures.add( maskRAI );
+            if ( dataSacs.contains( sac ) )
+            {
+                realCaptures.add( realRAI );
+                maskCaptures.add( maskRAI );
+            }
             argbCaptures.add( argbRAI );
             displayRanges.add( displayRange );
         }
@@ -304,7 +331,7 @@ public class ScreenShotMaker
         {
             rgbImagePlus = createRGBImagePlus( voxelUnit, argbCaptures, voxelSpacing, sacs );
 
-            // TODO: not could return multiple images here, one per sac,
+            // TODO: instead of a composite image we could return multiple images here, one per sac,
             //  this would also help with the datatype
             //  one has to think about the pros and cons of having them in one image...
             compositeImagePlus = createCompositeImagePlus(
