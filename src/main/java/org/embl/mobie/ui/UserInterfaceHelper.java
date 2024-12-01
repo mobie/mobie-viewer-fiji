@@ -877,7 +877,7 @@ public class UserInterfaceHelper
 			final String uiSelectionGroup = view.getUiSelectionGroup();
 			if ( groupingsToViews.containsKey( uiSelectionGroup ) ) {
 				Map<String, View> groupViews = groupingsToViews.get( uiSelectionGroup );
-                groupViews.remove( viewName );
+				groupViews.remove( viewName );
 
 				if ( groupViews.isEmpty() ) {
 					groupingsToViews.remove( uiSelectionGroup );
