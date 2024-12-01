@@ -858,6 +858,39 @@ public class UserInterfaceHelper
 			}
 		}
 
+		refreshViewsSelectionPanelHeight();
+	}
+
+	public void removeViewsFromViewSelectionPanel( Map< String, View > views )
+	{
+		for ( String viewName : views.keySet() )
+		{
+			final View view = views.get( viewName );
+			final String uiSelectionGroup = view.getUiSelectionGroup();
+			if ( groupingsToViews.containsKey( uiSelectionGroup ) ) {
+				Map<String, View> groupViews = groupingsToViews.get( uiSelectionGroup );
+                groupViews.remove( viewName );
+
+				if ( groupViews.isEmpty() ) {
+					groupingsToViews.remove( uiSelectionGroup );
+				}
+			}
+
+			if ( groupingsToComboBox.containsKey( uiSelectionGroup ) ) {
+				JComboBox comboBox = groupingsToComboBox.get( uiSelectionGroup );
+				comboBox.removeItem( viewName );
+
+				if ( comboBox.getItemCount() == 0 ) {
+					groupingsToComboBox.remove( uiSelectionGroup );
+//					viewSelectionPanel.remove();
+				}
+			}
+		}
+
+		refreshViewsSelectionPanelHeight();
+	}
+
+	private void refreshViewsSelectionPanelHeight() {
 		viewsSelectionPanelHeight = groupingsToViews.keySet().size() * 40;
 	}
 

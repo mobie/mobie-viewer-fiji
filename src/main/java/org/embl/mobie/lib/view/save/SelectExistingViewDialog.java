@@ -30,6 +30,7 @@ package org.embl.mobie.lib.view.save;
 
 import org.embl.mobie.lib.create.ProjectCreatorHelper;
 import org.embl.mobie.lib.serialize.Dataset;
+import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.ui.MoBIELaf;
 import org.embl.mobie.ui.SwingHelper;
 import org.embl.mobie.ui.UserInterfaceHelper;
@@ -63,6 +64,10 @@ public class SelectExistingViewDialog {
     // write to additional views json
     public SelectExistingViewDialog( AdditionalViews additionalViews ) {
         groupToViewsMap = ProjectCreatorHelper.getGroupToViewsMap(additionalViews);
+    }
+
+    public SelectExistingViewDialog( Map<String, View> views ) {
+        groupToViewsMap = ProjectCreatorHelper.getGroupToViewsMap(views);
     }
 
     public String getSelectedView() {

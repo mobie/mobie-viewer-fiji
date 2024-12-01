@@ -155,20 +155,7 @@ public class ProjectCreatorHelper {
      * @return Map of ui selection group names to array of view names
      */
     public static Map<String, ArrayList<String>> getGroupToViewsMap( Dataset dataset ) {
-        Map<String, ArrayList<String>> groupToViewsMap = new HashMap<>();
-        for ( String viewName: dataset.views().keySet() ) {
-            View view = dataset.views().get( viewName );
-            String group = view.getUiSelectionGroup();
-            if ( !groupToViewsMap.containsKey( group ) ) {
-                ArrayList<String> views = new ArrayList<>();
-                views.add( viewName );
-                groupToViewsMap.put( group, views );
-            } else {
-                groupToViewsMap.get( group ).add( viewName );
-            }
-        }
-
-        return groupToViewsMap;
+        return getGroupToViewsMap( dataset.views() );
     }
 
     /**
@@ -178,9 +165,18 @@ public class ProjectCreatorHelper {
      * @return Map of ui selection group names to array of view names
      */
     public static Map<String, ArrayList<String>> getGroupToViewsMap( AdditionalViews additionalViews ) {
+        return getGroupToViewsMap(additionalViews.views);
+    }
+
+    /**
+     * Get mapping of ui selection groups (i.e. MoBIE dropdown menu names) to views for given views
+     * @param viewNameToView map of view names to view
+     * @return Map of ui selection group names to array of view names
+     */
+    public static Map<String, ArrayList<String>> getGroupToViewsMap( Map<String, View> viewNameToView ) {
         Map<String, ArrayList<String>> groupToViewsMap = new HashMap<>();
-        for ( String viewName: additionalViews.views.keySet() ) {
-            View view = additionalViews.views.get( viewName );
+        for ( String viewName: viewNameToView.keySet() ) {
+            View view = viewNameToView.get( viewName );
             String group = view.getUiSelectionGroup();
             if ( !groupToViewsMap.containsKey( group ) ) {
                 ArrayList<String> views = new ArrayList<>();

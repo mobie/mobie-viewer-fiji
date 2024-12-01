@@ -60,6 +60,7 @@ import org.embl.mobie.lib.table.*;
 import org.embl.mobie.lib.transform.TransformHelper;
 import org.embl.mobie.lib.transform.ImageTransformer;
 import org.embl.mobie.lib.transform.viewer.*;
+import org.embl.mobie.lib.view.delete.ViewDeleter;
 import org.embl.mobie.ui.UserInterface;
 import org.embl.mobie.ui.WindowArrangementHelper;
 import org.embl.mobie.lib.view.save.ViewSaver;
@@ -88,6 +89,7 @@ public class ViewManager
 	private final UniverseManager universeManager;
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewSaver viewSaver;
+	private final ViewDeleter viewDeleter;
 
 	public ViewManager( MoBIE moBIE, UserInterface userInterface, boolean is2D )
 	{
@@ -98,6 +100,7 @@ public class ViewManager
 		universeManager = new UniverseManager();
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
 		viewSaver = new ViewSaver( moBIE );
+		viewDeleter = new ViewDeleter( moBIE );
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 	}
 
@@ -191,6 +194,8 @@ public class ViewManager
 	public AdditionalViewsLoader getAdditionalViewsLoader() { return additionalViewsLoader; }
 
 	public ViewSaver getViewsSaver() { return viewSaver; }
+
+	public ViewDeleter getViewsDeleter() { return viewDeleter; }
 
 	private void addImageTransforms( List< Transformation > transformations,
 									 List< ? extends Image< ? > > images )
