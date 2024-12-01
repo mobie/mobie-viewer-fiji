@@ -113,6 +113,7 @@ public class UserInterfaceHelper
 	private JPanel viewSelectionPanel;
 	private Map< String, Map< String, View > > groupingsToViews;
 	private Map< String, JComboBox > groupingsToComboBox;
+	private Map< String, JPanel > groupingsToPanels;
 	private JCheckBox overlayNamesCheckbox;
 
 	public UserInterfaceHelper( MoBIE moBIE )
@@ -795,6 +796,7 @@ public class UserInterfaceHelper
 	{
 		groupingsToViews = new HashMap<>(  );
 		groupingsToComboBox = new HashMap<>( );
+		groupingsToPanels = new HashMap<>();
 		viewSelectionPanel = new JPanel( new BorderLayout() );
 		viewSelectionPanel.setLayout( new BoxLayout( viewSelectionPanel, BoxLayout.Y_AXIS ) );
 
@@ -824,40 +826,42 @@ public class UserInterfaceHelper
 		});
 
 		// If it's the first time, just add all the panels in order
-		if ( groupingsToComboBox.keySet().size() == 0 ) {
+		if ( groupingsToComboBox.keySet().isEmpty() ) {
 			for (String uiSelectionGroup : uiSelectionGroups) {
 				final JPanel selectionPanel = createViewSelectionPanel(moBIE, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
 				viewSelectionPanel.add(selectionPanel);
 			}
-		} else {
-			// If there are already panels, then add new ones at the correct index to maintain alphabetical order
-			Map< Integer, JPanel > indexToPanel = new HashMap<>();
-			for ( String viewName : views.keySet() ) {
-				String uiSelectionGroup = views.get( viewName ).getUiSelectionGroup();
-				if ( groupingsToComboBox.containsKey( uiSelectionGroup ) ) {
-					JComboBox comboBox = groupingsToComboBox.get( uiSelectionGroup );
-					// check if a view of that name already exists: -1 means it doesn't exist
-					int index = ( (DefaultComboBoxModel) comboBox.getModel() ).getIndexOf( viewName );
-					if ( index == -1 ) {
-						comboBox.addItem(viewName);
-					}
-				} else {
-					final JPanel selectionPanel = createViewSelectionPanel(moBIE, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
-					int alphabeticalIndex = uiSelectionGroups.indexOf( uiSelectionGroup );
-					indexToPanel.put( alphabeticalIndex, selectionPanel );
-				}
-			}
 
-			if ( indexToPanel.keySet().size() > 0 ) {
-				// add panels in ascending index order
-				final ArrayList< Integer > sortedIndices = new ArrayList<>( indexToPanel.keySet() );
-				Collections.sort( sortedIndices );
-				for ( Integer index: sortedIndices ) {
-					viewSelectionPanel.add( indexToPanel.get(index), index.intValue() );
+			refreshViewsSelectionPanelHeight();
+			return;
+		}
+
+		// If there are already panels, then add new ones at the correct index to maintain alphabetical order
+		Map< Integer, JPanel > indexToPanel = new HashMap<>();
+		for ( String viewName : views.keySet() ) {
+			String uiSelectionGroup = views.get( viewName ).getUiSelectionGroup();
+			if ( groupingsToComboBox.containsKey( uiSelectionGroup ) ) {
+				JComboBox comboBox = groupingsToComboBox.get( uiSelectionGroup );
+				// check if a view of that name already exists: -1 means it doesn't exist
+				int index = ( (DefaultComboBoxModel) comboBox.getModel() ).getIndexOf( viewName );
+				if ( index == -1 ) {
+					comboBox.addItem(viewName);
 				}
+			} else {
+				final JPanel selectionPanel = createViewSelectionPanel(moBIE, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
+				int alphabeticalIndex = uiSelectionGroups.indexOf( uiSelectionGroup );
+				indexToPanel.put( alphabeticalIndex, selectionPanel );
 			}
 		}
 
+		if ( !indexToPanel.keySet().isEmpty() ) {
+			// add panels in ascending index order
+			final ArrayList<Integer> sortedIndices = new ArrayList<>(indexToPanel.keySet());
+			Collections.sort(sortedIndices);
+			for (Integer index : sortedIndices) {
+				viewSelectionPanel.add(indexToPanel.get(index), index.intValue());
+			}
+		}
 		refreshViewsSelectionPanelHeight();
 	}
 
@@ -882,7 +886,8 @@ public class UserInterfaceHelper
 
 				if ( comboBox.getItemCount() == 0 ) {
 					groupingsToComboBox.remove( uiSelectionGroup );
-//					viewSelectionPanel.remove();
+					viewSelectionPanel.remove( groupingsToPanels.get(uiSelectionGroup) );
+					groupingsToPanels.remove(uiSelectionGroup);
 				}
 			}
 		}
@@ -965,6 +970,7 @@ public class UserInterfaceHelper
 		horizontalLayoutPanel.add( button );
 
 		groupingsToComboBox.put( panelName, comboBox );
+		groupingsToPanels.put( panelName, horizontalLayoutPanel );
 
 		return horizontalLayoutPanel;
 	}

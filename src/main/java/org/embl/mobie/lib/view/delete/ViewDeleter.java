@@ -13,6 +13,7 @@ import org.embl.mobie.lib.view.save.SelectExistingViewDialog;
 import org.embl.mobie.ui.UserInterfaceHelper;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.embl.mobie.io.github.GitHubUtils.isGithub;
@@ -24,7 +25,7 @@ public class ViewDeleter {
 
     private MoBIE moBIE;
 
-    public ViewDeleter( MoBIE moBIE) {
+    public ViewDeleter( MoBIE moBIE ) {
         this.moBIE = moBIE;
     }
 
@@ -55,45 +56,44 @@ public class ViewDeleter {
         // Read views directly from dataset json rather than from MoBIE.getViews() (otherwise could include
         // views loaded from external files via Load Additional Views)
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJson );
-        Map<String, View> views = getViewsExceptDefaultFromDataset(dataset);
+        Map<String, View> views = dataset.views();
+        // Remove default view, as this shouldn't be deleted
+        views.remove( View.DEFAULT );
 
-        String selectedView = new SelectExistingViewDialog( views ).getSelectedView();
-        if ( selectedView == null ) {
+        Map<String, View> viewsToRemove = selectViewsToRemove( views );
+        if ( viewsToRemove == null ) {
             return;
         }
-
-        removeViewsFromDatasetJson( views, datasetJson );
-        removeViewsFromUI( views );
+        removeViewsFromDatasetJson( viewsToRemove, datasetJson );
+        removeViewsFromUI( viewsToRemove );
     }
 
-    private void removeViewsFromExternalFile() {
+    private void removeViewsFromExternalFile() throws IOException {
         String selectedFilePath = UserInterfaceHelper.selectFilePath( "json", "View", true );
         if ( selectedFilePath == null ) {
             return;
         }
 
-        AdditionalViews additionalViews = new AdditionalViewsJsonParser().getViews( selectedFilePath );
-        String selectedView = new SelectExistingViewDialog( additionalViews ).getSelectedView();
-        if ( selectedView == null ) {
+        Map<String, View> views = new AdditionalViewsJsonParser().getViews( selectedFilePath ).views;
+
+        Map<String, View> viewsToRemove = selectViewsToRemove( views );
+        if ( viewsToRemove == null ) {
             return;
         }
-
-        removeViewsFromAdditionalViewsJson( views );
+        removeViewsFromAdditionalViewsJson( views, selectedFilePath );
         removeViewsFromUI( views );
     }
 
-    private Map< String, View > getViewsExceptDefaultFromDataset(Dataset dataset) throws IOException {
+    private Map<String, View> selectViewsToRemove( Map<String, View> views ) {
+        String selectedView = new SelectExistingViewDialog( views ).getSelectedView();
+        if ( selectedView == null ) {
+            return null;
+        }
 
-        Map<String, View> views = dataset.views();
-        // Remove default view, as this shouldn't be deleted
-        views.remove( View.DEFAULT );
+        Map<String, View> viewsToRemove = new HashMap<>();
+        viewsToRemove.put( selectedView, views.get(selectedView) );
 
-        return views;
-    }
-
-    private Map<String, View> getViewsFromAdditionalViewsJson(String jsonPath) throws IOException {
-        AdditionalViews additionalViews = new AdditionalViewsJsonParser().getViews( jsonPath );
-        return additionalViews.views;
+        return viewsToRemove;
     }
 
     private void removeViewsFromDatasetJson( Map<String, View> views, String datasetJsonPath) throws IOException {
