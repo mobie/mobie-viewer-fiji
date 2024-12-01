@@ -153,8 +153,12 @@ public class UserInterfaceHelper
 	}
 
 	public static FileLocation loadFromProjectOrFileSystemDialog() {
+		return loadFromProjectOrFileSystemDialog("Load from");
+	}
+
+	public static FileLocation loadFromProjectOrFileSystemDialog( String dialogText ) {
 		final GenericDialog gd = new GenericDialog("Choose source");
-		gd.addChoice("Load from", new String[]{ FileLocation.CurrentProject.toString(), FileLocation.ExternalFile.toString()}, FileLocation.CurrentProject.toString());
+		gd.addChoice(dialogText, new String[]{ FileLocation.CurrentProject.toString(), FileLocation.ExternalFile.toString()}, FileLocation.CurrentProject.toString());
 		gd.showDialog();
 		if ( gd.wasCanceled() ) return null;
 		return FileLocation.fromString( gd.getNextChoice() );

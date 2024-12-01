@@ -55,6 +55,7 @@ public class SelectExistingViewDialog {
 
     private Map<String, ArrayList<String>> groupToViewsMap;
     private String selectedView;
+    private String title = "Choose an existing view...";
 
     // writing to dataset json
     public SelectExistingViewDialog( Dataset dataset ) {
@@ -70,6 +71,11 @@ public class SelectExistingViewDialog {
         groupToViewsMap = ProjectCreatorHelper.getGroupToViewsMap(views);
     }
 
+    public String getSelectedView( String title ) {
+        this.title = title;
+        return getSelectedView();
+    }
+
     public String getSelectedView() {
         showViewSelectionUI();
         return selectedView;
@@ -78,7 +84,7 @@ public class SelectExistingViewDialog {
     private void showViewSelectionUI() {
         MoBIELaf.MoBIELafOn();
         dialog = new JDialog((Frame)null, true);
-        dialog.setTitle( "Choose an existing view..." );
+        dialog.setTitle( title );
         dialog.getContentPane().setLayout( new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS ) );
         dialog.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         createComboBoxes();

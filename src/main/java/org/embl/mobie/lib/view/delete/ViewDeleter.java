@@ -25,6 +25,9 @@ public class ViewDeleter {
 
     private MoBIE moBIE;
 
+    /**
+     * Delete views from the current dataset, or an external file
+     */
     public ViewDeleter( MoBIE moBIE ) {
         this.moBIE = moBIE;
     }
@@ -33,7 +36,7 @@ public class ViewDeleter {
     {
         new Thread( () -> {
             try {
-                FileLocation fileLocation = UserInterfaceHelper.loadFromProjectOrFileSystemDialog();
+                FileLocation fileLocation = UserInterfaceHelper.loadFromProjectOrFileSystemDialog("Delete from");
 
                 if ( fileLocation == FileLocation.CurrentProject ) {
                     removeViewsFromCurrentProject();
@@ -60,6 +63,11 @@ public class ViewDeleter {
         // Remove default view, as this shouldn't be deleted
         views.remove( View.DEFAULT );
 
+        if ( views.isEmpty() ) {
+            IJ.log("No valid views in dataset - can't remove default view");
+            return;
+        }
+
         Map<String, View> viewsToRemove = selectViewsToRemove( views );
         if ( viewsToRemove == null ) {
             return;
@@ -75,17 +83,23 @@ public class ViewDeleter {
         }
 
         Map<String, View> views = new AdditionalViewsJsonParser().getViews( selectedFilePath ).views;
+        if ( views.isEmpty() ) {
+            IJ.log("No valid views in file");
+            return;
+        }
 
         Map<String, View> viewsToRemove = selectViewsToRemove( views );
         if ( viewsToRemove == null ) {
             return;
         }
-        removeViewsFromAdditionalViewsJson( views, selectedFilePath );
-        removeViewsFromUI( views );
+        removeViewsFromAdditionalViewsJson( viewsToRemove, selectedFilePath );
+        removeViewsFromUI( viewsToRemove );
     }
 
     private Map<String, View> selectViewsToRemove( Map<String, View> views ) {
-        String selectedView = new SelectExistingViewDialog( views ).getSelectedView();
+        String selectedView = new SelectExistingViewDialog( views ).getSelectedView(
+                "Choose a view to delete..."
+        );
         if ( selectedView == null ) {
             return null;
         }
@@ -96,7 +110,7 @@ public class ViewDeleter {
         return viewsToRemove;
     }
 
-    private void removeViewsFromDatasetJson( Map<String, View> views, String datasetJsonPath) throws IOException {
+    public void removeViewsFromDatasetJson( Map<String, View> views, String datasetJsonPath) throws IOException {
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
         dataset.views().keySet().removeAll( views.keySet() );
 
@@ -104,7 +118,7 @@ public class ViewDeleter {
         IJ.log( "Views \"" + views.keySet()  + "\" removed from dataset.json" );
     }
 
-    private void removeViewsFromAdditionalViewsJson( Map<String, View> views, String jsonPath ) throws IOException
+    public void removeViewsFromAdditionalViewsJson( Map<String, View> views, String jsonPath ) throws IOException
     {
         AdditionalViews additionalViews = new AdditionalViewsJsonParser().getViews( jsonPath );
         additionalViews.views.keySet().removeAll( views.keySet() );
@@ -112,7 +126,6 @@ public class ViewDeleter {
         new AdditionalViewsJsonParser().saveViews( additionalViews, jsonPath );
         IJ.log( "Views \"" + views.keySet() + "\" removed from " + jsonPath );
     }
-
 
     public void removeViewsFromUI( Map<String, View> views )
     {
