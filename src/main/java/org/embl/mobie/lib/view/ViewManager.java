@@ -724,6 +724,8 @@ public class ViewManager
 	{
 		display.imageBVViewer = new ImageBVViewer( display.sourceAndConverters(), bvvManager );
 		display.imageBVViewer.showImagesBVV( false );
+		display.coloringModel.listeners().add( display.imageBVViewer );
+		display.selectionModel.listeners().add( display.imageBVViewer );
 
 		display.segmentVolumeViewer = new SegmentVolumeViewer( display.selectionModel, display.coloringModel, display.images(), universeManager );
 		Double[] resolution3dView = display.getResolution3dView();

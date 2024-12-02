@@ -6,6 +6,7 @@ import java.awt.image.IndexColorModel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import bdv.viewer.Source;
@@ -22,9 +23,11 @@ import net.imglib2.util.Util;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
+import org.embl.mobie.lib.color.ColoringListener;
 import org.embl.mobie.lib.color.lut.GlasbeyARGBLut;
 import org.embl.mobie.lib.image.AnnotationLabelImage;
 import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 
 import bdv.viewer.SourceAndConverter;
@@ -40,7 +43,7 @@ import org.embl.mobie.lib.source.AnnotationType;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 
-public class ImageBVViewer
+public class ImageBVViewer implements ColoringListener, SelectionListener
 {
 	
 	private final List< ? extends SourceAndConverter< ? > > sourceAndConverters;
@@ -52,10 +55,12 @@ public class ImageBVViewer
 	private final BVVManager bvvManager;
 	private Bvv bvv;
 	public BvvHandleFrame handle = null;
+	private int nRenderMethod;
 
-	
+
 	public ImageBVViewer(
-			final List< ? extends SourceAndConverter< ? > > sourceAndConverters, BVVManager bvvManager_)
+			final List< ? extends SourceAndConverter< ? > > sourceAndConverters,
+			BVVManager bvvManager_)
 	{
 		this.sourceAndConverters = sourceAndConverters;
 		sacToBvvSource = new ConcurrentHashMap<>();
@@ -82,11 +87,12 @@ public class ImageBVViewer
 
 	public synchronized < T > void showImagesBVV( boolean show )
 	{
-		
 		this.showImages = show;
 
 		if ( showImages && bvv == null )
 		{
+			// remove previous sources
+			sacToBvvSource = new ConcurrentHashMap<>();
 			initBVV();
 		}
 		
@@ -103,8 +109,7 @@ public class ImageBVViewer
 					addSourceToBVV(sac);
 				}
 			}
-		}		
-
+		}
 	}
 	
 	void addSourceToBVV(SourceAndConverter< ? > sac)
@@ -120,7 +125,7 @@ public class ImageBVViewer
 			return;
 		}
 
-		int nRenderMethod = 1;
+		nRenderMethod = 1;
 		
 		//consistent rendering of all sources
 		if(	bvv.getBvvHandle().getViewerPanel().state().getSources().size()>0)
@@ -131,20 +136,30 @@ public class ImageBVViewer
 		}
 		
 		//assume it is always one source
-		BvvStackSource< ? >  bvvSource = BvvFunctions.show(BVVSourceToSpimDataWrapper.spimDataSourceWrap( source ), Bvv.options().addTo( bvvManager.get() )).get( 0 );
+		BvvStackSource< ? >  bvvSource = BvvFunctions.show(
+				BVVSourceToSpimDataWrapper.spimDataSourceWrap( source ),
+				Bvv.options().addTo( bvvManager.get() )).get( 0 );
+		sacToBvvSource.put( sac, bvvSource );
 
+		configureRenderingSettings( sac, bvvSource );
+	}
+
+	private void configureRenderingSettings(
+			SourceAndConverter< ? > sac,
+			BvvStackSource< ? > bvvSource )
+	{
 		bvvSource.setRenderType( nRenderMethod );
 		double displayRangeMin = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMin();
 		double displayRangeMax = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMax();
-		if(isAnnotation(sac))
+		if(isAnnotation( sac ))
 		{
-			final IndexColorModel icmAnnLUT = getAnnotationLUT(sac);
+			final IndexColorModel icmAnnLUT = getAnnotationLUT( sac );
 			//final IndexColorModel icmAnnLUT = getAnnotationLUTTwoLabelsExample(sac);
 			bvvSource.setLUT(icmAnnLUT,Integer.toString( icmAnnLUT.hashCode()));
 			bvvSource.setDisplayRangeBounds( 0, icmAnnLUT.getMapSize()-1);
 			bvvSource.setDisplayRange( 0, icmAnnLUT.getMapSize()-1);
 			bvvSource.setAlphaRangeBounds( 0,1);
-			bvvSource.setAlphaRange( 0,1);	
+			bvvSource.setAlphaRange( 0,1);
 			bvvSource.setVoxelRenderInterpolation( 0 );
 		}
 		else
@@ -152,26 +167,22 @@ public class ImageBVViewer
 			final ARGBType color = ( ( ColorConverter ) sac.getConverter() ).getColor();
 
 			bvvSource.setColor( color );
-			final Object type = Util.getTypeFromInterval( source.getSource( 0, 0 ) );
+			final Object type = Util.getTypeFromInterval( sac.getSpimSource().getSource( 0, 0 ) );
 			final double[] contrastLimits = new double[ 2 ];
 			contrastLimits[ 0 ] = 0;
 			if ( type instanceof UnsignedByteType )
 				contrastLimits[ 1 ] = 255;
-			else 
+			else
 				contrastLimits[ 1 ] = 65535;
 			//is maybe Double needed? probably not
 			if(type instanceof FloatType)
 			{
 				displayRangeMin = 0.;
 				displayRangeMax = 65535;
-				
 			}
 			bvvSource.setDisplayRangeBounds( contrastLimits[0], contrastLimits[1]);
 			bvvSource.setDisplayRange( displayRangeMin, displayRangeMax );
 		}
-		
-		sacToBvvSource.put( sac, bvvSource );
-		
 	}
 
 	private static boolean isAnnotation( SourceAndConverter< ? > sac )
@@ -308,5 +319,32 @@ public class ImageBVViewer
 			return new IndexColorModel(16,nAnnotationsNumber+1,colors[0],colors[1],colors[2], alphas);
 		}
 		return null;
+	}
+
+	@Override
+	public void coloringChanged()
+	{
+		for ( Map.Entry< SourceAndConverter, BvvStackSource > entry : sacToBvvSource.entrySet() )
+		{
+			configureRenderingSettings( entry.getKey(), entry.getValue() );
+		}
+		bvv.getBvvHandle().getViewerPanel().requestRepaint();
+	}
+
+	@Override
+	public void selectionChanged()
+	{
+		for ( Map.Entry< SourceAndConverter, BvvStackSource > entry : sacToBvvSource.entrySet() )
+		{
+			if ( isAnnotation( entry.getKey() ) )
+				configureRenderingSettings( entry.getKey(), entry.getValue() );
+		}
+		bvv.getBvvHandle().getViewerPanel().requestRepaint();
+	}
+
+	@Override
+	public void focusEvent( Object selection, Object initiator )
+	{
+
 	}
 }
