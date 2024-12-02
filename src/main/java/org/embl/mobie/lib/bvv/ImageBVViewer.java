@@ -139,7 +139,8 @@ public class ImageBVViewer
 		if(isAnnotation(sac))
 		{
 			
-			final IndexColorModel icmAnnLUT = getAnnotationLUT(sac);
+			//final IndexColorModel icmAnnLUT = getAnnotationLUT(sac);
+			final IndexColorModel icmAnnLUT = getAnnotationLUTTwoLabelsExample(sac);
 			bvvSource.setLUT(icmAnnLUT,Integer.toString( icmAnnLUT.hashCode()));
 			bvvSource.setDisplayRangeBounds( 0, icmAnnLUT.getMapSize()-1);
 			bvvSource.setDisplayRange( 0, icmAnnLUT.getMapSize()-1);
@@ -183,6 +184,7 @@ public class ImageBVViewer
 		}
 		return false;
 	}
+	
 	private static Source< ? > getSource( SourceAndConverter< ? > sac )
 	{
 		Image< ? > image = DataStore.getImage( sac.getSpimSource().getName() );
@@ -303,6 +305,50 @@ public class ImageBVViewer
 				colors[2][label] = ( byte ) ARGBType.blue( val );
 			}
 			return new IndexColorModel(16,nAnnotationsNumber+1,colors[0],colors[1],colors[2]);
+		}
+		return null;
+	}
+	@SuppressWarnings( { "unchecked", "rawtypes" } )
+	public static IndexColorModel getAnnotationLUTTwoLabelsExample(SourceAndConverter< ? > sac)
+	{
+		Image< ? > image = DataStore.getImage( sac.getSpimSource().getName() );
+		if ( image instanceof AnnotationLabelImage )
+		{
+			AnnotationAdapter< Annotation > annotationAdapter = ( ( AnnotationLabelImage< Annotation > ) image ).getAnnotationAdapter();
+			Converter< AnnotationType, ARGBType > converter = ( Converter< AnnotationType, ARGBType > ) sac.getConverter();
+
+			final int nAnnotationsNumber = ( ( AnnotationLabelImage<?> ) image ).getAnnData().getTable().numAnnotations();
+			
+			final byte [][] colors = new byte [3][nAnnotationsNumber+1];
+			final byte [] alphas = new byte [nAnnotationsNumber+1];
+			ARGBType valARGB = new ARGBType();
+			int val;
+			
+			//zero is black
+			colors[0][0] = 0;
+			colors[1][0] = 0;
+			colors[2][0] = 0;
+			alphas[0] = ( byte ) ( 0 );
+			int timePoint = 0;
+			for(int label=1; label<=nAnnotationsNumber; label++)
+			{		
+				final Annotation annotation = annotationAdapter.getAnnotation( image.getName(), timePoint, label );
+				converter.convert(  new AnnotationType<>( annotation ), valARGB );
+				val = valARGB.get();
+				colors[0][label] = ( byte ) ARGBType.red( val );
+				colors[1][label] = ( byte ) ARGBType.green( val );
+				colors[2][label] = ( byte ) ARGBType.blue( val );
+				//select two labels
+				if(label==5765 || label==16652 )
+				{
+					alphas[label] = ( byte ) ( 32 );
+				}
+				else
+				{
+					alphas[label] = ( byte ) ( 0 );
+				}
+			}
+			return new IndexColorModel(16,nAnnotationsNumber+1,colors[0],colors[1],colors[2],alphas);
 		}
 		return null;
 	}

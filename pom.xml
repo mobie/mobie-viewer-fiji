@@ -199,7 +199,7 @@
         <dependency>
 		<groupId>nl.uu.science.cellbiology</groupId>
 			<artifactId>bvv-playground</artifactId>
-			<version>0.3.1</version>
+			<version>0.3.2</version>
 		</dependency>
 		<dependency>
   			<groupId>com.formdev</groupId>
