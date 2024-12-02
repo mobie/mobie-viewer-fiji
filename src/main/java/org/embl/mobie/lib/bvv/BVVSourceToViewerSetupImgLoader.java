@@ -209,8 +209,8 @@ public class BVVSourceToViewerSetupImgLoader extends AbstractViewerSetupImgLoade
 			{
 				intRange[0][d]= min[d];
 				intRange[1][d]= min[d]+dimensions[d]-1;
-
 			}
+
 			IterableInterval< UnsignedShortType > iterRAI;
 			if(!bFloatType)
 			{

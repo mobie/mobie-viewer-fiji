@@ -138,7 +138,6 @@ public class ImageBVViewer
 		double displayRangeMax = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMax();
 		if(isAnnotation(sac))
 		{
-			
 			final IndexColorModel icmAnnLUT = getAnnotationLUT(sac);
 			//final IndexColorModel icmAnnLUT = getAnnotationLUTTwoLabelsExample(sac);
 			bvvSource.setLUT(icmAnnLUT,Integer.toString( icmAnnLUT.hashCode()));
@@ -147,7 +146,6 @@ public class ImageBVViewer
 			bvvSource.setAlphaRangeBounds( 0,1);
 			bvvSource.setAlphaRange( 0,1);	
 			bvvSource.setVoxelRenderInterpolation( 0 );
-
 		}
 		else
 		{
@@ -287,27 +285,31 @@ public class ImageBVViewer
 			final int nAnnotationsNumber = ( ( AnnotationLabelImage<?> ) image ).getAnnData().getTable().numAnnotations();
 			
 			final byte [][] colors = new byte [3][nAnnotationsNumber+1];
+			final byte [] alphas = new byte [nAnnotationsNumber+1];
 			ARGBType valARGB = new ARGBType();
 			int val;
 			
-			//zero is black
+			// 0 is background is black
 			colors[0][0] = 0;
 			colors[1][0] = 0;
 			colors[2][0] = 0;
+			alphas[0] = ( byte ) ( 0 );
 			int timePoint = 0;
 			for(int label=1; label<=nAnnotationsNumber; label++)
-			{		
+			{
 				final Annotation annotation = annotationAdapter.getAnnotation( image.getName(), timePoint, label );
-				converter.convert(  new AnnotationType<>( annotation ), valARGB );
+				converter.convert( new AnnotationType<>( annotation ), valARGB );
 				val = valARGB.get();
-				colors[0][label] = ( byte ) ARGBType.red( val );
-				colors[1][label] = ( byte ) ARGBType.green( val );
-				colors[2][label] = ( byte ) ARGBType.blue( val );
+				colors[ 0 ][ label ] = ( byte ) ARGBType.red( val );
+				colors[ 1 ][ label ] = ( byte ) ARGBType.green( val );
+				colors[ 2 ][ label ] = ( byte ) ARGBType.blue( val );
+				alphas[ label ] = (byte) ARGBType.alpha( val );
 			}
-			return new IndexColorModel(16,nAnnotationsNumber+1,colors[0],colors[1],colors[2]);
+			return new IndexColorModel(16,nAnnotationsNumber+1,colors[0],colors[1],colors[2], alphas);
 		}
 		return null;
 	}
+
 	@SuppressWarnings( { "unchecked", "rawtypes" } )
 	public static IndexColorModel getAnnotationLUTTwoLabelsExample(SourceAndConverter< ? > sac)
 	{
