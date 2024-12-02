@@ -90,6 +90,7 @@ public class TableOpener
 				return (Table) storageLocation.data;
 			case TSV:
 			case CSV:
+			case PARQUET:
 			default:
 				return openTableFile( storageLocation, chunk, tableDataFormat );
 		}

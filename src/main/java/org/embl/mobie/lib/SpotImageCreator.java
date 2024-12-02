@@ -44,28 +44,41 @@ import tech.tablesaw.api.Table;
 
 public class SpotImageCreator
 {
+	private final SpotDataSource spotDataSource;
+	private final MoBIE moBIE;
 	private SpotAnnotationImage< AnnotatedSpot > spotAnnotationImage;
 
 	public SpotImageCreator( SpotDataSource dataSource, MoBIE moBIE )
 	{
-		final SpotDataSource spotDataSource = dataSource;
-		final StorageLocation tableLocation = moBIE.getTableLocation( spotDataSource.tableData );
-		final TableDataFormat tableFormat = moBIE.getTableDataFormat( spotDataSource.tableData );
-
-		Table table = TableOpener.open( tableLocation, tableFormat );
-
-		// TODO: maybe make the spot column names mapping configurable?
-		final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator( table );
-
-		final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, tableLocation, tableFormat, table );
-
-		final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
-
-		spotAnnotationImage = new SpotAnnotationImage( spotDataSource.getName(), spotAnnData, 1.0, spotDataSource.boundingBoxMin, spotDataSource.boundingBoxMax );
+		this.spotDataSource = dataSource;
+		this.moBIE = moBIE;
 	}
 
-	public SpotAnnotationImage< AnnotatedSpot > create()
+	public SpotAnnotationImage< AnnotatedSpot > get()
 	{
+		if ( spotAnnotationImage == null )
+		{
+			final StorageLocation tableLocation = moBIE.getTableLocation( spotDataSource.tableData );
+			final TableDataFormat tableFormat = moBIE.getTableDataFormat( spotDataSource.tableData );
+
+			Table table = TableOpener.open( tableLocation, tableFormat );
+
+			// TODO: maybe make the spot column names mapping configurable?
+			final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator( table );
+
+			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel =
+					new TableSawAnnotationTableModel(
+							spotDataSource.getName(),
+							annotationCreator,
+							tableLocation,
+							tableFormat,
+							table );
+
+			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
+
+			spotAnnotationImage = new SpotAnnotationImage( spotDataSource.getName(), spotAnnData, 1.0, spotDataSource.boundingBoxMin, spotDataSource.boundingBoxMax );
+		}
+
 		return spotAnnotationImage;
 	}
 }

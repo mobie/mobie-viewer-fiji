@@ -60,10 +60,10 @@ public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< 
 	public TableSawAnnotatedSpot create( TableSawAnnotationTableModel< TableSawAnnotatedSpot > model, int rowIndex )
 	{
 		final Table table = model.getTable();
-		final float[] position = new float[ 3 ];
+		int numDimensions = zColumnIndex > -1 ? 3 : 2;
+		final float[] position = new float[ numDimensions ];
 		position[ 0 ] = ((Number) table.get( rowIndex, xColumnIndex )).floatValue();
 		position[ 1 ] = ((Number) table.get( rowIndex, yColumnIndex )).floatValue();
-
 		// FIXME kdTree issue: https://imagesc.zulipchat.com/#narrow/stream/327240-ImgLib2/topic/kdTree.20issue
 		if ( zColumnIndex > -1 )
 			position[ 2 ] = ((Number) table.get( rowIndex, zColumnIndex )).floatValue() + (float) ( 1e-3 * Math.random() );

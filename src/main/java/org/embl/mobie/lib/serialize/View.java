@@ -109,8 +109,6 @@ public class View
 
 			if ( display instanceof SpotDisplay )
 			{
-				// TODO:
-				//   https://github.com/mobie/mobie.github.io/issues/88
 				final SpotDisplay< ? > spotDisplay = ( SpotDisplay< ? > ) display;
 				for ( String source : spotDisplay.sources )
 					sources.put( source, display );

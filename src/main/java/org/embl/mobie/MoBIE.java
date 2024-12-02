@@ -39,7 +39,6 @@ import net.imagej.ImageJ;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.lib.*;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 import org.embl.mobie.lib.data.*;
@@ -698,9 +697,10 @@ public class MoBIE
 
 		if ( dataSource instanceof SpotDataSource )
 		{
+
 			// build spots image from spots table
 			final SpotImageCreator spotImageCreator = new SpotImageCreator( ( SpotDataSource ) dataSource, this );
-			DataStore.addImage( spotImageCreator.create() );
+			DataStore.addImage( spotImageCreator.get() );
 		}
 
 		if ( dataSource instanceof RegionTableSource )

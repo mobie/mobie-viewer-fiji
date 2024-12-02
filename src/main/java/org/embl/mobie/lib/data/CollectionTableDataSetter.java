@@ -101,16 +101,15 @@ public class CollectionTableDataSetter
                         );
                 dataset.putDataSource( spotDataSource );
 
-                // build spots image from spots table
-                final SpotImageCreator spotImageCreator = new SpotImageCreator(
-                        spotDataSource,
-                        MoBIE.getInstance() );
-
-                SpotAnnotationImage< AnnotatedSpot > spotImage = spotImageCreator.create();
-                DataStore.addImage( spotImage );
+//                // build spots image from spots table
+//                final SpotImageCreator spotImageCreator = new SpotImageCreator(
+//                        spotDataSource,
+//                        MoBIE.getInstance() );
+//                SpotAnnotationImage< AnnotatedSpot > spotImage = spotImageCreator.create();
+//                DataStore.addImage( spotImage );
 
                 SpotDisplay< AnnotatedRegion > spotDisplay = new SpotDisplay<>( name );
-                spotDisplay.sources = Collections.singletonList( spotImage.getName() );
+                spotDisplay.sources = Collections.singletonList( spotDataSource.getName() );
                 display = spotDisplay;
             }
             else // default: intensities
