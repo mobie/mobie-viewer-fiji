@@ -48,9 +48,11 @@ import static org.embl.mobie.lib.table.TableDataFormatNames.TABLE;
 public enum TableDataFormat
 {
 	@SerializedName( TableDataFormatNames.TSV )
-	TSV,  // TSV file
+	TSV,
 	@SerializedName( TableDataFormatNames.CSV )
-	CSV,  // CSV file
+	CSV,
+	@SerializedName( TableDataFormatNames.PARQUET )
+	PARQUET,
 	@SerializedName( TableDataFormatNames.RESULTS_TABLE )
 	ResultsTable,  // ResultsTable in memory
 	@SerializedName( TableDataFormatNames.TABLE )
@@ -77,9 +79,17 @@ public enum TableDataFormat
 
 	public static TableDataFormat fromPath( String path )
 	{
-		Character delimiter = TableOpener.determineDelimiter( path );
-		if ( delimiter.equals( ',' ) ) return CSV;
-		if ( delimiter.equals( '\t' ) ) return TSV;
+		if ( path.endsWith( ".parquet" ) )
+		{
+			return TableDataFormat.PARQUET;
+		}
+		else
+		{
+			Character delimiter = TableOpener.determineDelimiter( path );
+			if ( delimiter.equals( ',' ) ) return CSV;
+			if ( delimiter.equals( '\t' ) ) return TSV;
+		}
+
 		throw new RuntimeException("Could not determine table format of " + path );
 	}
 

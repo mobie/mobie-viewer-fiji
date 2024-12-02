@@ -54,6 +54,7 @@ public class SpotImageCreator
 
 		Table table = TableOpener.open( tableLocation, tableFormat );
 
+		// TODO: maybe make the spot column names mapping configurable?
 		final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator( table );
 
 		final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, tableLocation, tableFormat, table );

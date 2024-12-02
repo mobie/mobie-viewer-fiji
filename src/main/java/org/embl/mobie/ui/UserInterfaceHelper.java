@@ -781,7 +781,7 @@ public class UserInterfaceHelper
 
 	private JButton createSpotSettingsButton( List< SourceAndConverter< ? > > sourceAndConverters )
 	{
-		JButton button = new JButton( "S" );
+		JButton button = getIconButton( "settings.png" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 		button.addActionListener( e ->
 		{

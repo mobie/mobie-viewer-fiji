@@ -31,11 +31,14 @@ package org.embl.mobie.lib.table.saw;
 import ij.IJ;
 import ij.measure.ResultsTable;
 import net.thisptr.jackson.jq.internal.misc.Strings;
+import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions;
+import net.tlabs.tablesaw.parquet.TablesawParquetReader;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.columns.SegmentColumnNames;
+import org.slf4j.LoggerFactory;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.DoubleColumn;
 import tech.tablesaw.api.IntColumn;
@@ -54,6 +57,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.Level;
 
 public class TableOpener
 {
@@ -85,20 +91,41 @@ public class TableOpener
 			case TSV:
 			case CSV:
 			default:
-				return openFile( storageLocation, chunk, tableDataFormat );
+				return openTableFile( storageLocation, chunk, tableDataFormat );
 		}
 	}
 
-	private static Table openFile( StorageLocation storageLocation, String relativeChunkLocation, TableDataFormat tableDataFormat )
+	private static Table openTableFile( StorageLocation storageLocation, String relativeChunkLocation, TableDataFormat tableDataFormat )
 	{
-		return openFile( storageLocation, relativeChunkLocation, tableDataFormat, -1 );
+		return openTableFile( storageLocation, relativeChunkLocation, tableDataFormat, -1 );
 	}
 
-	private static Table openFile( StorageLocation storageLocation, String chunk, TableDataFormat tableDataFormat, int numSamples )
+	private static Table openTableFile( StorageLocation storageLocation, String chunk, TableDataFormat tableDataFormat, int numSamples )
 	{
-		final String path = resolveTablePath( IOHelper.combinePath( storageLocation.absolutePath, chunk ) );
-		final Character separator = tableDataFormat.getSeparator();
+		if ( tableDataFormat.equals( TableDataFormat.PARQUET ) )
+		{
+			ch.qos.logback.classic.Logger logger = ( Logger ) LoggerFactory.getLogger("org.apache.parquet.hadoop.InternalParquetRecordReader");
+			logger.setLevel( Level.OFF );
 
+			Table table = new TablesawParquetReader()
+					.read( TablesawParquetReadOptions
+							.builder( storageLocation.absolutePath )
+							.build() );
+
+			System.out.println( "Read parquet table with columns:\n" + String.join( ", ", table.columnNames() ) );
+
+			return table;
+		}
+		else
+		{
+			final String path = resolveTablePath( IOHelper.combinePath( storageLocation.absolutePath, chunk ) );
+			final Character separator = tableDataFormat.getSeparator();
+			return openDelimitedTextFile( numSamples, path, separator );
+		}
+	}
+
+	private static Table openDelimitedTextFile( int numSamples, String path, Character separator )
+	{
 		try
 		{
 			// while it appears to be faster to
@@ -116,9 +143,9 @@ public class TableOpener
 					.sample( numSamples > 0 )
 					.sampleSize( numSamples )
 					.columnTypesPartial( nameToType );
-			final Table rows = Table.read().usingOptions( builder );
+			Table table = Table.read().usingOptions( builder );
 			//System.out.println("Read table " + path + " with " + rows.rowCount() + " rows in " + ( System.currentTimeMillis() - start ) + " ms." );
-			return rows;
+			return table;
 		}
 		catch ( Exception e )
 		{

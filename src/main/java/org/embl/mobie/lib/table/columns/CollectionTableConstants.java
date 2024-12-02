@@ -16,7 +16,7 @@ package org.embl.mobie.lib.table.columns;
 public class CollectionTableConstants
 {
     /**
-     * The "uri" column MUST be present, and it MUST point to a valid image dataset.
+     * The "uri" column MUST be present, and it MUST point to a valid image or spots dataset.
      *
      * The same URI MAY be present several times in the same table;
      * this can be useful to display the same data within various views,
@@ -26,11 +26,15 @@ public class CollectionTableConstants
      * - Local files system paths
      * - AWS S3 URLs
      *
-     * Supported image file formats include:
-     * - OME-Zarr
+     * Supported image formats include:
+     * - OME-Zarr (local and on S3)
      * - Everything that Bio-Formats can open
      * - BDV XML (incl. HDF5 and N5)
      * - ilastik hdf5
+     *
+     * Support spots file formats include:
+     * - Parquet
+     * - Tab or comma separated value text files
      */
     public static final String URI = "uri";
 
@@ -65,6 +69,7 @@ public class CollectionTableConstants
      * Supported values:
      * - "intensities"
      * - "labels"
+     * - "spots"
      *
      * Default value: "intensities"
      * The default value will be assigned if
@@ -74,6 +79,8 @@ public class CollectionTableConstants
     public static final String TYPE = "type";
     public static final String INTENSITIES = "intensities";
     public static final String LABELS = "labels";
+    public static final String SPOTS = "spots";
+
 
     /**
      * The "channel" column MAY be present.
@@ -289,4 +296,19 @@ public class CollectionTableConstants
      * - Plate/well based high-throughput microscopy data is a typical use-case
      */
     public static final String GRID = "grid";
+
+    /**
+     * The "format" column MAY be present.
+     *
+     * Supported values:
+     * - OmeZarr
+     *
+     * Default:
+     * If the column is absent or contains an empty or unsupported string the
+     * data format will be determined from the file ending
+     *
+     * Use cases:
+     * - OME-Zarr data that does not contain .ome.zarr in the path
+     */
+    public static final String FORMAT = "format";
 }
