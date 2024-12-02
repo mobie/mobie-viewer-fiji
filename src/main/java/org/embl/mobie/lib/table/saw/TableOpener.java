@@ -119,7 +119,8 @@ public class TableOpener
 		}
 		else
 		{
-			final String path = resolveTablePath( IOHelper.combinePath( storageLocation.absolutePath, chunk ) );
+			String tablePath = chunk != null ? IOHelper.combinePath( storageLocation.absolutePath, chunk ) : storageLocation.absolutePath;
+			final String path = resolveTablePath( tablePath );
 			final Character separator = tableDataFormat.getSeparator();
 			return openDelimitedTextFile( numSamples, path, separator );
 		}
