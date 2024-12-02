@@ -15,9 +15,9 @@ import net.imglib2.img.basictypeaccess.volatiles.array.VolatileShortArray;
 
 import net.imglib2.img.cell.CellGrid;
 import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.type.numeric.integer.UnsignedLongType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.type.volatiles.VolatileUnsignedShortType;
@@ -91,7 +91,7 @@ public class BVVSourceToViewerSetupImgLoader extends AbstractViewerSetupImgLoade
 			}		
 		}
 
-		if(typeIn instanceof FloatType  )
+		if(!(typeIn instanceof IntegerType) )
 		{
 			bFloat = true;
 			IJ.log( "Estimating Float Source range..." );
@@ -129,7 +129,7 @@ public class BVVSourceToViewerSetupImgLoader extends AbstractViewerSetupImgLoade
 		
 		if(!bFloat)
 		{
-			return convertByteShortLongRAIToShort(raiXYZ);
+			return convertIntegerRAIToShort(raiXYZ);
 		}
 		return convertRealRAIToShort(( RandomAccessibleInterval< FloatType > ) raiXYZ, dMin, dMax);
 			
@@ -214,7 +214,7 @@ public class BVVSourceToViewerSetupImgLoader extends AbstractViewerSetupImgLoade
 			IterableInterval< UnsignedShortType > iterRAI;
 			if(!bFloatType)
 			{
-				iterRAI = Views.flatIterable( convertByteShortLongRAIToShort(Views.interval( raiXYZ, new FinalInterval(intRange[0],intRange[1]))));				
+				iterRAI = Views.flatIterable( convertIntegerRAIToShort(Views.interval( raiXYZ, new FinalInterval(intRange[0],intRange[1]))));				
 			}
 			else
 			{
@@ -234,8 +234,8 @@ public class BVVSourceToViewerSetupImgLoader extends AbstractViewerSetupImgLoade
 
 
 	}
-	@SuppressWarnings( "unchecked" )
-	public static RandomAccessibleInterval< UnsignedShortType > convertByteShortLongRAIToShort(RandomAccessibleInterval< ? > raiXYZ)
+	@SuppressWarnings( { "unchecked", "rawtypes" } )
+	public static RandomAccessibleInterval< UnsignedShortType > convertIntegerRAIToShort(RandomAccessibleInterval< ? > raiXYZ)
 	{
 	
 		Object typein = Util.getTypeFromInterval(raiXYZ);
@@ -250,20 +250,17 @@ public class BVVSourceToViewerSetupImgLoader extends AbstractViewerSetupImgLoade
 					( i, o ) -> o.setInteger( ((UnsignedByteType) i).get() ),
 					new UnsignedShortType( ) );
 		}
-		else if ( typein instanceof UnsignedLongType )
+		else
 		{
 			return Converters.convert(
 					raiXYZ,
 					( i, o ) -> 
 					{
-						o.setInteger(((UnsignedLongType)i).getBigInteger().intValue());
+						o.setInteger(((IntegerType)i).getInteger());
 					},
 					new UnsignedShortType( ) );
 		}
-		else
-		{
-			return null;
-		}
+
 	}
 	
 	@SuppressWarnings( "unchecked" )

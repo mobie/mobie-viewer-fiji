@@ -5,10 +5,8 @@ import java.util.HashMap;
 
 import net.imglib2.FinalDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.type.numeric.integer.UnsignedLongType;
-import net.imglib2.type.numeric.integer.UnsignedShortType;
-import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Util;
 
 import bdv.spimdata.SequenceDescriptionMinimal;
@@ -29,10 +27,7 @@ public class BVVSourceToSpimDataWrapper
 	{		
 		Object type = Util.getTypeFromInterval( src_.getSource( 0, 0 ) );
 		
-		if(!(type instanceof FloatType  || 
-				type instanceof UnsignedShortType || 
-				type instanceof UnsignedByteType || 
-				type instanceof UnsignedLongType))
+		if(!(type instanceof RealType  && type instanceof NativeType))
 		{
 			//System.err.println( "Volume view of image of type " + type + " is currently not supported.");
 			return null;

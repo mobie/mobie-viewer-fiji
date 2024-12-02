@@ -139,8 +139,8 @@ public class ImageBVViewer
 		if(isAnnotation(sac))
 		{
 			
-			//final IndexColorModel icmAnnLUT = getAnnotationLUT(sac);
-			final IndexColorModel icmAnnLUT = getAnnotationLUTTwoLabelsExample(sac);
+			final IndexColorModel icmAnnLUT = getAnnotationLUT(sac);
+			//final IndexColorModel icmAnnLUT = getAnnotationLUTTwoLabelsExample(sac);
 			bvvSource.setLUT(icmAnnLUT,Integer.toString( icmAnnLUT.hashCode()));
 			bvvSource.setDisplayRangeBounds( 0, icmAnnLUT.getMapSize()-1);
 			bvvSource.setDisplayRange( 0, icmAnnLUT.getMapSize()-1);
