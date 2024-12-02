@@ -685,7 +685,8 @@ public class UserInterfaceHelper
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createImageVolumeViewerVisibilityCheckbox( display ) );
 		panel.add( createImageBVViewerVisibilityCheckbox( display ) );
-		panel.add( createCheckboxPlaceholder() );
+		panel.add( createCheckboxPlaceholder() ); // Table
+		panel.add( createCheckboxPlaceholder() ); // Scatter plot
 
 		// make the panel color listen to color changes of the sources
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
@@ -722,7 +723,7 @@ public class UserInterfaceHelper
 		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
 		panel.add( createContrastButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle(), false ) );
 		panel.add( createButtonPlaceholder() );
-		panel.add( createSegmentRenderingSettingsButton( sourceAndConverters, display.segmentVolumeViewer ) );
+		panel.add( createSegmentsRenderingSettingsButton( sourceAndConverters, display.segmentVolumeViewer ) );
 		panel.add( createRemoveButton( display ) );
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
@@ -733,7 +734,7 @@ public class UserInterfaceHelper
 			// segments 3D view
 			panel.add( createSegmentsVolumeViewerVisibilityCheckbox( display ) );
 			// BVV view
-			panel.add( createSegmentationBVViewerVisibilityCheckbox( display ) );
+			panel.add( createSegmentsBVViewerVisibilityCheckbox( display ) );
 			// table view
 			panel.add( createTableVisibilityCheckbox( display.tableView, display.showTable() ) );
 			// scatter plot view
@@ -741,6 +742,7 @@ public class UserInterfaceHelper
 		}
 		else
 		{
+			panel.add( createCheckboxPlaceholder() );
 			panel.add( createCheckboxPlaceholder() );
 			panel.add( createCheckboxPlaceholder() );
 			panel.add( createCheckboxPlaceholder() );
@@ -791,7 +793,7 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-	private JButton createSegmentRenderingSettingsButton( List< SourceAndConverter< ? > > sourceAndConverters, SegmentVolumeViewer< ? > segmentVolumeViewer )
+	private JButton createSegmentsRenderingSettingsButton( List< SourceAndConverter< ? > > sourceAndConverters, SegmentVolumeViewer< ? > segmentVolumeViewer )
 	{
 		JButton button = getIconButton( "settings.png" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
@@ -1173,7 +1175,7 @@ public class UserInterfaceHelper
 
 	public static JCheckBox createImageBVViewerVisibilityCheckbox( ImageDisplay display )
 	{
-		JCheckBox checkBox = new JCheckBox( "BV" );
+		JCheckBox checkBox = new JCheckBox( "B" );
 		checkBox.setToolTipText( "Toggle dataset visibility" );
 		checkBox.setSelected( display.showImagesIn3d() );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
@@ -1205,9 +1207,9 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JCheckBox createSegmentationBVViewerVisibilityCheckbox( SegmentationDisplay display )
+	public static JCheckBox createSegmentsBVViewerVisibilityCheckbox( SegmentationDisplay display )
 	{
-		JCheckBox checkBox = new JCheckBox( "BV" );
+		JCheckBox checkBox = new JCheckBox( "B" );
 		checkBox.setToolTipText( "Toggle dataset visibility" );
 		checkBox.setSelected( false );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
