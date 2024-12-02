@@ -76,7 +76,12 @@ public class SpotImageCreator
 
 			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
 
-			spotAnnotationImage = new SpotAnnotationImage( spotDataSource.getName(), spotAnnData, 1.0, spotDataSource.boundingBoxMin, spotDataSource.boundingBoxMax );
+			spotAnnotationImage = new SpotAnnotationImage(
+					spotDataSource.getName(),
+					spotAnnData,
+					null,
+					spotDataSource.boundingBoxMin,
+					spotDataSource.boundingBoxMax );
 		}
 
 		return spotAnnotationImage;

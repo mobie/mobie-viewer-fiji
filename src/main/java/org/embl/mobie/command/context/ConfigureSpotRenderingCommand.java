@@ -73,7 +73,13 @@ public class ConfigureSpotRenderingCommand extends ConfigureLabelRenderingComman
 		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
 			final SpotAnnotationImage spotAnnotationImage = ( SpotAnnotationImage ) DataStore.sourceToImage().get( sourceAndConverter );
-			spotRadiusItem.setValue( this, spotAnnotationImage.getRadius() );
+
+			Double radius = spotAnnotationImage.getRadius();
+			if ( radius != null )
+				spotRadiusItem.setValue( this, radius );
+			else
+				spotRadiusItem.setValue( this, 1.0D );
+
 			return;
 		}
 	}

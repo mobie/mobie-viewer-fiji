@@ -48,7 +48,7 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AbstractAnnotatio
 
 	private Set< String > selectedSpotIds;
 
-	public double spotRadius = 1.0D;
+	public Double spotRadius;
 
 	// Runtime
 

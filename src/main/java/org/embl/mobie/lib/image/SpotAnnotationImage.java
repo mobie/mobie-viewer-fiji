@@ -59,14 +59,19 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
 	private KDTree< AS > kdTree;
 	private RealMaskRealInterval mask;
-	private double radius;
+	private Double radius;
 	private double[] boundingBoxMin;
 	private double[] boundingBoxMax;
 	private AffineTransform3D affineTransform3D;
 	private Source< AnnotationType< AS > > source;
 	private TransformedSource< AnnotationType< AS > > transformedSource;
 
-	public SpotAnnotationImage( String name, DefaultAnnData< AS > annData, double radius, @Nullable double[] boundingBoxMin, @Nullable double[] boundingBoxMax )
+	public SpotAnnotationImage(
+			String name,
+			DefaultAnnData< AS > annData,
+			@Nullable Double radius,
+			@Nullable double[] boundingBoxMin,
+			@Nullable double[] boundingBoxMax )
 	{
 		this.name = name;
 		this.annData = annData;
@@ -77,14 +82,17 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 		createImage();
 	}
 
-	public double getRadius()
+	public Double getRadius()
 	{
 		return radius;
 	}
 
-	public void setRadius( double radius )
+	public void setRadius( Double radius )
 	{
-		this.radius = radius;
+		if ( radius != null )
+		{
+			this.radius = radius;
+		}
 	}
 
 	private void createImage()
@@ -106,6 +114,16 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 		}
 
 		mask = GeomMasks.closedBox( boundingBoxMin, boundingBoxMax );
+
+		if ( radius == null)
+		{
+			// Assign each spot an area that is a fraction of the total
+			// covered area divided by the number of spots.
+			// A = Pi R^2 => R ~ Sqrt( A )
+			double area = ( mask.realMax( 0 ) - mask.realMin( 0 ) )
+					* ( mask.realMax( 1 ) - mask.realMin( 1 ) );
+			radius = Math.sqrt( area / annotations.size() ) / 10.0;
+		}
 
 		// TODO: code duplication with RegionLabelImage
 		final ArrayList< Integer > timePoints = configureTimePoints();
