@@ -1,5 +1,6 @@
 package org.embl.mobie.lib.view.delete;
 
+import IceInternal.Ex;
 import ij.IJ;
 import org.apache.commons.lang.NotImplementedException;
 import org.embl.mobie.MoBIE;
@@ -12,6 +13,7 @@ import org.embl.mobie.lib.view.AdditionalViews;
 import org.embl.mobie.lib.view.save.SelectExistingViewDialog;
 import org.embl.mobie.ui.UserInterfaceHelper;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,24 +58,35 @@ public class ViewDeleter {
             throw new NotImplementedException("View deletion is only implemented for local projects");
         }
 
-        // Read views directly from dataset json rather than from MoBIE.getViews() (otherwise could include
-        // views loaded from external files via Load Additional Views)
-        Dataset dataset = new DatasetJsonParser().parseDataset( datasetJson );
-        Map<String, View> views = dataset.views();
-        // Remove default view, as this shouldn't be deleted
-        views.remove( View.DEFAULT );
+        try
+        {
+            // Read views directly from dataset json rather than from MoBIE.getViews() (otherwise could include
+            // views loaded from external files via Load Additional Views)
+            Dataset dataset = new DatasetJsonParser().parseDataset( datasetJson );
+            Map< String, View > views = dataset.views();
+            // Remove default view, as this shouldn't be deleted
+            views.remove( View.DEFAULT );
 
-        if ( views.isEmpty() ) {
-            IJ.log("No valid views in dataset - can't remove default view");
-            return;
-        }
+            if ( views.isEmpty() )
+            {
+                IJ.log( "No valid views in dataset - can't remove default view" );
+                return;
+            }
 
-        Map<String, View> viewsToRemove = selectViewsToRemove( views );
-        if ( viewsToRemove == null ) {
-            return;
+            Map< String, View > viewsToRemove = selectViewsToRemove( views );
+            if ( viewsToRemove == null )
+            {
+                return;
+            }
+            removeViewsFromDatasetJson( viewsToRemove, datasetJson );
+            removeViewsFromUI( viewsToRemove );
         }
-        removeViewsFromDatasetJson( viewsToRemove, datasetJson );
-        removeViewsFromUI( viewsToRemove );
+        catch ( Exception e )
+        {
+            IJ.showMessage( "File not found: " + datasetJson + "\n"
+                            + "Deleting views from the current project is only possible\n"
+                            + "when you opened MoBIE from a MoBIE project with a dataset.json");
+        }
     }
 
     private void removeViewsFromExternalFile() throws IOException {
