@@ -30,6 +30,7 @@ package org.embl.mobie.lib.view.save;
 
 import org.embl.mobie.lib.create.ProjectCreatorHelper;
 import org.embl.mobie.lib.serialize.Dataset;
+import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.ui.MoBIELaf;
 import org.embl.mobie.ui.SwingHelper;
 import org.embl.mobie.ui.UserInterfaceHelper;
@@ -54,6 +55,7 @@ public class SelectExistingViewDialog {
 
     private Map<String, ArrayList<String>> groupToViewsMap;
     private String selectedView;
+    private String title = "Choose an existing view...";
 
     // writing to dataset json
     public SelectExistingViewDialog( Dataset dataset ) {
@@ -65,6 +67,15 @@ public class SelectExistingViewDialog {
         groupToViewsMap = ProjectCreatorHelper.getGroupToViewsMap(additionalViews);
     }
 
+    public SelectExistingViewDialog( Map<String, View> views ) {
+        groupToViewsMap = ProjectCreatorHelper.getGroupToViewsMap(views);
+    }
+
+    public String getSelectedView( String title ) {
+        this.title = title;
+        return getSelectedView();
+    }
+
     public String getSelectedView() {
         showViewSelectionUI();
         return selectedView;
@@ -73,7 +84,7 @@ public class SelectExistingViewDialog {
     private void showViewSelectionUI() {
         MoBIELaf.MoBIELafOn();
         dialog = new JDialog((Frame)null, true);
-        dialog.setTitle( "Choose an existing view..." );
+        dialog.setTitle( title );
         dialog.getContentPane().setLayout( new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS ) );
         dialog.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         createComboBoxes();

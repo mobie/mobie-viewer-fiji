@@ -152,6 +152,11 @@ public class UserInterface
 		MoBIELaf.MoBIELafOff();
 	}
 
+	public void removeViews( Map<String, View > views ) {
+		userInterfaceHelper.removeViewsFromViewSelectionPanel( views );
+		refreshSelection();
+	}
+
 	public Map< String, Map< String, View > > getGroupingsToViews()
 	{
 		return userInterfaceHelper.getGroupingsToViews();

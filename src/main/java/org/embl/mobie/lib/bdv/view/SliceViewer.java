@@ -70,6 +70,7 @@ public class SliceViewer
 	public static final String UNDO_SEGMENT_SELECTIONS = "Undo Segment Selections [ Ctrl Shift N ]";
 	public static final String LOAD_ADDITIONAL_VIEWS = "Load Additional Views";
 	public static final String SAVE_CURRENT_SETTINGS_AS_VIEW = "Save Current View";
+	public static final String DELETE_VIEW = "Delete View";
 	public static final String FRAME_TITLE = "MoBIE BigDataViewer";
 	public static boolean tileRenderOverlay = false;
 	private final SourceAndConverterBdvDisplayService bdvDisplayService;
@@ -142,6 +143,10 @@ public class SliceViewer
 			moBIE.getViewManager().getViewsSaver().saveViewDialog( view );
 		} );
 
+		sacService.registerAction( DELETE_VIEW, sourceAndConverters -> {
+			moBIE.getViewManager().getViewsDeleter().deleteViewDialog();
+		});
+
 		final Set< String > actionsKeys = sacService.getActionsKeys();
 		final ArrayList< String > actions = new ArrayList< String >();
 		actions.add( SourceAndConverterService.getCommandName( SourcesInfoCommand.class ) );
@@ -157,6 +162,7 @@ public class SliceViewer
 		actions.add( UNDO_SEGMENT_SELECTIONS );
 		actions.add( LOAD_ADDITIONAL_VIEWS );
 		actions.add( SAVE_CURRENT_SETTINGS_AS_VIEW );
+		actions.add( DELETE_VIEW );
 
 		if ( projectCommands != null )
 		{
