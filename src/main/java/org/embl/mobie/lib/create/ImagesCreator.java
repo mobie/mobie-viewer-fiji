@@ -44,6 +44,7 @@ import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.FloatType;
 import org.apache.commons.io.FileUtils;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.OMEZarrWriter;
@@ -372,7 +373,7 @@ public class ImagesCreator {
             // xml file or zarr file, depending on imageDataFormat
             String filePath = getDefaultLocalImagePath( datasetName, imageName );
             ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( filePath );
-            imageDataFormat.setS3SecretAndAccessKey( MoBIE.getInstance().getSettings().values.getS3AccessAndSecretKey() );
+            addS3keys( imageDataFormat );
             ImageData< ? > imageData = ImageDataOpener.open(
                     filePath,
                     imageDataFormat,
@@ -411,6 +412,20 @@ public class ImagesCreator {
             Tables.saveTable( table, defaultTable );
 
             IJ.log( "Default object features have been computed." );
+        }
+    }
+
+    private static void addS3keys( ImageDataFormat imageDataFormat )
+    {
+        MoBIE instance = MoBIE.getInstance();
+        if ( instance != null )
+        {
+            MoBIESettings settings = instance.getSettings();
+            if ( settings != null )
+            {
+                String[] s3AccessAndSecretKey = settings.values.getS3AccessAndSecretKey();
+                imageDataFormat.setS3SecretAndAccessKey( s3AccessAndSecretKey );
+            }
         }
     }
 
