@@ -1,0 +1,2 @@
+uri	name	type
+spots-3d.txt	spots	spots

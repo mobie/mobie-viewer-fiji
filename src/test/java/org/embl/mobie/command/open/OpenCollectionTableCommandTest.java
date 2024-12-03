@@ -11,7 +11,7 @@ public class OpenCollectionTableCommandTest
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     @Test
-    public void blobsTable( )
+    public void blobs( )
     {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
@@ -25,7 +25,7 @@ public class OpenCollectionTableCommandTest
     }
 
     @Test
-    public void clemTable( )
+    public void clem( )
     {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
@@ -37,21 +37,52 @@ public class OpenCollectionTableCommandTest
     }
 
     @Test
-    public void gridTable( )
+    public void grid( )
     {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.table = new File( "src/test/resources/collections/blobs-grid-table.txt" );
+        // FIXME: Make this work with relative paths
         command.dataRoot = OpenCollectionTableCommand.DataRoot.UseBelowDataRootFolder;
         command.dataRootFile = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
         command.bdvViewingMode = BdvViewingMode.TwoDimensional;
         command.run();
     }
 
+    @Test
+    public void spots2D( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.table = new File( "src/test/resources/collections/spots-2d-collection.txt" );
+        // FIXME: Make this work with relative paths
+        command.dataRoot = OpenCollectionTableCommand.DataRoot.UseBelowDataRootFolder;
+        command.dataRootFile = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.bdvViewingMode = BdvViewingMode.TwoDimensional;
+        command.run();
+    }
+
+    @Test
+    public void spots3D( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.table = new File( "src/test/resources/collections/spots-3d-collection.txt" );
+        // FIXME: Make this work with relative paths
+        command.dataRoot = OpenCollectionTableCommand.DataRoot.UseBelowDataRootFolder;
+        command.dataRootFile = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.bdvViewingMode = BdvViewingMode.ThreeDimensional;
+        command.run();
+    }
+
     public static void main( String[] args )
     {
-        new OpenCollectionTableCommandTest().gridTable();
+        new OpenCollectionTableCommandTest().spots3D();
     }
 }

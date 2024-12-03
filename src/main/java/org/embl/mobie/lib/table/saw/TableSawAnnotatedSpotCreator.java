@@ -60,19 +60,19 @@ public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< 
 	public TableSawAnnotatedSpot create( TableSawAnnotationTableModel< TableSawAnnotatedSpot > model, int rowIndex )
 	{
 		final Table table = model.getTable();
-		final float[] position = new float[ 3 ];
-		position[ 0 ] = (float) table.get( rowIndex, xColumnIndex );
-		position[ 1 ] = (float) table.get( rowIndex, yColumnIndex );
-		if ( zColumnIndex > -1 )
-			position[ 2 ] =  (float) table.get( rowIndex, zColumnIndex ) + (float) ( 1e-3 * Math.random() );
-
+		int numDimensions = zColumnIndex > -1 ? 3 : 2;
+		final float[] position = new float[ numDimensions ];
+		position[ 0 ] = ((Number) table.get( rowIndex, xColumnIndex )).floatValue();
+		position[ 1 ] = ((Number) table.get( rowIndex, yColumnIndex )).floatValue();
 		// FIXME kdTree issue: https://imagesc.zulipchat.com/#narrow/stream/327240-ImgLib2/topic/kdTree.20issue
+		if ( zColumnIndex > -1 )
+			position[ 2 ] = ((Number) table.get( rowIndex, zColumnIndex )).floatValue() + (float) ( 1e-3 * Math.random() );
 
-		int label = ( int ) table.get( rowIndex, spotIDColumnIndex );
+		int label = ((Number) table.get( rowIndex, spotIDColumnIndex )).intValue();
 
 		int timePoint = 0;
 		if ( timePointColumnIndex > -1 )
-			timePoint = ( int ) table.get( rowIndex, timePointColumnIndex );
+			timePoint = ((Number) table.get( rowIndex, timePointColumnIndex )).intValue();
 
 		String source = table.name();
 
@@ -82,7 +82,10 @@ public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< 
 	@Override
 	public int[] removeColumns()
 	{
-		return new int[]{ xColumnIndex, yColumnIndex, zColumnIndex };
+		if ( zColumnIndex > -1 )
+			return new int[]{ xColumnIndex, yColumnIndex, zColumnIndex };
+		else
+			return new int[]{ xColumnIndex, yColumnIndex };
 	}
 
 	@Override

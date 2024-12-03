@@ -125,6 +125,15 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
     protected ArrayList< Integer > boundaryDimensions()
     {
         final ArrayList< Integer > dimensions = new ArrayList<>();
+
+        if ( source.getSource( 0,0 ).dimension( 2 ) == 1 )
+        {
+            // 2D source
+            dimensions.add( 0 );
+            dimensions.add( 1 );
+            return dimensions;
+        }
+
         if ( bounds != null )
         {
             // check whether the source is effectively 2D,
@@ -136,22 +145,15 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
                 if ( sourceWidth > 3 * boundaryWidth )
                     dimensions.add( d );
             }
-        }
-        else if ( source.getSource( 0,0 ).dimension( 2 ) == 1 )
-        {
-            // 2D source
-            dimensions.add( 0 );
-            dimensions.add( 1 );
-        }
-        else
-        {
-            // 3D source
-            dimensions.add( 0 );
-            dimensions.add( 1 );
-            dimensions.add( 2 );
+            return dimensions;
         }
 
+        // 3D source
+        dimensions.add( 0 );
+        dimensions.add( 1 );
+        dimensions.add( 2 );
         return dimensions;
+
     }
 
     protected double[] pixelBoundaryWidth( int t, int level )

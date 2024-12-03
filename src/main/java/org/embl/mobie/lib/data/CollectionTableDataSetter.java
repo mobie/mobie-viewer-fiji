@@ -2,13 +2,16 @@ package org.embl.mobie.lib.data;
 
 import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
-import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.DataStore;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.lib.SpotImageCreator;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
+import org.embl.mobie.lib.annotation.AnnotatedSpot;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.color.ColorHelper;
+import org.embl.mobie.lib.image.SpotAnnotationImage;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.*;
 import org.embl.mobie.lib.serialize.display.*;
@@ -62,19 +65,20 @@ public class CollectionTableDataSetter
             if ( rootPath != null )
                 storageLocation.absolutePath = IOHelper.combinePath( rootPath, storageLocation.absolutePath );
 
-            ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( storageLocation.absolutePath );
-            storageLocation.setChannel( getChannel( row ) ); // TODO: Fetch from table or URI? https://forum.image.sc/t/loading-only-one-channel-from-an-ome-zarr/97798
-            String imageName = getName( row );
-            String pixelType = getPixelType( row );
+            String name = getName( row );
+            String dataType = getDataType( row );
 
             Display< ? > display = null;
-            if ( pixelType.equals( CollectionTableConstants.LABELS )  )
+            if ( dataType.equals( CollectionTableConstants.LABELS )  )
             {
+                ImageDataFormat imageDataFormat = getImageDataFormat( row, storageLocation );
+                storageLocation.setChannel( getChannel( row ) ); // TODO: Fetch from table or URI? https://forum.image.sc/t/loading-only-one-channel-from-an-ome-zarr/97798
+
                 TableSource tableSource = getTable( row, rootPath );
 
                 SegmentationDataSource segmentationDataSource =
                         SegmentationDataSource.create(
-                                imageName,
+                                name,
                                 imageDataFormat,
                                 storageLocation,
                                 tableSource
@@ -84,21 +88,44 @@ public class CollectionTableDataSetter
                 dataset.putDataSource( segmentationDataSource );
 
                 display = createSegmentationDisplay(
-                            imageName,
+                            name,
                             row,
                             tableSource != null );
             }
-            else // intensities
+            else if ( dataType.equals( CollectionTableConstants.SPOTS )  )
             {
+                SpotDataSource spotDataSource = new SpotDataSource(
+                        name,
+                        TableDataFormat.fromPath( storageLocation.absolutePath ),
+                        storageLocation
+                        );
+                dataset.putDataSource( spotDataSource );
+
+//                // build spots image from spots table
+//                final SpotImageCreator spotImageCreator = new SpotImageCreator(
+//                        spotDataSource,
+//                        MoBIE.getInstance() );
+//                SpotAnnotationImage< AnnotatedSpot > spotImage = spotImageCreator.create();
+//                DataStore.addImage( spotImage );
+
+                SpotDisplay< AnnotatedRegion > spotDisplay = new SpotDisplay<>( name );
+                spotDisplay.sources = Collections.singletonList( spotDataSource.getName() );
+                display = spotDisplay;
+            }
+            else // default: intensities
+            {
+                ImageDataFormat imageDataFormat = getImageDataFormat( row, storageLocation );
+                storageLocation.setChannel( getChannel( row ) ); // TODO: Fetch from table or URI? https://forum.image.sc/t/loading-only-one-channel-from-an-ome-zarr/97798
+
                 final ImageDataSource imageDataSource = new ImageDataSource(
-                        imageName,
+                        name,
                         imageDataFormat,
                         storageLocation );
                 imageDataSource.preInit( false );
                 dataset.putDataSource( imageDataSource );
 
                 display = createImageDisplay(
-                    imageName,
+                    name,
                     row );
             }
 
@@ -136,11 +163,11 @@ public class CollectionTableDataSetter
 
                     if ( existingDisplay instanceof SegmentationDisplay )
                     {
-                        existingDisplay.getSources().add( imageName );
+                        existingDisplay.getSources().add( name );
                     }
                     else if ( existingDisplay instanceof ImageDisplay )
                     {
-                        ( ( ImageDisplay ) existingDisplay ).addSource( imageName, getContrastLimits( row ) );
+                        ( ( ImageDisplay ) existingDisplay ).addSource( name, getContrastLimits( row ) );
                     }
                 }
                 else
@@ -151,14 +178,12 @@ public class CollectionTableDataSetter
 
                 gridToTransformations
                         .computeIfAbsent( gridId, k -> new ArrayList<>() )
-                        .addAll( getAffineTransformationAsList( Collections.singletonList( imageName ), row ) );
+                        .addAll( getAffineTransformationAsList( Collections.singletonList( name ), row ) );
             }
 
-            IJ.log(" " );
-            IJ.log("Name: " + imageName );
+            IJ.log("\nName: " + name );
             IJ.log("URI: " + storageLocation.absolutePath );
-            IJ.log("Opener: " + imageDataFormat );
-            IJ.log("Type: " + pixelType );
+            IJ.log("Type: " + dataType );
         }
 
         // Create grid views
@@ -213,6 +238,18 @@ public class CollectionTableDataSetter
             dataset.views().get( viewName ).displays().add( gridRegionDisplay );
         }
 
+    }
+
+    private static ImageDataFormat getImageDataFormat( Row row, StorageLocation storageLocation )
+    {
+        try {
+            String string = row.getString( CollectionTableConstants.FORMAT );
+            return ImageDataFormat.valueOf( string );
+        }
+        catch ( Exception e )
+        {
+            return ImageDataFormat.fromPath( storageLocation.absolutePath );
+        }
     }
 
     private static boolean getExclusive( Row row )
@@ -279,7 +316,7 @@ public class CollectionTableDataSetter
         return MoBIEHelper.removeExtension( IOHelper.getFileName( uri ) );
     }
 
-    private static String getPixelType( Row row )
+    private static String getDataType( Row row )
     {
         try
         {

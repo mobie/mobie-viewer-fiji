@@ -26,37 +26,30 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.serialize;
+package develop;
 
-import org.embl.mobie.lib.io.StorageLocation;
-import org.embl.mobie.lib.table.TableDataFormat;
-import org.embl.mobie.lib.table.TableSource;
+import net.imagej.ImageJ;
+import org.embl.mobie.command.open.OpenCollectionTableCommand;
+import org.embl.mobie.command.open.OpenTableCommand;
+import org.embl.mobie.lib.bdv.BdvViewingMode;
+import org.embl.mobie.lib.transform.GridType;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.File;
 
-public class SpotDataSource extends AbstractDataSource
+public class OpenSpatialDataCollectionTable
 {
-	// Serialization
+    public static void main( String[] args )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
 
-	public Map< TableDataFormat, StorageLocation > tableData;
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.table = new File("/Users/tischer/Desktop/iss-nf/qc_spatialdata_processed/mobie-collection.txt");
+        command.dataRoot = OpenCollectionTableCommand.DataRoot.UseTableFolder;
+        command.bdvViewingMode = BdvViewingMode.TwoDimensional;
+        command.run();
 
-	public double[] boundingBoxMin;
-
-	public double[] boundingBoxMax;
-
-	public String unit; // spatial
-
-	public SpotDataSource( String name )
-	{
-		super( name );
-	}
-
-	public SpotDataSource( String name, TableDataFormat tableDataFormat, StorageLocation storageLocation )
-	{
-		super( name );
-		tableData = new HashMap<>();
-		tableData.put( tableDataFormat, storageLocation );
-	}
+        // Issues:
+        // https://imagesc.zulipchat.com/#narrow/channel/328251-NGFF/topic/Not.20identified.20as.20multi-scale.20metadata
+    }
 }
-
