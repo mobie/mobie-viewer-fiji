@@ -324,22 +324,28 @@ public class ImageBVViewer implements ColoringListener, SelectionListener
 	@Override
 	public void coloringChanged()
 	{
-		for ( Map.Entry< SourceAndConverter, BvvStackSource > entry : sacToBvvSource.entrySet() )
+		if(bvv != null)
 		{
-			configureRenderingSettings( entry.getKey(), entry.getValue() );
+			for ( Map.Entry< SourceAndConverter, BvvStackSource > entry : sacToBvvSource.entrySet() )
+			{
+				configureRenderingSettings( entry.getKey(), entry.getValue() );
+			}
+			bvv.getBvvHandle().getViewerPanel().requestRepaint();
 		}
-		bvv.getBvvHandle().getViewerPanel().requestRepaint();
 	}
 
 	@Override
 	public void selectionChanged()
 	{
-		for ( Map.Entry< SourceAndConverter, BvvStackSource > entry : sacToBvvSource.entrySet() )
+		if(bvv != null)
 		{
-			if ( isAnnotation( entry.getKey() ) )
-				configureRenderingSettings( entry.getKey(), entry.getValue() );
+			for ( Map.Entry< SourceAndConverter, BvvStackSource > entry : sacToBvvSource.entrySet() )
+			{
+				if ( isAnnotation( entry.getKey() ) )
+					configureRenderingSettings( entry.getKey(), entry.getValue() );
+			}
+			bvv.getBvvHandle().getViewerPanel().requestRepaint();
 		}
-		bvv.getBvvHandle().getViewerPanel().requestRepaint();
 	}
 
 	@Override
