@@ -31,18 +31,16 @@ package org.embl.mobie.lib.image;
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
-import net.imglib2.Interval;
-import net.imglib2.KDTree;
-import net.imglib2.RealLocalizable;
-import net.imglib2.Sampler;
-import net.imglib2.Volatile;
+import net.imglib2.*;
 import net.imglib2.neighborsearch.RadiusNeighborSearchOnKDTree;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.RealViews;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.util.Intervals;
+import net.imglib2.view.Views;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.RealRandomAccessibleIntervalTimelapseSource;
@@ -61,14 +59,19 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
 	private KDTree< AS > kdTree;
 	private RealMaskRealInterval mask;
-	private double radius;
+	private Double radius;
 	private double[] boundingBoxMin;
 	private double[] boundingBoxMax;
 	private AffineTransform3D affineTransform3D;
 	private Source< AnnotationType< AS > > source;
 	private TransformedSource< AnnotationType< AS > > transformedSource;
 
-	public SpotAnnotationImage( String name, DefaultAnnData< AS > annData, double radius, @Nullable double[] boundingBoxMin, @Nullable double[] boundingBoxMax )
+	public SpotAnnotationImage(
+			String name,
+			DefaultAnnData< AS > annData,
+			@Nullable Double radius,
+			@Nullable double[] boundingBoxMin,
+			@Nullable double[] boundingBoxMax )
 	{
 		this.name = name;
 		this.annData = annData;
@@ -79,38 +82,73 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 		createImage();
 	}
 
-	public double getRadius()
+	public Double getRadius()
 	{
 		return radius;
 	}
 
-	public void setRadius( double radius )
+	public void setRadius( Double radius )
 	{
-		this.radius = radius;
+		if ( radius != null )
+		{
+			this.radius = radius;
+		}
 	}
 
 	private void createImage()
 	{
 		final ArrayList< AS > annotations = annData.getTable().annotations();
+		System.out.println("Building KDTree with numElements = " + annotations.size());
 		kdTree = new KDTree( annotations, annotations );
-		// TODO: there is a KDTreeFloat implementation in this repo that we could use
-		//   to save memory
 
 		if ( boundingBoxMin == null )
-			boundingBoxMin = kdTree.minAsDoubleArray();
+		{
+			boundingBoxMin = new double[ 3 ];
+			kdTree.realMin( boundingBoxMin );
+		}
 
 		if ( boundingBoxMax == null )
-			boundingBoxMax = kdTree.maxAsDoubleArray();
+		{
+			boundingBoxMax = new double[ 3 ];
+			kdTree.realMax( boundingBoxMax );
+		}
 
 		mask = GeomMasks.closedBox( boundingBoxMin, boundingBoxMax );
+
+		if ( radius == null)
+		{
+			// Assign each spot an area that is a fraction of the total
+			// covered area divided by the number of spots.
+			// A = Pi R^2 => R ~ Sqrt( A )
+			double area = ( mask.realMax( 0 ) - mask.realMin( 0 ) )
+					* ( mask.realMax( 1 ) - mask.realMin( 1 ) );
+			radius = Math.sqrt( area / annotations.size() ) / 10.0;
+		}
 
 		// TODO: code duplication with RegionLabelImage
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( getMask() );
 		final AS annotatedSpot = annData.getTable().annotation( 0 );
-		final FunctionRealRandomAccessible< AnnotationType< AS > > realRandomAccessible = new FunctionRealRandomAccessible( 3, new LocationToAnnotatedSpotSupplier(), () -> new AnnotationType<>( annotatedSpot ) );
+
+		RealRandomAccessible< AnnotationType< AS > > rra =
+				new FunctionRealRandomAccessible(
+						kdTree.numDimensions(),
+						new LocationToAnnotatedSpotSupplier(),
+						() -> new AnnotationType<>( annotatedSpot ) );
 		//final RealRandomAccessible interpolate = Views.interpolate( new NearestNeighborSearchOnKDTree( kdTree ), new NearestNeighborSearchInterpolatorFactory() );
-		source = new RealRandomAccessibleIntervalTimelapseSource( realRandomAccessible, interval, new AnnotationType<>( annotatedSpot ), new AffineTransform3D(), name, true, null, new FinalVoxelDimensions( "", 1, 1, 1 ) );
+
+		if ( kdTree.numDimensions() == 2 )
+			rra = RealViews.addDimension( rra );
+
+		source = new RealRandomAccessibleIntervalTimelapseSource(
+				rra,
+				interval,
+				new AnnotationType<>( annotatedSpot ),
+				new AffineTransform3D(),
+				name,
+				true,
+				null,
+				new FinalVoxelDimensions( "", 1, 1, 1 ) );
 	}
 
 	@Override

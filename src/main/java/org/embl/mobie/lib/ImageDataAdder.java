@@ -115,7 +115,7 @@ public class ImageDataAdder
 
 	private String getImageName( String setupName, int numImages )
 	{
-		String imageName = FilenameUtils.removeExtension( new File( setupName ).getName() );
+		String imageName = MoBIEHelper.removeExtension( new File( setupName ).getName() );
 		if ( numImages == 1)
 		{
 			imageName = imageName.replaceAll( " channel.*", "" );

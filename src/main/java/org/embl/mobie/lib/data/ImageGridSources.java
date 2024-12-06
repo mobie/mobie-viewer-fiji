@@ -34,17 +34,19 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
 import org.apache.commons.io.FilenameUtils;
-import org.embl.mobie.io.ImageDataOpener;
+import org.embl.mobie.DataStore;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.lib.util.MoBIEHelper;
-import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.source.Metadata;
 import org.embl.mobie.lib.source.SourceHelper;
-import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
+import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.table.columns.SegmentColumnNames;
 import org.embl.mobie.lib.transform.GridType;
+import org.embl.mobie.lib.util.MoBIEHelper;
+import org.embl.mobie.lib.util.ThreadHelper;
 import org.janelia.saalfeldlab.n5.universe.metadata.canonical.CanonicalDatasetMetadata;
 import tech.tablesaw.api.NumberColumn;
 import tech.tablesaw.api.StringColumn;
@@ -181,10 +183,16 @@ public class ImageGridSources
 		// Take the first source to fetch metadata
 		metadataSource = nameToFullPath.keySet().iterator().next();
 		long start = System.currentTimeMillis();
-		IJ.log( "Fetching metadata for " + name + ", channel " + channelIndex );
-		IJ.log( "Source: " + nameToFullPath.get( metadataSource ) );
-		// FIXME: Cache the image data, because for multiple channels it is now reloaded!
-		ImageData< ? > imageData = ImageDataOpener.open( nameToFullPath.get( metadataSource ), ThreadHelper.sharedQueue );
+		IJ.log( "Fetching metadata for \"" + name + "\", channel " + channelIndex );
+		String uri = nameToFullPath.get( metadataSource );
+		IJ.log( "Source: " + uri );
+		ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( uri );
+		String[] s3AccessAndSecretKey = MoBIE.getInstance().getSettings().values.getS3AccessAndSecretKey();
+		imageDataFormat.setS3SecretAndAccessKey( s3AccessAndSecretKey );
+		ImageData< ? > imageData = DataStore.fetchImageData(
+				uri,
+				imageDataFormat,
+				ThreadHelper.sharedQueue );
 		CanonicalDatasetMetadata canonicalDatasetMetadata = imageData.getMetadata( channelIndex );
 		metadata = new Metadata( canonicalDatasetMetadata );
 		Source< ? > source = imageData.getSourcePair( channelIndex ).getA();
@@ -201,7 +209,7 @@ public class ImageGridSources
 			metadata.contrastLimits = SourceHelper.estimateMinMax( ( RandomAccessibleInterval ) lowResRAI );
 
 		IJ.log( "Contrast limits: " + Arrays.toString( metadata.contrastLimits ) );
-		IJ.log( "Fetched metadata in " + ( System.currentTimeMillis() - start ) + " ms." );
+		IJ.log( "Fetched metadata in " + ( System.currentTimeMillis() - start ) + " ms" );
 
 	}
 
@@ -247,7 +255,7 @@ public class ImageGridSources
 
 	private String createImageName( Integer channelIndex, String fileName )
 	{
-		String imageName = FilenameUtils.removeExtension( fileName );
+		String imageName = MoBIEHelper.removeExtension( fileName );
 
 		if ( channelIndex != null )
 		{

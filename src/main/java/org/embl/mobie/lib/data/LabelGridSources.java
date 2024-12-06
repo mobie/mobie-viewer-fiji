@@ -83,7 +83,6 @@ public class LabelGridSources extends ImageGridSources
 		super( name, labelsPath, channelIndex, root, grid );
 	}
 
-
 	public LabelGridSources( String name, String path, Integer channelIndex, String labelTablePath, String root, GridType grid )
 	{
 		super( name, path, channelIndex, root, grid );

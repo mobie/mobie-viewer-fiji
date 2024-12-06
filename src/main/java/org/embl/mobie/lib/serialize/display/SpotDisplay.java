@@ -36,6 +36,7 @@ import org.embl.mobie.lib.image.SpotAnnotationImage;
 import org.embl.mobie.lib.source.AnnotationType;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -47,7 +48,7 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AbstractAnnotatio
 
 	private Set< String > selectedSpotIds;
 
-	public double spotRadius = 1.0D;
+	public Double spotRadius;
 
 	// Runtime
 
@@ -73,6 +74,11 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AbstractAnnotatio
 	public SpotDisplay()
 	{
 		super();
+	}
+
+	public SpotDisplay( String name )
+	{
+		super( name );
 	}
 
 	// Gson

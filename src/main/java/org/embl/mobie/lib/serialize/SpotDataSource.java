@@ -30,7 +30,9 @@ package org.embl.mobie.lib.serialize;
 
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.TableDataFormat;
+import org.embl.mobie.lib.table.TableSource;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class SpotDataSource extends AbstractDataSource
@@ -45,10 +47,16 @@ public class SpotDataSource extends AbstractDataSource
 
 	public String unit; // spatial
 
-
 	public SpotDataSource( String name )
 	{
 		super( name );
+	}
+
+	public SpotDataSource( String name, TableDataFormat tableDataFormat, StorageLocation storageLocation )
+	{
+		super( name );
+		tableData = new HashMap<>();
+		tableData.put( tableDataFormat, storageLocation );
 	}
 }
 

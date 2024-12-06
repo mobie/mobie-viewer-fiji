@@ -1,0 +1,3 @@
+uri
+https://s3.embl.de/imatrec/IMATREC_HiTT_20240501_AS/135.ome.zarr
+https://s3.embl.de/imatrec/IMATREC_HiTT_20240414_AS/BIL_10to40_20231003_PM_01_epo_03.ome.zarr

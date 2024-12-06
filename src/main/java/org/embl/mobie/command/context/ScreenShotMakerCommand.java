@@ -58,8 +58,8 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
             persist = false,
             callback = "showNumPixels",
             min = "0.0",
-            style="format:#.00000",
-            stepSize = "0.01")
+            style="format:#.000",
+            stepSize = "0.001")
     public Double targetSamplingInXY = 1D;
 
     @Parameter(label="Pixel unit", persist = false, choices = {"micrometer"} )
@@ -93,10 +93,16 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
 
         // init screenshot sampling
         //
-        final MutableModuleItem< Double > targetSamplingItem = //
+        final MutableModuleItem< Double > targetSamplingItem =
                 getInfo().getMutableInput("targetSamplingInXY", Double.class);
+        targetSamplingItem.setValue( this, getTargetSampling() );
+    }
+
+    protected double getTargetSampling()
+    {
         double viewerVoxelSpacing = BdvHandleHelper.getViewerVoxelSpacing( bdvHandle );
-        targetSamplingItem.setValue( this, 2 * viewerVoxelSpacing );
+        double targetSampling = 2 * viewerVoxelSpacing;
+        return targetSampling;
     }
 
     // callback

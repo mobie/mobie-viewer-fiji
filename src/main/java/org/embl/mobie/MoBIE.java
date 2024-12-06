@@ -39,7 +39,6 @@ import net.imagej.ImageJ;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.lib.*;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 import org.embl.mobie.lib.data.*;
@@ -112,6 +111,8 @@ public class MoBIE
 
 	public MoBIE( String uri, MoBIESettings settings ) throws IOException
 	{
+		initImageJAndMoBIE();
+
 		this.settings = settings;
 		this.projectLocation = uri;
 
@@ -134,7 +135,6 @@ public class MoBIE
 							.columnTypesPartial( nameToType );
 			Table table = Table.read().usingOptions( builder );
 
-			initImageJAndMoBIE();
 			initProject( IOHelper.getFileName( uri ) );
 
 			CollectionTableDataSetter dataSetter = new CollectionTableDataSetter( table, settings.values.getDataRoot() );
@@ -146,7 +146,6 @@ public class MoBIE
 		else if ( settings.values.getProjectType().equals( ProjectType.MoBIEJSON ) )
 		{
 			initTableSaw();
-			initImageJAndMoBIE();
 
 			IJ.log( "\n# MoBIE" );
 			IJ.log( "Opening: " + uri );
@@ -163,10 +162,10 @@ public class MoBIE
 
 	public MoBIE( String hcsDataLocation, MoBIESettings settings, double relativeWellMargin, double relativeSiteMargin, @Nullable VoxelDimensions voxelDimensions ) throws IOException
 	{
+		initImageJAndMoBIE();
+
 		this.settings = settings;
 		this.projectLocation = hcsDataLocation;
-
-		initImageJAndMoBIE();
 
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening: " + hcsDataLocation );
@@ -176,6 +175,8 @@ public class MoBIE
 
 	public MoBIE( List< String > imagePaths, List< String > labelPaths, List< String > labelTablePaths, String root, GridType grid, MoBIESettings settings ) throws IOException
 	{
+		initImageJAndMoBIE();
+
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening images: " + Arrays.toString( imagePaths.toArray() ) );
 		IJ.log("Opening labels: " + Arrays.toString( labelPaths.toArray() ) );
@@ -195,6 +196,8 @@ public class MoBIE
 	// open an image or object table
 	public MoBIE( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, String pathMapping, GridType grid, MoBIESettings settings ) throws IOException
 	{
+		initImageJAndMoBIE();
+
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening data from table: " + tablePath );
 
@@ -226,8 +229,6 @@ public class MoBIE
 
 	private void openMoBIEProject() throws IOException
 	{
-		S3Utils.setS3AccessAndSecretKey( settings.values.getS3AccessAndSecretKey() );
-
 		setProjectImageAndTableRootLocations();
 		registerProjectPlugins( projectLocation );
 		project = new ProjectJsonParser().parseProject( combinePath( projectRoot, "project.json" ) );
@@ -239,8 +240,6 @@ public class MoBIE
 	// TODO 2D or 3D?
 	private void openImageAndLabelGrids( List< ImageGridSources > images, List< LabelGridSources > labels, Table regionTable )
 	{
-		initImageJAndMoBIE();
-
 		initProject( "" );
 
 		new GridSourcesDataSetter( images, labels, regionTable ).addDataAndDisplaysAndViews( dataset );
@@ -250,9 +249,9 @@ public class MoBIE
 
 	public MoBIE( String projectName, ImageData< ? > imageData, ImageData< ? > labelData, @Nullable StorageLocation tableStorageLocation, @Nullable TableDataFormat tableDataFormat )
 	{
-		settings = new MoBIESettings();
-
 		initImageJAndMoBIE();
+
+		settings = new MoBIESettings();
 
 		initProject( projectName );
 
@@ -481,7 +480,6 @@ public class MoBIE
 		{
 			IJ.log( "Closing MoBIE..." );
 			IJ.log( "Closing I/O threads..." );
-			S3Utils.setS3AccessAndSecretKey( null );
 			ThreadHelper.resetIOThreads();
 			viewManager.close();
 			IJ.log( "MoBIE closed." );
@@ -701,7 +699,7 @@ public class MoBIE
 		{
 			// build spots image from spots table
 			final SpotImageCreator spotImageCreator = new SpotImageCreator( ( SpotDataSource ) dataSource, this );
-			DataStore.addImage( spotImageCreator.create() );
+			DataStore.addImage( spotImageCreator.get() );
 		}
 
 		if ( dataSource instanceof RegionTableSource )

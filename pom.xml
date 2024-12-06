@@ -9,7 +9,7 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>5.5.6-SNAPSHOT</version>
+    <version>5.5.8-SNAPSHOT</version>
 
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
     <!--  ../scijava-scripts/release-version.sh - -skip-version-check - -skip-license-update -->
@@ -256,6 +256,18 @@
         <dependency>
             <groupId>net.imagej</groupId>
             <artifactId>imagej</artifactId>
+        </dependency>
+        <!-- Logback Classic -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+<!--            <version>1.2.11</version>-->
+        </dependency>
+        <!-- Logback Core -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+<!--            <version>1.2.11</version>-->
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

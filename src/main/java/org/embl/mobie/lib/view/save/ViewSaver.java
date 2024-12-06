@@ -37,6 +37,7 @@ import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.DatasetJsonParser;
 import org.embl.mobie.lib.serialize.transformation.NormalizedAffineViewerTransform;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.ui.UserInterfaceHelper;
 import org.embl.mobie.lib.view.AdditionalViews;
 import org.embl.mobie.lib.serialize.View;
@@ -337,7 +338,7 @@ public class ViewSaver
 
             // we just want the basename, no extension
             if ( viewFileName != null && viewFileName.endsWith(".json") ) {
-                viewFileName = FilenameUtils.removeExtension( viewFileName );
+                viewFileName = MoBIEHelper.removeExtension( viewFileName );
             }
             return viewFileName;
         } else {

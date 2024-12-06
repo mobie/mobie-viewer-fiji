@@ -42,6 +42,7 @@ import org.embl.mobie.lib.serialize.DatasetJsonParser;
 import org.embl.mobie.lib.serialize.ImageDataSource;
 import org.embl.mobie.lib.serialize.SegmentationDataSource;
 import org.embl.mobie.lib.table.TableDataFormat;
+import org.embl.mobie.lib.util.ThreadHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -124,7 +125,11 @@ class ImagesCreatorTest {
         assertTrue( imageLocation.exists() );
 
         // Image can be opened
-        ImageData< ? > imageData = ImageDataOpener.open( imageLocation.getAbsolutePath() );
+        String uri = imageLocation.getAbsolutePath();
+        ImageData< ? > imageData = ImageDataOpener.open(
+                uri,
+                ImageDataFormat.fromPath( uri ),
+                ThreadHelper.sharedQueue );
         assertNotNull( imageData.getSourcePair( 0 ).getB() );
 
         // Image has correct unit and pixel size

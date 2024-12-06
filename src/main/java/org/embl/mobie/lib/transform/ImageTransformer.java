@@ -161,7 +161,8 @@ public class ImageTransformer
 			List< ? extends Image< ? > > images,
 			@Nullable List< String > transformedNames,
 			boolean centerAtOrigin,
-			final double[] translation )
+			final double[] translation,
+			boolean transformInPlace )
 	{
 		final ArrayList< Image< ? > > translatedImages = new ArrayList<>();
 
@@ -173,31 +174,30 @@ public class ImageTransformer
 							centerAtOrigin,
 							translation );
 
-			// In place transformation creates a mess
-//			if ( transformedNames == null )
-//			{
-//				// in place transformation
-//				image.transform( translationTransform );
-//				translatedImages.add( image );
-//			}
-//			else
-//			{
+			if ( transformInPlace )
+			{
+				// in place transformation (only used for Stitched Images)
+				// TODO: Check whether this is needed or could be get rid off
+				image.transform( translationTransform );
+				translatedImages.add( image );
+			}
+			else
+			{
+				// create a new transformed image
+				String transformedImageName = transformedNames == null ?
+						image.getName() :
+						transformedNames.get( images.indexOf( image ) );
 
-			// create a new transformed image
-			String transformedImageName = transformedNames == null ?
-					image.getName() :
-					transformedNames.get( images.indexOf( image ) );
+				AffineTransformation affineTransformation = new AffineTransformation(
+							"Translation",
+							translationTransform.getRowPackedCopy(),
+							Collections.singletonList( image.getName() ),
+							Collections.singletonList( transformedImageName )
+							);
 
-			AffineTransformation affineTransformation = new AffineTransformation(
-						"Translation",
-						translationTransform.getRowPackedCopy(),
-						Collections.singletonList( image.getName() ),
-						Collections.singletonList( transformedImageName )
-						);
-
-			final Image< ? > transformedImage = affineTransform( image, affineTransformation );
-			translatedImages.add( transformedImage );
-//			}
+				final Image< ? > transformedImage = affineTransform( image, affineTransformation );
+				translatedImages.add( transformedImage );
+			}
 		}
 
 		return translatedImages;

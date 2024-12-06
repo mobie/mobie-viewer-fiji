@@ -33,6 +33,8 @@ import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.type.numeric.IntegerType;
+import org.apache.commons.io.FilenameUtils;
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.io.imagedata.ImageData;
@@ -62,6 +64,16 @@ import static sc.fiji.bdvpg.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
 
 public abstract class MoBIEHelper
 {
+	public static String removeExtension( String uri )
+	{
+		uri = FilenameUtils.removeExtension( uri );
+
+		// some have two extensions, e.g. .ome.zarr
+		uri = FilenameUtils.removeExtension( uri );
+
+		return uri;
+	}
+
 	public static ImageDataInfo fetchImageDataInfo( Image< ? > image )
 	{
 		if ( image instanceof ImageDataImage )
@@ -240,16 +252,12 @@ public abstract class MoBIEHelper
 		return namedGroups;
 	}
 
-	public static CanonicalDatasetMetadata fetchMetadata( String uri, int datasetIndex )
-	{
-		ImageData< ? > imageData = ImageDataOpener.open( uri, ThreadHelper.sharedQueue );
-		return imageData.getMetadata( datasetIndex );
-	}
-
 	public static VoxelDimensions fetchVoxelDimensions( String uri )
 	{
 		VoxelDimensions voxelDimensions = ImageDataOpener
-				.open( uri, ThreadHelper.sharedQueue )
+				.open( uri,
+						ImageDataFormat.fromPath( uri ),
+						ThreadHelper.sharedQueue )
 				.getSourcePair( 0 )
 				.getB()
 				.getVoxelDimensions();

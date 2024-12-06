@@ -43,10 +43,22 @@ import ij.plugin.filter.ThresholdToSelection;
 import ij.process.LUT;
 import net.imglib2.*;
 import net.imglib2.Cursor;
+import net.imglib2.ops.parse.token.Real;
 import net.imglib2.roi.geom.real.WritableBox;
 import net.imglib2.type.Type;
 import net.imglib2.type.logic.BitType;
+import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.numeric.NumericType;
+import net.imglib2.type.numeric.integer.ByteType;
+import net.imglib2.type.numeric.integer.ShortType;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.util.Util;
+import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.image.AnnotationLabelImage;
+import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.annotation.Annotation;
@@ -65,6 +77,7 @@ import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.SourceHelper;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -72,6 +85,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getLevel;
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getViewerVoxelSpacing;
@@ -122,10 +136,8 @@ public class ScreenShotMaker
             return;
         }
 
-        final int currentTimepoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
-
-        final AffineTransform3D viewerTransform = new AffineTransform3D();
-        bdvHandle.getViewerPanel().state().getViewerTransform( viewerTransform );
+        final int timePoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
+        final AffineTransform3D viewerTransform = bdvHandle.getViewerPanel().state().getViewerTransform( );
         canvasToGlobalTransform = new AffineTransform3D();
         // target canvas to viewer canvas...
         double targetToViewer = targetVoxelSpacing / getViewerVoxelSpacing( bdvHandle );
@@ -137,7 +149,7 @@ public class ScreenShotMaker
 
         IJ.log( "Fetching data from " + sacs.size() + " image(s)..."  );
 
-        final ArrayList< RandomAccessibleInterval< FloatType > > floatCaptures = new ArrayList<>();
+        final ArrayList< RandomAccessibleInterval< ? extends RealType< ? >  > > realCaptures = new ArrayList<>();
         final ArrayList< RandomAccessibleInterval< BitType > > maskCaptures = new ArrayList<>();
         final ArrayList< RandomAccessibleInterval< ARGBType > > argbCaptures = new ArrayList<>();
 
@@ -154,20 +166,66 @@ public class ScreenShotMaker
 
         // IJ.log( ThreadHelper.getNumIoThreads() + " threads working on blocks of " + Arrays.toString( blockSize ) );
         final long currentTimeMillis = System.currentTimeMillis();
+
+
+        ArrayList< Type > types = new ArrayList<>();
+        for ( SourceAndConverter< ? > sac : sacs )
+        {
+            Image< ? > image = DataStore.sourceToImage().get( sac );
+            if ( image instanceof RegionAnnotationImage )
+                continue;
+
+            if ( image instanceof AnnotationLabelImage )
+            {
+                RandomAccessibleInterval< ? extends IntegerType< ? > > source = ( ( AnnotationLabelImage< ? > ) image ).getLabelImage().getSourcePair().getSource().getSource( 0, 0 );
+                types.add( Util.getTypeFromInterval( source ) );
+            }
+            else
+            {
+                types.add( ( Type ) Util.getTypeFromInterval( sac.getSpimSource().getSource( 0, 0 ) ) );
+            }
+        }
+
+        List< SourceAndConverter< ? > > dataSacs = sacs.stream()
+                .filter( sac -> !( DataStore.sourceToImage().get( sac ) instanceof RegionAnnotationImage ) )
+                .collect( Collectors.toList() );
+
+        boolean allByte = types.stream()
+                .allMatch( t -> t instanceof UnsignedByteType );
+
+        boolean allByteOrShort = types.stream()
+                .allMatch( t -> ( t instanceof UnsignedShortType ) || ( t instanceof UnsignedByteType ) );
+
         for ( SourceAndConverter< ?  > sac : sacs )
         {
-            final RandomAccessibleInterval< FloatType > floatCapture
-                    = ArrayImgs.floats( screenshotDimensions[ 0 ], screenshotDimensions[ 1 ] );
-            final RandomAccessibleInterval< BitType > maskCapture
+            RandomAccessibleInterval< ? extends RealType< ? > > realRAI;
+
+            if ( allByte )
+            {
+                // ImageJ 8-bit
+                realRAI = ArrayImgs.unsignedBytes( screenshotDimensions[ 0 ], screenshotDimensions[ 1 ] );
+            }
+            else if ( allByteOrShort )
+            {
+                // ImageJ 16-bit
+                realRAI = ArrayImgs.unsignedShorts( screenshotDimensions[ 0 ], screenshotDimensions[ 1 ] );
+            }
+            else
+            {
+                // ImageJ 32-bit
+                realRAI = ArrayImgs.floats( screenshotDimensions[ 0 ], screenshotDimensions[ 1 ] );
+            }
+
+            final RandomAccessibleInterval< BitType > maskRAI
                     = ArrayImgs.bits( screenshotDimensions[ 0 ], screenshotDimensions[ 1 ] );
-            final RandomAccessibleInterval< ARGBType > argbCapture
+            final RandomAccessibleInterval< ARGBType > argbRAI
                     = ArrayImgs.argbs( screenshotDimensions[ 0 ], screenshotDimensions[ 1 ]  );
 
             Source< ? > source = sac.getSpimSource();
             final Converter< ?, ? > converter = sac.getConverter();
             double[] displayRange = BdvHandleHelper.getDisplayRange( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ) );
             final int level = getLevel( source, targetVoxelSpacing );
-            final AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( source, currentTimepoint, level );
+            final AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( source, timePoint, level );
 
             // global to source
             AffineTransform3D targetCanvasToSourceTransform = canvasToGlobalTransform.copy();
@@ -185,20 +243,20 @@ public class ScreenShotMaker
                 (
                     ThreadHelper.ioExecutorService.submit( () ->
                     {
-                        RealRandomAccess< ? extends Type< ? > > sourceAccess = getRealRandomAccess( ( Source< Type< ? > > ) source, currentTimepoint, level, interpolate );
-                        WritableBox sourceMask = SourceHelper.estimateDataMask( source, currentTimepoint, level, true );
+                        RealRandomAccess< ? extends Type< ? > > sourceAccess = getRealRandomAccess( ( Source< Type< ? > > ) source, timePoint, level, interpolate );
+                        WritableBox sourceMask = SourceHelper.estimateDataMask( source, timePoint, level, true );
                         //RandomAccessibleInterval< ? > sourceInterval = source.getSource( currentTimepoint, level );
 
                         // to collect raw data
-                        final IntervalView< FloatType > floatCrop = Views.interval( floatCapture, interval );
-                        final Cursor< FloatType > floatCursor = Views.iterable( floatCrop ).localizingCursor();
-                        final RandomAccess< FloatType > floatAccess = floatCrop.randomAccess();
+                        final IntervalView< ? extends RealType< ? >  > realCrop = Views.interval( realRAI, interval );
+                        final Cursor< ? extends RealType< ? >  > targetCursor = Views.iterable( realCrop ).localizingCursor();
+                        final RandomAccess< ? extends RealType< ? >  > targetAccess = realCrop.randomAccess();
 
                         // to collect masks
-                        final RandomAccess< BitType > maskAccess = Views.interval( maskCapture, interval ).randomAccess();
+                        final RandomAccess< BitType > maskAccess = Views.interval( maskRAI, interval ).randomAccess();
 
                         // to collect colored data
-                        final RandomAccess< ARGBType > argbAccess = Views.interval( argbCapture, interval ).randomAccess();
+                        final RandomAccess< ARGBType > argbAccess = Views.interval( argbRAI, interval ).randomAccess();
 
                         final double[] canvasPosition = new double[ 3 ];
                         final double[] sourceRealPosition = new double[ 3 ];
@@ -206,14 +264,14 @@ public class ScreenShotMaker
                         final ARGBType argbType = new ARGBType();
 
                         // iterate through the target image in pixel units
-                        while ( floatCursor.hasNext() )
+                        while ( targetCursor.hasNext() )
                         {
                             // set the positions
-                            floatCursor.fwd();
-                            floatCursor.localize( canvasPosition );
-                            floatAccess.setPosition( floatCursor );
-                            maskAccess.setPosition( floatCursor );
-                            argbAccess.setPosition( floatCursor );
+                            targetCursor.fwd();
+                            targetCursor.localize( canvasPosition );
+                            targetAccess.setPosition( targetCursor );
+                            maskAccess.setPosition( targetCursor );
+                            argbAccess.setPosition( targetCursor );
                             targetCanvasToSourceTransform.apply( canvasPosition, sourceRealPosition );
                             sourceAccess.setPosition( sourceRealPosition );
 
@@ -222,8 +280,10 @@ public class ScreenShotMaker
                             if ( sourceMask.test( new RealPoint( sourceRealPosition ) ) )
                             {
                                 maskAccess.get().set( true );
-                                setFloatPixelValue( sourceAccess, floatAccess );
                                 setArgbPixelValue( converter, sourceAccess, argbAccess, argbType );
+
+                                if ( dataSacs.contains( sac ) )
+                                    setPixelValue( sourceAccess, targetAccess );
                             }
                             else
                             {
@@ -253,9 +313,12 @@ public class ScreenShotMaker
 
             ThreadHelper.waitUntilFinished( futures );
 
-            floatCaptures.add( floatCapture );
-            maskCaptures.add( maskCapture );
-            argbCaptures.add( argbCapture );
+            if ( dataSacs.contains( sac ) )
+            {
+                realCaptures.add( realRAI );
+                maskCaptures.add( maskRAI );
+            }
+            argbCaptures.add( argbRAI );
             displayRanges.add( displayRange );
         }
 
@@ -264,13 +327,17 @@ public class ScreenShotMaker
         final double[] voxelSpacing = new double[ 3 ];
         Arrays.fill( voxelSpacing, targetVoxelSpacing );
 
-        if ( ! floatCaptures.isEmpty() )
+        if ( ! realCaptures.isEmpty() )
         {
             rgbImagePlus = createRGBImagePlus( voxelUnit, argbCaptures, voxelSpacing, sacs );
+
+            // TODO: instead of a composite image we could return multiple images here, one per sac,
+            //  this would also help with the datatype
+            //  one has to think about the pros and cons of having them in one image...
             compositeImagePlus = createCompositeImagePlus(
                     voxelSpacing,
                     voxelUnit,
-                    floatCaptures,
+                    realCaptures,
                     maskCaptures,
                     displayRanges );
         }
@@ -293,12 +360,15 @@ public class ScreenShotMaker
         argbCaptureAccess.get().set( argbType.get() );
     }
 
-    private void setFloatPixelValue( RealRandomAccess< ? extends Type< ? > > access, RandomAccess< FloatType > floatCaptureAccess )
+    private void setPixelValue(
+            RealRandomAccess< ? extends Type< ? > > sourceAccess,
+            RandomAccess< ? extends RealType< ? > > targetAccess )
     {
-        final Type< ? > type = access.get();
+        final Type< ? > type = sourceAccess.get();
         if ( type instanceof RealType )
         {
-            floatCaptureAccess.get().setReal( ( ( RealType ) type ).getRealDouble() );
+            double realDouble = ( ( RealType ) type ).getRealDouble();
+            targetAccess.get().setReal( realDouble );
         }
         else if ( type instanceof AnnotationType )
         {
@@ -306,7 +376,7 @@ public class ScreenShotMaker
             {
                 final Annotation annotation = ( Annotation ) ( ( AnnotationType< ? > ) type ).getAnnotation();
                 if ( annotation != null )
-                    floatCaptureAccess.get().setReal( annotation.label() );
+                    targetAccess.get().setReal( annotation.label() );
             }
             catch ( Exception e )
             {
@@ -419,19 +489,20 @@ public class ScreenShotMaker
     public static CompositeImage createCompositeImagePlus(
             double[] voxelSpacing,
             String voxelUnit,
-            ArrayList< RandomAccessibleInterval< FloatType > > floatCaptures,
-            ArrayList< RandomAccessibleInterval< BitType > > maskCaptures,
+            ArrayList< RandomAccessibleInterval< ? extends RealType< ? >  > > realRAIs,
+            ArrayList< RandomAccessibleInterval< BitType > > maskRAIs,
             ArrayList< double[] > displayRanges )
     {
-        final ImagePlus imp = ImageJFunctions.wrap( Views.stack( floatCaptures ), "Floats" );
-        final ImagePlus mask = ImageJFunctions.wrap( Views.stack( maskCaptures ), "Masks" );
+
+        final ImagePlus imp = ImageJFunctions.wrap( Views.stack( (ArrayList) realRAIs ), "Floats" );
+        final ImagePlus mask = ImageJFunctions.wrap( Views.stack( maskRAIs ), "Masks" );
 
         // duplicate: otherwise it is virtual and cannot be modified
         final ImagePlus dup = new Duplicator().run( imp );
 
         IJ.run( dup,
                 "Properties...",
-                "channels="+floatCaptures.size()
+                "channels="+realRAIs.size()
                         +" slices=1 frames=1 unit=" + voxelUnit
                         +" pixel_width=" + voxelSpacing[ 0 ]
                         +" pixel_height=" + voxelSpacing[ 1 ]

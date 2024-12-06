@@ -149,15 +149,10 @@ public class Plate
 						.filter( path -> operettaMetadata.contains( path ) ) // skip files like .DS_Store a.s.o.
 						.collect( Collectors.toList() );
 			}
-			else if ( hcsPattern.equals( HCSPattern.YokogawaCQ1 ) )
-			{
-				imageDataFormat = ImageDataFormat.Tiff;
-			}
-			else if ( hcsPattern.equals( HCSPattern.MolecularDevices ) )
-			{
-				imageDataFormat = ImageDataFormat.Tiff;
-			}
-			else if ( hcsPattern.equals( HCSPattern.InCarta ) )
+			else if ( hcsPattern.equals( HCSPattern.YokogawaCQ1 )
+					|| hcsPattern.equals( HCSPattern.MolecularDevices )
+					|| hcsPattern.equals( HCSPattern.InCarta )
+					|| hcsPattern.equals( HCSPattern.Araceli ) )
 			{
 				imageDataFormat = ImageDataFormat.Tiff;
 			}
@@ -215,7 +210,7 @@ public class Plate
 					{
 						int datasetIndex = channel.getIndex();
 
-						IJ.log( "Fetching metadata for " + channelName + " from " + imagePath );
+						IJ.log( "Fetching metadata for \"" + channelName + "\" from " + imagePath );
 						Source< ? > source = imageData.getSourcePair( datasetIndex ).getA();
 						int numMipmapLevels = source.getNumMipmapLevels();
 						numSlices = ( int ) source.getSource( 0, 0 ).dimension( 2 );

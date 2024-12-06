@@ -26,46 +26,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.io;
+package develop.hcs;
 
-import org.apache.commons.io.FilenameUtils;
+import mpicbg.spim.data.SpimDataException;
+import net.imagej.ImageJ;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.command.open.OpenHCSDatasetCommand;
 import org.embl.mobie.lib.util.MoBIEHelper;
 
 import java.io.File;
+import java.io.IOException;
 
-public class FileImageSource
+public class HCSAraceli
 {
-	public String name;
-	public String path;
-	public Integer channelIndex = 0;
+    public static void main( String[] args )
+    {
+        new ImageJ().ui().showUI();
 
-	/**
-	 * Parses the input string assuming the pattern:
-	 * "path=name;channelIndex"
-	 * where everything after path is optional
-	 *
-	 * @param string
-	 * 				the string to be parsed
-	 */
-	public FileImageSource( String string )
-	{
-		String[] split = new String[]{ string };
-		if ( string.contains( ";" ) )
-		{
-			split = string.split( ";" );
-			channelIndex = Integer.parseInt( split[ 1 ] );
-		}
+        OpenHCSDatasetCommand command = new OpenHCSDatasetCommand();
+        command.hcsDirectory = new File("/Volumes/Thumbnails");
+        command.run();
+    }
 
-		if ( split[ 0 ].contains( "=" ) )
-		{
-			split = split[ 0 ].split( "=" );
-			path = split[ 0 ];
-			name = split[ 1 ];
-		}
-		else
-		{
-			name = MoBIEHelper.removeExtension( new File( split[ 0 ] ).getName() );
-			path = split[ 0 ];
-		}
-	}
 }

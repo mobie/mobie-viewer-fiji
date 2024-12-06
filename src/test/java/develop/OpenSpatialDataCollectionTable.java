@@ -26,46 +26,30 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.io;
+package develop;
 
-import org.apache.commons.io.FilenameUtils;
-import org.embl.mobie.lib.util.MoBIEHelper;
+import net.imagej.ImageJ;
+import org.embl.mobie.command.open.OpenCollectionTableCommand;
+import org.embl.mobie.command.open.OpenTableCommand;
+import org.embl.mobie.lib.bdv.BdvViewingMode;
+import org.embl.mobie.lib.transform.GridType;
 
 import java.io.File;
 
-public class FileImageSource
+public class OpenSpatialDataCollectionTable
 {
-	public String name;
-	public String path;
-	public Integer channelIndex = 0;
+    public static void main( String[] args )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
 
-	/**
-	 * Parses the input string assuming the pattern:
-	 * "path=name;channelIndex"
-	 * where everything after path is optional
-	 *
-	 * @param string
-	 * 				the string to be parsed
-	 */
-	public FileImageSource( String string )
-	{
-		String[] split = new String[]{ string };
-		if ( string.contains( ";" ) )
-		{
-			split = string.split( ";" );
-			channelIndex = Integer.parseInt( split[ 1 ] );
-		}
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.table = new File("/Users/tischer/Desktop/iss-nf/qc_spatialdata_processed/mobie-collection.txt");
+        command.dataRoot = OpenCollectionTableCommand.DataRoot.UseTableFolder;
+        command.bdvViewingMode = BdvViewingMode.TwoDimensional;
+        command.run();
 
-		if ( split[ 0 ].contains( "=" ) )
-		{
-			split = split[ 0 ].split( "=" );
-			path = split[ 0 ];
-			name = split[ 1 ];
-		}
-		else
-		{
-			name = MoBIEHelper.removeExtension( new File( split[ 0 ] ).getName() );
-			path = split[ 0 ];
-		}
-	}
+        // Issues:
+        // https://imagesc.zulipchat.com/#narrow/channel/328251-NGFF/topic/Not.20identified.20as.20multi-scale.20metadata
+    }
 }

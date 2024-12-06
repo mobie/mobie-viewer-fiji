@@ -29,26 +29,30 @@
 package org.embl.mobie.lib.hcs;
 
 import net.thisptr.jackson.jq.internal.misc.Strings;
+import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
-import org.embl.mobie.lib.serialize.Dataset;
-import org.embl.mobie.lib.serialize.ImageDataSource;
-import org.embl.mobie.lib.serialize.SegmentationDataSource;
-import org.embl.mobie.lib.serialize.View;
+import org.embl.mobie.lib.io.StorageLocation;
+import org.embl.mobie.lib.serialize.*;
 import org.embl.mobie.lib.serialize.display.Display;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.transformation.MergedGridTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
+import org.embl.mobie.lib.table.TableDataFormat;
+import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.transform.viewer.ImageZoomViewerTransform;
 import org.jetbrains.annotations.NotNull;
+import tech.tablesaw.api.StringColumn;
+import tech.tablesaw.api.Table;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class HCSDataSetter
 {
@@ -74,12 +78,21 @@ public class HCSDataSetter
 		// build a RegionDisplay for outlining
 		// and navigating the wells
 		//
-		final RegionDisplay< AnnotatedRegion > wellDisplay = new RegionDisplay<>( "wells" );
-		wellDisplay.sources = new LinkedHashMap<>();
-		wellDisplay.showAsBoundaries( true );
-		wellDisplay.setBoundaryThickness( 0.05 );
-		wellDisplay.boundaryThicknessIsRelative( true );
-		wellDisplay.setRelativeDilation( 2 * wellDisplay.getBoundaryThickness() );
+		final RegionDisplay< AnnotatedRegion > wellRegionsDisplay = new RegionDisplay<>( "wells" );
+		wellRegionsDisplay.sources = new LinkedHashMap<>();
+		wellRegionsDisplay.showAsBoundaries( true );
+		wellRegionsDisplay.setBoundaryThickness( 0.05 );
+		wellRegionsDisplay.boundaryThicknessIsRelative( true );
+		wellRegionsDisplay.setRelativeDilation( 2 * wellRegionsDisplay.getBoundaryThickness() );
+
+		Table wellTable = Table.create( wellRegionsDisplay.getName() );
+		final RegionTableSource regionTableSource = new RegionTableSource( wellRegionsDisplay.getName() );
+		StorageLocation tableLocation = new StorageLocation();
+		tableLocation.data = wellTable;
+		regionTableSource.addTable( TableDataFormat.Table, tableLocation );
+		DataStore.addRawData( regionTableSource );
+
+		wellRegionsDisplay.tableSource = regionTableSource.getName();
 
 		// wells should be displayed for all time-points.
 		// currently, the below code assumes that the time-points
@@ -90,9 +103,8 @@ public class HCSDataSetter
 		final int numTimepoints = plate.getTPositions().size();
 		for ( int t = 0; t < numTimepoints; t++ )
 		{
-			wellDisplay.timepoints().add( t );
+			wellRegionsDisplay.timepoints().add( t );
 		}
-
 
 		// build nested grid views of the sites and wells for all channels
 		//
@@ -130,7 +142,7 @@ public class HCSDataSetter
 					// thus we simply and only use
 					// the first channel for the
 					// well region display
-					wellDisplay.sources.put( wellID, Arrays.asList( wellID ) );
+					wellRegionsDisplay.sources.put( wellID, Arrays.asList( wellID ) );
 				}
 
 				// for each site, create an image source
@@ -173,9 +185,8 @@ public class HCSDataSetter
 				if ( siteGrid != null )
 					imageTransforms.add( siteGrid );
 
-				// add the merged site grid,
-				// of name wellID,
-				// to the well grid
+				// add the merged site grid
+				// of name wellID to the well grid
 				wellGrid.sources.add( wellID );
 				wellGrid.positions.add( plate.getWellGridPosition( well ) );
 			}
@@ -193,12 +204,17 @@ public class HCSDataSetter
 				displays.add( imageDisplay );
 			}
 
+			if( channel.equals( firstChannel ) )
+			{
+				wellTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, wellGrid.getSources() ) );
+				wellTable.addColumns( StringColumn.create( "well", wells.stream().map( w -> w.getName() ).collect( Collectors.toList() ) ) );
+			}
 		}
 
-		displays.add( wellDisplay );
+		displays.add( wellRegionsDisplay );
 
 		// create plate view
-		final ArrayList< String > wells = new ArrayList<>( wellDisplay.sources.keySet() );
+		final ArrayList< String > wells = new ArrayList<>( wellRegionsDisplay.sources.keySet() );
 		Collections.sort( wells );
 		final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( wells.get( 0 ), 0 );
 		final View view = new View( plate.getName(), "plate", displays, imageTransforms, viewerTransform, true, null );
