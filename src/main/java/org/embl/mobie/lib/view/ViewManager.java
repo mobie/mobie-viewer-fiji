@@ -792,4 +792,9 @@ public class ViewManager
 		IJ.log( "Clearing SpimData cache..." );
 		DataStore.clearSpimDataCache();
 	}
+
+	public BVVManager getBvvManager()
+	{
+		return bvvManager;
+	}
 }

@@ -17,7 +17,7 @@ public class BVVManager
 	//BVV canvas rendering parameters, can be changed/adjusted somewhere else
 	
 	//parameters that can be changed at runtime
-	double dCam = 2000.;	
+	double dCam = 2000.;
 	double dClipNear = 1000.;
 	double dClipFar = 15000.;			
 	

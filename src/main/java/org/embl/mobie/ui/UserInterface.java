@@ -110,7 +110,7 @@ public class UserInterface
 		}
 
 		final int longestStringWidth = new JPanel().getFontMetrics( new JComboBox<>().getFont() ).stringWidth( longestViewString );
-		final int width = Math.min( longestStringWidth + 400, Toolkit.getDefaultToolkit().getScreenSize().width / 2 );
+		final int width = Math.min( longestStringWidth + 550, Toolkit.getDefaultToolkit().getScreenSize().width / 2 );
 		final int height = ( int ) ( Toolkit.getDefaultToolkit().getScreenSize().height * 0.6 );
 		frame.setPreferredSize( new Dimension( width, height ) );
 		frame.getContentPane().setLayout( new GridLayout() );
