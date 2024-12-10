@@ -28,9 +28,10 @@
  */
 package org.embl.mobie.command.context;
 
-import bvvpg.vistools.Bvv;
+
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
+
 import org.scijava.Initializable;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -41,18 +42,48 @@ public class ConfigureBVVRenderingCommand implements BdvPlaygroundActionCommand,
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter( label = "dCam" )
-	public double dCam = 2000.;
+	@Parameter( label = "Render width (BVV Mobie)" )
+	public int renderWidth = 600;
 
-	@Parameter( label = "dClip" )
-	public double dClip = 1000.;
+	@Parameter( label = "Render height (BVV Mobie)" )
+	public int renderHeight = 600;
 
+	@Parameter( label = "Dither window size (BVV Mobie)",
+			choices = { "none (always render full resolution)", "2x2", "3x3", "4x4", "5x5", "6x6", "7x7", "8x8" } )
+	public String dithering = "3x3";
+
+	@Parameter( label = "Number of dither samples (BVV Mobie)",
+			description = "Pixels are interpolated from this many nearest neighbors when dithering. This is not very expensive, it's fine to turn it up to 8.",
+			min="1",
+			max="8",
+			style="slider")
+	public int numDitherSamples = 3;
+
+	@Parameter( label = "GPU cache tile size (BVV Mobie)" )
+	public int cacheBlockSize = 32;
+
+	@Parameter( label = "GPU cache size (in MB) (BVV Mobie)",
+				description = "The size of the GPU cache texture will match this as close as possible with the given tile size." )
+	public int maxCacheSizeInMB = 500;
+
+	@Parameter( label = "Camera distance",
+				description = "Distance from camera to z=0 plane. In units of pixel width." )
+	public double dCam = 3000;
+
+	@Parameter( label = "Clip distance far",
+	description = "Visible depth from z=0 further away from the camera. In units of pixel width.")
+	public double dClipFar = 1000;
+	
+	@Parameter( label = "Clip distance near",
+			description = "Visible depth from z=0 closer to the camera. In units of pixel width. MUST BE SMALLER THAN CAMERA DISTANCE!")
+	public double dClipNear = 1000;
+
+	
 	@Override
 	public void run()
 	{
-		Bvv bvv = MoBIE.getInstance().getViewManager().getBvvManager().get();
-		bvv.getBvvHandle().getViewerPanel().setCamParams( dCam, dClip );
-		bvv.getBvvHandle().getViewerPanel().requestRepaint();
+		MoBIE.getInstance().getViewManager().getBvvManager().updateBVVRenderSettings();
 	}
+
 
 }
