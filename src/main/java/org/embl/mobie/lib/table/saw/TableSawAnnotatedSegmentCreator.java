@@ -70,6 +70,13 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 
 		segmentColumnNames = TableDataFormat.getSegmentColumnNames( columnNames );
 
+		if ( segmentColumnNames == null )
+		{
+			throw new RuntimeException( "Could not parse column names of " + table.name() +
+					"\nThe column names in this table are:" +
+					"\n" + String.join( ",", columnNames) );
+		}
+
 		idColumns = new ArrayList<>();
 		idColumns.add( segmentColumnNames.labelIdColumn() );
 		idColumns.add( segmentColumnNames.timePointColumn() );

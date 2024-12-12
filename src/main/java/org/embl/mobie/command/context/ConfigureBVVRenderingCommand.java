@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.command.context;
 
+import bdv.viewer.SourceAndConverter;
 import bvvpg.vistools.Bvv;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
@@ -35,6 +36,8 @@ import org.scijava.Initializable;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
+
+import java.util.List;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Configure BigVolumeViewer Rendering")
 public class ConfigureBVVRenderingCommand implements BdvPlaygroundActionCommand, Initializable
@@ -51,6 +54,7 @@ public class ConfigureBVVRenderingCommand implements BdvPlaygroundActionCommand,
 	public void run()
 	{
 		Bvv bvv = MoBIE.getInstance().getViewManager().getBvvManager().get();
+		List< SourceAndConverter< ? > > sources = bvv.getBvvHandle().getViewerPanel().state().getSources();
 		bvv.getBvvHandle().getViewerPanel().setCamParams( dCam, dClip );
 		bvv.getBvvHandle().getViewerPanel().requestRepaint();
 	}
