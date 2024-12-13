@@ -38,6 +38,8 @@ import org.scijava.ui.behaviour.util.Behaviours;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import bdv.viewer.TimePointListener;
+import bdv.viewer.ViewerPanel;
 import bvvpg.core.VolumeViewerFrame;
 import bvvpg.pguitools.GammaConverterSetup;
 import bvvpg.vistools.Bvv;
@@ -50,7 +52,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 
 @SuppressWarnings( "rawtypes" )
-public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
+public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener, TimePointListener
 {
 	private Bvv bvv = null;
 	
@@ -251,14 +253,14 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	 * Works only if the number of labels is <=65535 **/
 	
 	@SuppressWarnings( { "unchecked"} )
-	public static IndexColorModel getAnnotationLUT(SourceAndConverter< ? > sac)
+	public IndexColorModel getAnnotationLUT(SourceAndConverter< ? > sac)
 	{
 		Image< ? > image = DataStore.getImage( sac.getSpimSource().getName() );
 		if ( image instanceof AnnotationLabelImage )
 		{
 			AnnotationAdapter< Annotation > annotationAdapter = ( ( AnnotationLabelImage< Annotation > ) image ).getAnnotationAdapter();
 			Converter< AnnotationType, ARGBType > converter = ( Converter< AnnotationType, ARGBType > ) sac.getConverter();
-
+			
 			final int nAnnotationsNumber = ( ( AnnotationLabelImage<?> ) image ).getAnnData().getTable().numAnnotations();
 			
 			final byte [][] colors = new byte [3][nAnnotationsNumber+1];
@@ -271,10 +273,11 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 			colors[1][0] = 0;
 			colors[2][0] = 0;
 			alphas[0] = ( byte ) ( 0 );
-			int timePoint = 0;
+			int timePoint = handle.getViewerPanel().state().getCurrentTimepoint();
 			for(int label=1; label<=nAnnotationsNumber; label++)
 			{
 				final Annotation annotation = annotationAdapter.getAnnotation( image.getName(), timePoint, label );
+
 				converter.convert( new AnnotationType<>( annotation ), valARGB );
 				val = valARGB.get();
 				colors[ 0 ][ label ] = ( byte ) ARGBType.red( val );
@@ -339,8 +342,9 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	{
 		if(bvv != null)
 		{
-			AffineTransform3D transform = MoBIE.getInstance().getViewManager().getSliceViewer().getBdvHandle().getViewerPanel().state().getViewerTransform();
-			Dimension bdvDim = MoBIE.getInstance().getViewManager().getSliceViewer().getBdvHandle().getViewerPanel().getSize();
+			ViewerPanel bdvViewer = MoBIE.getInstance().getViewManager().getSliceViewer().getBdvHandle().getViewerPanel();
+			AffineTransform3D transform = bdvViewer.state().getViewerTransform();
+			Dimension bdvDim = bdvViewer.getSize();
 			Dimension bvvDim = handle.getViewerPanel().getSize();
 			transform.set( transform.get( 0, 3 ) - bdvDim.width / 2, 0, 3 );
 			transform.set( transform.get( 1, 3 ) - bdvDim.height / 2, 1, 3 );
@@ -350,6 +354,8 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 			transform.set( transform.get( 1, 3 ) + bvvDim.height / 2, 1, 3 );
 			
 			handle.getViewerPanel().state().setViewerTransform( transform );
+			handle.getViewerPanel().state().
+					setCurrentTimepoint(bdvViewer.state().getCurrentTimepoint());
 		}
 	}
 
@@ -404,14 +410,8 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	@Override
 	public void selectionChanged()
 	{	
-		if(bvv != null)
-		{
-			for ( Map.Entry< SourceAndConverter, ValuePair< BvvStackSource, AbstractSpimData>> entry : sacToBvvSource.entrySet() )
-			{
-				if ( isAnnotation( entry.getKey() ) )
-					configureRenderingSettings( entry.getKey(), entry.getValue().getA() );
-			}
-		}		
+		updateAnnotations();	
+	
 	}
 
 	@Override
@@ -423,13 +423,20 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	@Override
 	public void coloringChanged()
 	{
+		updateAnnotations();
+	}
+	
+	public void updateAnnotations()
+	{
 		if(bvv != null)
 		{
 			for ( Map.Entry< SourceAndConverter, ValuePair< BvvStackSource, AbstractSpimData> > entry : sacToBvvSource.entrySet() )
 			{
-				configureRenderingSettings( entry.getKey(), entry.getValue().getA() );
+				if ( isAnnotation( entry.getKey() ) )
+					configureRenderingSettings( entry.getKey(), entry.getValue().getA() );
 			}
 		}		
+		
 	}
 	
 	/** leftover example of Glasbey LUT, keep it for now.**/
@@ -447,5 +454,11 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 		}
 
 		return new IndexColorModel(16,256,colors[0],colors[1],colors[2]);
+	}
+
+	@Override
+	public void timePointChanged( int timePointIndex )
+	{
+		updateAnnotations();
 	}
 }

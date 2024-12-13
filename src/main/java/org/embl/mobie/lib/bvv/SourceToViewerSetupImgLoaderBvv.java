@@ -47,7 +47,7 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 	final AffineTransform3D [] mipmapTransforms;
 	final double [][] mipmapResolutions; 
 	private VolatileGlobalCellCache cache;
-	private long[][] imageDimensions;
+	//private long[][] imageDimensions;
 	final Object typeIn;
 	boolean bFloat = false;
 	double dMin,dMax;
@@ -65,12 +65,7 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 
 	
 		mipmapTransforms = new AffineTransform3D[numScales];
-		imageDimensions = new long[ numScales ][];
-		
-		for(int i=0;i<numScales;i++)
-		{
-			imageDimensions[ i ] = src.getSource( 0, i ).dimensionsAsLongArray();
-		}
+
 		mipmapResolutions = new double[ numScales ][];
 		AffineTransform3D transformSource = new AffineTransform3D();
 		src.getSourceTransform( 0, 0, transformSource );
@@ -139,7 +134,7 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 	prepareCachedImage(final int timepointId, final int level, final int setupId,
 					   final LoadingStrategy loadingStrategy, final T typeCache)
 	{
-		final long[] dimensions = imageDimensions[ level ];
+		final long[] dimensions = src.getSource( timepointId, level ).dimensionsAsLongArray();
 		final int priority = numScales - 1 - level;
 		
 		final CacheHints cacheHints = new CacheHints( loadingStrategy, priority, false );
