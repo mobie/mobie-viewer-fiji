@@ -109,6 +109,8 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 					"D" );
 			actions.install( handle.getKeybindings(), "mobie-bvv-actions" );
 			
+			handle.getViewerPanel().addTimePointListener( this );
+			
 			handle.getBigVolumeViewer().getViewerFrame().addWindowListener(  
 					new WindowAdapter()
 					{
@@ -260,8 +262,18 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 		{
 			AnnotationAdapter< Annotation > annotationAdapter = ( ( AnnotationLabelImage< Annotation > ) image ).getAnnotationAdapter();
 			Converter< AnnotationType, ARGBType > converter = ( Converter< AnnotationType, ARGBType > ) sac.getConverter();
-			
-			final int nAnnotationsNumber = ( ( AnnotationLabelImage<?> ) image ).getAnnData().getTable().numAnnotations();
+			String imageName = image.getName();
+			int timePoint = 0;
+			final int nAnnotationsNumber;
+			if(handle.getViewerPanel().state().getNumTimepoints()>1)
+			{
+				timePoint = handle.getViewerPanel().state().getCurrentTimepoint();
+				nAnnotationsNumber = numberOfAnnotationsPerTimepoint(annotationAdapter, timePoint, imageName);
+			}
+			else
+			{
+				nAnnotationsNumber = ( ( AnnotationLabelImage<?> ) image ).getAnnData().getTable().numAnnotations();				
+			}
 			
 			final byte [][] colors = new byte [3][nAnnotationsNumber+1];
 			final byte [] alphas = new byte [nAnnotationsNumber+1];
@@ -273,10 +285,10 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 			colors[1][0] = 0;
 			colors[2][0] = 0;
 			alphas[0] = ( byte ) ( 0 );
-			int timePoint = handle.getViewerPanel().state().getCurrentTimepoint();
+			
 			for(int label=1; label<=nAnnotationsNumber; label++)
 			{
-				final Annotation annotation = annotationAdapter.getAnnotation( image.getName(), timePoint, label );
+				final Annotation annotation = annotationAdapter.getAnnotation( imageName, timePoint, label );
 
 				converter.convert( new AnnotationType<>( annotation ), valARGB );
 				val = valARGB.get();
@@ -288,6 +300,16 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 			return new IndexColorModel(16,nAnnotationsNumber+1,colors[0],colors[1],colors[2], alphas);
 		}
 		return null;
+	}
+	
+	static int numberOfAnnotationsPerTimepoint(final AnnotationAdapter< Annotation > annotationAdapter, final int timePoint, String imageName)
+	{
+		int n = 1;
+		while(annotationAdapter.getAnnotation( imageName, timePoint, n ) != null)
+		{
+			n++;
+		}
+		return n-1;
 	}
 	
 	public synchronized Bvv getBVV()
