@@ -39,6 +39,7 @@ import net.imagej.ImageJ;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.lib.*;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 import org.embl.mobie.lib.data.*;
@@ -115,6 +116,13 @@ public class MoBIE
 
 		this.settings = settings;
 		this.projectLocation = uri;
+
+		if ( MoBIEHelper.notNullOrEmpty( settings.values.getS3AccessAndSecretKey()[0] ) )
+		{
+			// This is not needed anymore for image data, but for other data types
+			// For image data this is now part of ImageDataFormat
+			S3Utils.setS3AccessAndSecretKey( settings.values.getS3AccessAndSecretKey() );
+		}
 
 		if ( settings.values.getProjectType().equals( ProjectType.CollectionTable ) )
 		{
