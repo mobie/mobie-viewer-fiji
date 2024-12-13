@@ -18,6 +18,7 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
+import net.imglib2.util.ValuePair;
 
 import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.annotation.Annotation;
@@ -50,7 +51,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 {
 	private Bvv bvv = null;
 	public BvvHandleFrame handle = null;
-	private final ConcurrentHashMap< SourceAndConverter, BvvStackSource > sacToBvvSource;
+	private final ConcurrentHashMap< SourceAndConverter, ValuePair< BvvStackSource, AbstractSpimData> > sacToBvvSource;
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
 	private int nRenderMethod = 1;
 	
@@ -117,7 +118,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 		}
 		if ( sacToBvvSource.containsKey( sac ) )
 		{
-			sacToBvvSource.get( sac ).setActive( isVisible );
+			sacToBvvSource.get( sac ).getA().setActive( isVisible );
 		}
 		else
 		{
@@ -128,6 +129,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 		}
 	}
 	
+	@SuppressWarnings( "unchecked" )
 	void addSourceToBVV(SourceAndConverter< ? > sac)
 	{
 		Source< ? > source = getSource( sac );
@@ -143,7 +145,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 
 		nRenderMethod = 1;
 		
-		//consistent rendering of all sources
+		//in not a first source, ensure consistent rendering of all sources
 		if(	bvv.getBvvHandle().getViewerPanel().state().getSources().size()>0)
 		{
 			@SuppressWarnings( "deprecation" )
@@ -152,10 +154,9 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 		}
 		
 		//assume it is always one source
-		BvvStackSource< ? >  bvvSource = BvvFunctions.show(
-				SourceToSpimDataWrapperBvv.spimDataSourceWrap( source ),
+		BvvStackSource< ? >  bvvSource = BvvFunctions.show(spimData,
 				Bvv.options().addTo( bvv )).get( 0 );
-		sacToBvvSource.put( sac, bvvSource );
+		sacToBvvSource.put( sac, new ValuePair( bvvSource, spimData));
 
 		configureRenderingSettings( sac, bvvSource );
 	}
@@ -286,7 +287,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 		{
 			if(sacToBvvSource.containsKey( sac ))
 			{
-				sacToBvvSource.get( sac ).removeFromBdv();
+				sacToBvvSource.get( sac ).getA().removeFromBdv();
 				sacToBvvSource.remove( sac );
 			}
 		}
@@ -313,10 +314,10 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	{	
 		if(bvv != null)
 		{
-			for ( Map.Entry< SourceAndConverter, BvvStackSource > entry : sacToBvvSource.entrySet() )
+			for ( Map.Entry< SourceAndConverter, ValuePair< BvvStackSource, AbstractSpimData>> entry : sacToBvvSource.entrySet() )
 			{
 				if ( isAnnotation( entry.getKey() ) )
-					configureRenderingSettings( entry.getKey(), entry.getValue() );
+					configureRenderingSettings( entry.getKey(), entry.getValue().getA() );
 			}
 		}		
 	}
@@ -332,9 +333,9 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	{
 		if(bvv != null)
 		{
-			for ( Map.Entry< SourceAndConverter, BvvStackSource > entry : sacToBvvSource.entrySet() )
+			for ( Map.Entry< SourceAndConverter, ValuePair< BvvStackSource, AbstractSpimData> > entry : sacToBvvSource.entrySet() )
 			{
-				configureRenderingSettings( entry.getKey(), entry.getValue() );
+				configureRenderingSettings( entry.getKey(), entry.getValue().getA() );
 			}
 		}		
 	}
