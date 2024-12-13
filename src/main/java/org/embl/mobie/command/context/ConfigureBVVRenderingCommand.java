@@ -82,7 +82,7 @@ public class ConfigureBVVRenderingCommand implements BdvPlaygroundActionCommand,
 	@Override
 	public void run()
 	{
-		MoBIE.getInstance().getViewManager().getBvvManager().updateBVVRenderSettings();
+		MoBIE.getInstance().getViewManager().getBvv().updateBVVRenderSettings();
 	}
 
 

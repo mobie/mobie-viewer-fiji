@@ -1,5 +1,6 @@
 package org.embl.mobie.lib.bvv;
 
+
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.IndexColorModel;
@@ -9,14 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import bdv.viewer.Source;
-
-
 import net.imglib2.RandomAccess;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
 
@@ -29,85 +28,102 @@ import org.embl.mobie.lib.image.AnnotationLabelImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
+import org.embl.mobie.lib.source.AnnotationType;
+import org.scijava.ui.behaviour.io.InputTriggerConfig;
+import org.scijava.ui.behaviour.util.Behaviours;
 
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bvvpg.pguitools.GammaConverterSetup;
 import bvvpg.vistools.Bvv;
 import bvvpg.vistools.BvvFunctions;
+import bvvpg.vistools.BvvHandle;
 import bvvpg.vistools.BvvHandleFrame;
 import bvvpg.vistools.BvvStackSource;
 import ij.IJ;
 import mpicbg.spim.data.generic.AbstractSpimData;
-
-import org.embl.mobie.lib.source.AnnotationType;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 
-public class ImageBVViewer implements ColoringListener, SelectionListener
+@SuppressWarnings( "rawtypes" )
+public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 {
-	
-	private final List< ? extends SourceAndConverter< ? > > sourceAndConverters;
-	@SuppressWarnings( "rawtypes" )
-	private ConcurrentHashMap< SourceAndConverter, BvvStackSource > sacToBvvSource;
-
-	private List< VisibilityListener > listeners = new ArrayList<>(  );
-	private boolean showImages;
-	private final BVVManager bvvManager;
-	private Bvv bvv;
+	private Bvv bvv = null;
 	public BvvHandleFrame handle = null;
-	private int nRenderMethod;
-
-
-	public ImageBVViewer(
-			final List< ? extends SourceAndConverter< ? > > sourceAndConverters,
-			BVVManager bvvManager_)
+	private final ConcurrentHashMap< SourceAndConverter, BvvStackSource > sacToBvvSource;
+	private List< VisibilityListener > listeners = new ArrayList<>(  );
+	private int nRenderMethod = 1;
+	
+	public BigVolumeViewerMoBIE()
 	{
-		this.sourceAndConverters = sourceAndConverters;
+		//sourceAndConverters = new ArrayList<>();
 		sacToBvvSource = new ConcurrentHashMap<>();
-		bvvManager = bvvManager_;
+		BvvSettings.readBVVRenderSettings();
 	}
 	
-	/// is it really needed for now?
-	/// seems related to meshes rendering
-//	public void updateView()
-//	{
-//		if ( bvv == null ) return;
-//
-//		for ( SourceAndConverter< ? > sac : sourceAndConverters )
-//		{
-//			if ( sacToBvvSource.containsKey( sac ) )
-//			{
-//				BvvStackSource<?> bvvSource = sacToBvvSource.get( sac );
-//				bvvSource.removeFromBdv();
-//				sacToBvvSource.remove( sac );
-//				addSourceToBVV(sac);
-//			}
-//		}
-//	}
-
-	public synchronized < T > void showImagesBVV( boolean show )
+	public synchronized void init()
 	{
-		this.showImages = show;
-
-		if ( showImages && bvv == null )
+		if ( bvv == null )
 		{
-			// remove previous sources
-			sacToBvvSource = new ConcurrentHashMap<>();
-			initBVV();
+			bvv = BvvFunctions.show( Bvv.options().frameTitle( "BigVolumeViewer" ).
+					dCam(BvvSettings.dCam).
+					dClipNear(BvvSettings.dClipNear).
+					dClipFar(BvvSettings.dClipFar).				
+					renderWidth(BvvSettings.renderWidth).
+					renderHeight(BvvSettings.renderHeight).
+					numDitherSamples(BvvSettings.numDitherSamples ).
+					cacheBlockSize(BvvSettings.cacheBlockSize ).
+					maxCacheSizeInMB( BvvSettings.maxCacheSizeInMB ).
+					ditherWidth(BvvSettings.ditherWidth)
+					);
+			this.bvv.getBvvHandle().getViewerPanel().state().getVisibleAndPresentSources();
+			
+			//change drag rotation for navigation "3D Viewer" style
+			BvvHandle bvvHandle = bvv.getBvvHandle();
+			final Rotate3DViewerStyle dragRotate = new Rotate3DViewerStyle( 0.75, bvvHandle);
+			final Rotate3DViewerStyle dragRotateFast = new Rotate3DViewerStyle( 2.0, bvvHandle);
+			final Rotate3DViewerStyle dragRotateSlow = new Rotate3DViewerStyle( 0.1, bvvHandle);
+			
+			Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
+			behaviours.behaviour( dragRotate, "drag rotate", "button1" );
+			behaviours.behaviour( dragRotateFast, "drag rotate fast", "shift button1" );
+			behaviours.behaviour( dragRotateSlow, "drag rotate slow", "ctrl button1" );
+			behaviours.install( bvvHandle.getTriggerbindings(), "mobie-behaviours" );
+			handle = (BvvHandleFrame)bvv.getBvvHandle();
+			handle.getBigVolumeViewer().getViewerFrame().addWindowListener(  
+					new WindowAdapter()
+					{
+						@Override
+						public void windowClosing( WindowEvent ev )
+						{
+							bvv = null;
+							sacToBvvSource.clear();
+							handle = null;
+							for ( VisibilityListener listener : listeners )
+							{
+								listener.visibility( false );
+							}
+						}
+					});
 		}
-		
-		for ( SourceAndConverter< ? > sac : sourceAndConverters )
+	
+	}
+
+	public void showSource(SourceAndConverter< ? > sac, boolean isVisible)
+	{
+		if ( isVisible && bvv == null )
 		{
-			if ( sacToBvvSource.containsKey( sac ) )
+			init();
+		}
+		if ( sacToBvvSource.containsKey( sac ) )
+		{
+			sacToBvvSource.get( sac ).setActive( isVisible );
+		}
+		else
+		{
+			if ( isVisible )
 			{
-				sacToBvvSource.get( sac ).setActive( show );
-			}
-			else
-			{
-				if ( show )
-				{
-					addSourceToBVV(sac);
-				}
+				addSourceToBVV(sac);
 			}
 		}
 	}
@@ -115,7 +131,7 @@ public class ImageBVViewer implements ColoringListener, SelectionListener
 	void addSourceToBVV(SourceAndConverter< ? > sac)
 	{
 		Source< ? > source = getSource( sac );
-		final AbstractSpimData< ? > spimData = BVVSourceToSpimDataWrapper.spimDataSourceWrap( source );
+		final AbstractSpimData< ? > spimData = SourceToSpimDataWrapperBvv.spimDataSourceWrap( source );
 		
 		if(spimData == null)
 		{
@@ -137,13 +153,29 @@ public class ImageBVViewer implements ColoringListener, SelectionListener
 		
 		//assume it is always one source
 		BvvStackSource< ? >  bvvSource = BvvFunctions.show(
-				BVVSourceToSpimDataWrapper.spimDataSourceWrap( source ),
-				Bvv.options().addTo( bvvManager.get() )).get( 0 );
+				SourceToSpimDataWrapperBvv.spimDataSourceWrap( source ),
+				Bvv.options().addTo( bvv )).get( 0 );
 		sacToBvvSource.put( sac, bvvSource );
 
 		configureRenderingSettings( sac, bvvSource );
 	}
-
+	
+	private static Source< ? > getSource( SourceAndConverter< ? > sac )
+	{
+		Image< ? > image = DataStore.getImage( sac.getSpimSource().getName() );
+		Source< ? > source;
+		
+		if ( image instanceof AnnotationLabelImage )
+		{
+			source = ( ( AnnotationLabelImage<?> ) image ).getLabelImage().getSourcePair().getSource();
+		}
+		else
+		{
+			source = sac.getSpimSource();
+		}
+		return source;
+	}
+	
 	private void configureRenderingSettings(
 			SourceAndConverter< ? > sac,
 			BvvStackSource< ? > bvvSource )
@@ -154,7 +186,6 @@ public class ImageBVViewer implements ColoringListener, SelectionListener
 		if(isAnnotation( sac ))
 		{
 			final IndexColorModel icmAnnLUT = getAnnotationLUT( sac );
-			//final IndexColorModel icmAnnLUT = getAnnotationLUTTwoLabelsExample(sac);
 			bvvSource.setLUT(icmAnnLUT,Integer.toString( icmAnnLUT.hashCode()));
 			bvvSource.setDisplayRangeBounds( 0, icmAnnLUT.getMapSize()-1);
 			bvvSource.setDisplayRange( 0, icmAnnLUT.getMapSize()-1);
@@ -174,8 +205,8 @@ public class ImageBVViewer implements ColoringListener, SelectionListener
 				contrastLimits[ 1 ] = 255;
 			else
 				contrastLimits[ 1 ] = 65535;
-			//is maybe Double needed? probably not
-			if(type instanceof FloatType)
+			
+			if(type instanceof FloatType || type instanceof DoubleType)
 			{
 				displayRangeMin = 0.;
 				displayRangeMax = 65535;
@@ -194,97 +225,12 @@ public class ImageBVViewer implements ColoringListener, SelectionListener
 		return false;
 	}
 	
-	private static Source< ? > getSource( SourceAndConverter< ? > sac )
-	{
-		Image< ? > image = DataStore.getImage( sac.getSpimSource().getName() );
-		Source< ? > source;
-		
-		if ( image instanceof AnnotationLabelImage )
-		{
-			source = ( ( AnnotationLabelImage<?> ) image ).getLabelImage().getSourcePair().getSource();
-		}
-		else
-		{
-			source = sac.getSpimSource();
-		}
-		return source;
-	}
-
-	void initBVV()
-	{
-		bvv = bvvManager.get();
-		handle = (BvvHandleFrame)bvv.getBvvHandle();
-		handle.getBigVolumeViewer().getViewerFrame().addWindowListener(  
-				new WindowAdapter()
-				{
-					@Override
-					public void windowClosing( WindowEvent ev )
-					{
-						bvv = null;
-						sacToBvvSource.clear();
-						showImages = false;
-						//handle.close();
-						handle = null;
-						bvvManager.setBVV( null );
-						for ( VisibilityListener listener : listeners )
-						{
-							listener.visibility( false );
-						}
-					}
-				});
-	}
-	
-	public void close()
-	{
-		if(handle!=null)
-		{
-			bvv = null;
-			sacToBvvSource.clear();
-			handle.close();
-			// not really sure how to close it without Painter thread exception,
-			// but in reality it can just be ignored
-//			handle.getViewerPanel().stop();
-//			try
-//			{
-//				Thread.sleep( 100 );
-//			}
-//			catch ( InterruptedException exc )
-//			{
-//				exc.printStackTrace();
-//			}
-//			handle.getBigVolumeViewer().getViewerFrame().dispose();
-		}
-	}
-
-	public Collection< VisibilityListener > getListeners()
-	{
-		return listeners;
-	}
-	
-	public boolean getShowImages() { return showImages; }
-	
-	public static IndexColorModel getGlasbeyICM()
-	{
-		final GlasbeyARGBLut gARGB = new GlasbeyARGBLut();
-		final byte [][] colors = new byte [3][256];
-		int val;
-		for(int i=0;i<256;i++)
-		{
-			val =gARGB.getARGB( i );
-			colors[0][i] = ( byte ) ARGBType.red( val );
-			colors[1][i] = ( byte ) ARGBType.green( val );
-			colors[2][i] = ( byte ) ARGBType.blue( val );
-		}
-
-		return new IndexColorModel(8,256,colors[0],colors[1],colors[2]);
-	}
-	
 	/** returns RGB LUT from the annotation image, i.e. UnsignedLongType
 	 * value to RGB. The size of LUT is #of labels + 1, 
 	 * since it adds Color.BLACK as zero values. 
 	 * Works only if the number of labels is <=65535 **/
 	
-	@SuppressWarnings( { "unchecked", "rawtypes" } )
+	@SuppressWarnings( { "unchecked"} )
 	public static IndexColorModel getAnnotationLUT(SourceAndConverter< ? > sac)
 	{
 		Image< ? > image = DataStore.getImage( sac.getSpimSource().getName() );
@@ -320,6 +266,66 @@ public class ImageBVViewer implements ColoringListener, SelectionListener
 		}
 		return null;
 	}
+	
+	public synchronized Bvv getBVV()
+	{
+		return bvv;
+	}
+	
+	public void close()
+	{
+		if ( bvv != null )
+		{
+			bvv.close();
+		}
+	}
+	
+	public void removeSources(List< ? extends SourceAndConverter< ? > > sourceAndConverters)
+	{
+		for ( SourceAndConverter< ? > sac : sourceAndConverters )
+		{
+			if(sacToBvvSource.containsKey( sac ))
+			{
+				sacToBvvSource.get( sac ).removeFromBdv();
+				sacToBvvSource.remove( sac );
+			}
+		}
+	
+	}
+	
+	public Collection< VisibilityListener > getListeners()
+	{
+		return listeners;
+	}
+	
+	public void updateBVVRenderSettings()
+	{
+		BvvSettings.readBVVRenderSettings();
+		if (bvv != null)
+		{
+			bvv.getBvvHandle().getViewerPanel().setCamParams( BvvSettings.dCam, BvvSettings.dClipNear, BvvSettings.dClipFar );
+			bvv.getBvvHandle().getViewerPanel().requestRepaint();
+		}
+	}
+
+	@Override
+	public void selectionChanged()
+	{	
+		if(bvv != null)
+		{
+			for ( Map.Entry< SourceAndConverter, BvvStackSource > entry : sacToBvvSource.entrySet() )
+			{
+				if ( isAnnotation( entry.getKey() ) )
+					configureRenderingSettings( entry.getKey(), entry.getValue() );
+			}
+		}		
+	}
+
+	@Override
+	public void focusEvent( Object selection, Object initiator )
+	{
+		
+	}
 
 	@Override
 	public void coloringChanged()
@@ -330,27 +336,23 @@ public class ImageBVViewer implements ColoringListener, SelectionListener
 			{
 				configureRenderingSettings( entry.getKey(), entry.getValue() );
 			}
-			bvv.getBvvHandle().getViewerPanel().requestRepaint();
-		}
+		}		
 	}
-
-	@Override
-	public void selectionChanged()
+	
+	/** leftover example of Glasbey LUT, keep it for now.**/
+	public static IndexColorModel getGlasbeyICM()
 	{
-		if(bvv != null)
+		final GlasbeyARGBLut gARGB = new GlasbeyARGBLut();
+		final byte [][] colors = new byte [3][256];
+		int val;
+		for(int i=0;i<256;i++)
 		{
-			for ( Map.Entry< SourceAndConverter, BvvStackSource > entry : sacToBvvSource.entrySet() )
-			{
-				if ( isAnnotation( entry.getKey() ) )
-					configureRenderingSettings( entry.getKey(), entry.getValue() );
-			}
-			bvv.getBvvHandle().getViewerPanel().requestRepaint();
+			val =gARGB.getARGB( i );
+			colors[0][i] = ( byte ) ARGBType.red( val );
+			colors[1][i] = ( byte ) ARGBType.green( val );
+			colors[2][i] = ( byte ) ARGBType.blue( val );
 		}
-	}
 
-	@Override
-	public void focusEvent( Object selection, Object initiator )
-	{
-
+		return new IndexColorModel(16,256,colors[0],colors[1],colors[2]);
 	}
 }

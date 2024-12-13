@@ -40,7 +40,7 @@ import bdv.viewer.Source;
 import ij.IJ;
 import mpicbg.spim.data.generic.sequence.ImgLoaderHint;
 
-public class BVVSourceToViewerSetupImgLoader extends AbstractViewerSetupImgLoader< UnsignedShortType, VolatileUnsignedShortType > implements ViewerImgLoader
+public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoader< UnsignedShortType, VolatileUnsignedShortType > implements ViewerImgLoader
 {
 	final Source<?> src;
 	final int numScales;
@@ -55,7 +55,7 @@ public class BVVSourceToViewerSetupImgLoader extends AbstractViewerSetupImgLoade
 	
 	private final CacheArrayLoader<VolatileShortArray> loader;
 	
-	public BVVSourceToViewerSetupImgLoader(final Source<?> source_)
+	public SourceToViewerSetupImgLoaderBvv(final Source<?> source_)
 	{
 		super( new UnsignedShortType(), new VolatileUnsignedShortType() );
 		src = source_;
