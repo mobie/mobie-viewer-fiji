@@ -77,7 +77,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	{
 		if ( bvv == null )
 		{
-			bvv = BvvFunctions.show( Bvv.options().frameTitle( "BigVolumeViewer" ).
+			bvv = BvvFunctions.show( Bvv.options().frameTitle( "MoBIE BigVolumeViewer" ).
 					dCam(BvvSettings.dCam).
 					dClipNear(BvvSettings.dClipNear).
 					dClipFar(BvvSettings.dClipFar).				
