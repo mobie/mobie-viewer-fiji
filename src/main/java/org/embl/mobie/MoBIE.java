@@ -117,11 +117,14 @@ public class MoBIE
 		this.settings = settings;
 		this.projectLocation = uri;
 
-		if ( MoBIEHelper.notNullOrEmpty( settings.values.getS3AccessAndSecretKey()[0] ) )
+		if ( settings.values.getS3AccessAndSecretKey() != null )
 		{
-			// This is not needed anymore for image data, but for other data types
-			// For image data this is now part of ImageDataFormat
-			S3Utils.setS3AccessAndSecretKey( settings.values.getS3AccessAndSecretKey() );
+			if ( MoBIEHelper.notNullOrEmpty( settings.values.getS3AccessAndSecretKey()[ 0 ] ) )
+			{
+				// This is not needed anymore for image data, but for other data types
+				// For image data this is now part of ImageDataFormat
+				S3Utils.setS3AccessAndSecretKey( settings.values.getS3AccessAndSecretKey() );
+			}
 		}
 
 		if ( settings.values.getProjectType().equals( ProjectType.CollectionTable ) )
