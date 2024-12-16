@@ -45,7 +45,6 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.bdv.AutoContrastAdjuster;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
-import org.embl.mobie.lib.bvv.ImageBVViewer;
 import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.Services;
 import org.embl.mobie.lib.color.ColorHelper;
@@ -685,7 +684,7 @@ public class UserInterfaceHelper
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createImageVolumeViewerVisibilityCheckbox( display ) );
-		panel.add( createImageBVViewerVisibilityCheckbox( display ) );
+		panel.add( createImageBVViewerVisibilityCheckbox( display, sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() ); // Table
 		panel.add( createCheckboxPlaceholder() ); // Scatter plot
 
@@ -735,7 +734,7 @@ public class UserInterfaceHelper
 			// segments 3D view
 			panel.add( createSegmentsVolumeViewerVisibilityCheckbox( display ) );
 			// BVV view
-			panel.add( createSegmentsBVViewerVisibilityCheckbox( display ) );
+			panel.add( createSegmentsBVViewerVisibilityCheckbox( display, sourceAndConverters ) );
 			// table view
 			panel.add( createTableVisibilityCheckbox( display.tableView, display.showTable() ) );
 			// scatter plot view
@@ -769,7 +768,7 @@ public class UserInterfaceHelper
 		return button;
 	}
 	
-	private JButton createImageRenderingSettingsButton( List< ? extends SourceAndConverter< ? > > sourceAndConverters, ImageBVViewer imageBVViewer )
+	private JButton createImageRenderingSettingsButton( List< ? extends SourceAndConverter< ? > > sourceAndConverters )
 	{
 		JButton button = getIconButton( "settings.png" );
 		button.addActionListener( e ->
@@ -779,7 +778,7 @@ public class UserInterfaceHelper
 				new Thread( () ->
 				{
 					final SourceAndConverter[] sacArray = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
-					Services.commandService.run( ConfigureImageRenderingCommand.class, true, "sourceAndConverters", sacArray, "BVVViewer", imageBVViewer );
+					Services.commandService.run( ConfigureImageRenderingCommand.class, true, "sourceAndConverters", sacArray);
 				} ).start();
 			} );
 		} );
@@ -1174,11 +1173,12 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JCheckBox createImageBVViewerVisibilityCheckbox( ImageDisplay display )
+	public static JCheckBox createImageBVViewerVisibilityCheckbox( ImageDisplay display,
+			final List< ? extends SourceAndConverter< ? > > sourceAndConverters  )
 	{
 		JCheckBox checkBox = new JCheckBox( "B" );
 		checkBox.setToolTipText( "Toggle dataset visibility" );
-		checkBox.setSelected( display.showImagesIn3d() );
+		checkBox.setSelected( false );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 
 		checkBox.addActionListener( new ActionListener()
@@ -1187,13 +1187,15 @@ public class UserInterfaceHelper
 			public void actionPerformed( ActionEvent e )
 			{
 				new Thread( () -> {
-						// FIXME: replace with display.bigVolumeViewer
-						display.imageBVViewer.showImagesBVV( checkBox.isSelected() );
+					for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+					{
+						display.bigVolumeViewer.showSource(sourceAndConverter, checkBox.isSelected());
+					}
 				}).start();
 			}
 		} );
 
-		display.imageBVViewer.getListeners().add( new VisibilityListener()
+		display.bigVolumeViewer.getListeners().add( new VisibilityListener()
 		{
 			@Override
 			public void visibility( boolean isVisible )
@@ -1208,7 +1210,8 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JCheckBox createSegmentsBVViewerVisibilityCheckbox( SegmentationDisplay display )
+	public static JCheckBox createSegmentsBVViewerVisibilityCheckbox( SegmentationDisplay display,
+			final List< ? extends SourceAndConverter< ? > > sourceAndConverters)
 	{
 		JCheckBox checkBox = new JCheckBox( "B" );
 		checkBox.setToolTipText( "Toggle dataset visibility" );
@@ -1221,12 +1224,15 @@ public class UserInterfaceHelper
 			public void actionPerformed( ActionEvent e )
 			{
 				new Thread( () -> {
-					display.imageBVViewer.showImagesBVV( checkBox.isSelected() );
+					for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+					{
+						display.bigVolumeViewer.showSource(sourceAndConverter, checkBox.isSelected());
+					}
 				}).start();
 			}
 		} );
 
-		display.imageBVViewer.getListeners().add( new VisibilityListener()
+		display.bigVolumeViewer.getListeners().add( new VisibilityListener()
 		{
 			@Override
 			public void visibility( boolean isVisible )

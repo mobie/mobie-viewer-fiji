@@ -18,7 +18,7 @@ import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.TimePoint;
 import mpicbg.spim.data.sequence.TimePoints;
 
-public class BVVSourceToSpimDataWrapper
+public class SourceToSpimDataWrapperBvv
 {
 	/** wraps UnsignedByte, UnsignedShort, UnsignedLong or Float type source to a cached spimdata 
 	 * (of UnsignedShort type) to display in BVV, otherwise returns null **/
@@ -32,7 +32,7 @@ public class BVVSourceToSpimDataWrapper
 			//System.err.println( "Volume view of image of type " + type + " is currently not supported.");
 			return null;
 		}
-		final BVVSourceToViewerSetupImgLoader imgLoader = new BVVSourceToViewerSetupImgLoader(src_);
+		final SourceToViewerSetupImgLoaderBvv imgLoader = new SourceToViewerSetupImgLoaderBvv(src_);
 		
 		int numTimepoints = 0;
 		
