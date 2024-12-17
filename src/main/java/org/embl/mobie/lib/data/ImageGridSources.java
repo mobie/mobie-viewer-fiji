@@ -76,7 +76,7 @@ public class ImageGridSources
 		this.channelIndex = channelIndex;
 
 		List< String > paths;
-		if ( pathRegex.contains( "http" ) )
+		if ( pathRegex.contains( "http" ) || pathRegex.startsWith( "s3" ) )
 			paths = Collections.singletonList(  pathRegex );
 		else
 			paths = MoBIEHelper.getFullPaths( pathRegex, root );

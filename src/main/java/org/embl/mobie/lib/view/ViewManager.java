@@ -44,6 +44,7 @@ import org.embl.mobie.lib.bdv.overlay.ImageNameOverlay;
 import org.embl.mobie.lib.bdv.view.AnnotationSliceView;
 import org.embl.mobie.lib.bdv.view.ImageSliceView;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
+import org.embl.mobie.lib.bvv.BigVolumeViewerMoBIE;
 import org.embl.mobie.lib.color.*;
 import org.embl.mobie.lib.color.lut.ColumnARGBLut;
 import org.embl.mobie.lib.color.lut.LUTs;
@@ -87,6 +88,7 @@ public class ViewManager
 	private final SourceAndConverterService sacService;
 	private List< Display > currentDisplays;
 	private final UniverseManager universeManager;
+	private final BigVolumeViewerMoBIE bigVolumeViewer;
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewSaver viewSaver;
 	private final ViewDeleter viewDeleter;
@@ -98,6 +100,7 @@ public class ViewManager
 		currentDisplays = new ArrayList<>();
 		sliceViewer = new SliceViewer( moBIE, is2D );
 		universeManager = new UniverseManager();
+		bigVolumeViewer = new BigVolumeViewerMoBIE();
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
 		viewSaver = new ViewSaver( moBIE );
 		viewDeleter = new ViewDeleter( moBIE );
@@ -667,6 +670,7 @@ public class ViewManager
 	{
 		imageDisplay.sliceViewer = sliceViewer;
 		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay );
+		imageDisplay.bigVolumeViewer = bigVolumeViewer;
 		initImageVolumeViewer( imageDisplay );
 	}
 
@@ -714,6 +718,10 @@ public class ViewManager
 
 	private void initSegmentVolumeViewer( SegmentationDisplay< ? extends AnnotatedSegment > display )
 	{
+		display.bigVolumeViewer = bigVolumeViewer;
+		display.coloringModel.listeners().add( display.bigVolumeViewer );
+		display.selectionModel.listeners().add( display.bigVolumeViewer );
+
 		display.segmentVolumeViewer = new SegmentVolumeViewer( display.selectionModel, display.coloringModel, display.images(), universeManager );
 		Double[] resolution3dView = display.getResolution3dView();
 		if ( resolution3dView != null ) {
@@ -724,8 +732,18 @@ public class ViewManager
 		display.selectionModel.listeners().add( display.segmentVolumeViewer );
 	}
 
+	@SuppressWarnings( { "rawtypes", "unchecked" } )
 	public synchronized void removeDisplay( Display display, boolean closeImgLoader )
 	{
+		//remove sources from BVV
+		if ( display instanceof AbstractDisplay )
+		{
+			if(((AbstractDisplay)display).bigVolumeViewer.getBVV() != null)
+			{
+				((AbstractDisplay)display).bigVolumeViewer.removeSources( display.sourceAndConverters() );
+			}
+		}
+		
 		if ( display instanceof AbstractAnnotationDisplay )
 		{
 			final AbstractAnnotationDisplay< ? > annotationDisplay = ( AbstractAnnotationDisplay< ? > ) display;
@@ -750,8 +768,9 @@ public class ViewManager
 			final ImageDisplay imageDisplay = ( ImageDisplay ) display;
 			imageDisplay.imageSliceView.close( false );
 			imageDisplay.imageVolumeViewer.close();
-		}
 
+		}
+		
 		userInterface.removeDisplaySettingsPanel( display );
 		currentDisplays.remove( display );
 	}
@@ -772,10 +791,17 @@ public class ViewManager
 		sliceViewer.getBdvHandle().close();
 		IJ.log( "Closing 3D Viewer..." );
 		universeManager.close();
+		IJ.log ("Closing BVV...");
+		bigVolumeViewer.close();
 		IJ.log( "Closing UI..." );
 		userInterface.close();
 		// see also https://github.com/mobie/mobie-viewer-fiji/issues/857
 		IJ.log( "Clearing SpimData cache..." );
 		DataStore.clearSpimDataCache();
+	}
+
+	public BigVolumeViewerMoBIE getBvvMobie()
+	{
+		return bigVolumeViewer;
 	}
 }

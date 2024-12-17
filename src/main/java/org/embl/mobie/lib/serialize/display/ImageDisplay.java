@@ -151,6 +151,11 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 				}
 			}
 		}
+		
+//		if ( imageDisplay.imageBVViewer != null )
+//		{
+//			this.showImagesIn3d = imageDisplay.imageBVViewer.getShowImages();
+//		}
 
 		if ( imageDisplay.imageSliceView != null ) {
 			visible = imageDisplay.imageSliceView.isVisible();

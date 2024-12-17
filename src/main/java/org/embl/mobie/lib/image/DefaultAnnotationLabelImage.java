@@ -46,7 +46,9 @@ public class DefaultAnnotationLabelImage< A extends Annotation > implements Anno
 	protected SourcePair< AnnotationType< A > > sourcePair;
 	private AnnotationAdapter< A > annotationAdapter;
 
-	public DefaultAnnotationLabelImage( Image< ? extends IntegerType< ? > > labelImage, AnnData< A > annData, AnnotationAdapter< A > annotationAdapter )
+	public DefaultAnnotationLabelImage( Image< ? extends IntegerType< ? > > labelImage,
+										AnnData< A > annData,
+										AnnotationAdapter< A > annotationAdapter )
 	{
 		this.labelImage = labelImage;
 		this.annData = annData;
