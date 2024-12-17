@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.command.context;
 
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 
 import org.scijava.Initializable;
@@ -82,6 +83,4 @@ public class ConfigureBVVRenderingCommand implements BdvPlaygroundActionCommand,
 	{
 		MoBIE.getInstance().getViewManager().getBvvMobie().updateBVVRenderSettings();
 	}
-
-
 }
