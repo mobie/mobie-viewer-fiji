@@ -14,8 +14,6 @@ public class DebugSomething
 
         OpenMoBIEProjectWithS3CredentialsCommand command = new OpenMoBIEProjectWithS3CredentialsCommand();
         command.uri = "https://s3.gwdg.de/fruitfly-larva-em";
-        command.s3SecretKey = "6FTq9mQwDyGvClVMvusftlMU9DhPDEr3VAJiz3MA";
-        command.s3AccessKey = "FK1YVED7MTDQAMZKWS7P";
         command.location = DataFormats.Location.Remote;
         command.run();
 
