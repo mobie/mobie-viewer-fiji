@@ -735,12 +735,14 @@ public class ViewManager
 	@SuppressWarnings( { "rawtypes", "unchecked" } )
 	public synchronized void removeDisplay( Display display, boolean closeImgLoader )
 	{
-		//remove sources from BVV
 		if ( display instanceof AbstractDisplay )
 		{
-			if(((AbstractDisplay)display).bigVolumeViewer.getBVV() != null)
+			if ( ( ( AbstractDisplay ) display).bigVolumeViewer != null )
 			{
-				((AbstractDisplay)display).bigVolumeViewer.removeSources( display.sourceAndConverters() );
+				if ( ( ( AbstractDisplay ) display ).bigVolumeViewer.getBVV() != null )
+				{
+					( ( AbstractDisplay ) display ).bigVolumeViewer.removeSources( display.sourceAndConverters() );
+				}
 			}
 		}
 		
@@ -768,7 +770,6 @@ public class ViewManager
 			final ImageDisplay imageDisplay = ( ImageDisplay ) display;
 			imageDisplay.imageSliceView.close( false );
 			imageDisplay.imageVolumeViewer.close();
-
 		}
 		
 		userInterface.removeDisplaySettingsPanel( display );

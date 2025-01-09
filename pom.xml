@@ -9,7 +9,7 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>5.5.9</version>
+    <version>5.6.2</version>
 
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
     <!--  ../scijava-scripts/release-version.sh - -skip-version-check - -skip-license-update -->
