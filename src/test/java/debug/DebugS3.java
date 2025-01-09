@@ -1,11 +1,10 @@
 package debug;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenOMEZARRCommand;
 import org.embl.mobie.command.open.project.OpenMoBIEProjectWithS3CredentialsCommand;
 import org.embl.mobie.lib.io.DataFormats;
 
-public class DebugSomething
+public class DebugS3
 {
     public static void main( String[] args )
     {
