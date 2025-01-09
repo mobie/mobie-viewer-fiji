@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.bdv.overlay;
 
+import IceInternal.Ex;
 import bdv.util.*;
 import bdv.viewer.TransformListener;
 import net.imglib2.FinalRealInterval;
@@ -82,8 +83,15 @@ public class AnnotatedRegionsOverlay< AR extends AnnotatedRegion >
 	public void close()
 	{
 		overlaySource.removeFromBdv();
-		sliceViewer.updateTimepointSlider();
-		sliceViewer.getBdvHandle().getViewerPanel().requestRepaint();
+		try
+		{
+			sliceViewer.updateTimepointSlider();
+			sliceViewer.getBdvHandle().getViewerPanel().requestRepaint();
+		}
+		catch ( Exception e )
+		{
+			// do nothing
+		}
 	}
 
 	@Override
