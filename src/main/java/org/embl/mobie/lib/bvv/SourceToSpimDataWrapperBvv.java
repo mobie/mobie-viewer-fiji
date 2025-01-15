@@ -1,5 +1,6 @@
 package org.embl.mobie.lib.bvv;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -57,7 +58,7 @@ public class SourceToSpimDataWrapperBvv
 			//src_.getSourceTransform( t,0, transform );
 			registrations.add( new ViewRegistration( t, 0, transform ) );
 		}
-
-		return new AbstractSpimData( null, seq, new ViewRegistrations( registrations) );
+		File dummy = null;
+		return new AbstractSpimData( dummy, seq, new ViewRegistrations( registrations) );
 	}
 }
