@@ -108,12 +108,10 @@
         <bigdataviewer-playground.version>0.10.7</bigdataviewer-playground.version>
         <bvv-playground.version>0.3.3</bvv-playground.version>
         <mobie-io.version>3.0.4</mobie-io.version>
-<!--        <imagej-utils.version>0.7.0</imagej-utils.version>-->
         <annotations.version>16.0.2</annotations.version>
         <trove.version>1.0.2</trove.version>
         <TurboReg_.version>2.0.0</TurboReg_.version>
         <everit-json-schema.version>1.14.2</everit-json-schema.version>
-
 
         <!-- TableSaw -->
         <tablesaw-core.version>0.43.1</tablesaw-core.version>
@@ -246,13 +244,11 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-<!--            <version>1.2.11</version>-->
         </dependency>
         <!-- Logback Core -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-<!--            <version>1.2.11</version>-->
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

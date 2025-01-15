@@ -34,11 +34,8 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
-import net.imglib2.Cursor;
-import net.imglib2.IterableInterval;
+import net.imglib2.*;
 import net.imglib2.RandomAccess;
-import net.imglib2.RandomAccessible;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.util.Grids;
 import net.imglib2.img.AbstractImg;
 import net.imglib2.img.array.ArrayImgFactory;
@@ -86,6 +83,13 @@ import static sc.fiji.bdvpg.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
 
 public abstract class MoBIEHelper
 {
+
+	public static RealPoint getGlobalMouseCoordinates( Bdv bdv )
+	{
+		final RealPoint posInBdvInMicrometer = new RealPoint( 3 );
+		bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( posInBdvInMicrometer );
+		return posInBdvInMicrometer;
+	}
 
 	public static ImgLabeling< Integer, IntType > labelMapAsImgLabeling( RandomAccessibleInterval< IntType > labelMap )
 	{

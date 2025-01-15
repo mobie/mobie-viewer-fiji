@@ -30,9 +30,6 @@ package publication.platybrowser;
 
 import bdv.util.*;
 import bdv.viewer.Interpolation;
-import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.Logger;
-import de.embl.cba.bdv.utils.capture.BdvViewCaptures;
 import ij.IJ;
 import ij.ImagePlus;
 import net.imglib2.RandomAccessibleInterval;
@@ -43,6 +40,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -226,8 +224,8 @@ public class RegistrationVisualisationSimilarityAndBSpline< R extends RealType< 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 
 			(new Thread( () -> {
-				final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
-				IJ.log( "\nBigDataViewer position: \n" + globalMouseCoordinates.toString() );
+				final RealPoint globalMouseCoordinates = MoBIEHelper.getGlobalMouseCoordinates( bdv );
+				IJ.log( "\nBigDataViewer position: \n" + globalMouseCoordinates );
 				IJ.log( "BigDataViewer transform: \n"+ getBdvViewerTransform( bdv ) );
 			} )).start();
 

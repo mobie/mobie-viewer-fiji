@@ -29,9 +29,7 @@
 package develop;
 
 import com.google.gson.stream.JsonReader;
-import de.embl.cba.tables.Tables;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
