@@ -9,7 +9,8 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>5.6.0-SNAPSHOT</version>
+    <version>6.0.0-SNAPSHOT</version>
+
 
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
     <!--  ../scijava-scripts/release-version.sh - -skip-version-check - -skip-license-update -->
@@ -196,6 +197,16 @@
             <artifactId>3D_Viewer</artifactId>
             <version>4.0.5</version>
         </dependency>
+        <dependency>
+		<groupId>nl.uu.science.cellbiology</groupId>
+			<artifactId>bvv-playground</artifactId>
+			<version>0.3.3</version>
+		</dependency>
+		<dependency>
+  			<groupId>com.formdev</groupId>
+  			<artifactId>flatlaf-jide-oss</artifactId>
+  			<version>3.0</version>
+		</dependency>
         <dependency>
             <groupId>org.scijava</groupId>
             <artifactId>j3dcore</artifactId>
