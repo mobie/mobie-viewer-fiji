@@ -28,10 +28,6 @@
  */
 package org.embl.mobie.lib.table;
 
-import bdv.util.BdvOverlay;
-import de.embl.cba.tables.Logger;
-import de.embl.cba.tables.TableUIs;
-import de.embl.cba.tables.Tables;
 import ij.IJ;
 import ij.gui.GenericDialog;
 import org.embl.mobie.io.util.IOHelper;
@@ -382,7 +378,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		final JMenuItem menuItem = new JMenuItem( "Save Table As..." );
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
-						TableUIs.saveTableUI( jTable ) ) );
+						UserInterfaceHelper.saveTableUI( jTable ) ) );
 		return menuItem;
 	}
 
@@ -391,7 +387,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		// FIXME: Copy the TableUIs code from ij-utils here
 		final JMenuItem menuItem = new JMenuItem( "Save Columns As..." );
 		menuItem.addActionListener( e ->
-				SwingUtilities.invokeLater( () -> TableUIs.saveColumns( jTable ) ) );
+				SwingUtilities.invokeLater( () -> UserInterfaceHelper.saveColumns( jTable ) ) );
 		return menuItem;
 	}
 
@@ -413,7 +409,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 					StringArraySelectorDialog dialog =
 							new StringArraySelectorDialog(
 									"Column Selector",
-									Tables.getColumnNamesAsArray( jTable )
+									UserInterfaceHelper.getColumnNamesAsArray( jTable )
 							);
 					if ( ! dialog.show() ) return;
 					final String columnName = dialog.getSelectedItem();
@@ -512,7 +508,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		SwingUtilities.invokeLater( () ->
 		{
-			final String annotationColumn = TableUIs.selectColumnNameUI(
+			final String annotationColumn = UserInterfaceHelper.selectColumnNameUI(
 					jTable,
 					"Annotation column" );
 
@@ -539,7 +535,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		SwingUtilities.invokeLater( () ->
 		{
-			final String annotationColumn = TableUIs.selectColumnNameUI(
+			final String annotationColumn = UserInterfaceHelper.selectColumnNameUI(
 					jTable,
 					"Annotation column" );
 			continueAnnotation( annotationColumn );
@@ -589,7 +585,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		if ( !selectedRows.isEmpty() )
 			selectRows( selectedRows, keepCurrentSelection );
 		else
-			Logger.error( selectedValue + " does not exist in column " + columnName + ", please choose another value." );
+			IJ.error( selectedValue + " does not exist in column " + columnName + ", please choose another value." );
 	}
 
 	// TODO Code duplication with the method above
@@ -643,7 +639,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		final String columnName = gd.getNextString();
 		if ( tableModel.columnNames().contains( columnName ) )
 		{
-			Logger.error( "\"" +columnName + "\" exists already as a column name, please choose another one." );
+			IJ.error( "\"" +columnName + "\" exists already as a column name, please choose another one." );
 			return null;
 		}
 		addStringColumn( columnName );
@@ -792,10 +788,10 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		String coloringColumnName = getColoringColumnName();
 
-		Logger.info( " "  );
-		Logger.info( "Column used for coloring: " + coloringColumnName );
-		Logger.info( " "  );
-		Logger.info( "Value, R, G, B"  );
+		IJ.log( " "  );
+		IJ.log( "Column used for coloring: " + coloringColumnName );
+		IJ.log( " "  );
+		IJ.log( "Value, R, G, B"  );
 
 		for ( int rowIndex = 0; rowIndex < tableModel.numAnnotations(); rowIndex++ )
 		{
@@ -804,7 +800,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 			final ARGBType argbType = new ARGBType();
 			coloringModel.convert( annotation, argbType );
 			final int colorIndex = argbType.get();
-			Logger.info( value + ": " + ARGBType.red( colorIndex ) + ", " + ARGBType.green( colorIndex ) + ", " + ARGBType.blue( colorIndex ) );
+			IJ.log( value + ": " + ARGBType.red( colorIndex ) + ", " + ARGBType.green( colorIndex ) + ", " + ARGBType.blue( colorIndex ) );
 		}
 	}
 
@@ -819,7 +815,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		else
 		{
 			final String msg = "Please first use the [ Color > Color by Column ] menu item to configure the coloring.";
-			Logger.error( msg );
+			IJ.error( msg );
 			throw new UnsupportedOperationException( msg );
 		}
 	}

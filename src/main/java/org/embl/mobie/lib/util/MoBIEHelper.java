@@ -28,11 +28,33 @@
  */
 package org.embl.mobie.lib.util;
 
+import bdv.util.Bdv;
 import bdv.util.BdvHandle;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imglib2.Cursor;
+import net.imglib2.IterableInterval;
+import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessible;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.algorithm.util.Grids;
+import net.imglib2.img.AbstractImg;
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.img.cell.CellImgFactory;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.roi.labeling.ImgLabeling;
+import net.imglib2.roi.labeling.LabelingMapping;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.Type;
 import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.IntType;
+import net.imglib2.util.Intervals;
+import net.imglib2.util.LinAlgHelpers;
+import net.imglib2.util.Util;
+import net.imglib2.view.Views;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
@@ -64,6 +86,66 @@ import static sc.fiji.bdvpg.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
 
 public abstract class MoBIEHelper
 {
+
+	public static ImgLabeling< Integer, IntType > labelMapAsImgLabeling( RandomAccessibleInterval< IntType > labelMap )
+	{
+		final ImgLabeling< Integer, IntType > imgLabeling = new ImgLabeling<>( labelMap );
+
+		final double maximumLabel = getMaximumValue( labelMap );
+
+		final ArrayList< Set< Integer > > labelSets = new ArrayList< >();
+
+		labelSets.add( new HashSet<>() ); // empty 0 label
+		for ( int label = 1; label <= maximumLabel; ++label )
+		{
+			final HashSet< Integer > set = new HashSet< >();
+			set.add( label );
+			labelSets.add( set );
+		}
+
+		new LabelingMapping.SerialisationAccess< Integer >( imgLabeling.getMapping() )
+		{
+			{
+				super.setLabelSets( labelSets );
+			}
+		};
+
+		return imgLabeling;
+	}
+
+	public static < T extends RealType< T > >
+	Double getMaximumValue( RandomAccessibleInterval< T > rai )
+	{
+		Cursor< T > cursor = Views.iterable( rai ).cursor();
+
+		double maxValue = Double.MIN_VALUE;
+
+		double value;
+		while ( cursor.hasNext() )
+		{
+			value = cursor.next().getRealDouble();
+			if ( value > maxValue )
+				maxValue = value;
+		}
+
+		return maxValue;
+	}
+
+
+	public static Double parseDouble( String cell )
+	{
+		if ( cell.equalsIgnoreCase( "nan" )
+				|| cell.equalsIgnoreCase( "na" )
+				|| cell.equals( "" ) )
+			return Double.NaN;
+		else if ( cell.equalsIgnoreCase( "inf" ) )
+			return Double.POSITIVE_INFINITY;
+		else if ( cell.equalsIgnoreCase( "-inf" ) )
+			return Double.NEGATIVE_INFINITY;
+		else
+			return Double.parseDouble( cell );
+	}
+
 	public static String removeExtension( String uri )
 	{
 		uri = FilenameUtils.removeExtension( uri );
@@ -390,6 +472,167 @@ public abstract class MoBIEHelper
 			sacs.add( sac );
 		}
 		return sacs;
+	}
+
+	public static < R extends RealType< R > & NativeType< R > >
+	RandomAccessibleInterval< R > copyVolumeRaiMultiThreaded( RandomAccessibleInterval< R > volume,
+															  int numThreads )
+	{
+		final int dimensionX = ( int ) volume.dimension( 0 );
+		final int dimensionY = ( int ) volume.dimension( 1 );
+		final int dimensionZ = ( int ) volume.dimension( 2 );
+
+		final long numElements =
+				AbstractImg.numElements( Intervals.dimensionsAsLongArray( volume ) );
+
+		RandomAccessibleInterval< R > copy;
+
+		if ( numElements < Integer.MAX_VALUE - 1 )
+		{
+			copy = new ArrayImgFactory( Util.getTypeFromInterval( volume ) ).create( volume );
+		}
+		else
+		{
+			int cellSizeZ = (int) ( ( Integer.MAX_VALUE - 1 )
+					/ ( volume.dimension( 0  ) * volume.dimension( 1 ) ) );
+
+			final int[] cellSize = {
+					dimensionX,
+					dimensionY,
+					cellSizeZ };
+
+			copy = new CellImgFactory( Util.getTypeFromInterval( volume ), cellSize ).create( volume );
+		}
+
+		final int[] blockSize = {
+				dimensionX,
+				dimensionY,
+				( int ) Math.ceil( 1.0 * dimensionZ / numThreads ) };
+
+		Grids.collectAllContainedIntervals(
+						Intervals.dimensionsAsLongArray( volume ) , blockSize )
+				.parallelStream().forEach(
+						interval -> copy( volume, Views.interval( copy, interval )));
+
+		return copy;
+	}
+
+	private static < T extends Type< T > > void copy( final RandomAccessible< T > source,
+													  final IterableInterval< T > target )
+	{
+		// create a cursor that automatically localizes itself on every move
+		Cursor< T > targetCursor = target.localizingCursor();
+		RandomAccess< T > sourceRandomAccess = source.randomAccess();
+
+		// iterate over the input cursor
+		while ( targetCursor.hasNext() )
+		{
+			// move input cursor forward
+			targetCursor.fwd();
+
+			// set the output cursor to the position of the input cursor
+			sourceRandomAccess.setPosition( targetCursor );
+
+			// set the value of this pixel of the output image, every Type supports T.set( T type )
+			targetCursor.get().set( sourceRandomAccess.get() );
+		}
+	}
+
+	public static double[] getCalibration( Source source, int level )
+	{
+		final AffineTransform3D sourceTransform = new AffineTransform3D();
+
+		source.getSourceTransform( 0, level, sourceTransform );
+
+		final double[] calibration = getScale( sourceTransform );
+
+		return calibration;
+	}
+
+
+	public static double[] getCurrentViewNormalVector( Bdv bdv )
+	{
+		AffineTransform3D currentViewerTransform = new AffineTransform3D();
+		bdv.getBdvHandle().getViewerPanel().state().getViewerTransform( currentViewerTransform );
+
+		final double[] viewerC = new double[]{ 0, 0, 0 };
+		final double[] viewerX = new double[]{ 1, 0, 0 };
+		final double[] viewerY = new double[]{ 0, 1, 0 };
+
+		final double[] dataC = new double[ 3 ];
+		final double[] dataX = new double[ 3 ];
+		final double[] dataY = new double[ 3 ];
+
+		final double[] dataV1 = new double[ 3 ];
+		final double[] dataV2 = new double[ 3 ];
+		final double[] currentNormalVector = new double[ 3 ];
+
+		currentViewerTransform.inverse().apply( viewerC, dataC );
+		currentViewerTransform.inverse().apply( viewerX, dataX );
+		currentViewerTransform.inverse().apply( viewerY, dataY );
+
+		LinAlgHelpers.subtract( dataX, dataC, dataV1 );
+		LinAlgHelpers.subtract( dataY, dataC, dataV2 );
+
+		LinAlgHelpers.cross( dataV1, dataV2, currentNormalVector );
+
+		LinAlgHelpers.normalize( currentNormalVector );
+
+		return currentNormalVector;
+	}
+
+	public static AffineTransform3D quaternionToAffineTransform3D( double[] rotationQuaternion )
+	{
+		double[][] rotationMatrix = new double[ 3 ][ 3 ];
+		LinAlgHelpers.quaternionToR( rotationQuaternion, rotationMatrix );
+		return matrixAsAffineTransform3D( rotationMatrix );
+	}
+
+	public static AffineTransform3D matrixAsAffineTransform3D( double[][] rotationMatrix )
+	{
+		final AffineTransform3D rotation = new AffineTransform3D();
+		for ( int row = 0; row < 3; ++row )
+			for ( int col = 0; col < 3; ++ col)
+				rotation.set( rotationMatrix[ row ][ col ], row, col);
+		return rotation;
+	}
+
+	public static double[] getBdvWindowCenter( Bdv bdv )
+	{
+		final double[] centre = new double[ 3 ];
+
+		centre[ 0 ] = bdv.getBdvHandle().getViewerPanel().getDisplay().getWidth() / 2.0;
+		centre[ 1 ] = bdv.getBdvHandle().getViewerPanel().getDisplay().getHeight() / 2.0;
+
+		return centre;
+	}
+
+	public static double[] getScale( AffineTransform3D sourceTransform )
+	{
+		// https://math.stackexchange.com/questions/237369/given-this-transformation-matrix-how-do-i-decompose-it-into-translation-rotati
+
+		final double[] calibration = new double[ 3 ];
+		for ( int d = 0; d < 3; ++d )
+		{
+			final double[] vector = new double[ 3 ];
+			for ( int i = 0; i < 3 ; i++ )
+			{
+				vector[ i ] = sourceTransform.get( d, i );
+			}
+
+			calibration[ d ] = LinAlgHelpers.length( vector );
+		}
+		return calibration;
+	}
+
+	public static ArrayList< double[] > getVoxelSpacings( Source< ? > source )
+	{
+		final ArrayList< double[] > voxelSpacings = new ArrayList<>();
+		final int numMipmapLevels = source.getNumMipmapLevels();
+		for ( int level = 0; level < numMipmapLevels; ++level )
+			voxelSpacings.add( getCalibration( source, level ) );
+
+		return voxelSpacings;
 	}
 
 	public static boolean notNullOrEmpty( final String string )

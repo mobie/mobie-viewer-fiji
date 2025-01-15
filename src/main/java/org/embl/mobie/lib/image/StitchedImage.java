@@ -28,6 +28,9 @@
  */
 package org.embl.mobie.lib.image;
 
+import static net.imglib2.view.fluent.RandomAccessibleIntervalView.Extension.value;
+import static net.imglib2.view.fluent.RandomAccessibleView.Interpolation.nearestNeighbor;
+
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.Affine3DHelpers;
 import bdv.util.DefaultInterpolators;
@@ -42,7 +45,6 @@ import net.imglib2.RealInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
-import net.imglib2.interpolation.randomaccess.NearestNeighborInterpolatorFactory;
 import net.imglib2.outofbounds.OutOfBoundsConstantValueFactory;
 import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -54,6 +56,7 @@ import net.imglib2.util.Intervals;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
+
 import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.serialize.transformation.GridTransformation;
 import org.embl.mobie.lib.util.MoBIEHelper;
@@ -399,7 +402,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		private final VoxelDimensions voxelDimensions;
 		private final T type;
 		private final String name;
-		private final DefaultInterpolators< ? extends NumericType > interpolators;
+		private final DefaultInterpolators interpolators;
 
 		public StitchedSource(
 				final Map< Integer, List< RandomAccessibleInterval< T > > > stitched,
@@ -462,9 +465,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			}
 			else
 			{
-				final T outOfBoundsVariable = type.createVariable();
-				final RandomAccessible ra = new ExtendedRandomAccessibleInterval<>( getSource( t, level ), new OutOfBoundsConstantValueFactory<>( outOfBoundsVariable ) );
-				return Views.interpolate( ra, new NearestNeighborInterpolatorFactory< T >() );
+				return getSource( t, level ).view()
+						.extend( value( type.createVariable() ) )
+						.interpolate( nearestNeighbor() );
 			}
 		}
 

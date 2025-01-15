@@ -60,7 +60,6 @@ import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.BoundarySource;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.source.VolatileBoundarySource;
-import org.embl.mobie.lib.table.saw.TableSawAnnotatedImages;
 import org.embl.mobie.lib.transform.viewer.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;

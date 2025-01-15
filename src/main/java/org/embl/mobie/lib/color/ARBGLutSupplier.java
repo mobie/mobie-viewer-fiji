@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Fiji viewer for MoBIE projects
+ * Various Java code for ImageJ
  * %%
  * Copyright (C) 2018 - 2024 EMBL
  * %%
@@ -26,40 +26,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.color.lut;
+package org.embl.mobie.lib.color;
 
+import org.embl.mobie.lib.color.lut.ARGBLut;
 
-import org.ojalgo.matrix.decomposition.LU;
-
-public class LinearARGBLut implements AdjustableARGBLut
+public interface ARBGLutSupplier
 {
-	double min, max;
-
-	byte[][] lut;
-
-	public LinearARGBLut( double min, double max )
-	{
-		this.min = min;
-		this.max = max;
-
-		this.lut = LUTs.GRAYSCALE_LUT;
-	}
-
-	public LinearARGBLut( byte[][] lut, double min, double max )
-	{
-		this.lut = lut;
-		this.min = min;
-		this.max = max;
-	}
-
-	@Override
-	public int getARGBIndex( double x, double brightness )
-	{
-		final byte lutIndex = (byte) ( 255.0 * ( x - min ) / ( max - min ) );
-
-		final int argbIndex = LUTs.getARGBIndex( lutIndex, lut, brightness );
-
-		return argbIndex;
-	}
-
+	ARGBLut getARGBLut();
 }

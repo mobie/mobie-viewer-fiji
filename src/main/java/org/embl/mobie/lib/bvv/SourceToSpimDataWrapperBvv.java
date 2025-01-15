@@ -57,7 +57,7 @@ public class SourceToSpimDataWrapperBvv
 			//src_.getSourceTransform( t,0, transform );
 			registrations.add( new ViewRegistration( t, 0, transform ) );
 		}
-		
-		return new AbstractSpimData(null, seq, new ViewRegistrations( registrations));
+
+		return new AbstractSpimData( null, seq, new ViewRegistrations( registrations) );
 	}
 }

@@ -40,7 +40,6 @@ import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.util.Intervals;
-import net.imglib2.view.Views;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.RealRandomAccessibleIntervalTimelapseSource;
@@ -56,7 +55,6 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 {
 	private final String name;
 	private final DefaultAnnData< AS > annData;
-	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
 	private KDTree< AS > kdTree;
 	private RealMaskRealInterval mask;
 	private Double radius;

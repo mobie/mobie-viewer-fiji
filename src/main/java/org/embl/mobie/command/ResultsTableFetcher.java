@@ -41,7 +41,7 @@ public class ResultsTableFetcher
 {
 	public ResultsTable fetch( String tableTitle )
 	{
-		final HashMap< String, ResultsTable > titleToTable = new de.embl.cba.tables.results.ResultsTableFetcher().fetchCurrentlyOpenResultsTables();
+		final HashMap< String, ResultsTable > titleToTable = fetchCurrentlyOpenResultsTables();
 
 		if ( ! titleToTable.containsKey( tableTitle ) )
 		{

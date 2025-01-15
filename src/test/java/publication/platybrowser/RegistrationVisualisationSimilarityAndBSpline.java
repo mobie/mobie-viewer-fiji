@@ -90,13 +90,13 @@ public class RegistrationVisualisationSimilarityAndBSpline< R extends RealType< 
 		// head
 		bdv.getViewerPanel().setCurrentViewerTransform( headViewSimilarity );
 		IJ.wait( 2000 );
-		BdvViewCaptures.captureView( bdv, 1, "micrometer", false  ).rgbImage.show();
+		//BdvViewCaptures.captureView( bdv, 1, "micrometer", false  ).rgbImage.show();
 		IJ.saveAs( "tif", outputFolder + "/similarity-head-view.tif" );
 
 		// gut
 		bdv.getViewerPanel().setCurrentViewerTransform( gutViewSimilarity );
 		IJ.wait( 2000 );
-		BdvViewCaptures.captureView( bdv, 1, "micrometer", false  ).rgbImage.show();
+		//BdvViewCaptures.captureView( bdv, 1, "micrometer", false  ).rgbImage.show();
 		IJ.saveAs( "tif", outputFolder + "/similarity-gut-view.tif" );
 
 		/**
@@ -113,13 +113,13 @@ public class RegistrationVisualisationSimilarityAndBSpline< R extends RealType< 
 			// head
 			bdv.getViewerPanel().setCurrentViewerTransform( headViewSimilarity );
 			IJ.wait( 2000 );
-			BdvViewCaptures.captureView( bdv, 1, "micrometer", false  ).rgbImage.show();
+			//BdvViewCaptures.captureView( bdv, 1, "micrometer", false  ).rgbImage.show();
 			IJ.saveAs( "tif", outputFolder + "/bspline-head-view.tif" );
 
 			// gut
 			bdv.getViewerPanel().setCurrentViewerTransform( gutViewSimilarity );
 			IJ.wait( 2000 );
-			BdvViewCaptures.captureView( bdv, 1, "micrometer", false  ).rgbImage.show();
+			//BdvViewCaptures.captureView( bdv, 1, "micrometer", false  ).rgbImage.show();
 			IJ.saveAs( "tif", outputFolder + "/bspline-gut-view.tif" );
 		}
 
@@ -227,8 +227,8 @@ public class RegistrationVisualisationSimilarityAndBSpline< R extends RealType< 
 
 			(new Thread( () -> {
 				final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
-				Logger.log( "\nBigDataViewer position: \n" + globalMouseCoordinates.toString() );
-				Logger.log( "BigDataViewer transform: \n"+ getBdvViewerTransform( bdv ) );
+				IJ.log( "\nBigDataViewer position: \n" + globalMouseCoordinates.toString() );
+				IJ.log( "BigDataViewer transform: \n"+ getBdvViewerTransform( bdv ) );
 			} )).start();
 
 		}, "Print position and view", "P"  ) ;

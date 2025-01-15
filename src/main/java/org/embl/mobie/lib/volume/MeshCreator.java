@@ -30,7 +30,6 @@ package org.embl.mobie.lib.volume;
 
 import bdv.viewer.Source;
 import customnode.CustomTriangleMesh;
-import de.embl.cba.tables.Utils;
 import isosurface.MeshEditor;
 import net.imglib2.Interval;
 import net.imglib2.RealPoint;
@@ -47,7 +46,8 @@ import net.imglib2.algorithm.neighborhood.DiamondShape;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.Views;
-import org.scijava.vecmath.Point3f;
+import org.embl.mobie.lib.util.MoBIEHelper;
+import org.jogamp.vecmath.Point3f;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import javax.annotation.Nullable;
@@ -214,7 +214,7 @@ public class MeshCreator< S extends Segment >
 
 	private int getLevel( S segment, Source< ? > labelSource )
 	{
-		final ArrayList< double[] > voxelSpacings = Utils.getVoxelSpacings( labelSource );
+		final ArrayList< double[] > voxelSpacings = MoBIEHelper.getVoxelSpacings( labelSource );
 
 		final int numLevels = voxelSpacings.size();
 

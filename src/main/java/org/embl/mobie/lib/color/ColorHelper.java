@@ -28,9 +28,9 @@
  */
 package org.embl.mobie.lib.color;
 
-import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import ij.process.LUT;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.lib.color.lut.GlasbeyARGBLut;
 
 import java.awt.*;
 import java.util.regex.Matcher;

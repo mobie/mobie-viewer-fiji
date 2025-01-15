@@ -28,7 +28,7 @@
  */
 package org.embl.mobie.lib.create;
 
-import de.embl.cba.tables.color.ColoringLuts;
+import org.embl.mobie.lib.color.lut.ColoringLuts;
 import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;

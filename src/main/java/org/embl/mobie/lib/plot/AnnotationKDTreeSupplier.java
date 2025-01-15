@@ -28,10 +28,10 @@
  */
 package org.embl.mobie.lib.plot;
 
-import de.embl.cba.tables.Utils;
 import org.embl.mobie.lib.annotation.Annotation;
 import net.imglib2.KDTree;
 import net.imglib2.RealPoint;
+import org.embl.mobie.lib.util.MoBIEHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -123,7 +123,7 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 				String cell = value.toString();
 				try
 				{
-					coordinate[ d ] = Utils.parseDouble( cell );
+					coordinate[ d ] = MoBIEHelper.parseDouble( cell );
 				}
 				catch ( Exception e )
 				{

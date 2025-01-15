@@ -78,12 +78,17 @@ import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -150,6 +155,17 @@ public class UserInterfaceHelper
 			}
 		}
 
+	}
+
+	public static String selectColumnNameUI( JTable table, String text )
+	{
+		final String[] columnNames = UserInterfaceHelper.getColumnNamesAsArray( table );
+		final GenericDialog gd = new GenericDialog( "" );
+		gd.addChoice( text, columnNames, columnNames[ 0 ] );
+		gd.showDialog();
+		if ( gd.wasCanceled() ) return null;
+		final String columnName = gd.getNextChoice();
+		return columnName;
 	}
 
 	public static FileLocation loadFromProjectOrFileSystemDialog() {
@@ -1470,4 +1486,115 @@ public class UserInterfaceHelper
 
 		return tidyString;
 	}
+
+	public static void saveTableUI( JTable table )
+	{
+		final JFileChooser jFileChooser = new JFileChooser( "" );
+
+		if ( jFileChooser.showSaveDialog( null ) == JFileChooser.APPROVE_OPTION )
+		{
+			final File selectedFile = jFileChooser.getSelectedFile();
+
+			saveTable( table, selectedFile );
+		}
+	}
+
+	public static void saveTable( JTable table, File tableOutputFile )
+	{
+		try
+		{
+			saveTableWithIOException( table, tableOutputFile );
+		} catch ( IOException e )
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public static void saveColumns( JTable table )
+	{
+		final ArrayList< String > selectedColumns = selectColumnNamesUI( table, "Select columns" );
+
+		final JTable newTable = createNewTableFromSelectedColumns( table, selectedColumns );
+
+		final JFileChooser jFileChooser = new JFileChooser( "" );
+
+		if ( jFileChooser.showSaveDialog( null ) == JFileChooser.APPROVE_OPTION )
+		{
+			final File selectedFile = jFileChooser.getSelectedFile();
+
+			saveTable( newTable, selectedFile );
+		}
+	}
+
+	public static JTable createNewTableFromSelectedColumns( JTable table, ArrayList< String > selectedColumns )
+	{
+		DefaultTableModel newModel = new DefaultTableModel();
+		final TableModel model = table.getModel();
+		final int rowCount = table.getRowCount();
+
+		for ( String columnName : selectedColumns )
+		{
+			int viewIndex = table.getColumnModel().getColumnIndex( columnName );
+			int modelIndex = table.convertColumnIndexToModel( viewIndex );
+			final Object[] objects = new Object[ rowCount ];
+			for ( int rowIndex = 0; rowIndex < objects.length; rowIndex++ )
+				objects[ rowIndex ] = model.getValueAt( rowIndex, modelIndex );
+
+			newModel.addColumn( columnName, objects );
+		}
+
+		return new JTable( newModel );
+	}
+
+	public static String[] getColumnNamesAsArray( JTable jTable )
+	{
+		final String[] columnNames = new String[ jTable.getColumnCount() ];
+
+		for ( int columnIndex = 0; columnIndex < jTable.getColumnCount(); columnIndex++ )
+		{
+			columnNames[ columnIndex ] = jTable.getColumnName( columnIndex );
+		}
+		return columnNames;
+	}
+
+	public static ArrayList< String > selectColumnNamesUI( JTable table, String text )
+	{
+		final String[] columnNames = getColumnNamesAsArray( table );
+		final int n = (int) Math.ceil( Math.sqrt( columnNames.length ) );
+		final GenericDialog gd = new GenericDialog( "" );
+		boolean[] booleans = new boolean[ columnNames.length ];
+		gd.addCheckboxGroup( n, n, columnNames, booleans );
+		gd.showDialog();
+		if ( gd.wasCanceled() ) return null;
+
+		final ArrayList< String > selectedColumns = new ArrayList<>();
+		for ( int i = 0; i < columnNames.length; i++ )
+			if ( gd.getNextBoolean() )
+				selectedColumns.add( columnNames[ i ] );
+
+		return selectedColumns;
+	}
+
+	private static void saveTableWithIOException( JTable table, File file ) throws IOException
+	{
+		BufferedWriter bfw = new BufferedWriter( new FileWriter( file ) );
+
+		final int lastColumn = table.getColumnCount() - 1;
+
+		// header
+		for ( int col = 0; col < lastColumn; col++ )
+			bfw.write( table.getColumnName( col ) + "\t" );
+		bfw.write( table.getColumnName( lastColumn ) + "\n" );
+
+		// content
+		for ( int row = 0; row < table.getRowCount(); row++ )
+		{
+			for ( int col = 0; col < lastColumn; col++ )
+				bfw.write( table.getValueAt( row, col ) + "\t" );
+			bfw.write( table.getValueAt( row, lastColumn ) + "\n" );
+		}
+
+		bfw.close();
+	}
+
 }

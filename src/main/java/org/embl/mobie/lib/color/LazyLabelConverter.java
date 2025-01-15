@@ -28,13 +28,12 @@
  */
 package org.embl.mobie.lib.color;
 
-import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
-import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
+import org.embl.mobie.lib.color.lut.GlasbeyARGBLut;
 
 public class LazyLabelConverter implements Converter<RealType<?>, ARGBType>, ColorConverter {
     private final LazyCategoryColoringModel<Double> coloringModel;
@@ -42,7 +41,7 @@ public class LazyLabelConverter implements Converter<RealType<?>, ARGBType>, Col
     private double max = 500;
 
     public LazyLabelConverter() {
-        this.coloringModel = new LazyCategoryColoringModel<>(new GlasbeyARGBLut(255));
+        this.coloringModel = new LazyCategoryColoringModel<>( new GlasbeyARGBLut( 255 ) );
     }
 
     @Override

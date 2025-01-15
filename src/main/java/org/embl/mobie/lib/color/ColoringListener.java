@@ -28,12 +28,6 @@
  */
 package org.embl.mobie.lib.color;
 
-import de.embl.cba.tables.select.SelectionModel;
-
-/**
- * Interface for listeners of a {@link SelectionModel}.
- *
- */
 public interface ColoringListener
 {
 	/**

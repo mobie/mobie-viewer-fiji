@@ -29,7 +29,6 @@
 package org.embl.mobie.lib.create;
 
 import bdv.viewer.Source;
-import de.embl.cba.tables.Tables;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.process.LUT;
@@ -52,7 +51,9 @@ import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.source.SourceHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.util.ThreadHelper;
+import org.embl.mobie.ui.UserInterfaceHelper;
 
 import javax.swing.*;
 import java.io.File;
@@ -62,9 +63,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static de.embl.cba.morphometry.Utils.labelMapAsImgLabeling;
 import static net.imglib2.util.Util.getTypeFromInterval;
-import static net.imglib2.util.Util.round;
 import static org.embl.mobie.lib.create.ProjectCreatorHelper.*;
 
 /**
@@ -221,7 +220,7 @@ public class ImagesCreator {
         double[] dimensions = new double[ rai.numDimensions() ];
         labelsSource.getVoxelDimensions().dimensions( dimensions );
 
-        ImgLabeling<Integer, IntType> imgLabeling = labelMapAsImgLabeling(rai);
+        ImgLabeling<Integer, IntType> imgLabeling = MoBIEHelper.labelMapAsImgLabeling(rai);
 
         LabelRegions labelRegions = new LabelRegions(imgLabeling);
         Iterator<LabelRegion> labelRegionIterator = labelRegions.iterator();
@@ -409,7 +408,7 @@ public class ImagesCreator {
             rowArray = rows.toArray(rowArray);
 
             JTable table = new JTable(rowArray, columnNames.toArray() );
-            Tables.saveTable( table, defaultTable );
+            UserInterfaceHelper.saveTable( table, defaultTable );
 
             IJ.log( "Default object features have been computed." );
         }

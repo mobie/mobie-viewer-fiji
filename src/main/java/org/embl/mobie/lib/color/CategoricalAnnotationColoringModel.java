@@ -38,8 +38,6 @@ import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
-
 public class CategoricalAnnotationColoringModel< A extends Annotation > extends AbstractAnnotationColoringModel< A >
 {
 	private Map< String, Integer > inputToFixedColor;
@@ -135,7 +133,7 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 
 	private double createRandom( double x )
 	{
-		double random = ( x * randomSeed ) * goldenRatio;
+		double random = ( x * randomSeed ) * ColorHelper.goldenRatio;
 		random = random - ( long ) Math.floor( random );
 		return random;
 	}

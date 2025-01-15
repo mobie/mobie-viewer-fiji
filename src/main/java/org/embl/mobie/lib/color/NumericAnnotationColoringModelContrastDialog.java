@@ -30,7 +30,6 @@ package org.embl.mobie.lib.color;
 
 import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BoundedValueDouble;
-import de.embl.cba.tables.color.ColoringListener;
 
 import javax.swing.*;
 import java.awt.*;

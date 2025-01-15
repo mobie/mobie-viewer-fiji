@@ -28,11 +28,11 @@
  */
 package org.embl.mobie.command.view;
 
-import de.embl.cba.tables.results.ResultsTableFetcher;
 import ij.ImagePlus;
 import ij.measure.ResultsTable;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.command.ResultsTableFetcher;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.imagedata.ImagePlusImageData;
 import org.embl.mobie.lib.util.ThreadHelper;

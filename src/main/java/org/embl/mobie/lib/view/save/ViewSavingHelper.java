@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.view.save;
 
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.DatasetJsonParser;
@@ -37,15 +38,13 @@ import org.embl.mobie.io.github.GitHubUtils;
 
 import java.io.IOException;
 
-import static de.embl.cba.tables.github.GitHubUtils.isGithub;
-
 public class ViewSavingHelper
 {
     public static void writeDatasetJson( Dataset dataset, View view, String datasetJsonPath ) throws IOException
     {
         dataset.views().put( view.getName(), view );
 
-        if ( isGithub(datasetJsonPath)) {
+        if ( GitHubUtils.isGithub( datasetJsonPath ) ) {
             new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation( datasetJsonPath ) ).writeViewToDatasetJson( view );
         } else {
             new DatasetJsonParser().saveDataset( dataset, datasetJsonPath );
@@ -56,7 +55,7 @@ public class ViewSavingHelper
     {
         additionalViews.views.put( view.getName(), view );
 
-        if (isGithub( jsonPath )) {
+        if ( GitHubUtils.isGithub( jsonPath ) ) {
             new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation( jsonPath ) ).writeViewToViewsJson( view );
         } else {
             new AdditionalViewsJsonParser().saveViews( additionalViews, jsonPath );

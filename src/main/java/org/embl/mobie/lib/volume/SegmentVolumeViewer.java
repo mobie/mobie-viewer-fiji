@@ -30,11 +30,11 @@ package org.embl.mobie.lib.volume;
 
 import bdv.viewer.Source;
 import customnode.CustomTriangleMesh;
-import de.embl.cba.tables.ij3d.AnimatedViewAdjuster;
 import ij3d.Content;
 import ij3d.Image3DUniverse;
 import ij3d.ImageWindow3D;
 import ij3d.UniverseListener;
+import ij3d.Utils;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.annotation.Segment;
 import org.embl.mobie.lib.color.ColorHelper;
@@ -45,9 +45,9 @@ import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.select.SelectionModel;
 import org.embl.mobie.lib.source.AnnotationType;
 import net.imglib2.type.numeric.ARGBType;
-import org.scijava.java3d.Bounds;
-import org.scijava.java3d.View;
-import org.scijava.vecmath.Color3f;
+import org.jogamp.java3d.Bounds;
+import org.jogamp.java3d.View;
+import org.jogamp.vecmath.Color3f;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -415,7 +415,7 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 	{
 		final ARGBType argbType = new ARGBType();
 		coloringModel.convert( imageSegment, argbType );
-		return new Color3f( ColorHelper.getColor( argbType ) );
+		return Utils.toColor3f( ColorHelper.getColor( argbType ) );
 	}
 
 	public boolean setVoxelSpacing( double[] voxelSpacing )

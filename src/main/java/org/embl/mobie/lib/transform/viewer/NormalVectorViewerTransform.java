@@ -30,14 +30,14 @@ package org.embl.mobie.lib.transform.viewer;
 
 import bdv.util.Affine3DHelpers;
 import bdv.util.Bdv;
-import de.embl.cba.bdv.utils.BdvUtils;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.LinAlgHelpers;
+import org.embl.mobie.lib.util.MoBIEHelper;
 
 import java.util.stream.DoubleStream;
 
-import static de.embl.cba.bdv.utils.BdvUtils.getBdvWindowCenter;
-import static de.embl.cba.bdv.utils.BdvUtils.quaternionToAffineTransform3D;
+import static org.embl.mobie.lib.util.MoBIEHelper.getBdvWindowCenter;
+import static org.embl.mobie.lib.util.MoBIEHelper.quaternionToAffineTransform3D;
 
 public class NormalVectorViewerTransform implements ViewerTransform
 {
@@ -65,7 +65,7 @@ public class NormalVectorViewerTransform implements ViewerTransform
 
 	public static AffineTransform3D createTransform( Bdv bdv, double[] targetNormalVector )
 	{
-		double[] currentNormalVector = BdvUtils.getCurrentViewNormalVector( bdv );
+		double[] currentNormalVector = MoBIEHelper.getCurrentViewNormalVector( bdv );
 
 		AffineTransform3D currentViewerTransform = new AffineTransform3D();
 		bdv.getBdvHandle().getViewerPanel().state().getViewerTransform( currentViewerTransform );
@@ -95,7 +95,7 @@ public class NormalVectorViewerTransform implements ViewerTransform
 
 		// apply transformation (rotating around current viewer centre position)
 		final AffineTransform3D translateCenterToOrigin = new AffineTransform3D();
-		translateCenterToOrigin.translate( DoubleStream.of( getBdvWindowCenter( bdv )).map( x -> -x ).toArray() );
+		translateCenterToOrigin.translate( DoubleStream.of( getBdvWindowCenter( bdv ) ).map( x -> -x ).toArray() );
 
 		final AffineTransform3D translateCenterBack = new AffineTransform3D();
 		translateCenterBack.translate( getBdvWindowCenter( bdv ) );

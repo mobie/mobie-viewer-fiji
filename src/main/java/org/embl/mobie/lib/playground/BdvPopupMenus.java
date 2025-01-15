@@ -29,8 +29,6 @@
 package org.embl.mobie.lib.playground;
 
 import bdv.util.BdvHandle;
-import de.embl.cba.bdv.utils.capture.ViewCaptureDialog;
-import de.embl.cba.swing.PopupMenu;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;

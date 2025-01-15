@@ -28,9 +28,6 @@
  */
 package org.embl.mobie.lib.color.lut;
 
-import de.embl.cba.bdv.utils.lut.ARGBLut;
-import de.embl.cba.bdv.utils.lut.Luts;
-
 public class SingleColorARGBLut implements ARGBLut
 {
 	private final int r;
@@ -48,7 +45,7 @@ public class SingleColorARGBLut implements ARGBLut
 	@Override
 	public int getARGB( double x )
 	{
-		return Luts.getARGBIndex( r, g, b, x );
+		return LUTs.getARGBIndex( r, g, b, x );
 	}
 
 	@Override

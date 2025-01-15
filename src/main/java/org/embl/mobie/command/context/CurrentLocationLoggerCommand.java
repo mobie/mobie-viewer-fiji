@@ -30,8 +30,7 @@ package org.embl.mobie.command.context;
 
 import bdv.util.BdvHandle;
 import com.google.gson.Gson;
-import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.Logger;
+import ij.IJ;
 import net.imglib2.util.LinAlgHelpers;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
@@ -45,10 +44,11 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
+import static org.embl.mobie.lib.util.MoBIEHelper.getCurrentViewNormalVector;
+
 @Plugin( type = BdvPlaygroundActionCommand.class, name = CurrentLocationLoggerCommand.NAME, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + CurrentLocationLoggerCommand.NAME )
 public class CurrentLocationLoggerCommand implements BdvPlaygroundActionCommand
 {
-
 	private static PositionViewerTransform mousePointerPositionTransform;
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
@@ -89,21 +89,21 @@ public class CurrentLocationLoggerCommand implements BdvPlaygroundActionCommand
 		final NormalizedAffineViewerTransform normalizedAffineViewerTransform = new NormalizedAffineViewerTransform( bdvHandle );
 
 		// normal vector
-		double[] currentNormalVector = BdvUtils.getCurrentViewNormalVector( bdvHandle );
+		double[] currentNormalVector = getCurrentViewNormalVector( bdvHandle );
 		final NormalVectorViewerTransform normalVectorViewerTransform = new NormalVectorViewerTransform( currentNormalVector, timePoint );
 
 		// print
 		final Gson gson = JsonHelper.buildGson( false );
-		Logger.log( "" );
-		Logger.log( "# Current location" );
-		Logger.log( "To restore the current location, any of the below {...} JSON strings can be pasted into MoBIE's \"location\"  field." );
-		Logger.log( "To share views with other people we recommend using the normalised viewer transform." );
+		IJ.log( "" );
+		IJ.log( "# Current location" );
+		IJ.log( "To restore the current location, any of the below {...} JSON strings can be pasted into MoBIE's \"location\"  field." );
+		IJ.log( "To share views with other people we recommend using the normalised viewer transform." );
 
-		Logger.log("## Mouse pointer position" );
+		IJ.log("## Mouse pointer position" );
 		Double distanceToRecentPosition = null;
 		if ( mousePointer == null )
 		{
-			Logger.log( "Only given when using the [" + SHORTCUT + "] keyboard shortcut in the BDV window to trigger this action." );
+			IJ.log( "Only given when using the [" + SHORTCUT + "] keyboard shortcut in the BDV window to trigger this action." );
 		}
 		else
 		{
@@ -112,21 +112,21 @@ public class CurrentLocationLoggerCommand implements BdvPlaygroundActionCommand
 				distanceToRecentPosition = LinAlgHelpers.distance( mousePointerPositionTransform.getParameters(), mousePointer );
 			}
 			mousePointerPositionTransform = new PositionViewerTransform( mousePointer, timePoint );
-			Logger.log( gson.toJson( mousePointerPositionTransform ) );
+			IJ.log( gson.toJson( mousePointerPositionTransform ) );
 		}
-		Logger.log("## Window center position" );
-		Logger.log( gson.toJson( positionViewerTransform ) );
-		Logger.log("## Viewer transform" );
-		Logger.log( gson.toJson( affineViewerTransform ) );
-		Logger.log("## Normalised viewer transform" );
-		Logger.log( gson.toJson( normalizedAffineViewerTransform ) );
-		Logger.log("## Normal vector" );
-		Logger.log( gson.toJson( normalVectorViewerTransform ) );
+		IJ.log("## Window center position" );
+		IJ.log( gson.toJson( positionViewerTransform ) );
+		IJ.log("## Viewer transform" );
+		IJ.log( gson.toJson( affineViewerTransform ) );
+		IJ.log("## Normalised viewer transform" );
+		IJ.log( gson.toJson( normalizedAffineViewerTransform ) );
+		IJ.log("## Normal vector" );
+		IJ.log( gson.toJson( normalVectorViewerTransform ) );
 
 		if ( distanceToRecentPosition != null )
 		{
-			Logger.log("" );
-			Logger.log( "Distance between current and most recent mouse position: " +  distanceToRecentPosition );
+			IJ.log("" );
+			IJ.log( "Distance between current and most recent mouse position: " +  distanceToRecentPosition );
 		}
 	}
 }

@@ -29,7 +29,6 @@
 package org.embl.mobie.plugins.platybrowser;
 
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.tables.TableUIs;
 import ij.IJ;
 import org.embl.mobie.DataStore;
 import org.embl.mobie.MoBIE;
@@ -49,6 +48,7 @@ import net.imglib2.algorithm.neighborhood.Neighborhood;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.ui.UserInterfaceHelper;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -265,7 +265,7 @@ public class GeneSearch
 			final JMenuBar jMenuBar = new JMenuBar();
 			final JMenu menu = new JMenu( "File" );
 			final JMenuItem saveAs = new JMenuItem( "Save as..." );
-			saveAs.addActionListener( e -> SwingUtilities.invokeLater( () -> TableUIs.saveTableUI( table ) ) );
+			saveAs.addActionListener( e -> SwingUtilities.invokeLater( () -> UserInterfaceHelper.saveTableUI( table ) ) );
 			menu.add( saveAs );
 			jMenuBar.add( menu );
 			frame.setJMenuBar( jMenuBar );

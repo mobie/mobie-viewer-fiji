@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.lib.annotation;
 
-import de.embl.cba.tables.Logger;
 import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.color.CategoricalAnnotationColoringModel;
@@ -171,7 +170,7 @@ public class AnnotationUI< A extends Annotation > extends JFrame implements Sele
 			String newClassName = textField.getText();
 			if ( getAnnotations().containsKey( newClassName ) || annotationNames.contains( newClassName )  )
 			{
-				Logger.error( "Category " + newClassName + " exists already." );
+				IJ.error( "Category " + newClassName + " exists already." );
 				return;
 			}
 			addAnnotationButtonPanel( newClassName, null );
