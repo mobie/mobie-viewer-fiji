@@ -11,7 +11,11 @@
     <artifactId>mobie-viewer-fiji</artifactId>
     <version>6.0.0-SNAPSHOT</version>
 
+
+
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
+    <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-40.0.0.app -->
+
     <!--  ../scijava-scripts/release-version.sh - -skip-version-check - -skip-license-update -->
     <!-- ../scijava-scripts/release-version.sh - -skip-version-check  - -skip-license-update -->
     <!-- force javadoc generation to fetch errors:    -->
@@ -81,28 +85,7 @@
         <license.licenseName>bsd_2</license.licenseName>
         <license.copyrightOwners>EMBL</license.copyrightOwners>
 
-        <!--
-        Classes: com.sun.istack.*
-        Part of: com.sun.xml.bind:jaxb-impl, com.sun.istack:istack-commons-runtime
-        Enables: de.embl.cba:imagej-utils + net.tlabs-data:tablesaw_0.43.1-parquet
-        ==
-        Classes: shaded.parquet.it.unimi.dsi.fastutil.*
-        Part of: jakarta.xml.bind:jakarta.xml.bind-api, javax.xml.bind:jaxb-api
-        Enables: net.tlabs-data:tablesaw_0.43.1-parquet
-        ==
-        Classes: javax.xml.bind.*
-        Part of: jakarta.xml.bind:jakarta.xml.bind-api + javax.xml.bind:jaxb-api
-        Enables: de.embl.cba:imagej-utils + net.tlabs-data:tablesaw_0.43.1-parquet
-        ==
-        Classes: com.sun.xml.bind.*
-        Part of: com.sun.xml.bind:jaxb-impl + org.glassfish.jaxb:jaxb-runtime
-        Enables: net.tlabs-data:tablesaw_0.43.1-parquet + de.embl.cba:imagej-utils
-        ==
-        Classes: com.sun.xml.txw2.*
-        Part of: com.sun.xml.bind:jaxb-impl, org.glassfish.jaxb:txw2
-        Enables: net.tlabs-data:tablesaw_0.43.1-parquet + de.embl.cba:imagej-utils
-        -->
-        <allowedDuplicateClasses>${scijava.allowedDuplicateClasses},com.sun.istack.*,shaded.parquet.it.unimi.dsi.fastutil.*,javax.xml.bind.*,com.sun.xml.bind.*,com.sun.xml.txw2.*</allowedDuplicateClasses>
+        <allowedDuplicateClasses>${scijava.allowedDuplicateClasses},com.sun.xml.*,com.sun.tools.*,com.sun.istack.*,shaded.parquet.it.unimi.dsi.fastutil.*,javax.xml.bind.*,com.sun.xml.bind.*,com.sun.xml.txw2.*</allowedDuplicateClasses>
 
         <mobie-io.version>4.0.0-SNAPSHOT</mobie-io.version>
         <bigdataviewer-playground.version>0.10.7</bigdataviewer-playground.version>
