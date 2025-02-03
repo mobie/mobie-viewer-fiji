@@ -154,8 +154,9 @@ public abstract class MoBIEHelper
 	{
 		uri = FilenameUtils.removeExtension( uri );
 
-		// some have two extensions, e.g. .ome.zarr
-		uri = FilenameUtils.removeExtension( uri );
+		// The above will only remove the ".zarr"
+		if ( uri.endsWith( ".ome" ) )
+			uri = uri.replace( ".ome", "" );
 
 		return uri;
 	}

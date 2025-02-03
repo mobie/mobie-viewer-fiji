@@ -569,6 +569,7 @@ public class CollectionTableDataSetter
         }
         catch ( Exception e )
         {
+            int a = 1;
             // Do not add a transformation
         }
 
