@@ -23,8 +23,7 @@ import net.imglib2.util.ValuePair;
 
 import org.embl.mobie.DataStore;
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.lib.annotation.Annotation;
-import org.embl.mobie.lib.annotation.AnnotationAdapter;
+import org.embl.mobie.lib.annotation.*;
 import org.embl.mobie.lib.color.ColoringListener;
 import org.embl.mobie.lib.color.lut.GlasbeyARGBLut;
 import org.embl.mobie.lib.image.AnnotationLabelImage;
@@ -264,19 +263,24 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 			Converter< AnnotationType, ARGBType > converter = ( Converter< AnnotationType, ARGBType > ) sac.getConverter();
 			String imageName = image.getName();
 			int timePoint = 0;
-			final int nAnnotationsNumber;
-			if(handle.getViewerPanel().state().getNumTimepoints()>1)
+			final int numAnnotations;
+
+			if ( annotationAdapter instanceof LazyAnnotationAdapter )
+			{
+				numAnnotations = 65535-1;
+			}
+			else if(handle.getViewerPanel().state().getNumTimepoints()>1)
 			{
 				timePoint = handle.getViewerPanel().state().getCurrentTimepoint();
-				nAnnotationsNumber = numberOfAnnotationsPerTimepoint(annotationAdapter, timePoint, imageName);
+				numAnnotations = numberOfAnnotationsPerTimepoint(annotationAdapter, timePoint, imageName);
 			}
 			else
 			{
-				nAnnotationsNumber = ( ( AnnotationLabelImage<?> ) image ).getAnnData().getTable().numAnnotations();				
+				numAnnotations = ( ( AnnotationLabelImage<?> ) image ).getAnnData().getTable().numAnnotations();
 			}
 			
-			final byte [][] colors = new byte [3][nAnnotationsNumber+1];
-			final byte [] alphas = new byte [nAnnotationsNumber+1];
+			final byte [][] colors = new byte [3][numAnnotations+1];
+			final byte [] alphas = new byte [numAnnotations+1];
 			ARGBType valARGB = new ARGBType();
 			int val;
 			
@@ -286,7 +290,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 			colors[2][0] = 0;
 			alphas[0] = ( byte ) ( 0 );
 			
-			for(int label=1; label<=nAnnotationsNumber; label++)
+			for(int label=1; label<=numAnnotations; label++)
 			{
 				final Annotation annotation = annotationAdapter.getAnnotation( imageName, timePoint, label );
 
@@ -297,7 +301,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 				colors[ 2 ][ label ] = ( byte ) ARGBType.blue( val );
 				alphas[ label ] = (byte) ARGBType.alpha( val );
 			}
-			return new IndexColorModel(16,nAnnotationsNumber+1,colors[0],colors[1],colors[2], alphas);
+			return new IndexColorModel(16,numAnnotations+1,colors[0],colors[1],colors[2], alphas);
 		}
 		return null;
 	}
