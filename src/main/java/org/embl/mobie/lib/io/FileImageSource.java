@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.lib.io;
 
-import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.lib.util.MoBIEHelper;
 
 import java.io.File;
@@ -44,15 +43,15 @@ public class FileImageSource
 	 * "path=name;channelIndex"
 	 * where everything after path is optional
 	 *
-	 * @param string
-	 * 				the string to be parsed
+	 * @param uri
+	 * 				the uri to be parsed
 	 */
-	public FileImageSource( String string )
+	public FileImageSource( String uri )
 	{
-		String[] split = new String[]{ string };
-		if ( string.contains( ";" ) )
+		String[] split = new String[]{ uri };
+		if ( uri.contains( ";" ) )
 		{
-			split = string.split( ";" );
+			split = uri.split( ";" );
 			channelIndex = Integer.parseInt( split[ 1 ] );
 		}
 

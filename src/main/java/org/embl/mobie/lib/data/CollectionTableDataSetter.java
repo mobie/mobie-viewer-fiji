@@ -1,5 +1,6 @@
 package org.embl.mobie.lib.data;
 
+import IceInternal.Ex;
 import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.DataStore;
@@ -235,7 +236,7 @@ public class CollectionTableDataSetter
                 gridRegionDisplay.sources.put( source, Collections.singletonList( source ) );
 
             // TODO: in some cases only do this once for several grids
-            dataset.views().get( viewName ).displays().add( gridRegionDisplay );
+             dataset.views().get( viewName ).displays().add( gridRegionDisplay );
         }
 
     }
@@ -313,7 +314,17 @@ public class CollectionTableDataSetter
     private static String getNameFromURI( Row row )
     {
         String uri = getUri( row );
-        return MoBIEHelper.removeExtension( IOHelper.getFileName( uri ) );
+        String name = MoBIEHelper.removeExtension( IOHelper.getFileName( uri ) );
+        try
+        {
+            int channelIndex = row.getInt( CollectionTableConstants.CHANNEL );
+            name = name + "_c" + channelIndex;
+        }
+        catch ( Exception e )
+        {
+            // do nothing
+        }
+        return name;
     }
 
     private static String getDataType( Row row )
@@ -351,7 +362,10 @@ public class CollectionTableDataSetter
     private static int getChannel( Row row )
     {
         try {
-            return row.getInt( CollectionTableConstants.CHANNEL );
+            int channelIndex = row.getInt( CollectionTableConstants.CHANNEL );
+            if ( channelIndex < 0 )
+                return 0; // Sometimes an empty string yields a negative number
+            return channelIndex;
         }
         catch ( Exception e )
         {
@@ -482,7 +496,7 @@ public class CollectionTableDataSetter
 
             if ( doubles.length != 2 )
                 throw new UnsupportedOperationException("Contrast limits must have exactly two values: (min, max).\n" +
-                        "This table cell entry does not adhere to this specification: " + string );
+                        string + "does not adhere to this specification." );
 
             return doubles;
         }

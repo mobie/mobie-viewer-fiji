@@ -52,7 +52,7 @@ public class ImageDataImage< T extends NumericType< T > & NativeType< T > > impl
 {
 	private ImageDataFormat imageDataFormat;
 	private String uri;
-	private int setupId;
+	private int setupId = 0;
 	private SourcePair< T > sourcePair;
 	private String name;
 	private Site site;
@@ -68,7 +68,7 @@ public class ImageDataImage< T extends NumericType< T > & NativeType< T > > impl
 		this.imageDataFormat = null;
 		this.uri = null;
 		this.sharedQueue = null;
-		this.setupId = setupId == null ? 0 : setupId;
+		if ( setupId != null ) this.setupId = setupId;
 		this.name = name; // FIXME: add the datasetname to the name ?!
 		System.out.println("Name: " + name );
 		System.out.println("SetupID: " + setupId );
@@ -80,14 +80,14 @@ public class ImageDataImage< T extends NumericType< T > & NativeType< T > > impl
 	public ImageDataImage(
 			ImageDataFormat imageDataFormat,
 			String uri,
-			int setupId,
+			Integer setupId,
 			String name,
 			@Nullable SharedQueue sharedQueue,
 			VoxelDimensions voxelDimensions )
 	{
 		this.imageDataFormat = imageDataFormat;
 		this.uri = uri;
-		this.setupId = setupId;
+		if ( setupId != null ) this.setupId = setupId;
 		this.name = name;
 		this.sharedQueue = sharedQueue;
 		this.voxelDimensions = voxelDimensions;
