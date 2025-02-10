@@ -290,7 +290,7 @@ public class ImagesCreator {
         File imagesDirectory = new File( getDefaultLocalImageDirPath( datasetName ) );
 
         ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( uri );
-        imageDataFormat.setS3SecretAndAccessKey( MoBIE.getInstance().getSettings().values.getS3AccessAndSecretKey() );
+        addS3keys( imageDataFormat );
         ImageData< ? > imageData = ImageDataOpener.open(
                 uri,
                 imageDataFormat,
