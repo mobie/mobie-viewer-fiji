@@ -29,7 +29,7 @@
 package org.embl.mobie.lib.serialize.transformation;
 
 import net.imglib2.roi.RealMaskRealInterval;
-import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.transform.ImageTransformer;
 import org.embl.mobie.lib.transform.TransformHelper;
@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 public class GridTransformation extends AbstractGridTransformation
 {
@@ -50,13 +51,22 @@ public class GridTransformation extends AbstractGridTransformation
 	public List< List< String > > transformedNames;
 	public boolean centerAtOrigin = true;
 
+	public GridTransformation( List< String > sources, List< int[] > positions )
+	{
+		this( sources );
+		this.positions = positions;
+	}
+
 	public GridTransformation( List< String > sources )
 	{
-		nestedSources = new ArrayList<>();
-		for ( String source : sources )
-		{
-			nestedSources.add( Collections.singletonList( source ) );
-		}
+		nestedSources = sources.stream()
+				.map( source -> Collections.singletonList( source ) )
+				.collect( Collectors.toList() );
+//		nestedSources = new ArrayList<>();
+//		for ( String source : sources )
+//		{
+//			nestedSources.add( Collections.singletonList( source ) );
+//		}
 	}
 
 	public static List< ? extends Image< ? > > gridTransform(
@@ -145,7 +155,8 @@ public class GridTransformation extends AbstractGridTransformation
             offset[ d ] = tileRealDimensions[ d ] * gridTransformation.margin;
         }
 
-        final List< int[] > gridPositions = gridTransformation.positions == null ? createGridPositions( nestedSources.size() ) : gridTransformation.positions;
+        final List< int[] > gridPositions = gridTransformation.positions == null ?
+				createGridPositions( nestedSources.size() ) : gridTransformation.positions;
 
         final List< ? extends Image< ? > > transformedImages =
 				gridTransform(

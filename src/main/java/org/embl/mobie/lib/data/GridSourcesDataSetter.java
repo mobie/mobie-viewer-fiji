@@ -30,7 +30,6 @@ package org.embl.mobie.lib.data;
 
 import ij.IJ;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.io.StorageLocation;

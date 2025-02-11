@@ -31,7 +31,7 @@ package org.embl.mobie.lib.bdv.view;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.command.context.*;
 import org.embl.mobie.command.context.CurrentLocationLoggerCommand;
 import org.embl.mobie.MoBIE;

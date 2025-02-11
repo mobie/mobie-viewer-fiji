@@ -26,9 +26,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib;
+package org.embl.mobie.lib.data;
 
-import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.ImageData;
@@ -49,7 +48,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 
-public class ImageDataAdder
+public class ImageDataSetter
 {
 	private final ImageData< ? > image;
 	private final ImageData< ? > labels;
@@ -58,7 +57,7 @@ public class ImageDataAdder
 	private Dataset dataset;
 	private MoBIESettings settings;
 
-	public ImageDataAdder( ImageData< ? > image, ImageData< ? > labels, StorageLocation tableStorageLocation, TableDataFormat tableDataFormat )
+	public ImageDataSetter( ImageData< ? > image, ImageData< ? > labels, StorageLocation tableStorageLocation, TableDataFormat tableDataFormat )
 	{
 		this.image = image;
 		this.labels = labels;

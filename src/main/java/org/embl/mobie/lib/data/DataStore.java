@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie;
+package org.embl.mobie.lib.data;
 
 import bdv.cache.SharedQueue;
 import bdv.viewer.SourceAndConverter;

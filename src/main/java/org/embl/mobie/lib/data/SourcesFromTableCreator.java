@@ -26,12 +26,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib;
+package org.embl.mobie.lib.data;
 
 import ij.IJ;
-import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.lib.data.ImageGridSources;
 import org.embl.mobie.lib.data.LabelGridSources;
 import org.embl.mobie.lib.io.TableImageSource;

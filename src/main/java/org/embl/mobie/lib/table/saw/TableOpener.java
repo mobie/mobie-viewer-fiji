@@ -66,8 +66,7 @@ public class TableOpener
 	public static Map< String, ColumnType > nameToType;
 	static
 	{
-		// TODO Add more
-		// TODO Get this from the ColumnNames instead?
+		// FIXME Add more and get this from the ColumnNames instead?
 		nameToType = new HashMap<>();
 		nameToType.put( ColumnNames.SPOT_X, ColumnType.FLOAT );
 		nameToType.put( ColumnNames.SPOT_Y, ColumnType.FLOAT );

@@ -30,7 +30,7 @@ package org.embl.mobie.plugins.platybrowser;
 
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.serialize.DataSource;

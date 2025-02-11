@@ -31,7 +31,7 @@ package org.embl.mobie.command.open;
 import loci.common.DebugTools;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.ProjectType;
+import org.embl.mobie.lib.data.ProjectType;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.bdv.BdvViewingMode;

@@ -29,7 +29,7 @@
 package org.embl.mobie.lib.table;
 
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;

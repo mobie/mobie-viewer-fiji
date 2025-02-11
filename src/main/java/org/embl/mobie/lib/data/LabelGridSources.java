@@ -29,6 +29,8 @@
 package org.embl.mobie.lib.data;
 
 import ij.IJ;
+import omero.cmd.IHandle;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.TableDataFormat;
@@ -87,20 +89,41 @@ public class LabelGridSources extends ImageGridSources
 	{
 		super( name, path, channelIndex, root, grid );
 
-		final List< String > labelTablePaths = MoBIEHelper.getFullPaths( labelTablePath, root );
-		final ArrayList< String > labelMaskNames = new ArrayList<>( nameToFullPath.keySet() );
-		for ( int tableIndex = 0; tableIndex < labelTablePaths.size(); tableIndex++ )
+		// deal with tables
+		//
+		if ( IOHelper.getType( labelTablePath ).equals( IOHelper.ResourceType.FILE ) )
+		{
+			// deal with potential relative paths and also potential regexp
+			final List< String > labelTablePaths = MoBIEHelper.getFullPaths( labelTablePath, root );
+			final ArrayList< String > labelMaskNames = new ArrayList<>( nameToFullPath.keySet() );
+			for ( int tableIndex = 0; tableIndex < labelTablePaths.size(); tableIndex++ )
+			{
+				final StorageLocation storageLocation = new StorageLocation();
+				final File tableFile = new File( labelTablePaths.get( tableIndex ) );
+				storageLocation.absolutePath = tableFile.getParent();
+				storageLocation.defaultChunk = tableFile.getName();
+
+				final TableSource tableSource =
+						new TableSource(
+								TableDataFormat.fromPath( labelTablePaths.get( tableIndex ) ),
+								storageLocation );
+				nameToLabelTable.put( labelMaskNames.get( tableIndex ), tableSource );
+			}
+		}
+		else // absolute paths to HTTP hosted data
 		{
 			final StorageLocation storageLocation = new StorageLocation();
-			final File tableFile = new File( labelTablePaths.get( tableIndex ) );
-			storageLocation.absolutePath = tableFile.getParent();
-			storageLocation.defaultChunk = tableFile.getName();
+			String fileName = IOHelper.getFileName( labelTablePath );
+			String folder = labelTablePath.replace( fileName, "" );
+			storageLocation.absolutePath = folder;
+			storageLocation.defaultChunk = fileName;
 
 			final TableSource tableSource =
 					new TableSource(
-							TableDataFormat.fromPath( labelTablePaths.get( tableIndex ) ),
+							TableDataFormat.fromPath( labelTablePath ),
 							storageLocation );
-			nameToLabelTable.put( labelMaskNames.get( tableIndex ), tableSource );
+			String dataSourceName = nameToFullPath.keySet().iterator().next();
+			nameToLabelTable.put( dataSourceName, tableSource );
 		}
 	}
 

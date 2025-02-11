@@ -30,7 +30,7 @@ package org.embl.mobie.command.context;
 
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.transform.TransformHelper;
 import org.embl.mobie.ui.UserInterfaceHelper;

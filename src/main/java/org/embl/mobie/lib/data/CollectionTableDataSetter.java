@@ -1,18 +1,13 @@
 package org.embl.mobie.lib.data;
 
-import IceInternal.Ex;
 import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.DataStore;
-import org.embl.mobie.MoBIE;
+import org.embl.mobie.lib.util.Constants;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.lib.SpotImageCreator;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
-import org.embl.mobie.lib.annotation.AnnotatedSpot;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.color.ColorHelper;
-import org.embl.mobie.lib.image.SpotAnnotationImage;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.*;
 import org.embl.mobie.lib.serialize.display.*;
@@ -73,7 +68,7 @@ public class CollectionTableDataSetter
             if ( dataType.equals( CollectionTableConstants.LABELS )  )
             {
                 ImageDataFormat imageDataFormat = getImageDataFormat( row, storageLocation );
-                storageLocation.setChannel( getChannel( row ) ); // TODO: Fetch from table or URI? https://forum.image.sc/t/loading-only-one-channel-from-an-ome-zarr/97798
+                storageLocation.setChannel( getChannelIndex( row ) ); // TODO: Fetch from table or URI? https://forum.image.sc/t/loading-only-one-channel-from-an-ome-zarr/97798
 
                 TableSource tableSource = getTable( row, rootPath );
 
@@ -116,7 +111,7 @@ public class CollectionTableDataSetter
             else // default: intensities
             {
                 ImageDataFormat imageDataFormat = getImageDataFormat( row, storageLocation );
-                storageLocation.setChannel( getChannel( row ) ); // TODO: Fetch from table or URI? https://forum.image.sc/t/loading-only-one-channel-from-an-ome-zarr/97798
+                storageLocation.setChannel( getChannelIndex( row ) ); // TODO: Fetch from table or URI? https://forum.image.sc/t/loading-only-one-channel-from-an-ome-zarr/97798
 
                 final ImageDataSource imageDataSource = new ImageDataSource(
                         name,
@@ -314,16 +309,12 @@ public class CollectionTableDataSetter
     private static String getNameFromURI( Row row )
     {
         String uri = getUri( row );
+
         String name = MoBIEHelper.removeExtension( IOHelper.getFileName( uri ) );
-        try
-        {
-            int channelIndex = row.getInt( CollectionTableConstants.CHANNEL );
-            name = name + "_c" + channelIndex;
-        }
-        catch ( Exception e )
-        {
-            // do nothing
-        }
+
+        Integer channel = getChannelIndex( row );
+        if ( channel != null ) name = name + Constants.CHANNEL_POSTFIX + channel;
+
         return name;
     }
 
@@ -359,17 +350,17 @@ public class CollectionTableDataSetter
         }
     }
 
-    private static int getChannel( Row row )
+    private static Integer getChannelIndex( Row row )
     {
         try {
             int channelIndex = row.getInt( CollectionTableConstants.CHANNEL );
             if ( channelIndex < 0 )
-                return 0; // Sometimes an empty string yields a negative number
+                return null; // Sometimes an empty string yields a negative number
             return channelIndex;
         }
         catch ( Exception e )
         {
-            return 0;
+            return null;
         }
     }
 

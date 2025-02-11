@@ -29,7 +29,7 @@
 package org.embl.mobie.lib.hcs;
 
 import net.thisptr.jackson.jq.internal.misc.Strings;
-import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.io.StorageLocation;

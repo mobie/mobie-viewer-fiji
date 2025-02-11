@@ -33,7 +33,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.util.MoBIEHelper;

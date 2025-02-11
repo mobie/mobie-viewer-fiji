@@ -21,7 +21,7 @@ import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
 import net.imglib2.util.ValuePair;
 
-import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.*;
 import org.embl.mobie.lib.color.ColoringListener;

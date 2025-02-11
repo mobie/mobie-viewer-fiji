@@ -29,14 +29,12 @@
 package org.embl.mobie.lib.serialize.display;
 
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.image.SpotAnnotationImage;
 import org.embl.mobie.lib.source.AnnotationType;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 

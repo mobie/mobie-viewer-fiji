@@ -33,9 +33,8 @@ import ij.IJ;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
-import org.apache.commons.io.FilenameUtils;
-import org.embl.mobie.DataStore;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.lib.util.Constants;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
@@ -180,7 +179,7 @@ public class ImageGridSources
 
 	private void setMetadata( Integer channelIndex )
 	{
-		// Take the first source to fetch metadata
+		// Take the first source of the grid to fetch metadata
 		metadataSource = nameToFullPath.keySet().iterator().next();
 		long start = System.currentTimeMillis();
 		IJ.log( "Fetching metadata for \"" + name + "\", channel " + channelIndex );
@@ -193,6 +192,8 @@ public class ImageGridSources
 				uri,
 				imageDataFormat,
 				ThreadHelper.sharedQueue );
+
+		channelIndex = channelIndex == null ? 0 : channelIndex;
 		CanonicalDatasetMetadata canonicalDatasetMetadata = imageData.getMetadata( channelIndex );
 		metadata = new Metadata( canonicalDatasetMetadata );
 		Source< ? > source = imageData.getSourcePair( channelIndex ).getA();
@@ -262,7 +263,7 @@ public class ImageGridSources
 			// TODO: it is a bit ugly to have that
 			//   - if there is only one image
 			//   - if the image is a segmentation
-			imageName += "_ch" + channelIndex;
+			imageName += Constants.CHANNEL_POSTFIX + channelIndex;
 		}
 
 		return imageName;
@@ -296,7 +297,7 @@ public class ImageGridSources
 	public String getPath( String source )
 	{
 		// TODO:
-		//   for multifile sources we could use:
+		//   for multi-file sources we could use:
 		//   private Map< TPosition, Map< ZPosition, String > > paths = new LinkedHashMap();
 		//   or we leave the group regex in the paths
 		return nameToFullPath.get( source );

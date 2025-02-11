@@ -29,7 +29,7 @@
 package org.embl.mobie.command.context;
 
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.image.SpotAnnotationImage;
 import org.scijava.module.MutableModuleItem;

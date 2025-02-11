@@ -308,7 +308,7 @@ public class CollectionTableConstants
      * data format will be determined from the file ending
      *
      * Use cases:
-     * - OME-Zarr data that does not contain .ome.zarr in the path
+     * - OME-Zarr data that does not contain ".ome.zarr" in the path
      */
     public static final String FORMAT = "format";
 }

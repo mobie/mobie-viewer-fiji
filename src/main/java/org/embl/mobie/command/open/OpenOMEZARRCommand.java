@@ -58,7 +58,7 @@ public class OpenOMEZARRCommand implements Command {
     @Parameter( label = "( Labels Table URI )",
             description = "Optional. Local path or S3 address to an table with label mask features.",
             required = false )
-    public String table; // FIXME: Add a cells table example
+    public String table; // = "https://raw.githubusercontent.com/mobie/platybrowser-project/refs/heads/main/data/1.0.1/tables/sbem-6dpf-1-whole-segmented-cells/default.tsv"
 
     @Parameter ( label = "( S3 Access Key )",
             description = "Optional. Access key for a protected S3 bucket.",

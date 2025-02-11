@@ -1,4 +1,4 @@
-package org.embl.mobie;
+package org.embl.mobie.lib.data;
 
 public enum ProjectType
 {

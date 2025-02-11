@@ -40,7 +40,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.util.LinAlgHelpers;
-import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.Annotation;

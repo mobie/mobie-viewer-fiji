@@ -29,7 +29,7 @@
 package org.embl.mobie.lib.serialize.display;
 
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
 import org.embl.mobie.lib.bvv.BigVolumeViewerMoBIE;
@@ -37,9 +37,7 @@ import org.embl.mobie.lib.image.Image;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public abstract class AbstractDisplay< T > implements Display< T >
 {

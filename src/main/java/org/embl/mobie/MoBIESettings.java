@@ -29,6 +29,7 @@
 package org.embl.mobie;
 
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import org.embl.mobie.lib.data.ProjectType;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 import org.embl.mobie.lib.io.DataFormats;
 import org.embl.mobie.lib.serialize.View;

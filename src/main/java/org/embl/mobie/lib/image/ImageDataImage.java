@@ -38,7 +38,7 @@ import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.lib.hcs.Site;
 import org.embl.mobie.lib.source.SourceHelper;

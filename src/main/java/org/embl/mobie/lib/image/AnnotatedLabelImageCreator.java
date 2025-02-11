@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib;
+package org.embl.mobie.lib.image;
 
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;

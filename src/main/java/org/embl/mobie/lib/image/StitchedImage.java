@@ -57,7 +57,7 @@ import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
-import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.serialize.transformation.GridTransformation;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.util.ThreadHelper;

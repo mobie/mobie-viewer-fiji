@@ -36,7 +36,7 @@ public class FileImageSource
 {
 	public String name;
 	public String path;
-	public Integer channelIndex = 0;
+	public Integer channelIndex;
 
 	/**
 	 * Parses the input string assuming the pattern:

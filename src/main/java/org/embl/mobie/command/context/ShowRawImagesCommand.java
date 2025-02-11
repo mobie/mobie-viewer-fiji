@@ -36,7 +36,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import net.imglib2.RealPoint;
-import org.embl.mobie.DataStore;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.bdv.CalibratedMousePositionProvider;
 import org.embl.mobie.lib.image.Image;
