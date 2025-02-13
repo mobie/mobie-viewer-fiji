@@ -114,7 +114,12 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		final TransformedSource transformedBoundarySource = new TransformedSource( boundarySource );
 		// FIXME: If those sources are transformed the underlying image will not know about it
 
-		if ( image.getSourcePair().getVolatileSource() != null )
+		if ( image.getSourcePair().getVolatileSource() == null )
+		{
+			// return non-volatile sac
+			return new SourceAndConverter( transformedBoundarySource, annotationARGBConverter );
+		}
+		else
 		{
 			// create volatile sac
 			final Source< ? extends Volatile< ? extends AnnotationType< ? > > > volatileSource = image.getSourcePair().getVolatileSource();
@@ -128,8 +133,6 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 			return combinedSAC;
 		}
 
-		// return non-volatile sac
-		return new SourceAndConverter( transformedBoundarySource, annotationARGBConverter );
 	}
 
 	private void configureRendering( SourceAndConverter< ? > sourceAndConverter )

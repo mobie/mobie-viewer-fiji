@@ -49,7 +49,10 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
     protected ArrayList< Integer > boundaryDimensions;
     protected RealInterval bounds;
 
-    public AbstractBoundarySource( final Source< T > source, boolean showAsBoundaries, float boundaryWidth, @Nullable RealInterval bounds )
+    public AbstractBoundarySource( final Source< T > source,
+                                   boolean showAsBoundaries,
+                                   float boundaryWidth,
+                                   @Nullable RealInterval bounds )
     {
         this.source = source;
         this.showAsBoundaries = showAsBoundaries;
@@ -58,7 +61,8 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
         this.boundaryDimensions = boundaryDimensions();
     }
 
-    public void showAsBoundary( boolean showAsBoundaries, double boundaryWidth )
+    public void showAsBoundary( boolean showAsBoundaries,
+                                double boundaryWidth )
     {
         this.showAsBoundaries = showAsBoundaries;
         this.boundaryWidth = boundaryWidth; // in calibrated units
@@ -105,7 +109,7 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
             // However, it feels like we could stay longer
             // in physical units here to make this less confusing.
             final double[] pixelUnitsBoundaryWidth = pixelBoundaryWidth( t, level );
-            return createBoundaryRealRandomAccessible( rra, boundaryDimensions, pixelUnitsBoundaryWidth );
+            return createBoundaries( rra, boundaryDimensions, pixelUnitsBoundaryWidth );
         }
         else
         {
@@ -120,7 +124,7 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
     // the values could be directly created in real space without
     // any backing of a voxel grid. This is in fact the case for the
     // ImageAnnotationLabelImage, which is one use-case of the BoundarySource.
-    protected abstract RealRandomAccessible< T > createBoundaryRealRandomAccessible( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, double[] pixelUnitsBoundaryWidth );
+    protected abstract RealRandomAccessible< T > createBoundaries( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, double[] pixelUnitsBoundaryWidth );
 
     protected ArrayList< Integer > boundaryDimensions()
     {

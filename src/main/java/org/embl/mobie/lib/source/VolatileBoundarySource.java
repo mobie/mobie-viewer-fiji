@@ -49,7 +49,10 @@ public class VolatileBoundarySource< T extends Type< T >, V extends Volatile< T 
     }
 
     @Override
-    protected RealRandomAccessible< V > createBoundaryRealRandomAccessible( RealRandomAccessible< V > rra, ArrayList< Integer > boundaryDimensions, double[] pixelUnitsBoundaryWidth )
+    protected RealRandomAccessible< V > createBoundaries(
+            RealRandomAccessible< V > rra,
+            ArrayList< Integer > boundaryDimensions,
+            double[] pixelUnitsBoundaryWidth )
     {
         BiConsumer< RealLocalizable, V > boundaries = ( l, output ) ->
         {

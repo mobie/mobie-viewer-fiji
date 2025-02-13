@@ -29,10 +29,13 @@
 package org.embl.mobie.lib.bdv.view;
 
 import bdv.tools.brightness.ConverterSetup;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ScaledARGBConverter;
+import net.imglib2.type.Type;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
@@ -41,6 +44,7 @@ import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.opacity.MoBIEColorConverter;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
+import org.embl.mobie.lib.source.VolatileMaximumProjectionSource;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
@@ -95,9 +99,12 @@ public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceV
 		else
 		{
 			final Converter< T, ARGBType > converter = createConverterToARGB( type );
-			final SourceAndConverter volatileSac = new SourceAndConverter( image.getSourcePair().getVolatileSource(), converter );
+			Source volatileSource = image.getSourcePair().getVolatileSource();
+			volatileSource = new VolatileMaximumProjectionSource<>( volatileSource, true, 100 );
+			final SourceAndConverter volatileSac = new SourceAndConverter( volatileSource, converter );
 			final SourceAndConverter sac = new SourceAndConverter( image.getSourcePair().getSource(), converter, volatileSac );
 			return sac;
+
 		}
 	}
 
