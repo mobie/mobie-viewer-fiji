@@ -54,6 +54,7 @@ import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.image.AnnotationLabelImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
+import org.embl.mobie.lib.util.Corners;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.annotation.Annotation;
@@ -94,6 +95,8 @@ public class ScreenShotMaker
     private CompositeImage compositeImagePlus = null;
     private long[] screenshotDimensions = new long[2];
     private AffineTransform3D canvasToGlobalTransform;
+    private AffineTransform3D viewerToGlobal;
+    private Corners corners;
 
     public ScreenShotMaker( BdvHandle bdvHandle, String voxelUnit ) {
         this.bdvHandle = bdvHandle;
@@ -137,7 +140,7 @@ public class ScreenShotMaker
         double targetToViewer = targetVoxelSpacing / getViewerVoxelSpacing( bdvHandle );
         canvasToGlobalTransform.scale( targetToViewer, targetToViewer, 1.0 );
         // ...viewer canvas to global
-        AffineTransform3D viewerToGlobal = viewerTransform.inverse();
+        viewerToGlobal = viewerTransform.inverse();
         canvasToGlobalTransform.preConcatenate( viewerToGlobal );
         //IJ.log( "Canvas to global transform: " + canvasToGlobalTransform );
 
@@ -335,6 +338,27 @@ public class ScreenShotMaker
                     maskCaptures,
                     displayRanges );
         }
+
+        logScreenShotCoordinates();
+    }
+
+    private void logScreenShotCoordinates()
+    {
+        int width = bdvHandle.getViewerPanel().getWidth();
+        int height = bdvHandle.getViewerPanel().getHeight();
+
+        corners = new Corners();
+        viewerToGlobal.apply( new double[]{0,0,0}, corners.ul );
+        viewerToGlobal.apply( new double[]{width,0,0}, corners.ur );
+        viewerToGlobal.apply( new double[]{0,height,0}, corners.ll );
+        viewerToGlobal.apply( new double[]{width,height,0}, corners.lr );
+        IJ.log( "Coordinates of the screenshot:" );
+        IJ.log( corners.toString() );
+    }
+
+    public Corners getCorners()
+    {
+        return corners;
     }
 
     public AffineTransform3D getCanvasToGlobalTransform()

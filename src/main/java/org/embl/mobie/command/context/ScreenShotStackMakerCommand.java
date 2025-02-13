@@ -38,12 +38,15 @@ import net.imglib2.util.LinAlgHelpers;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
+import org.embl.mobie.lib.util.Corners;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Take Screenshot Stack")
@@ -84,7 +87,7 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
         System.out.println( screenToPhysicalScale );
 
         // move viewer to starting point
-        viewerTransform.translate( 0, 0, - numSlices * targetSamplingInZ * screenToPhysicalScale );
+        viewerTransform.translate( 0, 0, -numSlices * targetSamplingInZ * screenToPhysicalScale );
         bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
         bdvHandle.getViewerPanel().requestRepaint();
 
@@ -94,6 +97,7 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
         numSlices = numSlices * 2 + 1;
         Calibration calibration = null;
 
+        ArrayList< Corners > corners = new ArrayList<>();
         for ( int sliceIndex = 0; sliceIndex < numSlices; sliceIndex++ )
         {
             // adapt viewer transform
@@ -101,10 +105,18 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
             bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
             bdvHandle.getViewerPanel().requestRepaint();
 
-            IJ.log( "Slice index " + sliceIndex + "; screen centre: " + Arrays.toString( BdvHandleHelper.getWindowCentreInCalibratedUnits( bdvHandle ) ) );
+            double[] windowCentreInCalibratedUnits = BdvHandleHelper.getWindowCentreInCalibratedUnits( bdvHandle );
+
+            IJ.log( "Slice index " + sliceIndex + "; screen centre: " + Arrays.toString( windowCentreInCalibratedUnits ) );
 
             ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, pixelUnit );
             screenShotMaker.run( targetSamplingInXY );
+
+            if ( sliceIndex == 0 )
+                corners.add( screenShotMaker.getCorners() );
+
+            if ( sliceIndex == numSlices - 1 )
+                corners.add( screenShotMaker.getCorners() );
 
             try
             {
@@ -116,8 +128,7 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
                 }
 
                 calibration = screenShotMaker.getRGBImagePlus().getCalibration();
-            }
-            catch ( Exception e )
+            } catch ( Exception e )
             {
                 // FIXME
                 // it could be that there were no SACs visible in that slice
@@ -142,6 +153,11 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
         compositeImage.setDimensions( compositeStack.size() / rgbStack.size(), rgbStack.size(), 1 );
         compositeImage.setCalibration( calibration );
         compositeImage.show();
+
+        IJ.log( "Lowest plane corners:" );
+        IJ.log( corners.get( 0 ).toString() );
+        IJ.log( "Highest plane corners:" );
+        IJ.log( corners.get( 1 ).toString() );
     }
 
     @Override

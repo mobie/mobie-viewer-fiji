@@ -45,8 +45,8 @@ public class OpenOMEZARRCommand implements Command {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    @Parameter( label = "Multi-scale Image URI",
-            description = "Local path or S3 address to an OME-Zarr multi-scale image."
+    @Parameter( label = "Image URI",
+            description = "Local path or S3 address to one OME-Zarr multi-scale image."
     )
     public String image; // = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
 
