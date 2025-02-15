@@ -64,7 +64,6 @@ import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.io.Status;
 import org.embl.mobie.lib.source.MoBIEVolatileTypeMatcher;
 import org.embl.mobie.lib.source.SourceHelper;
-import org.embl.mobie.lib.transform.TransformHelper;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -156,7 +155,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				System.out.println( "StitchedImage: Metadata source: " + metadataSource.getName() );
 				System.out.println( "StitchedImage: Metadata transform: " + copy );
 				System.out.println( "StitchedImage: Metadata dimensions: " + Arrays.toString( dimensions ) );
-				System.out.println( "StitchedImage: Metadata tile mask: " + TransformHelper.maskToString( referenceMask ) );
+				System.out.println( "StitchedImage: Metadata tile mask: " + MoBIEHelper.maskToString( referenceMask ) );
 				System.out.println( "StitchedImage: Number of tiles: " + gridPositions.size() );
 			}
 
@@ -870,7 +869,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		//       setMask( RealMaskRealInterval mask )
 
 		mask = SourceHelper.estimatePhysicalMask( getSourcePair().getSource(), 0, false );
-		final String toString = TransformHelper.maskToString( mask );
+		final String toString = MoBIEHelper.maskToString( mask );
 		return mask;
 	}
 

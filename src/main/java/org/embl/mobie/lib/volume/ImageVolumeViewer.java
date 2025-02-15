@@ -51,7 +51,6 @@ import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.util.Util;
 import net.imglib2.view.Views;
 import org.embl.mobie.lib.color.ColorHelper;
-import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.jogamp.java3d.Transform3D;
@@ -183,9 +182,9 @@ public class ImageVolumeViewer
 
 		int resolutionLevel = -1;
 		if ( voxelSpacing != null )
-			resolutionLevel = BdvPlaygroundHelper.getLevel( source, currentTimePoint, voxelSpacing );
+			resolutionLevel = MoBIEHelper.getLevel( source, currentTimePoint, voxelSpacing );
 		else
-			resolutionLevel = BdvPlaygroundHelper.getLevel( source, currentTimePoint, maxNumVoxels );
+			resolutionLevel = MoBIEHelper.getLevel( source, currentTimePoint, maxNumVoxels );
 
 		if ( resolutionLevel == -1 )
 		{
@@ -193,7 +192,7 @@ public class ImageVolumeViewer
 			return null;
 		}
 
-		final double[] voxelSpacings = BdvPlaygroundHelper.getVoxelSpacing( source, currentTimePoint, resolutionLevel );
+		final double[] voxelSpacings = MoBIEHelper.getVoxelSpacing( source, currentTimePoint, resolutionLevel );
 		IJ.log( VOLUME_VIEWER +  source.getName() + " voxel spacing @ resolution level " + resolutionLevel + ": "
 				+ Arrays.toString( voxelSpacings ) + " " + source.getVoxelDimensions().unit() );
 

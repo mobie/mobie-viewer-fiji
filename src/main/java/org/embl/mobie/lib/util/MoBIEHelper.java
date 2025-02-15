@@ -28,10 +28,15 @@
  */
 package org.embl.mobie.lib.util;
 
+import bdv.AbstractSpimSource;
+import bdv.tools.transformation.TransformedSource;
+import bdv.util.Affine3DHelpers;
 import bdv.util.Bdv;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import bdv.viewer.ViewerPanel;
+import ij.IJ;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.*;
@@ -40,7 +45,9 @@ import net.imglib2.algorithm.util.Grids;
 import net.imglib2.img.AbstractImg;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.cell.CellImgFactory;
-import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.*;
+import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.roi.labeling.ImgLabeling;
 import net.imglib2.roi.labeling.LabelingMapping;
 import net.imglib2.type.NativeType;
@@ -57,12 +64,18 @@ import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.io.imagedata.ImageData;
-import org.embl.mobie.lib.image.AnnotationLabelImage;
-import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.image.ImageDataImage;
-import org.embl.mobie.lib.image.TransformedImage;
+import org.embl.mobie.lib.image.*;
 import org.embl.mobie.lib.io.ImageDataInfo;
-import org.janelia.saalfeldlab.n5.universe.metadata.canonical.CanonicalDatasetMetadata;
+import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
+import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
+import org.embl.mobie.lib.serialize.transformation.Transformation;
+import org.embl.mobie.lib.source.Masked;
+import org.embl.mobie.lib.source.RealTransformedSource;
+import org.embl.mobie.lib.source.SourceHelper;
+import org.embl.mobie.lib.transform.InterpolatedAffineRealTransform;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
@@ -75,6 +88,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 import static org.embl.mobie.io.util.IOHelper.combinePath;
 import static org.embl.mobie.io.util.IOHelper.getPaths;
@@ -83,6 +98,20 @@ import static sc.fiji.bdvpg.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
 
 public abstract class MoBIEHelper
 {
+	public static FinalRealInterval expand( final RealInterval interval, final double border )
+	{
+		final int n = interval.numDimensions();
+		final double[] min = new double[ n ];
+		final double[] max = new double[ n ];
+		interval.realMin( min );
+		interval.realMax( max );
+		for ( int d = 0; d < n; ++d )
+		{
+			min[ d ] -= border;
+			max[ d ] += border;
+		}
+		return new FinalRealInterval( min, max );
+	}
 
 	public static RealPoint getGlobalMouseCoordinates( Bdv bdv )
 	{
@@ -586,6 +615,611 @@ public abstract class MoBIEHelper
 		return currentNormalVector;
 	}
 
+	public static double[] getBdvWindowCenter( Bdv bdv )
+	{
+		final double[] centre = new double[ 3 ];
+
+		centre[ 0 ] = bdv.getBdvHandle().getViewerPanel().getDisplay().getWidth() / 2.0;
+		centre[ 1 ] = bdv.getBdvHandle().getViewerPanel().getDisplay().getHeight() / 2.0;
+
+		return centre;
+	}
+
+	public static ArrayList< double[] > getVoxelSpacings( Source< ? > source )
+	{
+		final ArrayList< double[] > voxelSpacings = new ArrayList<>();
+		final int numMipmapLevels = source.getNumMipmapLevels();
+		for ( int level = 0; level < numMipmapLevels; ++level )
+			voxelSpacings.add( getCalibration( source, level ) );
+
+		return voxelSpacings;
+	}
+
+	public static boolean notNullOrEmpty( final String string )
+	{
+		return string != null && !string.isEmpty();
+	}
+
+	public static ArrayList< double[] > getVoxelSpacings( Source<?> source, int t )
+	{
+		ArrayList<double[]> voxelSpacings = new ArrayList<>();
+		int numMipmapLevels = source.getNumMipmapLevels();
+
+		for(int level = 0; level < numMipmapLevels; ++level)
+			voxelSpacings.add( getVoxelSpacing(source, t, level));
+
+		return voxelSpacings;
+	}
+
+	public static double[] getVoxelSpacing( Source< ? > source, int t, int level )
+	{
+		AffineTransform3D sourceTransform = new AffineTransform3D();
+		source.getSourceTransform( t, level, sourceTransform);
+		return getScale( sourceTransform );
+	}
+
+	public static double[] getScale( AffineTransform3D affineTransform3D ) {
+
+		double[] scales = new double[3];
+		for(int d = 0; d < 3; ++d)
+			scales[d] = Affine3DHelpers.extractScale( affineTransform3D, d );
+
+		return scales;
+	}
+
+	public static AffineTransform3D getViewerTransformWithNewCenter( BdvHandle bdvHandle, double[] position )
+	{
+		if ( position.length == 2 )
+		{
+			position = new double[]{
+					position[ 0 ],
+					position[ 1 ],
+					0
+			};
+		}
+
+		final AffineTransform3D currentViewerTransform = new AffineTransform3D();
+		bdvHandle.getViewerPanel().state().getViewerTransform( currentViewerTransform );
+
+		AffineTransform3D adaptedViewerTransform = currentViewerTransform.copy();
+
+		// ViewerTransform notes:
+		// - applyInverse: coordinates in viewer => coordinates in image
+		// - apply: coordinates in image => coordinates in viewer
+
+		final double[] targetPositionInViewerInPixels = new double[ 3 ];
+		currentViewerTransform.apply( position, targetPositionInViewerInPixels );
+
+		for ( int d = 0; d < 3; d++ )
+		{
+			targetPositionInViewerInPixels[ d ] *= -1;
+		}
+
+		adaptedViewerTransform.translate( targetPositionInViewerInPixels );
+
+		final double[] windowCentreInViewerInPixels = getWindowCentreInPixelUnits( bdvHandle.getViewerPanel() );
+
+		adaptedViewerTransform.translate( windowCentreInViewerInPixels );
+
+		return adaptedViewerTransform;
+	}
+
+	public static double[] getWindowCentreInPixelUnits( ViewerPanel viewerPanel )
+	{
+		final double[] windowCentreInPixelUnits = new double[ 3 ];
+		windowCentreInPixelUnits[ 0 ] = viewerPanel.getDisplay().getWidth() / 2.0;
+		windowCentreInPixelUnits[ 1 ] = viewerPanel.getDisplay().getHeight() / 2.0;
+		return windowCentreInPixelUnits;
+	}
+
+	public static double[] getWindowCentreInCalibratedUnits( BdvHandle bdvHandle )
+	{
+		final double[] centreInPixelUnits = getWindowCentreInPixelUnits( bdvHandle.getViewerPanel() );
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+		bdvHandle.getViewerPanel().state().getViewerTransform( affineTransform3D );
+		final double[] centreInCalibratedUnits = new double[ 3 ];
+		affineTransform3D.inverse().apply( centreInPixelUnits, centreInCalibratedUnits );
+		return centreInCalibratedUnits;
+	}
+
+	public static int getLevel( Source< ? > source, int currentTimePoint, long maxNumVoxels )
+	{
+		final ArrayList< double[] > voxelSpacings = getVoxelSpacings( source, currentTimePoint );
+
+		final int numLevels = voxelSpacings.size();
+
+		int level;
+
+		for ( level = 0; level < numLevels; level++ )
+		{
+			final long numElements = Intervals.numElements( source.getSource( 0, level ) );
+
+			if ( numElements <= maxNumVoxels )
+				break;
+		}
+
+		if ( level == numLevels ) level = numLevels - 1;
+
+		return level;
+	}
+
+	public static int getLevel( Source< ? > source, int currentTimePoint, double[] requestedVoxelSpacing )
+	{
+		ArrayList< double[] > voxelSpacings = getVoxelSpacings( source, currentTimePoint );
+		return getLevel( voxelSpacings, requestedVoxelSpacing );
+	}
+
+	public static int getLevel( ArrayList< double[] > sourceVoxelSpacings, double[] requestedVoxelSpacing )
+	{
+		int level;
+		int numLevels = sourceVoxelSpacings.size();
+		final int numDimensions = sourceVoxelSpacings.get( 0 ).length;
+
+		for ( level = 0; level < numLevels; level++ )
+		{
+			boolean allLargerOrEqual = true;
+
+			for ( int d = 0; d < numDimensions; d++ )
+			{
+                if ( sourceVoxelSpacings.get( level )[ d ] < requestedVoxelSpacing[ d ] )
+                {
+                    allLargerOrEqual = false;
+                    break;
+                }
+			}
+
+			if ( allLargerOrEqual ) break;
+		}
+
+		if ( level == numLevels ) level = numLevels - 1;
+
+		return level;
+	}
+
+	public static RealInterval createMask( List< ? extends Source< ? > > sources, int t )
+	{
+		RealInterval union = null;
+
+		for ( Source< ? > source : sources )
+		{
+			final RealInterval bounds = SourceHelper.getMask( source, t );
+
+			if ( union == null )
+				union = bounds;
+			else
+				union = Intervals.union( bounds, union );
+		}
+
+		return union;
+	}
+
+	public static double[] getCenter( Image< ? > image, int t )
+	{
+		final RealInterval bounds = image.getMask();
+        return getCenter( bounds );
+	}
+
+	public static double[] getCenter( RealInterval interval )
+	{
+		final double[] center = interval.minAsDoubleArray();
+		final double[] max = interval.maxAsDoubleArray();
+		for ( int d = 0; d < max.length; d++ )
+		{
+			center[ d ] = ( center[ d ] + max[ d ] ) / 2;
+		}
+		return center;
+	}
+
+	public static double[] getCenter( SourceAndConverter< ? > sourceAndConverter )
+	{
+		final RealInterval bounds = SourceHelper.getMask( sourceAndConverter.getSpimSource(), 0 );
+		final double[] center = getCenter( bounds );
+		return center;
+	}
+
+	public static AffineTransform3D createTranslationTransform(
+			final Image< ? > image,
+			final boolean centerAtOrigin,
+			final double[] translation )
+	{
+		AffineTransform3D translationTransform = new AffineTransform3D();
+		if ( centerAtOrigin )
+		{
+			final double[] center = getCenter( image, 0 );
+			translationTransform.translate( center );
+			translationTransform = translationTransform.inverse();
+		}
+		// System.out.println( "Image: " + image.getName() );
+		// System.out.println( "Translation: " + translationX + ", " + translationY );
+		translationTransform.translate( translation );
+		return translationTransform;
+	}
+
+	public static AffineTransform3D createTranslationTransform( double translationX, double translationY, SourceAndConverter< ? > sourceAndConverter, boolean centerAtOrigin )
+	{
+		AffineTransform3D translationTransform = new AffineTransform3D();
+		if ( centerAtOrigin )
+		{
+			final double[] center = getCenter( sourceAndConverter );
+			translationTransform.translate( center );
+			translationTransform = translationTransform.inverse();
+		}
+		translationTransform.translate( translationX, translationY, 0 );
+		return translationTransform;
+	}
+
+	@Deprecated
+	public static double[] computeSourceUnionRealDimensions( List< SourceAndConverter< ? > > sources, double relativeMargin, int t )
+	{
+		RealInterval bounds = createMask( sources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ), t );
+		final double[] realDimensions = new double[ 2 ];
+		for ( int d = 0; d < 2; d++ )
+			realDimensions[ d ] = ( 1.0 + 2.0 * relativeMargin ) * ( bounds.realMax( d ) - bounds.realMin( d ) );
+		return realDimensions;
+	}
+
+	public static AffineTransform3D createNormalisedViewerTransform( ViewerPanel viewerPanel )
+	{
+		return createNormalisedViewerTransform( viewerPanel, getWindowCentreInPixelUnits( viewerPanel ) );
+	}
+
+	public static AffineTransform3D createNormalisedViewerTransform( ViewerPanel viewerPanel, double[] position )
+	{
+		final AffineTransform3D view = new AffineTransform3D();
+		viewerPanel.state().getViewerTransform( view );
+
+		// translate position to upper left corner of the Window (0,0)
+		final AffineTransform3D translate = new AffineTransform3D();
+		translate.translate( position );
+		view.preConcatenate( translate.inverse() );
+
+		// divide by window width
+		final int bdvWindowWidth = viewerPanel.getDisplay().getWidth();;
+		final Scale3D scale = new Scale3D( 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth );
+		view.preConcatenate( scale );
+
+		return view;
+	}
+
+	public static AffineTransform3D createUnnormalizedViewerTransform( AffineTransform3D normalisedTransform, ViewerPanel viewerPanel )
+	{
+		final AffineTransform3D transform = normalisedTransform.copy();
+
+		final int bdvWindowWidth = viewerPanel.getDisplay().getWidth();
+		final Scale3D scale = new Scale3D( 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth );
+		transform.preConcatenate( scale.inverse() );
+
+		AffineTransform3D translate = new AffineTransform3D();
+		translate.translate( getWindowCentreInPixelUnits( viewerPanel ) );
+
+		transform.preConcatenate( translate );
+
+		return transform;
+	}
+
+	public static AffineTransform3D getScatterPlotViewerTransform( BdvHandle bdv, double[] min, double[] max, double aspectRatio, boolean invertY, double zoom )
+	{
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+
+		double[] centerPosition = new double[ 3 ];
+		for( int d = 0; d < 2; ++d )
+		{
+			final double center = ( min[ d ] + max[ d ] ) / 2.0;
+			centerPosition[ d ] = - center;
+		}
+		affineTransform3D.translate( centerPosition );
+
+		int[] bdvWindowDimensions = getWindowDimensions( bdv );
+
+		final int windowMinSize = Math.min( bdvWindowDimensions[ 0 ], bdvWindowDimensions[ 1 ] );
+		final double[] scales = new double[ 2 ];
+		scales[ 0 ] = zoom * windowMinSize / (max[ 0 ] - min[ 0 ]);
+		scales[ 1 ] = scales[ 0 ] / aspectRatio;
+
+		scales[ 1 ] = invertY ? -scales[ 1 ] : scales[ 1 ];
+		affineTransform3D.scale( scales[ 0 ], scales[ 1 ], 1.0 );
+
+		double[] shiftToBdvWindowCenter = new double[ 3 ];
+		for( int d = 0; d < 2; ++d )
+			shiftToBdvWindowCenter[ d ] += bdvWindowDimensions[ d ] / 2.0;
+		affineTransform3D.translate( shiftToBdvWindowCenter );
+
+		return affineTransform3D;
+	}
+
+	public static AffineTransform3D getIntervalViewerTransform( BdvHandle bdv, RealInterval interval  )
+	{
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+
+		double[] centerPosition = new double[ 3 ];
+		for( int d = 0; d < 3; ++d )
+		{
+			final double center = ( interval.realMin( d ) + interval.realMax( d ) ) / 2.0;
+			centerPosition[ d ] = - center;
+		}
+		affineTransform3D.translate( centerPosition );
+
+		int[] bdvWindowDimensions = getWindowDimensions( bdv );
+
+		double scale = Double.MAX_VALUE;
+		for ( int d = 0; d < 2; d++ )
+		{
+			final double size = interval.realMax( d ) - interval.realMin( d );
+			scale = Math.min( scale, 1.0 * ( bdvWindowDimensions[ d ] - 40 ) / size );
+		}
+		affineTransform3D.scale( scale );
+
+		double[] shiftToBdvWindowCenter = new double[ 3 ];
+		for( int d = 0; d < 2; ++d )
+		{
+			shiftToBdvWindowCenter[ d ] += bdvWindowDimensions[ d ] / 2.0;
+		}
+		affineTransform3D.translate( shiftToBdvWindowCenter );
+
+		return affineTransform3D;
+	}
+
+	private static int[] getWindowDimensions( BdvHandle bdv )
+	{
+		int[] bdvWindowDimensions = new int[ 2 ];
+		bdvWindowDimensions[ 0 ] = bdv.getBdvHandle().getViewerPanel().getWidth();
+		bdvWindowDimensions[ 1 ] = bdv.getBdvHandle().getViewerPanel().getHeight();
+		return bdvWindowDimensions;
+	}
+
+	public static AffineTransform3D asAffineTransform3D( double[] doubles )
+	{
+		final AffineTransform3D view = new AffineTransform3D( );
+		view.set( doubles );
+		return view;
+	}
+
+	public static String createNormalisedViewerTransformString( BdvHandle bdv, double[] position )
+	{
+		final AffineTransform3D view = createNormalisedViewerTransform( bdv.getViewerPanel(), position );
+		final String replace = view.toString().replace( "3d-affine: (", "" ).replace( ")", "" );
+		final String collect = Arrays.stream( replace.split( "," ) ).map( x -> "n" + x.trim() ).collect( Collectors.joining( "," ) );
+		return collect;
+	}
+
+	// The evaluation of the resulting masks is slower than in
+	// create createUnionBox, but it takes rotations into account.
+	// FIXME: This currently does not really work, because in {@code TableSawAnnotatedRegion}
+	//   the dilation of the mask will create a rectangular shape
+	//   see "if ( relativeDilation > 0 )"
+	public static RealMaskRealInterval union( Collection< ? extends Masked > maskedCollection )
+	{
+		if ( maskedCollection.isEmpty() )
+			throw new RuntimeException("Cannot create union of empty list of masks.");
+
+		RealMaskRealInterval union = null;
+
+		for ( Masked masked : maskedCollection )
+		{
+			final RealMaskRealInterval mask = masked.getMask();
+
+			if ( union == null )
+			{
+				union = mask;
+			}
+			else
+			{
+				if ( Intervals.contains( union, mask ) )
+					continue;
+
+				union = union.or( mask );
+			}
+		}
+
+		return union;
+	}
+
+	public static RealMaskRealInterval unionBox( Collection< ? extends Masked > maskedCollection )
+	{
+		if ( maskedCollection.isEmpty() )
+			throw new RuntimeException("Cannot create union of empty list of masks.");
+
+		RealInterval union = null;
+
+		for ( Masked masked : maskedCollection )
+		{
+			final RealMaskRealInterval mask = masked.getMask();
+
+			if ( union == null )
+			{
+				union = mask;
+			}
+			else
+			{
+				if ( Intervals.contains( union, mask ) )
+					continue;
+
+				union = Intervals.union( mask, union );
+			}
+		}
+
+		// convert to a box
+		final double[] min = union.minAsDoubleArray();
+		final double[] max = union.maxAsDoubleArray();
+		return GeomMasks.closedBox( min, max );
+	}
+
+	@Nullable
+	public static double[] getRealDimensions( RealMaskRealInterval unionMask )
+	{
+		final int numDimensions = unionMask.numDimensions();
+		final double[] realDimensions = new double[ numDimensions ];
+		final double[] min = unionMask.minAsDoubleArray();
+		final double[] max = unionMask.maxAsDoubleArray();
+		for ( int d = 0; d < numDimensions; d++ )
+			realDimensions[ d ] = max[ d ] - min [ d ];
+		return realDimensions;
+	}
+
+	public static String maskToString( RealMaskRealInterval mask )
+	{
+		return Arrays.toString( mask.minAsDoubleArray() ) + " - " + Arrays.toString( mask.maxAsDoubleArray() );
+	}
+
+	@NotNull
+	public static AffineGet getEnlargementTransform( RealMaskRealInterval realMaskRealInterval, double scale )
+	{
+		int numDimensions = realMaskRealInterval.numDimensions();
+
+		if ( numDimensions == 2 )
+		{
+			AffineTransform2D transform2D = new AffineTransform2D();
+			double[] center = getCenter( realMaskRealInterval );
+			transform2D.translate( Arrays.stream( center ).map( x -> -x ).toArray() );
+			transform2D.scale( 1.0 / scale );
+			transform2D.translate( center );
+			return transform2D;
+		}
+		else if ( numDimensions == 3 )
+		{
+			AffineTransform3D transform3D = new AffineTransform3D();
+			double[] center = getCenter( realMaskRealInterval );
+			transform3D.translate( Arrays.stream( center ).map( x -> -x ).toArray() );
+			transform3D.scale( 1.0 / scale );
+			transform3D.translate( center );
+			return transform3D;
+		}
+		else
+		{
+			throw new RuntimeException( "Unsupported number of dimensions " + numDimensions + ".");
+		}
+	}
+
+	public static ArrayList< Transformation > fetchAllImageTransformations( Image< ? > image )
+	{
+		ArrayList< Transformation > transformations = new ArrayList<>();
+		collectTransformations( image, transformations );
+		Collections.reverse( transformations ); // first transformation first
+		return transformations;
+	}
+
+	private static void collectTransformations( Image< ? > image, Collection< Transformation > transformations )
+	{
+		if ( image instanceof TransformedImage )
+		{
+			TransformedImage transformedImage = ( TransformedImage ) image;
+			transformations.add( transformedImage.getTransformation() );
+			collectTransformations( transformedImage.getWrappedImage(), transformations );
+		}
+		else if ( image instanceof AnnotationLabelImage )
+		{
+			Image< ? extends IntegerType< ? > > labelImage = ( ( AnnotationLabelImage< ? > ) image ).getLabelImage();
+			collectTransformations( labelImage, transformations );
+		}
+		else
+		{
+			AffineTransform3D affineTransform3D = new AffineTransform3D();
+			image.getSourcePair().getSource().getSourceTransform( 0, 0, affineTransform3D  );
+			AffineTransformation affineTransformation = new AffineTransformation(
+					"original image transform",
+					affineTransform3D,
+					Collections.singletonList( image.getName() ) );
+			transformations.add( affineTransformation );
+		}
+	}
+
+	private static void collectTransformations( Source< ? > source, Collection< Transformation > transformations )
+	{
+		if ( source instanceof AbstractSpimSource )
+		{
+			AffineTransform3D affineTransform3D = new AffineTransform3D();
+			source.getSourceTransform( 0, 0, affineTransform3D );
+			AffineTransformation affineTransformation = new AffineTransformation(
+					"Input transformation", // FIXME: Those are not the names in the JSON
+					affineTransform3D,
+					Collections.singletonList( source.getName() ) );
+			transformations.add( affineTransformation );
+		}
+		else if ( source instanceof TransformedSource )
+		{
+			TransformedSource< ? > transformedSource = ( TransformedSource< ? > ) source;
+			final Source< ? > wrappedSource = transformedSource.getWrappedSource();
+			AffineTransform3D fixedTransform = new AffineTransform3D();
+			transformedSource.getFixedTransform( fixedTransform );
+			// FIXME How to get the names?
+			//  We could extend TransformedSource and add a field for the name of the transformation
+			if ( ! fixedTransform.isIdentity() )
+			{
+				AffineTransformation affineTransformation = new AffineTransformation(
+						"Additional transformation", // FIXME: Those are not the names in the JSON
+						fixedTransform,
+						Collections.singletonList( wrappedSource.getName() ) );
+				transformations.add( affineTransformation );
+			}
+			collectTransformations( wrappedSource, transformations );
+		}
+		else if ( source instanceof RealTransformedSource )
+		{
+			RealTransformedSource< ? > realTransformedSource = ( RealTransformedSource< ? > ) source;
+			RealTransform realTransform = realTransformedSource.getRealTransform();
+			if ( realTransform instanceof InterpolatedAffineRealTransform )
+			{
+				Source< ? > wrappedSource = realTransformedSource.getWrappedSource();
+				InterpolatedAffineRealTransform interpolatedAffineRealTransform = ( InterpolatedAffineRealTransform ) realTransform;
+				InterpolatedAffineTransformation interpolatedAffineTransformation =
+						new InterpolatedAffineTransformation(
+								interpolatedAffineRealTransform.getName(),
+								interpolatedAffineRealTransform.getTransforms(),
+								wrappedSource.getName(),
+								source.getName()
+						);
+				transformations.add( interpolatedAffineTransformation );
+				collectTransformations( wrappedSource, transformations );
+			}
+			else
+			{
+				IJ.log( "Fetching transformations from " + source.getClass().getName() + " is not implemented." );
+			}
+		}
+		else
+		{
+			IJ.log("Fetching transformations from " + source.getClass().getName() + " is not implemented.");
+		}
+	}
+
+	public static ArrayList< Transformation > fetchAddedImageTransformations( Image< ? > image )
+	{
+		ArrayList< Transformation > allTransformations = fetchAllImageTransformations( image );
+		allTransformations.remove( 0 ); // in MoBIE this is part of the raw image itself
+		return allTransformations;
+	}
+
+	// Wrap the input sourcePair into new TransformedSources,
+	// because otherwise, if the incremental transformations of the input TransformedSources
+	// are changed, e.g. by the current logic of how the ManualTransformEditor works,
+	// this would create a mess.
+	public static < T > SourcePair< T > getSourcePairWithNewTransformedSources( SourcePair< T > sourcePair )
+	{
+		TransformedSource< T > inputTransformedSource = ( TransformedSource< T > ) sourcePair.getSource();
+		Source< T > inputSource = inputTransformedSource.getWrappedSource();
+		TransformedSource< ? > wrappedTransformedSource = new TransformedSource<>( inputSource, inputSource.getName() );
+		AffineTransform3D transform3D = new AffineTransform3D();
+		inputTransformedSource.getFixedTransform( transform3D );
+		wrappedTransformedSource.setFixedTransform( transform3D );
+		Source< ? extends Volatile< T > > inputVolatileSource = ( ( TransformedSource< ? extends Volatile< T > > ) sourcePair.getVolatileSource() ).getWrappedSource();
+		TransformedSource wrappedTransformedVolatileSource = new TransformedSource<>( inputVolatileSource, wrappedTransformedSource );
+		return new DefaultSourcePair<>( wrappedTransformedSource, wrappedTransformedVolatileSource );
+	}
+
+	public static AffineTransform3D rotateAroundGlobalBdvWindowCenter( AffineTransform3D rotation, final BdvHandle bdv )
+	{
+		double[] centre = BdvHandleHelper.getWindowCentreInCalibratedUnits( bdv );
+		final AffineTransform3D translateCenterToOrigin = new AffineTransform3D();
+		translateCenterToOrigin.translate( DoubleStream.of( centre ).map( x -> -x ).toArray() );
+
+		final AffineTransform3D translateOriginToCenter = new AffineTransform3D();
+		translateOriginToCenter.translate( centre );
+
+		return translateCenterToOrigin.copy()
+				.preConcatenate( rotation )
+				.preConcatenate( translateOriginToCenter );
+	}
+
 	public static AffineTransform3D quaternionToAffineTransform3D( double[] rotationQuaternion )
 	{
 		double[][] rotationMatrix = new double[ 3 ][ 3 ];
@@ -602,46 +1236,40 @@ public abstract class MoBIEHelper
 		return rotation;
 	}
 
-	public static double[] getBdvWindowCenter( Bdv bdv )
+	@NotNull
+	public static AffineTransform3D getCurrentViewerRotation( final BdvHandle bdvHandle )
 	{
-		final double[] centre = new double[ 3 ];
-
-		centre[ 0 ] = bdv.getBdvHandle().getViewerPanel().getDisplay().getWidth() / 2.0;
-		centre[ 1 ] = bdv.getBdvHandle().getViewerPanel().getDisplay().getHeight() / 2.0;
-
-		return centre;
+		AffineTransform3D viewerTransform = bdvHandle.getViewerPanel().state().getViewerTransform();
+		double[] qCurrentRotation = new double[ 4 ];
+		Affine3DHelpers.extractRotation( viewerTransform, qCurrentRotation );
+		final AffineTransform3D currentRotation = quaternionToAffineTransform3D( qCurrentRotation );
+		return currentRotation;
 	}
 
-	public static double[] getScale( AffineTransform3D sourceTransform )
+	public static Corners getBdvWindowGlobalCorners( BdvHandle bdvHandle )
 	{
-		// https://math.stackexchange.com/questions/237369/given-this-transformation-matrix-how-do-i-decompose-it-into-translation-rotati
+		int width = bdvHandle.getViewerPanel().getWidth();
+		int height = bdvHandle.getViewerPanel().getHeight();
 
-		final double[] calibration = new double[ 3 ];
-		for ( int d = 0; d < 3; ++d )
+		AffineTransform3D viewerToGlobal = bdvHandle.getViewerPanel().state().getViewerTransform().inverse();
+
+		Corners corners = new Corners();
+		viewerToGlobal.apply( new double[]{0,0,0}, corners.upperLeft );
+		viewerToGlobal.apply( new double[]{width,0,0}, corners.upperRight );
+		viewerToGlobal.apply( new double[]{0,height,0}, corners.lowerLeft );
+		viewerToGlobal.apply( new double[]{width,height,0}, corners.lowerRight );
+
+		return corners;
+	}
+
+	public static double[] getSize( final RealInterval interval )
+	{
+		int n = interval.numDimensions();
+		double[] size = new double[ n ];
+		for ( int d = 0; d < n; d++ )
 		{
-			final double[] vector = new double[ 3 ];
-			for ( int i = 0; i < 3 ; i++ )
-			{
-				vector[ i ] = sourceTransform.get( d, i );
-			}
-
-			calibration[ d ] = LinAlgHelpers.length( vector );
+			size[ d ] = interval.realMax( d ) - interval.realMin( d );
 		}
-		return calibration;
-	}
-
-	public static ArrayList< double[] > getVoxelSpacings( Source< ? > source )
-	{
-		final ArrayList< double[] > voxelSpacings = new ArrayList<>();
-		final int numMipmapLevels = source.getNumMipmapLevels();
-		for ( int level = 0; level < numMipmapLevels; ++level )
-			voxelSpacings.add( getCalibration( source, level ) );
-
-		return voxelSpacings;
-	}
-
-	public static boolean notNullOrEmpty( final String string )
-	{
-		return string != null && !string.isEmpty();
+		return size;
 	}
 }

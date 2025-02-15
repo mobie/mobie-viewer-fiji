@@ -58,9 +58,9 @@ import org.embl.mobie.lib.serialize.display.*;
 import org.embl.mobie.lib.serialize.transformation.*;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.table.*;
-import org.embl.mobie.lib.transform.TransformHelper;
 import org.embl.mobie.lib.transform.ImageTransformer;
 import org.embl.mobie.lib.transform.viewer.*;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.view.delete.ViewDeleter;
 import org.embl.mobie.ui.UserInterface;
 import org.embl.mobie.ui.WindowArrangementHelper;
@@ -114,7 +114,7 @@ public class ViewManager
 			Transformation transformation,
 			String viewDescription )
 	{
-		ArrayList< Transformation > transformations = TransformHelper.fetchAddedImageTransformations( image );
+		ArrayList< Transformation > transformations = MoBIEHelper.fetchAddedImageTransformations( image );
 		transformations.add( transformation );
 
 		Display< ? > display;
@@ -205,7 +205,7 @@ public class ViewManager
 	{
 		images.forEach( image ->
 		{
-			ArrayList< Transformation > imageTransformations = TransformHelper.fetchAddedImageTransformations( image );
+			ArrayList< Transformation > imageTransformations = MoBIEHelper.fetchAddedImageTransformations( image );
 			transformations.addAll( imageTransformations );
 		});
     }
@@ -278,7 +278,7 @@ public class ViewManager
 			{
 				final String imageName = ( ( ImageZoomViewerTransform ) viewerTransform ).getImageName();
 				final RealMaskRealInterval mask = DataStore.getImage( imageName ).getMask();
-				final AffineTransform3D transform = TransformHelper.getIntervalViewerTransform( bdvHandle, mask );
+				final AffineTransform3D transform = MoBIEHelper.getIntervalViewerTransform( bdvHandle, mask );
 				ViewerTransformChanger.apply( bdvHandle, transform, 0 );
 			}
 			else

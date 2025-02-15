@@ -41,7 +41,6 @@ import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.io.ImageDataInfo;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
-import org.embl.mobie.lib.transform.TransformHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
@@ -88,7 +87,7 @@ public class SourcesInfoCommand implements BdvPlaygroundActionCommand
             IJ.log( "Number of resolution levels: " + source.getNumMipmapLevels() );
             IJ.log( "Voxel size: " + Arrays.toString( source.getVoxelDimensions().dimensionsAsDoubleArray() ) );
 
-            ArrayList< Transformation > transformations = TransformHelper.fetchAllImageTransformations( image );
+            ArrayList< Transformation > transformations = MoBIEHelper.fetchAllImageTransformations( image );
             Transformation imageTransformation = transformations.get( 0 );
             if ( imageTransformation instanceof AffineTransformation )
             {

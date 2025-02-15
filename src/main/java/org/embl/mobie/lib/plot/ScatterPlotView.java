@@ -50,13 +50,13 @@ import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.color.ColoringListener;
 import org.embl.mobie.lib.color.ColoringModel;
 import org.embl.mobie.lib.color.MobieColoringModel;
-import org.embl.mobie.lib.playground.BdvPopupMenus;
+import org.embl.mobie.lib.util.MoBIEHelper;
+import org.embl.mobie.ui.BdvPopupMenus;
 import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.select.SelectionModel;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.table.AnnotationTableModel;
 import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
-import org.embl.mobie.lib.transform.TransformHelper;
 import org.embl.mobie.ui.ColorByColumnDialog;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -371,7 +371,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		// Set viewer transform to see all points.
 
 		final double zoom = 1.0; // 0.9;
-		final AffineTransform3D transform = TransformHelper.getScatterPlotViewerTransform( bdvHandle, min, max, aspectRatio, settings.invertY, zoom );
+		final AffineTransform3D transform = MoBIEHelper.getScatterPlotViewerTransform( bdvHandle, min, max, aspectRatio, settings.invertY, zoom );
 		bdvHandle.getViewerPanel().state().setViewerTransform( transform );
 	}
 

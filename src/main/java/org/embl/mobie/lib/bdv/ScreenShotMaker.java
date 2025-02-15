@@ -344,14 +344,7 @@ public class ScreenShotMaker
 
     private void logScreenShotCoordinates()
     {
-        int width = bdvHandle.getViewerPanel().getWidth();
-        int height = bdvHandle.getViewerPanel().getHeight();
-
-        corners = new Corners();
-        viewerToGlobal.apply( new double[]{0,0,0}, corners.ul );
-        viewerToGlobal.apply( new double[]{width,0,0}, corners.ur );
-        viewerToGlobal.apply( new double[]{0,height,0}, corners.ll );
-        viewerToGlobal.apply( new double[]{width,height,0}, corners.lr );
+        Corners globalCorners = MoBIEHelper.getBdvWindowGlobalCorners( bdvHandle );
         IJ.log( "Coordinates of the screenshot:" );
         IJ.log( corners.toString() );
     }

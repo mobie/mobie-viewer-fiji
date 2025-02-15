@@ -44,7 +44,7 @@ import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedImages;
-import org.embl.mobie.lib.transform.TransformHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -100,7 +100,7 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 			// TODO Currently the cast below works because TableSawAnnotatedImages is the only use-case
 			//      In general, it may also be something else
 			final TableSawAnnotatedImages tableSawAnnotatedImages = ( TableSawAnnotatedImages ) annotatedRegion;
-			System.out.println( "RegionLabelImage " + name + ": " + annotatedRegion.regionId() + " images = " + Arrays.toString( tableSawAnnotatedImages.getImageNames().toArray( new String[ 0 ] ) ) + "\n" + TransformHelper.maskToString( annotatedRegion.getMask() ) );
+			System.out.println( "RegionLabelImage " + name + ": " + annotatedRegion.regionId() + " images = " + Arrays.toString( tableSawAnnotatedImages.getImageNames().toArray( new String[ 0 ] ) ) + "\n" + MoBIEHelper.maskToString( annotatedRegion.getMask() ) );
 			final List< String > regionImageNames = tableSawAnnotatedImages.getImageNames();
 			for ( String regionImageName : regionImageNames )
 			{
@@ -257,7 +257,7 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	{
 		if ( mask == null )
 		{
-			mask = TransformHelper.unionBox( annData.getTable().annotations() );
+			mask = MoBIEHelper.unionBox( annData.getTable().annotations() );
 		}
 
 		return mask;

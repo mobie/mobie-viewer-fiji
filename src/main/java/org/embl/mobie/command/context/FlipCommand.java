@@ -32,7 +32,7 @@ import bdv.viewer.SourceAndConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.transform.TransformHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.ui.UserInterfaceHelper;
 import org.jetbrains.annotations.NotNull;
 import org.scijava.plugin.Parameter;
@@ -94,7 +94,7 @@ public class FlipCommand extends AbstractTransformationCommand
 		}
 
 		AffineTransform3D transform = new AffineTransform3D();
-		double[] center = TransformHelper.getCenter( DataStore.sourceToImage().get( sourceAndConverter ), 0 );
+		double[] center = MoBIEHelper.getCenter( DataStore.sourceToImage().get( sourceAndConverter ), 0 );
 		transform.translate( Arrays.stream( center ).map( x -> -x ).toArray() );
 		transform.preConcatenate( flip );
 		transform.translate( center );

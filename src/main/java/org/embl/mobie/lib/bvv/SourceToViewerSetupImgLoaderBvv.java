@@ -27,8 +27,6 @@ import net.imglib2.util.Util;
 import net.imglib2.util.ValuePair;
 import net.imglib2.view.Views;
 
-import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
-
 import bdv.AbstractViewerSetupImgLoader;
 import bdv.ViewerImgLoader;
 import bdv.ViewerSetupImgLoader;
@@ -39,6 +37,7 @@ import bdv.img.cache.VolatileGlobalCellCache;
 import bdv.viewer.Source;
 import ij.IJ;
 import mpicbg.spim.data.generic.sequence.ImgLoaderHint;
+import org.embl.mobie.lib.util.MoBIEHelper;
 
 public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoader< UnsignedShortType, VolatileUnsignedShortType > implements ViewerImgLoader
 {
@@ -70,7 +69,7 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 		AffineTransform3D transformSource = new AffineTransform3D();
 		src.getSourceTransform( 0, 0, transformSource );
 		
-		final double [] zeroScale = BdvPlaygroundHelper.getScale( transformSource);
+		final double [] zeroScale = MoBIEHelper.getScale( transformSource);
 		//double [] currMipMapRes = new double [3];
 		for(int i=0;i<numScales;i++)
 		{
@@ -78,7 +77,7 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 			src.getSourceTransform( 0, i, transform );			
 			mipmapTransforms[i] = transform;
 			
-			double [] currScale = BdvPlaygroundHelper.getScale( transform );
+			double [] currScale = MoBIEHelper.getScale( transform );
 			mipmapResolutions[i] = new double [3];
 			for(int d=0;d<3;d++)
 			{

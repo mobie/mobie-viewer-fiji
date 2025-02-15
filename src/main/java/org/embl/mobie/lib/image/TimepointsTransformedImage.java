@@ -29,21 +29,15 @@
 package org.embl.mobie.lib.image;
 
 import bdv.tools.transformation.TransformedSource;
-import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
-import org.embl.mobie.lib.image.DefaultSourcePair;
-import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.image.SourcePair;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.source.TransformedTimepointSource;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.util.HashMap;
 
-import static org.embl.mobie.lib.transform.TransformHelper.getSourcePairWithNewTransformedSources;
+import static org.embl.mobie.lib.util.MoBIEHelper.getSourcePairWithNewTransformedSources;
 
 public class TimepointsTransformedImage< T > implements Image< T >, TransformedImage
 {

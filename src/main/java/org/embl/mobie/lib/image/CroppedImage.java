@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.lib.image;
 
-import bdv.img.hdf5.Hdf5ImageLoader;
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
@@ -39,7 +38,7 @@ import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
-import org.embl.mobie.lib.transform.TransformHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import sc.fiji.bdvpg.sourceandconverter.importer.EmptySourceAndConverterCreator;
 
 public class CroppedImage< T > implements Image< T >
@@ -65,7 +64,7 @@ public class CroppedImage< T > implements Image< T >
 	{
 		if ( sourcePair != null ) return;
 
-		SourcePair< T > inputSourcePair = TransformHelper.getSourcePairWithNewTransformedSources( image.getSourcePair() );
+		SourcePair< T > inputSourcePair = MoBIEHelper.getSourcePairWithNewTransformedSources( image.getSourcePair() );
 		final Source< T > source = inputSourcePair.getSource();
 		final Source< ? extends Volatile< T > > volatileSource = inputSourcePair.getVolatileSource();
 

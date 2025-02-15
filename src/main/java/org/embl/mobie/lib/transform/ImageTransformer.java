@@ -39,6 +39,7 @@ import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.TimepointsTransformation;
 import org.embl.mobie.lib.table.AnnData;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 
 import javax.annotation.Nullable;
@@ -169,7 +170,7 @@ public class ImageTransformer
 		for ( Image< ? > image : images )
 		{
 			AffineTransform3D translationTransform =
-					TransformHelper.createTranslationTransform(
+					MoBIEHelper.createTranslationTransform(
 							image,
 							centerAtOrigin,
 							translation );

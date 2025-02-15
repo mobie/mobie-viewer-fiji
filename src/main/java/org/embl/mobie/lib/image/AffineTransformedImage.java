@@ -34,7 +34,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
-import org.embl.mobie.lib.transform.TransformHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 
 public class AffineTransformedImage< T > implements Image< T >, TransformedImage
 {
@@ -80,7 +80,7 @@ public class AffineTransformedImage< T > implements Image< T >, TransformedImage
 
 	private void createSourcePair()
 	{
-		SourcePair< T > defaultSourcePair = TransformHelper.getSourcePairWithNewTransformedSources( image.getSourcePair() );
+		SourcePair< T > defaultSourcePair = MoBIEHelper.getSourcePairWithNewTransformedSources( image.getSourcePair() );
 
 		final TransformedSource< T > transformedSource = new TransformedSource<>( defaultSourcePair.getSource(), name );
 		transformedSource.setFixedTransform( affineTransform3D );

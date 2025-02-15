@@ -1,22 +1,27 @@
 package org.embl.mobie.lib.util;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.util.Arrays;
 
 public class Corners
 {
-    public double[] ul = new double[ 3 ];
-    public double[] ur = new double[ 3 ];
-    public double[] ll = new double[ 3 ];
-    public double[] lr = new double[ 3 ];
+    public double[] upperLeft = new double[ 3 ];
+    public double[] upperRight = new double[ 3 ];
+    public double[] lowerLeft = new double[ 3 ];
+    public double[] lowerRight = new double[ 3 ];
 
     @Override
     public String toString()
     {
-        StringBuilder builder = new StringBuilder();
-        builder.append( "Upper left: " + Arrays.toString( ul ) + "\n" );
-        builder.append( "Upper right: " + Arrays.toString( ur ) + "\n" );
-        builder.append( "Lower left: " + Arrays.toString( ll ) + "\n" );
-        builder.append( "Lower right: " + Arrays.toString( lr ) + "\n" );
-        return builder.toString();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        return gson.toJson(this);
+//        StringBuilder builder = new StringBuilder();
+//        builder.append( "Upper left: " + Arrays.toString( upperLeft ) + "\n" );
+//        builder.append( "Upper right: " + Arrays.toString( upperRight ) + "\n" );
+//        builder.append( "Lower left: " + Arrays.toString( lowerLeft ) + "\n" );
+//        builder.append( "Lower right: " + Arrays.toString( lowerRight ) + "\n" );
+//        return builder.toString();
     }
 }

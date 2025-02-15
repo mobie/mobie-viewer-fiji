@@ -28,18 +28,16 @@
  */
 package org.embl.mobie.command.context;
 
-import bdv.gui.TransformTypeSelectDialog;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.BigWarpViewerPanel;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TransformListener;
 import bigwarp.BigWarp;
 import bigwarp.transforms.BigWarpTransform;
-import jj2000.j2k.codestream.HeaderInfo;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.transform.TransformHelper;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.InvertibleRealTransform;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.ui.UserInterfaceHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -113,7 +111,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 
 		bigWarp = bigWarpLauncher.getBigWarp();
 
-		final AffineTransform3D normalisedViewerTransform = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
+		final AffineTransform3D normalisedViewerTransform = MoBIEHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
 		applyViewerTransform( normalisedViewerTransform, bigWarp.getViewerFrameQ().getViewerPanel() );
 		applyViewerTransform( normalisedViewerTransform, bigWarp.getViewerFrameP().getViewerPanel() );
 		bigWarp.setTransformType( BigWarpTransform.AFFINE );
@@ -123,7 +121,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 
 	private void applyViewerTransform( AffineTransform3D normalisedViewerTransform, BigWarpViewerPanel viewerPanel )
 	{
-		viewerPanel.state().setViewerTransform( TransformHelper.createUnnormalizedViewerTransform( normalisedViewerTransform, viewerPanel ) );
+		viewerPanel.state().setViewerTransform( MoBIEHelper.createUnnormalizedViewerTransform( normalisedViewerTransform, viewerPanel ) );
 	}
 
 	@Override

@@ -34,7 +34,6 @@ import isosurface.MeshEditor;
 import net.imglib2.Interval;
 import net.imglib2.RealPoint;
 import net.imglib2.type.logic.BitType;
-import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
 import org.embl.mobie.lib.annotation.Segment;
 import org.embl.mobie.lib.source.AnnotationType;
 import net.imglib2.FinalInterval;
@@ -194,7 +193,7 @@ public class MeshCreator< S extends Segment >
 	{
 		if ( voxelSpacing != null ) // user determined resolution
 		{
-			return BdvPlaygroundHelper.getLevel( labelSource, 0, voxelSpacing );
+			return MoBIEHelper.getLevel( labelSource, 0, voxelSpacing );
 		}
 		else // auto-resolution, uses maxNumSegmentVoxels
 		{

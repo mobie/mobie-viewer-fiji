@@ -44,10 +44,10 @@ import org.embl.mobie.lib.bdv.overlay.ImageNameOverlay;
 import org.embl.mobie.lib.color.OpacityHelper;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
-import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.AbstractDisplay;
 import org.embl.mobie.lib.source.SourceHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.ui.WindowArrangementHelper;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -154,6 +154,7 @@ public class SliceViewer
 		actions.add( SourceAndConverterService.getCommandName( ScreenShotMakerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ScreenShotStackMakerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ShowRawImagesCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( BoxSelectionCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( BigWarpRegistrationCommand.class ) );
 		//actions.add( SourceAndConverterService.getCommandName( AutomaticRegistrationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ManualTransformationCommand.class ) );
@@ -212,7 +213,7 @@ public class SliceViewer
 						new Thread( () -> {
 							CurrentLocationLoggerCommand.logCurrentPosition(
 									bdvHandle,
-									BdvPlaygroundHelper.getWindowCentreInCalibratedUnits( bdvHandle ),
+									MoBIEHelper.getWindowCentreInCalibratedUnits( bdvHandle ),
 									new CalibratedMousePositionProvider( bdvHandle ).getPositionAsDoubles()
 									);
 						}).start(),

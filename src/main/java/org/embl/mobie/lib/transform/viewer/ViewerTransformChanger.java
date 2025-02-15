@@ -35,10 +35,9 @@ import bdv.util.BdvOverlay;
 import bdv.util.BdvOverlaySource;
 import bdv.viewer.animate.SimilarityTransformAnimator;
 import org.embl.mobie.lib.bdv.overlay.CircleOverlay;
-import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.serialize.transformation.NormalizedAffineViewerTransform;
-import org.embl.mobie.lib.transform.TransformHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 
 import java.util.Arrays;
 
@@ -71,12 +70,12 @@ public abstract class ViewerTransformChanger
 		}
 		else if ( viewerTransform instanceof AffineViewerTransform )
 		{
-			apply( bdvHandle, TransformHelper.asAffineTransform3D( viewerTransform.getParameters() ), animationDurationMillis );
+			apply( bdvHandle, MoBIEHelper.asAffineTransform3D( viewerTransform.getParameters() ), animationDurationMillis );
 			adaptTimepoint( bdvHandle, viewerTransform );
 		}
 		else if ( viewerTransform instanceof NormalizedAffineViewerTransform )
 		{
-			final AffineTransform3D transform = TransformHelper.createUnnormalizedViewerTransform( TransformHelper.asAffineTransform3D( viewerTransform.getParameters() ), bdvHandle.getBdvHandle().getViewerPanel() );
+			final AffineTransform3D transform = MoBIEHelper.createUnnormalizedViewerTransform( MoBIEHelper.asAffineTransform3D( viewerTransform.getParameters() ), bdvHandle.getBdvHandle().getViewerPanel() );
 			apply( bdvHandle, transform, animationDurationMillis );
 			adaptTimepoint( bdvHandle, viewerTransform );
 		}
@@ -138,7 +137,7 @@ public abstract class ViewerTransformChanger
 		}
 
 		newViewerTransform.translate( locationOfTargetCoordinatesInCurrentViewer );
-		final double[] bdvWindowCenter = BdvPlaygroundHelper.getWindowCentreInPixelUnits( bdvHandle.getViewerPanel() );
+		final double[] bdvWindowCenter = MoBIEHelper.getWindowCentreInPixelUnits( bdvHandle.getViewerPanel() );
 		newViewerTransform.translate( bdvWindowCenter );
 
 		if ( durationMillis <= 0 )

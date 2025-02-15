@@ -32,7 +32,7 @@ import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.transform.ImageTransformer;
-import org.embl.mobie.lib.transform.TransformHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.util.ThreadHelper;
 import org.jetbrains.annotations.NotNull;
 
@@ -135,8 +135,8 @@ public class GridTransformation extends AbstractGridTransformation
         double[] tileRealDimensions = new double[ 2 ];
         for ( List< ? extends Image< ? > > images : nestedImages )
         {
-            final RealMaskRealInterval unionMask = TransformHelper.union( images );
-            final double[] realDimensions = TransformHelper.getRealDimensions( unionMask );
+            final RealMaskRealInterval unionMask = MoBIEHelper.union( images );
+            final double[] realDimensions = MoBIEHelper.getRealDimensions( unionMask );
             for ( int d = 0; d < 2; d++ )
                 tileRealDimensions[ d ] = Math.max( realDimensions[ d ], tileRealDimensions[ d ] );
         }

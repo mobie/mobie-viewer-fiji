@@ -35,7 +35,7 @@ import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.ImageListener;
-import org.embl.mobie.lib.transform.TransformHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 
 import java.util.List;
 import java.util.Set;
@@ -142,7 +142,7 @@ public class TableSawAnnotatedImages extends AbstractTableSawAnnotation implemen
 			if ( images.size() > 1 )
 			{
 				//unionMask = TransformHelper.unionBox( images );
-				unionMask = TransformHelper.union( images );
+				unionMask = MoBIEHelper.union( images );
 			}
 			else
 			{
@@ -152,7 +152,7 @@ public class TableSawAnnotatedImages extends AbstractTableSawAnnotation implemen
 			if ( relativeDilation > 0 )
 			{
 				double scale = 1 + relativeDilation;
-				AffineGet transform = TransformHelper.getEnlargementTransform( unionMask, scale );
+				AffineGet transform = MoBIEHelper.getEnlargementTransform( unionMask, scale );
 				mask = unionMask.transform( transform );
 			}
 			else

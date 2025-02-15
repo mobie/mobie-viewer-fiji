@@ -29,9 +29,8 @@
 package org.embl.mobie.lib.serialize.transformation;
 
 import bdv.util.BdvHandle;
-import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.lib.transform.TransformHelper;
 import org.embl.mobie.lib.transform.viewer.ViewerTransform;
+import org.embl.mobie.lib.util.MoBIEHelper;
 
 public class NormalizedAffineViewerTransform implements ViewerTransform
 {
@@ -41,7 +40,7 @@ public class NormalizedAffineViewerTransform implements ViewerTransform
 
 	public NormalizedAffineViewerTransform( BdvHandle bdvHandle )
 	{
-		normalizedAffine = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() ).getRowPackedCopy();
+		normalizedAffine = MoBIEHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() ).getRowPackedCopy();
 		timepoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
 	}
 

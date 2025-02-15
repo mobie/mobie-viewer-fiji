@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.playground;
+package org.embl.mobie.ui;
 
 import org.scijava.ui.behaviour.ClickBehaviour;
 

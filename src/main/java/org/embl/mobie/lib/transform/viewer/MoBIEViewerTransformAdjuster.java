@@ -37,7 +37,7 @@ import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.LinAlgHelpers;
 import org.embl.mobie.lib.serialize.display.Display;
-import org.embl.mobie.lib.transform.TransformHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -114,7 +114,7 @@ public class MoBIEViewerTransformAdjuster {
 	public static AffineTransform3D getViewerTransform( BdvHandle bdvHandle, List< Source< ? > > sources )
 	{
 		SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
-		final AffineTransform3D transform = getViewerTransform( bdvHandle, TransformHelper.createMask( sources, state.getCurrentTimepoint() ) );
+		final AffineTransform3D transform = getViewerTransform( bdvHandle, MoBIEHelper.createMask( sources, state.getCurrentTimepoint() ) );
 		return transform;
 	}
 
@@ -122,7 +122,7 @@ public class MoBIEViewerTransformAdjuster {
 	public static AffineTransform3D getViewerTransform( BdvHandle bdvHandle, final RealInterval mask )
 	{
 		final AffineTransform3D transform =
-				TransformHelper.getIntervalViewerTransform( bdvHandle, mask );
+				MoBIEHelper.getIntervalViewerTransform( bdvHandle, mask );
 		return transform;
 	}
 

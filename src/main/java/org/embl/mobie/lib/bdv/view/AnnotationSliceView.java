@@ -50,7 +50,6 @@ import org.embl.mobie.lib.color.ColoringListener;
 import org.embl.mobie.lib.color.VolatileAnnotationARGBConverter;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.SpotAnnotationImage;
-import org.embl.mobie.lib.playground.BdvPlaygroundHelper;
 import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.serialize.display.AbstractAnnotationDisplay;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
@@ -62,6 +61,7 @@ import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.source.VolatileBoundarySource;
 import org.embl.mobie.lib.transform.viewer.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
@@ -206,7 +206,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		{
 			final double[] position = selection.positionAsDoubleArray();
 			if ( position == null ) return;
-			viewerTransform = BdvPlaygroundHelper.getViewerTransformWithNewCenter( bdvHandle, position );
+			viewerTransform = MoBIEHelper.getViewerTransformWithNewCenter( bdvHandle, position );
 
 		}
 
