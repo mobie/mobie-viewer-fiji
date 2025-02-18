@@ -97,6 +97,7 @@ public class ScreenShotMaker
     private AffineTransform3D canvasToGlobalTransform;
     private AffineTransform3D viewerToGlobal;
     private Corners corners;
+    private String progress;
 
     public ScreenShotMaker( BdvHandle bdvHandle, String voxelUnit ) {
         this.bdvHandle = bdvHandle;
@@ -236,6 +237,9 @@ public class ScreenShotMaker
             final AtomicInteger pixelCount = new AtomicInteger();
             final AtomicDouble fractionDone = new AtomicDouble( 0.2 );
             ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
+
+            progress = "Capturing " + sac.getSpimSource().getName() + ": 0%";
+            IJ.log( progress );
             for ( Interval interval : intervals )
             {
                 futures.add
@@ -300,7 +304,8 @@ public class ScreenShotMaker
                                     // incremented fractionDone
                                     if ( currentFractionDone >= fractionDone.get() )
                                     {
-                                        IJ.log(sac.getSpimSource().getName() + ": " + ( Math.round( 100 * fractionDone.get() ) + "%" ) );
+                                        progress += ", " + Math.round( 100 * fractionDone.get() ) + "%";
+                                        IJ.log( "\\Update:" + progress );
                                         fractionDone.addAndGet( 0.2 );
                                     }
                                 }

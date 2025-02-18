@@ -15,7 +15,7 @@ public class Corners
     @Override
     public String toString()
     {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Gson gson = new GsonBuilder().create();
         return gson.toJson(this);
 //        StringBuilder builder = new StringBuilder();
 //        builder.append( "Upper left: " + Arrays.toString( upperLeft ) + "\n" );
