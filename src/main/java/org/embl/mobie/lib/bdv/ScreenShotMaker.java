@@ -133,6 +133,8 @@ public class ScreenShotMaker
             return;
         }
 
+        corners = MoBIEHelper.getBdvWindowGlobalCorners( bdvHandle );
+
         final int timePoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
         final AffineTransform3D viewerTransform = bdvHandle.getViewerPanel().state().getViewerTransform( );
         canvasToGlobalTransform = new AffineTransform3D();
@@ -338,15 +340,6 @@ public class ScreenShotMaker
                     maskCaptures,
                     displayRanges );
         }
-
-        logScreenShotCoordinates();
-    }
-
-    private void logScreenShotCoordinates()
-    {
-        Corners globalCorners = MoBIEHelper.getBdvWindowGlobalCorners( bdvHandle );
-        IJ.log( "Coordinates of the screenshot:" );
-        IJ.log( corners.toString() );
     }
 
     public Corners getCorners()

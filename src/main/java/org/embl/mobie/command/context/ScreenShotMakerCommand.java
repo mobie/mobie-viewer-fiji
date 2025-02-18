@@ -75,6 +75,8 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
         screenShotMaker.run( targetSamplingInXY );
         screenShotMaker.getRGBImagePlus().show();
         screenShotMaker.getCompositeImagePlus().show();
+
+        IJ.log( "Screenshot corners: " + screenShotMaker.getCorners().toString() );
     }
 
     @Override
