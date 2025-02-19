@@ -34,7 +34,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 public class BrightnessUpdateListener implements BoundedValueDouble.UpdateListener
 {
-	final private SacProvider sacProvider;
+	final private SacAdjustmentManager sacAdjustmentManager;
  	final private BoundedValueDouble min;
 	final private BoundedValueDouble max;
 	private final SliderPanelDouble minSlider;
@@ -44,13 +44,13 @@ public class BrightnessUpdateListener implements BoundedValueDouble.UpdateListen
 									 BoundedValueDouble max,
 									 SliderPanelDouble minSlider,
 									 SliderPanelDouble maxSlider,
-									 SacProvider sacProvider )
+									 SacAdjustmentManager sacAdjustmentManager )
 	{
 		this.min = min;
 		this.max = max;
 		this.minSlider = minSlider;
 		this.maxSlider = maxSlider;
-		this.sacProvider = sacProvider;
+		this.sacAdjustmentManager = sacAdjustmentManager;
 	}
 
 	@Override
@@ -59,9 +59,19 @@ public class BrightnessUpdateListener implements BoundedValueDouble.UpdateListen
 		final double minCurrentValue = min.getCurrentValue();
 		final double maxCurrentValue = max.getCurrentValue();
 
-		// TODO This sort of works, but the spinner step size
-		//   would also need to be adapted for this to be really useful
-		//   see https://github.com/mobie/mobie-viewer-fiji/issues/825
+		minSlider.update();
+		maxSlider.update();
+
+		sacAdjustmentManager.getAdjustable()
+				.stream()
+				.map( sac -> SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ) )
+				.forEach( cs -> cs.setDisplayRange( minCurrentValue, maxCurrentValue ) );
+	}
+
+// TODO This sort of works, but the spinner step size
+//   would also need to be adapted for this to be really useful
+//   see https://github.com/mobie/mobie-viewer-fiji/issues/825
+//
 //		final double log10CurrentRange = Math.log10( Math.abs( maxCurrentValue - minCurrentValue ) );
 //
 //		if ( log10CurrentRange < 0 )
@@ -82,13 +92,4 @@ public class BrightnessUpdateListener implements BoundedValueDouble.UpdateListen
 //			minSlider.setDecimalFormat( format );
 //			maxSlider.setDecimalFormat( format );
 //		}
-
-		minSlider.update();
-		maxSlider.update();
-
-		sacProvider.get()
-				.stream()
-				.map( sac -> SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ) )
-				.forEach( cs -> cs.setDisplayRange( minCurrentValue, maxCurrentValue ) );
-	}
 }

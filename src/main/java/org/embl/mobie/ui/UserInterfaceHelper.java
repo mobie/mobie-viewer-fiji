@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.ui;
 
-import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BdvHandle;
 import bdv.util.BoundedValueDouble;
@@ -43,14 +42,10 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.command.context.ConfigureSegmentRenderingCommand;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.lib.bdv.AutoContrastAdjuster;
-import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.Services;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.OpacityHelper;
-import org.embl.mobie.lib.color.opacity.MoBIEColorConverter;
-import org.embl.mobie.lib.color.opacity.OpacityAdjuster;
 import org.embl.mobie.command.context.ConfigureImageRenderingCommand;
 import org.embl.mobie.command.context.ConfigureLabelRenderingCommand;
 import org.embl.mobie.command.context.ConfigureSpotRenderingCommand;
@@ -72,7 +67,6 @@ import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 import org.embl.mobie.lib.volume.ImageVolumeViewer;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.jetbrains.annotations.NotNull;
-import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
@@ -351,230 +345,6 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	public static JFrame showContrastDialog(
-			String name,
-			List< ? extends SourceAndConverter< ? > > sacs,
-			BdvHandle bdvHandle,
-			boolean addContrastLimitUI )
-	{
-		ISourceAndConverterService service =
-				SourceAndConverterServices.getSourceAndConverterService();
-
-		SacProvider sacProvider = new SacProvider( bdvHandle, sacs );
-		List< ? extends SourceAndConverter< ? > > currentSacs = sacProvider.get();
-
-		JFrame frame = new JFrame( name );
-		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-		JPanel panel = new JPanel();
-		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
-
-		if ( addContrastLimitUI )
-		{
-			// Contrast Limits
-			//
-			List< ConverterSetup > converterSetups =
-					sacProvider.get()
-					.stream()
-					.map( sac -> service.getConverterSetup( sac ) )
-					.collect( Collectors.toList() );
-
-			List< ? extends Converter< ?, ARGBType > > converters =
-					sacProvider.get()
-					.stream()
-					.map( sac -> sac.getConverter() )
-					.collect( Collectors.toList() );
-
-			final double currentContrastLimitsMin = converterSetups.get( 0 ).getDisplayRangeMin();
-			final double currentContrastLimitsMax = converterSetups.get( 0 ).getDisplayRangeMax();
-			final double absCurrentRange = Math.abs( currentContrastLimitsMax - currentContrastLimitsMin );
-
-			final double rangeFactor = 1.0; // could be changed...
-
-			final double rangeMin = currentContrastLimitsMin - rangeFactor * absCurrentRange;
-			final double rangeMax = currentContrastLimitsMax + rangeFactor * absCurrentRange;
-
-			final BoundedValueDouble min =
-					new BoundedValueDouble(
-							rangeMin,
-							rangeMax,
-							currentContrastLimitsMin );
-
-			final BoundedValueDouble max =
-					new BoundedValueDouble(
-							rangeMin,
-							rangeMax,
-							currentContrastLimitsMax );
-
-			double spinnerStepSize = absCurrentRange / 100.0;
-
-			// TODO: adapt the number of decimal places to the current range
-			String decimalFormat = "#####.####";
-
-			final SliderPanelDouble minSlider =
-					new SliderPanelDouble( "Min", min, spinnerStepSize );
-			minSlider.setNumColummns( 10 );
-			minSlider.setDecimalFormat( decimalFormat );
-
-			final SliderPanelDouble maxSlider =
-					new SliderPanelDouble( "Max", max, spinnerStepSize );
-			maxSlider.setNumColummns( 10 );
-			maxSlider.setDecimalFormat( decimalFormat );
-
-			final BrightnessUpdateListener brightnessUpdateListener =
-					new BrightnessUpdateListener(
-							min,
-							max,
-							minSlider,
-							maxSlider,
-							sacProvider );
-
-			min.setUpdateListener( brightnessUpdateListener );
-			max.setUpdateListener( brightnessUpdateListener );
-
-			JPanel minPanel = SwingHelper.horizontalFlowLayoutPanel();
-			minPanel.add( minSlider );
-			panel.add( minPanel );
-
-			JPanel maxPanel = SwingHelper.horizontalFlowLayoutPanel();
-			maxPanel.add( maxSlider );
-			panel.add( maxPanel );
-
-			JButton autoButton = new JButton("Auto Contrast");
-			autoButton.addActionListener( e ->
-			{
-				List< SourceAndConverter< ? > > onCanvasSacs = sacProvider.getOnCanvas();
-				if ( onCanvasSacs.size() == 0 )
-				{
-					IJ.log( "[WARNING] The image is currently not visible and thus the contrast cannot be determined." );
-					return;
-				}
-
-
-				SourceAndConverter< ? > onCanvasSac = onCanvasSacs.get( 0 );
-
-				AutoContrastAdjuster contrastAdjuster =
-						new AutoContrastAdjuster(
-								bdvHandle,
-								onCanvasSac
-						);
-
-				double[] minMax = contrastAdjuster.computeMinMax();
-				min.setCurrentValue( minMax[ 0 ] );
-				max.setCurrentValue( minMax[ 1 ] );
-			});
-			JPanel autoPanel = SwingHelper.horizontalFlowLayoutPanel();
-			autoPanel.add( autoButton );
-			panel.add( autoPanel );
-
-			boolean isInvert = false;
-			for ( Converter< ?, ARGBType > converter : converters )
-			{
-				if ( converter instanceof MoBIEColorConverter )
-				{
-					isInvert = ( ( MoBIEColorConverter ) converter ).invert();
-					break;
-				}
-			}
-			JCheckBox invertCheckBox = new JCheckBox( "Invert LUT" );
-			invertCheckBox.setSelected( isInvert );
-			invertCheckBox.setToolTipText( "Invert the current LUT" );
-			invertCheckBox.addActionListener( e ->
-			{
-				for ( Converter< ?, ARGBType > converter : converters )
-				{
-					if ( converter instanceof MoBIEColorConverter )
-					{
-						( ( MoBIEColorConverter ) converter ).invert( invertCheckBox.isSelected() );
-					}
-				}
-				bdvHandle.getViewerPanel().requestRepaint();
-			} );
-			JPanel invertPanel = SwingHelper.horizontalFlowLayoutPanel();
-			invertPanel.add( invertCheckBox );
-			panel.add( invertPanel );
-			panel.add( new JLabel("") ); // create some Luft
-		}
-
-		// Blending mode
-		JPanel blendingPanel = SwingHelper.horizontalFlowLayoutPanel();
-		blendingPanel.add( new JLabel("Blending  ") );
-		JComboBox< BlendingMode > blendingModeComboBox = new JComboBox<>(
-				new BlendingMode[]{ BlendingMode.Sum, BlendingMode.Alpha } );
-		BlendingMode currentBlendingMode = ( BlendingMode ) service.getMetadata(
-				currentSacs.get( 0 ),
-				BlendingMode.class.getName() );
-		blendingModeComboBox.setSelectedItem( currentBlendingMode );
-		blendingModeComboBox.addActionListener( e ->
-		{
-			List< ? extends SourceAndConverter< ? > > sourceAndConverters = sacProvider.get();
-			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
-			{
-				service.setMetadata( sourceAndConverter,
-						BlendingMode.class.getName(),
-						blendingModeComboBox.getSelectedItem() );
-			}
-			bdvHandle.getViewerPanel().requestRepaint();
-		} );
-		blendingPanel.add( blendingModeComboBox );
-		panel.add( blendingPanel );
-
-		// Opacity Slider
-		//
-		// TODO: This cast requires that the sourceAndConverter implements
-		//   an OpacityAdjuster; how to do this more cleanly?
-		//   Maybe we should rather operate on the coloring model that is
-		//   wrapped in the converter?
-		final double current = ( ( OpacityAdjuster ) currentSacs.get( 0 ).getConverter()).getOpacity();
-
-		final BoundedValueDouble selection =
-				new BoundedValueDouble(
-						0.0,
-						1.0,
-						current );
-
-		final SliderPanelDouble opacitySlider = new SliderPanelDouble( "Opacity", selection, 0.05 );
-		opacitySlider.setNumColummns( 3 );
-		opacitySlider.setDecimalFormat( "#.##" );
-
-		final OpacityUpdateListener opacityUpdateListener =
-				new OpacityUpdateListener(
-						selection,
-						opacitySlider,
-						sacProvider,
-						bdvHandle );
-
-		selection.setUpdateListener( opacityUpdateListener );
-		JPanel opacityPanel = SwingHelper.horizontalFlowLayoutPanel();
-		opacityPanel.add( opacitySlider );
-		panel.add( opacityPanel );
-
-		if ( currentSacs.size() > 1 )
-		{
-			JCheckBox modifyOnlyVisibleSources = new JCheckBox( "Change settings only for sources in current view" );
-			modifyOnlyVisibleSources.setSelected( false );
-			modifyOnlyVisibleSources.setToolTipText( "If checked, only the sources inside the current BDV window will be modified." );
-			modifyOnlyVisibleSources.addActionListener( e ->
-			{
-				sacProvider.onlyVisible( modifyOnlyVisibleSources.isSelected() );
-			} );
-			JPanel modifyOnlyVisiblePanel = SwingHelper.horizontalFlowLayoutPanel();
-			modifyOnlyVisiblePanel.add( modifyOnlyVisibleSources );
-			panel.add( modifyOnlyVisiblePanel );
-			panel.add( new JLabel( "" ) );
-		}
-
-		// Display the window
-		frame.setContentPane( panel );
-		frame.setBounds( MouseInfo.getPointerInfo().getLocation().x,
-				MouseInfo.getPointerInfo().getLocation().y,
-				120, 10);
-		frame.setResizable( false );
-		frame.pack();
-		frame.setVisible( true );
-
-		return frame;
-	}
-
 
 	public JPanel createRegionDisplaySettingsPanel( RegionDisplay display )
 	{
@@ -622,19 +392,19 @@ public class UserInterfaceHelper
 
 	public static class OpacityUpdateListener implements BoundedValueDouble.UpdateListener
 	{
-		final private SacProvider sacProvider;
+		final private SacAdjustmentManager sacAdjustmentManager;
 		private final BdvHandle bdvHandle;
 		final private BoundedValueDouble value;
 		private final SliderPanelDouble slider;
 
 		public OpacityUpdateListener( BoundedValueDouble value,
 									  SliderPanelDouble slider,
-									  SacProvider sacProvider,
+									  SacAdjustmentManager sacAdjustmentManager,
 									  BdvHandle bdvHandle )
 		{
 			this.value = value;
 			this.slider = slider;
-			this.sacProvider = sacProvider;
+			this.sacAdjustmentManager = sacAdjustmentManager;
 			this.bdvHandle = bdvHandle;
 		}
 
@@ -643,7 +413,7 @@ public class UserInterfaceHelper
 		{
 			slider.update();
 
-			List< ? extends SourceAndConverter< ? > > sourceAndConverters = sacProvider.get();
+			List< ? extends SourceAndConverter< ? > > sourceAndConverters = sacAdjustmentManager.getAdjustable();
 
 			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 			{
@@ -1387,7 +1157,7 @@ public class UserInterfaceHelper
 
 		button.addActionListener( e ->
 		{
-			JFrame jFrame = showContrastDialog(
+			JFrame jFrame = BrightnessAndContrastDialog.showDialog(
 					name,
 					sacs, // sacs,
 					bdvHandle,

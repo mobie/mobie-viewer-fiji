@@ -9,13 +9,13 @@ import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 
 import java.util.Collections;
 
-public class AutoContrastAdjuster
+public class ContrastComputer
 {
     private final BdvHandle bdvHandle;
     private final SourceAndConverter< ? > sourceAndConverter;
 
 
-    public AutoContrastAdjuster( BdvHandle bdvHandle, SourceAndConverter< ? > sourceAndConverter )
+    public ContrastComputer( BdvHandle bdvHandle, SourceAndConverter< ? > sourceAndConverter )
     {
         this.bdvHandle = bdvHandle;
         this.sourceAndConverter = sourceAndConverter;

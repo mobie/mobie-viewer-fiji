@@ -250,16 +250,24 @@ public class CollectionTableDataSetter
 
     private static boolean getExclusive( Row row )
     {
-        try {
-            String string = row.getString( CollectionTableConstants.EXCLUSIVE );
-            if ( string.toLowerCase().equals( CollectionTableConstants.TRUE ) )
-                return true;
-            else
-                return false;
+        try
+        {
+            return row.getBoolean( CollectionTableConstants.EXCLUSIVE );
         }
         catch ( Exception e )
         {
-            return false;
+            try
+            {
+                String string = row.getText( CollectionTableConstants.EXCLUSIVE );
+                if ( string.toLowerCase().equals( CollectionTableConstants.TRUE ) )
+                    return true;
+                else
+                    return false;
+            }
+            catch ( Exception e2 )
+            {
+                return false;
+            }
         }
     }
 

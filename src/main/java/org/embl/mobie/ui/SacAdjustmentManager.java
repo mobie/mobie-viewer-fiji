@@ -8,24 +8,25 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class SacProvider
+public class SacAdjustmentManager
 {
     private final BdvHandle bdvHandle;
     private final List< ? extends SourceAndConverter< ? > > sacs;
     private boolean onlyVisible = false;
+    private boolean autoContrastAll = false;
 
-    public SacProvider( BdvHandle bdvHandle,
-                        List< ? extends SourceAndConverter< ? > > sacs )
+    public SacAdjustmentManager( BdvHandle bdvHandle,
+                                 List< ? extends SourceAndConverter< ? > > sacs )
     {
         this.bdvHandle = bdvHandle;
         this.sacs = sacs;
     }
 
-    public List< ? extends SourceAndConverter< ? > > get()
+    public List< ? extends SourceAndConverter< ? > > getAdjustable()
     {
         if ( onlyVisible )
         {
-            return getOnCanvas();
+            return getVisible();
         }
         else
         {
@@ -34,7 +35,7 @@ public class SacProvider
     }
 
     @NotNull
-    public List< SourceAndConverter< ? > > getOnCanvas()
+    public List< SourceAndConverter< ? > > getVisible()
     {
         return MoBIEHelper.getVisibleSacsInCurrentView( bdvHandle )
                 .stream()
@@ -42,8 +43,24 @@ public class SacProvider
                 .collect( Collectors.toList() );
     }
 
-    public void onlyVisible( boolean onlyVisible )
+    @NotNull
+    public List< ? extends SourceAndConverter< ? > > getAll()
+    {
+        return sacs;
+    }
+
+    public void adjustOnlyVisible( boolean onlyVisible )
     {
         this.onlyVisible = onlyVisible;
+    }
+
+    public void autoContrastAll( boolean autoContrastAll )
+    {
+        this.autoContrastAll = autoContrastAll;
+    }
+
+    public boolean isAutoContrastAll()
+    {
+        return autoContrastAll;
     }
 }
