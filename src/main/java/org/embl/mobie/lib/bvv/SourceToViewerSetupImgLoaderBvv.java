@@ -258,10 +258,7 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 		{
 			return Converters.convert(
 					raiXYZ,
-					( i, o ) ->
-					{
-						o.setInteger(((IntegerType)i).getInteger());
-					},
+					( i, o ) -> o.setInteger(((IntegerType)i).getInteger()),
 					new UnsignedShortType( ) );
 		}
 

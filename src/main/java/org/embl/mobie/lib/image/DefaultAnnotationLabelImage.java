@@ -126,4 +126,10 @@ public class DefaultAnnotationLabelImage< A extends Annotation > implements Anno
 	{
 		return annotationAdapter;
 	}
+
+	@Override
+	public Image< ? > getWrappedImage()
+	{
+		return labelImage;
+	}
 }

@@ -38,14 +38,15 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.RealViews;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
+import net.imglib2.type.Type;
 import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.numeric.integer.UnsignedLongType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
-import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.RealRandomAccessibleIntervalTimelapseSource;
-import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.table.DefaultAnnData;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -99,7 +100,8 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 	private void createImage()
 	{
 		final ArrayList< AS > annotations = annData.getTable().annotations();
-		System.out.println("Building KDTree with numElements = " + annotations.size());
+		int numAnnotations = annotations.size();
+		System.out.println("Building KDTree with numElements = " + numAnnotations );
 		kdTree = new KDTree( annotations, annotations );
 
 		if ( imageBoundsMin == null )
@@ -121,7 +123,7 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 			// A = Pi R^2 => R ~ Sqrt( A )
 			double area = ( imageBoundsMax[ 0 ] - imageBoundsMin[ 0 ] )
 					* ( imageBoundsMax[ 1 ] - imageBoundsMin[ 1 ] );
-			spotRadius = Math.sqrt( area / annotations.size() ) / 10.0;
+			spotRadius = Math.sqrt( area / numAnnotations ) / 10.0;
 		}
 
 		// adapt bounding box such that all spots are fully rendered
@@ -136,11 +138,27 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 		// TODO: code duplication with RegionLabelImage
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( mask );
-
-		createLabelSource( interval );
+		Type type = getType( numAnnotations );
+		createLabelSource( interval, type );
 	}
 
-	private void createLabelSource( Interval interval )
+	@NotNull
+	private static Type getType( int numAnnotations )
+	{
+		Type type;
+		if ( numAnnotations < new UnsignedShortType().getMaxValue() )
+			type = new UnsignedShortType();
+		else if ( numAnnotations < new UnsignedLongType().getMaxValue() )
+			type = new UnsignedLongType();
+		else
+		{
+			throw new UnsupportedOperationException("There are " + numAnnotations + " which are " +
+					"too many to be displayed.");
+		}
+		return type;
+	}
+
+	private void createLabelSource( Interval interval, Type type )
 	{
 		RealRandomAccessible< IntegerType > rra =
 				new FunctionRealRandomAccessible(
@@ -151,10 +169,11 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 		if ( kdTree.numDimensions() == 2 )
 			rra = RealViews.addDimension( rra );
 
+
 		source = new RealRandomAccessibleIntervalTimelapseSource(
 				rra,
 				interval,
-				new UnsignedShortType(), // FIXME: maybe we need more spots...
+				type,
 				new AffineTransform3D(),
 				name,
 				true,
