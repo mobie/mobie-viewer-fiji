@@ -539,6 +539,12 @@ public class ViewManager
 		// currently is the case when (repeatedly) selecting a view
 		display.images().clear();
 
+		if ( display instanceof AbstractDisplay )
+		{
+			((AbstractDisplay) display).sliceViewer = sliceViewer;
+			((AbstractDisplay) display).bigVolumeViewer = bigVolumeViewer;
+		}
+
 		if ( display instanceof ImageDisplay )
 		{
 			for ( String name : display.getSources() )
@@ -629,7 +635,6 @@ public class ViewManager
 
 			// show the data
 			//
-			annotationDisplay.sliceViewer = sliceViewer;
 			annotationDisplay.sliceView = new AnnotationSliceView<>( moBIE, annotationDisplay );
 
 			if( annotationDisplay.getAnnData().getTable().annotations().size() > 0 )
@@ -666,12 +671,10 @@ public class ViewManager
 		}
 	}
 
-	public void showImageDisplay( ImageDisplay imageDisplay )
+	public void showImageDisplay( ImageDisplay display )
 	{
-		imageDisplay.sliceViewer = sliceViewer;
-		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay );
-		imageDisplay.bigVolumeViewer = bigVolumeViewer;
-		initImageVolumeViewer( imageDisplay );
+		display.imageSliceView = new ImageSliceView( moBIE, display );
+		initImageVolumeViewer( display );
 	}
 
 	// compare with initSegmentationVolumeViewer
@@ -718,7 +721,6 @@ public class ViewManager
 
 	private void initSegmentVolumeViewer( SegmentationDisplay< ? extends AnnotatedSegment > display )
 	{
-		display.bigVolumeViewer = bigVolumeViewer;
 		display.coloringModel.listeners().add( display.bigVolumeViewer );
 		display.selectionModel.listeners().add( display.bigVolumeViewer );
 

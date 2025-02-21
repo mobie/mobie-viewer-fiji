@@ -1,0 +1,6 @@
+uri	color	channel	type	view	exclusive
+xyz_c4_organs.tif	blue	0	intensities	all	TRUE
+xyz_c4_organs.tif	green	1	intensities	all	TRUE
+xyz_c4_organs.tif	red	2	intensities	all	TRUE
+xyz_c4_organs.tif	white	3	intensities	all	TRUE
+3d-organ-spots.txt			spots	all	TRUE

@@ -28,6 +28,7 @@ import org.embl.mobie.lib.color.ColoringListener;
 import org.embl.mobie.lib.color.lut.GlasbeyARGBLut;
 import org.embl.mobie.lib.image.AnnotationLabelImage;
 import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.image.SpotAnnotationImage;
 import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.source.AnnotationType;
@@ -147,17 +148,18 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 		{
 			if ( isVisible )
 			{
-				addSourceToBVV(sac);
+				addSourceToBVV( sac );
 			}
 		}
 	}
 	
-	void addSourceToBVV(SourceAndConverter< ? > sac)
+	void addSourceToBVV( SourceAndConverter< ? > sac )
 	{
 		Source< ? > source = getSource( sac );
+
 		final AbstractSpimData< ? > spimData = SourceToSpimDataWrapperBvv.spimDataSourceWrap( source );
 		
-		if(spimData == null)
+		if( spimData == null )
 		{
 			RandomAccess< ? > randomAccess = source.getSource( 0, 0 ).randomAccess();
 			IJ.log( "Cannot display " + source.getName() + " in BVV, incompatible data type:\n" +
@@ -186,17 +188,15 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	private static Source< ? > getSource( SourceAndConverter< ? > sac )
 	{
 		Image< ? > image = DataStore.getImage( sac.getSpimSource().getName() );
-		Source< ? > source;
 		
 		if ( image instanceof AnnotationLabelImage )
 		{
-			source = ( ( AnnotationLabelImage<?> ) image ).getLabelImage().getSourcePair().getSource();
+			return  ( ( AnnotationLabelImage<?> ) image ).getLabelImage().getSourcePair().getSource();
 		}
 		else
 		{
-			source = sac.getSpimSource();
+			return sac.getSpimSource();
 		}
-		return source;
 	}
 	
 	private void configureRenderingSettings(

@@ -147,7 +147,7 @@ public class ScreenShotMaker
         canvasToGlobalTransform.preConcatenate( viewerToGlobal );
         //IJ.log( "Canvas to global transform: " + canvasToGlobalTransform );
 
-        IJ.log( "Fetching data from " + sacs.size() + " image(s)..."  );
+        //IJ.log( "Fetching data from " + sacs.size() + " image(s)..."  );
 
         final ArrayList< RandomAccessibleInterval< ? extends RealType< ? >  > > realCaptures = new ArrayList<>();
         final ArrayList< RandomAccessibleInterval< BitType > > maskCaptures = new ArrayList<>();
@@ -326,7 +326,7 @@ public class ScreenShotMaker
             displayRanges.add( displayRange );
         }
 
-        IJ.log( "Fetched data in " + ( System.currentTimeMillis() - currentTimeMillis ) + " ms." );
+        //IJ.log( "Fetched data in " + ( System.currentTimeMillis() - currentTimeMillis ) + " ms." );
 
         final double[] voxelSpacing = new double[ 3 ];
         Arrays.fill( voxelSpacing, targetVoxelSpacing );

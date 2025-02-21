@@ -50,8 +50,7 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 	final Object typeIn;
 	boolean bFloat = false;
 	double dMin,dMax;
-	
-	
+
 	private final CacheArrayLoader<VolatileShortArray> loader;
 	
 	public SourceToViewerSetupImgLoaderBvv(final Source<?> source_)
@@ -62,7 +61,6 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 		typeIn = Util.getTypeFromInterval( src.getSource( 0, 0 ) );
 		cache = new VolatileGlobalCellCache( numScales+1, 1 );
 
-	
 		mipmapTransforms = new AffineTransform3D[numScales];
 
 		mipmapResolutions = new double[ numScales ][];
@@ -88,11 +86,11 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 		if(!(typeIn instanceof IntegerType) )
 		{
 			bFloat = true;
-			IJ.log( "Estimating Float Source range..." );
-			ValuePair< Double, Double > dPair = getMinMax(src); 
+			IJ.log( "Estimating source range..." );
+			ValuePair< Double, Double > dPair = getMinMax( src );
 			dMin = dPair.getA().doubleValue();
 			dMax = dPair.getB().doubleValue();
-			IJ.log( "found ["+Double.toString( dMin )+"," +Double.toString( dMax )+"]");
+			IJ.log( "found [" + Double.toString( dMin ) + "," + Double.toString( dMax )+"]");
 		}
 		loader = new SourceArrayLoader(src, bFloat, dMin, dMax);
 	}
@@ -175,13 +173,17 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 	{
 		
 		final Source<?> src;
-		final boolean bFloatType;
+		final boolean isFloat;
 		final double dMin, dMax;
 		
-		public SourceArrayLoader (final Source<?> source_, final boolean bFloat_, final double dMin_, final double dMax_)
+		public SourceArrayLoader (
+				final Source<?> source_,
+				final boolean bFloat_,
+				final double dMin_,
+				final double dMax_)
 		{
 			src = source_;
-			bFloatType = bFloat_;
+			isFloat = bFloat_;
 			dMin = dMin_;
 			dMax = dMax_;
 		}
@@ -206,7 +208,7 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 			}
 
 			IterableInterval< UnsignedShortType > iterRAI;
-			if(!bFloatType)
+			if( !isFloat )
 			{
 				iterRAI = Views.flatIterable( convertIntegerRAIToShort(Views.interval( raiXYZ, new FinalInterval(intRange[0],intRange[1]))));				
 			}
@@ -259,10 +261,8 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 	
 	@SuppressWarnings( "unchecked" )
 	public static  <R extends RealType< R > > RandomAccessibleInterval< UnsignedShortType > convertRealRAIToShort(RandomAccessibleInterval< ? > raiXYZ, double minVal, double maxVal)
-	{	
-		
+	{
 		return Converters.convert( (RandomAccessibleInterval< R >)raiXYZ, new RealUnsignedShortConverter<>(minVal,maxVal), new UnsignedShortType() );
-
 	}
 	
 	//taken from LabKit

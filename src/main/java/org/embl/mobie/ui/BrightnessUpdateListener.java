@@ -34,7 +34,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 public class BrightnessUpdateListener implements BoundedValueDouble.UpdateListener
 {
-	final private SacAdjustmentManager sacAdjustmentManager;
+	final private ContrastAdjustmentManager contrastAdjustmentManager;
  	final private BoundedValueDouble min;
 	final private BoundedValueDouble max;
 	private final SliderPanelDouble minSlider;
@@ -44,13 +44,13 @@ public class BrightnessUpdateListener implements BoundedValueDouble.UpdateListen
 									 BoundedValueDouble max,
 									 SliderPanelDouble minSlider,
 									 SliderPanelDouble maxSlider,
-									 SacAdjustmentManager sacAdjustmentManager )
+									 ContrastAdjustmentManager contrastAdjustmentManager )
 	{
 		this.min = min;
 		this.max = max;
 		this.minSlider = minSlider;
 		this.maxSlider = maxSlider;
-		this.sacAdjustmentManager = sacAdjustmentManager;
+		this.contrastAdjustmentManager = contrastAdjustmentManager;
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class BrightnessUpdateListener implements BoundedValueDouble.UpdateListen
 		minSlider.update();
 		maxSlider.update();
 
-		sacAdjustmentManager.getAdjustable()
+		contrastAdjustmentManager.getAdjustable()
 				.stream()
 				.map( sac -> SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ) )
 				.forEach( cs -> cs.setDisplayRange( minCurrentValue, maxCurrentValue ) );

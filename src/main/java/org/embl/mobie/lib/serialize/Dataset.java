@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.serialize;
 
+import ij.IJ;
 import org.embl.mobie.lib.transform.viewer.PositionViewerTransform;
 import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 
@@ -75,6 +76,8 @@ public class Dataset
 
 	public void putDataSource( DataSource dataSource )
 	{
+		if ( sources.containsKey( dataSource.getName() ) )
+			IJ.log("[WARN] " + dataSource.getName() + " has been added already and is now replaced; choose unique names for your data!");
 		sources.put( dataSource.getName(), dataSource );
 	}
 

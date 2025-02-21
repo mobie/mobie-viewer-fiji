@@ -74,7 +74,8 @@ public class SpotImageCreator
 							tableFormat,
 							table );
 
-			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
+			final DefaultAnnData< AnnotatedSpot > spotAnnData =
+					new DefaultAnnData<>( tableModel );
 
 			spotAnnotationImage = new SpotAnnotationImage(
 					spotDataSource.getName(),

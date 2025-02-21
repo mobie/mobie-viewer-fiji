@@ -52,9 +52,12 @@ public class CollectionTableDataSetter
         if ( ! table.containsColumn( CollectionTableConstants.URI ) )
             throw new RuntimeException( "Column \"" + CollectionTableConstants.URI + "\" must be present in the collection table." );
 
-
+        int dataIndex = 0;
+        int numData = table.rowCount();
         for ( Row row : table )
         {
+            IJ.log("Adding dataset " + dataIndex++ + "/" + numData + "...");
+
             final StorageLocation storageLocation = new StorageLocation();
 
             storageLocation.absolutePath = getUri( row );
@@ -177,9 +180,9 @@ public class CollectionTableDataSetter
                         .addAll( getAffineTransformationAsList( Collections.singletonList( name ), row ) );
             }
 
-            IJ.log("\nName: " + name );
-            IJ.log("URI: " + storageLocation.absolutePath );
-            IJ.log("Type: " + dataType );
+            IJ.log("  Name: " + name );
+            IJ.log("  URI: " + storageLocation.absolutePath );
+            IJ.log("  Type: " + dataType );
         }
 
         // Create grid views

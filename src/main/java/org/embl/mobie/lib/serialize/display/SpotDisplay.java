@@ -105,6 +105,6 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AbstractAnnotatio
 
 		// spot radius
 		final SpotAnnotationImage spotAnnotationImage = ( SpotAnnotationImage ) DataStore.sourceToImage().get( sourceAndConverter );
-		this.spotRadius = spotAnnotationImage.getRadius();
+		this.spotRadius = spotAnnotationImage.getSpotRadius();
 	}
 }

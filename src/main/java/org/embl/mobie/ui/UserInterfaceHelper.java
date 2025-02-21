@@ -52,13 +52,7 @@ import org.embl.mobie.command.context.ConfigureSpotRenderingCommand;
 import org.embl.mobie.lib.plot.ScatterPlotView;
 import org.embl.mobie.lib.serialize.Project;
 import org.embl.mobie.lib.serialize.View;
-import org.embl.mobie.lib.serialize.display.AbstractDisplay;
-import org.embl.mobie.lib.serialize.display.Display;
-import org.embl.mobie.lib.serialize.display.ImageDisplay;
-import org.embl.mobie.lib.serialize.display.RegionDisplay;
-import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
-import org.embl.mobie.lib.serialize.display.SpotDisplay;
-import org.embl.mobie.lib.serialize.display.VisibilityListener;
+import org.embl.mobie.lib.serialize.display.*;
 import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.table.TableView;
 import org.embl.mobie.lib.transform.viewer.MoBIEViewerTransformAdjuster;
@@ -384,7 +378,7 @@ public class UserInterfaceHelper
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() );
-		panel.add( createCheckboxPlaceholder() );
+		panel.add( createBVVVisibilityCheckbox( display, sourceAndConverters ) );
 		panel.add( createTableVisibilityCheckbox( display.tableView, display.showTable() ) );
 		panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotView, display.showScatterPlot() ) );
 		return panel;
@@ -392,19 +386,19 @@ public class UserInterfaceHelper
 
 	public static class OpacityUpdateListener implements BoundedValueDouble.UpdateListener
 	{
-		final private SacAdjustmentManager sacAdjustmentManager;
+		final private ContrastAdjustmentManager contrastAdjustmentManager;
 		private final BdvHandle bdvHandle;
 		final private BoundedValueDouble value;
 		private final SliderPanelDouble slider;
 
 		public OpacityUpdateListener( BoundedValueDouble value,
 									  SliderPanelDouble slider,
-									  SacAdjustmentManager sacAdjustmentManager,
+									  ContrastAdjustmentManager contrastAdjustmentManager,
 									  BdvHandle bdvHandle )
 		{
 			this.value = value;
 			this.slider = slider;
-			this.sacAdjustmentManager = sacAdjustmentManager;
+			this.contrastAdjustmentManager = contrastAdjustmentManager;
 			this.bdvHandle = bdvHandle;
 		}
 
@@ -413,7 +407,7 @@ public class UserInterfaceHelper
 		{
 			slider.update();
 
-			List< ? extends SourceAndConverter< ? > > sourceAndConverters = sacAdjustmentManager.getAdjustable();
+			List< ? extends SourceAndConverter< ? > > sourceAndConverters = contrastAdjustmentManager.getAdjustable();
 
 			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 			{
@@ -476,7 +470,7 @@ public class UserInterfaceHelper
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createImageVolumeViewerVisibilityCheckbox( display ) );
-		panel.add( createImageBVViewerVisibilityCheckbox( display, sourceAndConverters ) );
+		panel.add( createBVVVisibilityCheckbox( display, sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() ); // Table
 		panel.add( createCheckboxPlaceholder() ); // Scatter plot
 
@@ -526,7 +520,7 @@ public class UserInterfaceHelper
 			// segments 3D view
 			panel.add( createSegmentsVolumeViewerVisibilityCheckbox( display ) );
 			// BVV view
-			panel.add( createSegmentsBVViewerVisibilityCheckbox( display, sourceAndConverters ) );
+			panel.add( createBVVVisibilityCheckbox( display, sourceAndConverters ) );
 			// table view
 			panel.add( createTableVisibilityCheckbox( display.tableView, display.showTable() ) );
 			// scatter plot view
@@ -1003,7 +997,8 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JCheckBox createImageBVViewerVisibilityCheckbox( ImageDisplay display,
+	public static JCheckBox createBVVVisibilityCheckbox(
+			AbstractDisplay< ? > display,
 			final List< ? extends SourceAndConverter< ? > > sourceAndConverters  )
 	{
 		JCheckBox checkBox = new JCheckBox( "B" );
@@ -1039,45 +1034,6 @@ public class UserInterfaceHelper
 
 		return checkBox;
 	}
-
-	public static JCheckBox createSegmentsBVViewerVisibilityCheckbox( SegmentationDisplay display,
-			final List< ? extends SourceAndConverter< ? > > sourceAndConverters)
-	{
-		JCheckBox checkBox = new JCheckBox( "B" );
-		checkBox.setToolTipText( "Toggle dataset visibility" );
-		checkBox.setSelected( false );
-		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
-
-		checkBox.addActionListener( new ActionListener()
-		{
-			@Override
-			public void actionPerformed( ActionEvent e )
-			{
-				new Thread( () -> {
-					for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
-					{
-						display.bigVolumeViewer.showSource(sourceAndConverter, checkBox.isSelected());
-					}
-				}).start();
-			}
-		} );
-
-		display.bigVolumeViewer.getListeners().add( new VisibilityListener()
-		{
-			@Override
-			public void visibility( boolean isVisible )
-			{
-				SwingUtilities.invokeLater( () ->
-				{
-					checkBox.setSelected( isVisible );
-				});
-			}
-		} );
-
-		return checkBox;
-	}
-
-
 
 	public static JCheckBox createImageVolumeViewerVisibilityCheckbox( ImageDisplay display )
 	{
@@ -1157,7 +1113,7 @@ public class UserInterfaceHelper
 
 		button.addActionListener( e ->
 		{
-			JFrame jFrame = BrightnessAndContrastDialog.showDialog(
+			JFrame jFrame = ContrastAdjustmentsDialog.showDialog(
 					name,
 					sacs, // sacs,
 					bdvHandle,

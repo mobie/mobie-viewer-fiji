@@ -38,7 +38,6 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.RealViews;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
-import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
 import org.embl.mobie.lib.source.AnnotationType;
@@ -57,9 +56,9 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 	private final DefaultAnnData< AS > annData;
 	private KDTree< AS > kdTree;
 	private RealMaskRealInterval mask;
-	private Double radius;
-	private double[] boundingBoxMin;
-	private double[] boundingBoxMax;
+	private Double spotRadius;
+	private double[] imageBoundsMin;
+	private double[] imageBoundsMax;
 	private AffineTransform3D affineTransform3D;
 	private Source< AnnotationType< AS > > source;
 	private TransformedSource< AnnotationType< AS > > transformedSource;
@@ -67,29 +66,30 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 	public SpotAnnotationImage(
 			String name,
 			DefaultAnnData< AS > annData,
-			@Nullable Double radius,
-			@Nullable double[] boundingBoxMin,
-			@Nullable double[] boundingBoxMax )
+			@Nullable Double spotRadius,
+			@Nullable double[] imageBoundsMin,
+			@Nullable double[] imageBoundsMax )
 	{
 		this.name = name;
 		this.annData = annData;
-		this.radius = radius;
-		this.boundingBoxMin = boundingBoxMin;
-		this.boundingBoxMax = boundingBoxMax;
-		affineTransform3D = new AffineTransform3D();
+		this.spotRadius = spotRadius;
+		this.imageBoundsMin = imageBoundsMin;
+		this.imageBoundsMax = imageBoundsMax;
+		this.affineTransform3D = new AffineTransform3D();
+
 		createImage();
 	}
 
-	public Double getRadius()
+	public Double getSpotRadius()
 	{
-		return radius;
+		return spotRadius;
 	}
 
-	public void setRadius( Double radius )
+	public void setSpotRadius( Double spotRadius )
 	{
-		if ( radius != null )
+		if ( spotRadius != null )
 		{
-			this.radius = radius;
+			this.spotRadius = spotRadius;
 		}
 	}
 
@@ -99,33 +99,40 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 		System.out.println("Building KDTree with numElements = " + annotations.size());
 		kdTree = new KDTree( annotations, annotations );
 
-		if ( boundingBoxMin == null )
+		if ( imageBoundsMin == null )
 		{
-			boundingBoxMin = new double[ 3 ];
-			kdTree.realMin( boundingBoxMin );
+			imageBoundsMin = new double[ 3 ];
+			kdTree.realMin( imageBoundsMin );
 		}
 
-		if ( boundingBoxMax == null )
+		if ( imageBoundsMax == null )
 		{
-			boundingBoxMax = new double[ 3 ];
-			kdTree.realMax( boundingBoxMax );
+			imageBoundsMax = new double[ 3 ];
+			kdTree.realMax( imageBoundsMax );
 		}
 
-		mask = GeomMasks.closedBox( boundingBoxMin, boundingBoxMax );
-
-		if ( radius == null)
+		if ( spotRadius == null)
 		{
 			// Assign each spot an area that is a fraction of the total
 			// covered area divided by the number of spots.
 			// A = Pi R^2 => R ~ Sqrt( A )
-			double area = ( mask.realMax( 0 ) - mask.realMin( 0 ) )
-					* ( mask.realMax( 1 ) - mask.realMin( 1 ) );
-			radius = Math.sqrt( area / annotations.size() ) / 10.0;
+			double area = ( imageBoundsMax[ 0 ] - imageBoundsMin[ 0 ] )
+					* ( imageBoundsMax[ 1 ] - imageBoundsMin[ 1 ] );
+			spotRadius = Math.sqrt( area / annotations.size() ) / 10.0;
 		}
+
+		// adapt bounding box such that all spots are fully rendered
+		for ( int d = 0; d < 3; d++ )
+			imageBoundsMin[ d ] -= spotRadius;
+		for ( int d = 0; d < 3; d++ )
+			imageBoundsMax[ d ] += spotRadius;
+
+		// create the image mask
+		mask = GeomMasks.closedBox( imageBoundsMin, imageBoundsMax );
 
 		// TODO: code duplication with RegionLabelImage
 		final ArrayList< Integer > timePoints = configureTimePoints();
-		final Interval interval = Intervals.smallestContainingInterval( getMask() );
+		final Interval interval = Intervals.smallestContainingInterval( mask );
 		final AS annotatedSpot = annData.getTable().annotation( 0 );
 
 		RealRandomAccessible< AnnotationType< AS > > rra =
@@ -133,6 +140,7 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 						kdTree.numDimensions(),
 						new LocationToAnnotatedSpotSupplier(),
 						() -> new AnnotationType<>( annotatedSpot ) );
+
 		//final RealRandomAccessible interpolate = Views.interpolate( new NearestNeighborSearchOnKDTree( kdTree ), new NearestNeighborSearchInterpolatorFactory() );
 
 		if ( kdTree.numDimensions() == 2 )
@@ -179,7 +187,7 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 			@Override
 			public void accept( RealLocalizable location, AnnotationType< AS > value )
 			{
-				search.search( location, radius, true );
+				search.search( location, spotRadius, true );
 				if ( search.numNeighbors() > 0 )
 				{
 					final Sampler< AS > sampler = search.getSampler( 0 );

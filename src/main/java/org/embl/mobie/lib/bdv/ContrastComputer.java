@@ -13,6 +13,7 @@ public class ContrastComputer
 {
     private final BdvHandle bdvHandle;
     private final SourceAndConverter< ? > sourceAndConverter;
+    private ImagePlus imagePlus;
 
 
     public ContrastComputer( BdvHandle bdvHandle, SourceAndConverter< ? > sourceAndConverter )
@@ -21,15 +22,15 @@ public class ContrastComputer
         this.sourceAndConverter = sourceAndConverter;
     }
 
-    public double[] computeMinMax()
+    public double[] computeMinMax( final int downSampling )
     {
         double viewerVoxelSpacing = BdvHandleHelper.getViewerVoxelSpacing( bdvHandle );
         ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, "" );
         screenShotMaker.run(
                 Collections.singletonList( sourceAndConverter ),
-                16 * viewerVoxelSpacing // times 16 to make it faster
+                downSampling * viewerVoxelSpacing // times 16 to make it faster
         );
-        ImagePlus imagePlus = screenShotMaker.getCompositeImagePlus();
+        imagePlus = screenShotMaker.getCompositeImagePlus();
         Roi[] rois = screenShotMaker.getMasks();
         if ( rois != null && rois.length > 0 )
             imagePlus.setRoi( rois[ 0 ] );
@@ -37,5 +38,10 @@ public class ContrastComputer
         // imagePlus.show();
         double[] minMax = { imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
         return minMax;
+    }
+
+    public ImagePlus getImagePlus()
+    {
+        return imagePlus;
     }
 }

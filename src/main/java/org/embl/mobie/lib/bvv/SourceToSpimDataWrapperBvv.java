@@ -24,27 +24,27 @@ public class SourceToSpimDataWrapperBvv
 	/** wraps UnsignedByte, UnsignedShort, UnsignedLong or Float type source to a cached spimdata 
 	 * (of UnsignedShort type) to display in BVV, otherwise returns null **/
 	@SuppressWarnings( { "unchecked", "rawtypes" } )
-	public static AbstractSpimData< ? > spimDataSourceWrap(final Source<?> src_)
+	public static AbstractSpimData< ? > spimDataSourceWrap( final Source< ? > source )
 	{		
-		Object type = Util.getTypeFromInterval( src_.getSource( 0, 0 ) );
+		Object type = Util.getTypeFromInterval( source.getSource( 0, 0 ) );
 		
-		if(!(type instanceof RealType  && type instanceof NativeType))
+		if( ! ( type instanceof RealType && type instanceof NativeType ) )
 		{
-			//System.err.println( "Volume view of image of type " + type + " is currently not supported.");
 			return null;
 		}
-		final SourceToViewerSetupImgLoaderBvv imgLoader = new SourceToViewerSetupImgLoaderBvv(src_);
+
+		final SourceToViewerSetupImgLoaderBvv imgLoader = new SourceToViewerSetupImgLoaderBvv( source );
 		
 		int numTimepoints = 0;
 		
-		final FinalDimensions size = new FinalDimensions( src_.getSource( 0, 0 ));
+		final FinalDimensions size = new FinalDimensions( source.getSource( 0, 0 ));
 		
-		while(src_.isPresent( numTimepoints ))
+		while(source.isPresent( numTimepoints ))
 			numTimepoints++;
 
 		final HashMap< Integer, BasicViewSetup > setups = new HashMap<>( 1 );
 		
-		final BasicViewSetup setup = new BasicViewSetup( 0, src_.getName(), size, src_.getVoxelDimensions() );
+		final BasicViewSetup setup = new BasicViewSetup( 0, source.getName(), size, source.getVoxelDimensions() );
 		setups.put( 0, setup );
 		final ArrayList< TimePoint > timepoints = new ArrayList<>( numTimepoints );
 		for ( int t = 0; t < numTimepoints; ++t )

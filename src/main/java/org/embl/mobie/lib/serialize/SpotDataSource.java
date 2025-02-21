@@ -38,7 +38,6 @@ import java.util.Map;
 public class SpotDataSource extends AbstractDataSource
 {
 	// Serialization
-
 	public Map< TableDataFormat, StorageLocation > tableData;
 
 	public double[] boundingBoxMin;

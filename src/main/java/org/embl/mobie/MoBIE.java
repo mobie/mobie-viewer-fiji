@@ -707,7 +707,8 @@ public class MoBIE
 		if ( dataSource instanceof SpotDataSource )
 		{
 			// build spots image from spots table
-			final SpotImageCreator spotImageCreator = new SpotImageCreator( ( SpotDataSource ) dataSource, this );
+			final SpotImageCreator spotImageCreator =
+					new SpotImageCreator( ( SpotDataSource ) dataSource, this );
 			DataStore.addImage( spotImageCreator.get() );
 		}
 
