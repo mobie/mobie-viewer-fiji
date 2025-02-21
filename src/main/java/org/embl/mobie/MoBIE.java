@@ -36,10 +36,13 @@ import ij.WindowManager;
 import loci.common.DebugTools;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imagej.ImageJ;
+import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
+import org.embl.mobie.lib.annotation.AnnotatedSpot;
+import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 import org.embl.mobie.lib.data.*;
 import org.embl.mobie.lib.hcs.HCSDataSetter;
@@ -50,9 +53,11 @@ import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.io.DataFormats;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.*;
+import org.embl.mobie.lib.table.DefaultAnnData;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.columns.CollectionTableConstants;
 import org.embl.mobie.lib.table.saw.TableOpener;
+import org.embl.mobie.lib.table.saw.TableSawAnnotatedSpot;
 import org.embl.mobie.lib.transform.GridType;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.util.ThreadHelper;
@@ -694,8 +699,11 @@ public class MoBIE
 			if ( dataSource.getClass() == SegmentationDataSource.class )
 			{
 				// label image
-				final AnnotatedLabelImageCreator labelImageCreator = new AnnotatedLabelImageCreator( this, ( SegmentationDataSource ) dataSource, image );
-				DataStore.addImage( labelImageCreator.create() );
+				AnnotationLabelImage< ? > annotationLabelImage =
+						new AnnotatedSegmentationLabelImageCreator( this,
+								( TableDataSource ) dataSource,
+								image ).create();
+				DataStore.addImage( annotationLabelImage );
 			}
 			else
 			{
@@ -707,9 +715,20 @@ public class MoBIE
 		if ( dataSource instanceof SpotDataSource )
 		{
 			// build spots image from spots table
-			final SpotImageCreator spotImageCreator =
-					new SpotImageCreator( ( SpotDataSource ) dataSource, this );
-			DataStore.addImage( spotImageCreator.get() );
+			SpotDataSource spotDataSource = ( SpotDataSource ) dataSource;
+
+			SpotLabelImageCreator creator = new SpotLabelImageCreator( spotDataSource, this );
+			DefaultAnnData< AnnotatedSpot > annData = creator.getAnnData();
+			Image< ? extends IntegerType< ? > > labelImage = creator.getLabelImage();
+
+			final DefaultAnnotationAdapter< TableSawAnnotatedSpot > annotationAdapter
+					= new DefaultAnnotationAdapter( annData );
+
+			// annotation label image of spots
+			AnnotationLabelImage< ? > annotationLabelImage =
+					new DefaultAnnotationLabelImage( labelImage, annData, annotationAdapter );
+
+			DataStore.addImage( annotationLabelImage );
 		}
 
 		if ( dataSource instanceof RegionTableSource )

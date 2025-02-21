@@ -32,11 +32,8 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.lib.annotation.LazyAnnotatedSegmentAdapter;
-import org.embl.mobie.lib.image.AnnotationLabelImage;
-import org.embl.mobie.lib.image.DefaultAnnotationLabelImage;
-import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.io.StorageLocation;
-import org.embl.mobie.lib.serialize.SegmentationDataSource;
+import org.embl.mobie.lib.serialize.TableDataSource;
 import org.embl.mobie.lib.table.DefaultAnnData;
 import org.embl.mobie.lib.table.LazyAnnotatedSegmentTableModel;
 import org.embl.mobie.lib.table.TableDataFormat;
@@ -46,26 +43,24 @@ import org.embl.mobie.lib.table.saw.TableSawAnnotatedSegmentCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationTableModel;
 import tech.tablesaw.api.Table;
 
-public class AnnotatedLabelImageCreator
+public class AnnotatedSegmentationLabelImageCreator
 {
-	private AnnotationLabelImage< TableSawAnnotatedSegment > annotatedLabelImage;
+	private AnnotationLabelImage< ? > annotatedLabelImage;
 
-	public AnnotatedLabelImageCreator( MoBIE moBIE, SegmentationDataSource dataSource, Image< ? > image )
+	public AnnotatedSegmentationLabelImageCreator( MoBIE moBIE,
+												   TableDataSource dataSource,
+												   Image< ? > labelImage // this must be IntegerType
+	)
 	{
-		if ( dataSource.tableData != null )
+		if ( dataSource.getTableData() != null )
 		{
 			//System.out.println(dataSource.getName() + ": initialising.." );
 
-			final StorageLocation tableLocation = moBIE.getTableLocation( dataSource.tableData );
-			final TableDataFormat tableFormat =  moBIE.getTableDataFormat( dataSource.tableData );
-
-			//System.out.println( dataSource.getName() + ": pre-init: " + dataSource.preInit() );
+			final StorageLocation tableLocation = moBIE.getTableLocation( dataSource.getTableData() );
+			final TableDataFormat tableFormat = moBIE.getTableDataFormat( dataSource.getTableData() );
 
 			Table table = dataSource.preInit() ?
 					TableOpener.open( tableLocation, tableFormat ) : null;
-
-			//SegmentColumnNames segmentColumnNames = table != null ?
-			//		TableDataFormat.getSegmentColumnNames( table.columnNames() ) : null;
 
 			final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( table );
 
@@ -75,15 +70,15 @@ public class AnnotatedLabelImageCreator
 
 			final DefaultAnnotationAdapter< TableSawAnnotatedSegment > annotationAdapter = new DefaultAnnotationAdapter( annData );
 
-			annotatedLabelImage = new DefaultAnnotationLabelImage( image, annData, annotationAdapter );
+			annotatedLabelImage = new DefaultAnnotationLabelImage( labelImage, annData, annotationAdapter );
 		}
 		else
 		{
 			// label image without annotation table
-			final LazyAnnotatedSegmentTableModel tableModel = new LazyAnnotatedSegmentTableModel( image.getName() );
+			final LazyAnnotatedSegmentTableModel tableModel = new LazyAnnotatedSegmentTableModel( labelImage.getName() );
 			final DefaultAnnData< AnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
-			final LazyAnnotatedSegmentAdapter segmentAdapter = new LazyAnnotatedSegmentAdapter( image.getName(), tableModel );
-			annotatedLabelImage = new DefaultAnnotationLabelImage( image, annData, segmentAdapter );
+			final LazyAnnotatedSegmentAdapter segmentAdapter = new LazyAnnotatedSegmentAdapter( labelImage.getName(), tableModel );
+			annotatedLabelImage = new DefaultAnnotationLabelImage( labelImage, annData, segmentAdapter );
 		}
 	}
 

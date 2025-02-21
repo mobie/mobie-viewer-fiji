@@ -35,7 +35,7 @@ import org.embl.mobie.lib.table.TableSource;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SpotDataSource extends AbstractDataSource
+public class SpotDataSource extends AbstractDataSource implements TableDataSource
 {
 	// Serialization
 	public Map< TableDataFormat, StorageLocation > tableData;
@@ -56,6 +56,12 @@ public class SpotDataSource extends AbstractDataSource
 		super( name );
 		tableData = new HashMap<>();
 		tableData.put( tableDataFormat, storageLocation );
+	}
+
+	@Override
+	public Map< TableDataFormat, StorageLocation > getTableData()
+	{
+		return tableData;
 	}
 }
 

@@ -19,20 +19,13 @@ import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.TimePoint;
 import mpicbg.spim.data.sequence.TimePoints;
 
-public class SourceToSpimDataWrapperBvv
+public class SourceToSpimDataWrapper
 {
 	/** wraps UnsignedByte, UnsignedShort, UnsignedLong or Float type source to a cached spimdata 
 	 * (of UnsignedShort type) to display in BVV, otherwise returns null **/
 	@SuppressWarnings( { "unchecked", "rawtypes" } )
-	public static AbstractSpimData< ? > spimDataSourceWrap( final Source< ? > source )
-	{		
-		Object type = Util.getTypeFromInterval( source.getSource( 0, 0 ) );
-		
-		if( ! ( type instanceof RealType && type instanceof NativeType ) )
-		{
-			return null;
-		}
-
+	public static AbstractSpimData< ? > wrap( final Source< ? > source )
+	{
 		final SourceToViewerSetupImgLoaderBvv imgLoader = new SourceToViewerSetupImgLoaderBvv( source );
 		
 		int numTimepoints = 0;
@@ -59,6 +52,7 @@ public class SourceToSpimDataWrapperBvv
 			registrations.add( new ViewRegistration( t, 0, transform ) );
 		}
 		File dummy = null;
+
 		return new AbstractSpimData( dummy, seq, new ViewRegistrations( registrations) );
 	}
 }

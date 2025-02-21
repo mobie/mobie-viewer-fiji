@@ -28,9 +28,9 @@
  */
 package org.embl.mobie.lib.image;
 
+import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
-import org.embl.mobie.lib.image.SpotAnnotationImage;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.SpotDataSource;
 import org.embl.mobie.lib.table.DefaultAnnData;
@@ -42,49 +42,52 @@ import org.embl.mobie.lib.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationTableModel;
 import tech.tablesaw.api.Table;
 
-public class SpotImageCreator
+public class SpotLabelImageCreator
 {
 	private final SpotDataSource spotDataSource;
 	private final MoBIE moBIE;
-	private SpotAnnotationImage< AnnotatedSpot > spotAnnotationImage;
+	private Image< ? extends IntegerType< ? >  > labelImage;
+	private DefaultAnnData< AnnotatedSpot > annData;
 
-	public SpotImageCreator( SpotDataSource dataSource, MoBIE moBIE )
+	public SpotLabelImageCreator( SpotDataSource dataSource, MoBIE moBIE )
 	{
 		this.spotDataSource = dataSource;
 		this.moBIE = moBIE;
+
+		final StorageLocation tableLocation = moBIE.getTableLocation( spotDataSource.tableData );
+		final TableDataFormat tableFormat = moBIE.getTableDataFormat( spotDataSource.tableData );
+
+		Table table = TableOpener.open( tableLocation, tableFormat );
+
+		// TODO: maybe make the spot column names mapping configurable?
+		final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator
+				= new TableSawAnnotatedSpotCreator( table );
+
+		final TableSawAnnotationTableModel< AnnotatedSpot > tableModel =
+				new TableSawAnnotationTableModel(
+						spotDataSource.getName(),
+						annotationCreator,
+						tableLocation,
+						tableFormat,
+						table );
+
+		annData = new DefaultAnnData<>( tableModel );
+
+		labelImage = new SpotLabelImage(
+				spotDataSource.getName(),
+				annData,
+				null,
+				spotDataSource.boundingBoxMin,
+				spotDataSource.boundingBoxMax );
 	}
 
-	public SpotAnnotationImage< AnnotatedSpot > get()
+	public Image< ? extends IntegerType< ? > > getLabelImage()
 	{
-		if ( spotAnnotationImage == null )
-		{
-			final StorageLocation tableLocation = moBIE.getTableLocation( spotDataSource.tableData );
-			final TableDataFormat tableFormat = moBIE.getTableDataFormat( spotDataSource.tableData );
+		return labelImage;
+	}
 
-			Table table = TableOpener.open( tableLocation, tableFormat );
-
-			// TODO: maybe make the spot column names mapping configurable?
-			final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator( table );
-
-			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel =
-					new TableSawAnnotationTableModel(
-							spotDataSource.getName(),
-							annotationCreator,
-							tableLocation,
-							tableFormat,
-							table );
-
-			final DefaultAnnData< AnnotatedSpot > spotAnnData =
-					new DefaultAnnData<>( tableModel );
-
-			spotAnnotationImage = new SpotAnnotationImage(
-					spotDataSource.getName(),
-					spotAnnData,
-					null,
-					spotDataSource.boundingBoxMin,
-					spotDataSource.boundingBoxMax );
-		}
-
-		return spotAnnotationImage;
+	public DefaultAnnData< AnnotatedSpot > getAnnData()
+	{
+		return annData;
 	}
 }

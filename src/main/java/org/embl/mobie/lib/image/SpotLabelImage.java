@@ -38,6 +38,8 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.RealViews;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
+import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
 import org.embl.mobie.lib.source.AnnotationType;
@@ -50,7 +52,7 @@ import java.util.ArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-public class SpotAnnotationImage< AS extends AnnotatedSpot > implements AnnotationImage< AS >
+public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T > > implements Image< T >
 {
 	private final String name;
 	private final DefaultAnnData< AS > annData;
@@ -60,10 +62,11 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 	private double[] imageBoundsMin;
 	private double[] imageBoundsMax;
 	private AffineTransform3D affineTransform3D;
-	private Source< AnnotationType< AS > > source;
-	private TransformedSource< AnnotationType< AS > > transformedSource;
+	private Source< T > source;
+	private TransformedSource< T > transformedSource;
+	private DefaultSourcePair sourcePair;
 
-	public SpotAnnotationImage(
+	public SpotLabelImage(
 			String name,
 			DefaultAnnData< AS > annData,
 			@Nullable Double spotRadius,
@@ -133,15 +136,17 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 		// TODO: code duplication with RegionLabelImage
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( mask );
-		final AS annotatedSpot = annData.getTable().annotation( 0 );
 
-		RealRandomAccessible< AnnotationType< AS > > rra =
+		createLabelSource( interval );
+	}
+
+	private void createLabelSource( Interval interval )
+	{
+		RealRandomAccessible< IntegerType > rra =
 				new FunctionRealRandomAccessible(
 						kdTree.numDimensions(),
-						new LocationToAnnotatedSpotSupplier(),
-						() -> new AnnotationType<>( annotatedSpot ) );
-
-		//final RealRandomAccessible interpolate = Views.interpolate( new NearestNeighborSearchOnKDTree( kdTree ), new NearestNeighborSearchInterpolatorFactory() );
+						new LocationToSpotLabelSupplier(),
+						UnsignedShortType::new );
 
 		if ( kdTree.numDimensions() == 2 )
 			rra = RealViews.addDimension( rra );
@@ -149,7 +154,7 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 		source = new RealRandomAccessibleIntervalTimelapseSource(
 				rra,
 				interval,
-				new AnnotationType<>( annotatedSpot ),
+				new UnsignedShortType(), // FIXME: maybe we need more spots...
 				new AffineTransform3D(),
 				name,
 				true,
@@ -157,47 +162,41 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 				new FinalVoxelDimensions( "", 1, 1, 1 ) );
 	}
 
-	@Override
-	public AnnData< AS > getAnnData()
+	class LocationToSpotLabelSupplier implements Supplier< BiConsumer< RealLocalizable, IntegerType > >
 	{
-		return annData;
-	}
-
-	class LocationToAnnotatedSpotSupplier implements Supplier< BiConsumer< RealLocalizable, AnnotationType< AS > > >
-	{
-		public LocationToAnnotatedSpotSupplier()
+		public LocationToSpotLabelSupplier()
 		{
 		}
 
 		@Override
-		public BiConsumer< RealLocalizable, AnnotationType< AS > > get()
+		public BiConsumer< RealLocalizable, IntegerType > get()
 		{
-			return new LocationToAnnotatedSpot();
+			return new LocationToSpotLabel();
 		}
 
-		private class LocationToAnnotatedSpot implements BiConsumer< RealLocalizable, AnnotationType< AS > >
+		private class LocationToSpotLabel implements BiConsumer< RealLocalizable, IntegerType >
 		{
 			private RadiusNeighborSearchOnKDTree< AS > search;
 
-			public LocationToAnnotatedSpot( )
+			public LocationToSpotLabel( )
 			{
 				search = new RadiusNeighborSearchOnKDTree<>( kdTree );
 			}
 
 			@Override
-			public void accept( RealLocalizable location, AnnotationType< AS > value )
+			public void accept( RealLocalizable location, IntegerType value )
 			{
 				search.search( location, spotRadius, true );
 				if ( search.numNeighbors() > 0 )
 				{
 					final Sampler< AS > sampler = search.getSampler( 0 );
 					final AS annotatedSpot = sampler.get();
-					value.setAnnotation( annotatedSpot );
+					value.setInteger( annotatedSpot.label() );
 				}
 				else
 				{
 					// background
-					value.setAnnotation( null );
+					value.setInteger( 0 );
 				}
 			}
 		}
@@ -213,12 +212,16 @@ public class SpotAnnotationImage< AS extends AnnotatedSpot > implements Annotati
 	}
 
 	@Override
-	public SourcePair< AnnotationType< AS > > getSourcePair()
+	public SourcePair< T > getSourcePair()
 	{
-		transformedSource = new TransformedSource( source );
-		transformedSource.setFixedTransform( affineTransform3D );
-		//final TransformedSource volatileTransformedSource = new TransformedSource( volatileSource, transformedSource );
-		return new DefaultSourcePair<>( transformedSource, null );
+		if ( sourcePair == null )
+		{
+			transformedSource = new TransformedSource( source );
+			transformedSource.setFixedTransform( affineTransform3D );
+			sourcePair = new DefaultSourcePair( transformedSource, null );
+		}
+
+		return sourcePair;
 	}
 
 	public String getName()

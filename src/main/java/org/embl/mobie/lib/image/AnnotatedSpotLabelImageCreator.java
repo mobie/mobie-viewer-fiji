@@ -26,16 +26,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.serialize;
+package org.embl.mobie.lib.image;
 
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.lib.annotation.AnnotatedSpot;
+import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.lib.io.StorageLocation;
+import org.embl.mobie.lib.serialize.TableDataSource;
+import org.embl.mobie.lib.table.AnnData;
+import org.embl.mobie.lib.table.DefaultAnnData;
 import org.embl.mobie.lib.table.TableDataFormat;
+import org.embl.mobie.lib.table.saw.*;
+import tech.tablesaw.api.Table;
 
-import java.util.Map;
-
-public class TableData
+public class AnnotatedSpotLabelImageCreator
 {
-	public String defaultTable;
+	private AnnotationLabelImage< ? > annotatedLabelImage;
 
-	public Map< TableDataFormat, StorageLocation > dataStore;
+	public AnnotatedSpotLabelImageCreator( MoBIE moBIE,
+										   TableDataSource dataSource,
+										   AnnData< AnnotatedSpot > annData,
+										   Image< ? > labelImage // this must be IntegerType
+	 )
+	{
+
+	}
+
+	public AnnotationLabelImage< ? > create()
+	{
+		return annotatedLabelImage;
+	}
 }

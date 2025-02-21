@@ -28,7 +28,7 @@ import org.embl.mobie.lib.color.ColoringListener;
 import org.embl.mobie.lib.color.lut.GlasbeyARGBLut;
 import org.embl.mobie.lib.image.AnnotationLabelImage;
 import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.image.SpotAnnotationImage;
+import org.embl.mobie.lib.image.SpotLabelImage;
 import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.source.AnnotationType;
@@ -157,7 +157,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	{
 		Source< ? > source = getSource( sac );
 
-		final AbstractSpimData< ? > spimData = SourceToSpimDataWrapperBvv.spimDataSourceWrap( source );
+		final AbstractSpimData< ? > spimData = SourceToSpimDataWrapper.wrap( source );
 		
 		if( spimData == null )
 		{
@@ -206,12 +206,12 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 		bvvSource.setRenderType( nRenderMethod );
 		double displayRangeMin = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMin();
 		double displayRangeMax = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMax();
-		if(isAnnotation( sac ))
+		if( isAnnotation( sac ) )
 		{
 			final IndexColorModel icmAnnLUT = getAnnotationLUT( sac );
-			bvvSource.setLUT(icmAnnLUT,Integer.toString( icmAnnLUT.hashCode()));
-			bvvSource.setDisplayRangeBounds( 0, icmAnnLUT.getMapSize()-1);
-			bvvSource.setDisplayRange( 0, icmAnnLUT.getMapSize()-1);
+			bvvSource.setLUT( icmAnnLUT,Integer.toString( icmAnnLUT.hashCode() ) );
+			bvvSource.setDisplayRangeBounds( 0, icmAnnLUT.getMapSize() - 1 );
+			bvvSource.setDisplayRange( 0, icmAnnLUT.getMapSize() - 1 );
 			bvvSource.setAlphaRangeBounds( 0,1);
 			bvvSource.setAlphaRange( 0,1);
 			bvvSource.setVoxelRenderInterpolation( 0 );
@@ -241,11 +241,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 
 	private static boolean isAnnotation( SourceAndConverter< ? > sac )
 	{
-		if ( DataStore.getImage( sac.getSpimSource().getName() ) instanceof AnnotationLabelImage )
-		{
-			return true;
-		}
-		return false;
+		return DataStore.getImage( sac.getSpimSource().getName() ) instanceof AnnotationLabelImage;
 	}
 	
 	/** returns RGB LUT from the annotation image, i.e. UnsignedLongType
@@ -254,7 +250,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	 * Works only if the number of labels is <=65535 **/
 	
 	@SuppressWarnings( { "unchecked"} )
-	public IndexColorModel getAnnotationLUT(SourceAndConverter< ? > sac)
+	public IndexColorModel getAnnotationLUT( SourceAndConverter< ? > sac )
 	{
 		Image< ? > image = DataStore.getImage( sac.getSpimSource().getName() );
 		if ( image instanceof AnnotationLabelImage )
@@ -269,7 +265,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 			{
 				numAnnotations = 65535-1;
 			}
-			else if(handle.getViewerPanel().state().getNumTimepoints()>1)
+			else if( handle.getViewerPanel().state().getNumTimepoints() > 1 )
 			{
 				timePoint = handle.getViewerPanel().state().getCurrentTimepoint();
 				numAnnotations = numberOfAnnotationsPerTimepoint(annotationAdapter, timePoint, imageName);

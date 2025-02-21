@@ -49,7 +49,7 @@ import org.embl.mobie.lib.color.AnnotationARGBConverter;
 import org.embl.mobie.lib.color.ColoringListener;
 import org.embl.mobie.lib.color.VolatileAnnotationARGBConverter;
 import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.image.SpotAnnotationImage;
+import org.embl.mobie.lib.image.SpotLabelImage;
 import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.serialize.display.AbstractAnnotationDisplay;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
@@ -93,15 +93,17 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, SegmentVolumeViewer.class.getName(), segmentationDisplay.segmentVolumeViewer );
 			}
 
-			if ( display instanceof SpotDisplay )
-			{
-				final SpotDisplay spotDisplay = ( SpotDisplay ) display;
-
-				final SpotAnnotationImage spotAnnotationImage = ( ( SpotAnnotationImage ) image );
-				spotAnnotationImage.setSpotRadius( spotDisplay.spotRadius );
-
-				DataStore.sourceToImage().forcePut( sourceAndConverter, spotAnnotationImage );
-			}
+			// FIXME Why is this happening here? It should happen during initialisation of
+			//   the SpotLabelImage
+//			if ( display instanceof SpotDisplay )
+//			{
+//				final SpotDisplay spotDisplay = ( SpotDisplay ) display;
+//
+//				final SpotLabelImage spotLabelImage = ( ( SpotLabelImage ) image );
+//				spotLabelImage.setSpotRadius( spotDisplay.spotRadius );
+//
+//				DataStore.sourceToImage().forcePut( sourceAndConverter, spotLabelImage );
+//			}
 		}
 	}
 

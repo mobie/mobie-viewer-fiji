@@ -31,7 +31,7 @@ package org.embl.mobie.command.context;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.image.SpotAnnotationImage;
+import org.embl.mobie.lib.image.SpotLabelImage;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -72,9 +72,9 @@ public class ConfigureSpotRenderingCommand extends ConfigureLabelRenderingComman
 
 		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
-			final SpotAnnotationImage spotAnnotationImage = ( SpotAnnotationImage ) DataStore.sourceToImage().get( sourceAndConverter );
+			final SpotLabelImage spotLabelImage = ( SpotLabelImage ) DataStore.sourceToImage().get( sourceAndConverter );
 
-			Double radius = spotAnnotationImage.getSpotRadius();
+			Double radius = spotLabelImage.getSpotRadius();
 			if ( radius != null )
 				spotRadiusItem.setValue( this, radius );
 			else
@@ -88,8 +88,8 @@ public class ConfigureSpotRenderingCommand extends ConfigureLabelRenderingComman
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			final SpotAnnotationImage spotAnnotationImage = ( SpotAnnotationImage ) DataStore.sourceToImage().get( sourceAndConverter );
-			spotAnnotationImage.setSpotRadius( spotRadius );
+			final SpotLabelImage spotLabelImage = ( SpotLabelImage ) DataStore.sourceToImage().get( sourceAndConverter );
+			spotLabelImage.setSpotRadius( spotRadius );
 		}
 	}
 
