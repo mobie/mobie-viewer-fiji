@@ -1014,7 +1014,7 @@ public class UserInterfaceHelper
 				new Thread( () -> {
 					for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 					{
-						display.bigVolumeViewer.showSource(sourceAndConverter, checkBox.isSelected());
+						display.bigVolumeViewer.showSource( sourceAndConverter, checkBox.isSelected() );
 					}
 				}).start();
 			}

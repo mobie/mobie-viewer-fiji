@@ -32,7 +32,7 @@ import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 
-public interface AnnotationLabelImage< A extends Annotation > extends AnnotationImage< A > implements ImageWrapper
+public interface AnnotationLabelImage< A extends Annotation > extends AnnotationImage< A >, ImageWrapper
 {
 	Image< ? extends IntegerType< ? > > getLabelImage();
 

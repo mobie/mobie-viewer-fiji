@@ -28,31 +28,33 @@ public class SourceToSpimDataWrapper
 	{
 		final SourceToViewerSetupImgLoaderBvv imgLoader = new SourceToViewerSetupImgLoaderBvv( source );
 		
+		final FinalDimensions size = new FinalDimensions( source.getSource( 0, 0 ) );
+
+		// configure time points
 		int numTimepoints = 0;
-		
-		final FinalDimensions size = new FinalDimensions( source.getSource( 0, 0 ));
-		
-		while(source.isPresent( numTimepoints ))
+		while( source.isPresent( numTimepoints ) )
 			numTimepoints++;
+		final ArrayList< TimePoint > timepoints = new ArrayList<>( numTimepoints );
+		for ( int t = 0; t < numTimepoints; ++t )
+			timepoints.add( new TimePoint( t ) );
 
 		final HashMap< Integer, BasicViewSetup > setups = new HashMap<>( 1 );
 		
 		final BasicViewSetup setup = new BasicViewSetup( 0, source.getName(), size, source.getVoxelDimensions() );
 		setups.put( 0, setup );
-		final ArrayList< TimePoint > timepoints = new ArrayList<>( numTimepoints );
-		for ( int t = 0; t < numTimepoints; ++t )
-			timepoints.add( new TimePoint( t ) );
 		final SequenceDescriptionMinimal seq = new SequenceDescriptionMinimal( new TimePoints( timepoints ), setups, imgLoader, null );
 		final ArrayList< ViewRegistration > registrations = new ArrayList<>();
 		for ( int t = 0; t < numTimepoints; ++t )
 		{
+			// The transforms are in the mipmap transforms
+			// see SourceToViewerSetupImgLoaderBvv.mipmapTransforms
+			// Thus, we currently don't add additional transforms here
+			// TODO: probably better to split this up and only put the scaling transforms
+			//       in the mipmaps and all the additional (rotation and translation) transformations here
 			AffineTransform3D transform = new AffineTransform3D();
-			//scale transform already in the multires, no need
-			//src_.getSourceTransform( t,0, transform );
-			registrations.add( new ViewRegistration( t, 0, transform ) );
+				registrations.add( new ViewRegistration( t, 0, transform ) );
 		}
-		File dummy = null;
 
-		return new AbstractSpimData( dummy, seq, new ViewRegistrations( registrations) );
+		return new AbstractSpimData( (File) null, seq, new ViewRegistrations( registrations) );
 	}
 }

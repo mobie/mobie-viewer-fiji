@@ -555,8 +555,6 @@ public class ViewManager
 		{
 			final AbstractAnnotationDisplay< A > annotationDisplay = ( AbstractAnnotationDisplay ) display;
 
-			// create combined AnnData (table)
-			// from all sources that are shown
 			for ( String name : display.getSources() )
 			{
 				// all sources are modelled as images

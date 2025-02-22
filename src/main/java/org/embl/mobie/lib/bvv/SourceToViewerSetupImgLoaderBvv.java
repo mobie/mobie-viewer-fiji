@@ -57,7 +57,7 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 		super( new UnsignedShortType(), new VolatileUnsignedShortType() );
 		src = source;
 		numScales = src.getNumMipmapLevels();
-		cache = new VolatileGlobalCellCache( numScales+1, 1 );
+		cache = new VolatileGlobalCellCache( numScales + 1, 1 );
 
 		mipmapTransforms = new AffineTransform3D[ numScales ];
 		mipmapResolutions = new double[ numScales ][];
@@ -66,18 +66,18 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 		
 		final double [] zeroScale = MoBIEHelper.getScale( transformSource);
 		//double [] currMipMapRes = new double [3];
-		for(int i=0;i<numScales;i++)
+		for(int i = 0; i < numScales; i++)
 		{
 			AffineTransform3D transform = new AffineTransform3D();
 			src.getSourceTransform( 0, i, transform );			
-			mipmapTransforms[i] = transform;
+			mipmapTransforms[ i ] = transform;
 			
 			double [] currScale = MoBIEHelper.getScale( transform );
-			mipmapResolutions[i] = new double [3];
+			mipmapResolutions[ i ] = new double [3];
 
 			for(int d=0;d<3;d++)
 			{
-				mipmapResolutions[i][d] = currScale[d]/zeroScale[d];
+				mipmapResolutions[ i ][ d ] = currScale[ d ] / zeroScale[ d ];
 			}		
 		}
 
@@ -191,10 +191,10 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 		}
 
 		@Override
-		public  VolatileShortArray loadArray( int timepoint, int setup, int level, int[] dimensions, long[] min ) throws InterruptedException
+		public VolatileShortArray loadArray( int timepoint, int setup, int level, int[] dimensions, long[] min )
 		{
-			final RandomAccessibleInterval< ? > raiXYZ = src.getSource( timepoint, level );
-			
+			RandomAccessibleInterval< ? > raiXYZ = src.getSource( timepoint, level );
+
 			final short[] data = new short[dimensions[0]*dimensions[1]*dimensions[2]];
 
 			final long[][] interval = new long [2][3];
@@ -209,7 +209,7 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 
 			if ( src.getType() instanceof IntegerType )
 			{
-				rai = Views.flatIterable( convertIntegerRAIToShort (Views.interval( raiXYZ, finalInterval )));
+				rai = Views.flatIterable( convertIntegerRAIToShort( Views.interval( raiXYZ, finalInterval ) ) );
 			}
 			else if ( src.getType() instanceof RealType )
 			{
@@ -224,28 +224,28 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 				rai = null; // FIXME: should not happen, but throw error
 			}
 
-			int nCount = 0;
+			int pixelIndex = 0;
 
 			Cursor< UnsignedShortType > cur = rai.cursor();
 			while (cur.hasNext())
 			{
 				cur.fwd();
-				data[nCount] = cur.get().getShort();
-				nCount++;
+				data[pixelIndex] = cur.get().getShort();
+				pixelIndex++;
 			}
 			return new VolatileShortArray(data,true);
 		}
 	}
+
 	@SuppressWarnings( { "unchecked", "rawtypes" } )
-	public static RandomAccessibleInterval< UnsignedShortType > convertIntegerRAIToShort(
-			RandomAccessibleInterval< ? > raiXYZ
-	)
+	private static RandomAccessibleInterval< UnsignedShortType > convertIntegerRAIToShort(
+			RandomAccessibleInterval< ? > raiXYZ )
 	{
 		Object type = raiXYZ.getType();
 
 		if ( type instanceof UnsignedShortType )
 		{
-			return (RandomAccessibleInterval <UnsignedShortType >) raiXYZ;
+			return ( RandomAccessibleInterval <UnsignedShortType > ) raiXYZ;
 		}
 		else if ( type instanceof UnsignedByteType )
 		{
@@ -265,7 +265,7 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 	}
 	
 	@SuppressWarnings( "unchecked" )
-	public static  <R extends RealType< R > > RandomAccessibleInterval< UnsignedShortType > convertRealRAIToShort(
+	private static  <R extends RealType< R > > RandomAccessibleInterval< UnsignedShortType > convertRealRAIToShort(
 			RandomAccessibleInterval< ? > raiXYZ,
 			ValuePair< Double, Double > minMax)
 	{
@@ -275,7 +275,7 @@ public class SourceToViewerSetupImgLoaderBvv extends AbstractViewerSetupImgLoade
 				new UnsignedShortType() );
 	}
 
-	public static RandomAccessibleInterval< UnsignedShortType > convertAnnotationRAIToShort(
+	private static RandomAccessibleInterval< UnsignedShortType > convertAnnotationRAIToShort(
 			RandomAccessibleInterval< ? > raiXYZ )
 	{
 		return Converters.convert(

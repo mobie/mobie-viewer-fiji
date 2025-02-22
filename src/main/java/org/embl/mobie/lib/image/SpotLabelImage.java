@@ -43,6 +43,7 @@ import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.integer.UnsignedLongType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.util.Intervals;
+import net.imglib2.view.Views;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
 import org.embl.mobie.lib.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.lib.table.DefaultAnnData;
@@ -50,6 +51,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -79,7 +81,6 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 		this.spotRadius = spotRadius;
 		this.imageBoundsMin = imageBoundsMin;
 		this.imageBoundsMax = imageBoundsMax;
-		this.affineTransform3D = new AffineTransform3D();
 
 		createImage();
 	}
@@ -127,19 +128,60 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 		}
 
 		// adapt bounding box such that all spots are fully rendered
+		// and compute size
+		double[] size = new double[ 3 ];
 		for ( int d = 0; d < 3; d++ )
+		{
 			imageBoundsMin[ d ] -= spotRadius;
-		for ( int d = 0; d < 3; d++ )
 			imageBoundsMax[ d ] += spotRadius;
+			size[ d ] = imageBoundsMax[ d ] - imageBoundsMin[ d ];
+		}
 
 		// create the image mask
 		mask = GeomMasks.closedBox( imageBoundsMin, imageBoundsMax );
 
-		// TODO: code duplication with RegionLabelImage
+		// create the actual image
+		RealRandomAccessible< IntegerType > rra =
+				new FunctionRealRandomAccessible(
+						kdTree.numDimensions(),
+						new LocationToSpotLabelSupplier(),
+						UnsignedShortType::new );
+
+		if ( kdTree.numDimensions() == 2 )
+			rra = RealViews.addDimension( rra );
+
+		AffineTransform3D translateToZeroMin = new AffineTransform3D();
+		translateToZeroMin.translate( Arrays.stream( imageBoundsMin ).map( x -> -x ).toArray() );
+		rra = RealViews.affineReal( rra, translateToZeroMin );
+
+		// TODO: if the spot coordinates are very much sub-integer
+		//       this will not work well in BVV, because BVV accesses the
+		//       voxel grid data; to improve this we would need to upscale the
+		//       spot coordinates and then reflect this in the affineTransform
+
+		// TODO: Code duplication: see RegionLabelImage
 		final ArrayList< Integer > timePoints = configureTimePoints();
-		final Interval interval = Intervals.smallestContainingInterval( mask );
+		FinalRealInterval zeroMinRealInterval = new FinalRealInterval( new double[ 3 ], size );
+		final Interval containingZeroMinIntegerInterval = Intervals.smallestContainingInterval( zeroMinRealInterval );
+
 		Type type = getType( numAnnotations );
-		createLabelSource( interval, type );
+
+		affineTransform3D = translateToZeroMin.copy().inverse();
+
+		// TODO: one could make the spot coordinates integer based
+		//  and add a scale here (see also the comment about
+		//  spots with floating point positions above)
+		AffineTransform3D sourceTransform = new AffineTransform3D();
+
+		source = new RealRandomAccessibleIntervalTimelapseSource(
+				rra,
+				containingZeroMinIntegerInterval,
+				type,
+				sourceTransform,
+				name,
+				true,
+				null,
+				new FinalVoxelDimensions( "", 1, 1, 1 ) );
 	}
 
 	@NotNull
@@ -158,28 +200,6 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 		return type;
 	}
 
-	private void createLabelSource( Interval interval, Type type )
-	{
-		RealRandomAccessible< IntegerType > rra =
-				new FunctionRealRandomAccessible(
-						kdTree.numDimensions(),
-						new LocationToSpotLabelSupplier(),
-						UnsignedShortType::new );
-
-		if ( kdTree.numDimensions() == 2 )
-			rra = RealViews.addDimension( rra );
-
-
-		source = new RealRandomAccessibleIntervalTimelapseSource(
-				rra,
-				interval,
-				type,
-				new AffineTransform3D(),
-				name,
-				true,
-				null,
-				new FinalVoxelDimensions( "", 1, 1, 1 ) );
-	}
 
 	class LocationToSpotLabelSupplier implements Supplier< BiConsumer< RealLocalizable, IntegerType > >
 	{

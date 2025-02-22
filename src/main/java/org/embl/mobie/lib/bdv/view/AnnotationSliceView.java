@@ -29,6 +29,7 @@
 package org.embl.mobie.lib.bdv.view;
 
 import bdv.tools.transformation.TransformedSource;
+import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
@@ -82,16 +83,18 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 
 		for ( Image< AnnotationType< A > > image : display.images() )
 		{
-			SourceAndConverter< ? > sourceAndConverter = createSourceAndConverter( display, image );
+			SourceAndConverter< ? > sac = createSourceAndConverter( display, image );
 
-			configureRendering( sourceAndConverter );
+			System.out.println("AnnotationSliceView: " + image.getName() + ": " + sac );
 
-			display.sliceViewer.show( image, sourceAndConverter, display );
+			configureRendering( sac );
+
+			display.sliceViewer.show( image, sac, display );
 
 			if ( display instanceof SegmentationDisplay )
 			{
 				final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) display;
-				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, SegmentVolumeViewer.class.getName(), segmentationDisplay.segmentVolumeViewer );
+				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sac, SegmentVolumeViewer.class.getName(), segmentationDisplay.segmentVolumeViewer );
 			}
 
 			if ( display instanceof SpotDisplay )

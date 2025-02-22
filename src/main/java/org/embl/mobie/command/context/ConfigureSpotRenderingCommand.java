@@ -31,6 +31,8 @@ package org.embl.mobie.command.context;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.lib.image.AnnotationLabelImage;
+import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.SpotLabelImage;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
@@ -72,7 +74,7 @@ public class ConfigureSpotRenderingCommand extends ConfigureLabelRenderingComman
 
 		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
-			final SpotLabelImage spotLabelImage = ( SpotLabelImage ) DataStore.sourceToImage().get( sourceAndConverter );
+			SpotLabelImage spotLabelImage = getSpotLabelImage( sourceAndConverter );
 
 			Double radius = spotLabelImage.getSpotRadius();
 			if ( radius != null )
@@ -88,9 +90,17 @@ public class ConfigureSpotRenderingCommand extends ConfigureLabelRenderingComman
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			final SpotLabelImage spotLabelImage = ( SpotLabelImage ) DataStore.sourceToImage().get( sourceAndConverter );
+			SpotLabelImage spotLabelImage = getSpotLabelImage( sourceAndConverter );
 			spotLabelImage.setSpotRadius( spotRadius );
 		}
+	}
+
+	private static SpotLabelImage getSpotLabelImage( SourceAndConverter sourceAndConverter )
+	{
+		final AnnotationLabelImage annotationLabelImage = ( AnnotationLabelImage ) DataStore.sourceToImage().get( sourceAndConverter );
+		Image labelImage = annotationLabelImage.getLabelImage();
+		SpotLabelImage spotLabelImage = ( SpotLabelImage ) labelImage;
+		return spotLabelImage;
 	}
 
 }

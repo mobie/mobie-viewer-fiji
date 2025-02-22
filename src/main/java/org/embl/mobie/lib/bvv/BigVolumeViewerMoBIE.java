@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import bdv.util.BdvFunctions;
 import net.imglib2.RandomAccess;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
@@ -134,7 +135,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	
 	}
 
-	public void showSource(SourceAndConverter< ? > sac, boolean isVisible)
+	public void showSource( SourceAndConverter< ? > sac, boolean isVisible )
 	{
 		if ( isVisible && bvv == null )
 		{
@@ -155,9 +156,14 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	
 	void addSourceToBVV( SourceAndConverter< ? > sac )
 	{
+		System.out.println( "BigVolumeViewer: " + sac.getSpimSource().getName() + ": " + sac );
+
 		Source< ? > source = getSource( sac );
 
 		final AbstractSpimData< ? > spimData = SourceToSpimDataWrapper.wrap( source );
+
+//		BvvFunctions.show( source );
+//		BdvFunctions.show( spimData );
 		
 		if( spimData == null )
 		{
@@ -212,8 +218,8 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 			bvvSource.setLUT( icmAnnLUT,Integer.toString( icmAnnLUT.hashCode() ) );
 			bvvSource.setDisplayRangeBounds( 0, icmAnnLUT.getMapSize() - 1 );
 			bvvSource.setDisplayRange( 0, icmAnnLUT.getMapSize() - 1 );
-			bvvSource.setAlphaRangeBounds( 0,1);
-			bvvSource.setAlphaRange( 0,1);
+			bvvSource.setAlphaRangeBounds( 0, 1 );
+			bvvSource.setAlphaRange( 0, 1 );
 			bvvSource.setVoxelRenderInterpolation( 0 );
 		}
 		else
