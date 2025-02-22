@@ -56,7 +56,7 @@ public class CollectionTableDataSetter
         int numData = table.rowCount();
         for ( Row row : table )
         {
-            IJ.log("Adding dataset " + dataIndex++ + "/" + numData + "...");
+            IJ.log("Adding dataset " + ++dataIndex + "/" + numData + "...");
 
             final StorageLocation storageLocation = new StorageLocation();
 
@@ -96,18 +96,11 @@ public class CollectionTableDataSetter
                 SpotDataSource spotDataSource = new SpotDataSource(
                         name,
                         TableDataFormat.fromPath( storageLocation.absolutePath ),
-                        storageLocation
-                        );
+                        storageLocation );
                 dataset.putDataSource( spotDataSource );
-
-//                // build spots image from spots table
-//                final SpotImageCreator spotImageCreator = new SpotImageCreator(
-//                        spotDataSource,
-//                        MoBIE.getInstance() );
-//                SpotAnnotationImage< AnnotatedSpot > spotImage = spotImageCreator.create();
-//                DataStore.addImage( spotImage );
-
+                
                 SpotDisplay< AnnotatedRegion > spotDisplay = new SpotDisplay<>( name );
+                spotDisplay.spotRadius = getSpotRadius( row );
                 spotDisplay.sources = Collections.singletonList( spotDataSource.getName() );
                 display = spotDisplay;
             }
@@ -234,7 +227,7 @@ public class CollectionTableDataSetter
                 gridRegionDisplay.sources.put( source, Collections.singletonList( source ) );
 
             // TODO: in some cases only do this once for several grids
-             dataset.views().get( viewName ).displays().add( gridRegionDisplay );
+            dataset.views().get( viewName ).displays().add( gridRegionDisplay );
         }
 
     }
@@ -505,6 +498,18 @@ public class CollectionTableDataSetter
         catch ( Exception e )
         {
             return null;
+        }
+    }
+
+    private static double getSpotRadius( Row row )
+    {
+        try
+        {
+            return row.getNumber( CollectionTableConstants.SPOT_RADIUS );
+        }
+        catch ( Exception e )
+        {
+            return 1.0;
         }
     }
 

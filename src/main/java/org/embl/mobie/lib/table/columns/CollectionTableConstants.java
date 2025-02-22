@@ -311,4 +311,19 @@ public class CollectionTableConstants
      * - OME-Zarr data that does not contain ".ome.zarr" in the path
      */
     public static final String FORMAT = "format";
+
+    /**
+     * The "spot_radius" column MAY be present.
+     *
+     * Supported values:
+     * - Numeric
+     *
+     * Default:
+     * If the column is absent or contains an empty or unsupported string the
+     * spot radius will be set to 1.0
+     *
+     * Use cases:
+     * - Configure how large spots will appear
+     */
+    public static final String SPOT_RADIUS = "spot_radius";
 }

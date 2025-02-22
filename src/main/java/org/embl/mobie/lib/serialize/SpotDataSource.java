@@ -51,7 +51,10 @@ public class SpotDataSource extends AbstractDataSource implements TableDataSourc
 		super( name );
 	}
 
-	public SpotDataSource( String name, TableDataFormat tableDataFormat, StorageLocation storageLocation )
+	public SpotDataSource(
+			String name,
+			TableDataFormat tableDataFormat,
+			StorageLocation storageLocation )
 	{
 		super( name );
 		tableData = new HashMap<>();

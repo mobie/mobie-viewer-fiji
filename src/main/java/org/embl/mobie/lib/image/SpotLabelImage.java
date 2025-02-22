@@ -30,6 +30,7 @@ package org.embl.mobie.lib.image;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
+import bvvpg.vistools.BvvFunctions;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imglib2.*;
 import net.imglib2.neighborsearch.RadiusNeighborSearchOnKDTree;
@@ -78,7 +79,7 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 	{
 		this.name = name;
 		this.annData = annData;
-		this.spotRadius = spotRadius;
+		this.spotRadius = spotRadius != null ? spotRadius : 1.0;
 		this.imageBoundsMin = imageBoundsMin;
 		this.imageBoundsMax = imageBoundsMax;
 
@@ -117,23 +118,14 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 			kdTree.realMax( imageBoundsMax );
 		}
 
-		if ( spotRadius == null)
-		{
-			// Assign each spot an area that is a fraction of the total
-			// covered area divided by the number of spots.
-			// A = Pi R^2 => R ~ Sqrt( A )
-			double area = ( imageBoundsMax[ 0 ] - imageBoundsMin[ 0 ] )
-					* ( imageBoundsMax[ 1 ] - imageBoundsMin[ 1 ] );
-			spotRadius = Math.sqrt( area / numAnnotations ) / 10.0;
-		}
-
-		// adapt bounding box such that all spots are fully rendered
-		// and compute size
+		// enlarge bounding box
+		// such that all spots are fully rendered
 		double[] size = new double[ 3 ];
 		for ( int d = 0; d < 3; d++ )
 		{
-			imageBoundsMin[ d ] -= spotRadius;
-			imageBoundsMax[ d ] += spotRadius;
+			size[ d ] = imageBoundsMax[ d ] - imageBoundsMin[ d ];
+			imageBoundsMin[ d ] -= 0.1 * size[ d ];
+			imageBoundsMax[ d ] += 0.1 * size[ d ];
 			size[ d ] = imageBoundsMax[ d ] - imageBoundsMin[ d ];
 		}
 

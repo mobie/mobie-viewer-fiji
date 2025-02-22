@@ -265,24 +265,31 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 			Converter< AnnotationType, ARGBType > converter = ( Converter< AnnotationType, ARGBType > ) sac.getConverter();
 			String imageName = image.getName();
 			int timePoint = 0;
-			final int numAnnotations;
 
+			int numColors;
+			int maxNumColors = 65535 - 1;
 			if ( annotationAdapter instanceof LazyAnnotationAdapter )
 			{
-				numAnnotations = 65535-1;
+				numColors = maxNumColors;
 			}
 			else if( handle.getViewerPanel().state().getNumTimepoints() > 1 )
 			{
 				timePoint = handle.getViewerPanel().state().getCurrentTimepoint();
-				numAnnotations = numberOfAnnotationsPerTimepoint(annotationAdapter, timePoint, imageName);
+				numColors = numberOfAnnotationsPerTimepoint(annotationAdapter, timePoint, imageName);
 			}
 			else
 			{
-				numAnnotations = ( ( AnnotationLabelImage<?> ) image ).getAnnData().getTable().numAnnotations();
+				numColors = ( ( AnnotationLabelImage<?> ) image ).getAnnData().getTable().numAnnotations();
+			}
+
+			if ( numColors > maxNumColors )
+			{
+				IJ.log( "[WARN] There are more than 65535 annotations; coloring in BVV will be compromised." );
+				numColors = maxNumColors;
 			}
 			
-			final byte [][] colors = new byte [3][numAnnotations+1];
-			final byte [] alphas = new byte [numAnnotations+1];
+			final byte [][] colors = new byte [3][numColors+1];
+			final byte [] alphas = new byte [numColors+1];
 			ARGBType valARGB = new ARGBType();
 			int val;
 			
@@ -292,7 +299,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 			colors[2][0] = 0;
 			alphas[0] = ( byte ) ( 0 );
 			
-			for(int label=1; label<=numAnnotations; label++)
+			for(int label=1; label<=numColors; label++)
 			{
 				final Annotation annotation = annotationAdapter.getAnnotation( imageName, timePoint, label );
 
@@ -303,11 +310,11 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 				colors[ 2 ][ label ] = ( byte ) ARGBType.blue( val );
 				alphas[ label ] = (byte) ARGBType.alpha( val );
 			}
-			return new IndexColorModel(16,numAnnotations+1,colors[0],colors[1],colors[2], alphas);
+			return new IndexColorModel(16,numColors+1,colors[0],colors[1],colors[2], alphas);
 		}
 		return null;
 	}
-	
+
 	static int numberOfAnnotationsPerTimepoint(final AnnotationAdapter< Annotation > annotationAdapter, final int timePoint, String imageName)
 	{
 		int n = 1;
