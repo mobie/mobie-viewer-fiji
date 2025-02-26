@@ -107,26 +107,12 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 
 		if ( imageBoundsMin == null )
 		{
-			imageBoundsMin = new double[ 3 ];
-			kdTree.realMin( imageBoundsMin );
+			setImageBounds();
 		}
 
-		if ( imageBoundsMax == null )
-		{
-			imageBoundsMax = new double[ 3 ];
-			kdTree.realMax( imageBoundsMax );
-		}
-
-		// enlarge bounding box
-		// such that all spots are fully rendered
 		double[] size = new double[ 3 ];
 		for ( int d = 0; d < 3; d++ )
 		{
-			size[ d ] = imageBoundsMax[ d ] - imageBoundsMin[ d ];
-			// enlarge relative to size
-			imageBoundsMin[ d ] -= 0.1 * size[ d ];
-			imageBoundsMax[ d ] += 0.1 * size[ d ];
-			// update size
 			size[ d ] = imageBoundsMax[ d ] - imageBoundsMin[ d ];
 		}
 
@@ -174,6 +160,25 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 				true,
 				null,
 				new FinalVoxelDimensions( "", 1, 1, 1 ) );
+	}
+
+	private void setImageBounds()
+	{
+		imageBoundsMin = new double[ 3 ];
+		kdTree.realMin( imageBoundsMin );
+		imageBoundsMax = new double[ 3 ];
+		kdTree.realMax( imageBoundsMax );
+
+		// enlarge bounding box
+		// such that all spots are fully rendered
+		double[] size = new double[ 3 ];
+		for ( int d = 0; d < 3; d++ )
+		{
+			size[ d ] = imageBoundsMax[ d ] - imageBoundsMin[ d ];
+			// enlarge relative to size
+			imageBoundsMin[ d ] -= 0.1 * size[ d ];
+			imageBoundsMax[ d ] += 0.1 * size[ d ];
+		}
 	}
 
 	@NotNull

@@ -257,8 +257,8 @@ public class CollectionTableConstants
      * or if the "type" column is absent, which causes the type to default to "intensities",
      * otherwise this value is ignored.
      * Supported values:
-     * - Bracketed, semicolon separated list of min and max, e.g.
-     *   - (10;240)
+     * - Bracketed, comma (or semi-colon) separated list of min and max, e.g.
+     *   - (10,240)
      *
      * Default:
      * If the column is absent or can't be parsed, MoBIE will apply an
@@ -326,4 +326,20 @@ public class CollectionTableConstants
      * - Configure how large spots will appear
      */
     public static final String SPOT_RADIUS = "spot_radius";
+
+    /**
+     * The "bounding_box" column MAY be present.
+     *
+     * Supported values:
+     * - two (min and max) bracket comma separated tuple of 3 (x,y,z) floating point values separated with a "-"
+     * - Example: (0.0,0,0)-(200.5,200,50.3)
+     *
+     * Default:
+     * If the column is absent or contains an empty or unsupported string the
+     * bounding box will not be set but automatically computed from the data source
+     *
+     * Use cases:
+     * - Configure the extent of a spot image
+     */
+    public static final String BOUNDING_BOX = "bounding_box";
 }

@@ -97,6 +97,14 @@ public class CollectionTableDataSetter
                         sourceName,
                         TableDataFormat.fromPath( storageLocation.absolutePath ),
                         storageLocation );
+
+                double[][] boundingBox = getBoundingBox( row );
+                if ( boundingBox != null )
+                {
+                    spotDataSource.boundingBoxMin = boundingBox[ 0 ];
+                    spotDataSource.boundingBoxMax = boundingBox[ 1 ];
+                }
+
                 dataset.putDataSource( spotDataSource );
                 
                 SpotDisplay< AnnotatedRegion > spotDisplay = new SpotDisplay<>( getDisplayName( row, sourceName) );
@@ -495,6 +503,31 @@ public class CollectionTableDataSetter
                         string + "does not adhere to this specification." );
 
             return doubles;
+        }
+        catch ( Exception e )
+        {
+            return null;
+        }
+    }
+
+    private static double[][] getBoundingBox( Row row )
+    {
+        try
+        {
+            String string = row.getString( CollectionTableConstants.BOUNDING_BOX );
+            String[] minMax = string.split( "-" );
+            double[][] bb = new double[ 2 ][ 3 ];
+            for ( int i = 0; i < 2; i++ )
+            {
+                String minOrMax = minMax[i].replace("(", "").replace(")", "");
+                String[] values = minOrMax.split("[,;]");
+                double[] doubles = new double[3];
+                for (int d = 0; d < 3; d++) {
+                    doubles[ d ] = Double.parseDouble( values[ d ].trim() );
+                }
+                bb[ i ] = doubles;
+            }
+            return bb;
         }
         catch ( Exception e )
         {
