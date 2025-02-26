@@ -44,6 +44,6 @@ public class OpenPlatybrowser
 		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/platybrowser-project",
                MoBIESettings.settings()
 					   .gitProjectBranch( "main" )
-					   .view( "default" ) );
+					   .view( "cells" ) );
 	}
 }
