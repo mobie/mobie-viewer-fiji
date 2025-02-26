@@ -39,16 +39,16 @@ import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.VolatileAnnotatedLabelSource;
 import org.embl.mobie.lib.table.AnnData;
 
-public class DefaultAnnotationLabelImage< A extends Annotation > implements AnnotationLabelImage< A >
+public class DefaultAnnotatedLabelImage< A extends Annotation > implements AnnotatedLabelImage< A >
 {
 	protected Image< ? extends IntegerType< ? > > labelImage;
 	protected AnnData< A > annData;
 	protected SourcePair< AnnotationType< A > > sourcePair;
 	private AnnotationAdapter< A > annotationAdapter;
 
-	public DefaultAnnotationLabelImage( Image< ? extends IntegerType< ? > > labelImage,
-										AnnData< A > annData,
-										AnnotationAdapter< A > annotationAdapter )
+	public DefaultAnnotatedLabelImage( Image< ? extends IntegerType< ? > > labelImage,
+                                       AnnData< A > annData,
+                                       AnnotationAdapter< A > annotationAdapter )
 	{
 		this.labelImage = labelImage;
 		this.annData = annData;

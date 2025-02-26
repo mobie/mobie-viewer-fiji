@@ -64,7 +64,7 @@ public class CroppedImage< T > implements Image< T >
 	{
 		if ( sourcePair != null ) return;
 
-		SourcePair< T > inputSourcePair = MoBIEHelper.getSourcePairWithNewTransformedSources( image.getSourcePair() );
+		SourcePair< T > inputSourcePair = MoBIEHelper.wrapTransformSourceAroundSourcePair( image.getSourcePair() );
 		final Source< T > source = inputSourcePair.getSource();
 		final Source< ? extends Volatile< T > > volatileSource = inputSourcePair.getVolatileSource();
 

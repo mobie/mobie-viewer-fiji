@@ -41,8 +41,6 @@ import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
-import org.embl.mobie.lib.annotation.AnnotatedSpot;
-import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 import org.embl.mobie.lib.data.*;
 import org.embl.mobie.lib.hcs.HCSDataSetter;
@@ -53,11 +51,10 @@ import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.io.DataFormats;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.*;
-import org.embl.mobie.lib.table.DefaultAnnData;
+import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.columns.CollectionTableConstants;
 import org.embl.mobie.lib.table.saw.TableOpener;
-import org.embl.mobie.lib.table.saw.TableSawAnnotatedSpot;
 import org.embl.mobie.lib.transform.GridType;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.util.ThreadHelper;
@@ -65,6 +62,7 @@ import org.embl.mobie.lib.view.ViewManager;
 import org.embl.mobie.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.ui.UserInterface;
 import org.embl.mobie.ui.WindowArrangementHelper;
+import org.jetbrains.annotations.NotNull;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -680,30 +678,17 @@ public class MoBIE
 	{
 		if ( dataSource instanceof ImageDataSource )
 		{
-			final ImageDataSource imageSource = ( ImageDataSource ) dataSource;
-			final ImageDataFormat imageDataFormat = getImageDataFormat( imageSource );
-			imageDataFormat.setS3SecretAndAccessKey( settings.values.getS3AccessAndSecretKey() );
-			final StorageLocation storageLocation = imageSource.imageData.get( imageDataFormat );
-			final Image< ? > image = initImage( imageDataFormat, storageLocation, imageSource.getName() );
-
-			if ( dataSource.preInit() )
-			{
-				// force initialization here to save time later
-				// (i.e. help smooth rendering in BDV)
-				final Source< ? > source = image.getSourcePair().getSource();
-				final int levels = source.getNumMipmapLevels();
-				for ( int level = 0; level < levels; level++ )
-					source.getSource( 0, level ).randomAccess();
-			}
+			final Image< ? > image = createImage( dataSource );
 
 			if ( dataSource.getClass() == SegmentationDataSource.class )
 			{
-				// label image
-				AnnotationLabelImage< ? > annotationLabelImage =
-						new AnnotatedSegmentationLabelImageCreator( this,
-								( TableDataSource ) dataSource,
-								image ).create();
-				DataStore.addImage( annotationLabelImage );
+				AnnotatedLabelImageCreator creator = new AnnotatedLabelImageCreator(
+						this,
+						( TableDataSource ) dataSource, // label table
+						( Image< ? extends IntegerType< ? > > ) image // label image
+				);
+				AnnotatedLabelImage< ? > annotatedLabelImage = creator.create();
+				DataStore.addImage( annotatedLabelImage );
 			}
 			else
 			{
@@ -711,27 +696,19 @@ public class MoBIE
 				DataStore.addImage( image );
 			}
 		}
-
-		if ( dataSource instanceof SpotDataSource )
+		else if ( dataSource instanceof SpotDataSource )
 		{
-			// build spots image from spots table
 			SpotDataSource spotDataSource = ( SpotDataSource ) dataSource;
-
-			SpotLabelImageCreator creator = new SpotLabelImageCreator( spotDataSource, this );
-			DefaultAnnData< AnnotatedSpot > annData = creator.getAnnData();
-			Image< ? extends IntegerType< ? > > labelImage = creator.getLabelImage();
-
-			final DefaultAnnotationAdapter< TableSawAnnotatedSpot > annotationAdapter
-					= new DefaultAnnotationAdapter( annData );
-
-			// annotation label image of spots
-			AnnotationLabelImage< ? > annotationLabelImage =
-					new DefaultAnnotationLabelImage( labelImage, annData, annotationAdapter );
-
-			DataStore.addImage( annotationLabelImage );
+			final StorageLocation tableLocation = getTableLocation( spotDataSource.tableData );
+			final TableDataFormat tableFormat = getTableDataFormat( spotDataSource.tableData );
+			SpotImageCreator creator = new SpotImageCreator(
+					spotDataSource,
+					tableLocation,
+					tableFormat );
+			AnnotatedLabelImage< ? > spotImage = creator.createSpotImage();
+			DataStore.addImage( spotImage );
 		}
-
-		if ( dataSource instanceof RegionTableSource )
+		else if ( dataSource instanceof RegionTableSource )
 		{
 			// Region images cannot be fully initialised
 			// here because the region annotations can refer
@@ -747,6 +724,27 @@ public class MoBIE
 
 		if ( log != null )
 			IJ.log( log + dataSource.getName() );
+	}
+
+	@NotNull
+	private Image< ? > createImage( DataSource dataSource )
+	{
+		final ImageDataSource imageSource = ( ImageDataSource ) dataSource;
+		final ImageDataFormat imageDataFormat = getImageDataFormat( imageSource );
+		imageDataFormat.setS3SecretAndAccessKey( settings.values.getS3AccessAndSecretKey() );
+		final StorageLocation storageLocation = imageSource.imageData.get( imageDataFormat );
+		final Image< ? > image = initImage( imageDataFormat, storageLocation, imageSource.getName() );
+
+		if ( dataSource.preInit() )
+		{
+			// force initialization here to save time later
+			// (i.e. help smooth rendering in BDV)
+			final Source< ? > source = image.getSourcePair().getSource();
+			final int levels = source.getNumMipmapLevels();
+			for ( int level = 0; level < levels; level++ )
+				source.getSource( 0, level ).randomAccess();
+		}
+		return image;
 	}
 
 

@@ -35,6 +35,7 @@ import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.image.SpotLabelImage;
 import org.embl.mobie.lib.source.AnnotationType;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -65,6 +66,8 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AbstractAnnotatio
 	@Override
 	public List< String > getSources()
 	{
+		if ( sources == null )
+			sources = new ArrayList<>();
 		return sources;
 	}
 

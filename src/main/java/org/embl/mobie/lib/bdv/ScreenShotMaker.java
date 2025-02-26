@@ -51,7 +51,7 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.util.Util;
 import org.embl.mobie.lib.data.DataStore;
-import org.embl.mobie.lib.image.AnnotationLabelImage;
+import org.embl.mobie.lib.image.AnnotatedLabelImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.util.Corners;
@@ -175,9 +175,9 @@ public class ScreenShotMaker
             if ( image instanceof RegionAnnotationImage )
                 continue;
 
-            if ( image instanceof AnnotationLabelImage )
+            if ( image instanceof AnnotatedLabelImage )
             {
-                RandomAccessibleInterval< ? extends IntegerType< ? > > source = ( ( AnnotationLabelImage< ? > ) image ).getLabelImage().getSourcePair().getSource().getSource( 0, 0 );
+                RandomAccessibleInterval< ? extends IntegerType< ? > > source = ( ( AnnotatedLabelImage< ? > ) image ).getLabelImage().getSourcePair().getSource().getSource( 0, 0 );
                 types.add( Util.getTypeFromInterval( source ) );
             }
             else

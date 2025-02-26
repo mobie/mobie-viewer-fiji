@@ -29,7 +29,6 @@
 package org.embl.mobie.lib.bdv.view;
 
 import bdv.tools.transformation.TransformedSource;
-import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
@@ -49,9 +48,8 @@ import org.embl.mobie.lib.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.lib.color.AnnotationARGBConverter;
 import org.embl.mobie.lib.color.ColoringListener;
 import org.embl.mobie.lib.color.VolatileAnnotationARGBConverter;
-import org.embl.mobie.lib.image.AnnotationLabelImage;
+import org.embl.mobie.lib.image.*;
 import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.image.SpotLabelImage;
 import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.serialize.display.AbstractAnnotationDisplay;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
@@ -102,11 +100,22 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 				final SpotDisplay spotDisplay = ( SpotDisplay ) display;
 				if ( spotDisplay.spotRadius != null )
 				{
-					Image labelImage = ( ( AnnotationLabelImage ) image ).getLabelImage();
+					// TODO: Improve this by implementing an unwrapImage function
+					//       similar to the existing unwrapSource function
+					if ( image instanceof AffineTransformedImage )
+					{
+						image = ( Image ) ( ( ImageWrapper ) image ).getWrappedImage();
+					}
+
+					Image labelImage = ( ( AnnotatedLabelImage ) image ).getLabelImage();
+
+					if ( labelImage instanceof AffineTransformedImage )
+					{
+						labelImage = ( Image ) ( ( ImageWrapper ) labelImage ).getWrappedImage();
+					}
+
 					( ( SpotLabelImage ) labelImage ).setSpotRadius( spotDisplay.spotRadius );
 				}
-					// FIXME: Not sure why the below was needed...
-				// DataStore.sourceToImage().forcePut( sourceAndConverter, spotLabelImage );
 			}
 		}
 	}
@@ -155,7 +164,8 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 					final String someSource = display.sources.get( someRegion ).get( 0 );
 					Image< ? > image = DataStore.getImage( someSource );
 					final RealMaskRealInterval mask = image.getMask();
-					RandomAccessibleInterval< ? extends Volatile< ? > > source = image.getSourcePair().getVolatileSource().getSource( 0, 0 );
+					// FIXME Do we really need the source here? Can't we just do it with the mask?
+					RandomAccessibleInterval< ? > source = image.getSourcePair().getSource().getSource( 0, 0 );
 					long[] dimensions = source.dimensionsAsLongArray();
 					double[] realDimensions = new double[3];
 					LinAlgHelpers.subtract( mask.maxAsDoubleArray(), mask.minAsDoubleArray(), realDimensions );

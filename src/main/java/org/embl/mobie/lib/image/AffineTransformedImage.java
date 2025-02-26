@@ -29,6 +29,7 @@
 package org.embl.mobie.lib.image;
 
 import bdv.tools.transformation.TransformedSource;
+import bdv.viewer.Source;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
@@ -80,12 +81,21 @@ public class AffineTransformedImage< T > implements Image< T >, TransformedImage
 
 	private void createSourcePair()
 	{
-		SourcePair< T > defaultSourcePair = MoBIEHelper.getSourcePairWithNewTransformedSources( image.getSourcePair() );
+		// TODO: Is it really necessary to "wrapTransformSourceAroundSourcePair" here?
+		//       This is happening here anyway...
+		SourcePair< T > defaultSourcePair = MoBIEHelper.wrapTransformSourceAroundSourcePair( image.getSourcePair() );
 
 		final TransformedSource< T > transformedSource = new TransformedSource<>( defaultSourcePair.getSource(), name );
 		transformedSource.setFixedTransform( affineTransform3D );
-		final TransformedSource< ? extends Volatile< T > > volatileTransformedSource = new TransformedSource<>(  defaultSourcePair.getVolatileSource(), transformedSource, name );
 
+		if ( defaultSourcePair.getVolatileSource() == null )
+		{
+			this.sourcePair = new DefaultSourcePair<>( transformedSource, null );
+			return;
+		}
+
+		final TransformedSource< ? extends Volatile< T > > volatileTransformedSource
+				= new TransformedSource<>( defaultSourcePair.getVolatileSource(), transformedSource, name );
 		this.sourcePair = new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
 	}
 

@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import bdv.util.BdvFunctions;
 import net.imglib2.RandomAccess;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
@@ -27,9 +26,8 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.*;
 import org.embl.mobie.lib.color.ColoringListener;
 import org.embl.mobie.lib.color.lut.GlasbeyARGBLut;
-import org.embl.mobie.lib.image.AnnotationLabelImage;
+import org.embl.mobie.lib.image.AnnotatedLabelImage;
 import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.image.SpotLabelImage;
 import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.source.AnnotationType;
@@ -195,9 +193,9 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	{
 		Image< ? > image = DataStore.getImage( sac.getSpimSource().getName() );
 		
-		if ( image instanceof AnnotationLabelImage )
+		if ( image instanceof AnnotatedLabelImage )
 		{
-			return  ( ( AnnotationLabelImage<?> ) image ).getLabelImage().getSourcePair().getSource();
+			return  ( ( AnnotatedLabelImage<?> ) image ).getLabelImage().getSourcePair().getSource();
 		}
 		else
 		{
@@ -247,7 +245,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 
 	private static boolean isAnnotation( SourceAndConverter< ? > sac )
 	{
-		return DataStore.getImage( sac.getSpimSource().getName() ) instanceof AnnotationLabelImage;
+		return DataStore.getImage( sac.getSpimSource().getName() ) instanceof AnnotatedLabelImage;
 	}
 	
 	/** returns RGB LUT from the annotation image, i.e. UnsignedLongType
@@ -259,9 +257,9 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	public IndexColorModel getAnnotationLUT( SourceAndConverter< ? > sac )
 	{
 		Image< ? > image = DataStore.getImage( sac.getSpimSource().getName() );
-		if ( image instanceof AnnotationLabelImage )
+		if ( image instanceof AnnotatedLabelImage )
 		{
-			AnnotationAdapter< Annotation > annotationAdapter = ( ( AnnotationLabelImage< Annotation > ) image ).getAnnotationAdapter();
+			AnnotationAdapter< Annotation > annotationAdapter = ( ( AnnotatedLabelImage< Annotation > ) image ).getAnnotationAdapter();
 			Converter< AnnotationType, ARGBType > converter = ( Converter< AnnotationType, ARGBType > ) sac.getConverter();
 			String imageName = image.getName();
 			int timePoint = 0;
@@ -279,7 +277,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 			}
 			else
 			{
-				numColors = ( ( AnnotationLabelImage<?> ) image ).getAnnData().getTable().numAnnotations();
+				numColors = ( ( AnnotatedLabelImage<?> ) image ).getAnnData().getTable().numAnnotations();
 			}
 
 			if ( numColors > maxNumColors )

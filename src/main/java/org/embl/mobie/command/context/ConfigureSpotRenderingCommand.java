@@ -31,7 +31,7 @@ package org.embl.mobie.command.context;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.image.AnnotationLabelImage;
+import org.embl.mobie.lib.image.AnnotatedLabelImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.SpotLabelImage;
 import org.scijava.module.MutableModuleItem;
@@ -97,8 +97,8 @@ public class ConfigureSpotRenderingCommand extends ConfigureLabelRenderingComman
 
 	private static SpotLabelImage getSpotLabelImage( SourceAndConverter sourceAndConverter )
 	{
-		final AnnotationLabelImage annotationLabelImage = ( AnnotationLabelImage ) DataStore.sourceToImage().get( sourceAndConverter );
-		Image labelImage = annotationLabelImage.getLabelImage();
+		final AnnotatedLabelImage annotatedLabelImage = ( AnnotatedLabelImage ) DataStore.sourceToImage().get( sourceAndConverter );
+		Image labelImage = annotatedLabelImage.getLabelImage();
 		SpotLabelImage spotLabelImage = ( SpotLabelImage ) labelImage;
 		return spotLabelImage;
 	}

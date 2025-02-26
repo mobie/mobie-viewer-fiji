@@ -64,7 +64,7 @@ public class CollectionTableDataSetter
             if ( rootPath != null )
                 storageLocation.absolutePath = IOHelper.combinePath( rootPath, storageLocation.absolutePath );
 
-            String name = getName( row );
+            String sourceName = getName( row );
             String dataType = getDataType( row );
 
             Display< ? > display = null;
@@ -77,7 +77,7 @@ public class CollectionTableDataSetter
 
                 SegmentationDataSource segmentationDataSource =
                         SegmentationDataSource.create(
-                                name,
+                                sourceName,
                                 imageDataFormat,
                                 storageLocation,
                                 tableSource
@@ -87,21 +87,21 @@ public class CollectionTableDataSetter
                 dataset.putDataSource( segmentationDataSource );
 
                 display = createSegmentationDisplay(
-                            name,
+                            sourceName,
                             row,
                             tableSource != null );
             }
             else if ( dataType.equals( CollectionTableConstants.SPOTS )  )
             {
                 SpotDataSource spotDataSource = new SpotDataSource(
-                        name,
+                        sourceName,
                         TableDataFormat.fromPath( storageLocation.absolutePath ),
                         storageLocation );
                 dataset.putDataSource( spotDataSource );
                 
-                SpotDisplay< AnnotatedRegion > spotDisplay = new SpotDisplay<>( name );
+                SpotDisplay< AnnotatedRegion > spotDisplay = new SpotDisplay<>( getDisplayName( row, sourceName) );
                 spotDisplay.spotRadius = getSpotRadius( row );
-                spotDisplay.sources = Collections.singletonList( spotDataSource.getName() );
+                spotDisplay.getSources().add( spotDataSource.getName() );
                 display = spotDisplay;
             }
             else // default: intensities
@@ -110,14 +110,14 @@ public class CollectionTableDataSetter
                 storageLocation.setChannel( getChannelIndex( row ) ); // TODO: Fetch from table or URI? https://forum.image.sc/t/loading-only-one-channel-from-an-ome-zarr/97798
 
                 final ImageDataSource imageDataSource = new ImageDataSource(
-                        name,
+                        sourceName,
                         imageDataFormat,
                         storageLocation );
                 imageDataSource.preInit( false );
                 dataset.putDataSource( imageDataSource );
 
                 display = createImageDisplay(
-                    name,
+                    sourceName,
                     row );
             }
 
@@ -150,16 +150,16 @@ public class CollectionTableDataSetter
 
                 if ( gridToDisplay.containsKey( gridId ) )
                 {
-                    // Add image to existing image display
+                    // Add data to existing display
                     Display< ? > existingDisplay = gridToDisplay.get( gridId );
 
-                    if ( existingDisplay instanceof SegmentationDisplay )
+                    if ( existingDisplay instanceof ImageDisplay )
                     {
-                        existingDisplay.getSources().add( name );
+                        ( ( ImageDisplay ) existingDisplay ).addSource( sourceName, getContrastLimits( row ) );
                     }
-                    else if ( existingDisplay instanceof ImageDisplay )
+                    else
                     {
-                        ( ( ImageDisplay ) existingDisplay ).addSource( name, getContrastLimits( row ) );
+                        existingDisplay.getSources().add( sourceName );
                     }
                 }
                 else
@@ -170,10 +170,10 @@ public class CollectionTableDataSetter
 
                 gridToTransformations
                         .computeIfAbsent( gridId, k -> new ArrayList<>() )
-                        .addAll( getAffineTransformationAsList( Collections.singletonList( name ), row ) );
+                        .addAll( getAffineTransformationAsList( Collections.singletonList( sourceName ), row ) );
             }
 
-            IJ.log("  Name: " + name );
+            IJ.log("  Name: " + sourceName );
             IJ.log("  URI: " + storageLocation.absolutePath );
             IJ.log("  Type: " + dataType );
         }
@@ -184,7 +184,8 @@ public class CollectionTableDataSetter
         {
             Display< ? > display = gridToDisplay.get( gridId );
             List< Transformation > transformations = gridToTransformations.get( gridId );
-            GridTransformation grid = new GridTransformation( display.getSources() );
+            List< String > gridSources = display.getSources();
+            GridTransformation grid = new GridTransformation( gridSources );
             transformations.add( grid );
 
             String viewName = gridToView.get( gridId );
@@ -205,14 +206,14 @@ public class CollectionTableDataSetter
                             .stream().mapToInt( i -> i ).toArray() );
             Table regionTable = table.where( rowSelection );
             regionTable.setName( display.getName() + " grid" );
-            regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, display.getSources() ) );
+            regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, gridSources ) );
             final StorageLocation storageLocation = new StorageLocation();
             storageLocation.data = regionTable;
             final RegionTableSource regionTableSource = new RegionTableSource( regionTable.name() );
             regionTableSource.addTable( TableDataFormat.Table, storageLocation );
             DataStore.addRawData( regionTableSource );
 
-            // Create RegionDisplay
+            // Create RegionDisplay to show the grid
 
             final RegionDisplay< AnnotatedRegion > gridRegionDisplay =
                     new RegionDisplay<>( regionTable.name() );
@@ -223,7 +224,7 @@ public class CollectionTableDataSetter
             gridRegionDisplay.boundaryThicknessIsRelative( true );
             gridRegionDisplay.setRelativeDilation( 2 * gridRegionDisplay.getBoundaryThickness() );
 
-            for ( String source : display.getSources() )
+            for ( String source : gridSources )
                 gridRegionDisplay.sources.put( source, Collections.singletonList( source ) );
 
             // TODO: in some cases only do this once for several grids

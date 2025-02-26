@@ -1,0 +1,5 @@
+uri	name	color	channel	type	view	grid	exclusive	contrast_limits	spot_radius
+xyz_c4_organs.tif	o1	green	1	intensities	all	images	TRUE	"(0;4095)"	
+3d-organ-spots.txt	s1			spots	all	spots	TRUE		1.0
+xyz_c4_organs.tif	o2	green	1	intensities	all	images	TRUE	"(0;4095)"	
+3d-organ-spots.txt	s2			spots	all	spots	TRUE		1.0

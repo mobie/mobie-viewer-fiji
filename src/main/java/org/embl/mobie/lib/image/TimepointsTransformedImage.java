@@ -37,7 +37,7 @@ import org.embl.mobie.lib.source.TransformedTimepointSource;
 
 import java.util.HashMap;
 
-import static org.embl.mobie.lib.util.MoBIEHelper.getSourcePairWithNewTransformedSources;
+import static org.embl.mobie.lib.util.MoBIEHelper.wrapTransformSourceAroundSourcePair;
 
 public class TimepointsTransformedImage< T > implements Image< T >, TransformedImage
 {
@@ -67,7 +67,7 @@ public class TimepointsTransformedImage< T > implements Image< T >, TransformedI
 
 	private void createSourcePair()
 	{
-		final SourcePair< T > sourcePair = getSourcePairWithNewTransformedSources( image.getSourcePair() );
+		final SourcePair< T > sourcePair = wrapTransformSourceAroundSourcePair( image.getSourcePair() );
 
 		// apply the time point transformation
 		final TransformedTimepointSource< T > transformedTimepointSource = new TransformedTimepointSource( transformedImageName, sourcePair.getSource(), timepointsMap, keep );

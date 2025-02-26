@@ -30,7 +30,6 @@ package org.embl.mobie.lib.image;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
-import bvvpg.vistools.BvvFunctions;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imglib2.*;
 import net.imglib2.neighborsearch.RadiusNeighborSearchOnKDTree;
@@ -44,7 +43,6 @@ import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.integer.UnsignedLongType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.util.Intervals;
-import net.imglib2.view.Views;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
 import org.embl.mobie.lib.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.lib.table.DefaultAnnData;
@@ -95,6 +93,7 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 	{
 		if ( spotRadius != null )
 		{
+			// the spotRadius is used in the kdTree which generates the image
 			this.spotRadius = spotRadius;
 		}
 	}
@@ -124,8 +123,10 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 		for ( int d = 0; d < 3; d++ )
 		{
 			size[ d ] = imageBoundsMax[ d ] - imageBoundsMin[ d ];
+			// enlarge relative to size
 			imageBoundsMin[ d ] -= 0.1 * size[ d ];
 			imageBoundsMax[ d ] += 0.1 * size[ d ];
+			// update size
 			size[ d ] = imageBoundsMax[ d ] - imageBoundsMin[ d ];
 		}
 
@@ -142,33 +143,32 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 		if ( kdTree.numDimensions() == 2 )
 			rra = RealViews.addDimension( rra );
 
+		// Make the RRA zeroMin
+		// This makes it easier to render the data in BVV
+		// Moreover, any downstream computation will be easier,
+		// because the support for non-zero-min random accessible in ImgLib2 is
+		// not very consistent.
 		AffineTransform3D translateToZeroMin = new AffineTransform3D();
 		translateToZeroMin.translate( Arrays.stream( imageBoundsMin ).map( x -> -x ).toArray() );
 		rra = RealViews.affineReal( rra, translateToZeroMin );
-
-		// TODO: if the spot coordinates are very much sub-integer
-		//       this will not work well in BVV, because BVV accesses the
-		//       voxel grid data; to improve this we would need to upscale the
-		//       spot coordinates and then reflect this in the affineTransform
-
-		// TODO: Code duplication: see RegionLabelImage
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		FinalRealInterval zeroMinRealInterval = new FinalRealInterval( new double[ 3 ], size );
 		final Interval containingZeroMinIntegerInterval = Intervals.smallestContainingInterval( zeroMinRealInterval );
 
-		Type type = getType( numAnnotations );
-
+		// accommodate the zeroMin shift of the RRA
 		affineTransform3D = translateToZeroMin.copy().inverse();
 
-		// TODO: one could make the spot coordinates integer based
-		//  and add a scale here (see also the comment about
-		//  spots with floating point positions above)
+		// TODO: if the spot coordinates are very much sub-integer
+		//       this will not work well in BVV, because BVV renders from the
+		//       voxel grid data; to improve this we would need to upscale the
+		//       spot coordinates and then accommodate for this
+		//       in the source's affineTransform
 		AffineTransform3D sourceTransform = new AffineTransform3D();
 
 		source = new RealRandomAccessibleIntervalTimelapseSource(
 				rra,
 				containingZeroMinIntegerInterval,
-				type,
+				selectApropriateTyoe( numAnnotations ),
 				sourceTransform,
 				name,
 				true,
@@ -177,7 +177,7 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 	}
 
 	@NotNull
-	private static Type getType( int numAnnotations )
+	private static Type selectApropriateTyoe( int numAnnotations )
 	{
 		Type type;
 		if ( numAnnotations < new UnsignedShortType().getMaxValue() )

@@ -205,9 +205,9 @@ public abstract class MoBIEHelper
 			Image< ? > wrappedImage = transformedImage.getWrappedImage();
 			return fetchImageDataInfo( wrappedImage );
 		}
-		else if ( image instanceof AnnotationLabelImage )
+		else if ( image instanceof AnnotatedLabelImage )
 		{
-			Image< ? extends IntegerType< ? > > labelImage = ( ( AnnotationLabelImage< ? > ) image ).getLabelImage();
+			Image< ? extends IntegerType< ? > > labelImage = ( ( AnnotatedLabelImage< ? > ) image ).getLabelImage();
 			return fetchImageDataInfo( labelImage );
 		}
 		else
@@ -1106,9 +1106,9 @@ public abstract class MoBIEHelper
 			transformations.add( transformedImage.getTransformation() );
 			collectTransformations( transformedImage.getWrappedImage(), transformations );
 		}
-		else if ( image instanceof AnnotationLabelImage )
+		else if ( image instanceof AnnotatedLabelImage )
 		{
-			Image< ? extends IntegerType< ? > > labelImage = ( ( AnnotationLabelImage< ? > ) image ).getLabelImage();
+			Image< ? extends IntegerType< ? > > labelImage = ( ( AnnotatedLabelImage< ? > ) image ).getLabelImage();
 			collectTransformations( labelImage, transformations );
 		}
 		else
@@ -1193,14 +1193,20 @@ public abstract class MoBIEHelper
 	// because otherwise, if the incremental transformations of the input TransformedSources
 	// are changed, e.g. by the current logic of how the ManualTransformEditor works,
 	// this would create a mess.
-	public static < T > SourcePair< T > getSourcePairWithNewTransformedSources( SourcePair< T > sourcePair )
+	public static < T > SourcePair< T > wrapTransformSourceAroundSourcePair( SourcePair< T > sourcePair )
 	{
 		TransformedSource< T > inputTransformedSource = ( TransformedSource< T > ) sourcePair.getSource();
 		Source< T > inputSource = inputTransformedSource.getWrappedSource();
-		TransformedSource< ? > wrappedTransformedSource = new TransformedSource<>( inputSource, inputSource.getName() );
+		TransformedSource< T > wrappedTransformedSource = new TransformedSource<>( inputSource, inputSource.getName() );
 		AffineTransform3D transform3D = new AffineTransform3D();
 		inputTransformedSource.getFixedTransform( transform3D );
 		wrappedTransformedSource.setFixedTransform( transform3D );
+
+		if ( sourcePair.getVolatileSource() == null )
+		{
+			return new DefaultSourcePair<>( wrappedTransformedSource, null );
+		}
+
 		Source< ? extends Volatile< T > > inputVolatileSource = ( ( TransformedSource< ? extends Volatile< T > > ) sourcePair.getVolatileSource() ).getWrappedSource();
 		TransformedSource wrappedTransformedVolatileSource = new TransformedSource<>( inputVolatileSource, wrappedTransformedSource );
 		return new DefaultSourcePair<>( wrappedTransformedSource, wrappedTransformedVolatileSource );

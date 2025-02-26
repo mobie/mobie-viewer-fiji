@@ -26,15 +26,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.image;
+package develop;
 
-import net.imglib2.type.numeric.IntegerType;
-import org.embl.mobie.lib.annotation.Annotation;
-import org.embl.mobie.lib.annotation.AnnotationAdapter;
+import examples.OpenCollectionTable;
+import net.imagej.ImageJ;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.command.open.OpenCollectionTableCommand;
 
-public interface AnnotationLabelImage< A extends Annotation > extends AnnotationImage< A >, ImageWrapper
+import java.io.File;
+import java.io.IOException;
+
+public class OpenSpotCollectionGrid
 {
-	Image< ? extends IntegerType< ? > > getLabelImage();
+	public static void main( String[] args ) throws IOException
+	{
+		final ImageJ imageJ = new ImageJ();
+		imageJ.ui().showUI();
 
-	AnnotationAdapter< A > getAnnotationAdapter();
+		OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+		command.dataRoot = OpenCollectionTableCommand.DataRoot.UseTableFolder;
+		command.table = new File("src/test/resources/collections/organ_spots_collection_grid.tsv");
+		command.run();
+	}
 }

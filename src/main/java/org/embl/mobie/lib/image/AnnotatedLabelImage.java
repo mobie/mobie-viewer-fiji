@@ -26,41 +26,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.transform;
+package org.embl.mobie.lib.image;
 
-import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.lib.annotation.AnnotatedSegment;
-import org.embl.mobie.lib.annotation.AnnotatedSpot;
+import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.lib.annotation.Annotation;
+import org.embl.mobie.lib.annotation.AnnotationAdapter;
 
-public class AnnotationAffineTransformer< A extends Annotation, TA extends A > implements AnnotationTransformer< A, TA >
+public interface AnnotatedLabelImage< A extends Annotation > extends AnnotationImage< A >, ImageWrapper
 {
-	private AffineTransform3D affineTransform3D;
+	Image< ? extends IntegerType< ? > > getLabelImage();
 
-	public AnnotationAffineTransformer( AffineTransform3D affineTransform3D )
-	{
-		this.affineTransform3D = affineTransform3D;
-	}
-
-	@Override
-	public TA transform( A annotation )
-	{
-		if ( annotation instanceof AnnotatedSegment )
-		{
-			final AffineTransformedAnnotatedSegment transformedSegment
-					= new AffineTransformedAnnotatedSegment( ( AnnotatedSegment ) annotation, affineTransform3D );
-
-			return ( TA ) transformedSegment;
-		}
-		else if ( annotation instanceof AnnotatedSpot )
-		{
-			AffineTransformedAnnotatedSpot< AnnotatedSpot > transformedSpot
-					= new AffineTransformedAnnotatedSpot<>( ( AnnotatedSpot ) annotation, affineTransform3D );
-			return ( TA ) transformedSpot;
-		}
-		else
-		{
-			throw new UnsupportedOperationException( "Affine transformation of " + annotation.getClass().getName() + " is currently not supported" );
-		}
-	}
+	AnnotationAdapter< A > getAnnotationAdapter();
 }

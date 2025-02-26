@@ -65,10 +65,10 @@ public class ImageTransformer
 //			return image;
 //		}
 
-		if ( image instanceof AnnotationLabelImage )
+		if ( image instanceof AnnotatedLabelImage )
 		{
 			return createTransformedAnnotatedLabelImage(
-					( AnnotationLabelImage ) image,
+					( AnnotatedLabelImage ) image,
 					affineTransformation );
 		}
 		else if ( image instanceof AnnotationImage )
@@ -125,8 +125,8 @@ public class ImageTransformer
 		return realTransformedImage;
 	}
 
-	private static < A extends Annotation, TA extends A > DefaultAnnotationLabelImage< ? > createTransformedAnnotatedLabelImage(
-			AnnotationLabelImage< A > annotatedLabelImage,
+	private static < A extends Annotation, TA extends A > DefaultAnnotatedLabelImage< ? > createTransformedAnnotatedLabelImage(
+			AnnotatedLabelImage< A > annotatedLabelImage,
 			AffineTransformation affineTransformation )
 	{
 		final Image< ? extends IntegerType< ? > > labelImage = annotatedLabelImage.getLabelImage();
@@ -140,7 +140,7 @@ public class ImageTransformer
 		{
 			// There are no annotations with coordinates,
 			// thus we do not need to transform them.
-			return new DefaultAnnotationLabelImage< A >( transformedLabelImage, annData, annotationAdapter );
+			return new DefaultAnnotatedLabelImage< A >( transformedLabelImage, annData, annotationAdapter );
 		}
 		else
 		{
@@ -154,7 +154,7 @@ public class ImageTransformer
 							transformedAnnData,
 							annotatedLabelImage.getName() );
 
-			return new DefaultAnnotationLabelImage< TA >( transformedLabelImage, transformedAnnData, newAnnotationAdapter );
+			return new DefaultAnnotatedLabelImage< TA >( transformedLabelImage, transformedAnnData, newAnnotationAdapter );
 		}
 	}
 

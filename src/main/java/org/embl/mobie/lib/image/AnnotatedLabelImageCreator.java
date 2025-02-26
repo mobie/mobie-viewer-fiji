@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.image;
 
+import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
@@ -43,13 +44,13 @@ import org.embl.mobie.lib.table.saw.TableSawAnnotatedSegmentCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationTableModel;
 import tech.tablesaw.api.Table;
 
-public class AnnotatedSegmentationLabelImageCreator
+public class AnnotatedLabelImageCreator
 {
-	private AnnotationLabelImage< ? > annotatedLabelImage;
+	private AnnotatedLabelImage< ? > annotatedLabelImage;
 
-	public AnnotatedSegmentationLabelImageCreator( MoBIE moBIE,
-												   TableDataSource dataSource,
-												   Image< ? > labelImage // this must be IntegerType
+	public AnnotatedLabelImageCreator( MoBIE moBIE,
+									   TableDataSource dataSource,
+									   Image< ? extends IntegerType< ? > > labelImage // this must be IntegerType
 	)
 	{
 		if ( dataSource.getTableData() != null )
@@ -70,7 +71,7 @@ public class AnnotatedSegmentationLabelImageCreator
 
 			final DefaultAnnotationAdapter< TableSawAnnotatedSegment > annotationAdapter = new DefaultAnnotationAdapter( annData );
 
-			annotatedLabelImage = new DefaultAnnotationLabelImage( labelImage, annData, annotationAdapter );
+			annotatedLabelImage = new DefaultAnnotatedLabelImage( labelImage, annData, annotationAdapter );
 		}
 		else
 		{
@@ -78,11 +79,11 @@ public class AnnotatedSegmentationLabelImageCreator
 			final LazyAnnotatedSegmentTableModel tableModel = new LazyAnnotatedSegmentTableModel( labelImage.getName() );
 			final DefaultAnnData< AnnotatedSegment > annData = new DefaultAnnData<>( tableModel );
 			final LazyAnnotatedSegmentAdapter segmentAdapter = new LazyAnnotatedSegmentAdapter( labelImage.getName(), tableModel );
-			annotatedLabelImage = new DefaultAnnotationLabelImage( labelImage, annData, segmentAdapter );
+			annotatedLabelImage = new DefaultAnnotatedLabelImage( labelImage, annData, segmentAdapter );
 		}
 	}
 
-	public AnnotationLabelImage< ? > create()
+	public AnnotatedLabelImage< ? > create()
 	{
 		return annotatedLabelImage;
 	}

@@ -28,9 +28,11 @@
  */
 package org.embl.mobie.lib.image;
 
+import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
+import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.SpotDataSource;
 import org.embl.mobie.lib.table.DefaultAnnData;
@@ -42,21 +44,25 @@ import org.embl.mobie.lib.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationTableModel;
 import tech.tablesaw.api.Table;
 
-public class SpotLabelImageCreator
+public class SpotImageCreator
 {
 	private final SpotDataSource spotDataSource;
-	private final MoBIE moBIE;
+	private final StorageLocation tableLocation;
+	private final TableDataFormat tableFormat;
 	private Image< ? extends IntegerType< ? >  > labelImage;
 	private DefaultAnnData< AnnotatedSpot > annData;
 
-	public SpotLabelImageCreator( SpotDataSource dataSource, MoBIE moBIE )
+	public SpotImageCreator( SpotDataSource spotDataSource,
+							 StorageLocation tableLocation,
+							 TableDataFormat tableFormat )
 	{
-		this.spotDataSource = dataSource;
-		this.moBIE = moBIE;
+		this.spotDataSource = spotDataSource;
+		this.tableLocation = tableLocation;
+		this.tableFormat = tableFormat;
+	}
 
-		final StorageLocation tableLocation = moBIE.getTableLocation( spotDataSource.tableData );
-		final TableDataFormat tableFormat = moBIE.getTableDataFormat( spotDataSource.tableData );
-
+	public AnnotatedLabelImage< ? > createSpotImage()
+	{
 		Table table = TableOpener.open( tableLocation, tableFormat );
 
 		// TODO: maybe make the spot column names mapping configurable?
@@ -79,15 +85,14 @@ public class SpotLabelImageCreator
 				null,
 				spotDataSource.boundingBoxMin,
 				spotDataSource.boundingBoxMax );
-	}
 
-	public Image< ? extends IntegerType< ? > > getLabelImage()
-	{
-		return labelImage;
-	}
+		final DefaultAnnotationAdapter< TableSawAnnotatedSpot > annotationAdapter
+				= new DefaultAnnotationAdapter( annData );
 
-	public DefaultAnnData< AnnotatedSpot > getAnnData()
-	{
-		return annData;
+		// annotated spots label image
+		AnnotatedLabelImage< ? > annotatedLabelImage =
+				new DefaultAnnotatedLabelImage( labelImage, annData, annotationAdapter );
+
+		return annotatedLabelImage;
 	}
 }
