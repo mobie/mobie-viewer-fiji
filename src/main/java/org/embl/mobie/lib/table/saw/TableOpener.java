@@ -45,10 +45,7 @@ import tech.tablesaw.api.IntColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -215,7 +212,8 @@ public class TableOpener
 		if ( path.endsWith( ".tsv" ) )
 			return '\t';
 
-		try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(IOHelper.getInputStream( path ))))
+		{
 			String firstLine = reader.readLine();
 			if (firstLine != null) {
 				if (firstLine.contains("\t")) {
@@ -226,7 +224,9 @@ public class TableOpener
 					return ','; // We could throw an error, but maybe there is only one column ?
 				}
 			}
-		} catch (IOException e) {
+		}
+		catch (IOException e)
+		{
 			throw new RuntimeException( e );
 		}
 

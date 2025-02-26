@@ -45,6 +45,8 @@ public class View
 	//
 	private String uiSelectionGroup;
 
+	private String[] uiSelectionGroups;
+
 	private List< Display< ? > > sourceDisplays;
 
 	private List< Transformation > sourceTransforms;
@@ -152,6 +154,11 @@ public class View
 	public String getUiSelectionGroup()
 	{
 		return uiSelectionGroup;
+	}
+
+	public String[] getUiSelectionGroups()
+	{
+		return uiSelectionGroups;
 	}
 
 	public ViewerTransform getViewerTransform()
