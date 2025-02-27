@@ -711,10 +711,10 @@ public class MoBIE
 		else if ( dataSource instanceof RegionTableSource )
 		{
 			// Region images cannot be fully initialised
-			// here because the region annotations can refer
+			// yet because the region annotations can refer
 			// to images that are created later by means of a
 			// transformation.
-			// However, we can already load the region table here.
+			// However, we can already load the region table.
 			final RegionTableSource regionTableSource = ( RegionTableSource ) dataSource;
 			final StorageLocation tableLocation = getTableLocation( regionTableSource.tableData );
 			final TableDataFormat tableFormat = getTableDataFormat( regionTableSource.tableData );

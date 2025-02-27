@@ -59,24 +59,33 @@ public class TableSawAnnotatedSpotCreator implements TableSawAnnotationCreator< 
 	@Override
 	public TableSawAnnotatedSpot create( TableSawAnnotationTableModel< TableSawAnnotatedSpot > model, int rowIndex )
 	{
-		final Table table = model.getTable();
-		int numDimensions = zColumnIndex > -1 ? 3 : 2;
-		final float[] position = new float[ numDimensions ];
-		position[ 0 ] = ((Number) table.get( rowIndex, xColumnIndex )).floatValue();
-		position[ 1 ] = ((Number) table.get( rowIndex, yColumnIndex )).floatValue();
-		// FIXME kdTree issue: https://imagesc.zulipchat.com/#narrow/stream/327240-ImgLib2/topic/kdTree.20issue
-		if ( zColumnIndex > -1 )
-			position[ 2 ] = ((Number) table.get( rowIndex, zColumnIndex )).floatValue() + (float) ( 1e-3 * Math.random() );
+		try
+		{
+			final Table table = model.getTable();
+			int numDimensions = zColumnIndex > -1 ? 3 : 2;
+			final float[] position = new float[ numDimensions ];
 
-		int label = ((Number) table.get( rowIndex, spotIDColumnIndex )).intValue();
+			position[ 0 ] = ( ( Number ) table.get( rowIndex, xColumnIndex ) ).floatValue();
+			position[ 1 ] = ( ( Number ) table.get( rowIndex, yColumnIndex ) ).floatValue();
+			// FIXME kdTree issue: https://imagesc.zulipchat.com/#narrow/stream/327240-ImgLib2/topic/kdTree.20issue
+			if ( zColumnIndex > -1 )
+				position[ 2 ] = ((Number) table.get( rowIndex, zColumnIndex )).floatValue() + (float) ( 1e-3 * Math.random() );
 
-		int timePoint = 0;
-		if ( timePointColumnIndex > -1 )
-			timePoint = ((Number) table.get( rowIndex, timePointColumnIndex )).intValue();
+			int label = ((Number) table.get( rowIndex, spotIDColumnIndex )).intValue();
 
-		String source = table.name();
+			int timePoint = 0;
+			if ( timePointColumnIndex > -1 )
+				timePoint = ((Number) table.get( rowIndex, timePointColumnIndex )).intValue();
 
-		return new TableSawAnnotatedSpot( model, rowIndex, label, position, timePoint, source );
+			String source = table.name();
+
+			return new TableSawAnnotatedSpot( model, rowIndex, label, position, timePoint, source );
+		}
+		catch ( Exception e )
+		{
+			System.err.println("Error parsing row (zero-based) " + rowIndex + " of table " + model.getTable().name() );
+			throw new RuntimeException( e );
+		}
 	}
 
 	@Override

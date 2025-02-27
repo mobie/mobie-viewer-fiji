@@ -245,25 +245,34 @@ public class SliceViewer
 
 	public void show( Image< ? > image, SourceAndConverter< ? > sourceAndConverter, AbstractDisplay< ? > display )
 	{
-		// register sac
-		SourceAndConverterServices.getSourceAndConverterService().register( sourceAndConverter );
+		try
+		{
+			// register sac
+			SourceAndConverterServices.getSourceAndConverterService().register( sourceAndConverter );
 
-		// link sac to image
-		DataStore.sourceToImage().forcePut( sourceAndConverter, image );
+			// link sac to image
+			DataStore.sourceToImage().forcePut( sourceAndConverter, image );
 
-		// blending mode
-		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.class.getName(), display.getBlendingMode() );
+			// blending mode
+			SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.class.getName(), display.getBlendingMode() );
 
-		// time added (for alpha blending)
-		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.TIME_ADDED, System.currentTimeMillis() );
+			// time added (for alpha blending)
+			SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.TIME_ADDED, System.currentTimeMillis() );
 
-		// opacity
-		OpacityHelper.setOpacity( sourceAndConverter, display.getOpacity() );
+			// opacity
+			OpacityHelper.setOpacity( sourceAndConverter, display.getOpacity() );
 
-		// show in Bdv
-		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
+			// show in Bdv
+			SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
 
-		updateTimepointSlider();
+			updateTimepointSlider();
+		}
+		catch ( Exception e )
+		{
+			System.err.println("There was an error when trying to show " + image.getName() );
+			e.printStackTrace();
+			throw new RuntimeException( e );
+		}
 	}
 
 	public void updateTimepointSlider()
