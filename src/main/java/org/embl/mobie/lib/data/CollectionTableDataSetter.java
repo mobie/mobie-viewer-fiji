@@ -14,7 +14,6 @@ import org.embl.mobie.lib.serialize.display.*;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.GridTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
-import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
 import org.embl.mobie.lib.table.columns.CollectionTableConstants;
@@ -22,9 +21,7 @@ import org.embl.mobie.lib.util.MoBIEHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tech.tablesaw.api.Row;
-import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
-import tech.tablesaw.selection.Selection;
 
 import java.util.*;
 
@@ -34,12 +31,11 @@ public class CollectionTableDataSetter
     private final String rootPath;
 
     private final Map< String, String > viewToGroup = new LinkedHashMap<>();
-
-    private final Map< String, Display< ? > > gridToDisplay = new LinkedHashMap<>();
-    private final Map< String, List< Transformation > > gridToTransformations = new LinkedHashMap<>();
-    private final Map< String, String > gridToView = new LinkedHashMap<>();
-    private final Map< String, List< Integer > > gridToRowIndices = new LinkedHashMap<>();
-    private final Map< String, Boolean > gridToExclusive = new LinkedHashMap<>();
+    private final Map< String, Set< String > > viewToGrids = new LinkedHashMap<>();
+    private final Map< String, List< String > > gridToSources = new LinkedHashMap<>();
+    private final Map< String, Set< String > > viewToDisplays = new LinkedHashMap<>();
+    private final Map< String, Boolean > viewToExclusive = new LinkedHashMap<>();
+    private final Map< String, List< Transformation > > viewToTransformations = new LinkedHashMap<>();
 
     public CollectionTableDataSetter( Table table, String rootPath )
     {
@@ -52,193 +48,260 @@ public class CollectionTableDataSetter
         if ( ! table.containsColumn( CollectionTableConstants.URI ) )
             throw new RuntimeException( "Column \"" + CollectionTableConstants.URI + "\" must be present in the collection table." );
 
-        int dataIndex = 0;
+        Map< String, Display< ? > > displays = new HashMap< String, Display< ? >>();
+        int sourceIndex = 0;
         int numData = table.rowCount();
+
         for ( Row row : table )
         {
-            IJ.log("Adding dataset " + ++dataIndex + "/" + numData + "...");
-
-            final StorageLocation storageLocation = new StorageLocation();
-
-            storageLocation.absolutePath = getUri( row );
-            if ( rootPath != null )
-                storageLocation.absolutePath = IOHelper.combinePath( rootPath, storageLocation.absolutePath );
-
+            IJ.log("Adding source " + (++sourceIndex) + "/" + numData + "...");
+            
             String sourceName = getName( row );
-            String dataType = getDataType( row );
+            String displayName = getDisplayName( row );
 
-            Display< ? > display = null;
-            if ( dataType.equals( CollectionTableConstants.LABELS )  )
+            addSource( dataset, row, sourceName, displays, displayName );
+
+            String viewName = getViewName( row );
+            String gridName = getGridId( row );
+            if ( gridName != null )
             {
-                ImageDataFormat imageDataFormat = getImageDataFormat( row, storageLocation );
-                storageLocation.setChannel( getChannelIndex( row ) ); // TODO: Fetch from table or URI? https://forum.image.sc/t/loading-only-one-channel-from-an-ome-zarr/97798
-
-                TableSource tableSource = getTable( row, rootPath );
-
-                SegmentationDataSource segmentationDataSource =
-                        SegmentationDataSource.create(
-                                sourceName,
-                                imageDataFormat,
-                                storageLocation,
-                                tableSource
-                        );
-
-                segmentationDataSource.preInit( false );
-                dataset.putDataSource( segmentationDataSource );
-
-                display = createSegmentationDisplay(
-                            sourceName,
-                            row,
-                            tableSource != null );
+                gridToSources.computeIfAbsent( gridName, k -> new ArrayList<>() ).add( sourceName );
+                viewToGrids.computeIfAbsent( viewName, k -> new HashSet<>() ).add( gridName );
             }
-            else if ( dataType.equals( CollectionTableConstants.SPOTS )  )
-            {
-                SpotDataSource spotDataSource = new SpotDataSource(
-                        sourceName,
-                        TableDataFormat.fromPath( storageLocation.absolutePath ),
-                        storageLocation );
 
-                double[][] boundingBox = getBoundingBox( row );
-                if ( boundingBox != null )
+            viewToDisplays.computeIfAbsent( viewName, k -> new HashSet<>() ).add( displayName );
+            viewToDisplays.get( viewName ).add( displayName );
+            viewToGroup.put( viewName, getGroupName( row ) );
+            viewToExclusive.put( viewName, getExclusive( row ) );
+            viewToTransformations.computeIfAbsent( viewName, k -> new ArrayList<>() ).addAll( getAffineTransformations( sourceName, row ) );
+
+//            if ( gridId == null )
+//            {
+//                addDisplayToView(
+//                        getViewName( row ),
+//                        getGroupName( row ),
+//                        getExclusive( row ),
+//                        display,
+//                        getAffineTransformationAsList( display.getSources(), row ),
+//                        dataset.views() );
+//            }
+//            else
+//            {
+//                // FIXME: This is for creating the gridRegionDisplay
+//                //    If we only want one RegionDisplay for a grid then
+//                //    we have an issue, because there can be multiple table rows
+//                //    that belong to the same region
+//                gridToRowIndices
+//                        .computeIfAbsent( gridId, k -> new ArrayList<>() )
+//                        .add( row.getRowNumber() );
+//
+//                String gridViewName = getViewName( display, row ); // defaults to display=grid name if view name is absent
+//                gridToView.put( gridId, gridViewName );
+//                gridToExclusive.put( gridId, getExclusive( row ) );
+//                viewToGroup.put( gridViewName, getGroupName( display, row ) );
+//
+//                // FIXME This should be the display and not the grid
+//                if ( gridToDisplay.containsKey( gridId ) )
+//                {
+//                    // Add data to existing display
+//                    Display< ? > existingDisplay = gridToDisplay.get( gridId );
+//
+//                    if ( existingDisplay instanceof ImageDisplay )
+//                    {
+//                        ( ( ImageDisplay ) existingDisplay ).addSource( sourceName, getContrastLimits( row ) );
+//                    }
+//                    else
+//                    {
+//                        existingDisplay.getSources().add( sourceName );
+//                    }
+//                }
+//                else
+//                {
+//                    // Register the display
+//                    gridToDisplay.put( gridId, display );
+//                }
+//
+//                gridToTransformations
+//                        .computeIfAbsent( gridId, k -> new ArrayList<>() )
+//                        .addAll( getAffineTransformationAsList( Collections.singletonList( sourceName ), row ) );
+//            }
+
+
+        } // table rows
+
+
+        // Create views
+        Set< String > viewNames = viewToDisplays.keySet();
+        for ( String viewName : viewNames )
+        {
+            ArrayList< Transformation > transformations = new ArrayList<>();
+
+            transformations.addAll( viewToTransformations.get( viewName ) );
+
+            if ( viewToGrids.containsKey( viewName ) )
+            {
+                Set< String > gridNames = viewToGrids.get( viewName );
+                for ( String gridName : gridNames )
                 {
-                    spotDataSource.boundingBoxMin = boundingBox[ 0 ];
-                    spotDataSource.boundingBoxMax = boundingBox[ 1 ];
+                    List< String > gridSources = gridToSources.get( gridName );
+                    GridTransformation grid = new GridTransformation( gridSources );
+                    transformations.add( grid );
                 }
-
-                dataset.putDataSource( spotDataSource );
-                
-                SpotDisplay< AnnotatedRegion > spotDisplay = new SpotDisplay<>( getDisplayName( row, sourceName) );
-                spotDisplay.spotRadius = getSpotRadius( row );
-                spotDisplay.getSources().add( spotDataSource.getName() );
-                display = spotDisplay;
-            }
-            else // default: intensities
-            {
-                ImageDataFormat imageDataFormat = getImageDataFormat( row, storageLocation );
-                storageLocation.setChannel( getChannelIndex( row ) ); // TODO: Fetch from table or URI? https://forum.image.sc/t/loading-only-one-channel-from-an-ome-zarr/97798
-
-                final ImageDataSource imageDataSource = new ImageDataSource(
-                        sourceName,
-                        imageDataFormat,
-                        storageLocation );
-                imageDataSource.preInit( false );
-                dataset.putDataSource( imageDataSource );
-
-                display = createImageDisplay(
-                    sourceName,
-                    row );
             }
 
-            String gridId = getGridId( row );
-
-            if ( gridId == null )
+            Set< String > displayNames = viewToDisplays.get( viewName );
+            for ( String displayName : displayNames )
             {
-                addDisplayToView(
-                        getViewName( display, row ),
-                        getGroupName( display, row ),
-                        getExclusive( row ),
+                Display< ? > display = displays.get( displayName );
+
+                View view = addDisplayToView(
+                        dataset,
+                        viewName,
+                        viewToGroup.get( viewName ),
+                        viewToExclusive.get( viewName ),
                         display,
-                        getAffineTransformationAsList( display.getSources(), row ),
-                        dataset.views() );
+                        transformations );
+
+                view.overlayNames( false );
+            }
+
+//            // Create grid regions table
+//            Selection rowSelection = Selection
+//                    .with( gridToRowIndices.get( viewName )
+//                            .stream().mapToInt( i -> i ).toArray() );
+//            Table regionTable = table.where( rowSelection );
+//            regionTable.setName( display.getName() + " grid" );
+//            regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, gridSources ) );
+//            final StorageLocation storageLocation = new StorageLocation();
+//            storageLocation.data = regionTable;
+//            final RegionTableSource regionTableSource = new RegionTableSource( regionTable.name() );
+//            regionTableSource.addTable( TableDataFormat.Table, storageLocation );
+//            DataStore.addRawData( regionTableSource );
+//
+//            // Create RegionDisplay to show the grid
+//
+//            final RegionDisplay< AnnotatedRegion > gridRegionDisplay =
+//                    new RegionDisplay<>( regionTable.name() );
+//            gridRegionDisplay.sources = new LinkedHashMap<>();
+//            gridRegionDisplay.tableSource = regionTable.name();
+//            gridRegionDisplay.showAsBoundaries( true );
+//            gridRegionDisplay.setBoundaryThickness( 0.05 );
+//            gridRegionDisplay.boundaryThicknessIsRelative( true );
+//            gridRegionDisplay.setRelativeDilation( 2 * gridRegionDisplay.getBoundaryThickness() );
+//
+//            for ( String source : gridSources )
+//                gridRegionDisplay.sources.put( source, Collections.singletonList( source ) );
+//
+//            // TODO: in some cases only do this once for several grids
+//            dataset.views().get( viewName ).displays().add( gridRegionDisplay );
+        }
+
+    }
+
+    private void addSource( Dataset dataset, Row row, String sourceName, Map< String, Display< ? > > displays, String displayName )
+    {
+        String dataType = getDataType( row );
+
+        final StorageLocation storageLocation = new StorageLocation();
+        storageLocation.absolutePath = getUri( row );
+        if ( rootPath != null )
+            storageLocation.absolutePath = IOHelper.combinePath( rootPath, storageLocation.absolutePath );
+
+        if ( dataType.equals( CollectionTableConstants.LABELS )  )
+        {
+            ImageDataFormat imageDataFormat = getImageDataFormat( row, storageLocation );
+            storageLocation.setChannel( getChannelIndex( row ) ); // TODO: Fetch from table or URI? https://forum.image.sc/t/loading-only-one-channel-from-an-ome-zarr/97798
+
+            TableSource tableSource = getTable( row, rootPath );
+
+            SegmentationDataSource segmentationDataSource =
+                    SegmentationDataSource.create(
+                            sourceName,
+                            imageDataFormat,
+                            storageLocation,
+                            tableSource
+                    );
+
+            segmentationDataSource.preInit( false );
+            dataset.putDataSource( segmentationDataSource );
+
+            if ( displays.containsKey( displayName ) )
+            {
+                displays.get( displayName ).getSources().add( sourceName );
             }
             else
             {
-                // FIXME: This is for creating the gridRegionDisplay
-                //    If we only want one RegionDisplay for a grid then
-                //    we have an issue, because there can be multiple table rows
-                //    that belong to the same region
-                gridToRowIndices
-                        .computeIfAbsent( gridId, k -> new ArrayList<>() )
-                        .add( row.getRowNumber() );
+                Display< ? > display = createSegmentationDisplay(
+                        sourceName,
+                        row,
+                        tableSource != null );
 
-                String gridViewName = getViewName( display, row ); // defaults to display=grid name if view name is absent
-                gridToView.put( gridId, gridViewName );
-                gridToExclusive.put( gridId, getExclusive( row ) );
-                viewToGroup.put( gridViewName, getGroupName( display, row ) );
+                displays.put( display.getName(), display );
+            }
+        }
+        else if ( dataType.equals( CollectionTableConstants.SPOTS )  )
+        {
+            SpotDataSource spotDataSource = new SpotDataSource(
+                    sourceName,
+                    TableDataFormat.fromPath( storageLocation.absolutePath ),
+                    storageLocation );
 
-                if ( gridToDisplay.containsKey( gridId ) )
-                {
-                    // Add data to existing display
-                    Display< ? > existingDisplay = gridToDisplay.get( gridId );
-
-                    if ( existingDisplay instanceof ImageDisplay )
-                    {
-                        ( ( ImageDisplay ) existingDisplay ).addSource( sourceName, getContrastLimits( row ) );
-                    }
-                    else
-                    {
-                        existingDisplay.getSources().add( sourceName );
-                    }
-                }
-                else
-                {
-                    // Register the display
-                    gridToDisplay.put( gridId, display );
-                }
-
-                gridToTransformations
-                        .computeIfAbsent( gridId, k -> new ArrayList<>() )
-                        .addAll( getAffineTransformationAsList( Collections.singletonList( sourceName ), row ) );
+            double[][] boundingBox = getBoundingBox( row );
+            if ( boundingBox != null )
+            {
+                spotDataSource.boundingBoxMin = boundingBox[ 0 ];
+                spotDataSource.boundingBoxMax = boundingBox[ 1 ];
             }
 
-            IJ.log("  Name: " + sourceName );
-            IJ.log("  URI: " + storageLocation.absolutePath );
-            IJ.log("  Type: " + dataType );
+            dataset.putDataSource( spotDataSource );
+
+            if ( displays.containsKey( displayName ) )
+            {
+                displays.get( displayName ).getSources().add( spotDataSource.getName() );
+            }
+            else
+            {
+                SpotDisplay< AnnotatedRegion > display = createSpotDisplay( row, spotDataSource.getName() );
+
+                displays.put( display.getName(), display );
+            }
         }
-
-        // Create grid views
-
-        for ( String gridId : gridToDisplay.keySet() )
+        else // default: intensities
         {
-            Display< ? > display = gridToDisplay.get( gridId );
-            List< Transformation > transformations = gridToTransformations.get( gridId );
-            List< String > gridSources = display.getSources();
-            GridTransformation grid = new GridTransformation( gridSources );
-            transformations.add( grid );
+            ImageDataFormat imageDataFormat = getImageDataFormat( row, storageLocation );
+            storageLocation.setChannel( getChannelIndex( row ) ); // TODO: Fetch from table or URI? https://forum.image.sc/t/loading-only-one-channel-from-an-ome-zarr/97798
 
-            String viewName = gridToView.get( gridId );
+            final ImageDataSource imageDataSource = new ImageDataSource(
+                    sourceName,
+                    imageDataFormat,
+                    storageLocation );
+            imageDataSource.preInit( false );
+            dataset.putDataSource( imageDataSource );
 
-            View gridView = addDisplayToView(
-                    viewName,
-                    viewToGroup.get( viewName ),
-                    gridToExclusive.get( gridId ),
-                    display,
-                    transformations,
-                    dataset.views() );
-
-            gridView.overlayNames( false ); // TODO: exchange this with the showing the regionId column as an annotation overlay!
-
-            // Create grid regions table
-            Selection rowSelection = Selection
-                    .with( gridToRowIndices.get( gridId )
-                            .stream().mapToInt( i -> i ).toArray() );
-            Table regionTable = table.where( rowSelection );
-            regionTable.setName( display.getName() + " grid" );
-            regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, gridSources ) );
-            final StorageLocation storageLocation = new StorageLocation();
-            storageLocation.data = regionTable;
-            final RegionTableSource regionTableSource = new RegionTableSource( regionTable.name() );
-            regionTableSource.addTable( TableDataFormat.Table, storageLocation );
-            DataStore.addRawData( regionTableSource );
-
-            // Create RegionDisplay to show the grid
-
-            final RegionDisplay< AnnotatedRegion > gridRegionDisplay =
-                    new RegionDisplay<>( regionTable.name() );
-            gridRegionDisplay.sources = new LinkedHashMap<>();
-            gridRegionDisplay.tableSource = regionTable.name();
-            gridRegionDisplay.showAsBoundaries( true );
-            gridRegionDisplay.setBoundaryThickness( 0.05 );
-            gridRegionDisplay.boundaryThicknessIsRelative( true );
-            gridRegionDisplay.setRelativeDilation( 2 * gridRegionDisplay.getBoundaryThickness() );
-
-            for ( String source : gridSources )
-                gridRegionDisplay.sources.put( source, Collections.singletonList( source ) );
-
-            // TODO: in some cases only do this once for several grids
-            dataset.views().get( viewName ).displays().add( gridRegionDisplay );
+            if ( displays.containsKey( displayName ) )
+            {
+                ( ( ImageDisplay ) displays.get( displayName ) )
+                        .addSource( sourceName, getContrastLimits( row ) );
+            }
+            else
+            {
+                Display< ? > display = createImageDisplay( sourceName, row );
+                displays.put( display.getName(), display );
+            }
         }
 
+        IJ.log("  Name: " + sourceName );
+        IJ.log("  URI: " + storageLocation.absolutePath );
+        IJ.log("  Type: " + dataType );
+    }
+
+    @NotNull
+    private static SpotDisplay< AnnotatedRegion > createSpotDisplay( Row row, final String spotSourceName )
+    {
+        SpotDisplay< AnnotatedRegion > display = new SpotDisplay<>( getDisplayName( row ) );
+        display.spotRadius = getSpotRadius( row );
+        display.getSources().add( spotSourceName );
+        return display;
     }
 
     private static ImageDataFormat getImageDataFormat( Row row, StorageLocation storageLocation )
@@ -378,41 +441,43 @@ public class CollectionTableDataSetter
     }
 
 
-    private static View addDisplayToView( String viewName,
+    private static View addDisplayToView( Dataset dataset,
+                                          String viewName,
                                           String groupName,
                                           boolean exclusive,
                                           Display< ? > display,
-                                          List< Transformation > transforms,
-                                          final Map< String, View > views )
+                                          List< Transformation > transformations
+    )
     {
         ArrayList< Display< ? > > displays = new ArrayList<>();
         displays.add( display );
 
+        Map< String, View > views = dataset.views();
         if ( views.containsKey( viewName ) )
         {
             View existingView = views.get( viewName );
-            existingView.transformations().addAll( transforms );
+            existingView.transformations().addAll( transformations );
             existingView.displays().addAll( displays );
             return existingView;
         }
         else
         {
-            final View newView = new View(
+            final View view = new View(
                     viewName,
                     groupName,
                     displays,
-                    transforms,
+                    transformations,
                     null,
                     exclusive,
                     null );
 
-            views.put( newView.getName(), newView );
-            return newView;
+            dataset.views().put( view.getName(), view );
+            return view;
         }
     }
 
     @NotNull
-    private static String getGroupName( Display< ? > display, Row row )
+    private static String getGroupName( Row row )
     {
         try
         {
@@ -429,20 +494,20 @@ public class CollectionTableDataSetter
         }
     }
 
-    private static String getViewName( Display< ? > display, Row row )
+    private static String getViewName( Row row )
     {
         try
         {
             String name = row.getString( CollectionTableConstants.VIEW );
 
             if ( name == null || name.isEmpty() )
-                return display.getName();
+                return getDisplayName( row );
 
             return name;
         }
         catch ( Exception e )
         {
-            return display.getName();
+            return getDisplayName( row );
         }
     }
 
@@ -454,7 +519,7 @@ public class CollectionTableDataSetter
     {
         final SegmentationDisplay< ? > display =
                 new SegmentationDisplay<>(
-                        getDisplayName( row, sourceName ),
+                        getDisplayName( row ),
                         new ArrayList<>( Arrays.asList( sourceName ) )
                 );
 
@@ -468,7 +533,7 @@ public class CollectionTableDataSetter
     private static ImageDisplay< ? > createImageDisplay( String sourceName, Row row )
     {
         return new ImageDisplay<>(
-                getDisplayName( row, sourceName ),
+                getDisplayName( row ),
                 1.0,
                 new ArrayList<>( Arrays.asList( sourceName ) ),
                 getColor( row ), // ColorHelper.getString( metadata.getColor() ),
@@ -478,12 +543,15 @@ public class CollectionTableDataSetter
         );
     }
 
-    private static String getDisplayName( Row row, String sourceName )
+    private static String getDisplayName( Row row )
     {
+        if ( row.columnNames().contains( CollectionTableConstants.DISPLAY  ) )
+            return row.getString( CollectionTableConstants.DISPLAY );
+
         if ( row.columnNames().contains( CollectionTableConstants.GRID  ) )
             return row.getString( CollectionTableConstants.GRID );
 
-        return sourceName;
+        return getName( row );
     }
 
     private static double[] getContrastLimits( Row row )
@@ -527,6 +595,7 @@ public class CollectionTableDataSetter
                 }
                 bb[ i ] = doubles;
             }
+            System.out.println("Bounding box " + string );
             return bb;
         }
         catch ( Exception e )
@@ -598,10 +667,7 @@ public class CollectionTableDataSetter
     }
 
 
-    // Note that this returns just a single AffineTransformation.
-    // The fact that it returns a list is just for convenient consumption of
-    // the downstream methods.
-    private static List< Transformation > getAffineTransformationAsList( List< String > sources, Row row )
+    private static List< Transformation > getAffineTransformations( String sourceName, Row row )
     {
         ArrayList< Transformation > transformations = new ArrayList<>();
 
@@ -618,13 +684,12 @@ public class CollectionTableDataSetter
             AffineTransformation affine = new AffineTransformation(
                     "Affine",
                     doubles,
-                    sources );
+                    Collections.singletonList( sourceName ) );
 
             transformations.add( affine );
         }
         catch ( Exception e )
         {
-            int a = 1;
             // Do not add a transformation
         }
 

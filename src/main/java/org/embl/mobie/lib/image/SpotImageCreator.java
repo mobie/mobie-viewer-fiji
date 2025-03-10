@@ -81,6 +81,7 @@ public class SpotImageCreator
 
 		labelImage = new SpotLabelImage(
 				spotDataSource.getName(),
+				spotDataSource.unit,
 				annData,
 				null,
 				spotDataSource.boundingBoxMin,

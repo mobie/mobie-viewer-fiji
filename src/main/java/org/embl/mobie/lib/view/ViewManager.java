@@ -801,7 +801,7 @@ public class ViewManager
 		DataStore.clearSpimDataCache();
 	}
 
-	public BigVolumeViewerMoBIE getBvvMobie()
+	public BigVolumeViewerMoBIE getBigVolumeViewer()
 	{
 		return bigVolumeViewer;
 	}

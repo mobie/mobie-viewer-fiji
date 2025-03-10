@@ -121,8 +121,7 @@ public class MoBIEViewerTransformAdjuster {
 	@NotNull
 	public static AffineTransform3D getViewerTransform( BdvHandle bdvHandle, final RealInterval mask )
 	{
-		final AffineTransform3D transform =
-				MoBIEHelper.getIntervalViewerTransform( bdvHandle, mask );
+		final AffineTransform3D transform = MoBIEHelper.getIntervalViewerTransform( bdvHandle, mask );
 		return transform;
 	}
 

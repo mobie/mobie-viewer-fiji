@@ -29,6 +29,7 @@
 package org.embl.mobie.lib.serialize.transformation;
 
 import net.imglib2.roi.RealMaskRealInterval;
+import net.thisptr.jackson.jq.internal.misc.Strings;
 import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.transform.ImageTransformer;
@@ -37,9 +38,7 @@ import org.embl.mobie.lib.util.ThreadHelper;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -137,6 +136,7 @@ public class GridTransformation extends AbstractGridTransformation
         {
             final RealMaskRealInterval unionMask = MoBIEHelper.union( images );
             final double[] realDimensions = MoBIEHelper.getRealDimensions( unionMask );
+			System.out.println("RealDimensions of " + images.get( 0 ).getName() + ": " + Arrays.toString( realDimensions ) );
             for ( int d = 0; d < 2; d++ )
                 tileRealDimensions[ d ] = Math.max( realDimensions[ d ], tileRealDimensions[ d ] );
         }

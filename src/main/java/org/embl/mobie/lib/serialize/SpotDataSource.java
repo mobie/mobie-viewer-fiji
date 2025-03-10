@@ -32,6 +32,7 @@ import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,11 +41,14 @@ public class SpotDataSource extends AbstractDataSource implements TableDataSourc
 	// Serialization
 	public Map< TableDataFormat, StorageLocation > tableData;
 
+	@Nullable
 	public double[] boundingBoxMin;
 
+	@Nullable
 	public double[] boundingBoxMax;
 
-	public String unit; // spatial
+	@Nullable
+	public String unit;
 
 	public SpotDataSource( String name )
 	{

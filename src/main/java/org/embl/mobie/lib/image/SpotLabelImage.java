@@ -58,6 +58,7 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 {
 	private final String name;
 	private final DefaultAnnData< AS > annData;
+	private final String unit;
 	private KDTree< AS > kdTree;
 	private RealMaskRealInterval mask;
 	private Double spotRadius;
@@ -70,14 +71,16 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 
 	public SpotLabelImage(
 			String name,
+			String unit,
 			DefaultAnnData< AS > annData,
 			@Nullable Double spotRadius,
 			@Nullable double[] imageBoundsMin,
 			@Nullable double[] imageBoundsMax )
 	{
 		this.name = name;
+		this.unit = unit == null ? "pixel" : unit;
 		this.annData = annData;
-		this.spotRadius = spotRadius != null ? spotRadius : 1.0;
+		this.spotRadius = spotRadius == null ? 1.0 : spotRadius;
 		this.imageBoundsMin = imageBoundsMin;
 		this.imageBoundsMax = imageBoundsMax;
 
@@ -105,6 +108,8 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 		System.out.println("Building KDTree with numElements = " + numAnnotations );
 		kdTree = new KDTree( annotations, annotations );
 
+		// TODO Can we use the mask of a "parent image" here?
+		//		For instance, the image where the spot where detected
 		if ( imageBoundsMin == null )
 		{
 			setImageBounds();
@@ -134,6 +139,10 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 		// Moreover, any downstream computation will be easier,
 		// because the support for non-zero-min random accessible in ImgLib2 is
 		// not very consistent.
+
+		// TODO: maybe better to set imageBoundsMin to the origin?
+		//		 and then add translations on top?
+		//		 but what should be the imageBoundsMax?
 		AffineTransform3D translateToZeroMin = new AffineTransform3D();
 		translateToZeroMin.translate( Arrays.stream( imageBoundsMin ).map( x -> -x ).toArray() );
 		rra = RealViews.affineReal( rra, translateToZeroMin );
@@ -154,12 +163,12 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 		source = new RealRandomAccessibleIntervalTimelapseSource(
 				rra,
 				containingZeroMinIntegerInterval,
-				selectApropriateTyoe( numAnnotations ),
+				selectApropriateType( numAnnotations ),
 				sourceTransform,
 				name,
 				true,
 				null,
-				new FinalVoxelDimensions( "", 1, 1, 1 ) );
+				new FinalVoxelDimensions( unit, 1, 1, 1 ) );
 	}
 
 	private void setImageBounds()
@@ -182,19 +191,15 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 	}
 
 	@NotNull
-	private static Type selectApropriateTyoe( int numAnnotations )
+	private static Type selectApropriateType( int numAnnotations )
 	{
-		Type type;
 		if ( numAnnotations < new UnsignedShortType().getMaxValue() )
-			type = new UnsignedShortType();
+			return new UnsignedShortType();
 		else if ( numAnnotations < new UnsignedLongType().getMaxValue() )
-			type = new UnsignedLongType();
+			return new UnsignedLongType();
 		else
-		{
 			throw new UnsupportedOperationException("There are " + numAnnotations + " which are " +
 					"too many to be displayed.");
-		}
-		return type;
 	}
 
 

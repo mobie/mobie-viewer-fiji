@@ -298,6 +298,30 @@ public class CollectionTableConstants
     public static final String GRID = "grid";
 
     /**
+     * The "display" column MAY be present.
+     *
+     * Images or segmentations within the same "display" MUST be part of the same "view"
+     *
+     * All images or segmentations that share the same "display"  will be displayed with the same
+     * display settings.
+     *
+     *
+     * Supported values:
+     * - Free text
+     *
+     * Default:
+     * If the column is absent or contains an empty string and there is no "grid" column
+     * a display will be created just for this dataset.
+     * If there is a "grid" column the "grid" will be used as the "display".
+     *
+     * Use cases:
+     * - A "display" is needed when there is a "grid"
+     *   in which data with different display settings should be overlaid
+     * - A "display" is useful, too, if multiple data are stitched via an "affine" transformation
+     */
+    public static final String DISPLAY = "display";
+
+    /**
      * The "format" column MAY be present.
      *
      * Supported values:

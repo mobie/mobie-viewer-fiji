@@ -14,6 +14,7 @@ public class OpenCollectionTable
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.table = new File( "src/test/resources/collections/organ_spots_collection.tsv" );
+        command.table = new File( "src/test/resources/collections/blobs-grid-table.txt" );
         command.dataRoot = OpenCollectionTableCommand.DataRoot.UseTableFolder;
         command.dataRootFile = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
         command.run();

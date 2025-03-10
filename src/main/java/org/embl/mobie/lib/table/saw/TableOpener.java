@@ -47,11 +47,7 @@ import tech.tablesaw.io.csv.CsvReadOptions;
 
 import java.io.*;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -137,7 +133,7 @@ public class TableOpener
 			// https://jtablesaw.github.io/tablesaw/userguide/importing_data.html
 			CsvReadOptions.Builder builder = CsvReadOptions.builder( inputStream )
 					.separator( separator )
-					.missingValueIndicator( "na", "none", "nan" )
+					.missingValueIndicator( "na", "none", "nan", "inf" )
 					.sample( numSamples > 0 )
 					.sampleSize( numSamples )
 					.columnTypesPartial( nameToType );

@@ -63,6 +63,7 @@ public class Dataset
 
 	public Map< String, View > views()
 	{
+		// Update view names
 		for ( String name : views.keySet() )
 			views.get( name ).setName( name );
 
