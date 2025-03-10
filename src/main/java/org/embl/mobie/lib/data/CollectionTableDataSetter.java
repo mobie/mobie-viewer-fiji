@@ -2,6 +2,7 @@ package org.embl.mobie.lib.data;
 
 import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.util.Constants;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.util.IOHelper;
@@ -21,9 +22,12 @@ import org.embl.mobie.lib.util.MoBIEHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tech.tablesaw.api.Row;
+import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
+import tech.tablesaw.selection.Selection;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CollectionTableDataSetter
 {
@@ -33,9 +37,12 @@ public class CollectionTableDataSetter
     private final Map< String, String > viewToGroup = new LinkedHashMap<>();
     private final Map< String, Set< String > > viewToGrids = new LinkedHashMap<>();
     private final Map< String, List< String > > gridToSources = new LinkedHashMap<>();
-    private final Map< String, Set< String > > viewToDisplays = new LinkedHashMap<>();
+    private final Map< String, List< int[] > > gridToPositions = new LinkedHashMap<>();
+    private final Map< String, Set< Display< ? > > > viewToDisplays = new LinkedHashMap<>();
     private final Map< String, Boolean > viewToExclusive = new LinkedHashMap<>();
     private final Map< String, List< Transformation > > viewToTransformations = new LinkedHashMap<>();
+
+    private final Map< String, List< Integer > > gridToRowIndices = new LinkedHashMap<>();
 
     public CollectionTableDataSetter( Table table, String rootPath )
     {
@@ -49,12 +56,12 @@ public class CollectionTableDataSetter
             throw new RuntimeException( "Column \"" + CollectionTableConstants.URI + "\" must be present in the collection table." );
 
         Map< String, Display< ? > > displays = new HashMap< String, Display< ? >>();
-        int sourceIndex = 0;
-        int numData = table.rowCount();
 
-        for ( Row row : table )
+        AtomicInteger sourceIndex = new AtomicInteger();
+        int numRows = table.rowCount();
+        table.forEach( row ->
         {
-            IJ.log("Adding source " + (++sourceIndex) + "/" + numData + "...");
+            IJ.log("Adding source " + ( sourceIndex.incrementAndGet() ) + "/" + numRows + "...");
             
             String sourceName = getName( row );
             String displayName = getDisplayName( row );
@@ -66,73 +73,23 @@ public class CollectionTableDataSetter
             if ( gridName != null )
             {
                 gridToSources.computeIfAbsent( gridName, k -> new ArrayList<>() ).add( sourceName );
+                gridToRowIndices.computeIfAbsent( gridName, k -> new ArrayList<>() ).add( row.getRowNumber() );
                 viewToGrids.computeIfAbsent( viewName, k -> new HashSet<>() ).add( gridName );
+                int[] gridPosition = getGridPosition( row );
+                if ( gridPosition != null )
+                    gridToPositions.computeIfAbsent( gridName, k -> new ArrayList<>() ).add( gridPosition );
             }
 
-            viewToDisplays.computeIfAbsent( viewName, k -> new HashSet<>() ).add( displayName );
-            viewToDisplays.get( viewName ).add( displayName );
             viewToGroup.put( viewName, getGroupName( row ) );
             viewToExclusive.put( viewName, getExclusive( row ) );
+            viewToDisplays.computeIfAbsent( viewName, k -> new HashSet<>() ).add( displays.get( displayName ) );
             viewToTransformations.computeIfAbsent( viewName, k -> new ArrayList<>() ).addAll( getAffineTransformations( sourceName, row ) );
-
-//            if ( gridId == null )
-//            {
-//                addDisplayToView(
-//                        getViewName( row ),
-//                        getGroupName( row ),
-//                        getExclusive( row ),
-//                        display,
-//                        getAffineTransformationAsList( display.getSources(), row ),
-//                        dataset.views() );
-//            }
-//            else
-//            {
-//                // FIXME: This is for creating the gridRegionDisplay
-//                //    If we only want one RegionDisplay for a grid then
-//                //    we have an issue, because there can be multiple table rows
-//                //    that belong to the same region
-//                gridToRowIndices
-//                        .computeIfAbsent( gridId, k -> new ArrayList<>() )
-//                        .add( row.getRowNumber() );
-//
-//                String gridViewName = getViewName( display, row ); // defaults to display=grid name if view name is absent
-//                gridToView.put( gridId, gridViewName );
-//                gridToExclusive.put( gridId, getExclusive( row ) );
-//                viewToGroup.put( gridViewName, getGroupName( display, row ) );
-//
-//                // FIXME This should be the display and not the grid
-//                if ( gridToDisplay.containsKey( gridId ) )
-//                {
-//                    // Add data to existing display
-//                    Display< ? > existingDisplay = gridToDisplay.get( gridId );
-//
-//                    if ( existingDisplay instanceof ImageDisplay )
-//                    {
-//                        ( ( ImageDisplay ) existingDisplay ).addSource( sourceName, getContrastLimits( row ) );
-//                    }
-//                    else
-//                    {
-//                        existingDisplay.getSources().add( sourceName );
-//                    }
-//                }
-//                else
-//                {
-//                    // Register the display
-//                    gridToDisplay.put( gridId, display );
-//                }
-//
-//                gridToTransformations
-//                        .computeIfAbsent( gridId, k -> new ArrayList<>() )
-//                        .addAll( getAffineTransformationAsList( Collections.singletonList( sourceName ), row ) );
-//            }
-
 
         } // table rows
 
 
         // Create views
-        Set< String > viewNames = viewToDisplays.keySet();
-        for ( String viewName : viewNames )
+        viewToDisplays.keySet().forEach( viewName ->
         {
             ArrayList< Transformation > transformations = new ArrayList<>();
 
@@ -140,20 +97,29 @@ public class CollectionTableDataSetter
 
             if ( viewToGrids.containsKey( viewName ) )
             {
-                Set< String > gridNames = viewToGrids.get( viewName );
-                for ( String gridName : gridNames )
+                viewToGrids.get( viewName ).forEach( gridName ->
                 {
                     List< String > gridSources = gridToSources.get( gridName );
-                    GridTransformation grid = new GridTransformation( gridSources );
-                    transformations.add( grid );
+                    if ( gridToPositions.containsKey( gridName ) )
+                    {
+                        List< int[] > gridPositions = gridToPositions.get( gridName );
+                        GridTransformation grid = new GridTransformation( gridSources, gridPositions );
+                        transformations.add( grid );
+                    }
+                    else
+                    {
+                        GridTransformation grid = new GridTransformation( gridSources );
+                        transformations.add( grid );
+                    }
+
+                    Display< ? > regionDisplay = createRegionDisplay( viewName, gridName, gridSources );
+                    displays.put( regionDisplay.getName(), regionDisplay );
+                    viewToDisplays.get( viewName ).add( regionDisplay );
                 }
             }
 
-            Set< String > displayNames = viewToDisplays.get( viewName );
-            for ( String displayName : displayNames )
+            viewToDisplays.get( viewName ).forEach( display ->
             {
-                Display< ? > display = displays.get( displayName );
-
                 View view = addDisplayToView(
                         dataset,
                         viewName,
@@ -164,38 +130,39 @@ public class CollectionTableDataSetter
 
                 view.overlayNames( false );
             }
-
-//            // Create grid regions table
-//            Selection rowSelection = Selection
-//                    .with( gridToRowIndices.get( viewName )
-//                            .stream().mapToInt( i -> i ).toArray() );
-//            Table regionTable = table.where( rowSelection );
-//            regionTable.setName( display.getName() + " grid" );
-//            regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, gridSources ) );
-//            final StorageLocation storageLocation = new StorageLocation();
-//            storageLocation.data = regionTable;
-//            final RegionTableSource regionTableSource = new RegionTableSource( regionTable.name() );
-//            regionTableSource.addTable( TableDataFormat.Table, storageLocation );
-//            DataStore.addRawData( regionTableSource );
-//
-//            // Create RegionDisplay to show the grid
-//
-//            final RegionDisplay< AnnotatedRegion > gridRegionDisplay =
-//                    new RegionDisplay<>( regionTable.name() );
-//            gridRegionDisplay.sources = new LinkedHashMap<>();
-//            gridRegionDisplay.tableSource = regionTable.name();
-//            gridRegionDisplay.showAsBoundaries( true );
-//            gridRegionDisplay.setBoundaryThickness( 0.05 );
-//            gridRegionDisplay.boundaryThicknessIsRelative( true );
-//            gridRegionDisplay.setRelativeDilation( 2 * gridRegionDisplay.getBoundaryThickness() );
-//
-//            for ( String source : gridSources )
-//                gridRegionDisplay.sources.put( source, Collections.singletonList( source ) );
-//
-//            // TODO: in some cases only do this once for several grids
-//            dataset.views().get( viewName ).displays().add( gridRegionDisplay );
         }
 
+    }
+
+    private RegionDisplay< AnnotatedRegion > createRegionDisplay( String viewName, String gridName, List< String > gridSources )
+    {
+        // Create grid regions table
+        Selection rowSelection = Selection
+                .with( gridToRowIndices.get( viewName )
+                        .stream().mapToInt( i -> i ).toArray() );
+        Table regionTable = table.where( rowSelection );
+        regionTable.setName( gridName + " grid" );
+        regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, gridSources ) );
+        final StorageLocation storageLocation = new StorageLocation();
+        storageLocation.data = regionTable;
+        final RegionTableSource regionTableSource = new RegionTableSource( regionTable.name() );
+        regionTableSource.addTable( TableDataFormat.Table, storageLocation );
+        DataStore.addRawData( regionTableSource );
+
+        // Create RegionDisplay to show the grid
+        final RegionDisplay< AnnotatedRegion > gridRegionDisplay =
+                new RegionDisplay<>( regionTable.name() );
+        gridRegionDisplay.sources = new LinkedHashMap<>();
+        gridRegionDisplay.tableSource = regionTable.name();
+        gridRegionDisplay.showAsBoundaries( true );
+        gridRegionDisplay.setBoundaryThickness( 0.05 );
+        gridRegionDisplay.boundaryThicknessIsRelative( true );
+        gridRegionDisplay.setRelativeDilation( 2 * gridRegionDisplay.getBoundaryThickness() );
+
+        for ( String source : gridSources )
+            gridRegionDisplay.sources.put( source, Collections.singletonList( source ) );
+
+        return gridRegionDisplay;
     }
 
     private void addSource( Dataset dataset, Row row, String sourceName, Map< String, Display< ? > > displays, String displayName )
@@ -571,6 +538,30 @@ public class CollectionTableDataSetter
                         string + "does not adhere to this specification." );
 
             return doubles;
+        }
+        catch ( Exception e )
+        {
+            return null;
+        }
+    }
+
+    private static int[] getGridPosition( Row row )
+    {
+        try
+        {
+            String string = row.getString( CollectionTableConstants.GRID_POSITION );
+            string = string.replace("(", "").replace(")", "");
+            String[] strings = string.split("[,;]");
+            int[] ints = new int[strings.length];
+            for (int i = 0; i < strings.length; i++) {
+                ints[i] = Integer.parseInt(strings[i].trim());
+            }
+
+            if ( ints.length != 2 )
+                throw new UnsupportedOperationException("Grid positions must have exactly two values: (x, y).\n" +
+                        string + "does not adhere to this specification." );
+
+            return ints;
         }
         catch ( Exception e )
         {

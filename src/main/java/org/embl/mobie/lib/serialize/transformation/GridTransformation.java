@@ -54,6 +54,10 @@ public class GridTransformation extends AbstractGridTransformation
 	{
 		this( sources );
 		this.positions = positions;
+
+		if ( positions.size() != sources.size() )
+			throw new UnsupportedOperationException("GridTransformation Error: " +
+					"The number of grid sources does not equal the number of grid positions.");
 	}
 
 	public GridTransformation( List< String > sources )
@@ -61,11 +65,6 @@ public class GridTransformation extends AbstractGridTransformation
 		nestedSources = sources.stream()
 				.map( source -> Collections.singletonList( source ) )
 				.collect( Collectors.toList() );
-//		nestedSources = new ArrayList<>();
-//		for ( String source : sources )
-//		{
-//			nestedSources.add( Collections.singletonList( source ) );
-//		}
 	}
 
 	public static List< ? extends Image< ? > > gridTransform(
