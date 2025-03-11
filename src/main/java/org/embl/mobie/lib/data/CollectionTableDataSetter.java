@@ -28,9 +28,11 @@ import tech.tablesaw.selection.Selection;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class CollectionTableDataSetter
 {
+    public static final String NO_GRID_POSITION = "no grid position";
     private final Table table;
     private final String rootPath;
 
@@ -38,10 +40,10 @@ public class CollectionTableDataSetter
     private final Map< String, Set< String > > viewToGrids = new LinkedHashMap<>();
     private final Map< String, List< String > > gridToSources = new LinkedHashMap<>();
     private final Map< String, List< int[] > > gridToPositions = new LinkedHashMap<>();
+    private final Map< String, Map< String, List< String > > > gridToPositionsToSources = new LinkedHashMap<>();
     private final Map< String, Set< Display< ? > > > viewToDisplays = new LinkedHashMap<>();
     private final Map< String, Boolean > viewToExclusive = new LinkedHashMap<>();
     private final Map< String, List< Transformation > > viewToTransformations = new LinkedHashMap<>();
-
     private final Map< String, List< Integer > > gridToRowIndices = new LinkedHashMap<>();
 
     public CollectionTableDataSetter( Table table, String rootPath )
@@ -72,12 +74,13 @@ public class CollectionTableDataSetter
             String gridName = getGridId( row );
             if ( gridName != null )
             {
-                gridToSources.computeIfAbsent( gridName, k -> new ArrayList<>() ).add( sourceName );
                 gridToRowIndices.computeIfAbsent( gridName, k -> new ArrayList<>() ).add( row.getRowNumber() );
                 viewToGrids.computeIfAbsent( viewName, k -> new HashSet<>() ).add( gridName );
-                int[] gridPosition = getGridPosition( row );
-                if ( gridPosition != null )
-                    gridToPositions.computeIfAbsent( gridName, k -> new ArrayList<>() ).add( gridPosition );
+                String gridPosition = getGridPosition( row );
+                gridToPositionsToSources
+                            .computeIfAbsent( gridName, k -> new LinkedHashMap<>() )
+                            .computeIfAbsent( gridPosition, k -> new ArrayList<>() )
+                            .add( sourceName );
             }
 
             viewToGroup.put( viewName, getGroupName( row ) );
@@ -99,20 +102,25 @@ public class CollectionTableDataSetter
             {
                 viewToGrids.get( viewName ).forEach( gridName ->
                 {
-                    List< String > gridSources = gridToSources.get( gridName );
-                    if ( gridToPositions.containsKey( gridName ) )
+                    Map< String, List< String > > positionToSources = gridToPositionsToSources.get( gridName );
+                    if ( positionToSources.keySet().contains( NO_GRID_POSITION ) )
                     {
-                        List< int[] > gridPositions = gridToPositions.get( gridName );
-                        GridTransformation grid = new GridTransformation( gridSources, gridPositions );
+                        ArrayList< List< String > > nestedSources = new ArrayList<>( positionToSources.values() );
+                        GridTransformation grid = new GridTransformation( nestedSources, "" );
                         transformations.add( grid );
                     }
                     else
                     {
-                        GridTransformation grid = new GridTransformation( gridSources );
+                        List< int[] > positions = positionToSources.keySet().stream()
+                                .map( position -> gridPositionToInts( position ) )
+                                .collect( Collectors.toList() );
+                        ArrayList< List< String > > nestedSources = new ArrayList<>( positionToSources.values() );
+
+                        GridTransformation grid = new GridTransformation( nestedSources, positions, "" );
                         transformations.add( grid );
                     }
 
-                    Display< ? > regionDisplay = createRegionDisplay( viewName, gridName, gridSources );
+                    Display< ? > regionDisplay = createRegionDisplay( viewName, gridName, positionToSources );
                     displays.put( regionDisplay.getName(), regionDisplay );
                     viewToDisplays.get( viewName ).add( regionDisplay );
                 }
@@ -545,29 +553,36 @@ public class CollectionTableDataSetter
         }
     }
 
-    private static int[] getGridPosition( Row row )
+    private static String getGridPosition( Row row )
     {
         try
         {
             String string = row.getString( CollectionTableConstants.GRID_POSITION );
             string = string.replace("(", "").replace(")", "");
-            String[] strings = string.split("[,;]");
-            int[] ints = new int[strings.length];
-            for (int i = 0; i < strings.length; i++) {
-                ints[i] = Integer.parseInt(strings[i].trim());
-            }
-
-            if ( ints.length != 2 )
-                throw new UnsupportedOperationException("Grid positions must have exactly two values: (x, y).\n" +
-                        string + "does not adhere to this specification." );
-
-            return ints;
+            string = string.trim();
+            return string;
         }
         catch ( Exception e )
         {
-            return null;
+            return NO_GRID_POSITION;
         }
     }
+
+    private static int[] gridPositionToInts( String position )
+    {
+        position = position.replace("(", "").replace(")", "");
+        String[] strings = position.split("[,;]");
+        int[] ints = new int[strings.length];
+        for (int i = 0; i < strings.length; i++) {
+            ints[i] = Integer.parseInt(strings[i].trim());
+        }
+
+        if ( ints.length != 2 )
+            throw new UnsupportedOperationException("Grid positions must have exactly two values: (x, y).\n" +
+                    position + "does not adhere to this specification." );
+
+        return ints;
+}
 
     private static double[][] getBoundingBox( Row row )
     {

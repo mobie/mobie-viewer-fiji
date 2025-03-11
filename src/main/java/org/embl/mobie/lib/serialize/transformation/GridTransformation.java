@@ -50,6 +50,26 @@ public class GridTransformation extends AbstractGridTransformation
 	public List< List< String > > transformedNames;
 	public boolean centerAtOrigin = true;
 
+	public GridTransformation( List< List< String > > sources,
+							   String nestedSources // to make this have a different erasure
+	)
+	{
+		this.nestedSources = sources;
+	}
+
+	public GridTransformation( List< List< String > > sources,
+							   List< int[] > positions,
+							   String nestedSources// to make this have a different erasure
+	)
+	{
+		this.nestedSources = sources;
+		this.positions = positions;
+
+		if ( positions.size() != sources.size() )
+			throw new UnsupportedOperationException("GridTransformation Error: " +
+					"The number of grid sources does not equal the number of grid positions.");
+	}
+
 	public GridTransformation( List< String > sources, List< int[] > positions )
 	{
 		this( sources );
@@ -119,17 +139,13 @@ public class GridTransformation extends AbstractGridTransformation
     @NotNull
     public static List< ? extends Image< ? > > translateImages( GridTransformation gridTransformation )
     {
-        final List< List< String > > nestedSources = gridTransformation.nestedSources;
-        final List< List< ? extends Image< ? > > > nestedImages = new ArrayList<>();
-        for ( List< String > sources : nestedSources )
-        {
-            final List< ? extends Image< ? > > images = DataStore.getImageList( sources );
-            nestedImages.add( images );
-        }
+		List< ? extends List< ? extends Image< ? > > > nestedImages =
+				gridTransformation.nestedSources.stream()
+				.map( DataStore::getImageList )
+				.collect( Collectors.toList() );
 
-        // The size of the tile of the grid is the size of the
-        // largest union mask of the images at
-        // the grid positions.
+		// The size of a grid tile is the size of the
+        // largest union mask of the images at the grid positions.
         double[] tileRealDimensions = new double[ 2 ];
         for ( List< ? extends Image< ? > > images : nestedImages )
         {
