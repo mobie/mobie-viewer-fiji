@@ -13,11 +13,11 @@ public class OpenCollectionTable
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.table = new File( "src/test/resources/collections/organ_spots_collection.tsv" );
-        command.table = new File( "src/test/resources/collections/blobs-grid-table.txt" );
-        command.table = new File( "src/test/resources/collections/blobs-grid-table-grid-pos.txt" );
-        command.dataRoot = OpenCollectionTableCommand.DataRoot.UseTableFolder;
-        command.dataRootFile = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        //command.table = new File( "src/test/resources/collections/organ_spots_collection.tsv" );
+        //command.table = new File( "src/test/resources/collections/blobs-grid-table.txt" );
+        //command.table = new File( "src/test/resources/collections/blobs-grid-table-grid-pos.txt" );
+        command.table = new File( "/Users/tischer/Documents/bacteria-fluorescent-foci-analysis/data/local/collection-grid.txt" );
+        command.dataRootType = OpenCollectionTableCommand.DataRoot.UseTableFolder;
         command.run();
     }
 }

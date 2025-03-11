@@ -18,7 +18,7 @@ public class OpenPaoloFirstTable
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.table = new File( "/Users/tischer/Desktop/Paolo-relative.txt" );
-        command.dataRootFile = new File( "/Volumes/emcf/ronchi/MRC-MM/aligned" );
+        command.dataRoot = new File( "/Volumes/emcf/ronchi/MRC-MM/aligned" );
         command.run();
     }
 }

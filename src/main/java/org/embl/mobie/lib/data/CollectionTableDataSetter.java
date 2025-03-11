@@ -115,6 +115,7 @@ public class CollectionTableDataSetter
                         ArrayList< List< String > > nestedSources = new ArrayList<>( positionToSources.values() );
 
                         GridTransformation grid = new GridTransformation( nestedSources, positions, "" );
+                        grid.centerAtOrigin = false; // FIXME: is that correct?
                         transformations.add( grid );
                     }
 

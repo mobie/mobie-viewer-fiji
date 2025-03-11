@@ -131,6 +131,7 @@ public class GridTransformation extends AbstractGridTransformation
 				}
 			} ) );
 		}
+
 		ThreadHelper.waitUntilFinished( futures );
 
 		return transformedImages;
@@ -149,12 +150,17 @@ public class GridTransformation extends AbstractGridTransformation
         double[] tileRealDimensions = new double[ 2 ];
         for ( List< ? extends Image< ? > > images : nestedImages )
         {
-            final RealMaskRealInterval unionMask = MoBIEHelper.union( images );
+			List< String > imageNames = images.stream().map( Image::getName ).collect( Collectors.toList() );
+			System.out.println("Computing grid tile size");
+			System.out.println("  Images: " + Strings.join( ", ", imageNames ) );
+			final RealMaskRealInterval unionMask = MoBIEHelper.union( images );
             final double[] realDimensions = MoBIEHelper.getRealDimensions( unionMask );
-			System.out.println("RealDimensions of " + images.get( 0 ).getName() + ": " + Arrays.toString( realDimensions ) );
-            for ( int d = 0; d < 2; d++ )
+			System.out.println("  Union size: " +  Arrays.toString( realDimensions ) );
+
+			// Update the overall grid tile size
+			for ( int d = 0; d < 2; d++ )
                 tileRealDimensions[ d ] = Math.max( realDimensions[ d ], tileRealDimensions[ d ] );
-        }
+		}
 
         // Add a margin to the tiles
         for ( int d = 0; d < 2; d++ )

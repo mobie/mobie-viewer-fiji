@@ -58,13 +58,13 @@ public class OpenCollectionTableCommand implements Command {
 
 	@Parameter( label = "Data Root",
 			description = "Specify whether the data URIs in the table are absolute or relative." )
-	public DataRoot dataRoot = DataRoot.PathsInTableAreAbsolute;
+	public DataRoot dataRootType = DataRoot.PathsInTableAreAbsolute;
 
 	@Parameter( label = "( Data Root Folder )",
 			style = "directory",
 			description = "Optional. Use this is if the paths to the images and labels in the table are relative.",
 			required = false )
-	public File dataRootFile;
+	public File dataRoot;
 
 	@Parameter( label = "Viewing mode",
 			description = "Volumetric viewing enables arbitrary plane slicing. Planar viewing mode will restrict browsing to the XY, YZ, or XZ planes.",
@@ -90,10 +90,10 @@ public class OpenCollectionTableCommand implements Command {
 		DebugTools.setRootLevel( "OFF" );
 
 		String dataRootString;
-		switch ( dataRoot )
+		switch ( dataRootType )
 		{
 			case UseBelowDataRootFolder:
-				dataRootString = dataRootFile == null ? null : dataRootFile.getAbsolutePath();
+				dataRootString = dataRoot == null ? null : dataRoot.getAbsolutePath();
 				break;
 			case UseTableFolder:
 				dataRootString = table.getParent();

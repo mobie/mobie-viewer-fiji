@@ -14,7 +14,7 @@ public class SpotsRenderingOnWindows
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.table = new File("/Users/tischer/Desktop/mobie-bug/collection.txt");
-        command.dataRoot = OpenCollectionTableCommand.DataRoot.UseTableFolder;
+        command.dataRootType = OpenCollectionTableCommand.DataRoot.UseTableFolder;
         command.bdvViewingMode = BdvViewingMode.TwoDimensional;
         command.run();
     }

@@ -105,7 +105,8 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 	{
 		final ArrayList< AS > annotations = annData.getTable().annotations();
 		int numAnnotations = annotations.size();
-		System.out.println("Building KDTree with numElements = " + numAnnotations );
+		System.out.println("Building SpotImage with numElements = " + numAnnotations );
+		long start = System.currentTimeMillis();
 		kdTree = new KDTree( annotations, annotations );
 
 		// TODO Can we use the mask of a "parent image" here?
@@ -169,6 +170,9 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 				true,
 				null,
 				new FinalVoxelDimensions( unit, 1, 1, 1 ) );
+
+		System.out.println("Done in [ms] " + ( System.currentTimeMillis() - start ) );
+
 	}
 
 	private void setImageBounds()

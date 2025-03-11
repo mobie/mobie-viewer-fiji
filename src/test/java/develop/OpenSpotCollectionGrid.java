@@ -28,10 +28,7 @@
  */
 package develop;
 
-import examples.OpenCollectionTable;
 import net.imagej.ImageJ;
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.open.OpenCollectionTableCommand;
 
 import java.io.File;
@@ -45,7 +42,7 @@ public class OpenSpotCollectionGrid
 		imageJ.ui().showUI();
 
 		OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-		command.dataRoot = OpenCollectionTableCommand.DataRoot.UseTableFolder;
+		command.dataRootType = OpenCollectionTableCommand.DataRoot.UseTableFolder;
 		command.table = new File("src/test/resources/collections/organ_spots_collection_grid.tsv");
 		command.run();
 	}

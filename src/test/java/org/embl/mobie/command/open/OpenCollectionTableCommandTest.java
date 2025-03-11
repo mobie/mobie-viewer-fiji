@@ -18,8 +18,8 @@ public class OpenCollectionTableCommandTest
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.table = new File( "src/test/resources/collections/blobs-table.txt" );
-        command.dataRoot = OpenCollectionTableCommand.DataRoot.UseBelowDataRootFolder;
-        command.dataRootFile = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.dataRootType = OpenCollectionTableCommand.DataRoot.UseBelowDataRootFolder;
+        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
         command.bdvViewingMode = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -32,7 +32,7 @@ public class OpenCollectionTableCommandTest
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.table = new File( "src/test/resources/collections/clem-table.txt" );
-        command.dataRoot = OpenCollectionTableCommand.DataRoot.PathsInTableAreAbsolute;
+        command.dataRootType = OpenCollectionTableCommand.DataRoot.PathsInTableAreAbsolute;
         command.run();
     }
 
@@ -45,8 +45,8 @@ public class OpenCollectionTableCommandTest
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.table = new File( "src/test/resources/collections/blobs-grid-table.txt" );
         // FIXME: Make this work with relative paths
-        command.dataRoot = OpenCollectionTableCommand.DataRoot.UseBelowDataRootFolder;
-        command.dataRootFile = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.dataRootType = OpenCollectionTableCommand.DataRoot.UseBelowDataRootFolder;
+        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
         command.bdvViewingMode = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -60,8 +60,8 @@ public class OpenCollectionTableCommandTest
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.table = new File( "src/test/resources/collections/spots-2d-collection.txt" );
         // FIXME: Make this work with relative paths
-        command.dataRoot = OpenCollectionTableCommand.DataRoot.UseBelowDataRootFolder;
-        command.dataRootFile = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.dataRootType = OpenCollectionTableCommand.DataRoot.UseBelowDataRootFolder;
+        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
         command.bdvViewingMode = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -75,8 +75,8 @@ public class OpenCollectionTableCommandTest
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.table = new File( "src/test/resources/collections/spots-3d-collection.txt" );
         // FIXME: Make this work with relative paths
-        command.dataRoot = OpenCollectionTableCommand.DataRoot.UseBelowDataRootFolder;
-        command.dataRootFile = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.dataRootType = OpenCollectionTableCommand.DataRoot.UseBelowDataRootFolder;
+        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
         command.bdvViewingMode = BdvViewingMode.ThreeDimensional;
         command.run();
     }
