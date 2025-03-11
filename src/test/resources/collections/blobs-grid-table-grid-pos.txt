@@ -1,0 +1,5 @@
+uri	name	type	contrast_limits	affine	view	color	grid	grid_position	display
+blobs.tif	blobs1	intensities	(0;255)	"(10,0,0,0,0,10,0,0,0,0,1,0)"	segmented blobs	green	blobs	"(0,0)"	image
+blobs-labels.tif	labels1	labels		"(10,0,0,0,0,10,0,0,0,0,1,0)"	segmented blobs		blobs	"(0,0)"	labels
+blobs.tif	blobs2	intensities	(50;200)	"(10,0,0,0,0,10,0,0,0,0,1,0)"	segmented blobs	green	blobs	"(1,0)"	image
+blobs-labels.tif	labels2	labels		"(10,0,0,0,0,10,0,0,0,0,1,0)"	segmented blobs		blobs	"(1,0)"	labels

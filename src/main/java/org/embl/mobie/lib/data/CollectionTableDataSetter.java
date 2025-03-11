@@ -38,8 +38,6 @@ public class CollectionTableDataSetter
 
     private final Map< String, String > viewToGroup = new LinkedHashMap<>();
     private final Map< String, Set< String > > viewToGrids = new LinkedHashMap<>();
-    private final Map< String, List< String > > gridToSources = new LinkedHashMap<>();
-    private final Map< String, List< int[] > > gridToPositions = new LinkedHashMap<>();
     private final Map< String, Map< String, List< String > > > gridToPositionsToSources = new LinkedHashMap<>();
     private final Map< String, Set< Display< ? > > > viewToDisplays = new LinkedHashMap<>();
     private final Map< String, Boolean > viewToExclusive = new LinkedHashMap<>();
@@ -85,10 +83,10 @@ public class CollectionTableDataSetter
 
             viewToGroup.put( viewName, getGroupName( row ) );
             viewToExclusive.put( viewName, getExclusive( row ) );
-            viewToDisplays.computeIfAbsent( viewName, k -> new HashSet<>() ).add( displays.get( displayName ) );
+            viewToDisplays.computeIfAbsent( viewName, k -> new LinkedHashSet<>() ).add( displays.get( displayName ) );
             viewToTransformations.computeIfAbsent( viewName, k -> new ArrayList<>() ).addAll( getAffineTransformations( sourceName, row ) );
 
-        } // table rows
+        }); // table rows
 
 
         // Create views
@@ -120,25 +118,27 @@ public class CollectionTableDataSetter
                         transformations.add( grid );
                     }
 
-                    Display< ? > regionDisplay = createRegionDisplay( viewName, gridName, positionToSources );
-                    displays.put( regionDisplay.getName(), regionDisplay );
-                    viewToDisplays.get( viewName ).add( regionDisplay );
-                }
+                    //Display< ? > regionDisplay = createRegionDisplay( viewName, gridName, positionToSources );
+                    //displays.put( regionDisplay.getName(), regionDisplay );
+                    //viewToDisplays.get( viewName ).add( regionDisplay );
+                });
             }
 
-            viewToDisplays.get( viewName ).forEach( display ->
-            {
-                View view = addDisplayToView(
-                        dataset,
-                        viewName,
-                        viewToGroup.get( viewName ),
-                        viewToExclusive.get( viewName ),
-                        display,
-                        transformations );
 
-                view.overlayNames( false );
-            }
-        }
+            final View view = new View(
+                    viewName,
+                    viewToGroup.get( viewName ),
+                    new ArrayList<>( viewToDisplays.get( viewName ) ),
+                    transformations,
+                    null,
+                    viewToExclusive.get( viewName ),
+                    null );
+
+            view.overlayNames( false );
+
+            dataset.views().put( view.getName(), view );
+
+        }); // views
 
     }
 
@@ -415,41 +415,6 @@ public class CollectionTableDataSetter
         }
     }
 
-
-    private static View addDisplayToView( Dataset dataset,
-                                          String viewName,
-                                          String groupName,
-                                          boolean exclusive,
-                                          Display< ? > display,
-                                          List< Transformation > transformations
-    )
-    {
-        ArrayList< Display< ? > > displays = new ArrayList<>();
-        displays.add( display );
-
-        Map< String, View > views = dataset.views();
-        if ( views.containsKey( viewName ) )
-        {
-            View existingView = views.get( viewName );
-            existingView.transformations().addAll( transformations );
-            existingView.displays().addAll( displays );
-            return existingView;
-        }
-        else
-        {
-            final View view = new View(
-                    viewName,
-                    groupName,
-                    displays,
-                    transformations,
-                    null,
-                    exclusive,
-                    null );
-
-            dataset.views().put( view.getName(), view );
-            return view;
-        }
-    }
 
     @NotNull
     private static String getGroupName( Row row )

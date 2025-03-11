@@ -88,7 +88,7 @@ public class GridTransformation extends AbstractGridTransformation
 	}
 
 	public static List< ? extends Image< ? > > gridTransform(
-			List< List< ? extends Image< ? > > > nestedImages,
+			List< ? extends List< ? extends Image< ? > > >  nestedImages,
 			@Nullable List< List< String > > nestedTransformedNames,
 			List< int[] > positions,
 			double[] tileRealDimensions,
@@ -171,7 +171,7 @@ public class GridTransformation extends AbstractGridTransformation
         }
 
         final List< int[] > gridPositions = gridTransformation.positions == null ?
-				createGridPositions( nestedSources.size() ) : gridTransformation.positions;
+				createGridPositions( nestedImages.size() ) : gridTransformation.positions;
 
         final List< ? extends Image< ? > > transformedImages =
 				gridTransform(
