@@ -62,6 +62,7 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 	private KDTree< AS > kdTree;
 	private RealMaskRealInterval mask;
 	private Double spotRadius;
+	private Double spotRadiusZ;
 	private double[] imageBoundsMin;
 	private double[] imageBoundsMax;
 	private AffineTransform3D affineTransform3D;
@@ -96,8 +97,15 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 	{
 		if ( spotRadius != null )
 		{
-			// the spotRadius is used in the kdTree which generates the image
 			this.spotRadius = spotRadius;
+		}
+	}
+
+	public void setSpotRadiusZ( Double spotRadiusZ )
+	{
+		if ( spotRadiusZ != null )
+		{
+			this.spotRadiusZ = spotRadiusZ;
 		}
 	}
 
@@ -206,7 +214,6 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 					"too many to be displayed.");
 	}
 
-
 	class LocationToSpotLabelSupplier implements Supplier< BiConsumer< RealLocalizable, IntegerType > >
 	{
 		public LocationToSpotLabelSupplier()
@@ -236,14 +243,23 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 				{
 					final Sampler< AS > sampler = search.getSampler( 0 );
 					final AS annotatedSpot = sampler.get();
+					if ( spotRadiusZ != null )
+					{
+						if ( Math.abs( annotatedSpot.getDoublePosition( 2 ) - location.getDoublePosition( 2 ) ) > spotRadiusZ )
+						{
+							value.setInteger( 0 );
+							return;
+						}
+					}
+
 					value.setInteger( annotatedSpot.label() );
-				}
+                }
 				else
 				{
 					// background
 					value.setInteger( 0 );
-				}
-			}
+                }
+            }
 		}
 	}
 

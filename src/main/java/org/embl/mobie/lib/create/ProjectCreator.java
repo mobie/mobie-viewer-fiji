@@ -228,7 +228,7 @@ public class ProjectCreator {
             if ( dataset != null && dataset.sources().size() > 0 ) {
                 for ( DataSource dataSource : dataset.sources().values() ) {
                     ImageDataSource imageSource = ( ImageDataSource ) dataSource;
-                    // open one of the local images
+                    // open one of the images
                     for ( ImageDataFormat format : imageSource.imageData.keySet() ) {
                         if ( ! format.isRemote() ) {
                             String imagePath = IOHelper.combinePath( projectLocation.getAbsolutePath(), datasetName,

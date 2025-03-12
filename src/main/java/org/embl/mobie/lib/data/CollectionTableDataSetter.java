@@ -68,7 +68,6 @@ public class CollectionTableDataSetter
             String displayName = getDisplayName( row );
             sourceToRowIndex.put( sourceName, row.getRowNumber() );
 
-
             addSource( dataset, row, sourceName, displays, displayName );
 
             String viewName = getViewName( row );
@@ -305,11 +304,13 @@ public class CollectionTableDataSetter
     {
         try {
             String string = row.getString( CollectionTableConstants.FORMAT );
-            return ImageDataFormat.valueOf( string );
+            ImageDataFormat imageDataFormat = ImageDataFormat.valueOf( string );
+            return imageDataFormat;
         }
         catch ( Exception e )
         {
-            return ImageDataFormat.fromPath( storageLocation.absolutePath );
+            ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( storageLocation.absolutePath );
+            return imageDataFormat;
         }
     }
 

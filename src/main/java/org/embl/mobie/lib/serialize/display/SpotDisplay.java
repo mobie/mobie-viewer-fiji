@@ -35,6 +35,7 @@ import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.image.SpotLabelImage;
 import org.embl.mobie.lib.source.AnnotationType;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -48,6 +49,14 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AbstractAnnotatio
 	private Set< String > selectedSpotIds;
 
 	public Double spotRadius;
+
+	/**
+	 * If not given, the above spotRadius will also be used in the z direction
+	 * and the spots will be rendered as spheres.
+	 * If given, the spots will be rendered anisotropic.
+	 */
+	@Nullable
+	public Double spotRadiusZ;
 
 	// Runtime
 

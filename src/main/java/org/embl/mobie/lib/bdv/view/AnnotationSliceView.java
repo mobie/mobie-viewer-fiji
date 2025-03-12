@@ -98,24 +98,24 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 			if ( display instanceof SpotDisplay )
 			{
 				final SpotDisplay spotDisplay = ( SpotDisplay ) display;
-				if ( spotDisplay.spotRadius != null )
+				// TODO: Improve this by implementing an unwrapImage function
+				//       similar to the existing unwrapSource function
+				if ( image instanceof AffineTransformedImage )
 				{
-					// TODO: Improve this by implementing an unwrapImage function
-					//       similar to the existing unwrapSource function
-					if ( image instanceof AffineTransformedImage )
-					{
-						image = ( Image ) ( ( ImageWrapper ) image ).getWrappedImage();
-					}
-
-					Image labelImage = ( ( AnnotatedLabelImage ) image ).getLabelImage();
-
-					if ( labelImage instanceof AffineTransformedImage )
-					{
-						labelImage = ( Image ) ( ( ImageWrapper ) labelImage ).getWrappedImage();
-					}
-
-					( ( SpotLabelImage ) labelImage ).setSpotRadius( spotDisplay.spotRadius );
+					image = ( Image ) ( ( ImageWrapper ) image ).getWrappedImage();
 				}
+
+				Image labelImage = ( ( AnnotatedLabelImage ) image ).getLabelImage();
+
+				if ( labelImage instanceof AffineTransformedImage )
+				{
+					labelImage = ( Image ) ( ( ImageWrapper ) labelImage ).getWrappedImage();
+				}
+
+				( ( SpotLabelImage ) labelImage ).setSpotRadius( spotDisplay.spotRadius );
+				( ( SpotLabelImage ) labelImage ).setSpotRadiusZ( spotDisplay.spotRadiusZ );
+
+
 			}
 		}
 	}
