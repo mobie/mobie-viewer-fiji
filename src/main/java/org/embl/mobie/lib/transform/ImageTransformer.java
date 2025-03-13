@@ -167,13 +167,15 @@ public class ImageTransformer
 	{
 		final ArrayList< Image< ? > > translatedImages = new ArrayList<>();
 
+		// Use the first image for determining the centre position
+		AffineTransform3D translationTransform =
+				MoBIEHelper.createTranslationTransform(
+						images.get( 0 ),
+						centerAtOrigin,
+						translation );
+
 		for ( Image< ? > image : images )
 		{
-			AffineTransform3D translationTransform =
-					MoBIEHelper.createTranslationTransform(
-							image,
-							centerAtOrigin,
-							translation );
 
 			if ( transformInPlace )
 			{

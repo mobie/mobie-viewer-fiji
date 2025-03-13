@@ -51,7 +51,7 @@ public class GridTransformation extends AbstractGridTransformation
 	public boolean centerAtOrigin = true;
 
 	public GridTransformation( List< List< String > > sources,
-							   String nestedSources // to make this have a different erasure
+							   @Nullable String nestedSources // flag to make this constructor have a different erasure
 	)
 	{
 		this.nestedSources = sources;
@@ -59,7 +59,7 @@ public class GridTransformation extends AbstractGridTransformation
 
 	public GridTransformation( List< List< String > > sources,
 							   List< int[] > positions,
-							   String nestedSources// to make this have a different erasure
+							   @Nullable String nestedSources// flag to make this constructor have a different erasure
 	)
 	{
 		this.nestedSources = sources;
@@ -106,7 +106,7 @@ public class GridTransformation extends AbstractGridTransformation
 			futures.add( ThreadHelper.executorService.submit( () -> {
 				try
 				{
-					final List< ? extends Image< ? > > images = nestedImages.get( finalGridIndex );
+					final List< ? extends Image< ? > > imagesAtGridPosition = nestedImages.get( finalGridIndex );
 					final double[] translation = new double[ 3 ];
 					for ( int d = 0; d < 2; d++ )
 						translation[ d ] = tileRealDimensions[ d ] * positions.get( finalGridIndex )[ d ] + withinTileOffset[ d ];
@@ -117,7 +117,7 @@ public class GridTransformation extends AbstractGridTransformation
 
 					final List< ? extends Image< ? > > translatedImages =
 							ImageTransformer.translate(
-									images,
+									imagesAtGridPosition,
 									transformedImageNames,
 									centerAtOrigin,
 									translation,
