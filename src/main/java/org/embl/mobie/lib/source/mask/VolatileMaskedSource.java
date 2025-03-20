@@ -30,19 +30,23 @@ package org.embl.mobie.lib.source.mask;
 
 import bdv.viewer.Source;
 import net.imglib2.*;
+import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.Type;
+import net.imglib2.view.IntervalView;
+import net.imglib2.view.Views;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 public class VolatileMaskedSource< T extends Type< T >, V extends Volatile< T > & Type< V > > extends AbstractMaskedSource< V >
 {
-    public VolatileMaskedSource( Source< V > source, RealMaskRealInterval mask )
+    public VolatileMaskedSource( Source< V > source, String name, RealMaskRealInterval mask )
     {
-        super( source, mask );
+        super( source, name, mask );
     }
 
     @Override
@@ -72,6 +76,40 @@ public class VolatileMaskedSource< T extends Type< T >, V extends Volatile< T > 
             }
         };
 
-        return new FunctionRealRandomAccessible< V >( 3, masked, rra.getType()::createVariable );
+        V type = rra.getType();
+        Supplier< V > vSupplier = () -> type.createVariable();
+        return new FunctionRealRandomAccessible<>( 3, masked, vSupplier );
+    }
+
+    @Override
+    protected RandomAccessibleInterval< V > createMaskedRandomAccessibleInterval( RandomAccessibleInterval< V > rai, RealMaskRealInterval mask )
+    {
+        BiConsumer< Localizable, V > masked = ( l, output ) ->
+        {
+            final RandomAccess< V > access = rai.randomAccess();
+            final V input = access.setPositionAndGet( l ).copy();
+
+            if( ! mask.test( l ) )
+            {
+                // assumes that the default variable is the background value
+                final V background = input.createVariable();
+                output.set( background );
+                output.setValid( true );
+            }
+            else if ( ! input.isValid() )
+            {
+                output.setValid( false );
+            }
+            else
+            {
+                output.set( input );
+            }
+        };
+
+        V type = rai.getType();
+        Supplier< V > vSupplier = () -> type.createVariable();
+        FunctionRandomAccessible< V > fra = new FunctionRandomAccessible<>( 3, masked, vSupplier );
+        IntervalView< V > out = Views.interval( fra, rai );
+        return out;
     }
 }

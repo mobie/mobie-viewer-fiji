@@ -72,6 +72,7 @@ import org.embl.mobie.ui.MoBIEWindowManager;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
+import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -108,14 +109,15 @@ public class ViewManager
 	}
 
 
-	public static View createTransformedImageView(
+	public static View createImageView(
 			Image< ? > image,
 			String imageName,
-			Transformation transformation,
+			@Nullable Transformation transformation,
 			String viewDescription )
 	{
 		ArrayList< Transformation > transformations = MoBIEHelper.fetchAddedImageTransformations( image );
-		transformations.add( transformation );
+		if ( transformation != null )
+			transformations.add( transformation );
 
 		Display< ? > display;
 		if ( image instanceof AnnotationImage )
@@ -125,7 +127,13 @@ public class ViewManager
 		else
 		{
 			ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, imageName );
-			imageDisplay.setDisplaySettings( DataStore.sourceToImage().inverse().get( image ) );
+			SourceAndConverter< ? > sourceAndConverter = DataStore.sourceToImage().inverse().get( image );
+			if ( sourceAndConverter != null )
+			{
+				// this image has been previously displayed
+				// and we fetch the display settings
+				imageDisplay.setDisplaySettings( sourceAndConverter );
+			}
 			display = imageDisplay;
 		}
 

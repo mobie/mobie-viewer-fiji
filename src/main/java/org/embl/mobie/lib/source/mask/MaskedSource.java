@@ -29,60 +29,73 @@
 package org.embl.mobie.lib.source.mask;
 
 import bdv.viewer.Source;
-import net.imglib2.RealInterval;
-import net.imglib2.RealLocalizable;
-import net.imglib2.RealRandomAccess;
-import net.imglib2.RealRandomAccessible;
+import net.imglib2.*;
+import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.Type;
-import org.jetbrains.annotations.Nullable;
+import net.imglib2.view.IntervalView;
+import net.imglib2.view.Views;
 
-import java.util.ArrayList;
 import java.util.function.BiConsumer;
 
 public class MaskedSource< T extends Type< T > > extends AbstractMaskedSource< T >
 {
-    public < T > MaskedSource( Source<T> source, RealMaskRealInterval mask )
+    public MaskedSource( Source<T> source, String name, RealMaskRealInterval mask )
     {
-        super( source, mask );
+        super( source, name, mask );
     }
 
-    protected RealRandomAccessible< T > createMaskedRealRandomAccessible( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, double[] pixelUnitsBoundaryWidth )
+    @Override
+    protected RealRandomAccessible< T > createMaskedRealRandomAccessible(
+            RealRandomAccessible< T > rra,
+            RealMaskRealInterval mask )
     {
-        BiConsumer< RealLocalizable, T > biConsumer = ( l, output ) ->
+        BiConsumer< RealLocalizable, T > masked = ( l, output ) ->
         {
             final RealRandomAccess< T > access = rra.realRandomAccess();
-            final T pixelValue = access.setPositionAndGet( l ).copy();
-            // assumes that the default variable is the background value
-            final T background = pixelValue.createVariable();
 
-            // set to background
-            output.set( background );
+            final T input = access.setPositionAndGet( l ).copy();
 
-            if ( pixelValue.valueEquals( background ) )
-                return;
-
-            // check whether input is a boundary pixel
-            for ( Integer d : dimensions )
+            if ( !mask.test( l ) )
             {
-                for ( int signum = -1; signum <= +1; signum+=2 ) // back and forth
-                {
-                    access.move( signum * pixelUnitsBoundaryWidth[ d ], d );
-                    final T neighbourValue = access.get();
-                    if ( ! neighbourValue.valueEquals( pixelValue )  )
-                    {
-                        // input is a non-background boundary pixel...
-                        // ...thus it keeps its value
-                        output.set( pixelValue );
-                        return;
-                    }
-                    // move back to center
-                    access.move( - signum * pixelUnitsBoundaryWidth[ d ], d );
-                }
+                final T background = input.createVariable();
+                output.set( background );
+            }
+            else
+            {
+                output.set( input );
             }
         };
 
-        return new FunctionRealRandomAccessible( 3, biConsumer, () -> getType().createVariable() );
+        return new FunctionRealRandomAccessible< T >( 3, masked, rra.getType()::createVariable );
     }
+
+    @Override
+    protected RandomAccessibleInterval< T > createMaskedRandomAccessibleInterval(
+            RandomAccessibleInterval< T > rai,
+            RealMaskRealInterval mask )
+    {
+        BiConsumer< Localizable, T > masked = ( l, output ) ->
+        {
+            RandomAccess< T > randomAccess = rai.randomAccess();
+
+            final T input = randomAccess.setPositionAndGet( l ).copy();
+
+            if ( ! mask.test( l ) )
+            {
+                final T background = input.createVariable();
+                output.set( background );
+            }
+            else
+            {
+                output.set( input );
+            }
+        };
+
+        FunctionRandomAccessible< T > fra = new FunctionRandomAccessible<>( 3, masked, rai.getType()::createVariable );
+        IntervalView< T > out = Views.interval( fra, rai );
+        return out;
+    }
+
 }

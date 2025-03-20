@@ -28,26 +28,20 @@
  */
 package org.embl.mobie.lib.image;
 
-import bdv.util.ResampledSource;
 import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
-import mpicbg.spim.data.sequence.FinalVoxelDimensions;
-import mpicbg.spim.data.sequence.VoxelDimensions;
-import net.imglib2.FinalRealInterval;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
-import net.imglib2.roi.geom.GeomMasks;
+import net.imglib2.type.Type;
 import org.embl.mobie.lib.source.mask.MaskedSource;
 import org.embl.mobie.lib.source.mask.VolatileMaskedSource;
 import org.embl.mobie.lib.util.MoBIEHelper;
-import sc.fiji.bdvpg.sourceandconverter.importer.EmptySourceAndConverterCreator;
 
-public class MaskedImage< T > implements Image< T >
+public class MaskedImage< T extends Type< T > > implements Image< T >
 {
 	private final String name;
-	private Image< T > wrappedImage;
-	private DefaultSourcePair sourcePair;
+	private final Image< T > wrappedImage;
+	private DefaultSourcePair< T > sourcePair;
 	private RealMaskRealInterval mask;
 
 	public MaskedImage( Image< T > wrappedImage, String name, RealMaskRealInterval mask )
@@ -63,10 +57,12 @@ public class MaskedImage< T > implements Image< T >
 
 		SourcePair< T > inputSourcePair = MoBIEHelper.wrapTransformSourceAroundSourcePair( wrappedImage.getSourcePair() );
 		final Source< T > source = inputSourcePair.getSource();
-		final Source< ? extends Volatile< T > > volatileSource = inputSourcePair.getVolatileSource();
+		final Source< ? extends Volatile< T > > volatileSource
+				= inputSourcePair.getVolatileSource();
 
-		MaskedSource< T > maskedSource = ( MaskedSource< T > ) new MaskedSource<>( source, mask );
-		VolatileMaskedSource< T, V > volatileMaskedSource = new VolatileMaskedSource<>( volatileSource, mask );
+		MaskedSource< T > maskedSource = new MaskedSource<>( source, name, mask );
+		VolatileMaskedSource< T, ? extends Volatile< T > > volatileMaskedSource
+				= new VolatileMaskedSource<>( (Source) volatileSource, name, mask );
 
 		sourcePair = new DefaultSourcePair<>( maskedSource, volatileMaskedSource );
 	}

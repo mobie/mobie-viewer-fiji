@@ -28,27 +28,27 @@
  */
 package org.embl.mobie.lib.source.mask;
 
-import bdv.util.Affine3DHelpers;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealPoint;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.type.Type;
 import org.embl.mobie.lib.source.SourceWrapper;
-
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public abstract class AbstractMaskedSource< T > implements Source< T >, SourceWrapper< T >
 {
     protected final Source< T > source;
+    private final String name;
     private final RealMaskRealInterval mask;
 
-    public AbstractMaskedSource( Source< T > source, RealMaskRealInterval mask )
+    public AbstractMaskedSource( Source< T > source, String name, RealMaskRealInterval mask )
     {
         this.source = source;
+        this.name = name;
         this.mask = mask;
     }
 
@@ -72,8 +72,11 @@ public abstract class AbstractMaskedSource< T > implements Source< T >, SourceWr
     @Override
     public RandomAccessibleInterval< T > getSource( final int t, final int level )
     {
-        // FIXME also implement masking here
-        return source.getSource( t, level );
+        final RandomAccessibleInterval< T > rai = source.getSource( t, level );
+        AffineTransform3D affineTransform3D = new AffineTransform3D();
+        source.getSourceTransform( t, level, affineTransform3D );
+        RealMaskRealInterval transformed = mask.transform( affineTransform3D );
+        return createMaskedRandomAccessibleInterval( rai, transformed );
     }
 
     @Override
@@ -82,11 +85,13 @@ public abstract class AbstractMaskedSource< T > implements Source< T >, SourceWr
         final RealRandomAccessible< T > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
         AffineTransform3D affineTransform3D = new AffineTransform3D();
         source.getSourceTransform( t, level, affineTransform3D );
-        RealMaskRealInterval transformed = mask.transform( affineTransform3D.inverse() );
+        RealMaskRealInterval transformed = mask.transform( affineTransform3D );
         return createMaskedRealRandomAccessible( rra, transformed );
     }
 
     protected abstract RealRandomAccessible< T > createMaskedRealRandomAccessible( RealRandomAccessible< T > rra, RealMaskRealInterval mask );
+
+    protected abstract RandomAccessibleInterval< T > createMaskedRandomAccessibleInterval( RandomAccessibleInterval< T > rai, RealMaskRealInterval mask );
 
     @Override
     public T getType() {
@@ -95,7 +100,7 @@ public abstract class AbstractMaskedSource< T > implements Source< T >, SourceWr
 
     @Override
     public String getName() {
-        return source.getName();
+        return name;
     }
 
     @Override
@@ -111,16 +116,6 @@ public abstract class AbstractMaskedSource< T > implements Source< T >, SourceWr
     @Override
     public Source<T> getWrappedSource() {
         return source;
-    }
-
-    public boolean showAsBoundaries()
-    {
-        return showAsBoundaries;
-    }
-
-    public double getBoundaryWidth()
-    {
-        return boundaryWidth;
     }
 
 }

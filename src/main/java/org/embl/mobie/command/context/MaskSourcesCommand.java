@@ -30,12 +30,16 @@ package org.embl.mobie.command.context;
 
 import bdv.util.BdvHandle;
 import net.imglib2.roi.RealMaskRealInterval;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.widget.SelectableImages;
 import org.embl.mobie.lib.data.DataStore;
+import org.embl.mobie.lib.image.AffineTransformedImage;
 import org.embl.mobie.lib.image.CroppedImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.MaskedImage;
+import org.embl.mobie.lib.serialize.View;
+import org.embl.mobie.lib.view.ViewManager;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
@@ -57,11 +61,19 @@ public class MaskSourcesCommand extends BoxSelectionCommand
         super.run();
         RealMaskRealInterval mask = transformedBox.asMask();
         List< ? extends Image< ? > > images = selectedImages.getNames().stream()
-                .map( name -> DataStore.getImage( name ) )
+                .map( DataStore::getImage )
                 .collect( Collectors.toList() );
+
         for ( Image< ? > image : images )
         {
-            new MaskedImage<>( image, image.getName() + "_masked", mask );
+            MaskedImage maskedImage = new MaskedImage<>( ( Image ) image, image.getName() + "_masked", mask );
+
+            DataStore.addImage( maskedImage );
+            // TODO: probably the masking should heppen within the view
+            //       then we would need a new "MaskingTransformation"
+            View view = ViewManager.createImageView( maskedImage, maskedImage.getName(), null, "" );
+
+            MoBIE.getInstance().getViewManager().show( view );
         }
     }
 

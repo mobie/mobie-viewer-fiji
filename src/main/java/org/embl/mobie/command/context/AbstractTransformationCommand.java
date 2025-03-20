@@ -144,7 +144,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
                     Collections.singletonList( transformedImageName )
             );
 
-            View view = ViewManager.createTransformedImageView(
+            View view = ViewManager.createImageView(
                     movingImage,
                     transformedImageName,
                     affineTransformation,

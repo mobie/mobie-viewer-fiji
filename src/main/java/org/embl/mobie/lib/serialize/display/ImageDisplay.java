@@ -204,7 +204,12 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 
 	public void setDisplaySettings( SourceAndConverter< ? > sourceAndConverter )
 	{
-		final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter );
+		if ( sourceAndConverter == null )
+			throw new UnsupportedOperationException("Cannot fetch display settings from a null object.");
+
+		final ConverterSetup converterSetup = SourceAndConverterServices
+				.getSourceAndConverterService()
+				.getConverterSetup( sourceAndConverter );
 
 		Converter< ?, ARGBType > converter = sourceAndConverter.getConverter();
 
