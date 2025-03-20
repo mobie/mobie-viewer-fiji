@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.source;
+package org.embl.mobie.lib.source.boundary;
 
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessible;

@@ -31,7 +31,7 @@ package org.embl.mobie.lib.image;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.source.AnnotationType;
-import org.embl.mobie.lib.source.VolatileAnnotationType;
+import org.embl.mobie.lib.source.label.VolatileAnnotationType;
 import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.table.AnnDataHelper;
 

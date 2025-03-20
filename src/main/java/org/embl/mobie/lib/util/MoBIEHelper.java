@@ -64,6 +64,7 @@ import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.io.imagedata.ImageData;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.image.*;
 import org.embl.mobie.lib.io.ImageDataInfo;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
@@ -72,6 +73,7 @@ import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.source.Masked;
 import org.embl.mobie.lib.source.RealTransformedSource;
 import org.embl.mobie.lib.source.SourceHelper;
+import org.embl.mobie.lib.source.SourceWrapper;
 import org.embl.mobie.lib.transform.InterpolatedAffineRealTransform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,6 +100,19 @@ import static sc.fiji.bdvpg.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
 
 public abstract class MoBIEHelper
 {
+	public static <T> Set<T> findDuplicates(Collection<T> collection) {
+		Set<T> seen = new HashSet<>();
+		Set<T> duplicates = new HashSet<>();
+
+		for (T element : collection) {
+			if (!seen.add(element)) {
+				duplicates.add(element);
+			}
+		}
+
+		return duplicates;
+	}
+
 	public static FinalRealInterval expand( final RealInterval interval, final double border )
 	{
 		final int n = interval.numDimensions();
@@ -1189,10 +1204,10 @@ public abstract class MoBIEHelper
 		return allTransformations;
 	}
 
-	// Wrap the input sourcePair into new TransformedSources,
+	// Wrap the a sourcePair into new TransformedSources,
 	// because otherwise, if the incremental transformations of the input TransformedSources
 	// are changed, e.g. by the current logic of how the ManualTransformEditor works,
-	// this would create a mess.
+	// this creates a mess.
 	public static < T > SourcePair< T > wrapTransformSourceAroundSourcePair( SourcePair< T > sourcePair )
 	{
 		TransformedSource< T > inputTransformedSource = ( TransformedSource< T > ) sourcePair.getSource();
@@ -1277,5 +1292,31 @@ public abstract class MoBIEHelper
 			size[ d ] = interval.realMax( d ) - interval.realMin( d );
 		}
 		return size;
+	}
+
+	public static SpotLabelImage getSpotLabelImage( SourceAndConverter sourceAndConverter )
+	{
+		Image< ? > image = DataStore.sourceToImage().get( sourceAndConverter );
+		return unwrapImage( image, SpotLabelImage.class );
+	}
+
+	public static < T > T unwrapImage( Image< ? > image, Class< T > clazz )
+	{
+		if ( image == null )
+			return null;
+
+		if ( clazz.isInstance( image ) )
+		{
+			return ( T ) image;
+		}
+		else if ( image instanceof ImageWrapper )
+		{
+			Image< ? > wrappedImage = ( ( ImageWrapper ) image ).getWrappedImage();
+			return unwrapImage( wrappedImage, clazz );
+		}
+		else
+		{
+			return null;
+		}
 	}
 }

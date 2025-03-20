@@ -2,6 +2,7 @@ package org.embl.mobie.lib.data;
 
 import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
+import net.thisptr.jackson.jq.internal.misc.Strings;
 import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.util.Constants;
 import org.embl.mobie.io.ImageDataFormat;
@@ -66,6 +67,11 @@ public class CollectionTableDataSetter
             
             String sourceName = getName( row );
             String displayName = getDisplayName( row );
+            // FIXME What should happen here?
+            if ( sourceToRowIndex.containsKey( sourceName ) )
+            {
+                IJ.log( "[WARN] The collection table contains " + sourceName + "multiple times" );
+            }
             sourceToRowIndex.put( sourceName, row.getRowNumber() );
 
             addSource( dataset, row, sourceName, displays, displayName );
@@ -127,7 +133,7 @@ public class CollectionTableDataSetter
                         transformations.add( grid );
                     }
 
-                    Display< ? > regionDisplay = createRegionDisplay( viewName, gridName, nestedSources );
+                    Display< ? > regionDisplay = createRegionDisplay( gridName, nestedSources );
                     displays.put( regionDisplay.getName(), regionDisplay );
                     viewToDisplays.get( viewName ).add( regionDisplay );
                 });
@@ -152,16 +158,24 @@ public class CollectionTableDataSetter
     }
 
     private RegionDisplay< AnnotatedRegion > createRegionDisplay(
-            String viewName,
             String gridName,
             List< List< String > > gridSources )
     {
         List< String > firstSources = gridSources.stream().map( sources -> sources.get( 0 ) ).collect( Collectors.toList() );
 
+        Set< String > duplicates = MoBIEHelper.findDuplicates( firstSources );
+
+        if ( ! duplicates.isEmpty() )
+        {
+            throw new UnsupportedOperationException(
+                    "The grid " + gridName + "contains duplicates:\n" +
+                    Strings.join( ",", duplicates ) );
+        }
+
         // Create grid regions table
         int[] rowIndices = firstSources.stream()
                 .map( source -> sourceToRowIndex.get( source ) )
-                .mapToInt(Integer::intValue)
+                .mapToInt( Integer::intValue )
                 .toArray();
         Selection rowSelection = Selection.with( rowIndices );
         Table regionTable = table.where( rowSelection );

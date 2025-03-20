@@ -47,7 +47,7 @@ import org.embl.mobie.lib.plot.ScatterPlotView;
 import org.embl.mobie.lib.select.MoBIESelectionModel;
 import org.embl.mobie.lib.select.SelectionModel;
 import org.embl.mobie.lib.source.AnnotationType;
-import org.embl.mobie.lib.source.BoundarySource;
+import org.embl.mobie.lib.source.boundary.BoundarySource;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.table.AnnData;

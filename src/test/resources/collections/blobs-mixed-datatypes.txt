@@ -1,0 +1,3 @@
+uri	name	grid
+blobs.tif	blobs8	blobs
+blobs-uint16.tif	blobs16	blobs

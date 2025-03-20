@@ -34,9 +34,9 @@ import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
-import org.embl.mobie.lib.source.AnnotatedLabelSource;
+import org.embl.mobie.lib.source.label.AnnotatedLabelSource;
 import org.embl.mobie.lib.source.AnnotationType;
-import org.embl.mobie.lib.source.VolatileAnnotatedLabelSource;
+import org.embl.mobie.lib.source.label.VolatileAnnotatedLabelSource;
 import org.embl.mobie.lib.table.AnnData;
 
 public class DefaultAnnotatedLabelImage< A extends Annotation > implements AnnotatedLabelImage< A >

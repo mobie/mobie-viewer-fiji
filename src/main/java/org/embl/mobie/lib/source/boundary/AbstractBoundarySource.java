@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.source;
+package org.embl.mobie.lib.source.boundary;
 
 import bdv.util.Affine3DHelpers;
 import bdv.viewer.Interpolation;
@@ -36,6 +36,7 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.lib.source.SourceWrapper;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

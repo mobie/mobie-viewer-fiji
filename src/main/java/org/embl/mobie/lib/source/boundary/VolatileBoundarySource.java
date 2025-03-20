@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.source;
+package org.embl.mobie.lib.source.boundary;
 
 import bdv.viewer.Source;
 import net.imglib2.RealInterval;
@@ -36,6 +36,7 @@ import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.type.Type;
+import org.embl.mobie.lib.source.boundary.AbstractBoundarySource;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;

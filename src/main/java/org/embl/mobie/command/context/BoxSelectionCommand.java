@@ -55,6 +55,8 @@ public class BoxSelectionCommand implements BdvPlaygroundActionCommand
     @Parameter
     public BdvHandle bdvHandle;
 
+    protected TransformedRealBoxSelectionDialog.Result transformedBox;
+
     @Override
     public void run()
     {
@@ -81,17 +83,17 @@ public class BoxSelectionCommand implements BdvPlaygroundActionCommand
         final AffineTransform3D boxTransform = currentRotation.inverse().copy().preConcatenate( translateOriginToCenter );
 
         // Show box in BDV
-        final TransformedRealBoxSelectionDialog.Result result = BdvFunctions.selectRealBox(
+        transformedBox = BdvFunctions.selectRealBox(
                 bdvHandle,
                 boxTransform,
                 initialInterval,
                 rangeInterval,
                 BoxSelectionOptions.options().title( "Select box" ) );
 
-        if ( result.isValid() )
+        if ( transformedBox.isValid() )
         {
             IJ.log( "# Selected box" );
-            RealInterval interval = result.getInterval();
+            RealInterval interval = transformedBox.getInterval();
             double[] boxSize = MoBIEHelper.getSize( interval );
             double[] globalCenter = new double[ 3 ];
             boxTransform.apply( MoBIEHelper.getCenter( interval ), globalCenter );
@@ -100,32 +102,6 @@ public class BoxSelectionCommand implements BdvPlaygroundActionCommand
             IJ.log( "Interval: " + Arrays.toString( interval.minAsDoubleArray() ) + ", " + Arrays.toString( interval.maxAsDoubleArray() ) );
             IJ.log( "Interval transform: " + Arrays.toString( boxTransform.getRowPackedCopy() ) );
         }
-    }
-
-    private RealInterval getRangeInterval( )
-    {
-        final FinalRealInterval viewerBoundingInterval = BdvHandleHelper.getViewerGlobalBoundingInterval( bdvHandle );
-        double[] centre = new double[ 3 ];
-        double[] size = new double[ 3 ];
-
-        for (int d = 0; d < 3; d++)
-        {
-            centre[ d ] = ( viewerBoundingInterval.realMax( d ) + viewerBoundingInterval.realMin( d ) ) / 2.0;
-            size[ d ] = ( viewerBoundingInterval.realMax( d ) - viewerBoundingInterval.realMin( d ) );
-        }
-
-        size[ 2 ] = Math.min( size[ 0 ], size[ 1 ] );
-
-        double[] minBB = new double[3];
-        double[] maxBB = new double[3];
-
-        for ( int d = 0; d < 3; d++ )
-        {
-            minBB[ d ] = centre[ d ] - size[ d ] / 2;
-            maxBB[ d ] = centre[ d ] + size[ d ] / 2;
-        }
-
-        return new FinalRealInterval( minBB, maxBB );
     }
 
 }

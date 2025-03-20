@@ -31,6 +31,7 @@ package org.embl.mobie.lib.source;
 import bdv.util.volatiles.VolatileTypeMatcher;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.Type;
+import org.embl.mobie.lib.source.label.VolatileAnnotationType;
 
 public class MoBIEVolatileTypeMatcher
 {

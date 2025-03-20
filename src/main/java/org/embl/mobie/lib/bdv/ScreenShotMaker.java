@@ -68,7 +68,7 @@ import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
-import org.embl.mobie.lib.source.AnnotatedLabelSource;
+import org.embl.mobie.lib.source.label.AnnotatedLabelSource;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.SourceHelper;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;

@@ -56,9 +56,9 @@ import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.source.AnnotationType;
-import org.embl.mobie.lib.source.BoundarySource;
+import org.embl.mobie.lib.source.boundary.BoundarySource;
 import org.embl.mobie.lib.source.SourceHelper;
-import org.embl.mobie.lib.source.VolatileBoundarySource;
+import org.embl.mobie.lib.source.boundary.VolatileBoundarySource;
 import org.embl.mobie.lib.transform.viewer.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
 import org.embl.mobie.lib.util.MoBIEHelper;
@@ -98,24 +98,9 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 			if ( display instanceof SpotDisplay )
 			{
 				final SpotDisplay spotDisplay = ( SpotDisplay ) display;
-				// TODO: Improve this by implementing an unwrapImage function
-				//       similar to the existing unwrapSource function
-				if ( image instanceof AffineTransformedImage )
-				{
-					image = ( Image ) ( ( ImageWrapper ) image ).getWrappedImage();
-				}
-
-				Image labelImage = ( ( AnnotatedLabelImage ) image ).getLabelImage();
-
-				if ( labelImage instanceof AffineTransformedImage )
-				{
-					labelImage = ( Image ) ( ( ImageWrapper ) labelImage ).getWrappedImage();
-				}
-
-				( ( SpotLabelImage ) labelImage ).setSpotRadius( spotDisplay.spotRadius );
-				( ( SpotLabelImage ) labelImage ).setSpotRadiusZ( spotDisplay.spotRadiusZ );
-
-
+				SpotLabelImage spotLabelImage = MoBIEHelper.unwrapImage( image, SpotLabelImage.class );
+				spotLabelImage.setSpotRadius( spotDisplay.spotRadius );
+				spotLabelImage.setSpotRadiusZ( spotDisplay.spotRadiusZ );
 			}
 		}
 	}

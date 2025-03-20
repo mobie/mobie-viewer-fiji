@@ -36,9 +36,9 @@ import org.embl.mobie.lib.color.CategoricalAnnotationColoringModel;
 import org.embl.mobie.lib.color.ColoringModel;
 import org.embl.mobie.lib.color.MobieColoringModel;
 import org.embl.mobie.lib.color.MobieColoringModelWrapper;
-import org.embl.mobie.lib.source.BoundarySource;
+import org.embl.mobie.lib.source.boundary.BoundarySource;
 import org.embl.mobie.lib.source.SourceHelper;
-import org.embl.mobie.lib.source.VolatileBoundarySource;
+import org.embl.mobie.lib.source.boundary.VolatileBoundarySource;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import org.scijava.Initializable;
@@ -48,8 +48,6 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.util.ColorRGB;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
-import sc.fiji.bdvpg.services.ISourceAndConverterService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Label Rendering")
 public class ConfigureLabelRenderingCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable

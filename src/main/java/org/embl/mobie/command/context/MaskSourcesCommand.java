@@ -26,24 +26,43 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.color;
+package org.embl.mobie.command.context;
 
-import org.embl.mobie.lib.source.label.VolatileAnnotationType;
-import net.imglib2.type.numeric.ARGBType;
+import bdv.util.BdvHandle;
+import net.imglib2.roi.RealMaskRealInterval;
+import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.command.widget.SelectableImages;
+import org.embl.mobie.lib.data.DataStore;
+import org.embl.mobie.lib.image.CroppedImage;
+import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.image.MaskedImage;
+import org.scijava.plugin.Parameter;
+import org.scijava.plugin.Plugin;
+import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-public class VolatileAnnotationARGBConverter< T > extends AbstractAnnotationARGBConverter< T, VolatileAnnotationType< T > >
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Mask Image")
+public class MaskSourcesCommand extends BoxSelectionCommand
 {
-	public VolatileAnnotationARGBConverter( MobieColoringModel< T > coloringModel )
-	{
-		super( coloringModel );
-	}
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Override
-	public void convert( VolatileAnnotationType< T > input, ARGBType output )
-	{
-		if ( ! input.isValid()  )
-			return;
+    @Parameter ( label = "Mask Image(s)" )
+    public SelectableImages selectedImages;
 
-		setColor( input.getAnnotation(), output );
-	}
+    @Override
+    public void run()
+    {
+        super.run();
+        RealMaskRealInterval mask = transformedBox.asMask();
+        List< ? extends Image< ? > > images = selectedImages.getNames().stream()
+                .map( name -> DataStore.getImage( name ) )
+                .collect( Collectors.toList() );
+        for ( Image< ? > image : images )
+        {
+            new MaskedImage<>( image, image.getName() + "_masked", mask );
+        }
+    }
+
 }

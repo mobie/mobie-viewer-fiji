@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.source;
+package org.embl.mobie.lib.source.mask;
 
 import bdv.viewer.Source;
 import net.imglib2.RealInterval;
@@ -34,20 +34,21 @@ import net.imglib2.RealLocalizable;
 import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.position.FunctionRealRandomAccessible;
+import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.Type;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.function.BiConsumer;
 
-public class BoundarySource< T extends Type< T > > extends AbstractBoundarySource< T >
+public class MaskedSource< T extends Type< T > > extends AbstractMaskedSource< T >
 {
-    public BoundarySource( Source< T > source, boolean showAsBoundaries, @Nullable float boundaryWidth, @Nullable RealInterval bounds )
+    public < T > MaskedSource( Source<T> source, RealMaskRealInterval mask )
     {
-        super( source, showAsBoundaries, boundaryWidth, bounds );
+        super( source, mask );
     }
 
-    protected RealRandomAccessible< T > createBoundaryRealRandomAccessible( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, double[] pixelUnitsBoundaryWidth )
+    protected RealRandomAccessible< T > createMaskedRealRandomAccessible( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, double[] pixelUnitsBoundaryWidth )
     {
         BiConsumer< RealLocalizable, T > biConsumer = ( l, output ) ->
         {

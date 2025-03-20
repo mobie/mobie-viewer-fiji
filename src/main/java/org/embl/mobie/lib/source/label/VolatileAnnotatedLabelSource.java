@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.source;
+package org.embl.mobie.lib.source.label;
 
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
@@ -34,55 +34,65 @@ import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
+import net.imglib2.Volatile;
 import net.imglib2.converter.Converters;
 import net.imglib2.type.numeric.IntegerType;
+import org.embl.mobie.lib.source.AbstractSourceWrapper;
+import org.embl.mobie.lib.source.AnnotationType;
 
-public class AnnotatedLabelSource< T extends IntegerType< T >, A extends Annotation > extends AbstractSourceWrapper< T, AnnotationType< A > >
+// MAYBE: This does not need to know that this is a Segment?!
+public class VolatileAnnotatedLabelSource< T extends IntegerType< T >, V extends Volatile< T >, A extends Annotation > extends AbstractSourceWrapper< V, VolatileAnnotationType< A > >
 {
-    private final AnnotationAdapter< A > annotationAdapter;
+    private final AnnotationAdapter<A> annotationAdapter;
 
-    public AnnotatedLabelSource( final Source< T > labelSource, AnnotationAdapter<A> annotationAdapter )
+    public VolatileAnnotatedLabelSource( final Source< V > source, AnnotationAdapter<A> annotationAdapter )
     {
-        super( labelSource );
+        super( source );
         this.annotationAdapter = annotationAdapter;
     }
 
     @Override
-    public boolean isPresent( final int t )
+    public RandomAccessibleInterval< VolatileAnnotationType< A > > getSource( final int t, final int level )
     {
-        return source.isPresent(t);
+        final RandomAccessibleInterval< V > rai = source.getSource( t, level );
+        final RandomAccessibleInterval< VolatileAnnotationType< A > > convert = Converters.convert( rai, ( input, output ) -> {
+            set( input, t, output );
+        }, createVariable() );
+
+        return convert;
     }
 
     @Override
-    public RandomAccessibleInterval< AnnotationType< A > > getSource( final int t, final int level )
+    public RealRandomAccessible< VolatileAnnotationType< A > > getInterpolatedSource( final int t, final int level, final Interpolation method)
     {
-        return Converters.convert( source.getSource( t, level ), ( input, output ) -> {
-            setOutput( input, t, output );
-        }, new AnnotationType()  ); // annotationAdapter.createVariable()
+        final RealRandomAccessible< V > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
+
+        return Converters.convert( rra, ( input, output ) -> set( input, t, output ), createVariable() );
     }
 
-    @Override
-    public RealRandomAccessible< AnnotationType< A > > getInterpolatedSource( final int t, final int level, final Interpolation method)
+    private void set( V input, int t, VolatileAnnotationType< A > output )
     {
-        final RealRandomAccessible< T > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
+        if ( ! input.isValid() )
+        {
+            output.setValid( false );
+            return;
+        }
 
-        return Converters.convert( rra,
-                ( T input, AnnotationType< A > output ) ->
-                setOutput( input, t, output ),
-                new AnnotationType<>() );
-    }
+        final int label = input.get().getInteger();
 
-    private void setOutput( T input, int t, AnnotationType< A > output  )
-    {
-        final int label = input.getInteger();
         final A annotation = annotationAdapter.getAnnotation( getName(), t, label );
-        output.setAnnotation( annotation );
+        output.get().setAnnotation( annotation );
+        output.setValid( true );
     }
 
     @Override
-    public AnnotationType< A > getType()
+    public VolatileAnnotationType< A > getType()
     {
-        //return new AnnotationType( annotationAdapter.createVariable() );
-        return new AnnotationType( null );
+        return createVariable();
+    }
+
+    private VolatileAnnotationType< A > createVariable()
+    {
+        return new VolatileAnnotationType( new AnnotationType<>() , true ); // annotationAdapter.createVariable()
     }
 }

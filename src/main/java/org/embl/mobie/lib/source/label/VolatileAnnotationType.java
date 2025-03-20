@@ -26,10 +26,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.source;
+package org.embl.mobie.lib.source.label;
 
 import net.imglib2.Volatile;
 import net.imglib2.type.Type;
+import org.embl.mobie.lib.source.AnnotationType;
 
 // Note: This must be a type (as in right now implementing Type< VolatileAnnotationType< T > > ) otherwise it cannot be a pixel in a Source
 public class VolatileAnnotationType< T > extends Volatile< AnnotationType< T > > implements Type< VolatileAnnotationType< T > >
