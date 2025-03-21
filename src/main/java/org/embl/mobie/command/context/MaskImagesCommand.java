@@ -28,7 +28,11 @@
  */
 package org.embl.mobie.command.context;
 
+import bdv.util.Affine3DHelpers;
+import ij.IJ;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.util.LinAlgHelpers;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.widget.SelectableImages;
@@ -41,15 +45,16 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Mask Image(s)")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Mask Images")
 public class MaskImagesCommand extends BoxSelectionCommand
 {
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    @Parameter ( label = "Mask Image(s)" )
+    @Parameter ( label = "Mask Images" )
     public SelectableImages selectedImages;
 
     @Override
@@ -59,6 +64,7 @@ public class MaskImagesCommand extends BoxSelectionCommand
 
         if ( ! transformedBox.isValid() ) return;
 
+        IJ.log( "# Mask images" );
         RealMaskRealInterval mask = transformedBox.asMask();
         List< ? extends Image< ? > > images = selectedImages.getNames().stream()
                 .map( DataStore::getImage )
@@ -66,7 +72,7 @@ public class MaskImagesCommand extends BoxSelectionCommand
 
         for ( Image< ? > image : images )
         {
-            MaskedImage maskedImage = new MaskedImage<>( ( Image ) image, image.getName() + "_masked", mask );
+            MaskedImage< ? > maskedImage = new MaskedImage<>( ( Image ) image, image.getName() + "_masked", mask );
 
             DataStore.addImage( maskedImage );
             // TODO: probably the masking should happen within the view
@@ -74,7 +80,21 @@ public class MaskImagesCommand extends BoxSelectionCommand
             View view = ViewManager.createImageView( maskedImage, maskedImage.getName(), null, "" );
 
             MoBIE.getInstance().getViewManager().show( view );
+
+            // log the masked region
+            AffineTransform3D sourceTransform = new AffineTransform3D();
+            maskedImage.getSourcePair().getSource().getSourceTransform( 0,0 , sourceTransform);
+            sourceTransform = sourceTransform.inverse();
+            double[] sourceCenter = center.clone();
+            double[] sourceSize = size.clone();
+            sourceTransform.apply( center, sourceCenter );
+            for ( int d = 0; d < 3; d++ )
+                sourceSize[ d ] = Affine3DHelpers.extractScale( sourceTransform, d ) * size[ d ];
+            IJ.log( "  Image: " + image.getName() );
+            IJ.log( "    Center in image voxel coordinate system: " + Arrays.toString( sourceCenter ) );
+            IJ.log( "    Size in image voxel coordinate system: " + Arrays.toString( sourceSize ) );
+            // IJ.log( "Interval in source coordinate system: " + Arrays.toString( interval.minAsDoubleArray() ) + ", " + Arrays.toString( interval.maxAsDoubleArray() ) );
+            // IJ.log( "Interval transform in global coordinate system: " + Arrays.toString( transform.getRowPackedCopy() ) );
         }
     }
-
 }

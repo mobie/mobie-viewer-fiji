@@ -43,7 +43,7 @@ public class OpenSpatialDataCollectionTable
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.table = new File("/Users/tischer/Desktop/iss-nf/qc_spatialdata_processed/mobie-collection.txt");
-        command.dataRootType = OpenCollectionTableCommand.DataRoot.UseTableFolder;
+        command.dataRootType = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingMode = BdvViewingMode.TwoDimensional;
         command.run();
 

@@ -56,10 +56,15 @@ public class BoxSelectionCommand implements BdvPlaygroundActionCommand
     public BdvHandle bdvHandle;
 
     protected TransformedRealBoxSelectionDialog.Result transformedBox;
+    protected double[] size;
+    protected double[] center;
+    protected RealInterval interval;
+    protected AffineTransform3D transform;
 
     @Override
     public void run()
     {
+        IJ.log( "# Select box" );
         // Compute the maximal and initial size of the box
         Corners globalCorners = MoBIEHelper.getBdvWindowGlobalCorners( bdvHandle );
         double[] range = new double[ 3 ];
@@ -80,28 +85,30 @@ public class BoxSelectionCommand implements BdvPlaygroundActionCommand
         double[] centre = BdvHandleHelper.getWindowCentreInCalibratedUnits( bdvHandle );
         final AffineTransform3D translateOriginToCenter = new AffineTransform3D();
         translateOriginToCenter.translate( centre );
-        final AffineTransform3D boxTransform = currentRotation.inverse().copy().preConcatenate( translateOriginToCenter );
+        transform = currentRotation.inverse().copy().preConcatenate( translateOriginToCenter );
 
         // Show box in BDV
         transformedBox = BdvFunctions.selectRealBox(
                 bdvHandle,
-                boxTransform,
+                transform,
                 initialInterval,
                 rangeInterval,
                 BoxSelectionOptions.options().title( "Select box" ) );
 
         if ( transformedBox.isValid() )
         {
-            IJ.log( "# Selected box" );
-            RealInterval interval = transformedBox.getInterval();
-            double[] boxSize = MoBIEHelper.getSize( interval );
-            double[] globalCenter = new double[ 3 ];
-            boxTransform.apply( MoBIEHelper.getCenter( interval ), globalCenter );
-            IJ.log( "Center in global coordinate system: " + Arrays.toString( globalCenter ) );
-            IJ.log( "Size: " + Arrays.toString( boxSize ) );
-            IJ.log( "Interval: " + Arrays.toString( interval.minAsDoubleArray() ) + ", " + Arrays.toString( interval.maxAsDoubleArray() ) );
-            IJ.log( "Interval transform: " + Arrays.toString( boxTransform.getRowPackedCopy() ) );
+            interval = transformedBox.getInterval();
+            size = MoBIEHelper.getSize( interval );
+            center = new double[ 3 ];
+            transform.apply( MoBIEHelper.getCenter( interval ), center );
+            IJ.log( "  Center in global coordinate system: " + Arrays.toString( center ) );
+            IJ.log( "  Size in global coordinate system: " + Arrays.toString( size ) );
+            IJ.log( "  Interval: " + Arrays.toString( interval.minAsDoubleArray() ) + ", " + Arrays.toString( interval.maxAsDoubleArray() ) );
+            IJ.log( "  Interval transform to global coordinate system: " + Arrays.toString( transform.getRowPackedCopy() ) );
+        }
+        else
+        {
+            IJ.log( "  Cancelled." );
         }
     }
-
 }

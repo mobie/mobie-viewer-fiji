@@ -42,7 +42,7 @@ public class OpenSpotCollectionGrid
 		imageJ.ui().showUI();
 
 		OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-		command.dataRootType = OpenCollectionTableCommand.DataRoot.UseTableFolder;
+		command.dataRootType = OpenCollectionTableCommand.DataRootType.UseTableFolder;
 		command.table = new File("src/test/resources/collections/organ_spots_collection_grid.tsv");
 		command.run();
 	}

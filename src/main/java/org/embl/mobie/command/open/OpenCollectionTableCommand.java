@@ -47,7 +47,8 @@ public class OpenCollectionTableCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static enum DataRoot{
+	public enum DataRootType
+	{
 		PathsInTableAreAbsolute,
 		UseTableFolder,
 		UseBelowDataRootFolder
@@ -58,7 +59,7 @@ public class OpenCollectionTableCommand implements Command {
 
 	@Parameter( label = "Data Root",
 			description = "Specify whether the data URIs in the table are absolute or relative." )
-	public DataRoot dataRootType = DataRoot.PathsInTableAreAbsolute;
+	public DataRootType dataRootType = DataRootType.PathsInTableAreAbsolute;
 
 	@Parameter( label = "( Data Root Folder )",
 			style = "directory",

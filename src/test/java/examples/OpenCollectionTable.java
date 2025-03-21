@@ -18,7 +18,7 @@ public class OpenCollectionTable
         //command.table = new File( "src/test/resources/collections/blobs-grid-table-grid-pos.txt" );
         //command.table = new File( "/Users/tischer/Documents/bacteria-fluorescent-foci-analysis/data/local/collection-grid.txt" );
         command.table = new File( "src/test/resources/collections/blobs-mixed-datatypes.txt" );
-        command.dataRootType = OpenCollectionTableCommand.DataRoot.UseTableFolder;
+        command.dataRootType = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.run();
     }
 }

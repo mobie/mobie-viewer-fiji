@@ -128,8 +128,10 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 				bAccu += b * alpha;
 			}
 
-			if ( aAccu > 255 )
-				aAccu = 255;
+//			rAccu /= accesses.length;
+//			gAccu /= accesses.length;
+//			bAccu /= accesses.length;
+
 			if ( rAccu > 255 )
 				rAccu = 255;
 			if ( gAccu > 255 )
