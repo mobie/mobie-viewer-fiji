@@ -28,14 +28,11 @@
  */
 package org.embl.mobie.command.context;
 
-import bdv.util.BdvHandle;
 import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.widget.SelectableImages;
 import org.embl.mobie.lib.data.DataStore;
-import org.embl.mobie.lib.image.AffineTransformedImage;
-import org.embl.mobie.lib.image.CroppedImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.MaskedImage;
 import org.embl.mobie.lib.serialize.View;
@@ -47,8 +44,8 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Mask Image")
-public class MaskSourcesCommand extends BoxSelectionCommand
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Mask Image(s)")
+public class MaskImagesCommand extends BoxSelectionCommand
 {
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -59,6 +56,9 @@ public class MaskSourcesCommand extends BoxSelectionCommand
     public void run()
     {
         super.run();
+
+        if ( ! transformedBox.isValid() ) return;
+
         RealMaskRealInterval mask = transformedBox.asMask();
         List< ? extends Image< ? > > images = selectedImages.getNames().stream()
                 .map( DataStore::getImage )
@@ -69,7 +69,7 @@ public class MaskSourcesCommand extends BoxSelectionCommand
             MaskedImage maskedImage = new MaskedImage<>( ( Image ) image, image.getName() + "_masked", mask );
 
             DataStore.addImage( maskedImage );
-            // TODO: probably the masking should heppen within the view
+            // TODO: probably the masking should happen within the view
             //       then we would need a new "MaskingTransformation"
             View view = ViewManager.createImageView( maskedImage, maskedImage.getName(), null, "" );
 

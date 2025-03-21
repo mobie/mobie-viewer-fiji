@@ -155,7 +155,7 @@ public class SliceViewer
 		actions.add( SourceAndConverterService.getCommandName( ScreenShotStackMakerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ShowRawImagesCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( BoxSelectionCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( MaskSourcesCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( MaskImagesCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( BigWarpRegistrationCommand.class ) );
 		//actions.add( SourceAndConverterService.getCommandName( AutomaticRegistrationCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ManualTransformationCommand.class ) );
