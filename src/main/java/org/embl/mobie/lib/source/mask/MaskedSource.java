@@ -41,9 +41,12 @@ import java.util.function.BiConsumer;
 
 public class MaskedSource< T extends Type< T > > extends AbstractMaskedSource< T >
 {
+    private final T type;
+
     public MaskedSource( Source<T> source, String name, RealMaskRealInterval mask )
     {
         super( source, name, mask );
+        type = source.getType();
     }
 
     @Override
@@ -51,24 +54,35 @@ public class MaskedSource< T extends Type< T > > extends AbstractMaskedSource< T
             RealRandomAccessible< T > rra,
             RealMaskRealInterval mask )
     {
-        BiConsumer< RealLocalizable, T > masked = ( l, output ) ->
+        return new FunctionRealRandomAccessible< T >(
+                3,
+                new RealRandomAccessValueProvider( rra.realRandomAccess(), mask ),
+                type::createVariable );
+    }
+
+    class RealRandomAccessValueProvider implements BiConsumer< RealLocalizable, T >
+    {
+        private final RealRandomAccess< T > ra;
+        private final RealMaskRealInterval mask;
+
+        public RealRandomAccessValueProvider( RealRandomAccess< T > ra, RealMaskRealInterval mask )
         {
-            final RealRandomAccess< T > access = rra.realRandomAccess();
+            this.ra = ra;
+            this.mask = mask;
+        }
 
-            final T input = access.setPositionAndGet( l ).copy();
-
-            if ( !mask.test( l ) )
+        @Override
+        public void accept( RealLocalizable l, T output )
+        {
+            if ( ! mask.test( l ) )
             {
-                final T background = input.createVariable();
-                output.set( background );
+                output.set(  type.createVariable() );
             }
             else
             {
-                output.set( input );
+                output.set( ra.setPositionAndGet( l ).copy() );
             }
-        };
-
-        return new FunctionRealRandomAccessible< T >( 3, masked, rra.getType()::createVariable );
+        }
     }
 
     @Override
@@ -76,26 +90,37 @@ public class MaskedSource< T extends Type< T > > extends AbstractMaskedSource< T
             RandomAccessibleInterval< T > rai,
             RealMaskRealInterval mask )
     {
-        BiConsumer< Localizable, T > masked = ( l, output ) ->
+        FunctionRandomAccessible< T > fra = new FunctionRandomAccessible<>(
+                3,
+                new RandomAccessValueProvider( rai.randomAccess(), mask ),
+                type::createVariable );
+
+        return Views.interval( fra, rai );
+    }
+
+    class RandomAccessValueProvider implements BiConsumer< Localizable, T >
+    {
+        private final RandomAccess< T > ra;
+        private final RealMaskRealInterval mask;
+
+        public RandomAccessValueProvider( RandomAccess< T > ra, RealMaskRealInterval mask )
         {
-            RandomAccess< T > randomAccess = rai.randomAccess();
+            this.ra = ra;
+            this.mask = mask;
+        }
 
-            final T input = randomAccess.setPositionAndGet( l ).copy();
-
+        @Override
+        public void accept( Localizable l, T output )
+        {
             if ( ! mask.test( l ) )
             {
-                final T background = input.createVariable();
-                output.set( background );
+                output.set(  type.createVariable() );
             }
             else
             {
-                output.set( input );
+                output.set( ra.setPositionAndGet( l ).copy() );
             }
-        };
-
-        FunctionRandomAccessible< T > fra = new FunctionRandomAccessible<>( 3, masked, rai.getType()::createVariable );
-        IntervalView< T > out = Views.interval( fra, rai );
-        return out;
+        }
     }
 
 }

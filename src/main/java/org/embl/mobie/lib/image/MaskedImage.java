@@ -61,8 +61,7 @@ public class MaskedImage< T extends Type< T > > implements Image< T >
 				= inputSourcePair.getVolatileSource();
 
 		MaskedSource< T > maskedSource = new MaskedSource<>( source, name, mask );
-		VolatileMaskedSource< T, ? extends Volatile< T > > volatileMaskedSource
-				= new VolatileMaskedSource<>( (Source) volatileSource, name, mask );
+		VolatileMaskedSource volatileMaskedSource = new VolatileMaskedSource<>( ( Source ) volatileSource, name, mask );
 
 		sourcePair = new DefaultSourcePair<>( maskedSource, volatileMaskedSource );
 	}

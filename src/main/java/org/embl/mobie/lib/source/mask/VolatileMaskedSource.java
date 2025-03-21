@@ -36,17 +36,17 @@ import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.Type;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 
 public class VolatileMaskedSource< T extends Type< T >, V extends Volatile< T > & Type< V > > extends AbstractMaskedSource< V >
 {
+    private final V type;
+
     public VolatileMaskedSource( Source< V > source, String name, RealMaskRealInterval mask )
     {
         super( source, name, mask );
+        type = source.getType();
     }
 
     @Override
@@ -54,62 +54,90 @@ public class VolatileMaskedSource< T extends Type< T >, V extends Volatile< T > 
             RealRandomAccessible< V > rra,
             RealMaskRealInterval mask )
     {
-        BiConsumer< RealLocalizable, V > masked = ( l, output ) ->
-        {
-            final RealRandomAccess< V > access = rra.realRandomAccess();
-            final V input = access.setPositionAndGet( l ).copy();
+        return new FunctionRealRandomAccessible<>(
+                3,
+                new VolatileRealRandomAccessValueProvider( rra.realRandomAccess(), mask ),
+                () -> type.createVariable() );
+    }
 
-            if( ! mask.test( l ) )
+    class VolatileRealRandomAccessValueProvider implements BiConsumer< RealLocalizable, V >
+    {
+        private final RealRandomAccess< V > ra;
+        private final RealMaskRealInterval mask;
+
+        public VolatileRealRandomAccessValueProvider( RealRandomAccess< V > ra, RealMaskRealInterval mask )
+        {
+            this.ra = ra;
+            this.mask = mask;
+        }
+
+        @Override
+        public void accept( RealLocalizable l, V output )
+        {
+            if ( ! mask.test( l ) )
             {
                 // assumes that the default variable is the background value
-                final V background = input.createVariable();
-                output.set( background );
+                output.set( type.createVariable() );
                 output.setValid( true );
+                return;
             }
-            else if ( ! input.isValid() )
+
+            final V input = ra.setPositionAndGet( l );
+            if ( input.isValid() )
             {
-                output.setValid( false );
+                output.set( input.copy() );
             }
             else
             {
-                output.set( input );
+                output.setValid( false );
             }
-        };
-
-        V type = rra.getType();
-        Supplier< V > vSupplier = () -> type.createVariable();
-        return new FunctionRealRandomAccessible<>( 3, masked, vSupplier );
+        }
     }
 
     @Override
     protected RandomAccessibleInterval< V > createMaskedRandomAccessibleInterval( RandomAccessibleInterval< V > rai, RealMaskRealInterval mask )
     {
-        BiConsumer< Localizable, V > masked = ( l, output ) ->
-        {
-            final RandomAccess< V > access = rai.randomAccess();
-            final V input = access.setPositionAndGet( l ).copy();
-
-            if( ! mask.test( l ) )
-            {
-                // assumes that the default variable is the background value
-                final V background = input.createVariable();
-                output.set( background );
-                output.setValid( true );
-            }
-            else if ( ! input.isValid() )
-            {
-                output.setValid( false );
-            }
-            else
-            {
-                output.set( input );
-            }
-        };
-
-        V type = rai.getType();
-        Supplier< V > vSupplier = () -> type.createVariable();
-        FunctionRandomAccessible< V > fra = new FunctionRandomAccessible<>( 3, masked, vSupplier );
+        FunctionRandomAccessible< V > fra =
+                new FunctionRandomAccessible<>(
+                        3,
+                        new VolatileRandomAccessValueProvider( rai.randomAccess(), mask ),
+                        () -> type.createVariable() );
         IntervalView< V > out = Views.interval( fra, rai );
         return out;
     }
+
+    class VolatileRandomAccessValueProvider implements BiConsumer< Localizable, V >
+    {
+        private final RandomAccess< V > ra;
+        private final RealMaskRealInterval mask;
+
+        public VolatileRandomAccessValueProvider( RandomAccess< V > ra, RealMaskRealInterval mask )
+        {
+            this.ra = ra;
+            this.mask = mask;
+        }
+
+        @Override
+        public void accept( Localizable l, V output )
+        {
+            if ( ! mask.test( l ) )
+            {
+                // assumes that the default variable is the background value
+                output.set( type.createVariable() );
+                output.setValid( true );
+                return;
+            }
+
+            final V input = ra.setPositionAndGet( l );
+            if ( input.isValid() )
+            {
+                output.set( input.copy() );
+            }
+            else
+            {
+                output.setValid( false );
+            }
+        }
+    }
+
 }
