@@ -29,9 +29,7 @@
 package org.embl.mobie.lib.create;
 
 import ij.IJ;
-import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
-import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
@@ -40,10 +38,8 @@ import org.embl.mobie.lib.serialize.ImageDataSource;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
-import static org.embl.mobie.lib.create.ProjectCreatorHelper.pathIsInsideDir;
+import static org.embl.mobie.lib.create.ProjectCreatorHelper.uriIsInsideDir;
 
 /**
  * Class to create and modify the metadata required for remote (S3) storage of MoBIE projects.
@@ -112,11 +108,11 @@ public class RemoteMetadataCreator {
                         datasetName,
                         relativePath)
         );
-        if (!pathIsInsideDir(imageLocation, projectCreator.getProjectLocation())) {
-            String errorMesage = "Image: " + imageName + " for dataset:" + datasetName + " is not in project folder. \n" +
+        if (!uriIsInsideDir(imageLocation.getAbsolutePath(), projectCreator.getProjectLocation())) {
+            String errorMessage = "Image: " + imageName + " for dataset:" + datasetName + " is not in project folder. \n" +
                     "You can't 'link' to images outside the project folder, when uploading to s3";
-            IJ.log( errorMesage );
-            throw new IOException( errorMesage );
+            IJ.log( errorMessage );
+            throw new IOException( errorMessage );
         }
 
         // give absolute s3 path to ome.zarr file

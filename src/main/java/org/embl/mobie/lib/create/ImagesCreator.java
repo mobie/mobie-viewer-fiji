@@ -168,10 +168,10 @@ public class ImagesCreator {
                 double[] contrastLimits = new double[]{imp.getDisplayRangeMin(), imp.getDisplayRangeMax()};
                 LUT lut = imp.getLuts()[ 0 ];
                 String colour = ColorHelper.getString( lut );
-                updateTableAndJsonsForNewImage( imageName, imageFile, datasetName, uiSelectionGroup, contrastLimits,
+                updateTableAndJsonsForNewImage( imageName, filePath, datasetName, uiSelectionGroup, contrastLimits,
                         colour, exclusive, sourceTransform );
             } else {
-                updateTableAndJsonsForNewSegmentation(imageName, imageFile, datasetName, uiSelectionGroup,
+                updateTableAndJsonsForNewSegmentation( imageName, filePath, datasetName, uiSelectionGroup,
                         exclusive, sourceTransform );
             }
         }
@@ -322,26 +322,23 @@ public class ImagesCreator {
             projectCreator.setVoxelUnit( imageData.getSourcePair( 0 ).getB().getVoxelDimensions().unit() );
         }
 
-        File newImageFile; // FIXME: This should be a URI String to also work with S3
         switch (addMethod) {
             case Link:
+            case LinkS3:
                 // Do nothing, the relative or absolute path to the linked image will be added to the dataset.json
-                newImageFile = new File(uri);
                 break;
             case Copy:
-                newImageFile = copyImage( uri, imagesDirectory, imageName);
-                break;
-            case LinkS3:
+                uri = copyImage( uri, imagesDirectory, imageName ).getAbsolutePath();
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + addMethod);
         }
 
         if ( imageType == ProjectCreator.ImageType.Image ) {
-            updateTableAndJsonsForNewImage( imageName, newImageFile, datasetName, uiSelectionGroup,
+            updateTableAndJsonsForNewImage( imageName, uri, datasetName, uiSelectionGroup,
                     new double[]{0.0, 255.0}, "white", exclusive, new AffineTransform3D() );
         } else {
-            updateTableAndJsonsForNewSegmentation( imageName, newImageFile,
+            updateTableAndJsonsForNewSegmentation( imageName, uri,
                     datasetName, uiSelectionGroup, exclusive, new AffineTransform3D() );
         }
 
@@ -434,7 +431,7 @@ public class ImagesCreator {
 
 
     private void updateTableAndJsonsForNewImage ( String imageName,
-                                                  File imageFile,
+                                                  String imageUri,
                                                   String datasetName,
                                                   String uiSelectionGroup,
                                                   double[] contrastLimits,
@@ -442,19 +439,19 @@ public class ImagesCreator {
                                                   boolean exclusive,
                                                   AffineTransform3D sourceTransform ) {
         DatasetSerializer datasetSerializer = projectCreator.getDatasetJsonCreator();
-        datasetSerializer.addImage( imageName, imageFile, datasetName, uiSelectionGroup, contrastLimits, colour,
+        datasetSerializer.addImage( imageName, imageUri, datasetName, uiSelectionGroup, contrastLimits, colour,
                 exclusive, sourceTransform );
     }
 
     private void updateTableAndJsonsForNewSegmentation( String imageName,
-                                                        File imageFile,
+                                                        String imageUri,
                                                         String datasetName,
                                                         String uiSelectionGroup,
                                                         boolean exclusive,
                                                         AffineTransform3D sourceTransform ) {
         addDefaultTableForImage( imageName, datasetName );
         DatasetSerializer datasetSerializer = projectCreator.getDatasetJsonCreator();
-        datasetSerializer.addSegmentation( imageName, imageFile, datasetName, uiSelectionGroup,
+        datasetSerializer.addSegmentation( imageName, imageUri, datasetName, uiSelectionGroup,
                 exclusive, sourceTransform );
     }
 }

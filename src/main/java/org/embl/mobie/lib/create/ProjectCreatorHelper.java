@@ -308,12 +308,11 @@ public class ProjectCreatorHelper {
     public static boolean isImageValid( int nChannels, String imageUnit, String projectUnit, boolean isFile ) {
         // reject multi-channel images
         if ( nChannels > 1 ) {
-            String channelMessage = "Multi-channel images are not supported.";
+            String channelMessage = "Multi-channel or multi-dataset images are not supported. ";
             if ( !isFile ) {
                 IJ.log(  channelMessage + "Please use [ Image > Color > Split Channels], and add each separately.");
             } else {
-                // FIXME: Ask the user which channel to add!
-                IJ.log( channelMessage + "Please add each channel separately.");
+                IJ.log( channelMessage + "Please add each channel or dataset separately." );
             }
             return false;
         }
@@ -340,8 +339,8 @@ public class ProjectCreatorHelper {
         return true;
     }
 
-    public static boolean pathIsInsideDir(File path, File dir) {
-        Path filePath = Paths.get( path.getAbsolutePath() ).normalize();
+    public static boolean uriIsInsideDir( String uri, File dir) {
+        Path filePath = Paths.get( uri ).normalize();
         Path dirPath = Paths.get( dir.getAbsolutePath() ).normalize();
 
         return filePath.startsWith(dirPath);

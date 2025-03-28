@@ -467,7 +467,7 @@ public class ProjectsCreatorUI extends JFrame {
             {
                 final GenericDialog gd2 = new GenericDialog( "OME-Zarr S3" );
                 gd2.addStringField( "S3 address", "", 100 );
-                gd.showDialog();
+                gd2.showDialog();
                 if( gd2.wasCanceled() ) return;
                 omeZarrUri = gd2.getNextString();
             }
