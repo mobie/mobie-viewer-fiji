@@ -134,7 +134,8 @@ public class DatasetSerializer
                                 String datasetName,
                                 String uiSelectionGroup,
                                 boolean exclusive,
-                                AffineTransform3D sourceTransform ) {
+                                AffineTransform3D sourceTransform )
+    {
         Dataset dataset = fetchDataset( datasetName );
 
         addNewSegmentationSource( dataset, datasetName, imageName, imageFile );
@@ -171,30 +172,26 @@ public class DatasetSerializer
 
     private void addNewImageSource( Dataset dataset, String datasetName, String imageName, File imageFile )
     {
-        Map< ImageDataFormat, StorageLocation > imageDataLocations;
         ImageDataSource imageSource = new ImageDataSource();
-        imageDataLocations = createImageDataLocations( datasetName, imageFile );
-        imageSource.imageData = imageDataLocations;
+        imageSource.imageData = createImageDataLocations( datasetName, imageFile );
         dataset.sources().put( imageName, imageSource );
     }
 
     private void addNewSegmentationSource( Dataset dataset, String datasetName, String imageName, File imageFile )
     {
-        Map< ImageDataFormat, StorageLocation > imageDataLocations;
-
         SegmentationDataSource annotatedLabelMaskSource = new SegmentationDataSource();
         annotatedLabelMaskSource.tableData = new HashMap<>();
         StorageLocation tableStorageLocation = new StorageLocation();
         tableStorageLocation.relativePath = "tables/" + imageName;
         annotatedLabelMaskSource.tableData.put( TableDataFormat.TSV, tableStorageLocation );
-
-        imageDataLocations = createImageDataLocations( datasetName, imageFile );
-        annotatedLabelMaskSource.imageData = imageDataLocations;
+        annotatedLabelMaskSource.imageData = createImageDataLocations( datasetName, imageFile );;
 
         dataset.sources().put( imageName, annotatedLabelMaskSource );
     }
 
-    private Map< ImageDataFormat, StorageLocation > createImageDataLocations( String datasetName, File imageFile )
+    private Map< ImageDataFormat, StorageLocation > createImageDataLocations(
+            String datasetName,
+            File imageFile )
     {
         Map< ImageDataFormat, StorageLocation > imageDataLocations = new HashMap<>();
         StorageLocation imageStorageLocation = new StorageLocation();
@@ -210,6 +207,7 @@ public class DatasetSerializer
         } else {
             imageStorageLocation.absolutePath = imageFile.getAbsolutePath();
         }
+        // FIXME imageStorageLocation.channel
 
         imageDataLocations.put( ImageDataFormat.OmeZarr, imageStorageLocation );
         return imageDataLocations;

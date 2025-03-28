@@ -509,7 +509,8 @@ public class ProjectsCreatorUI extends JFrame {
             uiSelectionGroup = chosenUiSelectionGroup;
         }
 
-        imagesCreator.addOMEZarrImage( uri, imageName, datasetName, imageType, addMethod, uiSelectionGroup,
+        imagesCreator.addOMEZarrImage(
+                uri, imageName, datasetName, imageType, addMethod, uiSelectionGroup,
                 exclusive, overwriteImage );
         updateComboBoxesForNewImage(imageName, uiSelectionGroup);
 
