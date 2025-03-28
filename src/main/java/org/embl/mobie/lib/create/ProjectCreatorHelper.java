@@ -305,14 +305,19 @@ public class ProjectCreatorHelper {
      * @param isFile whether image is in a BigDataViewer (bdv) compatible format e.g. N5/ome-zarr
      * @return whether image is valid for MoBIE project or not
      */
+    // FIXME: For supporting linking to multi-dataset OME-Zarr we have to pull
+    //   apart the voxel dimension check and the multi-channel check
     public static boolean isImageValid( int nChannels, String imageUnit, String projectUnit, boolean isFile ) {
         // reject multi-channel images
         if ( nChannels > 1 ) {
-            String channelMessage = "Multi-channel or multi-dataset images are not supported. ";
-            if ( !isFile ) {
-                IJ.log(  channelMessage + "Please use [ Image > Color > Split Channels], and add each separately.");
-            } else {
-                IJ.log( channelMessage + "Please add each channel or dataset separately." );
+            if ( isFile )
+            {
+                // FIXME: Ask the user which channel to add!
+                IJ.log( "Linking multi-channel or multi-data images is not yet supported :-(" );
+            }
+            else
+            {
+                IJ.log(  "Multi-channel images are not supported. Please use [ Image > Color > Split Channels], and add each separately.");
             }
             return false;
         }

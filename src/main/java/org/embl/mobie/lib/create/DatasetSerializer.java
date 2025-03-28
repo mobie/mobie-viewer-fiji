@@ -130,12 +130,22 @@ public class DatasetSerializer
      *                  remove all current images from the viewer?
      * @param sourceTransform affine transform of segmentation view
      */
+<<<<<<< HEAD
     public void addSegmentation( String imageName,
                                  String imageUri,
                                  String datasetName,
                                  String uiSelectionGroup,
                                  boolean exclusive,
                                  AffineTransform3D sourceTransform ) {
+=======
+    public void addSegmentation(String imageName,
+                                File imageFile,
+                                String datasetName,
+                                String uiSelectionGroup,
+                                boolean exclusive,
+                                AffineTransform3D sourceTransform )
+    {
+>>>>>>> main
         Dataset dataset = fetchDataset( datasetName );
 
         addNewSegmentationSource( dataset, datasetName, imageName, imageUri );
@@ -172,30 +182,41 @@ public class DatasetSerializer
 
     private void addNewImageSource( Dataset dataset, String datasetName, String imageName, String imageUri )
     {
-        Map< ImageDataFormat, StorageLocation > imageDataLocations;
         ImageDataSource imageSource = new ImageDataSource();
+<<<<<<< HEAD
         imageDataLocations = createImageDataLocations( datasetName, imageUri );
         imageSource.imageData = imageDataLocations;
+=======
+        imageSource.imageData = createImageDataLocations( datasetName, imageFile );
+>>>>>>> main
         dataset.sources().put( imageName, imageSource );
     }
 
     private void addNewSegmentationSource( Dataset dataset, String datasetName, String imageName, String imageUri )
     {
-        Map< ImageDataFormat, StorageLocation > imageDataLocations;
-
         SegmentationDataSource annotatedLabelMaskSource = new SegmentationDataSource();
         annotatedLabelMaskSource.tableData = new HashMap<>();
         StorageLocation tableStorageLocation = new StorageLocation();
         tableStorageLocation.relativePath = "tables/" + imageName;
         annotatedLabelMaskSource.tableData.put( TableDataFormat.TSV, tableStorageLocation );
+<<<<<<< HEAD
 
         imageDataLocations = createImageDataLocations( datasetName, imageUri );
         annotatedLabelMaskSource.imageData = imageDataLocations;
+=======
+        annotatedLabelMaskSource.imageData = createImageDataLocations( datasetName, imageFile );;
+>>>>>>> main
 
         dataset.sources().put( imageName, annotatedLabelMaskSource );
     }
 
+<<<<<<< HEAD
     private Map< ImageDataFormat, StorageLocation > createImageDataLocations( String datasetName, String imageUri )
+=======
+    private Map< ImageDataFormat, StorageLocation > createImageDataLocations(
+            String datasetName,
+            File imageFile )
+>>>>>>> main
     {
         Map< ImageDataFormat, StorageLocation > imageDataLocations = new HashMap<>();
         StorageLocation imageStorageLocation = new StorageLocation();
@@ -212,6 +233,7 @@ public class DatasetSerializer
             // Note that this now also handles S3 addresses
             imageStorageLocation.absolutePath = imageUri;
         }
+        // FIXME imageStorageLocation.channel
 
         // Note that OmeZarr and OmeZarrS3 are the same within mobie-io
         // thus we should not need to distinguish this here

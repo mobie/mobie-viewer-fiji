@@ -146,8 +146,8 @@ public class ImagesCreator {
             throw new UnsupportedOperationException("Can't add a " + imp.getNDimensions() + "D image to a 2D dataset" );
         }
 
-        if (imageFile.exists()) {
-            if (overwrite) {
+        if ( imageFile.exists() ) {
+            if ( overwrite ) {
                 IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
             } else {
                 throw new UnsupportedOperationException("An image called " + imageName + "already exists in the dataset " +
@@ -163,16 +163,16 @@ public class ImagesCreator {
         OMEZarrWriter.write( imp, filePath, getImageType( imageType ), overwrite );
 
         // check image written successfully, before writing JSONs
-        if ( imageFile.exists() ) {
-            if (imageType == ProjectCreator.ImageType.Image ) {
-                double[] contrastLimits = new double[]{imp.getDisplayRangeMin(), imp.getDisplayRangeMax()};
+        if ( imageFile.exists() )
+        {
+            if ( imageType == ProjectCreator.ImageType.Image ) {
+                double[] contrastLimits = new double[]{ imp.getDisplayRangeMin(), imp.getDisplayRangeMax() };
                 LUT lut = imp.getLuts()[ 0 ];
                 String colour = ColorHelper.getString( lut );
                 updateTableAndJsonsForNewImage( imageName, filePath, datasetName, uiSelectionGroup, contrastLimits,
                         colour, exclusive, sourceTransform );
             } else {
-                updateTableAndJsonsForNewSegmentation( imageName, filePath, datasetName, uiSelectionGroup,
-                        exclusive, sourceTransform );
+                updateTableAndJsonsForNewSegmentation( imageName, filePath, datasetName, uiSelectionGroup, exclusive, sourceTransform );
             }
         }
 
