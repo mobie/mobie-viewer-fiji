@@ -439,7 +439,8 @@ public class ProjectsCreatorUI extends JFrame {
     /**
      * Dialog to add an existing ome-zarr image to a MoBIE project
      */
-    public void addOMEZarrDialog() {
+    public void addOMEZarrDialog()
+    {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
         if (!datasetName.equals(""))
@@ -447,7 +448,6 @@ public class ProjectsCreatorUI extends JFrame {
             final GenericDialog gd = new GenericDialog( "Add OME-Zarr To Project..." );
             String[] addMethods = new String[]{
                     ProjectCreator.AddMethod.Link.toString(),
-                    ProjectCreator.AddMethod.LinkS3.toString(),
                     ProjectCreator.AddMethod.Copy.toString() };
             gd.addChoice( "Add method:", addMethods, addMethod.toString() );
             gd.addChoice( "Image type", imageTypes, imageType.toString() );
@@ -462,23 +462,20 @@ public class ProjectsCreatorUI extends JFrame {
             exclusive = gd.getNextBoolean();
             useFileNameAsImageName = gd.getNextBoolean();
 
-            String omeZarrUri;
-            if ( addMethod.equals( ProjectCreator.AddMethod.LinkS3 ) )
+            if ( addMethod.equals( ProjectCreator.AddMethod.Link ) )
             {
-                final GenericDialog gd2 = new GenericDialog( "OME-Zarr S3" );
-                gd2.addStringField( "S3 address", "", 100 );
+                // TODO: a Browse button for local folders would be nice
+                final GenericDialog gd2 = new GenericDialog( "OME-Zarr Location" );
+                gd2.addStringField( "Folder or S3 address", "", 100 );
                 gd2.showDialog();
-                if( gd2.wasCanceled() ) return;
-                omeZarrUri = gd2.getNextString();
+                if ( gd2.wasCanceled() ) return;
+                String uri = gd2.getNextString();
+                addOMEZarr( uri, datasetName );
+                // omeZarrUri = getOMEZarrImagePathDialog(); // <- Browse dialog including validity check
             }
             else
             {
-                omeZarrUri = getOMEZarrImagePathDialog();
-            }
 
-            if ( omeZarrUri != null )
-            {
-                addOMEZarr( omeZarrUri, datasetName );
             }
         }
     }
