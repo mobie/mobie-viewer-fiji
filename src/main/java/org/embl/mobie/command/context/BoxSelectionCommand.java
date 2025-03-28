@@ -60,12 +60,15 @@ public class BoxSelectionCommand implements BdvPlaygroundActionCommand
     protected double[] center;
     protected RealInterval interval;
     protected AffineTransform3D transform;
+    protected AffineTransform3D boxAffineTransform;
 
     @Override
     public void run()
     {
         IJ.log( "# Select box" );
-        // Compute the maximal and initial size of the box
+        IJ.log( "  Documentation: https://mobie.github.io/tools/select_box.html" );
+
+        // Compute maximal and initial size of the box
         Corners globalCorners = MoBIEHelper.getBdvWindowGlobalCorners( bdvHandle );
         double[] range = new double[ 3 ];
         range[ 0 ] = LinAlgHelpers.distance( globalCorners.upperLeft, globalCorners.upperRight );
@@ -95,16 +98,28 @@ public class BoxSelectionCommand implements BdvPlaygroundActionCommand
                 rangeInterval,
                 BoxSelectionOptions.options().title( "Select box" ) );
 
+
         if ( transformedBox.isValid() )
         {
             interval = transformedBox.getInterval();
             size = MoBIEHelper.getSize( interval );
             center = new double[ 3 ];
             transform.apply( MoBIEHelper.getCenter( interval ), center );
+
+            AffineTransform3D boxTransform = new AffineTransform3D();
+            boxTransform.set(size[0], 0, 0, interval.realMin(0),
+                             0, size[1], 0, interval.realMin(1),
+                              0, 0, size[2], interval.realMin(2)
+            );
+            boxAffineTransform = transform.copy().concatenate( boxTransform );
+//            RealInterval unitInterval = new FinalRealInterval(
+//                    new double[]{0.0, 0.0, 0.0},
+//                    new double[]{1.0, 1.0, 1.0});
+//            RealInterval transformedBounds = concatenate.estimateBounds(unitInterval);
+//            System.out.println( "" + transformedBounds );
             IJ.log( "  Center in global coordinate system: " + Arrays.toString( center ) );
             IJ.log( "  Size in global coordinate system: " + Arrays.toString( size ) );
-            IJ.log( "  Interval: " + Arrays.toString( interval.minAsDoubleArray() ) + ", " + Arrays.toString( interval.maxAsDoubleArray() ) );
-            IJ.log( "  Interval transform to global coordinate system: " + Arrays.toString( transform.getRowPackedCopy() ) );
+            IJ.log( "  Box affine transform: " + Arrays.toString( boxAffineTransform.getRowPackedCopy() ) );
         }
         else
         {

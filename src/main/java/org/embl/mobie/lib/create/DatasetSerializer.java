@@ -209,6 +209,7 @@ public class DatasetSerializer
             imageStorageLocation.relativePath = relativePath.replaceAll("\\\\", "/");
         } else {
             imageStorageLocation.absolutePath = imageFile.getAbsolutePath();
+            // FIXME: does that work also for S3? Or do we need to use s3Address?
         }
 
         imageDataLocations.put( ImageDataFormat.OmeZarr, imageStorageLocation );

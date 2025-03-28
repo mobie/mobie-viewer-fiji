@@ -51,7 +51,6 @@ import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.io.DataFormats;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.*;
-import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.columns.CollectionTableConstants;
 import org.embl.mobie.lib.table.saw.TableOpener;

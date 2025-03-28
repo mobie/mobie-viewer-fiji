@@ -78,15 +78,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -617,23 +610,24 @@ public class UserInterfaceHelper
 		for ( String viewName : views.keySet() )
 		{
 			final View view = views.get( viewName );
+
+			HashSet< String > uiSelectionGroups = new HashSet<>();
+			if ( view.getUiSelectionGroup() != null )
+				uiSelectionGroups.add( view.getUiSelectionGroup() );
+
 			if ( view.getUiSelectionGroups() != null )
+				uiSelectionGroups.addAll( Arrays.asList( view.getUiSelectionGroups() ) );
+
+			if ( uiSelectionGroups.isEmpty() )
+				uiSelectionGroups.add("views");
+
+			for ( String uiSelectionGroup : uiSelectionGroups )
 			{
-				String[] uiSelectionGroups = view.getUiSelectionGroups();
-				for ( String uiSelectionGroup : uiSelectionGroups )
-				{
-					if ( ! groupingsToViews.containsKey( uiSelectionGroup ) )
-						groupingsToViews.put( uiSelectionGroup, new LinkedHashMap<>( ));
-					groupingsToViews.get( uiSelectionGroup ).put( viewName, view );
-				}
-			}
-			else
-			{
-				final String uiSelectionGroup = view.getUiSelectionGroup();
 				if ( ! groupingsToViews.containsKey( uiSelectionGroup ) )
-					groupingsToViews.put( uiSelectionGroup, new LinkedHashMap<>() );
+					groupingsToViews.put( uiSelectionGroup, new LinkedHashMap<>( ));
 				groupingsToViews.get( uiSelectionGroup ).put( viewName, view );
 			}
+
 		}
 
 		final ArrayList< String > uiSelectionGroups = new ArrayList<>( groupingsToViews.keySet() );

@@ -447,6 +447,7 @@ public class ProjectsCreatorUI extends JFrame {
             final GenericDialog gd = new GenericDialog( "Add OME-Zarr To Project..." );
             String[] addMethods = new String[]{
                     ProjectCreator.AddMethod.Link.toString(),
+                    ProjectCreator.AddMethod.LinkS3.toString(),
                     ProjectCreator.AddMethod.Copy.toString() };
             gd.addChoice( "Add method:", addMethods, addMethod.toString() );
             gd.addChoice( "Image type", imageTypes, imageType.toString() );
@@ -461,11 +462,23 @@ public class ProjectsCreatorUI extends JFrame {
             exclusive = gd.getNextBoolean();
             useFileNameAsImageName = gd.getNextBoolean();
 
-            String filePath = getOMEZarrImagePathDialog();
-
-            if ( filePath != null )
+            String omeZarrUri;
+            if ( addMethod.equals( ProjectCreator.AddMethod.LinkS3 ) )
             {
-                addOMEZarr( filePath, datasetName );
+                final GenericDialog gd2 = new GenericDialog( "OME-Zarr S3" );
+                gd2.addStringField( "S3 address", "", 100 );
+                gd.showDialog();
+                if( gd2.wasCanceled() ) return;
+                omeZarrUri = gd2.getNextString();
+            }
+            else
+            {
+                omeZarrUri = getOMEZarrImagePathDialog();
+            }
+
+            if ( omeZarrUri != null )
+            {
+                addOMEZarr( omeZarrUri, datasetName );
             }
         }
     }

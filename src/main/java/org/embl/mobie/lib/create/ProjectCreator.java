@@ -71,6 +71,7 @@ public class ProjectCreator {
 
     public enum AddMethod {
         Link,
+        LinkS3,
         Copy
     }
 
