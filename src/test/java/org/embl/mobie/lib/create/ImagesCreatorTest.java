@@ -195,7 +195,7 @@ class ImagesCreatorTest {
         // NB: Avoid recursive class loading of ij.* classes.
         ImagePlus image = (ImagePlus) writeImageOutsideProject( is2D );
 
-        imagesCreator.addOMEZarrImage(
+        imagesCreator.linkOrCopyOMEZarrImage(
                 imageOutsideProject.getAbsolutePath(), imageName, datasetName,
                 ProjectCreator.ImageType.Image,
                 ProjectCreator.AddMethod.Copy, uiSelectionGroup, false, false );
@@ -249,7 +249,7 @@ class ImagesCreatorTest {
                 otherImageName + ".ome.zarr");
 
         // Link to the image in the separate dataset
-        imagesCreator.addOMEZarrImage( filePath, imageName, datasetName,
+        imagesCreator.linkOrCopyOMEZarrImage( filePath, imageName, datasetName,
                 ProjectCreator.ImageType.Image, ProjectCreator.AddMethod.Link,
                 uiSelectionGroup, false, false );
 
@@ -269,7 +269,7 @@ class ImagesCreatorTest {
         // save example image
         // NB: Avoid recursive class loading of ij.* classes.
         ImagePlus image = (ImagePlus) writeImageOutsideProject( false );
-        imagesCreator.addOMEZarrImage( imageOutsideProject.getAbsolutePath(), imageName, datasetName,
+        imagesCreator.linkOrCopyOMEZarrImage( imageOutsideProject.getAbsolutePath(), imageName, datasetName,
                 ProjectCreator.ImageType.Image, ProjectCreator.AddMethod.Link,
                 uiSelectionGroup, false, false );
 

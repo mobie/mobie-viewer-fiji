@@ -278,14 +278,14 @@ public class ImagesCreator {
      *                  images from the viewer?
      * @param overwrite whether to overwrite any existing images inside the dataset with the same name
      */
-    public void addOMEZarrImage( String uri,
-                                 String imageName,
-                                 String datasetName,
-                                 ProjectCreator.ImageType imageType,
-                                 ProjectCreator.AddMethod addMethod,
-                                 String uiSelectionGroup,
-                                 boolean exclusive,
-                                 boolean overwrite )
+    public void linkOrCopyOMEZarrImage( String uri,
+                                        String imageName,
+                                        String datasetName,
+                                        ProjectCreator.ImageType imageType,
+                                        ProjectCreator.AddMethod addMethod,
+                                        String uiSelectionGroup,
+                                        boolean exclusive,
+                                        boolean overwrite )
     {
         File imagesDirectory = new File( getDefaultLocalImageDirPath( datasetName ) );
 
@@ -324,8 +324,6 @@ public class ImagesCreator {
 
         switch (addMethod) {
             case Link:
-            case LinkS3:
-                // Do nothing, the relative or absolute path to the linked image will be added to the dataset.json
                 break;
             case Copy:
                 uri = copyImage( uri, imagesDirectory, imageName ).getAbsolutePath();

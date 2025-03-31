@@ -32,7 +32,6 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.command.open.project.OpenMoBIEProjectCommand;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
@@ -430,7 +429,7 @@ public class ProjectsCreatorUI extends JFrame {
             if (addMethod.equals("current displayed image")) {
                 addCurrentImageDialog();
             } else if (addMethod.equals("stored ome-zarr")) {
-                addOMEZarrDialog();
+                linkOrCopyOMEZarrDialog();
             }
 
         }
@@ -439,11 +438,11 @@ public class ProjectsCreatorUI extends JFrame {
     /**
      * Dialog to add an existing ome-zarr image to a MoBIE project
      */
-    public void addOMEZarrDialog()
+    public void linkOrCopyOMEZarrDialog()
     {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
-        if (!datasetName.equals(""))
+        if ( ! datasetName.isEmpty() )
         {
             final GenericDialog gd = new GenericDialog( "Add OME-Zarr To Project..." );
             String[] addMethods = new String[]{
@@ -462,27 +461,20 @@ public class ProjectsCreatorUI extends JFrame {
             exclusive = gd.getNextBoolean();
             useFileNameAsImageName = gd.getNextBoolean();
 
-            if ( addMethod.equals( ProjectCreator.AddMethod.Link ) )
-            {
-                // TODO: a Browse button for local folders would be nice
-                final GenericDialog gd2 = new GenericDialog( "OME-Zarr Location" );
-                gd2.addStringField( "Folder or S3 address", "", 100 );
-                gd2.showDialog();
-                if ( gd2.wasCanceled() ) return;
-                String uri = gd2.getNextString();
-                addOMEZarr( uri, datasetName );
-                // omeZarrUri = getOMEZarrImagePathDialog(); // <- Browse dialog including validity check
-            }
-            else
-            {
-
-            }
+            // TODO: a Browse button for local folders would be nice
+            final GenericDialog gd2 = new GenericDialog( "OME-Zarr Location" );
+            gd2.addStringField( "Folder or S3 address", "", 100 );
+            gd2.showDialog();
+            if ( gd2.wasCanceled() ) return;
+            String uri = gd2.getNextString();
+            linkOrCopyOMEZarr( uri, datasetName );
         }
     }
 
-    private void addOMEZarr( String uri, String datasetName )
+    private void linkOrCopyOMEZarr( String uri, String datasetName )
     {
-        if ( ! isImageValid( uri, projectCreator.getVoxelUnit() ) ) {
+        if ( ! isImageValid( uri, projectCreator.getVoxelUnit() ) )
+        {
             return;
         }
 
@@ -504,6 +496,10 @@ public class ProjectsCreatorUI extends JFrame {
         ImagesCreator imagesCreator = projectCreator.getImagesCreator();
 
         // If image already exists, check if they want to overwrite it
+        // FIXME:
+        //  Are there  two cases?
+        //  (i) Image of that name exists in dataset.json (also for linking)
+        //  (ii) The image data exists in the project dir? (not for linking)
         boolean overwriteImage = false;
         if ( imagesCreator.imageExists( datasetName, imageName ) ) {
             overwriteImage = overwriteImageDialog();
@@ -519,14 +515,13 @@ public class ProjectsCreatorUI extends JFrame {
             uiSelectionGroup = chosenUiSelectionGroup;
         }
 
-        imagesCreator.addOMEZarrImage(
+        imagesCreator.linkOrCopyOMEZarrImage(
                 uri, imageName, datasetName, imageType, addMethod, uiSelectionGroup,
                 exclusive, overwriteImage );
+
         updateComboBoxesForNewImage(imageName, uiSelectionGroup);
 
     }
-
-
 
     private String getOMEZarrImagePathDialog()
     {
@@ -705,6 +700,8 @@ public class ProjectsCreatorUI extends JFrame {
     }
 
     // TODO: this could be moved to mobie-io
+    // FIXME: This will not work for S3 URIs, because of the "new File"
+    //        We should use IOHelper.exists() instead
     private boolean isValidOMEZarr( String uri )
     {
         return ( new File( IOHelper.combinePath( uri, ".zgroup" ) ).exists() && new File( IOHelper.combinePath( uri, ".zattrs" ) ).exists() );

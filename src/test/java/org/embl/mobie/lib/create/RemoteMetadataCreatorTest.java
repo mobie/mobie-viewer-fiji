@@ -126,7 +126,7 @@ class RemoteMetadataCreatorTest {
         );
 
         // link to the ome-zarr image
-        projectCreator.getImagesCreator().addOMEZarrImage( filePath, imageName, datasetName,
+        projectCreator.getImagesCreator().linkOrCopyOMEZarrImage( filePath, imageName, datasetName,
                 ProjectCreator.ImageType.Image, ProjectCreator.AddMethod.Link,
                 uiSelectionGroup, false, false );
 
