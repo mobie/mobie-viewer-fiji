@@ -130,22 +130,12 @@ public class DatasetSerializer
      *                  remove all current images from the viewer?
      * @param sourceTransform affine transform of segmentation view
      */
-<<<<<<< HEAD
     public void addSegmentation( String imageName,
                                  String imageUri,
                                  String datasetName,
                                  String uiSelectionGroup,
                                  boolean exclusive,
                                  AffineTransform3D sourceTransform ) {
-=======
-    public void addSegmentation(String imageName,
-                                File imageFile,
-                                String datasetName,
-                                String uiSelectionGroup,
-                                boolean exclusive,
-                                AffineTransform3D sourceTransform )
-    {
->>>>>>> main
         Dataset dataset = fetchDataset( datasetName );
 
         addNewSegmentationSource( dataset, datasetName, imageName, imageUri );
@@ -176,19 +166,13 @@ public class DatasetSerializer
 
     private Dataset fetchDataset( String datasetName )
     {
-        Dataset dataset = projectCreator.getDataset( datasetName );
-        return dataset;
+        return projectCreator.getDataset( datasetName );
     }
 
     private void addNewImageSource( Dataset dataset, String datasetName, String imageName, String imageUri )
     {
         ImageDataSource imageSource = new ImageDataSource();
-<<<<<<< HEAD
-        imageDataLocations = createImageDataLocations( datasetName, imageUri );
-        imageSource.imageData = imageDataLocations;
-=======
-        imageSource.imageData = createImageDataLocations( datasetName, imageFile );
->>>>>>> main
+        imageSource.imageData = createImageDataLocations( datasetName, imageUri );
         dataset.sources().put( imageName, imageSource );
     }
 
@@ -199,24 +183,11 @@ public class DatasetSerializer
         StorageLocation tableStorageLocation = new StorageLocation();
         tableStorageLocation.relativePath = "tables/" + imageName;
         annotatedLabelMaskSource.tableData.put( TableDataFormat.TSV, tableStorageLocation );
-<<<<<<< HEAD
-
-        imageDataLocations = createImageDataLocations( datasetName, imageUri );
-        annotatedLabelMaskSource.imageData = imageDataLocations;
-=======
-        annotatedLabelMaskSource.imageData = createImageDataLocations( datasetName, imageFile );;
->>>>>>> main
-
+        annotatedLabelMaskSource.imageData = createImageDataLocations( datasetName, imageUri );
         dataset.sources().put( imageName, annotatedLabelMaskSource );
     }
 
-<<<<<<< HEAD
     private Map< ImageDataFormat, StorageLocation > createImageDataLocations( String datasetName, String imageUri )
-=======
-    private Map< ImageDataFormat, StorageLocation > createImageDataLocations(
-            String datasetName,
-            File imageFile )
->>>>>>> main
     {
         Map< ImageDataFormat, StorageLocation > imageDataLocations = new HashMap<>();
         StorageLocation imageStorageLocation = new StorageLocation();
@@ -303,7 +274,7 @@ public class DatasetSerializer
         ArrayList<String> sources = new ArrayList<>();
         sources.add( imageName );
 
-        SegmentationDisplay segmentationDisplay = new SegmentationDisplay( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ ColumnNames.ANCHOR_X, ColumnNames.ANCHOR_Y }, null, null );
+        SegmentationDisplay< ? > segmentationDisplay = new SegmentationDisplay<>( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ ColumnNames.ANCHOR_X, ColumnNames.ANCHOR_Y }, null, null );
         displays.add( segmentationDisplay );
 
         if ( sourceTransform.isIdentity() ) {
@@ -326,14 +297,14 @@ public class DatasetSerializer
                     datasetName, "dataset.json" );
             new DatasetJsonParser().saveDataset( dataset, datasetJsonPath );
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException( e );
         }
 
         // whether the dataset json saving succeeded or not, we reload the current dataset
         try {
             projectCreator.reloadCurrentDataset();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException( e );
         }
     }
 }
