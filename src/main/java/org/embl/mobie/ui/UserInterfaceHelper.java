@@ -440,8 +440,9 @@ public class UserInterfaceHelper
 			panel.add( createViewsSelectionPanel( moBIE.getViews() ) );
 		}
 
+		panel.add( createViewPanel() );
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		panel.add( createMoveToLocationPanel( moBIE.getDataset().getDefaultLocation() )  );
+		panel.add( createLocationPanel( moBIE.getDataset().getDefaultLocation() )  );
 		panel.add( createClearAndSourceNamesOverlayPanel( moBIE ) );
 
 		return panel;
@@ -726,14 +727,9 @@ public class UserInterfaceHelper
 		return groupingsToViews;
 	}
 
-	public int getViewsSelectionPanelHeight()
+	public int getSelectionPanelHeight()
 	{
-		return viewsSelectionPanelHeight;
-	}
-
-	public int getActionPanelHeight()
-	{
-		return viewsSelectionPanelHeight + 4 * 40;
+		return viewsSelectionPanelHeight + 5 * 40;
 	}
 
 	public Set<String> getGroupings() {
@@ -797,7 +793,85 @@ public class UserInterfaceHelper
 		return horizontalLayoutPanel;
 	}
 
-	public JPanel createMoveToLocationPanel( ViewerTransform transform )
+	public JPanel createViewPanel( )
+	{
+		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
+		final JButton button = SwingHelper.createButton( VIEW );
+		final JTextField jTextField = new JTextField( "" );
+		jTextField.setPreferredSize( new Dimension( SwingHelper.COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
+		jTextField.setMinimumSize( new Dimension( SwingHelper.COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
+		jTextField.setMaximumSize( new Dimension( Integer.MAX_VALUE, SwingHelper.TEXT_FIELD_HEIGHT ) );
+
+		JPopupMenu suggestionsPopup = new JPopupMenu();
+
+		Set< String > views = this.moBIE.getViews().keySet();
+		jTextField.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void insertUpdate( DocumentEvent e) {
+				showSuggestions();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				showSuggestions();
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				showSuggestions();
+			}
+
+			private void showSuggestions() {
+				String input = jTextField.getText();
+				suggestionsPopup.removeAll();
+
+				if (!input.isEmpty()) {
+					for (String suggestion : views) {
+						if (suggestion.startsWith(input)) {
+							JMenuItem item = new JMenuItem(suggestion);
+							item.addActionListener(new ActionListener() {
+								@Override
+								public void actionPerformed(ActionEvent e) {
+									jTextField.setText(suggestion);
+									suggestionsPopup.setVisible(false);
+								}
+							});
+							suggestionsPopup.add(item);
+						}
+					}
+
+					if (suggestionsPopup.getComponentCount() > 0) {
+						suggestionsPopup.show(jTextField, 0, jTextField.getHeight());
+					} else {
+						suggestionsPopup.setVisible(false);
+					}
+				} else {
+					suggestionsPopup.setVisible(false);
+				}
+			}
+		});
+
+		button.addActionListener( e ->
+		{
+			String text = jTextField.getText();
+			if ( views.contains( text ) )
+			{
+				this.moBIE.getViewManager().show( text );
+			}
+			else
+			{
+				IJ.log( "[WARNING] View " + text + " not found." );
+			}
+		} );
+
+		panel.add( SwingHelper.getJLabel( "enter view" ) );
+		panel.add( jTextField );
+		panel.add( button );
+
+		return panel;
+	}
+
+	public JPanel createLocationPanel( ViewerTransform transform )
 	{
 		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
 		final JButton button = SwingHelper.createButton( MOVE );

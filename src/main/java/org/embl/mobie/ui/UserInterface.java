@@ -96,7 +96,7 @@ public class UserInterface
 
 		splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		splitPane.setDividerLocation( userInterfaceHelper.getActionPanelHeight() );
+		splitPane.setDividerLocation( userInterfaceHelper.getSelectionPanelHeight() );
 		splitPane.setTopComponent( selectionPanel );
 		splitPane.setBottomComponent( displaySettingsPanel );
 		splitPane.setAutoscrolls( true );
@@ -138,7 +138,7 @@ public class UserInterface
 		selectionPanel.revalidate();
 		selectionPanel.repaint();
 		// update the location of the splitpane divider, so any new uiSelectionGroups are visible
-		final int actionPanelHeight = userInterfaceHelper.getActionPanelHeight();
+		final int actionPanelHeight = userInterfaceHelper.getSelectionPanelHeight();
 		splitPane.setDividerLocation( actionPanelHeight );
 		frame.revalidate();
 		frame.repaint();
