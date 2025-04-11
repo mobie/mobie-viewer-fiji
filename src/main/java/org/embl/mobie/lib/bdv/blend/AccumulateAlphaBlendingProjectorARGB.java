@@ -104,10 +104,13 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 	{
 		try
 		{
-			int aAccu = 0, rAccu = 0, gAccu = 0, bAccu = 0;
+			int rAccu = 0, gAccu = 0, bAccu = 0;
 
-			for ( int sourceIndex : order )
+			int numSources = accesses.length;
+
+			for ( int i = 0; i < numSources; i++ )
 			{
+				int sourceIndex = order[ i ];
 				final int argb = accesses[ sourceIndex ].get().get();
 				final double alpha = ARGBType.alpha( argb ) / 255.0;
 				if ( alpha == 0 ) continue;
@@ -116,21 +119,26 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 				final int g = ARGBType.green( argb );
 				final int b = ARGBType.blue( argb );
 
-				if ( alphaBlending[ sourceIndex ] )
+				if ( i > 0 && alphaBlending[ sourceIndex ] )
 				{
 					rAccu *= ( 1 - alpha );
 					gAccu *= ( 1 - alpha );
 					bAccu *= ( 1 - alpha );
 				}
 
-				rAccu += r * alpha;
-				gAccu += g * alpha;
-				bAccu += b * alpha;
+				if ( i > 0 )
+				{
+					rAccu += r * alpha;
+					gAccu += g * alpha;
+					bAccu += b * alpha;
+				}
+				else
+				{
+					rAccu += r;
+					gAccu += g;
+					bAccu += b;
+				}
 			}
-
-//			rAccu /= accesses.length;
-//			gAccu /= accesses.length;
-//			bAccu /= accesses.length;
 
 			if ( rAccu > 255 )
 				rAccu = 255;
@@ -139,7 +147,7 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 			if ( bAccu > 255 )
 				bAccu = 255;
 
-			return ARGBType.rgba( rAccu, gAccu, bAccu, aAccu );
+			return ARGBType.rgba( rAccu, gAccu, bAccu, 255 );
 		}
 		catch ( Exception e )
 		{

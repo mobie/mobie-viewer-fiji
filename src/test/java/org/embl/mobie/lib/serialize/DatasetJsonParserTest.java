@@ -34,7 +34,6 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.lib.create.JSONValidator;
 import org.embl.mobie.lib.io.StorageLocation;
-import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
 

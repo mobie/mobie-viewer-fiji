@@ -48,7 +48,7 @@ public class StorageLocation
 	public String absolutePath;
 
 	// for data on s3:
-	public String s3Address;
+	public String s3Address; // one can now also use absolutePath instead for S3
 	public String signingRegion;
 
 	// The above locations typically refer to
