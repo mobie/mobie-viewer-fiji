@@ -46,16 +46,13 @@ import org.embl.mobie.lib.color.MobieColoringModel;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.plot.ScatterPlotSettings;
 import org.embl.mobie.lib.serialize.display.AbstractAnnotationDisplay;
-import org.embl.mobie.lib.plot.ScatterPlotDialog;
 import org.embl.mobie.lib.plot.ScatterPlotView;
 import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.select.SelectionModel;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.table.columns.ColumnNames;
-import org.embl.mobie.ui.ColorByColumnDialog;
+import org.embl.mobie.ui.*;
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.ui.StringArraySelectorDialog;
-import org.embl.mobie.ui.UserInterfaceHelper;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -284,8 +281,8 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 			{
 				SwingUtilities.invokeLater( () ->
 				{
-					String[] columnNames = tableModel.columnNames().stream().toArray( String[]::new );
-					final ScatterPlotSettings settings = new ScatterPlotSettings( new String[]{ columnNames[ 0 ], columnNames[ 1 ] } );
+					List< String > columnNames = tableModel.columnNames();
+					final ScatterPlotSettings settings = new ScatterPlotSettings( new String[]{ columnNames.get( 0 ), columnNames.get( 1 ) } );
 					ScatterPlotDialog dialog = new ScatterPlotDialog( columnNames, settings );
 					if ( dialog.show() )
 					{
@@ -550,27 +547,22 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private void selectEqualTo()
 	{
-		// works for categorical and numeric columns
-		final GenericDialog gd = new GenericDialog( "" );
-		String[] columnNames = tableModel.columnNames().stream().toArray( String[]::new );
-		gd.addChoice( "Column", columnNames, columnNames[0] );
-		gd.addStringField( "value", "" );
-		gd.addCheckbox( "Keep current selection", true );
-		gd.showDialog();
-		if( gd.wasCanceled() ) return;
-		final String columnName = gd.getNextChoice();
-		final String selectedValue = gd.getNextString();
-		final boolean keepCurrentSelection = gd.getNextBoolean();
+		ColumnFilteringDialog dialog = new ColumnFilteringDialog( tableModel.columnNames() );
+		if ( ! dialog.show() ) return;
+
+		final String columnName = dialog.getColumnName();
+		final String value = dialog.getValue();
+		final boolean keepCurrentSelection = dialog.getKeepSelected();
 
 		ArrayList< A > selectedRows = new ArrayList<>();
 		final ArrayList< A > rows = tableModel.annotations();
 
-		final boolean numeric = tableModel.numericColumnNames().contains( columnName ) ? true : false;
+		final boolean isNumeric = tableModel.numericColumnNames().contains( columnName );
 
 		double selectedNumber = 0.0;
-		if ( numeric )
+		if ( isNumeric )
 		{
-			selectedNumber = Double.parseDouble( selectedValue );
+			selectedNumber = Double.parseDouble( value );
 			for( A row: rows )
 				if ( row.getNumber( columnName ).equals( selectedNumber ) )
 					selectedRows.add( row );
@@ -578,47 +570,41 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		else
 		{
 			for( A row: rows )
-				if ( row.getValue( columnName ).equals( selectedValue ) )
+				if ( row.getValue( columnName ).equals( value ) )
 					selectedRows.add( row );
 		}
 
 		if ( !selectedRows.isEmpty() )
 			selectRows( selectedRows, keepCurrentSelection );
 		else
-			IJ.error( selectedValue + " does not exist in column " + columnName + ", please choose another value." );
+			IJ.error( value + " does not exist in column " + columnName + ", please choose another value." );
 	}
 
-	// TODO Code duplication with the method above
 	private void selectGreaterOrLessThan( final boolean greaterThan )
 	{
-		// only works for numeric columns
-		final GenericDialog gd = new GenericDialog( "" );
-		String[] columnNames = tableModel.numericColumnNames().toArray(new String[0]);
-		gd.addChoice( "Column", columnNames, columnNames[0] );
-		gd.addNumericField( "value", 0 );
-		gd.addCheckbox( "Keep current selection", true );
-		gd.showDialog();
-		if( gd.wasCanceled() ) return;
-		final String columnName = gd.getNextChoice();
-		final double value = gd.getNextNumber();
-		final boolean keepCurrentSelection = gd.getNextBoolean();
+		ColumnFilteringDialog dialog = new ColumnFilteringDialog( tableModel.numericColumnNames() );
+		if ( ! dialog.show() ) return;
+
+		final String columnName = dialog.getColumnName();
+		final double numericValue = Double.parseDouble( dialog.getValue() );
+		final boolean keepCurrentSelection = dialog.getKeepSelected();
 
 		ArrayList< A > selectedRows = new ArrayList<>();
 		final ArrayList< A > rows = tableModel.annotations();
 
 		for( A row: rows )
 			if ( greaterThan ?
-					row.getNumber( columnName ) > value :
-					row.getNumber( columnName ) < value )
+					row.getNumber( columnName ) > numericValue :
+					row.getNumber( columnName ) < numericValue )
 				selectedRows.add( row );
 
 		if ( !selectedRows.isEmpty() )
 			selectRows( selectedRows, keepCurrentSelection );
 		else
 			if ( greaterThan )
-				IJ.showMessage( "No values greater than " + value + " in column " + columnName + ", please choose another value." );
+				IJ.showMessage( "No values greater than " + numericValue + " in column " + columnName + ", please choose another value." );
 			else
-				IJ.showMessage("No values less than " + value + " in column " + columnName + ", please choose another value.");
+				IJ.showMessage("No values less than " + numericValue + " in column " + columnName + ", please choose another value.");
 	}
 
 	public void showNewAnnotationDialog()

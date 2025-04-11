@@ -65,6 +65,8 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -803,10 +805,68 @@ public class UserInterfaceHelper
 		jTextField.setPreferredSize( new Dimension( SwingHelper.COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
 		jTextField.setMinimumSize( new Dimension( SwingHelper.COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
 		jTextField.setMaximumSize( new Dimension( Integer.MAX_VALUE, SwingHelper.TEXT_FIELD_HEIGHT ) );
+
+		JPopupMenu suggestionsPopup = new JPopupMenu();
+
+		Set< String > views = this.moBIE.getViews().keySet();
+		jTextField.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void insertUpdate( DocumentEvent e) {
+				showSuggestions();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				showSuggestions();
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				showSuggestions();
+			}
+
+			private void showSuggestions() {
+				String input = jTextField.getText();
+				suggestionsPopup.removeAll();
+
+				if (!input.isEmpty()) {
+					for (String suggestion : views) {
+						if (suggestion.startsWith(input)) {
+							JMenuItem item = new JMenuItem(suggestion);
+							item.addActionListener(new ActionListener() {
+								@Override
+								public void actionPerformed(ActionEvent e) {
+									jTextField.setText(suggestion);
+									suggestionsPopup.setVisible(false);
+								}
+							});
+							suggestionsPopup.add(item);
+						}
+					}
+
+					if (suggestionsPopup.getComponentCount() > 0) {
+						suggestionsPopup.show(jTextField, 0, jTextField.getHeight());
+					} else {
+						suggestionsPopup.setVisible(false);
+					}
+				} else {
+					suggestionsPopup.setVisible(false);
+				}
+			}
+		});
+
 		button.addActionListener( e ->
 		{
-			ViewerTransform viewerTransform = ViewerTransform.toViewerTransform( jTextField.getText() );
-			ViewerTransformChanger.apply( this.moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
+			String text = jTextField.getText();
+			if ( views.contains( text ) )
+			{
+				this.moBIE.getViewManager().show( text );
+			}
+			else
+			{
+				ViewerTransform viewerTransform = ViewerTransform.toViewerTransform( text );
+				ViewerTransformChanger.apply( this.moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
+			}
 		} );
 
 		panel.add( SwingHelper.getJLabel( "location" ) );
@@ -990,9 +1050,14 @@ public class UserInterfaceHelper
 			SwingUtilities.invokeLater( () ->
 				{
 					if ( checkBox.isSelected() )
-						scatterPlotView.show( true );
+					{
+						boolean show = scatterPlotView.show( true );
+						checkBox.setSelected( show );
+					}
 					else
+					{
 						scatterPlotView.hide();
+					}
 				} ) );
 
 		scatterPlotView.getListeners().add( new VisibilityListener()

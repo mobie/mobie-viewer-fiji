@@ -47,6 +47,9 @@ public class ScatterPlotDialog
 
 		// lineChoices = new String[]{ GridLinesOverlay.NONE, GridLinesOverlay.Y_NX, GridLinesOverlay.Y_N };
 
+		new ScatterPlotDialog( columns, settings );
+
+		FIXME: use proper Swing Dialog
 		final GenericDialog gd = new GenericDialog( "Scatter Plot Configuration" );
 
 		gd.addCheckbox( "Plot All Timepoints at Once", settings.showAllTimepoints );
