@@ -12,7 +12,7 @@ public class DebugFloatSourceBVV
         imageJ.ui().showUI();
 
         OpenOMEZARRCommand command = new OpenOMEZARRCommand();
-        command.image = "https://s3.embl.de/imatrec/ATH_20to200_20240703_PM_01_epo_02_P3_32bit.ome.zarr";
+        command.imageUri = "https://s3.embl.de/imatrec/ATH_20to200_20240703_PM_01_epo_02_P3_32bit.ome.zarr";
         command.run();
     }
 }

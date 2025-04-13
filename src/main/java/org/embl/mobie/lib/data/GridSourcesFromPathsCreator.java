@@ -33,6 +33,7 @@ import org.embl.mobie.lib.transform.GridType;
 import tech.tablesaw.api.Table;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class GridSourcesFromPathsCreator
@@ -40,7 +41,7 @@ public class GridSourcesFromPathsCreator
 	private final List< ImageGridSources > imageSources;
 	private final List< LabelGridSources > labelSources;
 
-	public GridSourcesFromPathsCreator( List < String > imagePaths, List < String > labelPaths, List < String > labelTablePaths, String root, GridType grid )
+	public GridSourcesFromPathsCreator( List< String > imagePaths, List< String > labelPaths, List< String > labelTablePaths, String root, GridType grid )
 	{
 		// images
 		//

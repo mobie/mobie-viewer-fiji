@@ -80,15 +80,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -107,7 +100,7 @@ public class UserInterfaceHelper
 	private int viewsSelectionPanelHeight;
 	private JPanel viewSelectionPanel;
 	private Map< String, Map< String, View > > groupingsToViews;
-	private Map< String, JComboBox > groupingsToComboBox;
+	private Map< String, JComboBox< String > > groupingsToComboBox;
 	private Map< String, JPanel > groupingsToPanels;
 	private JCheckBox overlayNamesCheckbox;
 
@@ -620,35 +613,28 @@ public class UserInterfaceHelper
 		for ( String viewName : views.keySet() )
 		{
 			final View view = views.get( viewName );
-			if ( view.getUiSelectionGroups() != null )
+			Set< String > uiSelectionGroups = view.getUiSelectionGroups();
+
+			for ( String uiSelectionGroup : uiSelectionGroups )
 			{
-				String[] uiSelectionGroups = view.getUiSelectionGroups();
-				for ( String uiSelectionGroup : uiSelectionGroups )
-				{
-					if ( ! groupingsToViews.containsKey( uiSelectionGroup ) )
-						groupingsToViews.put( uiSelectionGroup, new LinkedHashMap<>( ));
-					groupingsToViews.get( uiSelectionGroup ).put( viewName, view );
-				}
-			}
-			else
-			{
-				final String uiSelectionGroup = view.getUiSelectionGroup();
 				if ( ! groupingsToViews.containsKey( uiSelectionGroup ) )
-					groupingsToViews.put( uiSelectionGroup, new LinkedHashMap<>() );
+					groupingsToViews.put( uiSelectionGroup, new LinkedHashMap<>( ));
 				groupingsToViews.get( uiSelectionGroup ).put( viewName, view );
 			}
 		}
 
 		final ArrayList< String > uiSelectionGroups = new ArrayList<>( groupingsToViews.keySet() );
 		// sort in alphabetical order, ignoring upper/lower case
-		Collections.sort( uiSelectionGroups, new Comparator<String>() {
-			@Override
-			public int compare(String s1, String s2) {
-				return s1.compareToIgnoreCase(s2);
-			}
-		});
+		uiSelectionGroups.sort( new Comparator< String >()
+        {
+            @Override
+            public int compare( String s1, String s2 )
+            {
+                return s1.compareToIgnoreCase( s2 );
+            }
+        } );
 
-		// If it's the first time, just add all the panels in order
+		// If it's the first time, add all the view selection panels in order
 		if ( groupingsToComboBox.keySet().isEmpty() ) {
 			for (String uiSelectionGroup : uiSelectionGroups) {
 				final JPanel selectionPanel = createViewSelectionPanel(moBIE, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
@@ -659,25 +645,32 @@ public class UserInterfaceHelper
 			return;
 		}
 
-		// If there are already panels, then add new ones at the correct index to maintain alphabetical order
+		// If there are already panels, add new ones at the correct index to maintain alphabetical order
 		Map< Integer, JPanel > indexToPanel = new HashMap<>();
 		for ( String viewName : views.keySet() ) {
-			String uiSelectionGroup = views.get( viewName ).getUiSelectionGroup();
-			if ( groupingsToComboBox.containsKey( uiSelectionGroup ) ) {
-				JComboBox comboBox = groupingsToComboBox.get( uiSelectionGroup );
-				// check if a view of that name already exists: -1 means it doesn't exist
-				int index = ( (DefaultComboBoxModel) comboBox.getModel() ).getIndexOf( viewName );
-				if ( index == -1 ) {
-					comboBox.addItem(viewName);
+			Set< String > groups = views.get( viewName ).getUiSelectionGroups();
+			for ( String group : groups )
+			{
+				if ( groupingsToComboBox.containsKey( group ) )
+				{
+					JComboBox< String > comboBox = groupingsToComboBox.get( group );
+					// check if a view of that name already exists: -1 means it doesn't exist
+					int index = ( ( DefaultComboBoxModel ) comboBox.getModel() ).getIndexOf( viewName );
+					if ( index == -1 )
+					{
+						comboBox.addItem( viewName );
+					}
 				}
-			} else {
-				final JPanel selectionPanel = createViewSelectionPanel(moBIE, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
-				int alphabeticalIndex = uiSelectionGroups.indexOf( uiSelectionGroup );
-				indexToPanel.put( alphabeticalIndex, selectionPanel );
+				else
+				{
+					final JPanel selectionPanel = createViewSelectionPanel( moBIE, group, groupingsToViews.get( group ) );
+					int alphabeticalIndex = uiSelectionGroups.indexOf( group );
+					indexToPanel.put( alphabeticalIndex, selectionPanel );
+				}
 			}
 		}
 
-		if ( !indexToPanel.keySet().isEmpty() ) {
+		if ( ! indexToPanel.keySet().isEmpty() ) {
 			// add panels in ascending index order
 			final ArrayList<Integer> sortedIndices = new ArrayList<>(indexToPanel.keySet());
 			Collections.sort(sortedIndices);
@@ -692,25 +685,31 @@ public class UserInterfaceHelper
 	{
 		for ( String viewName : views.keySet() )
 		{
-			final View view = views.get( viewName );
-			final String uiSelectionGroup = view.getUiSelectionGroup();
-			if ( groupingsToViews.containsKey( uiSelectionGroup ) ) {
-				Map<String, View> groupViews = groupingsToViews.get( uiSelectionGroup );
-				groupViews.remove( viewName );
+			Set< String > groups = views.get( viewName ).getUiSelectionGroups();
+			for ( String group : groups )
+			{
+				if ( groupingsToViews.containsKey( group ) )
+				{
+					Map< String, View > groupViews = groupingsToViews.get( group );
+					groupViews.remove( viewName );
 
-				if ( groupViews.isEmpty() ) {
-					groupingsToViews.remove( uiSelectionGroup );
+					if ( groupViews.isEmpty() )
+					{
+						groupingsToViews.remove( group );
+					}
 				}
-			}
 
-			if ( groupingsToComboBox.containsKey( uiSelectionGroup ) ) {
-				JComboBox comboBox = groupingsToComboBox.get( uiSelectionGroup );
-				comboBox.removeItem( viewName );
+				if ( groupingsToComboBox.containsKey( group ) )
+				{
+					JComboBox< String > comboBox = groupingsToComboBox.get( group );
+					comboBox.removeItem( viewName );
 
-				if ( comboBox.getItemCount() == 0 ) {
-					groupingsToComboBox.remove( uiSelectionGroup );
-					viewSelectionPanel.remove( groupingsToPanels.get(uiSelectionGroup) );
-					groupingsToPanels.remove(uiSelectionGroup);
+					if ( comboBox.getItemCount() == 0 )
+					{
+						groupingsToComboBox.remove( group );
+						viewSelectionPanel.remove( groupingsToPanels.get( group ) );
+						groupingsToPanels.remove( group );
+					}
 				}
 			}
 		}
@@ -864,7 +863,10 @@ public class UserInterfaceHelper
 			}
 		} );
 
-		panel.add( SwingHelper.getJLabel( "enter view" ) );
+		JLabel label = SwingHelper.getJLabel( "enter view" );
+		label.setToolTipText( "Views can be selected from the above drop-downs.\n" +
+				"Alternatively, a view can also be directly chosen here." );
+		panel.add( label );
 		panel.add( jTextField );
 		panel.add( button );
 
@@ -943,7 +945,11 @@ public class UserInterfaceHelper
 			}
 		} );
 
-		panel.add( SwingHelper.getJLabel( "location" ) );
+		JLabel label = SwingHelper.getJLabel( "location" );
+		label.setToolTipText( "<html>Change the location (i.e. viewer transformation)\n of the current view.<br>" +
+				"Right click in BigDataViewer and choose \"Log Current Location\" to obtain valid entries.<br>" +
+				"See also https://mobie.github.io/tutorials/views_and_locations.html</html>" );
+		panel.add( label );
 		panel.add( jTextField );
 		panel.add( button );
 

@@ -34,16 +34,13 @@ import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class View
 {
 	// Serialisation (do not change names of fields!)
 	//
-	private String uiSelectionGroup;
+	private String uiSelectionGroup; // https://github.com/mobie/mobie-viewer-fiji/issues/1223
 
 	private String[] uiSelectionGroups;
 
@@ -151,14 +148,20 @@ public class View
 			return sourceDisplays;
 	}
 
-	public String getUiSelectionGroup()
+	public Set< String > getUiSelectionGroups()
 	{
-		return uiSelectionGroup;
-	}
+		HashSet< String > set = new HashSet<>();
 
-	public String[] getUiSelectionGroups()
-	{
-		return uiSelectionGroups;
+		if ( uiSelectionGroup != null )
+			set.add( uiSelectionGroup );
+
+		if ( uiSelectionGroups != null )
+			set.addAll( Arrays.asList( uiSelectionGroups ) );
+
+		if ( set.isEmpty() )
+			set.add("views"); // default
+
+		return set;
 	}
 
 	public ViewerTransform getViewerTransform()

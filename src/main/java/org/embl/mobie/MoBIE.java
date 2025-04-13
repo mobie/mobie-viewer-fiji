@@ -196,7 +196,8 @@ public class MoBIE
 
 		this.settings = settings;
 
-		final GridSourcesFromPathsCreator sourcesCreator = new GridSourcesFromPathsCreator( imagePaths, labelPaths, labelTablePaths, root, grid );
+		final GridSourcesFromPathsCreator sourcesCreator = new GridSourcesFromPathsCreator(
+				imagePaths, labelPaths, labelTablePaths, root, grid );
 
 		final List< ImageGridSources > imageSources = sourcesCreator.getImageSources();
 		final List< LabelGridSources > labelSources = sourcesCreator.getLabelSources();
@@ -244,7 +245,7 @@ public class MoBIE
 		setProjectImageAndTableRootLocations();
 		registerProjectPlugins( projectLocation );
 		project = new ProjectJsonParser().parseProject( combinePath( projectRoot, "project.json" ) );
-		if ( project.getName() == null ) project.setName( getFileName( projectLocation ) );
+		if ( project.getName() == null ) project.setName( IOHelper.getFileName( projectLocation ) );
 		settings.addTableDataFormat( TableDataFormat.TSV );
 		openAndViewDataset();
 	}

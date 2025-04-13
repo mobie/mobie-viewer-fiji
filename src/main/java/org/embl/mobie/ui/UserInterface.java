@@ -104,9 +104,13 @@ public class UserInterface
 		// show frame
 		for ( View view : views )
 		{
-			final String text = view.getUiSelectionGroup() + ": " + view.getName();
-			if ( text.length() > longestViewString.length() )
-				this.longestViewString = text;
+			Set< String > selectionGroups = view.getUiSelectionGroups();
+			for ( String selectionGroup : selectionGroups )
+			{
+				final String text = selectionGroup + ": " + view.getName();
+				if ( text.length() > longestViewString.length() )
+					this.longestViewString = text;
+			}
 		}
 
 		final int longestStringWidth = new JPanel().getFontMetrics( new JComboBox<>().getFont() ).stringWidth( longestViewString );

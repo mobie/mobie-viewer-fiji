@@ -47,10 +47,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.embl.mobie.ui.UserInterfaceHelper.tidyString;
 
@@ -177,13 +174,16 @@ public class ProjectCreatorHelper {
         Map<String, ArrayList<String>> groupToViewsMap = new HashMap<>();
         for ( String viewName: viewNameToView.keySet() ) {
             View view = viewNameToView.get( viewName );
-            String group = view.getUiSelectionGroup();
-            if ( !groupToViewsMap.containsKey( group ) ) {
-                ArrayList<String> views = new ArrayList<>();
-                views.add( viewName );
-                groupToViewsMap.put( group, views );
-            } else {
-                groupToViewsMap.get( group ).add( viewName );
+            Set< String > selectionGroups = view.getUiSelectionGroups();
+            for ( String selectionGroup : selectionGroups )
+            {
+                if ( ! groupToViewsMap.containsKey( selectionGroup ) ) {
+                    ArrayList<String> views = new ArrayList<>();
+                    views.add( viewName );
+                    groupToViewsMap.put( selectionGroup, views );
+                } else {
+                    groupToViewsMap.get( selectionGroup ).add( viewName );
+                }
             }
         }
 
