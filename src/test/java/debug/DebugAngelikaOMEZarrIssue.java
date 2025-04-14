@@ -11,7 +11,7 @@ public class DebugAngelikaOMEZarrIssue
         imageJ.ui().showUI();
 
         OpenOMEZARRCommand command = new OpenOMEZARRCommand();
-        command.imageUri = "https://s3.embl.de/imatrec/IMATREC_HiTT_20240718_AS/TAL_10to40_20230622_AM_01_epo_02.ome.zarr";
+        command.containerUri = "https://s3.embl.de/imatrec/IMATREC_HiTT_20240718_AS/TAL_10to40_20230622_AM_01_epo_02.ome.zarr";
         command.labelsUri = "https://s3.embl.de/imatrec/IMATREC_HiTT_20240501_AS/135.ome.zarr";
         command.run();
     }

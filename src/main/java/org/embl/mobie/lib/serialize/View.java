@@ -40,9 +40,10 @@ public class View
 {
 	// Serialisation (do not change names of fields!)
 	//
+	@Deprecated // use uiSelectionGroups instead
 	private String uiSelectionGroup; // https://github.com/mobie/mobie-viewer-fiji/issues/1223
 
-	private String[] uiSelectionGroups;
+	private String[] uiSelectionGroups; // https://github.com/mobie/mobie-viewer-fiji/issues/1223
 
 	private List< Display< ? > > sourceDisplays;
 
@@ -76,7 +77,24 @@ public class View
 				 String description
 	) {
 		this.name = name;
-		this.uiSelectionGroup = uiSelectionGroup;
+		this.uiSelectionGroups = new String[]{ uiSelectionGroup };
+		this.sourceDisplays = sourceDisplays;
+		this.sourceTransforms = sourceTransforms;
+		this.viewerTransform = viewerTransform;
+		this.isExclusive = isExclusive;
+		this.description = description;
+	}
+
+	public View( String name,
+				 String[] uiSelectionGroups,
+				 List< Display< ? > > sourceDisplays,
+				 List< Transformation > sourceTransforms,
+				 ViewerTransform viewerTransform,
+				 boolean isExclusive,
+				 String description
+	) {
+		this.name = name;
+		this.uiSelectionGroups = uiSelectionGroups;
 		this.sourceDisplays = sourceDisplays;
 		this.sourceTransforms = sourceTransforms;
 		this.viewerTransform = viewerTransform;
@@ -151,6 +169,12 @@ public class View
 	public Set< String > getUiSelectionGroups()
 	{
 		HashSet< String > set = new HashSet<>();
+
+		if ( uiSelectionGroup != null && uiSelectionGroups != null )
+		{
+			System.err.println("The view " + name + " has both the uiSelectionGroup and uiSelectionGroups fields set;\n" +
+					"The uiSelectionGroup field is deprecated, please remove it.");
+		}
 
 		if ( uiSelectionGroup != null )
 			set.add( uiSelectionGroup );

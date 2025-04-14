@@ -27,7 +27,6 @@ import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.selection.Selection;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -38,7 +37,7 @@ public class CollectionTableDataSetter
     private final Table table;
     private final String rootPath;
 
-    private final Map< String, String > viewToGroup = new LinkedHashMap<>();
+    private final Map< String, String[] > viewToGroups = new LinkedHashMap<>();
     private final Map< String, Set< String > > viewToGrids = new LinkedHashMap<>();
     private final Map< String, Map< String, List< String > > > gridToPositionsToSources = new LinkedHashMap<>();
     private final Map< String, Set< Display< ? > > > viewToDisplays = new LinkedHashMap<>();
@@ -88,7 +87,7 @@ public class CollectionTableDataSetter
                             .add( sourceName );
             }
 
-            viewToGroup.put( viewName, getGroupName( row ) );
+            viewToGroups.put( viewName, getGroups( row ) );
             viewToExclusive.put( viewName, getExclusive( row ) );
             viewToDisplays.computeIfAbsent( viewName, k -> new LinkedHashSet<>() ).add( displays.get( displayName ) );
             viewToTransformations.computeIfAbsent( viewName, k -> new ArrayList<>() ).addAll( getAffineTransformations( sourceName, row ) );
@@ -140,9 +139,10 @@ public class CollectionTableDataSetter
             }
 
 
+
             final View view = new View(
                     viewName,
-                    viewToGroup.get( viewName ),
+                    viewToGroups.get( viewName ),
                     new ArrayList<>( viewToDisplays.get( viewName ) ),
                     transformations,
                     null,
@@ -455,20 +455,22 @@ public class CollectionTableDataSetter
 
 
     @NotNull
-    private static String getGroupName( Row row )
+    private static String[] getGroups( Row row )
     {
+        String[] defaultValue = { "views" };
+
         try
         {
-            String name = row.getString( CollectionTableConstants.GROUP );
+            String groups = row.getString( CollectionTableConstants.GROUP );
 
-            if ( name.isEmpty() )
-                return "views";
+            if ( groups.isEmpty() )
+                return defaultValue;
 
-            return name;
+            return groups.split( "," );
         }
         catch ( Exception e )
         {
-            return "views";
+            return defaultValue;
         }
     }
 

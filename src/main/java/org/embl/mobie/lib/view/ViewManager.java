@@ -139,7 +139,7 @@ public class ViewManager
 
 		View view = new View(
 				imageName,
-				null, // to be determined by the user in below dialog
+                ( String ) null, // to be determined by the user in below dialog
 				Collections.singletonList( display ),
 				transformations,
 				null,
@@ -241,7 +241,7 @@ public class ViewManager
 		}
 
 		// the parameters that are null must be later set via the view's setter methods
-		return new View( null, null, displays, transformations, null, true, "" );
+		return new View( null, ( String ) null, displays, transformations, null, true, "" );
 	}
 
 	public synchronized void show( String viewName )

@@ -1,7 +1,6 @@
 package org.embl.mobie.command.open;
 
 import net.imagej.ImageJ;
-import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
@@ -10,7 +9,7 @@ class OpenOMEZarrHCSDatasetCommandTest
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     //@Test
-    public void test( )
+    public void local()
     {
         new ImageJ().ui().showUI(); // initialise SciJava Services
 
@@ -23,7 +22,7 @@ class OpenOMEZarrHCSDatasetCommandTest
 
     public static void main( String[] args )
     {
-        new OpenOMEZarrHCSDatasetCommandTest().test();
+        new OpenOMEZarrHCSDatasetCommandTest().local();
     }
 
 

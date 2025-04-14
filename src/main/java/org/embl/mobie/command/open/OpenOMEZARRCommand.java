@@ -32,10 +32,7 @@ import ij.IJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.N5ImageData;
-import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.transform.GridType;
 import org.embl.mobie.lib.util.ThreadHelper;
@@ -52,18 +49,23 @@ public class OpenOMEZARRCommand implements Command {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    @Parameter( label = "Image URI",
-            description = "Local path or S3 address to one OME-Zarr multi-scale image."
+    @Parameter( label = "Container URI",
+            description = "Local path or S3 address to an OME-Zarr container.\n" +
+                    "All images within the container will be opened.\n" +
+                    "If the path to an image contains \"labels\" it will be opened as a label mask."
     )
-    public String imageUri; // = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
+    public String containerUri; // = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
 
     @Parameter( label = "( Labels URI )",
-            description = "Optional. Local path or S3 address to an OME-Zarr label mask multi-scale image.",
+            description = "Optional. Local path or S3 address to an OME-Zarr label mask image.\n" +
+                    "Use this to open additional labels that are not in the above container\n" +
+                    "or if the path within the above container does not contain \"labels\".",
             required = false )
     public String labelsUri; // = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr/labels/cells";
 
     @Parameter( label = "( Labels Table URI )",
-            description = "Optional. Local path or S3 address to an table with label mask features.",
+            description = "Optional. Local path or S3 address to an table with label mask features.\n" +
+                    "It will be assigned to the first label mask image that is opened above.",
             required = false )
     public String tableUri; // = "https://raw.githubusercontent.com/mobie/platybrowser-project/refs/heads/main/data/1.0.1/tables/sbem-6dpf-1-whole-segmented-cells/default.tsv"
 
@@ -93,22 +95,23 @@ public class OpenOMEZARRCommand implements Command {
             settings.s3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } );
         }
 
-        if ( MoBIEHelper.notNullOrEmpty( imageUri ) )
+        if ( MoBIEHelper.notNullOrEmpty( containerUri ) )
         {
-            IJ.log("Analyzing " + imageUri + "..." );
+            IJ.log("Analyzing " + containerUri + "..." );
             // TODO: it is annoying that we need to open the data here
             //   and then again later when actually loading the image;
             //   we could add a cache for the imageData.
             N5ImageData< ? > n5ImageData = getN5ImageData();
 
             int numDataSets = n5ImageData.getNumDatasets();
+            IJ.log( "Found " + numDataSets + " datasets (channels counting as datasets)." );
             for ( int dataSetIndex = 0; dataSetIndex < numDataSets; dataSetIndex++ )
             {
                 String path = n5ImageData.getPath( dataSetIndex );
                 if ( path.contains( "labels" ) && MoBIEHelper.nullOrEmpty( labelsUri ) )
-                    labelsList.add( imageUri + "=" + n5ImageData.getName( dataSetIndex ) + ";" + dataSetIndex );
+                    labelsList.add( containerUri + "=" + n5ImageData.getName( dataSetIndex ) + ";" + dataSetIndex );
                 else
-                    imageList.add( imageUri + "=" + n5ImageData.getName( dataSetIndex ) + ";" + dataSetIndex );
+                    imageList.add( containerUri + "=" + n5ImageData.getName( dataSetIndex ) + ";" + dataSetIndex );
             }
 
         }
@@ -130,8 +133,8 @@ public class OpenOMEZARRCommand implements Command {
     private N5ImageData< ? > getN5ImageData()
     {
         if ( MoBIEHelper.notNullOrEmpty( s3AccessKey ) )
-            return new N5ImageData<>( imageUri, ThreadHelper.sharedQueue, new String[]{ s3AccessKey, s3SecretKey } );
+            return new N5ImageData<>( containerUri, ThreadHelper.sharedQueue, new String[]{ s3AccessKey, s3SecretKey } );
         else
-            return new N5ImageData<>( imageUri, ThreadHelper.sharedQueue );
+            return new N5ImageData<>( containerUri, ThreadHelper.sharedQueue );
     }
 }

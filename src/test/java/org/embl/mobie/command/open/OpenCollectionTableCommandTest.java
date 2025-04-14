@@ -11,7 +11,7 @@ public class OpenCollectionTableCommandTest
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     @Test
-    public void blobs( )
+    public void simple( )
     {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
@@ -83,6 +83,7 @@ public class OpenCollectionTableCommandTest
 
     public static void main( String[] args )
     {
-        new OpenCollectionTableCommandTest().spots3D();
+        new OpenCollectionTableCommandTest().simple();
+        //new OpenCollectionTableCommandTest().spots3D();
     }
 }

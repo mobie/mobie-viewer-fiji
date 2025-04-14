@@ -213,11 +213,13 @@ public class CollectionTableConstants
     /**
      * The "group" column MAY be present.
      *
-     * The value will create a UI selection group in the MoBIE user interface
+     * The value will create a UI selection group(s) in the MoBIE user interface
      * to which the view of this image will be added.
      *
      * Supported values:
-     * - Free text
+     * - Free text (without ","), e.g.: "em"
+     * - Comma separated list of groups, e.g.: "nice,great"
+     *   - The same view will be selectable from several group drop-downs
      *
      * Default: "views"
      * If the column is absent or contains an empty string the

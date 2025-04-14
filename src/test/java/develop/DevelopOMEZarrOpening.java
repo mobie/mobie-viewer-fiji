@@ -10,7 +10,7 @@ public class DevelopOMEZarrOpening
         new ImageJ().ui().showUI(); // initialise SciJava Services
 
         final OpenOMEZARRCommand command = new OpenOMEZARRCommand();
-        command.imageUri = "https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.4/idr0062A/6001240.zarr";
+        command.containerUri = "https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.4/idr0062A/6001240.zarr";
         command.run();
     }
 }
