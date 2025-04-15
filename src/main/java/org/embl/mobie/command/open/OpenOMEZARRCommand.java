@@ -52,7 +52,8 @@ public class OpenOMEZARRCommand implements Command {
     @Parameter( label = "Container URI",
             description = "Local path or S3 address to an OME-Zarr container.\n" +
                     "All images within the container will be opened.\n" +
-                    "If the path to an image contains \"labels\" it will be opened as a label mask."
+                    "If the path to an image contains \"labels\" it will be opened as a label mask.\n" +
+                    "\nFor opening OME-Zarr HCS plates please instead use \"Open HCS Dataset...\""
     )
     public String containerUri; // = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr";
 
@@ -113,7 +114,6 @@ public class OpenOMEZARRCommand implements Command {
                 else
                     imageList.add( containerUri + "=" + n5ImageData.getName( dataSetIndex ) + ";" + dataSetIndex );
             }
-
         }
 
         if ( MoBIEHelper.notNullOrEmpty( labelsUri ) ) labelsList.add( labelsUri );

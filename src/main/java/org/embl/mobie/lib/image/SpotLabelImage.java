@@ -30,6 +30,7 @@ package org.embl.mobie.lib.image;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
+import ij.IJ;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imglib2.*;
 import net.imglib2.neighborsearch.RadiusNeighborSearchOnKDTree;
@@ -113,7 +114,7 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 	{
 		final ArrayList< AS > annotations = annData.getTable().annotations();
 		int numAnnotations = annotations.size();
-		System.out.println("Building SpotImage with numElements = " + numAnnotations );
+		IJ.log( "Building SpotImage with " + numAnnotations + " spots..." );
 		long start = System.currentTimeMillis();
 		kdTree = new KDTree( annotations, annotations );
 
@@ -179,7 +180,7 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 				null,
 				new FinalVoxelDimensions( unit, 1, 1, 1 ) );
 
-		System.out.println("Done in [ms] " + ( System.currentTimeMillis() - start ) );
+		IJ.log("...done in [ms] " + ( System.currentTimeMillis() - start ) );
 
 	}
 

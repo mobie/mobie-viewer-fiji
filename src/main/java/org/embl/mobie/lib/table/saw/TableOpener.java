@@ -136,6 +136,7 @@ public class TableOpener
 					.missingValueIndicator( "na", "none", "nan", "inf" )
 					.sample( numSamples > 0 )
 					.sampleSize( numSamples )
+					.maxNumberOfColumns( 100000 )
 					.columnTypesPartial( nameToType );
 			Table table = Table.read().usingOptions( builder );
 			//System.out.println("Read table " + path + " with " + rows.rowCount() + " rows in " + ( System.currentTimeMillis() - start ) + " ms." );
