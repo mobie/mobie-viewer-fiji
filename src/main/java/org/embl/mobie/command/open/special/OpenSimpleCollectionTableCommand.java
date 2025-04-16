@@ -26,23 +26,53 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package develop;
+package org.embl.mobie.command.open.special;
 
-import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenCollectionTableCommand;
+import loci.common.DebugTools;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.lib.bdv.BdvViewingMode;
+import org.embl.mobie.lib.data.ProjectType;
+import org.embl.mobie.lib.util.GoogleSheetURLHelper;
+import org.embl.mobie.lib.util.MoBIEHelper;
+import org.scijava.command.Command;
+import org.scijava.plugin.Parameter;
+import org.scijava.plugin.Plugin;
 
+import java.io.File;
 import java.io.IOException;
 
-public class OpenSpotCollectionGrid
-{
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Special > Open Simple Collection Table..." )
+public class OpenSimpleCollectionTableCommand implements Command {
 
-		OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-		command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
-		command.tableUri = "src/test/resources/collections/organ_spots_collection_grid.tsv";
-		command.run();
+	static { net.imagej.patcher.LegacyInjector.preinit(); DebugTools.setRootLevel( "OFF" ); }
+
+	@Parameter( label = "Table Uri" )
+	public String tableUri;
+
+	@Override
+	public void run()
+	{
+		final MoBIESettings settings = new MoBIESettings()
+				.projectType( ProjectType.CollectionTable );
+
+		openTable( tableUri, settings );
+	}
+
+	protected void openTable( String tableUri, MoBIESettings settings )
+	{
+		if ( tableUri.contains( "docs.google.com/spreadsheets" ) )
+			tableUri = GoogleSheetURLHelper.generateExportUrl( tableUri );
+
+		try
+		{
+			new MoBIE( tableUri, settings );
+		}
+		catch ( IOException e )
+		{
+			throw new RuntimeException( e );
+		}
 	}
 }

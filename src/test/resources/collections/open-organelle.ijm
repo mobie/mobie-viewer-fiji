@@ -1,0 +1,1 @@
+run("Open Collection Table...", "table=https:/docs.google.com/spreadsheets/d/1jEnl-0_pcOFQo8mm8SUtszoWewvjyFXY0icO7gPUaQk/export?gid=0&format=tsv dataroottype=PathsInTableAreAbsolute bdvviewingmode=ThreeDimensional");

@@ -9,7 +9,7 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>6.3.0</version>  <!-- -SNAPSHOT -->
+    <version>6.3.4</version>  <!-- -SNAPSHOT -->
 
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
 
@@ -84,7 +84,7 @@
 
         <allowedDuplicateClasses>${scijava.allowedDuplicateClasses},org.relaxng.*,sun.*,com.sun.*,sun.rmi.*,com.sun.jdi.*,sun.jvmstat.*,sun.applet.*,com.sun.xml.*,com.sun.tools.*,sun.tools.*,com.sun.istack.*,shaded.parquet.it.unimi.dsi.fastutil.*,javax.xml.bind.*,com.sun.xml.bind.*,com.sun.xml.txw2.*,com.sun.codemodel.*</allowedDuplicateClasses>
 
-        <mobie-io.version>4.0.3-SNAPSHOT</mobie-io.version>
+        <mobie-io.version>4.0.3</mobie-io.version>
         <bigdataviewer-playground.version>0.11.0</bigdataviewer-playground.version>
         <bvv-playground.version>0.3.4</bvv-playground.version>
 

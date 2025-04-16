@@ -139,7 +139,6 @@ public class CollectionTableDataSetter
             }
 
 
-
             final View view = new View(
                     viewName,
                     viewToGroups.get( viewName ),

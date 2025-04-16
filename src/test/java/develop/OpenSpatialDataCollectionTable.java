@@ -32,8 +32,6 @@ import net.imagej.ImageJ;
 import org.embl.mobie.command.open.OpenCollectionTableCommand;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 
-import java.io.File;
-
 public class OpenSpatialDataCollectionTable
 {
     public static void main( String[] args )
@@ -42,9 +40,9 @@ public class OpenSpatialDataCollectionTable
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.table = new File("/Users/tischer/Desktop/iss-nf/qc_spatialdata_processed/mobie-collection.txt");
-        command.dataRootType = OpenCollectionTableCommand.DataRootType.UseTableFolder;
-        command.bdvViewingMode = BdvViewingMode.TwoDimensional;
+        command.tableUri = "/Users/tischer/Desktop/iss-nf/qc_spatialdata_processed/mobie-collection.txt";
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
 
         // Issues:
