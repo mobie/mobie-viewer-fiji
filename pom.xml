@@ -169,6 +169,11 @@
 			<artifactId>bvv-playground</artifactId>
 			<version>${bvv-playground.version}</version>
 		</dependency>
+		        <dependency>
+		<groupId>nl.uu.science.cellbiology</groupId>
+			<artifactId>bigvolumebrowser</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 		<dependency>
   			<groupId>com.formdev</groupId>
   			<artifactId>flatlaf-jide-oss</artifactId>

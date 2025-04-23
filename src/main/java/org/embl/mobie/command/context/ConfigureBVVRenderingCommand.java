@@ -81,6 +81,6 @@ public class ConfigureBVVRenderingCommand implements BdvPlaygroundActionCommand,
 	@Override
 	public void run()
 	{
-		MoBIE.getInstance().getViewManager().getBigVolumeViewer().updateBVVRenderSettings();
+		//MoBIE.getInstance().getViewManager().getBigVolumeViewer().updateBVVRenderSettings();
 	}
 }

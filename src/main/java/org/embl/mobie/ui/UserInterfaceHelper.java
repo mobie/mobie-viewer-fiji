@@ -1172,13 +1172,13 @@ public class UserInterfaceHelper
 				new Thread( () -> {
 					for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 					{
-						display.bigVolumeViewer.showSource( sourceAndConverter, checkBox.isSelected() );
+						display.bigVolumeBrowser.showSource( sourceAndConverter, checkBox.isSelected() );
 					}
 				}).start();
 			}
 		} );
 
-		display.bigVolumeViewer.getListeners().add( new VisibilityListener()
+		display.bigVolumeBrowser.getListeners().add( new VisibilityListener()
 		{
 			@Override
 			public void visibility( boolean isVisible )
