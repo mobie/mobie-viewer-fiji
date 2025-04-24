@@ -35,8 +35,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TimePointListener;
 import bvb.core.BigVolumeBrowser;
-import bvvpg.pguitools.GammaConverterSetup;
-
+import bvvpg.source.converters.GammaConverterSetup;
 import bvvpg.vistools.BvvStackSource;
 import ij.IJ;
 import mpicbg.spim.data.generic.AbstractSpimData;
@@ -62,7 +61,7 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 		if (bvb == null)
 		{
 			bvb = new BigVolumeBrowser();
-			bvb.startBVB();
+			bvb.startBVB("MoBIE BigVolumeBrowser");
 		}
 	
 	}

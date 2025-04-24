@@ -86,7 +86,7 @@
 
         <mobie-io.version>4.0.3</mobie-io.version>
         <bigdataviewer-playground.version>0.11.0</bigdataviewer-playground.version>
-        <bvv-playground.version>0.3.4</bvv-playground.version>
+        <bvv-playground.version>0.4.0</bvv-playground.version>
 
         <annotations.version>16.0.2</annotations.version>
         <trove.version>1.0.2</trove.version>
@@ -173,11 +173,6 @@
 		<groupId>nl.uu.science.cellbiology</groupId>
 			<artifactId>bigvolumebrowser</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-  			<groupId>com.formdev</groupId>
-  			<artifactId>flatlaf-jide-oss</artifactId>
-  			<version>3.0</version>
 		</dependency>
         <dependency>
             <groupId>org.jogamp.java3d</groupId>
