@@ -48,7 +48,8 @@ import mpicbg.spim.data.generic.AbstractSpimData;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 
-public class BigVolumeBrowserMoBIE<T> implements ColoringListener, SelectionListener<T>, TimePointListener, BigVolumeBrowser.Listener
+@SuppressWarnings( "rawtypes" )
+public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListener, TimePointListener, BigVolumeBrowser.Listener
 {
 	private BigVolumeBrowser bvb = null;
 	
@@ -95,6 +96,7 @@ public class BigVolumeBrowserMoBIE<T> implements ColoringListener, SelectionList
 		}
 	
 	}	
+	
 	public void showSource( SourceAndConverter< ? > sac, boolean isVisible )
 	{
 		if ( isVisible && bvb == null )
@@ -364,23 +366,6 @@ public class BigVolumeBrowserMoBIE<T> implements ColoringListener, SelectionList
 		}		
 		
 	}
-	
-	/** leftover example of Glasbey LUT, keep it for now.**/
-	public static IndexColorModel getGlasbeyICM()
-	{
-		final GlasbeyARGBLut gARGB = new GlasbeyARGBLut();
-		final byte [][] colors = new byte [3][256];
-		int val;
-		for(int i=0;i<256;i++)
-		{
-			val = gARGB.getARGB( i );
-			colors[0][i] = ( byte ) ARGBType.red( val );
-			colors[1][i] = ( byte ) ARGBType.green( val );
-			colors[2][i] = ( byte ) ARGBType.blue( val );
-		}
-
-		return new IndexColorModel(16,256,colors[0],colors[1],colors[2]);
-	}
 
 	@Override
 	public void bvbRestarted()
@@ -402,5 +387,22 @@ public class BigVolumeBrowserMoBIE<T> implements ColoringListener, SelectionList
 					new ValuePair< >(bvb.getBVVSourcesList( spimData ).get( 0 ),
 					spimData) );
 		}
+	}
+	
+	/** leftover example of Glasbey LUT, keep it for now.**/
+	public static IndexColorModel getGlasbeyICM()
+	{
+		final GlasbeyARGBLut gARGB = new GlasbeyARGBLut();
+		final byte [][] colors = new byte [3][256];
+		int val;
+		for(int i=0;i<256;i++)
+		{
+			val = gARGB.getARGB( i );
+			colors[0][i] = ( byte ) ARGBType.red( val );
+			colors[1][i] = ( byte ) ARGBType.green( val );
+			colors[2][i] = ( byte ) ARGBType.blue( val );
+		}
+
+		return new IndexColorModel(16,256,colors[0],colors[1],colors[2]);
 	}
 }

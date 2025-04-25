@@ -809,7 +809,7 @@ public class ViewManager
 		DataStore.clearSpimDataCache();
 	}
 
-	public BigVolumeBrowserMoBIE getBigVolumeBrowserr()
+	public BigVolumeBrowserMoBIE getBigVolumeBrowser()
 	{
 		return bigVolumeBrowser;
 	}
