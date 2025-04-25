@@ -56,8 +56,6 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 	
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
 	
-	private int nRenderMethod = 1;
-	
 	public BigVolumeBrowserMoBIE()
 	{
 		sacToBvvSource = new ConcurrentHashMap<>();
@@ -131,22 +129,13 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 			return;
 		}
 
-		nRenderMethod = 1;
-		
-		//in not a first source, ensure consistent rendering of all sources
-		if( bvb.bvvViewer.state().getSources().size()>0)
-		{
-			@SuppressWarnings( "deprecation" )
-			GammaConverterSetup gConvSetup = ((GammaConverterSetup)bvb.bvvHandle.getSetupAssignments().getConverterSetups().get( 0 ));	
-			nRenderMethod = gConvSetup.getRenderType();
-		}
-		//final ValuePair< AbstractSpimData< ? >, List< BvvStackSource< ? > > > outPair = bvb.addSource( source );
 		//assume it is always one source
 		final BvvStackSource< ? > bvvSource = outPair.getB().get( 0 );
 		sacToBvvSource.put( sac, new ValuePair< >( outPair.getB().get( 0 ), outPair.getA()));
 
 		configureRenderingSettings( sac, bvvSource );
 	}
+	
 	
 	private static Source< ? > getSource( SourceAndConverter< ? > sac )
 	{
@@ -156,7 +145,6 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 		{
 			return  ( ( AnnotatedLabelImage<?> ) image ).getLabelImage().getSourcePair().getSource();
 		}
-
 		return sac.getSpimSource();
 	}
 	
@@ -164,11 +152,13 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 			SourceAndConverter< ? > sac,
 			BvvStackSource< ? > bvvSource )
 	{
-		bvvSource.setRenderType( nRenderMethod );
+		
 		double displayRangeMin = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMin();
 		double displayRangeMax = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMax();
+		
 		if( isAnnotation( sac ) )
 		{
+			bvvSource.setRenderType( 1 );
 			final IndexColorModel icmAnnLUT = getAnnotationLUT( sac );
 			bvvSource.setLUT( icmAnnLUT,Integer.toString( icmAnnLUT.hashCode() ) );
 			bvvSource.setDisplayRangeBounds( 0, icmAnnLUT.getMapSize() - 1 );
@@ -271,18 +261,6 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 		return null;
 	}
 	
-	public void updateAnnotations()	
-	{
-		if(bvb != null)
-		{
-			for ( Map.Entry< SourceAndConverter<?>, ValuePair< BvvStackSource<?>, AbstractSpimData<?>> > entry : sacToBvvSource.entrySet() )
-			{
-				if ( isAnnotation( entry.getKey() ) )
-					configureRenderingSettings( entry.getKey(), entry.getValue().getA() );
-			}
-		}		
-		
-	}
 	static int numberOfAnnotationsPerTimepoint(final AnnotationAdapter< Annotation > annotationAdapter, final int timePoint, String imageName)
 	{
 		int n = 1;
@@ -297,6 +275,33 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 	{
 		return bvb;
 	}
+	
+	public void close()
+	{
+		if ( bvb != null )
+		{
+			bvb.shutDownAll();
+		}
+	}
+	
+	public void removeSources(List< ? extends SourceAndConverter< ? > > sourceAndConverters)
+	{
+		for ( SourceAndConverter< ? > sac : sourceAndConverters )
+		{
+			if(sacToBvvSource.containsKey( sac ))
+			{
+				sacToBvvSource.get( sac ).getA().removeFromBdv();
+				sacToBvvSource.remove( sac );
+			}
+		}
+	
+	}
+	
+	public Collection< VisibilityListener > getListeners()
+	{
+		return listeners;
+	}
+
 	
 	void syncViewWithSliceViewer()
 	{
@@ -318,6 +323,43 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 					setCurrentTimepoint(bdvViewer.state().getCurrentTimepoint());
 		}
 	}
+
+	@Override
+	public void selectionChanged()
+	{
+		updateAnnotations();		
+	}
+	
+	@Override
+	public void focusEvent( Object selection, Object initiator )
+	{
+		
+	}
+	
+	@Override
+	public void coloringChanged()
+	{
+		updateAnnotations();		
+	}
+	
+	@Override
+	public void timePointChanged( int timePointIndex )
+	{
+		updateAnnotations();		
+	}
+	
+	public void updateAnnotations()	
+	{
+		if(bvb != null)
+		{
+			for ( Map.Entry< SourceAndConverter<?>, ValuePair< BvvStackSource<?>, AbstractSpimData<?>> > entry : sacToBvvSource.entrySet() )
+			{
+				if ( isAnnotation( entry.getKey() ) )
+					configureRenderingSettings( entry.getKey(), entry.getValue().getA() );
+			}
+		}		
+		
+	}
 	
 	/** leftover example of Glasbey LUT, keep it for now.**/
 	public static IndexColorModel getGlasbeyICM()
@@ -334,34 +376,5 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 		}
 
 		return new IndexColorModel(16,256,colors[0],colors[1],colors[2]);
-	}
-	
-	public Collection< VisibilityListener > getListeners()
-	{
-		return listeners;
-	}
-	
-	@Override
-	public void timePointChanged( int timePointIndex )
-	{
-		updateAnnotations();		
-	}
-
-	@Override
-	public void selectionChanged()
-	{
-		updateAnnotations();		
-	}
-
-	@Override
-	public void focusEvent( Object selection, Object initiator )
-	{
-		
-	}
-
-	@Override
-	public void coloringChanged()
-	{
-		updateAnnotations();		
 	}
 }

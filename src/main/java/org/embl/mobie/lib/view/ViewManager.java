@@ -747,7 +747,7 @@ public class ViewManager
 		{
 			if ( ( ( AbstractDisplay ) display).bigVolumeBrowser != null )
 			{
-				if ( ( ( AbstractDisplay ) display ).bigVolumeBrowser != null )
+				if ( ( ( AbstractDisplay ) display ).bigVolumeBrowser.getBVB() != null )
 				{
 					( ( AbstractDisplay ) display ).bigVolumeBrowser.getBVB().bvvViewer.state().removeSources( display.sourceAndConverters() );
 				}
