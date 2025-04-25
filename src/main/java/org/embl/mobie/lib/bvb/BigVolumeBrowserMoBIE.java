@@ -42,16 +42,16 @@ import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TimePointListener;
 import bdv.viewer.ViewerPanel;
 import bvb.core.BigVolumeBrowser;
-import bvvpg.source.converters.GammaConverterSetup;
 import bvvpg.vistools.BvvStackSource;
 import ij.IJ;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 
-public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListener, TimePointListener
+public class BigVolumeBrowserMoBIE<T> implements ColoringListener, SelectionListener<T>, TimePointListener, BigVolumeBrowser.Listener
 {
 	private BigVolumeBrowser bvb = null;
+	
 	private final ConcurrentHashMap< SourceAndConverter<?>, ValuePair< BvvStackSource<?>, AbstractSpimData<?>> > sacToBvvSource;
 	
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
@@ -91,6 +91,7 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 							listeners.clear();
 						}
 					});
+			bvb.addBVBListener( this );
 		}
 	
 	}	
@@ -156,9 +157,12 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 		double displayRangeMin = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMin();
 		double displayRangeMax = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMax();
 		
+		//render everything as volumetric
+		bvvSource.setRenderType( 1 );
+		
 		if( isAnnotation( sac ) )
 		{
-			bvvSource.setRenderType( 1 );
+			
 			final IndexColorModel icmAnnLUT = getAnnotationLUT( sac );
 			bvvSource.setLUT( icmAnnLUT,Integer.toString( icmAnnLUT.hashCode() ) );
 			bvvSource.setDisplayRangeBounds( 0, icmAnnLUT.getMapSize() - 1 );
@@ -376,5 +380,27 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 		}
 
 		return new IndexColorModel(16,256,colors[0],colors[1],colors[2]);
+	}
+
+	@Override
+	public void bvbRestarted()
+	{
+		//update the map
+		//first store sac and spimdata
+		ArrayList<ValuePair<SourceAndConverter<?>,AbstractSpimData<?>>> sacSpimList = new ArrayList<>();
+		
+		for (Map.Entry<SourceAndConverter<?>, ValuePair< BvvStackSource<?>, AbstractSpimData<?>> > entry : sacToBvvSource.entrySet()) 
+		{
+			sacSpimList.add( new ValuePair< >(entry.getKey(),entry.getValue().getB()) );			
+		}
+		//update map
+		sacToBvvSource.clear();
+		for(int i=0; i<sacSpimList.size(); i++)
+		{
+			final AbstractSpimData<?> spimData = sacSpimList.get( i ).getB();
+			sacToBvvSource.put( sacSpimList.get( i ).getA(), 
+					new ValuePair< >(bvb.getBVVSourcesList( spimData ).get( 0 ),
+					spimData) );
+		}
 	}
 }
