@@ -1,6 +1,9 @@
 package org.embl.mobie.lib.bvb;
 
 
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.IndexColorModel;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,12 +14,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.imglib2.RandomAccess;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.ValuePair;
 
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import org.embl.mobie.lib.annotation.LazyAnnotationAdapter;
@@ -29,11 +34,13 @@ import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.source.AnnotationType;
-
+import org.scijava.ui.behaviour.io.InputTriggerConfig;
+import org.scijava.ui.behaviour.util.Actions;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TimePointListener;
+import bdv.viewer.ViewerPanel;
 import bvb.core.BigVolumeBrowser;
 import bvvpg.source.converters.GammaConverterSetup;
 import bvvpg.vistools.BvvStackSource;
@@ -62,9 +69,33 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 		{
 			bvb = new BigVolumeBrowser();
 			bvb.startBVB("MoBIE BigVolumeBrowser");
+			final Actions actions = new Actions( new InputTriggerConfig() ); 
+			actions.runnableAction(
+					() -> {	syncViewWithSliceViewer();},
+					"sync with sliceViewer",
+					"D" );
+			actions.install( bvb.bvvHandle.getKeybindings(), "mobie-bvv-actions" );
+			
+			bvb.bvvViewer.addTimePointListener( this );
+			
+			bvb.controlPanel.cpFrame.addWindowListener(  
+					new WindowAdapter()
+					{
+						@Override
+						public void windowClosing( WindowEvent ev )
+						{
+							bvb = null;
+							sacToBvvSource.clear();
+							for ( VisibilityListener listener : listeners )
+							{
+								listener.visibility( false );
+							}
+							listeners.clear();
+						}
+					});
 		}
 	
-	}
+	}	
 	public void showSource( SourceAndConverter< ? > sac, boolean isVisible )
 	{
 		if ( isVisible && bvb == null )
@@ -89,11 +120,8 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 		System.out.println( "BigVolumeViewer: " + sac.getSpimSource().getName() + ": " + sac );
 
 		Source< ? > source = getSource( sac );
-		final ValuePair< AbstractSpimData< ? >, List< BvvStackSource< ? > > > outPair = bvb.addSource( source );
+		final ValuePair< AbstractSpimData< ? >, List< BvvStackSource< ? > > > outPair = bvb.addSource( source, bvb.dataTreeModel.getIconMoBIE() );
 		final AbstractSpimData< ? > spimData = outPair.getA();
-
-//		BvvFunctions.show( source );
-//		BdvFunctions.show( spimData );
 		
 		if( spimData == null )
 		{
@@ -268,6 +296,27 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 	public synchronized BigVolumeBrowser getBVB()
 	{
 		return bvb;
+	}
+	
+	void syncViewWithSliceViewer()
+	{
+		if(bvb != null)
+		{
+			ViewerPanel bdvViewer = MoBIE.getInstance().getViewManager().getSliceViewer().getBdvHandle().getViewerPanel();
+			AffineTransform3D transform = bdvViewer.state().getViewerTransform();
+			Dimension bdvDim = bdvViewer.getSize();
+			Dimension bvvDim = bvb.bvvViewer.getSize();
+			transform.set( transform.get( 0, 3 ) - bdvDim.width / 2, 0, 3 );
+			transform.set( transform.get( 1, 3 ) - bdvDim.height / 2, 1, 3 );
+			transform.scale( 1.0/ bdvDim.width );
+			transform.scale( bvvDim.width );
+			transform.set( transform.get( 0, 3 ) + bvvDim.width / 2, 0, 3 );
+			transform.set( transform.get( 1, 3 ) + bvvDim.height / 2, 1, 3 );
+			
+			bvb.bvvViewer.state().setViewerTransform( transform );
+			bvb.bvvViewer.state().
+					setCurrentTimepoint(bdvViewer.state().getCurrentTimepoint());
+		}
 	}
 	
 	/** leftover example of Glasbey LUT, keep it for now.**/
