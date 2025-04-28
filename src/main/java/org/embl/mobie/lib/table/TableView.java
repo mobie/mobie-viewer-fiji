@@ -651,20 +651,23 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	public void setVisible( boolean visible )
 	{
 		SwingUtilities.invokeLater(
-				() ->
-				{
-					frame.setVisible( visible );
+			() ->
+			{
+				frame.setVisible( visible );
 
-					if ( annotationOverlay != null )
-						annotationOverlay.setVisible( visible );
+				if ( annotationOverlay != null )
+					annotationOverlay.setVisible( visible );
 
-					if ( display instanceof RegionDisplay )
-					{
-						SourceAndConverterBdvDisplayService service = SourceAndConverterServices.getBdvDisplayService();
-						display.sourceAndConverters().forEach(
-								sac -> service.setVisible( sac, visible ) );
-					}
-				}
+				// Removed this in favor of adding back the possibility
+				// to change the slice viewer visibility
+				// in the UserInterfaceHelper
+				// see also: https://github.com/mobie/mobie-viewer-fiji/issues/1235
+//				if ( display instanceof RegionDisplay )
+//				{
+//					SourceAndConverterBdvDisplayService service = SourceAndConverterServices.getBdvDisplayService();
+//					display.sourceAndConverters().forEach( sac -> service.setVisible( sac, visible ) );
+//				}
+			}
 		);
 	}
 

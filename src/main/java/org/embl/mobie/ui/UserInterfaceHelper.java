@@ -293,8 +293,7 @@ public class UserInterfaceHelper
 			String[] directoryFileNames = IOHelper.getFileNames( directory );
 			for ( String directoryFileName: directoryFileNames ) {
 				if ( fileNameCounts.containsKey( directoryFileName ) ) {
-					int count = fileNameCounts.get(directoryFileName);
-					fileNameCounts.put( directoryFileName, count + 1 );
+                    fileNameCounts.compute( directoryFileName, ( k, count ) -> count + 1 );
 				} else {
 					fileNameCounts.put( directoryFileName, 1 );
 				}
@@ -334,7 +333,6 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-
 	public JPanel createRegionDisplaySettingsPanel( RegionDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
@@ -349,7 +347,7 @@ public class UserInterfaceHelper
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( space() );
-		panel.add( createCheckboxPlaceholder() );
+		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createTableVisibilityCheckbox( display.tableView, display.showTable() ) );
