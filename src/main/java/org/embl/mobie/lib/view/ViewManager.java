@@ -264,7 +264,7 @@ public class ViewManager
 			MoBIEWindowManager.closeAllWindows();
 		}
 
-		final boolean viewerWasEmpty = currentDisplays.size() == 0;
+		final boolean viewerWasEmpty = currentDisplays.isEmpty();
 
 		// Init and transform the data of this view.
 		// Currently, data is reloaded every time a view is shown.
@@ -303,7 +303,7 @@ public class ViewManager
 		// adjust viewer transform to accommodate the displayed sources.
 		// note that if {@code view.getViewerTransform() != null}
 		// the viewer transform has already been adjusted above.
-		if ( view.getViewerTransform() == null && currentDisplays.size() > 0 && viewerWasEmpty )
+		if ( view.getViewerTransform() == null && !currentDisplays.isEmpty() && viewerWasEmpty )
 		{
 			AffineTransform3D viewerTransform = MoBIEViewerTransformAdjuster.getViewerTransform(
 					sliceViewer.getBdvHandle(),
@@ -549,8 +549,8 @@ public class ViewManager
 
 		if ( display instanceof AbstractDisplay )
 		{
-			((AbstractDisplay) display).sliceViewer = sliceViewer;
-			((AbstractDisplay) display).bigVolumeViewer = bigVolumeViewer;
+			(( AbstractDisplay< ? > ) display).sliceViewer = sliceViewer;
+			(( AbstractDisplay< ? > ) display).bigVolumeViewer = bigVolumeViewer;
 		}
 
 		if ( display instanceof ImageDisplay )

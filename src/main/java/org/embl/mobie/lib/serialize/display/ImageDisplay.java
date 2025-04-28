@@ -88,7 +88,6 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		this.contrastLimits = contrastLimits;
 		this.showImagesIn3d = showImagesIn3d;
 		this.resolution3dView = resolution3dView;
-		setContrastLimits();
 	}
 
 	private void setContrastLimits()
@@ -106,7 +105,6 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	{
 		this.name = name;
 		this.sources = Collections.singletonList( sourceName );
-		setContrastLimits();
 	}
 
 	public ImageDisplay(
@@ -125,7 +123,6 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		this.contrastLimits = contrastLimits;
 		this.blendingMode = blendingMode;
 		this.showImagesIn3d = showImagesIn3d;
-		setContrastLimits();
 	}
 
 	/*
@@ -169,6 +166,9 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 
 	public double[] getContrastLimits( String source )
 	{
+		if ( sourceToContrastLimits.isEmpty() )
+			setContrastLimits();
+
 		return sourceToContrastLimits.get( source );
 	}
 
