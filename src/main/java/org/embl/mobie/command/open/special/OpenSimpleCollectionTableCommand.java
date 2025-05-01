@@ -63,9 +63,6 @@ public class OpenSimpleCollectionTableCommand implements Command {
 
 	protected void openTable( String tableUri, MoBIESettings settings )
 	{
-		if ( tableUri.contains( "docs.google.com/spreadsheets" ) )
-			tableUri = GoogleSheetURLHelper.generateExportUrl( tableUri );
-
 		try
 		{
 			new MoBIE( tableUri, settings );

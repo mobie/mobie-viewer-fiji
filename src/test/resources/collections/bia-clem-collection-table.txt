@@ -1,0 +1,37 @@
+{
+  "dimensions": {
+    "z": [
+      2.5e-8,
+      "m"
+    ],
+    "y": [
+      1e-8,
+      "m"
+    ],
+    "x": [
+      1e-8,
+      "m"
+    ]
+  },
+  "position": [
+    5755,
+    11456.0986328125,
+    11430.857421875
+  ],
+  "crossSectionScale": 45.83280036633324,
+  "projectionScale": 32768,
+  "layers": [
+    {
+      "type": "image",
+      "source": "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr/|zarr2:",
+      "tab": "source",
+      "opacity": 0.57,
+      "name": "platy-raw.ome.zarr"
+    }
+  ],
+  "selectedLayer": {
+    "visible": true,
+    "layer": "platy-raw.ome.zarr"
+  },
+  "layout": "4panel-alt"
+}

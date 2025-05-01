@@ -38,6 +38,7 @@ import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.columns.SegmentColumnNames;
+import org.embl.mobie.lib.util.GoogleSheetURLHelper;
 import org.slf4j.LoggerFactory;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.DoubleColumn;
@@ -111,10 +112,20 @@ public class TableOpener
 		}
 		else
 		{
-			String tablePath = chunk != null ? IOHelper.combinePath( storageLocation.absolutePath, chunk ) : storageLocation.absolutePath;
-			final String path = resolveTablePath( tablePath );
+			String tableUri;
+
+			if ( storageLocation.absolutePath.contains( "docs.google.com/spreadsheets" ) )
+			{
+				tableUri = GoogleSheetURLHelper.generateExportUrl( storageLocation.absolutePath );
+			}
+			else
+			{
+				tableUri = chunk != null ? IOHelper.combinePath( storageLocation.absolutePath, chunk ) : storageLocation.absolutePath;
+				tableUri = resolveTablePath( tableUri );
+			}
+
 			final Character separator = tableDataFormat.getSeparator();
-			return openDelimitedTextFile( numSamples, path, separator );
+			return openDelimitedTextFile( numSamples, tableUri, separator );
 		}
 	}
 
@@ -203,10 +214,13 @@ public class TableOpener
 
 	public static Character determineDelimiter( String path )
 	{
+		if ( path.contains( "google.com/spreadsheets" ) )
+			return '\t';
+
 		if ( path.endsWith( ".txt" ) )
 			return '\t';
 
-		if ( path.endsWith( ".tsv" ) )
+		if ( path.endsWith( ".tsv" ) || path.endsWith( "=tsv" ) )
 			return '\t';
 
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(IOHelper.getInputStream( path ))))

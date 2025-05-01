@@ -55,6 +55,7 @@ import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.columns.CollectionTableConstants;
 import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.transform.GridType;
+import org.embl.mobie.lib.util.GoogleSheetURLHelper;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.view.ViewManager;
@@ -137,6 +138,15 @@ public class MoBIE
 			HashMap< String, ColumnType > nameToType = new HashMap<>();
 			nameToType.put( CollectionTableConstants.GRID, ColumnType.STRING );
 			nameToType.put( CollectionTableConstants.VIEW, ColumnType.STRING );
+
+			// TODO: This should happen only in TableOpener
+			//       The issue is to determine the TableDataFormat.fromPath( uri )
+			//       but we can check for uri.contains( "docs.google.com/spreadsheets" ) in there
+			//       That is all the code below should go into TableOpener
+			if ( uri.contains( "docs.google.com/spreadsheets" ) )
+			{
+				uri = GoogleSheetURLHelper.generateExportUrl( uri );
+			}
 
 			String content = IOHelper.read( uri );
 			CsvReadOptions.Builder builder =

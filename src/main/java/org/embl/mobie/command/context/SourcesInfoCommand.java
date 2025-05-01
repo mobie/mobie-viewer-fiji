@@ -65,7 +65,9 @@ public class SourcesInfoCommand implements BdvPlaygroundActionCommand
     public void run()
     {
         int t = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
-        List< SourceAndConverter< ? > > visibleSacs = MoBIEHelper.getVisibleSacs( bdvHandle );
+        //List< SourceAndConverter< ? > > visibleSacs = MoBIEHelper.getVisibleSacs( bdvHandle );
+        List< SourceAndConverter< ? > > visibleSacs = MoBIEHelper.getVisibleSacsInCurrentView( bdvHandle );
+
         visibleSacs.forEach( sac ->
         {
             Image< ? > image = DataStore.sourceToImage().get( sac );

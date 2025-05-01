@@ -7,6 +7,7 @@ import java.util.Map;
 
 public class GoogleSheetURLHelper
 {
+    // TODO: This should only be called once from TableOpener
     public static String generateExportUrl( String googleSheetUrl )
     {
         try
@@ -22,7 +23,14 @@ public class GoogleSheetURLHelper
             String gid = queryParams.get( "gid" );
 
             // Construct the export URL
-            return String.format( "https://docs.google.com/spreadsheets/d/%s/export?gid=%s&format=%s", documentId, gid, "tsv" );
+            if ( gid == null )
+            {
+                return String.format( "https://docs.google.com/spreadsheets/d/%s/export?format=%s", documentId, "tsv" );
+            }
+            else
+            {
+                return String.format( "https://docs.google.com/spreadsheets/d/%s/export?gid=%s&format=%s", documentId, gid, "tsv" );
+            }
         }
         catch ( MalformedURLException e )
         {
@@ -38,5 +46,16 @@ public class GoogleSheetURLHelper
             queryPairs.put(pair.substring(0, idx), pair.substring(idx + 1));
         }
         return queryPairs;
+    }
+
+    public static void main( String[] args )
+    {
+        String googleSheetUrl = "https://docs.google.com/spreadsheets/d/1mSzFOAif2a7ki7-3yELdi68P7qdaWxBCCQdysh7R-rI/edit?gid=1627529093#gid=1627529093";
+        String exportUrl = generateExportUrl( googleSheetUrl );
+        System.out.println( "Export URL: " + exportUrl );
+
+        googleSheetUrl = "https://docs.google.com/spreadsheets/d/1mSzFOAif2a7ki7-3yELdi68P7qdaWxBCCQdysh7R-rI/edit?usp=sharing";
+        exportUrl = generateExportUrl( googleSheetUrl );
+        System.out.println( "Export URL: " + exportUrl );
     }
 }

@@ -19,6 +19,7 @@ import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
 import org.embl.mobie.lib.table.columns.CollectionTableConstants;
+import org.embl.mobie.lib.util.GoogleSheetURLHelper;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -250,9 +251,19 @@ public class CollectionTableDataSetter
         }
         else if ( dataType.equals( CollectionTableConstants.SPOTS )  )
         {
+            String uri = storageLocation.absolutePath;
+
+            // TODO: This should happen only in TableOpener
+            //       The issue is to determine the TableDataFormat.fromPath( uri )
+            //       but we can check for uri.contains( "docs.google.com/spreadsheets" ) in there
+            if ( uri.contains( "docs.google.com/spreadsheets" ) )
+            {
+                uri = GoogleSheetURLHelper.generateExportUrl( uri );
+            }
+
             SpotDataSource spotDataSource = new SpotDataSource(
                     sourceName,
-                    TableDataFormat.fromPath( storageLocation.absolutePath ),
+                    TableDataFormat.fromPath( uri ),
                     storageLocation );
 
             double[][] boundingBox = getBoundingBox( row );
@@ -352,19 +363,35 @@ public class CollectionTableDataSetter
 
     private static TableSource getTable( Row row, String rootPath )
     {
-        try {
-            String tablePath = row.getString( CollectionTableConstants.LABELS_TABLE );
+        String tablePath;
+        if (row.columnNames().contains(CollectionTableConstants.LABELS_TABLE))
+            tablePath = row.getString(CollectionTableConstants.LABELS_TABLE);
+        else if ( row.columnNames().contains(CollectionTableConstants.LABELS_TABLE_URI) )
+            tablePath = row.getString(CollectionTableConstants.LABELS_TABLE_URI);
+        else
+            return null;
+
+        if ( tablePath == null || tablePath.isEmpty() )
+            return null;
+
+        // TODO: This should happen only in TableOpener
+        //       The issue is to determine the TableDataFormat.fromPath( uri )
+        //       but we can check for uri.contains( "docs.google.com/spreadsheets" ) in there
+        if ( tablePath.contains( "docs.google.com/spreadsheets" ) )
+        {
+            tablePath = GoogleSheetURLHelper.generateExportUrl( tablePath );
+        }
+        else
+        {
             if ( rootPath != null )
                 tablePath = IOHelper.combinePath( rootPath, tablePath );
-            StorageLocation storageLocation = new StorageLocation();
-            storageLocation.absolutePath = IOHelper.getParentLocation( tablePath );
-            storageLocation.defaultChunk = IOHelper.getFileName( tablePath );
-            return new TableSource( TableDataFormat.fromPath( tablePath ), storageLocation );
         }
-        catch ( Exception e )
-        {
-            return null;
-        }
+
+        StorageLocation storageLocation = new StorageLocation();
+        storageLocation.absolutePath = IOHelper.getParentLocation( tablePath );
+        storageLocation.defaultChunk = IOHelper.getFileName( tablePath );
+
+        return new TableSource( TableDataFormat.fromPath( tablePath ), storageLocation );
     }
 
     private static String getUri( Row row )

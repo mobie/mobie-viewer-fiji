@@ -239,7 +239,7 @@ public class CollectionTableConstants
      * otherwise it is ignored.
      *
      * Supported values:
-     * - A valid path to a "segmentation" table.
+     * - A valid uri to a "segmentation" table.
      * - For supported columns in segmentation tables see, e.g.
      *   {@code MoBIESegmentColumnNames} or {@code SkimageSegmentColumnNames}.
      *
@@ -251,6 +251,7 @@ public class CollectionTableConstants
      * - Exploration of measurements corresponding to the labels
      */
     public static final String LABELS_TABLE = "labels_table";
+    public static final String LABELS_TABLE_URI = "labels_table_uri";
 
     /**
      * The "contrast_limits" column MAY be present.

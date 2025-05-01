@@ -68,7 +68,7 @@ public class OpenCollectionTableCommand extends OpenSimpleCollectionTableCommand
 
 	// Does not work yet properly as a parameter:
 	// https://github.com/scijava/scijava-common/issues/471
-	public DataRootType dataRootTypeEnum = DataRootType.PathsInTableAreAbsolute;
+	public DataRootType dataRootTypeEnum;
 
 	@Parameter( label = "( Data Root Folder )",
 			style = "directory",
@@ -85,7 +85,7 @@ public class OpenCollectionTableCommand extends OpenSimpleCollectionTableCommand
 
 	// Does not work yet properly as a parameter:
 	// https://github.com/scijava/scijava-common/issues/471
-	public BdvViewingMode bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
+	public BdvViewingMode bdvViewingModeEnum;
 
 	@Parameter ( label = "( S3 Access Key )",
 			description = "Optional. Access key for a protected S3 bucket.",
@@ -104,8 +104,8 @@ public class OpenCollectionTableCommand extends OpenSimpleCollectionTableCommand
 	{
 		DebugTools.setRootLevel( "OFF" );
 
-		dataRootTypeEnum = DataRootType.valueOf( dataRootType );
-		bdvViewingModeEnum = BdvViewingMode.valueOf( bdvViewingMode );
+		dataRootTypeEnum = dataRootTypeEnum == null ? DataRootType.valueOf( dataRootType ) : dataRootTypeEnum;
+		bdvViewingModeEnum = bdvViewingModeEnum == null ? BdvViewingMode.valueOf( bdvViewingMode ) : bdvViewingModeEnum;
 
 		String dataRootString;
 		switch ( dataRootTypeEnum )
