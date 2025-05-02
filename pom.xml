@@ -85,7 +85,7 @@
         <allowedDuplicateClasses>${scijava.allowedDuplicateClasses},org.relaxng.*,sun.*,com.sun.*,sun.rmi.*,com.sun.jdi.*,sun.jvmstat.*,sun.applet.*,com.sun.xml.*,com.sun.tools.*,sun.tools.*,com.sun.istack.*,shaded.parquet.it.unimi.dsi.fastutil.*,javax.xml.bind.*,com.sun.xml.bind.*,com.sun.xml.txw2.*,com.sun.codemodel.*</allowedDuplicateClasses>
 
         <!-- FIXME: Just for testing https://github.com/bigdataviewer/bigdataviewer-core/pull/205 -->
-        <bigdataviewer-core.version>10.6.5-TISCHI</bigdataviewer-core.version>
+        <!--        <bigdataviewer-core.version>10.6.5-TISCHI</bigdataviewer-core.version>-->
 
         <mobie-io.version>4.0.3</mobie-io.version>
         <bigdataviewer-playground.version>0.11.0</bigdataviewer-playground.version>

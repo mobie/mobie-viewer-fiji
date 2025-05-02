@@ -139,11 +139,12 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 		mask = GeomMasks.closedBox( imageBoundsMin, imageBoundsMax );
 
 		// create the actual image
+		Type type = selectApropriateType( numAnnotations );
 		RealRandomAccessible< IntegerType > rra =
 				new FunctionRealRandomAccessible(
 						kdTree.numDimensions(),
 						new LocationToSpotLabelSupplier(),
-						UnsignedShortType::new );
+                        type::createVariable );
 
 		if ( kdTree.numDimensions() == 2 )
 			rra = RealViews.addDimension( rra );
@@ -177,7 +178,7 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 		source = new RealRandomAccessibleIntervalTimelapseSource(
 				rra,
 				containingZeroMinIntegerInterval,
-				selectApropriateType( numAnnotations ),
+				type,
 				sourceTransform,
 				name,
 				true,
@@ -221,18 +222,8 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 
 	class LocationToSpotLabelSupplier implements Supplier< BiConsumer< RealLocalizable, IntegerType > >
 	{
-		double searchRadius;
-
 		public LocationToSpotLabelSupplier()
 		{
-			if ( spotRadiusZ == null )
-			{
-				searchRadius = spotRadius;
-			}
-			else
-			{
-				searchRadius = Math.max( spotRadius, spotRadiusZ );
-			}
 		}
 
 		@Override
@@ -244,10 +235,20 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 		private class LocationToSpotLabel implements BiConsumer< RealLocalizable, IntegerType >
 		{
 			private final RadiusNeighborSearchOnKDTree< AS > search;
+			private final double searchRadius;
 
 			public LocationToSpotLabel( )
 			{
 				search = new RadiusNeighborSearchOnKDTree<>( kdTree );
+
+				if ( spotRadiusZ == null )
+				{
+					searchRadius = spotRadius;
+				}
+				else
+				{
+					searchRadius = Math.max( spotRadius, spotRadiusZ );
+				}
 			}
 
 			@Override
