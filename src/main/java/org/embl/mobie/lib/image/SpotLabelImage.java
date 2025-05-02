@@ -117,6 +117,9 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 		int numAnnotations = annotations.size();
 		IJ.log( "Building SpotImage with " + numAnnotations + " spots..." );
 		long start = System.currentTimeMillis();
+
+		// Considerations for supporting anisotropic search radii:
+		// https://forum.image.sc/t/anisotropic-radiusneighborsearchonkdtree/111934
 		kdTree = new KDTree<>( annotations, annotations );
 
 		// TODO Can we use the mask of a "parent image" here?
@@ -270,16 +273,15 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 
 						for ( int sampleIndex = 0; sampleIndex < numNeighbors; sampleIndex++ )
 						{
-							AS spot = search.getSampler( sampleIndex ).get();
-							RealLocalizable pos = search.getPosition( sampleIndex );
+							final AS spot = search.getSampler( sampleIndex ).get();
+							final RealLocalizable pos = search.getPosition( sampleIndex );
 
 							// Compute normalized ellipsoid distance
-							double dx = pos.getDoublePosition( 0 ) - location.getDoublePosition( 0 );
-							double dy = pos.getDoublePosition( 1 ) - location.getDoublePosition( 1 );
-							double dz = pos.getDoublePosition( 2 ) - location.getDoublePosition( 2 );
+							final double dx = pos.getDoublePosition( 0 ) - location.getDoublePosition( 0 );
+							final double dy = pos.getDoublePosition( 1 ) - location.getDoublePosition( 1 );
+							final double dz = pos.getDoublePosition( 2 ) - location.getDoublePosition( 2 );
 
-							// Normalize by the respective radii
-							double normalizedDistance = Math.sqrt(
+							final double normalizedDistance = Math.sqrt(
 									(dx * dx + dy * dy) / (spotRadius * spotRadius) +
 											(dz * dz) / (spotRadiusZ * spotRadiusZ)
 							);
