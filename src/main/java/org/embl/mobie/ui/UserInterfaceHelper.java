@@ -373,7 +373,7 @@ public class UserInterfaceHelper
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() );
-		panel.add( createBVVVisibilityCheckbox( display, sourceAndConverters ) );
+		panel.add( createBVBSpotVisibilityCheckbox( display ) );
 		panel.add( createTableVisibilityCheckbox( display.tableView, display.showTable() ) );
 		panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotView, display.showScatterPlot() ) );
 		return panel;
@@ -466,7 +466,7 @@ public class UserInterfaceHelper
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createImageVolumeViewerVisibilityCheckbox( display ) );
-		panel.add( createBVVVisibilityCheckbox( display, sourceAndConverters ) );
+		panel.add( createBVBVolumeVisibilityCheckbox( display, sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() ); // Table
 		panel.add( createCheckboxPlaceholder() ); // Scatter plot
 
@@ -516,7 +516,7 @@ public class UserInterfaceHelper
 			// segments 3D view
 			panel.add( createSegmentsVolumeViewerVisibilityCheckbox( display ) );
 			// BVV view
-			panel.add( createBVVVisibilityCheckbox( display, sourceAndConverters ) );
+			panel.add( createBVBVolumeVisibilityCheckbox( display, sourceAndConverters ) );
 			// table view
 			panel.add( createTableVisibilityCheckbox( display.tableView, display.showTable() ) );
 			// scatter plot view
@@ -1155,7 +1155,7 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JCheckBox createBVVVisibilityCheckbox(
+	public static JCheckBox createBVBVolumeVisibilityCheckbox(
 			AbstractDisplay< ? > display,
 			final List< ? extends SourceAndConverter< ? > > sourceAndConverters  )
 	{
@@ -1174,6 +1174,40 @@ public class UserInterfaceHelper
 					{
 						display.bigVolumeBrowser.showSource( sourceAndConverter, checkBox.isSelected() );
 					}
+				}).start();
+			}
+		} );
+
+		display.bigVolumeBrowser.getListeners().add( new VisibilityListener()
+		{
+			@Override
+			public void visibility( boolean isVisible )
+			{
+				SwingUtilities.invokeLater( () ->
+				{
+					checkBox.setSelected( isVisible );
+				});
+			}
+		} );
+
+		return checkBox;
+	}
+	
+	public static JCheckBox createBVBSpotVisibilityCheckbox(
+			SpotDisplay display  )
+	{
+		JCheckBox checkBox = new JCheckBox( "B" );
+		checkBox.setToolTipText( "Toggle dataset visibility" );
+		checkBox.setSelected( false );
+		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
+
+		checkBox.addActionListener( new ActionListener()
+		{
+			@Override
+			public void actionPerformed( ActionEvent e )
+			{
+				new Thread( () -> {
+						display.bigVolumeBrowser.showSpots( display );
 				}).start();
 			}
 		} );

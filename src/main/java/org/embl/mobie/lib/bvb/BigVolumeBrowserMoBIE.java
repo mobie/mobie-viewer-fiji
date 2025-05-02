@@ -1,6 +1,7 @@
 package org.embl.mobie.lib.bvb;
 
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -11,7 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccess;
+import net.imglib2.RealPoint;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -32,8 +35,12 @@ import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.image.AnnotatedLabelImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.select.SelectionListener;
+import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.source.AnnotationType;
+import org.embl.mobie.lib.table.AnnData;
+import org.embl.mobie.lib.table.AnnotationTableModel;
+import org.embl.mobie.lib.table.saw.TableSawAnnotatedSpot;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Actions;
 
@@ -42,6 +49,8 @@ import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TimePointListener;
 import bdv.viewer.ViewerPanel;
 import bvb.core.BigVolumeBrowser;
+import bvb.scene.VisPointsScaled;
+import bvb.shapes.SpotsSame;
 import bvvpg.vistools.BvvStackSource;
 import ij.IJ;
 import mpicbg.spim.data.generic.AbstractSpimData;
@@ -55,7 +64,9 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 	
 	private final ConcurrentHashMap< SourceAndConverter<?>, ValuePair< BvvStackSource<?>, AbstractSpimData<?>> > sacToBvvSource;
 	
-	private List< VisibilityListener > listeners = new ArrayList<>(  );
+	private final List< VisibilityListener > listeners = new ArrayList<>(  );
+	
+	WindowAdapter closeWA;
 	
 	public BigVolumeBrowserMoBIE()
 	{
@@ -76,22 +87,26 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 			actions.install( bvb.bvvHandle.getKeybindings(), "mobie-bvv-actions" );
 			
 			bvb.bvvViewer.addTimePointListener( this );
-			
-			bvb.controlPanel.cpFrame.addWindowListener(  
-					new WindowAdapter()
+			closeWA = new WindowAdapter()
+			{
+				@Override
+				public void windowClosing( WindowEvent ev )
+				{
+					if(bvb!= null)
 					{
-						@Override
-						public void windowClosing( WindowEvent ev )
+						bvb = null;
+						sacToBvvSource.clear();
+						for ( VisibilityListener listener : listeners )
 						{
-							bvb = null;
-							sacToBvvSource.clear();
-							for ( VisibilityListener listener : listeners )
-							{
-								listener.visibility( false );
-							}
-							listeners.clear();
+							listener.visibility( false );
 						}
-					});
+						//listeners.clear();
+					}
+				}
+			};
+			
+			bvb.controlPanel.cpFrame.addWindowListener( closeWA );
+			bvb.bvvFrame.addWindowListener( closeWA );
 			bvb.addBVBListener( this );
 		}
 	
@@ -114,6 +129,46 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 				addSourceToBVB( sac );
 			}
 		}
+	}
+	
+	public void showSpots( SpotDisplay< ? > displayS )
+	{
+		if ( bvb == null )
+		{
+			init();
+		}
+		final ArrayList<TableSawAnnotatedSpot> annList = ( ArrayList< TableSawAnnotatedSpot > ) displayS.getAnnData().getTable().annotations();
+		final ArrayList<RealPoint> vertices = new ArrayList<>();
+		double [][] interR = new double [2][3];
+		final RealPoint rp0 = annList.get( 0 ).positionAsRealPoint();
+		for (int d=0;d<3;d++)
+		{
+			interR[0][d]=rp0.getDoublePosition( d );
+			interR[1][d]=rp0.getDoublePosition( d );
+		}
+		for(TableSawAnnotatedSpot oneSpot : annList)
+		{
+			final RealPoint rp = oneSpot.positionAsRealPoint();
+			vertices.add(rp );
+			for(int d=0;d<3;d++)
+			{
+				if(interR[0][d]>rp.getDoublePosition( d ))
+				{
+					interR[0][d]=rp.getDoublePosition( d );
+				}
+				if(interR[1][d]<rp.getDoublePosition( d ))
+				{
+					interR[1][d]=rp.getDoublePosition( d );
+				}
+
+			}
+		}
+		float fRadius = displayS.spotRadius.floatValue();
+		fRadius = 10.0f;
+		final SpotsSame bvbPoints = new SpotsSame(fRadius, Color.RED, VisPointsScaled.SHAPE_ROUND, VisPointsScaled.RENDER_FILLED);
+		bvbPoints.setPoints( vertices );
+		bvb.addShape( bvbPoints );
+		bvb.focusOnRealInterval( new FinalRealInterval(interR[0],interR[1]) );
 	}
 	
 	void addSourceToBVB( SourceAndConverter< ? > sac )
