@@ -59,7 +59,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	
 	private final ConcurrentHashMap< SourceAndConverter, ValuePair< BvvStackSource, AbstractSpimData> > sacToBvvSource;
 	
-	private List< VisibilityListener > listeners = new ArrayList<>(  );
+	private final List< VisibilityListener > listeners = new ArrayList<>(  );
 	
 	private int nRenderMethod = 1;
 	
@@ -125,7 +125,6 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 								{
 									listener.visibility( false );
 								}
-								listeners.clear();
 							}							
 						}
 					});
