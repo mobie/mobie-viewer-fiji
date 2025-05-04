@@ -100,45 +100,27 @@ public class CollectionTableDataSetter
         viewToDisplays.keySet().forEach( viewName ->
         {
             ArrayList< Transformation > transformations = new ArrayList<>();
-
             transformations.addAll( viewToTransformations.get( viewName ) );
 
             if ( viewToGrids.containsKey( viewName ) )
             {
-                viewToGrids.get( viewName ).forEach( gridName ->
-                {
-                    Map< String, List< String > > positionToSources = gridToPositionsToSources.get( gridName );
-                    List< List< String > > nestedSources;
-                    if ( positionToSources.keySet().size() == 1 )
-                    {
-                        assert  positionToSources.keySet().iterator().next().equals( NO_GRID_POSITION );
-
-                        nestedSources = positionToSources.values().iterator().next().stream()
-                                .map( source -> Collections.singletonList( source ) )
-                                .collect( Collectors.toList() );
-
-                        GridTransformation grid = new GridTransformation( nestedSources, "" );
-                        transformations.add( grid );
-                    }
-                    else
-                    {
-                        List< int[] > positions = positionToSources.keySet().stream()
-                                .map( position -> gridPositionToInts( position ) )
-                                .collect( Collectors.toList() );
-
-                        nestedSources = new ArrayList<>( positionToSources.values() );
-
-                        GridTransformation grid = new GridTransformation( nestedSources, positions, "" );
-                        grid.centerAtOrigin = true; // FIXME: should depend on something!
-                        transformations.add( grid );
-                    }
-
-                    Display< ? > regionDisplay = createRegionDisplay( gridName, nestedSources );
-                    displays.put( regionDisplay.getName(), regionDisplay );
-                    viewToDisplays.get( viewName ).add( regionDisplay );
-                });
+                addGridView( viewName, transformations, displays );
             }
+            else
+            {
+                List< List< String > > nestedViewSources = new ArrayList<>();
+                viewToDisplays.get( viewName ).forEach( display ->
+                {
+                    display.getSources().forEach(
+                            source ->
+                            nestedViewSources.add( Collections.singletonList( source) )
+                    );
+                } );
 
+                Display< ? > regionDisplay = createRegionDisplay( viewName, nestedViewSources );
+                displays.put( regionDisplay.getName(), regionDisplay );  // TODO: why is this needed?
+                viewToDisplays.get( viewName ).add( regionDisplay );
+            }
 
             final View view = new View(
                     viewName,
@@ -157,29 +139,67 @@ public class CollectionTableDataSetter
 
     }
 
-    private RegionDisplay< AnnotatedRegion > createRegionDisplay(
-            String gridName,
-            List< List< String > > gridSources )
+    private void addGridView( String viewName,
+                              ArrayList< Transformation > transformations,
+                              Map< String, Display< ? > > displays )
     {
-        List< String > firstSources = gridSources.stream().map( sources -> sources.get( 0 ) ).collect( Collectors.toList() );
+        viewToGrids.get( viewName ).forEach( gridName ->
+        {
+            Map< String, List< String > > positionToSources = gridToPositionsToSources.get( gridName );
+            List< List< String > > nestedSources;
+            if ( positionToSources.size() == 1 )
+            {
+                assert  positionToSources.keySet().iterator().next().equals( NO_GRID_POSITION );
+
+                nestedSources = positionToSources.values().iterator().next().stream()
+                        .map( Collections::singletonList )
+                        .collect( Collectors.toList() );
+
+                GridTransformation grid = new GridTransformation( nestedSources, "" );
+                transformations.add( grid );
+            }
+            else
+            {
+                List< int[] > positions = positionToSources.keySet().stream()
+                        .map( CollectionTableDataSetter::gridPositionToInts )
+                        .collect( Collectors.toList() );
+
+                nestedSources = new ArrayList<>( positionToSources.values() );
+
+                GridTransformation grid = new GridTransformation( nestedSources, positions, "" );
+                grid.centerAtOrigin = true; // FIXME: should depend on something!
+                transformations.add( grid );
+            }
+
+            Display< ? > regionDisplay = createRegionDisplay( gridName, nestedSources );
+            displays.put( regionDisplay.getName(), regionDisplay );
+            viewToDisplays.get( viewName ).add( regionDisplay );
+        });
+    }
+
+    private RegionDisplay< AnnotatedRegion > createRegionDisplay(
+            String regionsName,
+            List< List< String > > nestedSources )
+    {
+        List< String > firstSources = nestedSources.stream().map( sources -> sources.get( 0 ) ).collect( Collectors.toList() );
 
         Set< String > duplicates = MoBIEHelper.findDuplicates( firstSources );
 
         if ( ! duplicates.isEmpty() )
         {
             throw new UnsupportedOperationException(
-                    "The grid " + gridName + "contains duplicates:\n" +
+                    "The region " + regionsName + "contains duplicates:\n" +
                     Strings.join( ",", duplicates ) );
         }
 
         // Create grid regions table
         int[] rowIndices = firstSources.stream()
-                .map( source -> sourceToRowIndex.get( source ) )
+                .map( sourceToRowIndex::get )
                 .mapToInt( Integer::intValue )
                 .toArray();
         Selection rowSelection = Selection.with( rowIndices );
         Table regionTable = table.where( rowSelection );
-        regionTable.setName( gridName + " grid" );
+        regionTable.setName( regionsName + " regions" );
         regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, firstSources ) );
         final StorageLocation storageLocation = new StorageLocation();
         storageLocation.data = regionTable;
@@ -188,19 +208,19 @@ public class CollectionTableDataSetter
         DataStore.addRawData( regionTableSource );
 
         // Create RegionDisplay to show the grid
-        final RegionDisplay< AnnotatedRegion > gridRegionDisplay =
+        final RegionDisplay< AnnotatedRegion > regionDisplay =
                 new RegionDisplay<>( regionTable.name() );
-        gridRegionDisplay.sources = new LinkedHashMap<>();
-        gridRegionDisplay.tableSource = regionTable.name();
-        gridRegionDisplay.showAsBoundaries( true );
-        gridRegionDisplay.setBoundaryThickness( 0.05 );
-        gridRegionDisplay.boundaryThicknessIsRelative( true );
-        gridRegionDisplay.setRelativeDilation( 2 * gridRegionDisplay.getBoundaryThickness() );
+        regionDisplay.sources = new LinkedHashMap<>();
+        regionDisplay.tableSource = regionTable.name();
+        regionDisplay.showAsBoundaries( true );
+        regionDisplay.setBoundaryThickness( 0.05 );
+        regionDisplay.boundaryThicknessIsRelative( true );
+        regionDisplay.setRelativeDilation( 2 * regionDisplay.getBoundaryThickness() );
 
         for ( String source : firstSources )
-            gridRegionDisplay.sources.put( source, Collections.singletonList( source ) );
+            regionDisplay.sources.put( source, Collections.singletonList( source ) );
 
-        return gridRegionDisplay;
+        return regionDisplay;
     }
 
     private void addSource(

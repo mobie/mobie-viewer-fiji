@@ -11,15 +11,16 @@ public class OpenCollectionTable
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        //openLocalTable();
-        openPlatyTable();
+        openLocalTable();
+        //openPlatyTable();
     }
 
     private static void openLocalTable()
     {
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri = "src/test/resources/collections/blobs-mixed-datatypes.txt";
+        command.tableUri = "src/test/resources/collections/blobs-and-spots.txt";
         command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
 
