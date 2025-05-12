@@ -16,7 +16,8 @@ package org.embl.mobie.lib.table.columns;
 public class CollectionTableConstants
 {
     /**
-     * The "uri" column MUST be present, and it MUST point to a valid image or spots dataset.
+     * The "uri" (or "File Path") column MUST be present
+     * and it MUST point to a valid image, labels or spots dataset.
      *
      * The same URI MAY be present several times in the same table;
      * this can be useful to display the same data within various views,
@@ -35,8 +36,13 @@ public class CollectionTableConstants
      * Support spots file formats include:
      * - Parquet
      * - Tab or comma separated value text files
+     * - Google Sheets URLs
+     *
      */
-    public static final String URI = "uri";
+    public static final String[] URI = {
+            "uri", // MoBIE
+            "File Path" // BioFile Finder
+    };
 
     /**
      * The "name" column MAY be present.

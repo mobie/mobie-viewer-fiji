@@ -7,34 +7,44 @@ import java.util.Map;
 
 public class GoogleSheetURLHelper
 {
-    // TODO: This should only be called once from TableOpener
+
     public static String generateExportUrl( String googleSheetUrl )
     {
         try
         {
             URL url = new URL( googleSheetUrl );
-            String[] pathSegments = url.getPath().split( "/" );
+            String path = url.getPath();
 
-            // Extract document ID from URL path
-            String documentId = pathSegments[ 3 ];
+            // Match and keep the "/d/{id}" or "/d/e/{id}" part for export URL construction
+            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(/d/(?:e/)?[\\w-]+)");
+            java.util.regex.Matcher matcher = pattern.matcher(path);
 
-            // Extract gid from the query string
-            Map< String, String > queryParams = getQueryParams( url );
-            String gid = queryParams.get( "gid" );
+            if (!matcher.find()) {
+                throw new RuntimeException("Could not extract document path from URL: " + googleSheetUrl);
+            }
+
+            String documentPath = matcher.group(1);
+
+            // Extract gid from the query string if query exists
+            String gid = null;
+            if (url.getQuery() != null) {
+                Map<String, String> queryParams = getQueryParams(url);
+                gid = queryParams.get("gid");
+            }
 
             // Construct the export URL
-            if ( gid == null )
+            if (gid == null)
             {
-                return String.format( "https://docs.google.com/spreadsheets/d/%s/export?format=%s", documentId, "tsv" );
+                return String.format("https://docs.google.com/spreadsheets%s/export?format=%s", documentPath, "tsv");
             }
             else
             {
-                return String.format( "https://docs.google.com/spreadsheets/d/%s/export?gid=%s&format=%s", documentId, gid, "tsv" );
+                return String.format("https://docs.google.com/spreadsheets%s/export?gid=%s&format=%s", documentPath, gid, "tsv");
             }
         }
-        catch ( MalformedURLException e )
+        catch (MalformedURLException e)
         {
-            throw new RuntimeException( e );
+            throw new RuntimeException(e);
         }
     }
 
@@ -55,6 +65,11 @@ public class GoogleSheetURLHelper
         System.out.println( "Export URL: " + exportUrl );
 
         googleSheetUrl = "https://docs.google.com/spreadsheets/d/1mSzFOAif2a7ki7-3yELdi68P7qdaWxBCCQdysh7R-rI/edit?usp=sharing";
+        exportUrl = generateExportUrl( googleSheetUrl );
+        System.out.println( "Export URL: " + exportUrl );
+
+        // FIXME: opening the below URL within MoBIE does not work
+        googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vThEdzde-UEIeXz8paAycUrPjzeU3eqfIGEfVl_usONhplBp6CczjCK99GFCKpA6l2vjJ-r_EHfUIlK/pub?gid=499533529";
         exportUrl = generateExportUrl( googleSheetUrl );
         System.out.println( "Export URL: " + exportUrl );
     }

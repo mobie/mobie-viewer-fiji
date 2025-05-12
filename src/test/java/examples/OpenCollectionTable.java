@@ -37,4 +37,6 @@ public class OpenCollectionTable
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
+
+
 }

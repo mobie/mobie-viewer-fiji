@@ -28,9 +28,7 @@
  */
 package org.embl.mobie.lib.image;
 
-import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.numeric.IntegerType;
-import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.lib.io.StorageLocation;

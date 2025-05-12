@@ -55,7 +55,6 @@ import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.columns.CollectionTableConstants;
 import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.transform.GridType;
-import org.embl.mobie.lib.util.GoogleSheetURLHelper;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.view.ViewManager;
@@ -81,7 +80,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static org.embl.mobie.io.util.IOHelper.*;
-import static org.embl.mobie.lib.table.saw.TableOpener.determineDelimiter;
 
 public class MoBIE
 {
@@ -143,19 +141,9 @@ public class MoBIE
 			//       The issue is to determine the TableDataFormat.fromPath( uri )
 			//       but we can check for uri.contains( "docs.google.com/spreadsheets" ) in there
 			//       That is all the code below should go into TableOpener
-			if ( uri.contains( "docs.google.com/spreadsheets" ) )
-			{
-				uri = GoogleSheetURLHelper.generateExportUrl( uri );
-			}
 
-			String content = IOHelper.read( uri );
-			CsvReadOptions.Builder builder =
-					CsvReadOptions.builderFromString( content )
-							.separator( determineDelimiter( uri )  )
-							.missingValueIndicator( "na", "none", "nan" )
-							.columnTypesPartial( nameToType );
-			Table table = Table.read().usingOptions( builder );
 
+			Table table = TableOpener.openDelimitedFile( uri );
 			initProject( IOHelper.getFileName( uri ) );
 
 			CollectionTableDataSetter dataSetter = new CollectionTableDataSetter( table, settings.values.getDataRoot() );

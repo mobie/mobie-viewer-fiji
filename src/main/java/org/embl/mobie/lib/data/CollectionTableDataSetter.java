@@ -54,8 +54,8 @@ public class CollectionTableDataSetter
 
     public void addToDataset( Dataset dataset )
     {
-        if ( ! table.containsColumn( CollectionTableConstants.URI ) )
-            throw new RuntimeException( "Column \"" + CollectionTableConstants.URI + "\" must be present in the collection table." );
+        if ( ! columnExists( CollectionTableConstants.URI ) )
+            throw new RuntimeException( "Column \"" + CollectionTableConstants.URI[0] + "\" must be present in the collection table." );
 
         Map< String, Display< ? > > displays = new HashMap< String, Display< ? >>();
 
@@ -70,7 +70,7 @@ public class CollectionTableDataSetter
             // FIXME What should happen here?
             if ( sourceToRowIndex.containsKey( sourceName ) )
             {
-                IJ.log( "[WARN] The collection table contains " + sourceName + "multiple times" );
+                IJ.log( "[WARN] The collection table contains " + sourceName + " multiple times" );
             }
             sourceToRowIndex.put( sourceName, row.getRowNumber() );
 
@@ -139,6 +139,16 @@ public class CollectionTableDataSetter
 
     }
 
+    private boolean columnExists( final String[] columNames )
+    {
+        for ( String columName : columNames )
+        {
+            if ( table.containsColumn( columName ) )
+                return true;
+        }
+        return false;
+    }
+
     private void addGridView( String viewName,
                               ArrayList< Transformation > transformations,
                               Map< String, Display< ? > > displays )
@@ -161,7 +171,7 @@ public class CollectionTableDataSetter
             else
             {
                 List< int[] > positions = positionToSources.keySet().stream()
-                        .map( CollectionTableDataSetter::gridPositionToInts )
+                        .map( this::gridPositionToInts )
                         .collect( Collectors.toList() );
 
                 nestedSources = new ArrayList<>( positionToSources.values() );
@@ -273,14 +283,6 @@ public class CollectionTableDataSetter
         {
             String uri = storageLocation.absolutePath;
 
-            // TODO: This should happen only in TableOpener
-            //       The issue is to determine the TableDataFormat.fromPath( uri )
-            //       but we can check for uri.contains( "docs.google.com/spreadsheets" ) in there
-            if ( uri.contains( "docs.google.com/spreadsheets" ) )
-            {
-                uri = GoogleSheetURLHelper.generateExportUrl( uri );
-            }
-
             SpotDataSource spotDataSource = new SpotDataSource(
                     sourceName,
                     TableDataFormat.fromPath( uri ),
@@ -336,7 +338,7 @@ public class CollectionTableDataSetter
     }
 
     @NotNull
-    private static SpotDisplay< AnnotatedRegion > createSpotDisplay( Row row, final String spotSourceName )
+    private SpotDisplay< AnnotatedRegion > createSpotDisplay( Row row, final String spotSourceName )
     {
         SpotDisplay< AnnotatedRegion > display = new SpotDisplay<>( getDisplayName( row ) );
         display.spotRadius = getSpotRadius( row );
@@ -344,17 +346,15 @@ public class CollectionTableDataSetter
         return display;
     }
 
-    private static ImageDataFormat getImageDataFormat( Row row, StorageLocation storageLocation )
+    private ImageDataFormat getImageDataFormat( Row row, StorageLocation storageLocation )
     {
         try {
-            String string = row.getString( CollectionTableConstants.FORMAT );
-            ImageDataFormat imageDataFormat = ImageDataFormat.valueOf( string );
-            return imageDataFormat;
+            String string = getString( row, CollectionTableConstants.FORMAT );
+            return ImageDataFormat.valueOf( string );
         }
         catch ( Exception e )
         {
-            ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( storageLocation.absolutePath );
-            return imageDataFormat;
+            return ImageDataFormat.fromPath( storageLocation.absolutePath );
         }
     }
 
@@ -369,10 +369,7 @@ public class CollectionTableDataSetter
             try
             {
                 String string = row.getText( CollectionTableConstants.EXCLUSIVE );
-                if ( string.toLowerCase().equals( CollectionTableConstants.TRUE ) )
-                    return true;
-                else
-                    return false;
+                return string.equalsIgnoreCase( CollectionTableConstants.TRUE );
             }
             catch ( Exception e2 )
             {
@@ -385,27 +382,17 @@ public class CollectionTableDataSetter
     {
         String tablePath;
         if (row.columnNames().contains(CollectionTableConstants.LABELS_TABLE))
-            tablePath = row.getString(CollectionTableConstants.LABELS_TABLE);
+            tablePath = getString( row, CollectionTableConstants.LABELS_TABLE );
         else if ( row.columnNames().contains(CollectionTableConstants.LABELS_TABLE_URI) )
-            tablePath = row.getString(CollectionTableConstants.LABELS_TABLE_URI);
+            tablePath = getString( row, CollectionTableConstants.LABELS_TABLE_URI );
         else
             return null;
 
         if ( tablePath == null || tablePath.isEmpty() )
             return null;
 
-        // TODO: This should happen only in TableOpener
-        //       The issue is to determine the TableDataFormat.fromPath( uri )
-        //       but we can check for uri.contains( "docs.google.com/spreadsheets" ) in there
-        if ( tablePath.contains( "docs.google.com/spreadsheets" ) )
-        {
-            tablePath = GoogleSheetURLHelper.generateExportUrl( tablePath );
-        }
-        else
-        {
-            if ( rootPath != null )
-                tablePath = IOHelper.combinePath( rootPath, tablePath );
-        }
+        if ( rootPath != null )
+            tablePath = IOHelper.combinePath( rootPath, tablePath );
 
         StorageLocation storageLocation = new StorageLocation();
         storageLocation.absolutePath = IOHelper.getParentLocation( tablePath );
@@ -414,27 +401,39 @@ public class CollectionTableDataSetter
         return new TableSource( TableDataFormat.fromPath( tablePath ), storageLocation );
     }
 
-    private static String getUri( Row row )
+    private  String getUri( Row row )
     {
-        String string = row.getString( CollectionTableConstants.URI );
+        String string = getString( row, CollectionTableConstants.URI );
 
+        assert string != null;
         if ( string.isEmpty() )
             throw new RuntimeException("Encountered empty cell in uri column, please add a valid uri!");
 
         return string;
     }
 
-    private static String getName( Row row )
+    private String getString( Row row, final String[] columnNames )
+    {
+        for ( String columnName : columnNames )
+        {
+            if ( table.containsColumn( columnName ) )
+                return getString( row, columnName );
+        }
+
+        return null;
+    }
+
+    private String getName( Row row )
     {
         String name;
         try {
-            name = row.getString( CollectionTableConstants.NAME );
+            name = getString( row, CollectionTableConstants.NAME );
             if ( name.isEmpty() )
-                name = getNameFromURI( row );
+                name = createFromURI( row );
         }
         catch ( Exception e )
         {
-            name = getNameFromURI( row );
+            name = createFromURI( row );
         }
 
         Integer channel = getChannelIndex( row );
@@ -444,7 +443,7 @@ public class CollectionTableDataSetter
     }
 
     @Nullable
-    private static String getNameFromURI( Row row )
+    private String createFromURI( Row row )
     {
         String uri = getUri( row );
 
@@ -457,7 +456,7 @@ public class CollectionTableDataSetter
     {
         try
         {
-            String string = row.getString( CollectionTableConstants.TYPE );
+            String string = getString( row, CollectionTableConstants.TYPE );
             if ( string.isEmpty() )
                 return CollectionTableConstants.INTENSITIES;
 
@@ -472,7 +471,7 @@ public class CollectionTableDataSetter
     private static String getGridId( Row row )
     {
         try {
-            String string = row.getString( CollectionTableConstants.GRID );
+            String string = getString( row, CollectionTableConstants.GRID );
 
             if ( string.isEmpty() )
                 return null;
@@ -483,6 +482,16 @@ public class CollectionTableDataSetter
         {
             return null;
         }
+    }
+
+    private static String getString( Row row, final String columnName )
+    {
+        for (String col : row.columnNames()) {
+            if ( col.equalsIgnoreCase(columnName ) ) {
+                return row.getString(col);
+            }
+        }
+        return null;
     }
 
     private static Integer getChannelIndex( Row row )
@@ -501,13 +510,13 @@ public class CollectionTableDataSetter
 
 
     @NotNull
-    private static String[] getGroups( Row row )
+    private String[] getGroups( Row row )
     {
         String[] defaultValue = { "views" };
 
         try
         {
-            String groups = row.getString( CollectionTableConstants.GROUP );
+            String groups = getString( row, CollectionTableConstants.GROUP );
 
             if ( groups.isEmpty() )
                 return defaultValue;
@@ -520,11 +529,11 @@ public class CollectionTableDataSetter
         }
     }
 
-    private static String getViewName( Row row )
+    private String getViewName( Row row )
     {
         try
         {
-            String name = row.getString( CollectionTableConstants.VIEW );
+            String name = getString( row, CollectionTableConstants.VIEW );
 
             if ( name == null || name.isEmpty() )
                 return getDisplayName( row );
@@ -538,7 +547,7 @@ public class CollectionTableDataSetter
     }
 
     @NotNull
-    private static SegmentationDisplay< ? > createSegmentationDisplay(
+    private SegmentationDisplay< ? > createSegmentationDisplay(
             String sourceName,
             Row row,
             boolean showTable )
@@ -556,7 +565,7 @@ public class CollectionTableDataSetter
     }
 
     @NotNull
-    private static ImageDisplay< ? > createImageDisplay( String sourceName, Row row )
+    private ImageDisplay< ? > createImageDisplay( String sourceName, Row row )
     {
         return new ImageDisplay<>(
                 getDisplayName( row ),
@@ -569,22 +578,22 @@ public class CollectionTableDataSetter
         );
     }
 
-    private static String getDisplayName( Row row )
+    private String getDisplayName( Row row )
     {
         if ( row.columnNames().contains( CollectionTableConstants.DISPLAY  ) )
-            return row.getString( CollectionTableConstants.DISPLAY );
+            return getString( row, CollectionTableConstants.DISPLAY );
 
         if ( row.columnNames().contains( CollectionTableConstants.GRID  ) )
-            return row.getString( CollectionTableConstants.GRID );
+            return getString( row, CollectionTableConstants.GRID );
 
         return getName( row );
     }
 
-    private static double[] getContrastLimits( Row row )
+    private double[] getContrastLimits( Row row )
     {
         try
         {
-            String string = row.getString( CollectionTableConstants.CONTRAST_LIMITS );
+            String string = getString( row, CollectionTableConstants.CONTRAST_LIMITS );
             string = string.replace("(", "").replace(")", "");
             String[] strings = string.split("[,;]");
             double[] doubles = new double[strings.length];
@@ -604,11 +613,11 @@ public class CollectionTableDataSetter
         }
     }
 
-    private static String getGridPosition( Row row )
+    private String getGridPosition( Row row )
     {
         try
         {
-            String string = row.getString( CollectionTableConstants.GRID_POSITION );
+            String string = getString( row, CollectionTableConstants.GRID_POSITION );
             string = string.replace("(", "").replace(")", "");
             string = string.trim();
             return string;
@@ -619,7 +628,7 @@ public class CollectionTableDataSetter
         }
     }
 
-    private static int[] gridPositionToInts( String position )
+    private int[] gridPositionToInts( String position )
     {
         position = position.replace("(", "").replace(")", "");
         String[] strings = position.split("[,;]");
@@ -639,7 +648,7 @@ public class CollectionTableDataSetter
     {
         try
         {
-            String string = row.getString( CollectionTableConstants.BOUNDING_BOX );
+            String string = getString( row, CollectionTableConstants.BOUNDING_BOX );
             String[] minMax = string.split( "-" );
             double[][] bb = new double[ 2 ][ 3 ];
             for ( int i = 0; i < 2; i++ )
@@ -677,7 +686,7 @@ public class CollectionTableDataSetter
     {
         try
         {
-            String string = row.getString( CollectionTableConstants.BLEND );
+            String string = getString( row, CollectionTableConstants.BLEND );
 
             if ( string.toLowerCase().equals( "alpha" ) )
                 return BlendingMode.Alpha;
@@ -700,7 +709,7 @@ public class CollectionTableDataSetter
         try
         {
             // FIXME TODO
-            String string = row.getString( CollectionTableConstants.AFFINE );
+            String string = getString( row, CollectionTableConstants.AFFINE );
             string = string.replace("(", "").replace(")", "");
             String[] strings = string.split(",");
             double[] doubles = new double[strings.length];
@@ -730,7 +739,7 @@ public class CollectionTableDataSetter
 
         try
         {
-            String string = row.getString( CollectionTableConstants.AFFINE );
+            String string = getString( row, CollectionTableConstants.AFFINE );
             string = string.replace("(", "").replace(")", "");
             String[] strings = string.split(",");
             double[] doubles = new double[strings.length];
@@ -758,7 +767,7 @@ public class CollectionTableDataSetter
     {
         try
         {
-            String colorString = row.getString( CollectionTableConstants.COLOR );
+            String colorString = getString( row, CollectionTableConstants.COLOR );
             ARGBType argbType = ColorHelper.getARGBType( colorString );
             if ( argbType == null )
                 return "white";

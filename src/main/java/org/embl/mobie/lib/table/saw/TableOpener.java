@@ -54,6 +54,7 @@ import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.Level;
+import tech.tablesaw.io.xlsx.XlsxReadOptions;
 
 public class TableOpener
 {
@@ -65,6 +66,26 @@ public class TableOpener
 		nameToType.put( ColumnNames.SPOT_X, ColumnType.FLOAT );
 		nameToType.put( ColumnNames.SPOT_Y, ColumnType.FLOAT );
 		nameToType.put( ColumnNames.SPOT_Z, ColumnType.FLOAT );
+	}
+
+	public static Table openDelimitedFile( String path )
+	{
+		return openDelimitedFile( path, determineDelimiter( path ) );
+	}
+
+	public static Table openDelimitedFile( String path, char separator )
+	{
+		String content = readContent( path );
+
+		// FIXME: This is brittle; don't always do this, this is only for CellProfiler!
+		// content = dealWithTwoHeaderRowsIfNeeded( separator, content );
+
+		CsvReadOptions.Builder builder =
+				CsvReadOptions.builderFromString( content )
+						.separator( separator )
+						.missingValueIndicator( "na", "none", "nan" );
+
+		return Table.read().usingOptions( builder );
 	}
 
 	public static Table open( StorageLocation storageLocation, TableDataFormat tableDataFormat )
@@ -81,9 +102,6 @@ public class TableOpener
 				return openResultTable( (ResultsTable) storageLocation.data );
 			case Table:
 				return (Table) storageLocation.data;
-			case TSV:
-			case CSV:
-			case PARQUET:
 			default:
 				return openTableFile( storageLocation, chunk, tableDataFormat );
 		}
@@ -110,26 +128,53 @@ public class TableOpener
 
 			return table;
 		}
-		else
+		else if ( tableDataFormat.equals( TableDataFormat.EXCEL ) )
 		{
-			String tableUri;
+			// TODO: why are only absolute paths considered here?
+			return openExcelFile( storageLocation.absolutePath );
+		}
+		else if ( tableDataFormat.equals( TableDataFormat.CSV ) || tableDataFormat.equals( TableDataFormat.TSV ) )
+		{
+			// TODO: why are only absolute paths considered here?
+			String uri;
 
 			if ( storageLocation.absolutePath.contains( "docs.google.com/spreadsheets" ) )
 			{
-				tableUri = GoogleSheetURLHelper.generateExportUrl( storageLocation.absolutePath );
+				uri = GoogleSheetURLHelper.generateExportUrl( storageLocation.absolutePath );
 			}
 			else
 			{
-				tableUri = chunk != null ? IOHelper.combinePath( storageLocation.absolutePath, chunk ) : storageLocation.absolutePath;
-				tableUri = resolveTablePath( tableUri );
+				uri = chunk != null ? IOHelper.combinePath( storageLocation.absolutePath, chunk ) : storageLocation.absolutePath;
+				uri = resolveTablePath( uri );
 			}
 
 			final Character separator = tableDataFormat.getSeparator();
-			return openDelimitedTextFile( numSamples, tableUri, separator );
+
+			return open( numSamples, uri, separator );
+		}
+		else
+		{
+			throw new UnsupportedOperationException( "Wrong function to open table file: " + tableDataFormat );
 		}
 	}
 
-	private static Table openDelimitedTextFile( int numSamples, String path, Character separator )
+	// FIXME Needs to be tested
+	static Table openExcelFile( String path )
+	{
+		try
+		{
+			XlsxReadOptions options = XlsxReadOptions.builder( path )
+					.missingValueIndicator( "na", "none", "nan" )
+					.columnTypesPartial( nameToType ).build();
+			return Table.read().usingOptions( options);
+		}
+		catch ( Exception e )
+		{
+			throw new RuntimeException( e );
+		}
+	}
+
+	private static Table open( int numSamples, String path, Character separator )
 	{
 		try
 		{
@@ -244,33 +289,19 @@ public class TableOpener
 		throw new RuntimeException( "Could not determine table delimiter" );
 	}
 
-	public static Table openDelimitedTextFile( String path, char separator )
+	private static String readContent( String uri )
 	{
-		String content = readContent( path );
-
-		// FIXME: This is brittle; don't always do this, this is only for CellProfiler!
-		// content = dealWithTwoHeaderRowsIfNeeded( separator, content );
-
-		CsvReadOptions.Builder builder =
-				CsvReadOptions.builderFromString( content )
-						.separator( separator )
-						.missingValueIndicator( "na", "none", "nan" );
-
-		return Table.read().usingOptions( builder );
-	}
-
-	private static String readContent( String path )
-	{
-		String content = null;
 		try
 		{
-			content = IOHelper.read( path );
+			if ( uri.contains( "docs.google.com/spreadsheets" ) )
+				uri = GoogleSheetURLHelper.generateExportUrl( uri );
+
+			return IOHelper.read( uri );
 		}
 		catch ( IOException e )
 		{
 			throw new RuntimeException( e );
 		}
-		return content;
 	}
 
 	private static String dealWithTwoHeaderRowsIfNeeded( char separator, String content )
@@ -318,10 +349,5 @@ public class TableOpener
 			content = Strings.join( System.lineSeparator(), lineList );
 		}
 		return content;
-	}
-
-	public static Table openDelimitedTextFile( String path )
-	{
-		return openDelimitedTextFile( path, determineDelimiter( path ) );
 	}
 }

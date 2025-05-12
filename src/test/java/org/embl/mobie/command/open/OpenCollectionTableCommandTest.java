@@ -35,7 +35,7 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri ="src/test/resources/collections/clem-table.txt";
+        command.tableUri ="src/test/resources/collections/clem-example-collection.tsv";
         command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.PathsInTableAreAbsolute;
         command.run();
     }

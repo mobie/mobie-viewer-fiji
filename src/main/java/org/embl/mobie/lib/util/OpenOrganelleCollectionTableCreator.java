@@ -102,7 +102,7 @@ public class OpenOrganelleCollectionTableCreator
         int numVolumes = uriToImages.size();
         int numRows = numVolumes * ( imagesAndLabels.length );
 
-        StringColumn uriColumn = StringColumn.create( CollectionTableConstants.URI, numRows );
+        StringColumn uriColumn = StringColumn.create( CollectionTableConstants.URI[0], numRows );
         StringColumn typeColumn = StringColumn.create( CollectionTableConstants.TYPE, numRows );
         StringColumn gridColumn = StringColumn.create( CollectionTableConstants.GRID, numRows );
         StringColumn nameColumn = StringColumn.create( CollectionTableConstants.NAME, numRows );

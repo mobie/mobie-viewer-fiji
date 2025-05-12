@@ -53,6 +53,8 @@ public enum TableDataFormat
 	CSV,
 	@SerializedName( TableDataFormatNames.PARQUET )
 	PARQUET,
+	@SerializedName( TableDataFormatNames.EXCEL )
+	EXCEL,
 	@SerializedName( TableDataFormatNames.RESULTS_TABLE )
 	ResultsTable,  // ResultsTable in memory
 	@SerializedName( TableDataFormatNames.TABLE )
@@ -71,6 +73,8 @@ public enum TableDataFormat
 				return TABLE;
 			case CSV:
 				return TableDataFormatNames.CSV;
+			case EXCEL:
+				return TableDataFormatNames.EXCEL;
 			case TSV:
 			default:
 				return TableDataFormatNames.TSV;
@@ -82,6 +86,10 @@ public enum TableDataFormat
 		if ( path.endsWith( ".parquet" ) )
 		{
 			return TableDataFormat.PARQUET;
+		}
+		else if ( path.endsWith( ".xlsx" ) )
+		{
+			return TableDataFormat.EXCEL;
 		}
 		else
 		{

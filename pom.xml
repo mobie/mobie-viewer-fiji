@@ -98,7 +98,8 @@
 
         <!-- TableSaw -->
         <tablesaw-core.version>0.43.1</tablesaw-core.version>
-        <tablesaw-parquet.version>0.10.0</tablesaw-parquet.version>
+        <tablesaw-excel.version>0.43.1</tablesaw-excel.version>
+        <tablesaw-parquet.version>0.11.0</tablesaw-parquet.version>
 
         <!-- NB: Deploy releases to the SciJava Maven repository. -->
         <releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
@@ -203,6 +204,11 @@
             <groupId>tech.tablesaw</groupId>
             <artifactId>tablesaw-core</artifactId>
             <version>${tablesaw-core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>tech.tablesaw</groupId>
+            <artifactId>tablesaw-excel</artifactId>
+            <version>${tablesaw-excel.version}</version>
         </dependency>
         <dependency>
             <groupId>net.tlabs-data</groupId>
