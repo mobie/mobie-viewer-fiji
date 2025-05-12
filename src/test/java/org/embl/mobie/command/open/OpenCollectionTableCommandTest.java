@@ -1,6 +1,7 @@
 package org.embl.mobie.command.open;
 
 import net.imagej.ImageJ;
+import org.embl.mobie.command.open.special.OpenSimpleCollectionTableCommand;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +16,18 @@ public class OpenCollectionTableCommandTest
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     @Test
-    public void simple( )
+    public void googleSheet( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenSimpleCollectionTableCommand command = new OpenSimpleCollectionTableCommand();
+        command.tableUri = "https://docs.google.com/spreadsheets/d/1d_khb5P-z1SHu09SHSS7HV0PmN_VK9ZkMKDuqF52KRg/edit?usp=sharing";
+        command.run();
+    }
+
+    @Test
+    public void simple()
     {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
@@ -37,6 +49,7 @@ public class OpenCollectionTableCommandTest
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.tableUri ="src/test/resources/collections/clem-example-collection.tsv";
         command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.PathsInTableAreAbsolute;
+        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
 
@@ -63,8 +76,8 @@ public class OpenCollectionTableCommandTest
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.tableUri = "src/test/resources/collections/spots-2d-collection.txt";
-        // FIXME: Make this work with relative paths
         command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseBelowDataRootFolder;
+        // FIXME: Make this work with relative paths
         command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
