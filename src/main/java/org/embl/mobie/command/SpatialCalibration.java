@@ -26,7 +26,7 @@ public enum SpatialCalibration
 
             try
             {
-                Table rows = TableOpener.openDelimitedFile( resolvedTablePath );
+                Table rows = TableOpener.open( resolvedTablePath );
 
                 if ( rows.columnNames().contains( PixelSizeColumns.PIXEL_SIZE ) )
                 {

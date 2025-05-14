@@ -11,7 +11,7 @@ public class DebugOpenMicrogliaTable
 {
     public static void main( String[] args )
     {
-        Table table = TableOpener.openDelimitedFile( "/Users/tischer/Desktop/valerie/Image_892C-1.csv" );
+        Table table = TableOpener.open( "/Users/tischer/Desktop/valerie/Image_892C-1.csv" );
 
         new ImageJ().ui().showUI();
 //        OpenTableCommand command = new OpenTableCommand();

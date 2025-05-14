@@ -55,7 +55,7 @@ public class SourcesFromTableCreator
 
 	public SourcesFromTableCreator( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, String pathMapping, GridType gridType )
 	{
-		final Table table = TableOpener.openDelimitedFile( tablePath );
+		final Table table = TableOpener.open( tablePath );
 
 		// images
 		//

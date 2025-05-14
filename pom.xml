@@ -9,7 +9,9 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>6.3.4</version>  <!-- -SNAPSHOT -->
+    <version>6.3.6</version>  <!-- -SNAPSHOT -->
+
+    <!--  https://sites.imagej.net/MoBIE/-->
 
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
 

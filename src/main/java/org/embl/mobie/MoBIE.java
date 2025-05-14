@@ -109,12 +109,12 @@ public class MoBIE
 	private UserInterface userInterface;
 	private final ArrayList< String > projectCommands = new ArrayList<>();
 
-	public MoBIE( String uri, MoBIESettings settings ) throws IOException
+	public MoBIE( String tableUri, MoBIESettings settings ) throws IOException
 	{
 		initImageJAndMoBIE();
 
 		this.settings = settings;
-		this.projectLocation = uri;
+		this.projectLocation = tableUri;
 
 		if ( settings.values.getS3AccessAndSecretKey() != null )
 		{
@@ -129,7 +129,7 @@ public class MoBIE
 		if ( settings.values.getProjectType().equals( ProjectType.CollectionTable ) )
 		{
 			IJ.log("\n# MoBIE" );
-			IJ.log("Opening collection table: " + uri );
+			IJ.log("Opening collection table: " + tableUri );
 
 			// Read the table
 
@@ -143,8 +143,8 @@ public class MoBIE
 			//       That is all the code below should go into TableOpener
 
 
-			Table table = TableOpener.openDelimitedFile( uri );
-			initProject( IOHelper.getFileName( uri ) );
+			Table table = TableOpener.open( tableUri );
+			initProject( IOHelper.getFileName( tableUri ) );
 
 			CollectionTableDataSetter dataSetter = new CollectionTableDataSetter( table, settings.values.getDataRoot() );
 			dataSetter.addToDataset( dataset );
@@ -157,7 +157,7 @@ public class MoBIE
 			initTableSaw();
 
 			IJ.log( "\n# MoBIE" );
-			IJ.log( "Opening: " + uri );
+			IJ.log( "Opening: " + tableUri );
 			IJ.log( "Branch: " + settings.values.getProjectBranch() );
 
 			openMoBIEProject();

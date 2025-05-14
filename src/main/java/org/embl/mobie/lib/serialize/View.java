@@ -236,11 +236,12 @@ public class View
 
 	public void setUiSelectionGroup( String uiSelectionGroup )
 	{
-		this.uiSelectionGroup = uiSelectionGroup;
+		this.uiSelectionGroups = new String[]{ uiSelectionGroup };
 	}
 
 	public void setDescription( String description )
 	{
 		this.description = description;
 	}
+
 }

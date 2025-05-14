@@ -236,12 +236,11 @@ public class ViewManager
 			else
 				throw new UnsupportedOperationException( "Serialisation of a " + display.getClass().getName() + " is not yet supported." );
 
-
 			addImageTransforms( transformations, display.images() );
 		}
 
 		// the parameters that are null must be later set via the view's setter methods
-		return new View( null, ( String ) null, displays, transformations, null, true, "" );
+		return new View( null, ( String[] ) null, displays, transformations, null, true, "" );
 	}
 
 	public synchronized void show( String viewName )

@@ -72,5 +72,13 @@ public class GoogleSheetURLHelper
         googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vThEdzde-UEIeXz8paAycUrPjzeU3eqfIGEfVl_usONhplBp6CczjCK99GFCKpA6l2vjJ-r_EHfUIlK/pub?gid=499533529";
         exportUrl = generateExportUrl( googleSheetUrl );
         System.out.println( "Export URL: " + exportUrl );
+
+        googleSheetUrl = "https://docs.google.com/spreadsheets/d/1Yphl5FHoU2DcP7CeeTRUTyi3eXwr0BKuARKQsK4sFw0/export?format=tsv";
+        exportUrl = generateExportUrl( googleSheetUrl );
+        System.out.println( "Export URL: " + exportUrl );
+
+        googleSheetUrl = "https://docs.google.com/spreadsheets/d/1Yphl5FHoU2DcP7CeeTRUTyi3eXwr0BKuARKQsK4sFw0";
+        exportUrl = generateExportUrl( googleSheetUrl );
+        System.out.println( "Export URL: " + exportUrl );
     }
 }

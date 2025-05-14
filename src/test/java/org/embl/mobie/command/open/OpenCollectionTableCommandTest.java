@@ -15,6 +15,18 @@ public class OpenCollectionTableCommandTest
 {
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
+
+    @Test
+    public void excelSheet( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenSimpleCollectionTableCommand command = new OpenSimpleCollectionTableCommand();
+        command.tableUri = "src/test/resources/collections/clem-collection.xlsx";
+        command.run();
+    }
+
     @Test
     public void googleSheet( )
     {
@@ -113,14 +125,6 @@ public class OpenCollectionTableCommandTest
         command.run();
     }
 
-    public static void main( String[] args )
-    {
-        //new OpenCollectionTableCommandTest().simple();
-        //new OpenCollectionTableCommandTest().spots3D();
-        new OpenCollectionTableCommandTest().spots3dWith20000Columns();
-        //OpenCollectionTableCommandTest.createLargeSpotsTable();
-    }
-
     private static void createLargeSpotsTable() {
         int rows = 100;
         int columns = 20000;
@@ -161,4 +165,14 @@ public class OpenCollectionTableCommandTest
             throw new RuntimeException( e );
         }
     }
+
+    public static void main( String[] args )
+    {
+        //new OpenCollectionTableCommandTest().simple();
+        //new OpenCollectionTableCommandTest().spots3D();
+        //new OpenCollectionTableCommandTest().spots3dWith20000Columns();
+        //OpenCollectionTableCommandTest.createLargeSpotsTable();
+        new OpenCollectionTableCommandTest().excelSheet();
+    }
+
 }

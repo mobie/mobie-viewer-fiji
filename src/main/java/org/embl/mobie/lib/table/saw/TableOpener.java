@@ -68,24 +68,12 @@ public class TableOpener
 		nameToType.put( ColumnNames.SPOT_Z, ColumnType.FLOAT );
 	}
 
-	public static Table openDelimitedFile( String path )
+	public static Table open( String uri )
 	{
-		return openDelimitedFile( path, determineDelimiter( path ) );
-	}
-
-	public static Table openDelimitedFile( String path, char separator )
-	{
-		String content = readContent( path );
-
-		// FIXME: This is brittle; don't always do this, this is only for CellProfiler!
-		// content = dealWithTwoHeaderRowsIfNeeded( separator, content );
-
-		CsvReadOptions.Builder builder =
-				CsvReadOptions.builderFromString( content )
-						.separator( separator )
-						.missingValueIndicator( "na", "none", "nan" );
-
-		return Table.read().usingOptions( builder );
+		StorageLocation location = new StorageLocation();
+		location.absolutePath = uri;
+		TableDataFormat format = TableDataFormat.fromPath( uri );
+		return open( location, format );
 	}
 
 	public static Table open( StorageLocation storageLocation, TableDataFormat tableDataFormat )

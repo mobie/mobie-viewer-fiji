@@ -83,11 +83,11 @@ public enum TableDataFormat
 
 	public static TableDataFormat fromPath( String path )
 	{
-		if ( path.endsWith( ".parquet" ) )
+		if ( path.toLowerCase().endsWith( ".parquet" ) )
 		{
 			return TableDataFormat.PARQUET;
 		}
-		else if ( path.endsWith( ".xlsx" ) )
+		else if ( path.toLowerCase().endsWith( ".xlsx" ) )
 		{
 			return TableDataFormat.EXCEL;
 		}
