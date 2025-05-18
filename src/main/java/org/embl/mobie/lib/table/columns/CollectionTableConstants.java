@@ -131,6 +131,9 @@ public class CollectionTableConstants
      * The "blend" column MAY be present.
      *
      * The value determines the blending mode for this image.
+     * For the "alpha" blending mode the sequence of the images
+     * in the table matters. Images that come later in the table are 
+     * "on top" of earlier images.
      *
      * Supported values:
      * - "sum"
