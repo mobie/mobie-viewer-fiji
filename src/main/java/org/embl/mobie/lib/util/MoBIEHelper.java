@@ -105,7 +105,8 @@ public abstract class MoBIEHelper
 		Set<T> duplicates = new HashSet<>();
 
 		for (T element : collection) {
-			if (!seen.add(element)) {
+			if ( ! seen.add(element) )
+			{
 				duplicates.add(element);
 			}
 		}

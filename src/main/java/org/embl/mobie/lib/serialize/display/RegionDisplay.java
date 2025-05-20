@@ -30,13 +30,11 @@ package org.embl.mobie.lib.serialize.display;
 
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.annotation.Annotation;
-import org.embl.mobie.lib.hcs.Well;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,6 +59,8 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotat
 
 	// TODO create an issue to discuss this
 	private transient double relativeDilation = 0.05; // dilation of the regions, useful for rendering as outside boundaries
+
+	private boolean overlap; // Signifies whether some of the regions can overlap with each other.
 
 	public boolean boundaryThicknessIsRelative()
 	{
@@ -157,5 +157,15 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotat
 	public void setSourceNamesRegex( String sourceNamesRegex )
 	{
 		this.sourceNamesRegex = sourceNamesRegex;
+	}
+
+	public boolean overlap()
+	{
+		return overlap;
+	}
+
+	public void setOverlap( boolean overlap )
+	{
+		this.overlap = overlap;
 	}
 }

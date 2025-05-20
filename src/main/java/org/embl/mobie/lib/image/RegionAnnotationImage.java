@@ -43,14 +43,11 @@ import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.lib.table.AnnData;
-import org.embl.mobie.lib.table.saw.TableSawAnnotatedImages;
+import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegion;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -66,6 +63,7 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	private RealMaskRealInterval mask;
 	private boolean debug = false;
 	private List< AR > annotations;
+	private boolean overlap;
 
 	/**
 	 * Builds a label image to visualise all {@code AnnotatedRegion} in the
@@ -88,6 +86,7 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 		this.annData = annData;
 		this.timepoints = regionDisplay.timepoints();
 		this.selectionModel = regionDisplay.selectionModel;
+		this.overlap = regionDisplay.overlap();
 
 		if( debug ) logRegions();
 	}
@@ -99,13 +98,13 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 		{
 			// TODO Currently the cast below works because TableSawAnnotatedImages is the only use-case
 			//      In general, it may also be something else
-			final TableSawAnnotatedImages tableSawAnnotatedImages = ( TableSawAnnotatedImages ) annotatedRegion;
-			System.out.println( "RegionLabelImage " + name + ": " + annotatedRegion.regionId() + " images = " + Arrays.toString( tableSawAnnotatedImages.getImageNames().toArray( new String[ 0 ] ) ) + "\n" + MoBIEHelper.maskToString( annotatedRegion.getMask() ) );
-			final List< String > regionImageNames = tableSawAnnotatedImages.getImageNames();
+			final TableSawAnnotatedRegion tableSawAnnotatedRegion = ( TableSawAnnotatedRegion ) annotatedRegion;
+			System.out.println( "RegionLabelImage " + name + ": " + annotatedRegion.regionId() + " images = " + Arrays.toString( tableSawAnnotatedRegion.getImageNames().toArray( new String[ 0 ] ) ) + "\n" + MoBIEHelper.maskToString( annotatedRegion.getMask() ) );
+			final List< String > regionImageNames = tableSawAnnotatedRegion.getImageNames();
 			for ( String regionImageName : regionImageNames )
 			{
 				final Image< ? > viewImage = DataStore.getImage( regionImageName );
-				//System.out.println( "Region: " + viewImage.getName() + ": " + Arrays.toString( viewImage.getMask().minAsDoubleArray() ) + " - " + Arrays.toString( viewImage.getMask().maxAsDoubleArray() ) );
+				System.out.println( "Region: " + viewImage.getName() + ": " + Arrays.toString( viewImage.getMask().minAsDoubleArray() ) + " - " + Arrays.toString( viewImage.getMask().maxAsDoubleArray() ) );
 			}
 		}
 	}
@@ -126,6 +125,7 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 
 		private class LocationToRegion implements BiConsumer< RealLocalizable, AnnotationType< AR > >
 		{
+			// Note that this is only really used if there is no overlap.
 			private AR recentAnnotation; // the annotation that was at the recent location
 
 			public LocationToRegion()
@@ -136,27 +136,39 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 			@Override
 			public void accept( RealLocalizable location, AnnotationType< AR > value )
 			{
-				// It is likely that the next location
-				// is within the same mask, thus we test that one first
-				// to safe some computations.
-				if ( recentAnnotation.getMask().test( location ) )
+				if ( ! overlap )
 				{
-					value.setAnnotation( recentAnnotation );
-					return;
-				}
-
-				// It was not in the recent mask,
-				// so we need to test all the others.
-				for ( AR annotation : annotations )
-				{
-					if ( annotation == recentAnnotation )
-						continue; // that one has been checked already above
-
-					if ( annotation.getMask().test( location ) )
+					// It is likely that the next location
+					// is within the same mask, thus we test that one first
+					// to safe some computations.
+					if ( recentAnnotation.getMask().test( location ) )
 					{
-						recentAnnotation = annotation;
 						value.setAnnotation( recentAnnotation );
 						return;
+					}
+				}
+
+				for ( AR annotation : annotations )
+				{
+					if ( ! overlap )
+					{
+						if ( annotation == recentAnnotation )
+							continue; // that one has been checked already above
+
+						if ( annotation.getMask().test( location ) )
+						{
+							recentAnnotation = annotation;
+							value.setAnnotation( recentAnnotation );
+							return;
+						}
+					}
+					else
+					{
+						if ( annotation.getMask().test( location ) )
+						{
+							value.setAnnotation( annotation );
+							return;
+						}
 					}
 				}
 
@@ -174,10 +186,20 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 			final Interval interval = Intervals.smallestContainingInterval( getMask() );
 
 			annotations = annData.getTable().annotations();
+			if ( overlap )
+			{
+				// Later annotations should be drawn on top of earlier ones.
+				// This is in order to conform with the alpha blending.
+				Collections.reverse( annotations );
+			}
 
 			// one could add a time point parameter to LocationToAnnotatedRegionSupplier
 			// and then make a Map< Timepoint, regions > and modify RealRandomAccessibleIntervalTimelapseSource to consume this map
-			final FunctionRealRandomAccessible< AnnotationType< AR > > regions = new FunctionRealRandomAccessible( 3, new LocationToAnnotatedRegionSupplier(), () -> new AnnotationType<>( annotations.get( 0 ) ) );
+			final FunctionRealRandomAccessible< AnnotationType< AR > > regions =
+					new FunctionRealRandomAccessible(
+							3,
+							new LocationToAnnotatedRegionSupplier(),
+							() -> new AnnotationType<>( annotations.get( 0 ) ) );
 
 			// TODO This Source should have the same voxel unit
 			//   as the other sources, but that would mean touching one of the
@@ -211,10 +233,10 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		if ( annotations.get( 0 ) instanceof TableSawAnnotatedImages )
+		if ( annotations.get( 0 ) instanceof TableSawAnnotatedRegion )
 		{
 			// transform all images in all regions
-			List< TableSawAnnotatedImages > annotatedImages = ( List< TableSawAnnotatedImages > ) annotations;
+			List< TableSawAnnotatedRegion > annotatedImages = ( List< TableSawAnnotatedRegion > ) annotations;
 
 			List< Image< ? > > allImages = annotatedImages.stream()
 					.map( ai -> ai.getImageNames() )
@@ -234,9 +256,9 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	@NotNull
 	public List< Image< ? > > getSelectedImages()
 	{
-		if ( annotations.get( 0 ) instanceof TableSawAnnotatedImages )
+		if ( annotations.get( 0 ) instanceof TableSawAnnotatedRegion )
 		{
-			Set< TableSawAnnotatedImages > annotatedImagesSet = ( Set< TableSawAnnotatedImages > ) selectionModel.getSelected();
+			Set< TableSawAnnotatedRegion > annotatedImagesSet = ( Set< TableSawAnnotatedRegion > ) selectionModel.getSelected();
 			List< Image< ? > > selectedImages = annotatedImagesSet.stream()
 					.map( annotatedImages -> annotatedImages.getImageNames() )
 					.map( annotatedImageNames -> DataStore.getImageSet( annotatedImageNames ) )

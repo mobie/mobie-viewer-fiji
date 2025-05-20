@@ -19,7 +19,6 @@ import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
 import org.embl.mobie.lib.table.columns.CollectionTableConstants;
-import org.embl.mobie.lib.util.GoogleSheetURLHelper;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,7 +64,7 @@ public class CollectionTableDataSetter
         {
             IJ.log("Adding source " + ( sourceIndex.incrementAndGet() ) + "/" + numRows + "...");
             
-            String sourceName = getName( row );
+            String sourceName = getDataName( row );
             String displayName = getDisplayName( row );
             // FIXME What should happen here?
             if ( sourceToRowIndex.containsKey( sourceName ) )
@@ -92,7 +91,6 @@ public class CollectionTableDataSetter
             viewToExclusive.put( viewName, getExclusive( row ) );
             viewToDisplays.computeIfAbsent( viewName, k -> new LinkedHashSet<>() ).add( displays.get( displayName ) );
             viewToTransformations.computeIfAbsent( viewName, k -> new ArrayList<>() ).addAll( getAffineTransformations( sourceName, row ) );
-
         }); // table rows
 
 
@@ -117,7 +115,7 @@ public class CollectionTableDataSetter
                     );
                 } );
 
-                Display< ? > regionDisplay = createRegionDisplay( viewName, nestedViewSources );
+                Display< ? > regionDisplay = createRegionDisplay( viewName, nestedViewSources, false );
                 displays.put( regionDisplay.getName(), regionDisplay );  // TODO: why is this needed?
                 viewToDisplays.get( viewName ).add( regionDisplay );
             }
@@ -181,7 +179,7 @@ public class CollectionTableDataSetter
                 transformations.add( grid );
             }
 
-            Display< ? > regionDisplay = createRegionDisplay( gridName, nestedSources );
+            Display< ? > regionDisplay = createRegionDisplay( gridName, nestedSources, true );
             displays.put( regionDisplay.getName(), regionDisplay );
             viewToDisplays.get( viewName ).add( regionDisplay );
         });
@@ -189,7 +187,8 @@ public class CollectionTableDataSetter
 
     private RegionDisplay< AnnotatedRegion > createRegionDisplay(
             String regionsName,
-            List< List< String > > nestedSources )
+            List< List< String > > nestedSources,
+            boolean isGrid )
     {
         List< String > firstSources = nestedSources.stream().map( sources -> sources.get( 0 ) ).collect( Collectors.toList() );
 
@@ -198,8 +197,8 @@ public class CollectionTableDataSetter
         if ( ! duplicates.isEmpty() )
         {
             throw new UnsupportedOperationException(
-                    "The region " + regionsName + "contains duplicates:\n" +
-                    Strings.join( ",", duplicates ) );
+                    "The region \"" + regionsName + "\" contains duplicates:\n" +
+                    Strings.join( ", ", duplicates ) );
         }
 
         // Create grid regions table
@@ -209,7 +208,7 @@ public class CollectionTableDataSetter
                 .toArray();
         Selection rowSelection = Selection.with( rowIndices );
         Table regionTable = table.where( rowSelection );
-        regionTable.setName( regionsName + " regions" );
+        regionTable.setName( regionsName + ": regions" );
         regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, firstSources ) );
         final StorageLocation storageLocation = new StorageLocation();
         storageLocation.data = regionTable;
@@ -222,10 +221,21 @@ public class CollectionTableDataSetter
                 new RegionDisplay<>( regionTable.name() );
         regionDisplay.sources = new LinkedHashMap<>();
         regionDisplay.tableSource = regionTable.name();
-        regionDisplay.showAsBoundaries( true );
-        regionDisplay.setBoundaryThickness( 0.05 );
-        regionDisplay.boundaryThicknessIsRelative( true );
-        regionDisplay.setRelativeDilation( 2 * regionDisplay.getBoundaryThickness() );
+
+        if ( isGrid )
+        {
+            regionDisplay.showAsBoundaries( true );
+            regionDisplay.setBoundaryThickness( 0.05 );
+            regionDisplay.boundaryThicknessIsRelative( true );
+            // TODO: The below "relativeDilation" is used in TableSawAnnotatedRegionCreator
+            //       Here the dilation is really relative for each region.
+            //       If the regions are not painted at boundaries, this relative dilation looks ugly.
+            regionDisplay.setRelativeDilation( 2 * regionDisplay.getBoundaryThickness() );
+        }
+        else
+        {
+            regionDisplay.setOverlap( true );
+        }
 
         for ( String source : firstSources )
             regionDisplay.sources.put( source, Collections.singletonList( source ) );
@@ -423,7 +433,7 @@ public class CollectionTableDataSetter
         return null;
     }
 
-    private String getName( Row row )
+    private String getDataName( Row row )
     {
         String name;
         try {
@@ -586,7 +596,14 @@ public class CollectionTableDataSetter
         if ( row.columnNames().contains( CollectionTableConstants.GRID  ) )
             return getString( row, CollectionTableConstants.GRID );
 
-        return getName( row );
+        // FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/1244
+        if ( row.columnNames().contains( CollectionTableConstants.VIEW  ) )
+            return getString( row, CollectionTableConstants.VIEW ) + ": " + getDataName( row );
+
+        //  String shortViewName = getViewName( row ).substring( 0, Math.min( 10, getViewName( row ).length() ) );
+        //  return shortViewName + ": " + getDataName( row );
+        // TODO: We cannot call  getViewName( row ) here, because that is recursive and will call getDisplayName !
+        return getDataName( row );
     }
 
     private double[] getContrastLimits( Row row )

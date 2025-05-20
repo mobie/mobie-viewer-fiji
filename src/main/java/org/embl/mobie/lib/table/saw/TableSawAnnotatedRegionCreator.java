@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class TableSawAnnotatedRegionCreator implements TableSawAnnotationCreator< TableSawAnnotatedImages >
+public class TableSawAnnotatedRegionCreator implements TableSawAnnotationCreator< TableSawAnnotatedRegion >
 {
 	private final Map< String, List< String > > regionIdToImageNames;
 	private final int timePointColumnIndex;
@@ -56,7 +56,7 @@ public class TableSawAnnotatedRegionCreator implements TableSawAnnotationCreator
 	}
 
 	@Override
-	public TableSawAnnotatedImages create( TableSawAnnotationTableModel< TableSawAnnotatedImages > model, int rowIndex )
+	public TableSawAnnotatedRegion create( TableSawAnnotationTableModel< TableSawAnnotatedRegion > model, int rowIndex )
 	{
 		final Table table = model.getTable();
 
@@ -68,7 +68,7 @@ public class TableSawAnnotatedRegionCreator implements TableSawAnnotationCreator
 
 		final String uuid = timePoint + ";" + regionId;
 
-		return new TableSawAnnotatedImages( model, rowIndex, regionIdToImageNames.get( regionId ), timePoint, regionId, labelId, uuid, relativeDilation );
+		return new TableSawAnnotatedRegion( model, rowIndex, regionIdToImageNames.get( regionId ), timePoint, regionId, labelId, uuid, relativeDilation );
 	}
 
 	@Override

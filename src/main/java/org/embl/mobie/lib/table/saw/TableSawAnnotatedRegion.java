@@ -40,7 +40,7 @@ import org.embl.mobie.lib.util.MoBIEHelper;
 import java.util.List;
 import java.util.Set;
 
-public class TableSawAnnotatedImages extends AbstractTableSawAnnotation implements AnnotatedRegion, ImageListener
+public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implements AnnotatedRegion, ImageListener
 {
 	private final List< String > imageNames;
 	private final String uuid;
@@ -53,8 +53,8 @@ public class TableSawAnnotatedImages extends AbstractTableSawAnnotation implemen
 	private Set< Image< ? > > images;
 	private final double relativeDilation;
 
-	public TableSawAnnotatedImages(
-			final TableSawAnnotationTableModel< TableSawAnnotatedImages > model,
+	public TableSawAnnotatedRegion(
+			final TableSawAnnotationTableModel< TableSawAnnotatedRegion > model,
 			final int rowIndex,
 			final List< String > imageNames,
 			final Integer timePoint,

@@ -1,0 +1,3 @@
+uri	view
+blobs.tif	blobs1
+blobs.tif	blobs2

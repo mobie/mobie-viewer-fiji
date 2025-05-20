@@ -520,7 +520,7 @@ public class ViewManager
 				// ...as normally a display should visualise an existing image
 				// here however the display creates the image
 				// The imageNames that are referred to here must exist in this view.
-				// Thus the {@code RegionAnnotationImage} must be build
+				// Thus, the {@code RegionAnnotationImage} must be built
 				// *after* the above transformations,
 				// which may create new images
 				// that could be referred to here.
