@@ -50,19 +50,32 @@ public class AnnotatedRegionsOverlay< AR extends AnnotatedRegion >
 	private final String annotationColumn;
 	private BdvOverlaySource< AnnotatedRegionsOverlay > overlaySource;
 	public static final int MAX_FONT_SIZE = 20;
-	private static final Font font = new Font( "Monospaced", Font.PLAIN, MAX_FONT_SIZE );
+	private static Font font;
 	private AffineTransform3D viewerTransform;
-	private ArrayList< OverlayItem > overlayItems = new ArrayList<>();
+    private final int fontSize;
+    private ArrayList< OverlayItem > overlayItems = new ArrayList<>();
 	private long start;
 
 	public AnnotatedRegionsOverlay(
 			SliceViewer sliceViewer,
 			ArrayList< AR > annotations,
-			String annotationColumn )
+			String annotationColumn,
+			int fontSize // -1 for auto
+	)
 	{
 		this.sliceViewer = sliceViewer;
 		this.annotations = annotations;
 		this.annotationColumn = annotationColumn;
+		this.fontSize = fontSize;
+
+		if ( fontSize > 0 )
+		{
+			font = new Font( "Monospaced", Font.PLAIN, fontSize );
+		}
+		else
+		{
+			font = new Font( "Monospaced", Font.PLAIN, MAX_FONT_SIZE );
+		}
 
 		this.overlaySource = BdvFunctions.showOverlay(
 				this,
@@ -71,7 +84,7 @@ public class AnnotatedRegionsOverlay< AR extends AnnotatedRegion >
 
 		this.viewerTransform = sliceViewer.getBdvHandle().getViewerPanel().state().getViewerTransform();
 
-		sliceViewer.getBdvHandle().getViewerPanel().transformListeners().add( this );
+        sliceViewer.getBdvHandle().getViewerPanel().transformListeners().add( this );
 
 		// The below seems needed probably due a bug:
 		// https://imagesc.zulipchat.com/#narrow/stream/327326-BigDataViewer/topic/BdvOverlay.20and.20Timepoints
@@ -140,7 +153,8 @@ public class AnnotatedRegionsOverlay< AR extends AnnotatedRegion >
 						g,
 						bounds,
 						annotatedRegion.getValue( annotationColumn ).toString(),
-						g.getFont()
+						font,
+						fontSize
 				);
 
 				overlayItems.add( newItem );

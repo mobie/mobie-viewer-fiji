@@ -25,24 +25,31 @@ public class OverlayHelper
         g.setColor( Color.WHITE );
         g.setFont( item.font ); // <= this is slow
         g.drawString( item.text, item.x, item.y );
+
+        int y = item.y - item.font.getSize() / 2;
+        // g.drawLine(item.x - 25, y, item.x - 5, y); // https://github.com/mobie/mobie-viewer-fiji/issues/1246
     }
 
     public static OverlayItem itemFromBounds(
             Graphics2D g,
             FinalRealInterval bounds,
             String text,
-            final Font font )
+            final Font font,
+            int fontSize )
     {
         final double width = bounds.realMax( 0 ) - bounds.realMin( 0 );
         final double center = ( bounds.realMax( 0 ) + bounds.realMin( 0 ) ) / 2.0;
 
         g.setFont( font );
 
-        if ( g.getFontMetrics().stringWidth( text ) > width )
+        if ( fontSize < 0 ) // adaptive font size
         {
-            float adaptedFontSize = (float) ( font.getSize() * ( 1.0 * width / g.getFontMetrics().stringWidth( text ) ) );
-            Font adaptedFont = font.deriveFont( adaptedFontSize );
-            g.setFont( adaptedFont );
+            if ( g.getFontMetrics().stringWidth( text ) > width )
+            {
+                float adaptedFontSize = ( float ) ( font.getSize() * ( 1.0 * width / g.getFontMetrics().stringWidth( text ) ) );
+                Font adaptedFont = font.deriveFont( adaptedFontSize );
+                g.setFont( adaptedFont );
+            }
         }
 
         final OverlayItem item = new OverlayItem();

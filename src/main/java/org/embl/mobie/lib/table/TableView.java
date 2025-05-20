@@ -182,13 +182,17 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		if ( display instanceof RegionDisplay )
 		{
+			// Show a default AnnotationOverlay
+
 			if ( annotationOverlay != null )
 				annotationOverlay.close();
 
 			annotationOverlay = new AnnotatedRegionsOverlay(
 					sliceViewer,
 					tableModel.annotations(),
-					ColumnNames.REGION_ID );
+					ColumnNames.REGION_ID,
+					-1
+			);
 		}
 	}
 
@@ -505,11 +509,9 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		SwingUtilities.invokeLater( () ->
 		{
-			final String annotationColumn = UserInterfaceHelper.selectColumnNameUI(
-					jTable,
-					"Annotation column" );
+			AnnotationOverlayDialog dialog = new AnnotationOverlayDialog( tableModel.columnNames() );
 
-			if ( annotationColumn == null )
+			if ( ! dialog.show() )
 				return;
 
 			if ( annotationOverlay != null )
@@ -519,11 +521,18 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 			if ( tableModel.annotations().get( 0 ) instanceof AnnotatedRegion )
 			{
-				annotationOverlay = new AnnotatedRegionsOverlay( sliceViewer, tableModel.annotations(), annotationColumn );
+				annotationOverlay = new AnnotatedRegionsOverlay(
+						sliceViewer,
+						tableModel.annotations(),
+						dialog.getColumnName(),
+						dialog.getFontSize() );
 			}
 			else
 			{
-				annotationOverlay = new AnnotatedSegmentsOrSpotsOverlay( sliceViewer, tableModel.annotations(), annotationColumn );
+				annotationOverlay = new AnnotatedSegmentsOrSpotsOverlay(
+						sliceViewer,
+						tableModel.annotations(),
+						dialog.getColumnName() );
 			}
 		});
 	}
