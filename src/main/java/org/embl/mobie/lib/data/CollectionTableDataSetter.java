@@ -44,6 +44,8 @@ public class CollectionTableDataSetter
     private final Map< String, Boolean > viewToExclusive = new LinkedHashMap<>();
     private final Map< String, List< Transformation > > viewToTransformations = new LinkedHashMap<>();
     private final Map< String, Integer > sourceToRowIndex = new HashMap<>();
+    private final Map< Integer, String > rowToSourceName = new HashMap<>();
+
 
     public CollectionTableDataSetter( Table table, String rootPath )
     {
@@ -63,20 +65,17 @@ public class CollectionTableDataSetter
         table.forEach( row ->
         {
             IJ.log("Adding source " + ( sourceIndex.incrementAndGet() ) + "/" + numRows + "...");
-            
+
             String sourceName = getDataName( row );
             String displayName = getDisplayName( row );
-            // FIXME What should happen here?
-            if ( sourceToRowIndex.containsKey( sourceName ) )
-            {
-                IJ.log( "[WARN] The collection table contains " + sourceName + " multiple times" );
-            }
-            sourceToRowIndex.put( sourceName, row.getRowNumber() );
-
-            addSource( dataset, row, sourceName, displays, displayName );
-
             String viewName = getViewName( row );
             String gridName = getGridId( row );
+            IJ.log("  Name: " + sourceName );
+            IJ.log("  Display: " + displayName );
+            IJ.log("  View: " + viewName );
+            sourceToRowIndex.put( sourceName, row.getRowNumber() );
+            addSource( dataset, row, sourceName, displays, displayName );
+
             if ( gridName != null )
             {
                 viewToGrids.computeIfAbsent( viewName, k -> new HashSet<>() ).add( gridName );
@@ -341,10 +340,6 @@ public class CollectionTableDataSetter
                 displays.put( display.getName(), display );
             }
         }
-
-        IJ.log("  Name: " + sourceName );
-        IJ.log("  URI: " + storageLocation.absolutePath );
-        IJ.log("  Type: " + dataType );
     }
 
     @NotNull
@@ -435,6 +430,11 @@ public class CollectionTableDataSetter
 
     private String getDataName( Row row )
     {
+        // Without that, there can be recursive errors because
+        // this function is called several times for one row.
+        if ( rowToSourceName.containsKey( row.getRowNumber() ) )
+            return rowToSourceName.get( row.getRowNumber()  );
+
         String name;
         try {
             name = getString( row, CollectionTableConstants.NAME );
@@ -448,6 +448,20 @@ public class CollectionTableDataSetter
 
         Integer channel = getChannelIndex( row );
         if ( channel != null ) name = name + Constants.CHANNEL_POSTFIX + channel;
+
+        if ( sourceToRowIndex.containsKey( name ) )
+        {
+            IJ.log( "[WARN] The collection table contains the dataset \"" + name + "\" multiple times." );
+            int duplicateCount = 1;
+            String originalSourceName = name;
+            while ( sourceToRowIndex.containsKey( name ) )
+            {
+                duplicateCount++;
+                name = originalSourceName + " (" + duplicateCount + ")";
+            }
+        }
+
+        rowToSourceName.put( row.getRowNumber(), name );
 
         return name;
     }
@@ -596,13 +610,9 @@ public class CollectionTableDataSetter
         if ( row.columnNames().contains( CollectionTableConstants.GRID  ) )
             return getString( row, CollectionTableConstants.GRID );
 
-        // FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/1244
         if ( row.columnNames().contains( CollectionTableConstants.VIEW  ) )
             return getString( row, CollectionTableConstants.VIEW ) + ": " + getDataName( row );
 
-        //  String shortViewName = getViewName( row ).substring( 0, Math.min( 10, getViewName( row ).length() ) );
-        //  return shortViewName + ": " + getDataName( row );
-        // TODO: We cannot call  getViewName( row ) here, because that is recursive and will call getDisplayName !
         return getDataName( row );
     }
 

@@ -53,6 +53,20 @@ public class OpenCollectionTableCommandTest
     }
 
     @Test
+    public void largeAndSmallBlobs()
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri ="src/test/resources/collections/blobs-large-and-small-collection.txt";
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseBelowDataRootFolder;
+        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
+        command.run();
+    }
+
+    @Test
     public void addImageTwice()
     {
         final ImageJ imageJ = new ImageJ();
@@ -217,9 +231,10 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().spots3dWith20000Columns();
         //new OpenCollectionTableCommandTest.createLargeSpotsTable();
         //new OpenCollectionTableCommandTest().addImageTwice();
-        new OpenCollectionTableCommandTest().clem();
+        //new OpenCollectionTableCommandTest().clem();
         //new OpenCollectionTableCommandTest().singleBlobs();
-        //new OpenCollectionTableCommandTest().twoSameBlobs(); // FIXME: throw a real error?
+        new OpenCollectionTableCommandTest().twoSameBlobs(); // FIXME: throw a real error?
+        //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
     }
 
 }

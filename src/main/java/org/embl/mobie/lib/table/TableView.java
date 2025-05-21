@@ -541,10 +541,9 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		SwingUtilities.invokeLater( () ->
 		{
-			final String annotationColumn = UserInterfaceHelper.selectColumnNameUI(
-					jTable,
-					"Annotation column" );
-			continueAnnotation( annotationColumn );
+			ColumnSelectionDialog dialog = new ColumnSelectionDialog( tableModel.columnNames() );
+			if ( ! dialog.show() ) return;
+			continueAnnotation( dialog.getColumnName() );
 		});
 	}
 

@@ -4,18 +4,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public class AnnotationOverlayDialog
+public class ColumnSelectionDialog
 {
     private static String lut;
     private static String columnName;
-    private static int fontSize = -1;
     private final List< String > columnNames;
     private JComboBox< String > columnComboBox;
-    private JComboBox< String > lutComboBox;
-    private JTextField fontSizeField;
     private boolean isOkPressed;
 
-    public AnnotationOverlayDialog( List< String > columnNames )
+    public ColumnSelectionDialog( List< String > columnNames )
     {
         this.columnNames = columnNames;
     }
@@ -24,12 +21,10 @@ public class AnnotationOverlayDialog
     {
         // Show dialog
         //
-        JDialog dialog = new JDialog( ( Frame ) null, "Annotation Overlay", true );
+        JDialog dialog = new JDialog( ( Frame ) null, "Select Column", true );
         dialog.setLayout( new BoxLayout( dialog.getContentPane(), BoxLayout.Y_AXIS ) );
 
         addColumnSelection( dialog );
-
-        addFontSizeField( dialog );
 
         addOKCancelButton( dialog );
 
@@ -47,7 +42,6 @@ public class AnnotationOverlayDialog
 
         // remember for next time building the UI
         columnName = getColumnName();
-        fontSize = getFontSize();
 
         return true;
     }
@@ -76,21 +70,10 @@ public class AnnotationOverlayDialog
         } );
     }
 
-    private void addFontSizeField( JDialog dialog )
-    {
-        JPanel panel = SwingHelper.horizontalFlowLayoutPanel();
-        fontSizeField = new JTextField( "     " + fontSize );
-        fontSizeField.setToolTipText("Set the font size for annotation overlay. Use -1 for automatic adaptive sizing.");
-        panel.add( new JLabel("Font size: ") );
-        panel.add( fontSizeField );
-        dialog.add( panel );
-    }
-
     private void addColumnSelection( JDialog dialog )
     {
         JPanel panel = SwingHelper.horizontalFlowLayoutPanel();
         columnComboBox = new JComboBox<>( columnNames.toArray(new String[0]) );
-        columnComboBox.setSelectedItem( columnName );
         Dimension maximumSize = new Dimension( 300, 20 );
         columnComboBox.setMaximumSize( maximumSize );
         panel.add( new JLabel("Column:  ") );
@@ -103,9 +86,5 @@ public class AnnotationOverlayDialog
         return (String) columnComboBox.getSelectedItem();
     }
 
-    public int getFontSize()
-    {
-        return Integer.parseInt( fontSizeField.getText().trim() );
-    }
 }
 
