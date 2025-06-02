@@ -183,6 +183,21 @@ public class OpenCollectionTableCommandTest
         command.run();
     }
 
+    @Test
+    public void blobsWithDates( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = "src/test/resources/collections/blobs-with-dates-collection.txt";
+        // FIXME: Make this work with relative paths
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseBelowDataRootFolder;
+        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
+        command.run();
+    }
+
     private static void createLargeSpotsTable() {
         int rows = 100;
         int columns = 20000;
@@ -233,7 +248,7 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().addImageTwice();
         //new OpenCollectionTableCommandTest().clem();
         //new OpenCollectionTableCommandTest().singleBlobs();
-        new OpenCollectionTableCommandTest().twoSameBlobs(); // FIXME: throw a real error?
+        new OpenCollectionTableCommandTest().blobsWithDates();
         //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
     }
 

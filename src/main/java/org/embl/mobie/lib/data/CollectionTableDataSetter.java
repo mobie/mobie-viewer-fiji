@@ -452,7 +452,7 @@ public class CollectionTableDataSetter
         if ( sourceToRowIndex.containsKey( name ) )
         {
             IJ.log( "[WARN] The collection table contains the dataset \"" + name + "\" multiple times." );
-            int duplicateCount = 1;
+            int duplicateCount = 0;
             String originalSourceName = name;
             while ( sourceToRowIndex.containsKey( name ) )
             {

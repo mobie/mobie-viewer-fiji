@@ -257,7 +257,10 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		final ColumnType type = table.column( columnName ).type();
 		final Class< ? > columnClass = TableSawColumnTypes.typeToClass.get( type );
 		if ( columnClass == null )
-			throw new RuntimeException("Could determine the class of column " + columnName );
+		{
+			System.out.println( "Could not determine the class of column \"" + columnName + "\" using \"String\"" );
+			return String.class;
+		}
 		return columnClass;
 	}
 
