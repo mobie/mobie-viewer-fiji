@@ -198,6 +198,50 @@ public class OpenCollectionTableCommandTest
         command.run();
     }
 
+    @Test
+    public void boatsPNG( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = "src/test/resources/collections/boats-png-collection.txt";
+        // FIXME: Make this work with relative paths
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseBelowDataRootFolder;
+        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
+        command.run();
+    }
+
+    @Test
+    public void mrc( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = "src/test/resources/collections/mrc-collection.txt";
+        // FIXME: Make this work with relative paths
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseBelowDataRootFolder;
+        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
+        command.run();
+    }
+
+
+    public static void main( String[] args )
+    {
+        //new OpenCollectionTableCommandTest().simple();
+        //new OpenCollectionTableCommandTest().spots3D();
+        //new OpenCollectionTableCommandTest().spots3dWith20000Columns();
+        //new OpenCollectionTableCommandTest.createLargeSpotsTable();
+        //new OpenCollectionTableCommandTest().addImageTwice();
+        //new OpenCollectionTableCommandTest().clem();
+        //new OpenCollectionTableCommandTest().singleBlobs();
+        new OpenCollectionTableCommandTest().mrc();
+        //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
+    }
+
     private static void createLargeSpotsTable() {
         int rows = 100;
         int columns = 20000;
@@ -239,17 +283,5 @@ public class OpenCollectionTableCommandTest
         }
     }
 
-    public static void main( String[] args )
-    {
-        //new OpenCollectionTableCommandTest().simple();
-        //new OpenCollectionTableCommandTest().spots3D();
-        //new OpenCollectionTableCommandTest().spots3dWith20000Columns();
-        //new OpenCollectionTableCommandTest.createLargeSpotsTable();
-        //new OpenCollectionTableCommandTest().addImageTwice();
-        //new OpenCollectionTableCommandTest().clem();
-        //new OpenCollectionTableCommandTest().singleBlobs();
-        new OpenCollectionTableCommandTest().blobsWithDates();
-        //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
-    }
 
 }

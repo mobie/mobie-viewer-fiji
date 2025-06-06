@@ -9,7 +9,7 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>6.3.6</version>  <!-- -SNAPSHOT -->
+    <version>6.3.8-SNAPSHOT</version>  <!-- -SNAPSHOT -->
 
     <!--  https://sites.imagej.net/MoBIE/-->
 
@@ -89,8 +89,8 @@
         <!-- FIXME: Just for testing https://github.com/bigdataviewer/bigdataviewer-core/pull/205 -->
         <!--        <bigdataviewer-core.version>10.6.5-TISCHI</bigdataviewer-core.version>-->
 
-        <mobie-io.version>4.0.3</mobie-io.version>
-        <bigdataviewer-playground.version>0.11.0</bigdataviewer-playground.version>
+        <mobie-io.version>4.0.5</mobie-io.version>
+        <bigdataviewer-playground.version>0.11.1</bigdataviewer-playground.version>
         <bvv-playground.version>0.3.4</bvv-playground.version>
 
         <annotations.version>16.0.2</annotations.version>
