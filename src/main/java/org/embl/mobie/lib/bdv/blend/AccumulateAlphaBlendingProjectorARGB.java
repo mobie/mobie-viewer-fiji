@@ -128,10 +128,7 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 		{
 			int aAccu = 0, rAccu = 0, gAccu = 0, bAccu = 0;
 
-
-			// TODO: if there is only one andBlending don't do anything
-			int numAndBlending = 0;
-			boolean isAndBlending = true;
+			boolean excludeAndBlenders = false;
 			for ( int sourceIndex : order )
 			{
 				if ( andBlending[ sourceIndex ] )
@@ -144,19 +141,18 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 
 					if ( r == 0 && g == 0 && b == 0 )
 					{
-						isAndBlending = false;
+						// One of the andBlenders is zero, thus they should not be shown
+						excludeAndBlenders = true;
 						break;
 					}
 				}
 			}
 
-			if ( isAndBlending && numAndBlending > 1 )
-			{
-				return ARGBType.rgba( 255, 255, 255, aAccu );
-			}
-
 			for ( int sourceIndex : order )
 			{
+				if ( excludeAndBlenders && andBlending[ sourceIndex ] )
+					continue;
+
 				final int argb = accesses[ sourceIndex ].get().get();
 				final double alpha = ARGBType.alpha( argb ) / 255.0;
 				if ( alpha == 0 ) continue;
