@@ -264,6 +264,7 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 					}
 					else
 					{
+						// TODO: We could simplify this by rescaling the values before adding them to the tree.
 						// https://forum.image.sc/t/anisotropic-radiusneighborsearchonkdtree/111934
 						// for all neighbors
 						// compute the normalised ellipsoid distances and keep the closest if it is smaller than 1

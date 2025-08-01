@@ -36,6 +36,7 @@ import net.imglib2.Cursor;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.numeric.ARGBType;
+import org.hibernate.event.def.AbstractReassociateEventListener;
 import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
@@ -50,6 +51,8 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 	public static ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();;
 
 	private final boolean[] alphaBlending;
+	private final boolean[] andBlending;
+
 	private final int[] order;
 
 	public AccumulateAlphaBlendingProjectorARGB(
@@ -60,6 +63,7 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 	{
 		super( sourceProjectors, sourceScreenImages, target );
 		alphaBlending = getAlphaBlending( sources );
+		andBlending = getAndBlending( sources );
 		order = getOrder( sources );
 	}
 
@@ -81,6 +85,7 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 	{
 		final int numSources = sources.size();
 		final boolean[] alphaBlending = new boolean[ numSources ];
+
 		final String blendingModeKey = BlendingMode.class.getName();
 		for ( int sourceIndex = 0; sourceIndex < numSources; sourceIndex++ )
 		{
@@ -91,20 +96,64 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 		return alphaBlending;
 	}
 
+	// TODO: for efficiency this could be combined with getAlphaBlending
+	public static synchronized boolean[] getAndBlending( List< SourceAndConverter< ? > > sources )
+	{
+		final int numSources = sources.size();
+		final boolean[] andBlending = new boolean[ numSources ];
+
+		final String blendingModeKey = BlendingMode.class.getName();
+		for ( int sourceIndex = 0; sourceIndex < numSources; sourceIndex++ )
+		{
+			final BlendingMode blendingMode = ( BlendingMode ) sacService.getMetadata( sources.get( sourceIndex ), blendingModeKey );
+			 if ( blendingMode.equals( BlendingMode.AND ) )
+				andBlending[ sourceIndex ] = true;
+
+		}
+		return andBlending;
+	}
+
 	@Override
 	protected void accumulate(
 			final Cursor< ? extends ARGBType >[] accesses,
 			final ARGBType target )
 	{
-		final int argbIndex = getArgbIndex( accesses, alphaBlending, order );
+		final int argbIndex = getArgbIndex( accesses, alphaBlending, andBlending, order );
 		target.set( argbIndex );
 	}
 
-	public static int getArgbIndex( Cursor< ? extends ARGBType >[] accesses, boolean[] alphaBlending, int[] order )
+	public static int getArgbIndex( Cursor< ? extends ARGBType >[] accesses, boolean[] alphaBlending, boolean[] andBlending, int[] order )
 	{
 		try
 		{
 			int aAccu = 0, rAccu = 0, gAccu = 0, bAccu = 0;
+
+
+			// TODO: if there is only one andBlending don't do anything
+			int numAndBlending = 0;
+			boolean isAndBlending = true;
+			for ( int sourceIndex : order )
+			{
+				if ( andBlending[ sourceIndex ] )
+				{
+					numAndBlending++;
+					final int argb = accesses[ sourceIndex ].get().get();
+					final int r = ARGBType.red( argb );
+					final int g = ARGBType.green( argb );
+					final int b = ARGBType.blue( argb );
+
+					if ( r == 0 && g == 0 && b == 0 )
+					{
+						isAndBlending = false;
+						break;
+					}
+				}
+			}
+
+			if ( isAndBlending && numAndBlending > 1 )
+			{
+				return ARGBType.rgba( 255, 255, 255, aAccu );
+			}
 
 			for ( int sourceIndex : order )
 			{
@@ -127,10 +176,6 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 				gAccu += g * alpha;
 				bAccu += b * alpha;
 			}
-
-//			rAccu /= accesses.length;
-//			gAccu /= accesses.length;
-//			bAccu /= accesses.length;
 
 			if ( rAccu > 255 )
 				rAccu = 255;

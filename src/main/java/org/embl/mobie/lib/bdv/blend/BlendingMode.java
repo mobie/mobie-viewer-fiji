@@ -57,6 +57,8 @@ public enum BlendingMode
 	Sum,
 	@SerializedName("alpha")
 	Alpha,
+	@SerializedName("AND")
+	AND,
 	@SerializedName("sumOccluding") @Deprecated
 	SumOccluding,
 	@SerializedName("average") @Deprecated

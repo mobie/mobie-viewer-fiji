@@ -30,6 +30,7 @@ package org.embl.mobie.lib.serialize.display;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
+import ij.ImagePlus;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
@@ -90,7 +91,7 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		this.resolution3dView = resolution3dView;
 	}
 
-	private void setContrastLimits()
+	private void initContrastLimits()
 	{
 		for ( String source : sources )
 			sourceToContrastLimits.put( source, contrastLimits );
@@ -167,7 +168,7 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	public double[] getContrastLimits( String source )
 	{
 		if ( sourceToContrastLimits.isEmpty() )
-			setContrastLimits();
+			initContrastLimits();
 
 		return sourceToContrastLimits.get( source );
 	}
