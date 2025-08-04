@@ -36,7 +36,6 @@ import net.imglib2.Cursor;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.numeric.ARGBType;
-import org.hibernate.event.def.AbstractReassociateEventListener;
 import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
@@ -45,7 +44,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< ARGBType, ARGBType >
+public class MoBIEAccumulateProjectorARGB extends AccumulateProjector< ARGBType, ARGBType >
 {
 	public static BdvHandle bdvHandle;
 	public static ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();;
@@ -55,7 +54,7 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 
 	private final int[] order;
 
-	public AccumulateAlphaBlendingProjectorARGB(
+	public MoBIEAccumulateProjectorARGB(
 			final List< VolatileProjector > sourceProjectors,
 			final List< SourceAndConverter< ? > > sources,
 			final List< ? extends RandomAccessible< ? extends ARGBType > > sourceScreenImages,
@@ -133,7 +132,6 @@ public class AccumulateAlphaBlendingProjectorARGB extends AccumulateProjector< A
 			{
 				if ( andBlending[ sourceIndex ] )
 				{
-					numAndBlending++;
 					final int argb = accesses[ sourceIndex ].get().get();
 					final int r = ARGBType.red( argb );
 					final int g = ARGBType.green( argb );

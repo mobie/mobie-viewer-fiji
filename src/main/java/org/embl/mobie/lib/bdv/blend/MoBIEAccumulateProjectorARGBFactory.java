@@ -42,7 +42,7 @@ import java.util.concurrent.ExecutorService;
  * For information about this projector, see {@link AccumulateMixedProjectorARGB}
  */
 
-public class AccumulateAlphaBlendingProjectorARGBFactory implements AccumulateProjectorFactory< ARGBType >
+public class MoBIEAccumulateProjectorARGBFactory implements AccumulateProjectorFactory< ARGBType >
 {
 	public VolatileProjector createProjector(
 			List< VolatileProjector > sourceProjectors,
@@ -52,13 +52,11 @@ public class AccumulateAlphaBlendingProjectorARGBFactory implements AccumulatePr
 			int numThreads,
 			ExecutorService executorService )
 	{
-		return new AccumulateAlphaBlendingProjectorARGB(
+		return new MoBIEAccumulateProjectorARGB(
 						sourceProjectors,
 						sources,
 						sourceScreenImages,
 						targetScreenImage
 		);
 	}
-
-
 }

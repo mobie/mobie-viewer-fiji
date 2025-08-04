@@ -58,7 +58,7 @@ import org.embl.mobie.lib.util.Corners;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.lib.annotation.Annotation;
-import org.embl.mobie.lib.bdv.blend.AccumulateAlphaBlendingProjectorARGB;
+import org.embl.mobie.lib.bdv.blend.MoBIEAccumulateProjectorARGB;
 import net.imglib2.algorithm.util.Grids;
 import net.imglib2.converter.Converter;
 import net.imglib2.img.array.ArrayImgs;
@@ -428,10 +428,10 @@ public class ScreenShotMaker
         final Cursor< ARGBType > argbCursor = Views.iterable( argbTarget ).localizingCursor();
         final int numVisibleSources = argbSources.size();
         Cursor< ARGBType >[] cursors = getCursors( argbSources, numVisibleSources );
-        final boolean[] alphaBlending = AccumulateAlphaBlendingProjectorARGB.getAlphaBlending( sacs );
-        final boolean[] andBlending = AccumulateAlphaBlendingProjectorARGB.getAndBlending( sacs );
+        final boolean[] alphaBlending = MoBIEAccumulateProjectorARGB.getAlphaBlending( sacs );
+        final boolean[] andBlending = MoBIEAccumulateProjectorARGB.getAndBlending( sacs );
 
-        final int[] order = AccumulateAlphaBlendingProjectorARGB.getOrder( sacs );
+        final int[] order = MoBIEAccumulateProjectorARGB.getOrder( sacs );
 
         while ( argbCursor.hasNext() )
         {
@@ -440,7 +440,7 @@ public class ScreenShotMaker
                 argbCursor.fwd();
                 for ( int i = 0; i < numVisibleSources; i++ )
                     cursors[ i ].fwd();
-                final int argbIndex = AccumulateAlphaBlendingProjectorARGB.getArgbIndex( cursors, alphaBlending, andBlending, order );
+                final int argbIndex = MoBIEAccumulateProjectorARGB.getArgbIndex( cursors, alphaBlending, andBlending, order );
                 argbCursor.get().set( argbIndex );
             }
             catch ( Exception e )
