@@ -229,7 +229,8 @@ public class ViewSaverDialog
 
     public String getViewJsonPath()
     {
-        return viewJsonPath.getText();
+        String path = viewJsonPath.getText();
+        return path.endsWith(".json") ? path : path + ".json";
     }
 
     public String getViewGroup()

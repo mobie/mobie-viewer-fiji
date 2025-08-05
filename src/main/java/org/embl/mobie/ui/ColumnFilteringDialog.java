@@ -105,7 +105,7 @@ public class ColumnFilteringDialog
 
     public String getValue()
     {
-        return valueField.getText();
+        return valueField.getText().trim();
     }
 
     public boolean getKeepSelected()
