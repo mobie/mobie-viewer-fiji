@@ -90,7 +90,7 @@ public class ColumnFilteringDialog
     private void addValueField( JDialog dialog )
     {
         JPanel panel = SwingHelper.horizontalFlowLayoutPanel();
-        valueField = new JTextField( "     0.0" );
+        valueField = new JTextField( "                           0" );
         //Dimension maximumSize = new Dimension( 300, 20 );
         //valueField.setMaximumSize( maximumSize );
         panel.add( new JLabel("Value:  ") );

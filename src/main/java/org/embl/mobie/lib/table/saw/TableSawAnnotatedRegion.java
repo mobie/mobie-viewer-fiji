@@ -136,16 +136,16 @@ public class TableSawAnnotatedRegion extends AbstractTableSawAnnotation implemen
 	{
 		if ( mask == null )
 		{
-			// Compute the mask of the images
-			// that are annotated by this region
+			// Compute the mask of the image(s)
+			// that are annotated by this region;
 			RealMaskRealInterval unionMask;
 			if ( images.size() > 1 )
 			{
-				//unionMask = TransformHelper.unionBox( images );
 				unionMask = MoBIEHelper.union( images );
 			}
 			else
 			{
+				// ...often each region is only associated to one image.
 				unionMask = images.iterator().next().getMask();
 			}
 

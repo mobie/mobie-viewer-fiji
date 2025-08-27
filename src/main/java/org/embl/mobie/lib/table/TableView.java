@@ -38,11 +38,7 @@ import org.embl.mobie.lib.bdv.overlay.AnnotatedRegionsOverlay;
 import org.embl.mobie.lib.bdv.overlay.AnnotatedSegmentsOrSpotsOverlay;
 import org.embl.mobie.lib.bdv.overlay.AnnotationOverlay;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
-import org.embl.mobie.lib.color.CategoricalAnnotationColoringModel;
-import org.embl.mobie.lib.color.ColorHelper;
-import org.embl.mobie.lib.color.ColoringListener;
-import org.embl.mobie.lib.color.ColoringModel;
-import org.embl.mobie.lib.color.MobieColoringModel;
+import org.embl.mobie.lib.color.*;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.plot.ScatterPlotSettings;
 import org.embl.mobie.lib.serialize.display.AbstractAnnotationDisplay;
@@ -805,16 +801,20 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		final ColoringModel< A > coloringModel = this.coloringModel.getWrappedColoringModel();
 
-		if ( coloringModel instanceof CategoricalAnnotationColoringModel )
+		String columnName = null;
+		if ( coloringModel instanceof AbstractAnnotationColoringModel )
 		{
-			return ( ( CategoricalAnnotationColoringModel ) coloringModel ).getColumnName();
+			columnName = ( ( AbstractAnnotationColoringModel ) coloringModel ).getColumnName();
 		}
-		else
+
+		if ( columnName == null )
 		{
 			final String msg = "Please first use the [ Color > Color by Column ] menu item to configure the coloring.";
 			IJ.error( msg );
 			throw new UnsupportedOperationException( msg );
 		}
+
+		return columnName;
 	}
 
 	private void addColorByColumnMenuItem( JMenu coloringMenu )
