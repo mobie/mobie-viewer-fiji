@@ -38,6 +38,7 @@ import org.embl.mobie.lib.serialize.display.Display;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
+import org.embl.mobie.lib.serialize.transformation.GridTransformation;
 import org.embl.mobie.lib.serialize.transformation.MergedGridTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.table.TableDataFormat;
@@ -153,7 +154,7 @@ public class HCSDataSetter
 				{
 					if ( plate.getSitesPerWell() > 1 )
 					{
-						// create a site grid to form the well
+						// populate the site grid to form the well
 						//
 						String siteID = getSiteID( plate, channel, well, site );
 						ImageDataSource imageDataSource = createImageDataSource( channel, site, siteID );
@@ -191,7 +192,7 @@ public class HCSDataSetter
 				wellGrid.positions.add( plate.getWellGridPosition( well ) );
 			}
 
-			imageTransforms.add( wellGrid );
+			imageTransforms.add( wellGrid ); // well grid of this channel
 
 			if ( channel.getName().contains( "labels" ) )
 			{
@@ -209,7 +210,7 @@ public class HCSDataSetter
 				wellTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, wellGrid.getSources() ) );
 				wellTable.addColumns( StringColumn.create( "well", wells.stream().map( w -> w.getName() ).collect( Collectors.toList() ) ) );
 			}
-		}
+		} // channels loop
 
 		displays.add( wellRegionsDisplay );
 

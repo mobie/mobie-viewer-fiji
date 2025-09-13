@@ -449,12 +449,6 @@ public class ViewManager
 
 						List< ? extends Image< ? > > images = DataStore.getImageList( mergedGridTransformation.getSources() );
 
-//						if ( images.size() == 1 )
-//						{
-//							DataStore.addImage( images.get( 0 ) );
-//							continue;
-//						}
-
 						// Fetch grid metadata image
 						Image< ? > metadataImage = ( mergedGridTransformation.metadataSource == null ) ? images.get( 0 ) : DataStore.getImage( mergedGridTransformation.metadataSource );
 
