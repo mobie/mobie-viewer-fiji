@@ -109,12 +109,12 @@ public class MoBIE
 	private UserInterface userInterface;
 	private final ArrayList< String > projectCommands = new ArrayList<>();
 
-	public MoBIE( String tableUri, MoBIESettings settings ) throws IOException
+	public MoBIE( String projectUri, MoBIESettings settings ) throws IOException
 	{
-		initImageJAndMoBIE();
-
 		this.settings = settings;
-		this.projectLocation = tableUri;
+		this.projectLocation = projectUri;
+
+		initImageJAndMoBIE();
 
 		if ( settings.values.getS3AccessAndSecretKey() != null )
 		{
@@ -129,7 +129,7 @@ public class MoBIE
 		if ( settings.values.getProjectType().equals( ProjectType.CollectionTable ) )
 		{
 			IJ.log("\n# MoBIE" );
-			IJ.log("Opening collection table: " + tableUri );
+			IJ.log("Opening collection table: " + projectUri );
 
 			// Read the table
 
@@ -142,9 +142,8 @@ public class MoBIE
 			//       but we can check for uri.contains( "docs.google.com/spreadsheets" ) in there
 			//       That is all the code below should go into TableOpener
 
-
-			Table table = TableOpener.open( tableUri );
-			initProject( IOHelper.getFileName( tableUri ) );
+			Table table = TableOpener.open( projectUri );
+			initProject( IOHelper.getFileName( projectUri ) );
 
 			CollectionTableDataSetter dataSetter = new CollectionTableDataSetter( table, settings.values.getDataRoot() );
 			dataSetter.addToDataset( dataset );
@@ -157,7 +156,7 @@ public class MoBIE
 			initTableSaw();
 
 			IJ.log( "\n# MoBIE" );
-			IJ.log( "Opening: " + tableUri );
+			IJ.log( "Opening: " + projectUri );
 			IJ.log( "Branch: " + settings.values.getProjectBranch() );
 
 			openMoBIEProject();
@@ -429,9 +428,9 @@ public class MoBIE
 			entry.getValue().setName( entry.getKey() );
 
 		// log views
-		System.out.println("# Available views");
-		for ( String view : getViews().keySet() )
-			System.out.println( view );
+//		System.out.println("# Available views");
+//		for ( String view : getViews().keySet() )
+//			System.out.println( view );
 
 		// build UI and show view
 		buildUI();

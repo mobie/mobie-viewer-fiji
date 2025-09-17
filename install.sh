@@ -8,8 +8,8 @@
 
 # this script is to be used in combination with https://github.com/mobie/mobie-cmd
 
-# set the version here:
-VERSION="4.0.7-SNAPSHOT"
+# set the version here (must match the current one in pom.xml)
+VERSION="6.3.11-SNAPSHOT"
 MEM=8
 
 mvn clean install -Denforcer.skip -Dmaven.test.skip=true
@@ -20,7 +20,6 @@ echo '' >> mobie-files
 echo "JAR=\$HOME/.m2/repository/org/embl/mobie/mobie-viewer-fiji/${VERSION}/mobie-viewer-fiji-${VERSION}.jar" >> mobie-files
 echo "${JAVA_HOME}/bin/java \\" >> mobie-files
 echo "  -Xmx${MEM}g \\" >> mobie-files
-echo '  -XX:+UseConcMarkSweepGC \' >> mobie-files
 echo -n '  -cp $JAR:' >> mobie-files
 echo -n $(cat cp.txt) >> mobie-files
 echo ' \' >> mobie-files
@@ -34,7 +33,6 @@ echo '' >> mobie-table
 echo "JAR=\$HOME/.m2/repository/org/embl/mobie/mobie-viewer-fiji/${VERSION}/mobie-viewer-fiji-${VERSION}.jar" >> mobie-table
 echo "${JAVA_HOME}/bin/java \\" >> mobie-table
 echo "  -Xmx${MEM}g \\" >> mobie-table
-echo '  -XX:+UseConcMarkSweepGC \' >> mobie-table
 echo -n '  -cp $JAR:' >> mobie-table
 echo -n $(cat cp.txt) >> mobie-table
 echo ' \' >> mobie-table
@@ -48,7 +46,6 @@ echo '' >> mobie-hcs
 echo "JAR=\$HOME/.m2/repository/org/embl/mobie/mobie-viewer-fiji/${VERSION}/mobie-viewer-fiji-${VERSION}.jar" >> mobie-hcs
 echo "${JAVA_HOME}/bin/java \\" >> mobie-hcs
 echo "  -Xmx${MEM}g \\" >> mobie-hcs
-echo '  -XX:+UseConcMarkSweepGC \' >> mobie-hcs
 echo -n '  -cp $JAR:' >> mobie-hcs
 echo -n $(cat cp.txt) >> mobie-hcs
 echo ' \' >> mobie-hcs
@@ -62,7 +59,6 @@ echo '' >> mobie-project
 echo "JAR=\$HOME/.m2/repository/org/embl/mobie/mobie-viewer-fiji/${VERSION}/mobie-viewer-fiji-${VERSION}.jar" >> mobie-project
 echo "${JAVA_HOME}/bin/java \\" >> mobie-project
 echo "  -Xmx${MEM}g \\" >> mobie-project
-echo '  -XX:+UseConcMarkSweepGC \' >> mobie-project
 echo -n '  -cp $JAR:' >> mobie-project
 echo -n $(cat cp.txt) >> mobie-project
 echo ' \' >> mobie-project
