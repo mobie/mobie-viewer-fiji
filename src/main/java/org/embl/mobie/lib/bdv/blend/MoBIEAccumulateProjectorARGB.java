@@ -105,7 +105,7 @@ public class MoBIEAccumulateProjectorARGB extends AccumulateProjector< ARGBType,
 		for ( int sourceIndex = 0; sourceIndex < numSources; sourceIndex++ )
 		{
 			final BlendingMode blendingMode = ( BlendingMode ) sacService.getMetadata( sources.get( sourceIndex ), blendingModeKey );
-			 if ( blendingMode.equals( BlendingMode.AND ) )
+			 if ( blendingMode != null && blendingMode.equals( BlendingMode.AND ) )
 				andBlending[ sourceIndex ] = true;
 
 		}

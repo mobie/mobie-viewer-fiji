@@ -15,7 +15,6 @@ public class OpenCollectionTableCommandTest
 {
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-
     @Test
     public void excelSheet( )
     {
@@ -45,9 +44,8 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri ="src/test/resources/collections/blobs-table.txt";
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseBelowDataRootFolder;
-        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.tableUri = new File("src/test/resources/collections/blobs-table.txt").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -59,9 +57,8 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri ="src/test/resources/collections/blobs-large-and-small-collection.txt";
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseBelowDataRootFolder;
-        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.tableUri = new File("src/test/resources/collections/blobs-large-and-small-collection.txt").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -73,9 +70,8 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri ="src/test/resources/collections/blobs-image-twice-collection.txt";
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseBelowDataRootFolder;
-        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.tableUri = new File("src/test/resources/collections/blobs-image-twice-collection.txt").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -100,10 +96,8 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri = "src/test/resources/collections/blobs-grid-table.txt";
-        // FIXME: Make this work with relative paths
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseBelowDataRootFolder;
-        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.tableUri = new File("src/test/resources/collections/blobs-grid-table.txt").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -115,10 +109,21 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri = "src/test/resources/collections/spots-2d-collection.txt";
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseBelowDataRootFolder;
-        // FIXME: Make this work with relative paths
-        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.tableUri = new File("src/test/resources/collections/spots-2d-collection.txt").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
+        command.run();
+    }
+
+    @Test
+    public void nonConsecutiveSpots2D( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = new File("src/test/resources/collections/spots-2d-collection-non-consecutive.txt").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -130,10 +135,8 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri = "src/test/resources/collections/spots-3d-collection.txt";
-        // FIXME: Make this work with relative paths
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseBelowDataRootFolder;
-        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.tableUri = new File("src/test/resources/collections/spots-3d-collection.txt").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -145,10 +148,8 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri = "src/test/resources/collections/spots-3d-20000-columns-collection.txt";
-        // FIXME: Make this work with relative paths
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseBelowDataRootFolder;
-        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.tableUri = new File("src/test/resources/collections/spots-3d-20000-columns-collection.txt").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -160,10 +161,8 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri = "src/test/resources/collections/blobs-collection.txt";
-        // FIXME: Make this work with relative paths
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseBelowDataRootFolder;
-        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.tableUri = new File("src/test/resources/collections/blobs-collection.txt").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -175,10 +174,8 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri = "src/test/resources/collections/two-same-blobs-collection.txt";
-        // FIXME: Make this work with relative paths
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseBelowDataRootFolder;
-        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.tableUri = new File("src/test/resources/collections/two-same-blobs-collection.txt").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -190,10 +187,8 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri = "src/test/resources/collections/blobs-with-dates-collection.txt";
-        // FIXME: Make this work with relative paths
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseBelowDataRootFolder;
-        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.tableUri = new File("src/test/resources/collections/blobs-with-dates-collection.txt").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -205,10 +200,8 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri = "src/test/resources/collections/boats-png-collection.txt";
-        // FIXME: Make this work with relative paths
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseBelowDataRootFolder;
-        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.tableUri = new File("src/test/resources/collections/boats-png-collection.txt").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -220,27 +213,12 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri = "src/test/resources/collections/mrc-collection.txt";
-        // FIXME: Make this work with relative paths
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseBelowDataRootFolder;
-        command.dataRoot = new File( "/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections" );
+        command.tableUri = new File("src/test/resources/collections/mrc-collection.txt").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
 
-
-    public static void main( String[] args )
-    {
-        //new OpenCollectionTableCommandTest().simple();
-        //new OpenCollectionTableCommandTest().spots3D();
-        //new OpenCollectionTableCommandTest().spots3dWith20000Columns();
-        //new OpenCollectionTableCommandTest.createLargeSpotsTable();
-        //new OpenCollectionTableCommandTest().addImageTwice();
-        //new OpenCollectionTableCommandTest().clem();
-        //new OpenCollectionTableCommandTest().singleBlobs();
-        new OpenCollectionTableCommandTest().mrc();
-        //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
-    }
 
     private static void createLargeSpotsTable() {
         int rows = 100;
@@ -283,5 +261,17 @@ public class OpenCollectionTableCommandTest
         }
     }
 
-
+    public static void main( String[] args )
+    {
+        //new OpenCollectionTableCommandTest().simple();
+        //new OpenCollectionTableCommandTest().spots3D();
+        //new OpenCollectionTableCommandTest().spots3dWith20000Columns();
+        //new OpenCollectionTableCommandTest.createLargeSpotsTable();
+        //new OpenCollectionTableCommandTest().addImageTwice();
+        //new OpenCollectionTableCommandTest().clem();
+        //new OpenCollectionTableCommandTest().singleBlobs();
+        //new OpenCollectionTableCommandTest().mrc();
+        //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
+        new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
+    }
 }

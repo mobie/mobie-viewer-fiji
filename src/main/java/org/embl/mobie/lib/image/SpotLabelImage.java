@@ -139,7 +139,14 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 		mask = GeomMasks.closedBox( imageBoundsMin, imageBoundsMax );
 
 		// create the actual image
-		Type type = selectApropriateType( numAnnotations );
+		long maxLabel = annotations.stream()
+				.mapToLong(a -> a.label())
+				.max()
+				.orElse(-1);
+		if ( maxLabel == -1 )
+			throw new RuntimeException("Could not determine the maximum label of the spots " + name );
+
+		Type type = selectApropriateType( maxLabel );
 		RealRandomAccessible< IntegerType > rra =
 				new FunctionRealRandomAccessible(
 						kdTree.numDimensions(),
@@ -209,7 +216,7 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 	}
 
 	@NotNull
-	private static Type selectApropriateType( int numAnnotations )
+	private static Type selectApropriateType( long numAnnotations )
 	{
 		if ( numAnnotations < new UnsignedShortType().getMaxValue() )
 			return new UnsignedShortType();

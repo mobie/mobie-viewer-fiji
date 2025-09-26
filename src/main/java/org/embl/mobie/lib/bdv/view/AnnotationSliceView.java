@@ -210,7 +210,6 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 			final double[] position = selection.positionAsDoubleArray();
 			if ( position == null ) return;
 			viewerTransform = MoBIEHelper.getViewerTransformWithNewCenter( bdvHandle, position );
-
 		}
 
 		new sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger(

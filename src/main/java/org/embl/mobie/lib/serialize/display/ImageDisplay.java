@@ -124,6 +124,8 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		this.contrastLimits = contrastLimits;
 		this.blendingMode = blendingMode;
 		this.showImagesIn3d = showImagesIn3d;
+
+		initContrastLimits();
 	}
 
 	/*

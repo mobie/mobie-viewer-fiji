@@ -101,10 +101,10 @@ public class BoxSelectionCommand implements BdvPlaygroundActionCommand
             size = MoBIEHelper.getSize( interval );
             center = new double[ 3 ];
             transform.apply( MoBIEHelper.getCenter( interval ), center );
-            IJ.log( "  Center in global coordinate system: " + Arrays.toString( center ) );
-            IJ.log( "  Size in global coordinate system: " + Arrays.toString( size ) );
-            IJ.log( "  Interval: " + Arrays.toString( interval.minAsDoubleArray() ) + ", " + Arrays.toString( interval.maxAsDoubleArray() ) );
-            IJ.log( "  Interval transform to global coordinate system: " + Arrays.toString( transform.getRowPackedCopy() ) );
+            IJ.log( "Center in global coordinate system: " + Arrays.toString( center ) );
+            IJ.log( "Size in global coordinate system: " + Arrays.toString( size ) );
+            IJ.log( "Interval: " + Arrays.toString( interval.minAsDoubleArray() ) + ", " + Arrays.toString( interval.maxAsDoubleArray() ) );
+            IJ.log( "Interval transform to global coordinate system: " + Arrays.toString( transform.getRowPackedCopy() ) );
         }
         else
         {

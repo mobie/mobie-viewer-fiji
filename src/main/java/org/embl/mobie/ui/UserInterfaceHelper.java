@@ -1328,7 +1328,7 @@ public class UserInterfaceHelper
 	private JButton createRemoveButton( Display display )
 	{
 		JButton button = getIconButton( "delete.png" );
-		button.setToolTipText( "Remove dataset" );
+		button.setToolTipText( "Remove layer" );
 
 		button.addActionListener( e ->
 		{

@@ -73,6 +73,7 @@ public class CollectionTableDataSetter
             IJ.log("  Name: " + sourceName );
             IJ.log("  Display: " + displayName );
             IJ.log("  View: " + viewName );
+            if ( gridName != null ) IJ.log("  Grid: " + gridName );
             sourceToRowIndex.put( sourceName, row.getRowNumber() );
             addSource( dataset, row, sourceName, displays, displayName );
 
@@ -154,6 +155,8 @@ public class CollectionTableDataSetter
         {
             Map< String, List< String > > positionToSources = gridToPositionsToSources.get( gridName );
             List< List< String > > nestedSources;
+
+            // FIXME: This is wrong if there are grid_positions given
             if ( positionToSources.size() == 1 )
             {
                 assert  positionToSources.keySet().iterator().next().equals( NO_GRID_POSITION );
