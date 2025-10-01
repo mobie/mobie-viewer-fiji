@@ -83,7 +83,7 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri ="src/test/resources/collections/clem-example-collection.tsv";
+        command.tableUri = new File("src/test/resources/collections/clem-example-collection.tsv").getAbsolutePath();
         command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.PathsInTableAreAbsolute;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
@@ -268,10 +268,10 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().spots3dWith20000Columns();
         //new OpenCollectionTableCommandTest.createLargeSpotsTable();
         //new OpenCollectionTableCommandTest().addImageTwice();
-        //new OpenCollectionTableCommandTest().clem();
+        new OpenCollectionTableCommandTest().clem();
         //new OpenCollectionTableCommandTest().singleBlobs();
         //new OpenCollectionTableCommandTest().mrc();
         //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
-        new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
+        //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
     }
 }

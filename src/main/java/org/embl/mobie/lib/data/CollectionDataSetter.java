@@ -31,7 +31,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class CollectionTableDataSetter
+public class CollectionDataSetter
 {
     public static final String NO_GRID_POSITION = "no grid position";
     private final Table table;
@@ -40,14 +40,14 @@ public class CollectionTableDataSetter
     private final Map< String, String[] > viewToGroups = new LinkedHashMap<>();
     private final Map< String, Set< String > > viewToGrids = new LinkedHashMap<>();
     private final Map< String, Map< String, List< String > > > gridToPositionsToSources = new LinkedHashMap<>();
-    private final Map< String, Set< Display< ? > > > viewToDisplays = new LinkedHashMap<>();
+    private final Map< String, Map< String, Display< ? > > > viewToDisplays = new LinkedHashMap<>();
     private final Map< String, Boolean > viewToExclusive = new LinkedHashMap<>();
     private final Map< String, List< Transformation > > viewToTransformations = new LinkedHashMap<>();
     private final Map< String, Integer > sourceToRowIndex = new HashMap<>();
     private final Map< Integer, String > rowToSourceName = new HashMap<>();
 
 
-    public CollectionTableDataSetter( Table table, String rootPath )
+    public CollectionDataSetter( Table table, String rootPath )
     {
         this.table = table;
         this.rootPath = rootPath;
@@ -57,8 +57,6 @@ public class CollectionTableDataSetter
     {
         if ( ! columnExists( CollectionTableConstants.URI ) )
             throw new RuntimeException( "Column \"" + CollectionTableConstants.URI[0] + "\" must be present in the collection table." );
-
-        Map< String, Display< ? > > displays = new HashMap< String, Display< ? >>();
 
         AtomicInteger sourceIndex = new AtomicInteger();
         int numRows = table.rowCount();
@@ -75,7 +73,10 @@ public class CollectionTableDataSetter
             IJ.log("  View: " + viewName );
             if ( gridName != null ) IJ.log("  Grid: " + gridName );
             sourceToRowIndex.put( sourceName, row.getRowNumber() );
-            addSource( dataset, row, sourceName, displays, displayName );
+
+            viewToDisplays.computeIfAbsent( viewName, k -> new HashMap< String, Display< ? >>() );
+
+            addSource( dataset, row, sourceName, viewToDisplays.get( viewName ), displayName );
 
             if ( gridName != null )
             {
@@ -89,7 +90,6 @@ public class CollectionTableDataSetter
 
             viewToGroups.put( viewName, getGroups( row ) );
             viewToExclusive.put( viewName, getExclusive( row ) );
-            viewToDisplays.computeIfAbsent( viewName, k -> new LinkedHashSet<>() ).add( displays.get( displayName ) );
             viewToTransformations.computeIfAbsent( viewName, k -> new ArrayList<>() ).addAll( getAffineTransformations( sourceName, row ) );
         }); // table rows
 
@@ -102,12 +102,12 @@ public class CollectionTableDataSetter
 
             if ( viewToGrids.containsKey( viewName ) )
             {
-                addGridView( viewName, transformations, displays );
+                addGridView( viewName, transformations );
             }
             else
             {
                 List< List< String > > nestedViewSources = new ArrayList<>();
-                viewToDisplays.get( viewName ).forEach( display ->
+                viewToDisplays.get( viewName ).values().forEach( display ->
                 {
                     display.getSources().forEach(
                             source ->
@@ -116,14 +116,13 @@ public class CollectionTableDataSetter
                 } );
 
                 Display< ? > regionDisplay = createRegionDisplay( viewName, nestedViewSources, false );
-                displays.put( regionDisplay.getName(), regionDisplay );  // TODO: why is this needed?
-                viewToDisplays.get( viewName ).add( regionDisplay );
+                viewToDisplays.get( viewName ).put( regionDisplay.getName(), regionDisplay );
             }
 
             final View view = new View(
                     viewName,
                     viewToGroups.get( viewName ),
-                    new ArrayList<>( viewToDisplays.get( viewName ) ),
+                    new ArrayList<>( viewToDisplays.get( viewName ).values() ),
                     transformations,
                     null,
                     viewToExclusive.get( viewName ),
@@ -148,8 +147,7 @@ public class CollectionTableDataSetter
     }
 
     private void addGridView( String viewName,
-                              ArrayList< Transformation > transformations,
-                              Map< String, Display< ? > > displays )
+                              ArrayList< Transformation > transformations)
     {
         viewToGrids.get( viewName ).forEach( gridName ->
         {
@@ -182,8 +180,7 @@ public class CollectionTableDataSetter
             }
 
             Display< ? > regionDisplay = createRegionDisplay( gridName, nestedSources, true );
-            displays.put( regionDisplay.getName(), regionDisplay );
-            viewToDisplays.get( viewName ).add( regionDisplay );
+            viewToDisplays.get( viewName ).put( regionDisplay.getName(), regionDisplay );
         });
     }
 

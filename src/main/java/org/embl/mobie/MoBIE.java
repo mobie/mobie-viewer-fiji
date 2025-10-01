@@ -145,7 +145,7 @@ public class MoBIE
 			Table table = TableOpener.open( projectUri );
 			initProject( IOHelper.getFileName( projectUri ) );
 
-			CollectionTableDataSetter dataSetter = new CollectionTableDataSetter( table, settings.values.getDataRoot() );
+			CollectionDataSetter dataSetter = new CollectionDataSetter( table, settings.values.getDataRoot() );
 			dataSetter.addToDataset( dataset );
 			dataset.is2D( settings.values.getBdvViewingMode().equals( BdvViewingMode.TwoDimensional ) );
 
