@@ -81,21 +81,33 @@ public class JSONValidator
 			catch ( ValidationException e )
 			{
 				System.out.println("Json Schema validation failed:");
-				System.out.println(e.getMessage());
-				e.getCausingExceptions().stream()
-						.map(ValidationException::getMessage)
-						.forEach(System.out::println);
-				System.out.println("End Json Schema Errors:");
+				printValidationErrors( e );
+				System.out.println("End Json Schema Errors.");
+
 				return false;
 			}
 		} catch ( FileNotFoundException e )
 		{
 			e.printStackTrace();
-		} catch ( IOException ioException )
+		}
+		catch ( IOException ioException )
 		{
 			ioException.printStackTrace();
 		}
 		return true;
+	}
+
+	private static void printValidationErrors( ValidationException e ) {
+		if (e.getCausingExceptions().isEmpty()) {
+			// This is a leaf node: print the actual error
+			System.out.println("At: " + e.getPointerToViolation());
+			System.out.println("Error: " + e.getMessage());
+		} else {
+			// Recurse for all child exceptions
+			for (ValidationException ve : e.getCausingExceptions()) {
+				printValidationErrors(ve);
+			}
+		}
 	}
 }
 

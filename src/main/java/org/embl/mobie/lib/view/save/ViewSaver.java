@@ -31,6 +31,7 @@ package org.embl.mobie.lib.view.save;
 import ij.IJ;
 import ij.gui.GenericDialog;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.create.ui.ViewSaverDialog;
 import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
@@ -50,10 +51,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.embl.mobie.io.util.IOHelper.getFileNames;
 import static org.embl.mobie.lib.view.save.ViewSavingHelper.writeAdditionalViewsJson;
 import static org.embl.mobie.lib.view.save.ViewSavingHelper.writeDatasetJson;
 import static org.embl.mobie.io.github.GitHubUtils.isGithub;
-import static org.embl.mobie.io.util.IOHelper.getFileNames;
 
 public class ViewSaver
 {
@@ -256,7 +257,7 @@ public class ViewSaver
 
     private String chooseAdditionalViewsJson( ) {
         String additionalViewsDirectory = moBIE.absolutePath( "misc", "views");
-        String[] existingViewFiles = getFileNames( additionalViewsDirectory );
+        String[] existingViewFiles = IOHelper.getFileNames( additionalViewsDirectory );
 
         String jsonFileName = null;
         if ( existingViewFiles != null && existingViewFiles.length > 0 ) {

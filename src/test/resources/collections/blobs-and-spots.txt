@@ -1,4 +1,4 @@
-uri	name	type	affine	contrast_limits	view	labels_table	exclusive
-blobs.tif	BLOBS	intensities	(10,0,0,0,0,10,0,0,0,0,1,0)	"(20;200)"	segmented blobs		TRUE
-blobs-labels.tif		labels	(10,0,0,0,0,10,0,0,0,0,1,0)		segmented blobs	blobs-labels.csv	TRUE
-mri-stack		intensities	(10,0,0,0,0,10,0,0,0,0,100,0)	"(20;150)"	mri		TRUE
+uri	name	type	affine	contrast_limits	view	exclusive	test
+blobs.tif	BLOBS	intensities	"(10,0,0,0,0,10,0,0,0,0,1,0)"	(20;200)	segmented blobs	TRUE	foo
+blobs-labels.tif		labels	"(10,0,0,0,0,10,0,0,0,0,1,0)"		segmented blobs	TRUE	bar
+mri-stack		intensities	"(10,0,0,0,0,10,0,0,0,0,100,0)"	(20;150)	mri	TRUE	foo

@@ -28,7 +28,7 @@ public class ContrastComputer
         ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, "" );
         screenShotMaker.run(
                 Collections.singletonList( sourceAndConverter ),
-                downSampling * viewerVoxelSpacing // times 16 to make it faster
+                downSampling * viewerVoxelSpacing
         );
         imagePlus = screenShotMaker.getCompositeImagePlus();
         Roi[] rois = screenShotMaker.getMasks();

@@ -90,7 +90,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private int[][] tileDimensions;
 	private double[][] downSamplingFactors;
 	private double[][] mipmapScales;
-	private double[][] marginTranslations;
+	private double[][] margins;
 	private HashMap< Integer, AffineTransform3D > levelToSourceTransform;
 	private HashMap< Integer, long[] > levelToSourceDimensions;
 	private double[] tileRealDimensions;
@@ -107,9 +107,13 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private int numTimepoints;
 	private final boolean debug = false;
 	private RealMaskRealInterval mask;
-	private Source< T > metadataSource;
+	private Source< T > referenceSource;
 
-	public StitchedImage( List< ? extends Image< T > > images, Image< T > metadataImage, @Nullable List< int[] > gridPositions, String name, double relativeTileMargin )
+	public StitchedImage( List< ? extends Image< T > > images,
+						  Image< T > referenceImage,
+						  @Nullable List< int[] > gridPositions,
+						  String name,
+						  double relativeTileMargin )
 	{
 		this.images = images;
 
@@ -120,13 +124,13 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		// This can make initialisation much faster.
 		// This is useful if there are many StitchedImages to be initialised
 		// such as the wells of an HTM screen.
-		this.metadataSource = metadataImage.getSourcePair().getSource();
-		this.type = metadataSource.getType().createVariable();
+		this.referenceSource = referenceImage.getSourcePair().getSource();
+		this.type = referenceSource.getType().createVariable();
 		this.volatileType = ( V ) MoBIEVolatileTypeMatcher.getVolatileTypeForType( type );
-		this.numTimepoints = SourceHelper.getNumTimePoints( metadataSource );
-		this.numMipmapLevels = metadataSource.getNumMipmapLevels();
-		this.numDimensions = metadataSource.getVoxelDimensions().numDimensions();
-		this.voxelDimensions = metadataSource.getVoxelDimensions();
+		this.numTimepoints = SourceHelper.getNumTimePoints( referenceSource );
+		this.numMipmapLevels = referenceSource.getNumMipmapLevels();
+		this.numDimensions = referenceSource.getVoxelDimensions().numDimensions();
+		this.voxelDimensions = referenceSource.getVoxelDimensions();
 		this.levelToSourceTransform = new HashMap<>();
 		this.levelToSourceDimensions = new HashMap<>();
 
@@ -134,9 +138,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		// We only need the spatial extent of the image.
 		// The absolute position will be computed based on the tile
 		// position and, thus, we remove any spatial offset.
-		this.referenceMask = GeomMasks.closedBox( metadataImage.getMask().minAsDoubleArray(), metadataImage.getMask().maxAsDoubleArray() );
+		this.referenceMask = GeomMasks.closedBox( referenceImage.getMask().minAsDoubleArray(), referenceImage.getMask().maxAsDoubleArray() );
 		final AffineTransform3D translateToZeroInXY = new AffineTransform3D();
-		final double[] translationVector = metadataImage.getMask().minAsDoubleArray();
+		final double[] translationVector = referenceImage.getMask().minAsDoubleArray();
 		translationVector[ 2 ] = 0; // Don't change the position along the z-axis
 		translateToZeroInXY.translate( translationVector );
 		referenceMask = referenceMask.transform( translateToZeroInXY );
@@ -144,15 +148,15 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
 			final AffineTransform3D affineTransform3D = new AffineTransform3D();
-			metadataSource.getSourceTransform( 0, level, affineTransform3D );
+			referenceSource.getSourceTransform( 0, level, affineTransform3D );
 			final AffineTransform3D copy = affineTransform3D.copy();
-			final long[] dimensions = metadataSource.getSource( 0, level ).dimensionsAsLongArray();
+			final long[] dimensions = referenceSource.getSource( 0, level ).dimensionsAsLongArray();
 			copy.setTranslation( 0, 0, 0 );
 
 			if ( debug )
 			{
 				System.out.println( "StitchedImage: " + name );
-				System.out.println( "StitchedImage: Metadata source: " + metadataSource.getName() );
+				System.out.println( "StitchedImage: Metadata source: " + referenceSource.getName() );
 				System.out.println( "StitchedImage: Metadata transform: " + copy );
 				System.out.println( "StitchedImage: Metadata dimensions: " + Arrays.toString( dimensions ) );
 				System.out.println( "StitchedImage: Metadata tile mask: " + MoBIEHelper.maskToString( referenceMask ) );
@@ -171,6 +175,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		setMinMaxPos();
 		configureMipmapAndTileDimensions();
 		setTileRealDimensions( tileDimensions[ 0 ] );
+
 		if ( debug )
 		{
 			System.out.println( "StitchedImage: Min pos: " + Arrays.toString( minPos ) );
@@ -365,10 +370,11 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		// non-volatile
 		//
-		final Map< Integer, List< RandomAccessibleInterval< T > > > timepointToRAIs = stitchTiles( tileStore );
+		final Map< Integer, List< RandomAccessibleInterval< T > > > timepointToStitchedMipMapRAIs
+				= stitchTiles( tileStore );
 
 		final StitchedSource< T > source = new StitchedSource<>(
-				timepointToRAIs,
+				timepointToStitchedMipMapRAIs,
 				type,
 				voxelDimensions,
 				name,
@@ -378,7 +384,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		// volatile
 		//
-		final Map< Integer, List< RandomAccessibleInterval< V > > > timepointToVolatileRAIs = stitchVolatileTiles( tileStore );
+		final Map< Integer, List< RandomAccessibleInterval< V > > > timepointToVolatileRAIs
+				= stitchVolatileTiles( tileStore );
 
 		final StitchedSource< V > volatileSource = new StitchedSource<>(
 				timepointToVolatileRAIs,
@@ -494,7 +501,11 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			{
 				final V background = volatileType.createVariable();
 				background.setValid( true );
-				final FunctionRandomAccessible< V > stitchedTimepointAtLevel = new FunctionRandomAccessible( 3, new VolatileValueFromTilesFetcherSupplier( tileStore, t, level, background ).get(), () -> volatileType.createVariable() );
+				final FunctionRandomAccessible< V > stitchedTimepointAtLevel =
+						new FunctionRandomAccessible(
+								3,
+								new VolatileValueFromTilesFetcherSupplier( tileStore, t, level, background ).get(),
+									() -> volatileType.createVariable() );
 				final IntervalView< V > rai = Views.interval( stitchedTimepointAtLevel, getInterval( level ) );
 				stitched.get( t ).add( rai );
 			}
@@ -525,7 +536,6 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		{
 			return new VolatileValueFromTilesFetcher();
 		}
-
 
 		/**
 		 * {@code ValueFromTilesFetcher} feeds the {@code FunctionRandomAccessible}
@@ -562,6 +572,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			{
 				int x = location.getIntPosition( 0 );
 				int y = location.getIntPosition( 1 );
+				// here we need to add the margins to end up in the correct tile
+				// siteDimension[d] + 2 * margin[d]
 				final int xTileIndex = x / tileDimension[ 0 ];
 				final int yTileIndex = y / tileDimension[ 1 ];
 
@@ -586,7 +598,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				}
 				else if ( status.equals( Status.Open ) )
 				{
-					// TODO: The margin logic could be here!
+					// TODO: The margin logic should be here!
 					//   then we would not need to translate the individual RAIs
 					//   this could improve performance and may help with the
 					//   jumping between resolution layers.
@@ -595,18 +607,19 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 					//   => jump to bottom right
 					x = x - xTileIndex * tileDimension[ 0 ];
 					y = y - yTileIndex * tileDimension[ 1 ];
+					// subtract here also the margin
 					final int z = location.getIntPosition( 2 );
 
-					// TODO (ask @tpietzsch)
-					//   Instead of calling getAt(... )
-					//   I tried holding on to the random accesses
-					//   but got some buggy behaviour.
-					//   I removed this to keep it simpler.
-					//   This logic could be added back, if needed.
-					//   For this it would be good to know if that actually does
-					//   yield a performance improvement
 					try
 					{
+						// TODO (ask @tpietzsch)
+						//   Instead of calling getAt(... )
+						//   I tried holding on to the random accesses
+						//   but got some buggy behaviour.
+						//   I removed this to keep it simpler.
+						//   This logic could be added back, if needed.
+						//   For this it would be good to know if that actually does
+						//   yield a performance improvement
 						final V volatileType = tileStore.getVolatileRandomAccessible( t, level, xTileIndex, yTileIndex ).getAt( x, y, z );
 						volatileValue.set( volatileType );
 					}
@@ -750,34 +763,40 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		// resolution levels have the same size in voxel space (after
 		// multiplying the voxel size at the respective level with the
 		// mipmap scaling)
-		final double[] downSamplingFactorProducts = new double[ numDimensions ];
-		Arrays.fill( downSamplingFactorProducts, 1.0D );
 
-		for ( int level = 1; level < numMipmapLevels; level++ )
-			for ( int d = 0; d < numDimensions; d++ )
-				downSamplingFactorProducts[ d ] *= downSamplingFactors[ level ][ d ];
+		// 2025.09.13: Removed the above approach and instead adapt the mipmap levels,
+		// because the old approach does not work if images in the same plate have
+		// a different number of resolution levels.
+		// See:
+		// - https://github.com/mobie/mobie-viewer-fiji/issues/1256
+		// - https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.4/idr0001A/2551.zarr
+
+		//		final double[] downSamplingFactorProducts = new double[ numDimensions ];
+		//		Arrays.fill( downSamplingFactorProducts, 1.0D );
+		//
+		//		for ( int level = 1; level < numMipmapLevels; level++ )
+		//			for ( int d = 0; d < numDimensions; d++ )
+		//				downSamplingFactorProducts[ d ] *= downSamplingFactors[ level ][ d ];
 
 		tileDimensions[ 0 ] = MoBIEHelper.asInts( levelToSourceDimensions.get( 0 ) );
 		for ( int d = 0; d < 2; d++ )
 		{
 			tileDimensions[ 0 ][ d ] *= ( 1 + 2.0 * relativeTileMargin );
-			tileDimensions[ 0 ][ d ] = (int) ( downSamplingFactorProducts[ d ] * Math.ceil( tileDimensions[ 0 ][ d ] / downSamplingFactorProducts[ d ] ) );
+			//tileDimensions[ 0 ][ d ] = ( int ) ( downSamplingFactorProducts[ d ] * Math.ceil( tileDimensions[ 0 ][ d ] / downSamplingFactorProducts[ d ] ) );
 		}
 
 		for ( int level = 1; level < numMipmapLevels; level++ )
 			for ( int d = 0; d < numDimensions; d++ )
-				tileDimensions[ level ][ d ] = (int) ( tileDimensions[ level - 1 ][ d ] / downSamplingFactors[ level ][ d ] );
+				tileDimensions[ level ][ d ] = ( int ) ( tileDimensions[ level - 1 ][ d ] / downSamplingFactors[ level ][ d ] );
 
 		// marginTranslations
-		// also here make sure that they are divisible by all resolution
-		// levels to avoid any jumps due to rounding issues
+		margins = new double[ numMipmapLevels ][ numDimensions ];
 
 		// level 0
-		marginTranslations = new double[ numMipmapLevels ][ numDimensions ];
 		for ( int d = 0; d < 2; d++ )
 		{
-			marginTranslations[ 0 ][ d ] = ( int ) ( tileDimensions[ 0 ][ d ] * ( relativeTileMargin / ( 1 + 2 * relativeTileMargin ) ) );
-			marginTranslations[ 0 ][ d ] = ( int ) ( downSamplingFactorProducts[ d ] * Math.ceil( marginTranslations[ 0 ][ d ] / downSamplingFactorProducts[ d ] ) );
+			margins[ 0 ][ d ] = ( int ) ( tileDimensions[ 0 ][ d ] * ( relativeTileMargin / ( 1 + 2 * relativeTileMargin ) ) );
+			//marginTranslations[ 0 ][ d ] = ( int ) ( downSamplingFactorProducts[ d ] * Math.ceil( marginTranslations[ 0 ][ d ] / downSamplingFactorProducts[ d ] ) );
 		}
 
 		// level 1 to N
@@ -785,7 +804,24 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		{
 			for ( int d = 0; d < 2; d++ )
 			{
-				marginTranslations[ level ][ d ] = marginTranslations[ level - 1 ][ d ] / downSamplingFactors[ level ][ d ];
+				margins[ level ][ d ] = margins[ level - 1 ][ d ] / downSamplingFactors[ level ][ d ];
+			}
+		}
+
+		// New approach for avoiding jumps between resolution levels
+		// https://github.com/mobie/mobie-viewer-fiji/issues/1256
+		for ( int level = 1; level < numMipmapLevels; level++ )
+		{
+			for ( int d = 0; d < numDimensions; d++ )
+			{
+				// Calculate ideal scale
+				double idealScale = voxelSizes[ level ][ d ] / voxelSizes[ 0 ][ d ];
+
+				// Adjust scale to make tile dimensions work out to integers
+				int idealTileDim = (int) ( tileDimensions[ 0 ][ d ] / idealScale );
+				double adjustedScale = tileDimensions[ 0 ][ d ] / (double) idealTileDim;
+
+				mipmapScales[ level ][ d ] = adjustedScale;
 			}
 		}
 
@@ -793,7 +829,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		{
 			for ( int level = 0; level < numMipmapLevels; level++ )
 			{
-				System.out.println( "Level " + level + "; Margin translation [voxels] = " + Arrays.toString( marginTranslations[ level ] ) );
+				System.out.println( "Level " + level + "; Margin translation [voxels] = " + Arrays.toString( margins[ level ] ) );
 			}
 		}
 	}
@@ -811,8 +847,10 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		}
 
 		// along the z-dimension it simply is the size of the reference source
-		min[ 2 ] = metadataSource.getSource( 0, level ).min( 2 );
-		max[ 2 ] = metadataSource.getSource( 0, level ).max( 2 );
+		min[ 2 ] = referenceSource.getSource( 0, level ).min( 2 );
+		max[ 2 ] = referenceSource.getSource( 0, level ).max( 2 );
+
+		FinalInterval finalInterval = new FinalInterval( min, max );
 
 		if ( debug )
 		{
@@ -821,10 +859,10 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			{
 				size[ d ] = ( max[ d ] - min[ d ] ) * mipmapScales[ level ][ d ];
 			}
-			System.out.println("Level " + level + "; Size " + Arrays.toString( size ) );
+			System.out.println( name + "; Level " + level + "; Physical size " + Arrays.toString( size ) + "; Voxel size " + Arrays.toString( finalInterval.dimensionsAsLongArray() ) );
 		}
 
-		return new FinalInterval( min, max );
+		return finalInterval;
 	}
 
 	private void setMinMaxPos()
@@ -963,6 +1001,12 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			//
 			final RandomAccessibleInterval< T > rai = Views.zeroMin( image.getSourcePair().getSource().getSource( t, level ) );
 			final RandomAccessibleInterval< ? extends Volatile< T > > vRai = Views.zeroMin(  image.getSourcePair().getVolatileSource().getSource( t, level ) );
+			long[] referenceTileDimensions = referenceSource.getSource( t, level ).dimensionsAsLongArray();
+			long[] tileDimensions = rai.dimensionsAsLongArray();
+			if ( ! Arrays.equals( referenceTileDimensions, tileDimensions ) )
+			{
+				int a = 1;
+			}
 
 			// extend bounds to accommodate grid margin
 			//
@@ -971,7 +1015,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 			// shift to create grid margin
 			//
-			final long[] translation = Arrays.stream( marginTranslations[ level ] ).mapToLong( d -> ( long ) d ).toArray();
+			final long[] translation = Arrays.stream( margins[ level ] ).mapToLong( d -> ( long ) d ).toArray();
 			final RandomAccessible< T > translateRa = Views.translate( randomAccessible, translation );
 			final RandomAccessible< V > translateVRa = Views.translate( vRandomAccessible, translation );
 

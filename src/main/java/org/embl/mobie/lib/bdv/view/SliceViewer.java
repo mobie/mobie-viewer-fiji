@@ -38,7 +38,7 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.Services;
 import org.embl.mobie.lib.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.lib.bdv.*;
-import org.embl.mobie.lib.bdv.blend.AccumulateAlphaBlendingProjectorARGB;
+import org.embl.mobie.lib.bdv.blend.MoBIEAccumulateProjectorARGB;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.bdv.overlay.ImageNameOverlay;
 import org.embl.mobie.lib.color.OpacityHelper;
@@ -118,7 +118,7 @@ public class SliceViewer
 		{
 			bdvHandle = createBdv( is2D, FRAME_TITLE );
 			bdvDisplayService.registerBdvHandle( bdvHandle );
-			AccumulateAlphaBlendingProjectorARGB.bdvHandle = bdvHandle;
+			MoBIEAccumulateProjectorARGB.bdvHandle = bdvHandle;
 		}
 
 		return bdvHandle;

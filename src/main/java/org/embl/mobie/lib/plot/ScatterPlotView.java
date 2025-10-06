@@ -58,6 +58,7 @@ import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.table.AnnotationTableModel;
 import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
 import org.embl.mobie.ui.ColorByColumnDialog;
+import org.embl.mobie.ui.ScatterPlotDialog;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -125,22 +126,23 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		this.currentTimePoint = 0;
 	}
 
-	public synchronized void show( boolean showDialog )
+	public synchronized boolean show( boolean showDialog )
 	{
 		if ( bdvHandle != null )
 		{
 			window.setVisible( true );
-			return;
+			return true;
 		}
 
 		if ( showDialog )
 		{
-			configureViaDialog();
+			if ( ! configureViaDialog() ) return false;
 		}
 
 		updatePlot();
 		installBdvBehaviours();
 		configureWindowClosing();
+		return true;
 	}
 
 	public List< VisibilityListener > getListeners()
@@ -254,14 +256,19 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 
 	}
 
-	private void configureViaDialog()
+	private boolean configureViaDialog()
 	{
-		ScatterPlotDialog dialog = new ScatterPlotDialog( tableModel.columnNames().toArray( new String[0] ), settings );
+		ScatterPlotDialog dialog = new ScatterPlotDialog( tableModel.columnNames(), settings );
 
 		if ( dialog.show() )
 		{
 			settings = dialog.getSettings();
 			updatePlot();
+			return true;
+		}
+		else
+		{
+			return false;
 		}
 	}
 
@@ -308,11 +315,8 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		{
 			final ArrayList< A > selection = searchWithinRadius();
 
-			if ( selection != null )
-			{
-				selectionModel.setSelected( selection, true );
-			}
-		}
+            selectionModel.setSelected( selection, true );
+        }
 	}
 
 	private void logCoordinates( A selection )

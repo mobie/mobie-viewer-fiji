@@ -1,0 +1,2 @@
+uri	name	type
+spots_with_20000_columns.tsv	spots	spots

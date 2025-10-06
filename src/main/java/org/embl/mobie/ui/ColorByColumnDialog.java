@@ -63,7 +63,11 @@ public class ColorByColumnDialog< A extends Annotation >
         if ( paintZeroTransparent )
             lut += LUTs.ZERO_TRANSPARENT;
 
-        if ( Number.class.isAssignableFrom( table.columnClass( columnName ) ) )
+        if ( lut.equals( LUTs.GLASBEY ) )
+        {
+            return ColoringModels.createCategoricalModel( columnName, lut, TRANSPARENT );
+        }
+        else if ( Number.class.isAssignableFrom( table.columnClass( columnName ) ) )
         {
             final Pair< Double, Double > minMax = table.getMinMax( columnName );
             return ColoringModels.createNumericModel( columnName, lut, minMax, true );

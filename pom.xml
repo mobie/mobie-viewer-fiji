@@ -9,7 +9,9 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>6.2.1-SNAPSHOT</version>  <!-- -SNAPSHOT -->
+    <version>6.3.11-SNAPSHOT</version>  <!-- -SNAPSHOT -->
+
+    <!--  https://sites.imagej.net/MoBIE/-->
 
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
 
@@ -84,8 +86,11 @@
 
         <allowedDuplicateClasses>${scijava.allowedDuplicateClasses},org.relaxng.*,sun.*,com.sun.*,sun.rmi.*,com.sun.jdi.*,sun.jvmstat.*,sun.applet.*,com.sun.xml.*,com.sun.tools.*,sun.tools.*,com.sun.istack.*,shaded.parquet.it.unimi.dsi.fastutil.*,javax.xml.bind.*,com.sun.xml.bind.*,com.sun.xml.txw2.*,com.sun.codemodel.*</allowedDuplicateClasses>
 
-        <mobie-io.version>4.0.1</mobie-io.version>
-        <bigdataviewer-playground.version>0.11.0</bigdataviewer-playground.version>
+        <!-- FIXME: Just for testing https://github.com/bigdataviewer/bigdataviewer-core/pull/205 -->
+        <!--        <bigdataviewer-core.version>10.6.5-TISCHI</bigdataviewer-core.version>-->
+
+        <mobie-io.version>4.0.5</mobie-io.version>
+        <bigdataviewer-playground.version>0.11.1</bigdataviewer-playground.version>
         <bvv-playground.version>0.3.4</bvv-playground.version>
 
         <annotations.version>16.0.2</annotations.version>
@@ -95,7 +100,8 @@
 
         <!-- TableSaw -->
         <tablesaw-core.version>0.43.1</tablesaw-core.version>
-        <tablesaw-parquet.version>0.10.0</tablesaw-parquet.version>
+        <tablesaw-excel.version>0.43.1</tablesaw-excel.version>
+        <tablesaw-parquet.version>0.11.0</tablesaw-parquet.version>
 
         <!-- NB: Deploy releases to the SciJava Maven repository. -->
         <releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
@@ -200,6 +206,11 @@
             <groupId>tech.tablesaw</groupId>
             <artifactId>tablesaw-core</artifactId>
             <version>${tablesaw-core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>tech.tablesaw</groupId>
+            <artifactId>tablesaw-excel</artifactId>
+            <version>${tablesaw-excel.version}</version>
         </dependency>
         <dependency>
             <groupId>net.tlabs-data</groupId>

@@ -1,0 +1,2 @@
+uri	name	type
+spots-2d-non-consecutive.txt	spots	spots

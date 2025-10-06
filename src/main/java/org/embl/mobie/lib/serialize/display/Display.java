@@ -54,8 +54,10 @@ import java.util.List;
 public interface Display< T >
 {
 	String getName();
+	void setName( String name );
 	List< String > getSources();
 	BlendingMode getBlendingMode();
+
 	double getOpacity();
 	boolean isVisible();
 

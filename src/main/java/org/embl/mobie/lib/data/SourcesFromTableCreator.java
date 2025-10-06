@@ -29,10 +29,7 @@
 package org.embl.mobie.lib.data;
 
 import ij.IJ;
-import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.lib.data.ImageGridSources;
-import org.embl.mobie.lib.data.LabelGridSources;
 import org.embl.mobie.lib.io.TableImageSource;
 import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.table.saw.Aggregators;
@@ -58,7 +55,7 @@ public class SourcesFromTableCreator
 
 	public SourcesFromTableCreator( String tablePath, List< String > imageColumns, List< String > labelColumns, String root, String pathMapping, GridType gridType )
 	{
-		final Table table = TableOpener.openDelimitedTextFile( tablePath );
+		final Table table = TableOpener.open( tablePath );
 
 		// images
 		//

@@ -65,6 +65,8 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -98,7 +100,7 @@ public class UserInterfaceHelper
 	private int viewsSelectionPanelHeight;
 	private JPanel viewSelectionPanel;
 	private Map< String, Map< String, View > > groupingsToViews;
-	private Map< String, JComboBox > groupingsToComboBox;
+	private Map< String, JComboBox< String > > groupingsToComboBox;
 	private Map< String, JPanel > groupingsToPanels;
 	private JCheckBox overlayNamesCheckbox;
 
@@ -136,17 +138,6 @@ public class UserInterfaceHelper
 			}
 		}
 
-	}
-
-	public static String selectColumnNameUI( JTable table, String text )
-	{
-		final String[] columnNames = UserInterfaceHelper.getColumnNamesAsArray( table );
-		final GenericDialog gd = new GenericDialog( "" );
-		gd.addChoice( text, columnNames, columnNames[ 0 ] );
-		gd.showDialog();
-		if ( gd.wasCanceled() ) return null;
-		final String columnName = gd.getNextChoice();
-		return columnName;
 	}
 
 	public static FileLocation loadFromProjectOrFileSystemDialog() {
@@ -291,8 +282,7 @@ public class UserInterfaceHelper
 			String[] directoryFileNames = IOHelper.getFileNames( directory );
 			for ( String directoryFileName: directoryFileNames ) {
 				if ( fileNameCounts.containsKey( directoryFileName ) ) {
-					int count = fileNameCounts.get(directoryFileName);
-					fileNameCounts.put( directoryFileName, count + 1 );
+                    fileNameCounts.compute( directoryFileName, ( k, count ) -> count + 1 );
 				} else {
 					fileNameCounts.put( directoryFileName, 1 );
 				}
@@ -332,7 +322,6 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-
 	public JPanel createRegionDisplaySettingsPanel( RegionDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
@@ -347,7 +336,7 @@ public class UserInterfaceHelper
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( space() );
-		panel.add( createCheckboxPlaceholder() );
+		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createTableVisibilityCheckbox( display.tableView, display.showTable() ) );
@@ -431,8 +420,9 @@ public class UserInterfaceHelper
 			panel.add( createViewsSelectionPanel( moBIE.getViews() ) );
 		}
 
+		panel.add( createViewPanel() );
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		panel.add( createMoveToLocationPanel( moBIE.getDataset().getDefaultLocation() )  );
+		panel.add( createLocationPanel( moBIE.getDataset().getDefaultLocation() )  );
 		panel.add( createClearAndSourceNamesOverlayPanel( moBIE ) );
 
 		return panel;
@@ -611,15 +601,7 @@ public class UserInterfaceHelper
 		{
 			final View view = views.get( viewName );
 
-			HashSet< String > uiSelectionGroups = new HashSet<>();
-			if ( view.getUiSelectionGroup() != null )
-				uiSelectionGroups.add( view.getUiSelectionGroup() );
-
-			if ( view.getUiSelectionGroups() != null )
-				uiSelectionGroups.addAll( Arrays.asList( view.getUiSelectionGroups() ) );
-
-			if ( uiSelectionGroups.isEmpty() )
-				uiSelectionGroups.add("views");
+			Set< String > uiSelectionGroups = view.getUiSelectionGroups();
 
 			for ( String uiSelectionGroup : uiSelectionGroups )
 			{
@@ -632,14 +614,16 @@ public class UserInterfaceHelper
 
 		final ArrayList< String > uiSelectionGroups = new ArrayList<>( groupingsToViews.keySet() );
 		// sort in alphabetical order, ignoring upper/lower case
-		Collections.sort( uiSelectionGroups, new Comparator<String>() {
-			@Override
-			public int compare(String s1, String s2) {
-				return s1.compareToIgnoreCase(s2);
-			}
-		});
+		uiSelectionGroups.sort( new Comparator< String >()
+        {
+            @Override
+            public int compare( String s1, String s2 )
+            {
+                return s1.compareToIgnoreCase( s2 );
+            }
+        } );
 
-		// If it's the first time, just add all the panels in order
+		// If it's the first time, add all the view selection panels in order
 		if ( groupingsToComboBox.keySet().isEmpty() ) {
 			for (String uiSelectionGroup : uiSelectionGroups) {
 				final JPanel selectionPanel = createViewSelectionPanel(moBIE, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
@@ -650,25 +634,32 @@ public class UserInterfaceHelper
 			return;
 		}
 
-		// If there are already panels, then add new ones at the correct index to maintain alphabetical order
+		// If there are already panels, add new ones at the correct index to maintain alphabetical order
 		Map< Integer, JPanel > indexToPanel = new HashMap<>();
 		for ( String viewName : views.keySet() ) {
-			String uiSelectionGroup = views.get( viewName ).getUiSelectionGroup();
-			if ( groupingsToComboBox.containsKey( uiSelectionGroup ) ) {
-				JComboBox comboBox = groupingsToComboBox.get( uiSelectionGroup );
-				// check if a view of that name already exists: -1 means it doesn't exist
-				int index = ( (DefaultComboBoxModel) comboBox.getModel() ).getIndexOf( viewName );
-				if ( index == -1 ) {
-					comboBox.addItem(viewName);
+			Set< String > groups = views.get( viewName ).getUiSelectionGroups();
+			for ( String group : groups )
+			{
+				if ( groupingsToComboBox.containsKey( group ) )
+				{
+					JComboBox< String > comboBox = groupingsToComboBox.get( group );
+					// check if a view of that name already exists: -1 means it doesn't exist
+					int index = ( ( DefaultComboBoxModel ) comboBox.getModel() ).getIndexOf( viewName );
+					if ( index == -1 )
+					{
+						comboBox.addItem( viewName );
+					}
 				}
-			} else {
-				final JPanel selectionPanel = createViewSelectionPanel(moBIE, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
-				int alphabeticalIndex = uiSelectionGroups.indexOf( uiSelectionGroup );
-				indexToPanel.put( alphabeticalIndex, selectionPanel );
+				else
+				{
+					final JPanel selectionPanel = createViewSelectionPanel( moBIE, group, groupingsToViews.get( group ) );
+					int alphabeticalIndex = uiSelectionGroups.indexOf( group );
+					indexToPanel.put( alphabeticalIndex, selectionPanel );
+				}
 			}
 		}
 
-		if ( !indexToPanel.keySet().isEmpty() ) {
+		if ( ! indexToPanel.keySet().isEmpty() ) {
 			// add panels in ascending index order
 			final ArrayList<Integer> sortedIndices = new ArrayList<>(indexToPanel.keySet());
 			Collections.sort(sortedIndices);
@@ -683,25 +674,31 @@ public class UserInterfaceHelper
 	{
 		for ( String viewName : views.keySet() )
 		{
-			final View view = views.get( viewName );
-			final String uiSelectionGroup = view.getUiSelectionGroup();
-			if ( groupingsToViews.containsKey( uiSelectionGroup ) ) {
-				Map<String, View> groupViews = groupingsToViews.get( uiSelectionGroup );
-				groupViews.remove( viewName );
+			Set< String > groups = views.get( viewName ).getUiSelectionGroups();
+			for ( String group : groups )
+			{
+				if ( groupingsToViews.containsKey( group ) )
+				{
+					Map< String, View > groupViews = groupingsToViews.get( group );
+					groupViews.remove( viewName );
 
-				if ( groupViews.isEmpty() ) {
-					groupingsToViews.remove( uiSelectionGroup );
+					if ( groupViews.isEmpty() )
+					{
+						groupingsToViews.remove( group );
+					}
 				}
-			}
 
-			if ( groupingsToComboBox.containsKey( uiSelectionGroup ) ) {
-				JComboBox comboBox = groupingsToComboBox.get( uiSelectionGroup );
-				comboBox.removeItem( viewName );
+				if ( groupingsToComboBox.containsKey( group ) )
+				{
+					JComboBox< String > comboBox = groupingsToComboBox.get( group );
+					comboBox.removeItem( viewName );
 
-				if ( comboBox.getItemCount() == 0 ) {
-					groupingsToComboBox.remove( uiSelectionGroup );
-					viewSelectionPanel.remove( groupingsToPanels.get(uiSelectionGroup) );
-					groupingsToPanels.remove(uiSelectionGroup);
+					if ( comboBox.getItemCount() == 0 )
+					{
+						groupingsToComboBox.remove( group );
+						viewSelectionPanel.remove( groupingsToPanels.get( group ) );
+						groupingsToPanels.remove( group );
+					}
 				}
 			}
 		}
@@ -718,14 +715,9 @@ public class UserInterfaceHelper
 		return groupingsToViews;
 	}
 
-	public int getViewsSelectionPanelHeight()
+	public int getSelectionPanelHeight()
 	{
-		return viewsSelectionPanelHeight;
-	}
-
-	public int getActionPanelHeight()
-	{
-		return viewsSelectionPanelHeight + 4 * 40;
+		return viewsSelectionPanelHeight + 5 * 40;
 	}
 
 	public Set<String> getGroupings() {
@@ -789,7 +781,88 @@ public class UserInterfaceHelper
 		return horizontalLayoutPanel;
 	}
 
-	public JPanel createMoveToLocationPanel( ViewerTransform transform )
+	public JPanel createViewPanel( )
+	{
+		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
+		final JButton button = SwingHelper.createButton( VIEW );
+		final JTextField jTextField = new JTextField( "" );
+		jTextField.setPreferredSize( new Dimension( SwingHelper.COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
+		jTextField.setMinimumSize( new Dimension( SwingHelper.COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
+		jTextField.setMaximumSize( new Dimension( Integer.MAX_VALUE, SwingHelper.TEXT_FIELD_HEIGHT ) );
+
+		JPopupMenu suggestionsPopup = new JPopupMenu();
+
+		Set< String > views = this.moBIE.getViews().keySet();
+		jTextField.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void insertUpdate( DocumentEvent e) {
+				showSuggestions();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				showSuggestions();
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				showSuggestions();
+			}
+
+			private void showSuggestions() {
+				String input = jTextField.getText();
+				suggestionsPopup.removeAll();
+
+				if (!input.isEmpty()) {
+					for (String suggestion : views) {
+						if (suggestion.startsWith(input)) {
+							JMenuItem item = new JMenuItem(suggestion);
+							item.addActionListener(new ActionListener() {
+								@Override
+								public void actionPerformed(ActionEvent e) {
+									jTextField.setText(suggestion);
+									suggestionsPopup.setVisible(false);
+								}
+							});
+							suggestionsPopup.add(item);
+						}
+					}
+
+					if (suggestionsPopup.getComponentCount() > 0) {
+						suggestionsPopup.show(jTextField, 0, jTextField.getHeight());
+					} else {
+						suggestionsPopup.setVisible(false);
+					}
+				} else {
+					suggestionsPopup.setVisible(false);
+				}
+			}
+		});
+
+		button.addActionListener( e ->
+		{
+			String text = jTextField.getText();
+			if ( views.contains( text ) )
+			{
+				this.moBIE.getViewManager().show( text );
+			}
+			else
+			{
+				IJ.log( "[WARNING] View " + text + " not found." );
+			}
+		} );
+
+		JLabel label = SwingHelper.getJLabel( "enter view" );
+		label.setToolTipText( "Views can be selected from the above drop-downs.\n" +
+				"Alternatively, a view can also be directly chosen here." );
+		panel.add( label );
+		panel.add( jTextField );
+		panel.add( button );
+
+		return panel;
+	}
+
+	public JPanel createLocationPanel( ViewerTransform transform )
 	{
 		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
 		final JButton button = SwingHelper.createButton( MOVE );
@@ -797,13 +870,75 @@ public class UserInterfaceHelper
 		jTextField.setPreferredSize( new Dimension( SwingHelper.COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
 		jTextField.setMinimumSize( new Dimension( SwingHelper.COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
 		jTextField.setMaximumSize( new Dimension( Integer.MAX_VALUE, SwingHelper.TEXT_FIELD_HEIGHT ) );
+
+		JPopupMenu suggestionsPopup = new JPopupMenu();
+
+		Set< String > views = this.moBIE.getViews().keySet();
+		jTextField.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void insertUpdate( DocumentEvent e) {
+				showSuggestions();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				showSuggestions();
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				showSuggestions();
+			}
+
+			private void showSuggestions() {
+				String input = jTextField.getText();
+				suggestionsPopup.removeAll();
+
+				if (!input.isEmpty()) {
+					for (String suggestion : views) {
+						if (suggestion.startsWith(input)) {
+							JMenuItem item = new JMenuItem(suggestion);
+							item.addActionListener(new ActionListener() {
+								@Override
+								public void actionPerformed(ActionEvent e) {
+									jTextField.setText(suggestion);
+									suggestionsPopup.setVisible(false);
+								}
+							});
+							suggestionsPopup.add(item);
+						}
+					}
+
+					if (suggestionsPopup.getComponentCount() > 0) {
+						suggestionsPopup.show(jTextField, 0, jTextField.getHeight());
+					} else {
+						suggestionsPopup.setVisible(false);
+					}
+				} else {
+					suggestionsPopup.setVisible(false);
+				}
+			}
+		});
+
 		button.addActionListener( e ->
 		{
-			ViewerTransform viewerTransform = ViewerTransform.toViewerTransform( jTextField.getText() );
-			ViewerTransformChanger.apply( this.moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
+			String text = jTextField.getText();
+			if ( views.contains( text ) )
+			{
+				this.moBIE.getViewManager().show( text );
+			}
+			else
+			{
+				ViewerTransform viewerTransform = ViewerTransform.toViewerTransform( text );
+				ViewerTransformChanger.apply( this.moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
+			}
 		} );
 
-		panel.add( SwingHelper.getJLabel( "location" ) );
+		JLabel label = SwingHelper.getJLabel( "location" );
+		label.setToolTipText( "<html>Change the location (i.e. viewer transformation)\n of the current view.<br>" +
+				"Right click in BigDataViewer and choose \"Log Current Location\" to obtain valid entries.<br>" +
+				"See also https://mobie.github.io/tutorials/views_and_locations.html</html>" );
+		panel.add( label );
 		panel.add( jTextField );
 		panel.add( button );
 
@@ -984,9 +1119,14 @@ public class UserInterfaceHelper
 			SwingUtilities.invokeLater( () ->
 				{
 					if ( checkBox.isSelected() )
-						scatterPlotView.show( true );
+					{
+						boolean show = scatterPlotView.show( true );
+						checkBox.setSelected( show );
+					}
 					else
+					{
 						scatterPlotView.hide();
+					}
 				} ) );
 
 		scatterPlotView.getListeners().add( new VisibilityListener()
@@ -1190,7 +1330,7 @@ public class UserInterfaceHelper
 	private JButton createRemoveButton( Display display )
 	{
 		JButton button = getIconButton( "delete.png" );
-		button.setToolTipText( "Remove dataset" );
+		button.setToolTipText( "Remove layer" );
 
 		button.addActionListener( e ->
 		{

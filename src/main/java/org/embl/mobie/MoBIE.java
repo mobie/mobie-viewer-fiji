@@ -80,7 +80,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static org.embl.mobie.io.util.IOHelper.*;
-import static org.embl.mobie.lib.table.saw.TableOpener.determineDelimiter;
 
 public class MoBIE
 {
@@ -110,12 +109,12 @@ public class MoBIE
 	private UserInterface userInterface;
 	private final ArrayList< String > projectCommands = new ArrayList<>();
 
-	public MoBIE( String uri, MoBIESettings settings ) throws IOException
+	public MoBIE( String projectUri, MoBIESettings settings ) throws IOException
 	{
-		initImageJAndMoBIE();
-
 		this.settings = settings;
-		this.projectLocation = uri;
+		this.projectLocation = projectUri;
+
+		initImageJAndMoBIE();
 
 		if ( settings.values.getS3AccessAndSecretKey() != null )
 		{
@@ -130,7 +129,7 @@ public class MoBIE
 		if ( settings.values.getProjectType().equals( ProjectType.CollectionTable ) )
 		{
 			IJ.log("\n# MoBIE" );
-			IJ.log("Opening collection table: " + uri );
+			IJ.log("Opening collection table: " + projectUri );
 
 			// Read the table
 
@@ -138,15 +137,13 @@ public class MoBIE
 			nameToType.put( CollectionTableConstants.GRID, ColumnType.STRING );
 			nameToType.put( CollectionTableConstants.VIEW, ColumnType.STRING );
 
-			String content = IOHelper.read( uri );
-			CsvReadOptions.Builder builder =
-					CsvReadOptions.builderFromString( content )
-							.separator( determineDelimiter( uri )  )
-							.missingValueIndicator( "na", "none", "nan" )
-							.columnTypesPartial( nameToType );
-			Table table = Table.read().usingOptions( builder );
+			// TODO: This should happen only in TableOpener
+			//       The issue is to determine the TableDataFormat.fromPath( uri )
+			//       but we can check for uri.contains( "docs.google.com/spreadsheets" ) in there
+			//       That is all the code below should go into TableOpener
 
-			initProject( IOHelper.getFileName( uri ) );
+			Table table = TableOpener.open( projectUri );
+			initProject( IOHelper.getFileName( projectUri ) );
 
 			CollectionTableDataSetter dataSetter = new CollectionTableDataSetter( table, settings.values.getDataRoot() );
 			dataSetter.addToDataset( dataset );
@@ -159,7 +156,7 @@ public class MoBIE
 			initTableSaw();
 
 			IJ.log( "\n# MoBIE" );
-			IJ.log( "Opening: " + uri );
+			IJ.log( "Opening: " + projectUri );
 			IJ.log( "Branch: " + settings.values.getProjectBranch() );
 
 			openMoBIEProject();
@@ -195,7 +192,8 @@ public class MoBIE
 
 		this.settings = settings;
 
-		final GridSourcesFromPathsCreator sourcesCreator = new GridSourcesFromPathsCreator( imagePaths, labelPaths, labelTablePaths, root, grid );
+		final GridSourcesFromPathsCreator sourcesCreator = new GridSourcesFromPathsCreator(
+				imagePaths, labelPaths, labelTablePaths, root, grid );
 
 		final List< ImageGridSources > imageSources = sourcesCreator.getImageSources();
 		final List< LabelGridSources > labelSources = sourcesCreator.getLabelSources();
@@ -243,7 +241,7 @@ public class MoBIE
 		setProjectImageAndTableRootLocations();
 		registerProjectPlugins( projectLocation );
 		project = new ProjectJsonParser().parseProject( combinePath( projectRoot, "project.json" ) );
-		if ( project.getName() == null ) project.setName( getFileName( projectLocation ) );
+		if ( project.getName() == null ) project.setName( IOHelper.getFileName( projectLocation ) );
 		settings.addTableDataFormat( TableDataFormat.TSV );
 		openAndViewDataset();
 	}
@@ -430,9 +428,9 @@ public class MoBIE
 			entry.getValue().setName( entry.getKey() );
 
 		// log views
-		System.out.println("# Available views");
-		for ( String view : getViews().keySet() )
-			System.out.println( view );
+//		System.out.println("# Available views");
+//		for ( String view : getViews().keySet() )
+//			System.out.println( view );
 
 		// build UI and show view
 		buildUI();
@@ -664,7 +662,14 @@ public class MoBIE
 				ThreadHelper.ioExecutorService.submit( () ->
 					{
 						String log = MoBIEHelper.getLog( sourceIndex, numImages, sourceLoggingModulo, lastLogMillis );
-						initDataSource( dataSource, log );
+						try
+						{
+							initDataSource( dataSource, log );
+						}
+						catch ( Exception e )
+						{
+							System.err.println("Failed initialising " + dataSource.getName() + "\n" + e);
+						}
 					}
 				) );
 		}

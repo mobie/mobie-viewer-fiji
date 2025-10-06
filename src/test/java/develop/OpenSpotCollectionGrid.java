@@ -31,7 +31,6 @@ package develop;
 import net.imagej.ImageJ;
 import org.embl.mobie.command.open.OpenCollectionTableCommand;
 
-import java.io.File;
 import java.io.IOException;
 
 public class OpenSpotCollectionGrid
@@ -42,8 +41,8 @@ public class OpenSpotCollectionGrid
 		imageJ.ui().showUI();
 
 		OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-		command.dataRootType = OpenCollectionTableCommand.DataRootType.UseTableFolder;
-		command.table = new File("src/test/resources/collections/organ_spots_collection_grid.tsv");
+		command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+		command.tableUri = "src/test/resources/collections/organ_spots_collection_grid.tsv";
 		command.run();
 	}
 }

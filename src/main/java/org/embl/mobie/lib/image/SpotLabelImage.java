@@ -30,6 +30,7 @@ package org.embl.mobie.lib.image;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
+import ij.IJ;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imglib2.*;
 import net.imglib2.neighborsearch.RadiusNeighborSearchOnKDTree;
@@ -43,6 +44,7 @@ import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.integer.UnsignedLongType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.util.Intervals;
+import net.imglib2.util.LinAlgHelpers;
 import org.embl.mobie.lib.annotation.AnnotatedSpot;
 import org.embl.mobie.lib.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.lib.table.DefaultAnnData;
@@ -113,9 +115,12 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 	{
 		final ArrayList< AS > annotations = annData.getTable().annotations();
 		int numAnnotations = annotations.size();
-		System.out.println("Building SpotImage with numElements = " + numAnnotations );
+		IJ.log( "Building SpotImage with " + numAnnotations + " spots..." );
 		long start = System.currentTimeMillis();
-		kdTree = new KDTree( annotations, annotations );
+
+		// Considerations for supporting anisotropic search radii:
+		// https://forum.image.sc/t/anisotropic-radiusneighborsearchonkdtree/111934
+		kdTree = new KDTree<>( annotations, annotations );
 
 		// TODO Can we use the mask of a "parent image" here?
 		//		For instance, the image where the spot where detected
@@ -134,11 +139,19 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 		mask = GeomMasks.closedBox( imageBoundsMin, imageBoundsMax );
 
 		// create the actual image
+		long maxLabel = annotations.stream()
+				.mapToLong(a -> a.label())
+				.max()
+				.orElse(-1);
+		if ( maxLabel == -1 )
+			throw new RuntimeException("Could not determine the maximum label of the spots " + name );
+
+		Type type = selectApropriateType( maxLabel );
 		RealRandomAccessible< IntegerType > rra =
 				new FunctionRealRandomAccessible(
 						kdTree.numDimensions(),
 						new LocationToSpotLabelSupplier(),
-						UnsignedShortType::new );
+                        type::createVariable );
 
 		if ( kdTree.numDimensions() == 2 )
 			rra = RealViews.addDimension( rra );
@@ -172,14 +185,14 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 		source = new RealRandomAccessibleIntervalTimelapseSource(
 				rra,
 				containingZeroMinIntegerInterval,
-				selectApropriateType( numAnnotations ),
+				type,
 				sourceTransform,
 				name,
 				true,
 				null,
 				new FinalVoxelDimensions( unit, 1, 1, 1 ) );
 
-		System.out.println("Done in [ms] " + ( System.currentTimeMillis() - start ) );
+		IJ.log("...done in [ms] " + ( System.currentTimeMillis() - start ) );
 
 	}
 
@@ -192,18 +205,18 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 
 		// enlarge bounding box
 		// such that all spots are fully rendered
-		double[] size = new double[ 3 ];
 		for ( int d = 0; d < 3; d++ )
 		{
-			size[ d ] = imageBoundsMax[ d ] - imageBoundsMin[ d ];
-			// enlarge relative to size
-			imageBoundsMin[ d ] -= 0.1 * size[ d ];
-			imageBoundsMax[ d ] += 0.1 * size[ d ];
+			// double size = imageBoundsMax[ d ] - imageBoundsMin[ d ];
+			// imageBoundsMin[ d ] -= 0.1 * size[ d ];
+			//	imageBoundsMax[ d ] += 0.1 * size[ d ];
+			imageBoundsMin[ d ] -= 10 * spotRadius;
+			imageBoundsMax[ d ] += 10 * spotRadius;
 		}
 	}
 
 	@NotNull
-	private static Type selectApropriateType( int numAnnotations )
+	private static Type selectApropriateType( long numAnnotations )
 	{
 		if ( numAnnotations < new UnsignedShortType().getMaxValue() )
 			return new UnsignedShortType();
@@ -228,31 +241,77 @@ public class SpotLabelImage< AS extends AnnotatedSpot, T extends IntegerType< T 
 
 		private class LocationToSpotLabel implements BiConsumer< RealLocalizable, IntegerType >
 		{
-			private RadiusNeighborSearchOnKDTree< AS > search;
+			private final RadiusNeighborSearchOnKDTree< AS > search;
+			private final double searchRadius;
 
 			public LocationToSpotLabel( )
 			{
 				search = new RadiusNeighborSearchOnKDTree<>( kdTree );
+
+				if ( spotRadiusZ == null )
+				{
+					searchRadius = spotRadius;
+				}
+				else
+				{
+					searchRadius = Math.max( spotRadius, spotRadiusZ );
+				}
 			}
 
 			@Override
 			public void accept( RealLocalizable location, IntegerType value )
 			{
-				search.search( location, spotRadius, true );
-				if ( search.numNeighbors() > 0 )
+				search.search( location, searchRadius, true );
+				int numNeighbors = search.numNeighbors();
+				if ( numNeighbors > 0 )
 				{
-					final Sampler< AS > sampler = search.getSampler( 0 );
-					final AS annotatedSpot = sampler.get();
-					if ( spotRadiusZ != null )
+					if ( spotRadiusZ == null )
 					{
-						if ( Math.abs( annotatedSpot.getDoublePosition( 2 ) - location.getDoublePosition( 2 ) ) > spotRadiusZ )
+						value.setInteger( search.getSampler( 0 ).get().label() );
+					}
+					else
+					{
+						// TODO: We could simplify this by rescaling the values before adding them to the tree.
+						// https://forum.image.sc/t/anisotropic-radiusneighborsearchonkdtree/111934
+						// for all neighbors
+						// compute the normalised ellipsoid distances and keep the closest if it is smaller than 1
+						// in xy the ellipsoid is a circle with radius spotRadius
+						// in z the ellipsoid is a circle with radius spotRadiusZ
+						double minDistance = Double.MAX_VALUE;
+						AS closestSpot = null;
+
+						for ( int sampleIndex = 0; sampleIndex < numNeighbors; sampleIndex++ )
+						{
+							final AS spot = search.getSampler( sampleIndex ).get();
+							final RealLocalizable pos = search.getPosition( sampleIndex );
+
+							// Compute normalized ellipsoid distance
+							final double dx = pos.getDoublePosition( 0 ) - location.getDoublePosition( 0 );
+							final double dy = pos.getDoublePosition( 1 ) - location.getDoublePosition( 1 );
+							final double dz = pos.getDoublePosition( 2 ) - location.getDoublePosition( 2 );
+
+							final double normalizedDistance = Math.sqrt(
+									(dx * dx + dy * dy) / (spotRadius * spotRadius) +
+											(dz * dz) / (spotRadiusZ * spotRadiusZ)
+							);
+
+							// Keep track of the closest spot
+							if (normalizedDistance < minDistance) {
+								minDistance = normalizedDistance;
+								closestSpot = spot;
+							}
+						}
+
+						// If we found a spot inside the ellipsoid (normalized distance < 1)
+						if (closestSpot != null && minDistance < 1.0)
+						{
+							value.setInteger(closestSpot.label());
+						}
+						else
 						{
 							value.setInteger( 0 );
-							return;
 						}
 					}
-
-					value.setInteger( annotatedSpot.label() );
                 }
 				else
 				{

@@ -27,7 +27,6 @@ import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.selection.Selection;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -38,13 +37,15 @@ public class CollectionTableDataSetter
     private final Table table;
     private final String rootPath;
 
-    private final Map< String, String > viewToGroup = new LinkedHashMap<>();
+    private final Map< String, String[] > viewToGroups = new LinkedHashMap<>();
     private final Map< String, Set< String > > viewToGrids = new LinkedHashMap<>();
     private final Map< String, Map< String, List< String > > > gridToPositionsToSources = new LinkedHashMap<>();
     private final Map< String, Set< Display< ? > > > viewToDisplays = new LinkedHashMap<>();
     private final Map< String, Boolean > viewToExclusive = new LinkedHashMap<>();
     private final Map< String, List< Transformation > > viewToTransformations = new LinkedHashMap<>();
     private final Map< String, Integer > sourceToRowIndex = new HashMap<>();
+    private final Map< Integer, String > rowToSourceName = new HashMap<>();
+
 
     public CollectionTableDataSetter( Table table, String rootPath )
     {
@@ -54,8 +55,8 @@ public class CollectionTableDataSetter
 
     public void addToDataset( Dataset dataset )
     {
-        if ( ! table.containsColumn( CollectionTableConstants.URI ) )
-            throw new RuntimeException( "Column \"" + CollectionTableConstants.URI + "\" must be present in the collection table." );
+        if ( ! columnExists( CollectionTableConstants.URI ) )
+            throw new RuntimeException( "Column \"" + CollectionTableConstants.URI[0] + "\" must be present in the collection table." );
 
         Map< String, Display< ? > > displays = new HashMap< String, Display< ? >>();
 
@@ -64,20 +65,18 @@ public class CollectionTableDataSetter
         table.forEach( row ->
         {
             IJ.log("Adding source " + ( sourceIndex.incrementAndGet() ) + "/" + numRows + "...");
-            
-            String sourceName = getName( row );
+
+            String sourceName = getDataName( row );
             String displayName = getDisplayName( row );
-            // FIXME What should happen here?
-            if ( sourceToRowIndex.containsKey( sourceName ) )
-            {
-                IJ.log( "[WARN] The collection table contains " + sourceName + "multiple times" );
-            }
-            sourceToRowIndex.put( sourceName, row.getRowNumber() );
-
-            addSource( dataset, row, sourceName, displays, displayName );
-
             String viewName = getViewName( row );
             String gridName = getGridId( row );
+            IJ.log("  Name: " + sourceName );
+            IJ.log("  Display: " + displayName );
+            IJ.log("  View: " + viewName );
+            if ( gridName != null ) IJ.log("  Grid: " + gridName );
+            sourceToRowIndex.put( sourceName, row.getRowNumber() );
+            addSource( dataset, row, sourceName, displays, displayName );
+
             if ( gridName != null )
             {
                 viewToGrids.computeIfAbsent( viewName, k -> new HashSet<>() ).add( gridName );
@@ -88,11 +87,10 @@ public class CollectionTableDataSetter
                             .add( sourceName );
             }
 
-            viewToGroup.put( viewName, getGroupName( row ) );
+            viewToGroups.put( viewName, getGroups( row ) );
             viewToExclusive.put( viewName, getExclusive( row ) );
             viewToDisplays.computeIfAbsent( viewName, k -> new LinkedHashSet<>() ).add( displays.get( displayName ) );
             viewToTransformations.computeIfAbsent( viewName, k -> new ArrayList<>() ).addAll( getAffineTransformations( sourceName, row ) );
-
         }); // table rows
 
 
@@ -100,49 +98,31 @@ public class CollectionTableDataSetter
         viewToDisplays.keySet().forEach( viewName ->
         {
             ArrayList< Transformation > transformations = new ArrayList<>();
-
             transformations.addAll( viewToTransformations.get( viewName ) );
 
             if ( viewToGrids.containsKey( viewName ) )
             {
-                viewToGrids.get( viewName ).forEach( gridName ->
-                {
-                    Map< String, List< String > > positionToSources = gridToPositionsToSources.get( gridName );
-                    List< List< String > > nestedSources;
-                    if ( positionToSources.keySet().size() == 1 )
-                    {
-                        assert  positionToSources.keySet().iterator().next().equals( NO_GRID_POSITION );
-
-                        nestedSources = positionToSources.values().iterator().next().stream()
-                                .map( source -> Collections.singletonList( source ) )
-                                .collect( Collectors.toList() );
-
-                        GridTransformation grid = new GridTransformation( nestedSources, "" );
-                        transformations.add( grid );
-                    }
-                    else
-                    {
-                        List< int[] > positions = positionToSources.keySet().stream()
-                                .map( position -> gridPositionToInts( position ) )
-                                .collect( Collectors.toList() );
-
-                        nestedSources = new ArrayList<>( positionToSources.values() );
-
-                        GridTransformation grid = new GridTransformation( nestedSources, positions, "" );
-                        grid.centerAtOrigin = true; // FIXME: should depend on something!
-                        transformations.add( grid );
-                    }
-
-                    Display< ? > regionDisplay = createRegionDisplay( gridName, nestedSources );
-                    displays.put( regionDisplay.getName(), regionDisplay );
-                    viewToDisplays.get( viewName ).add( regionDisplay );
-                });
+                addGridView( viewName, transformations, displays );
             }
+            else
+            {
+                List< List< String > > nestedViewSources = new ArrayList<>();
+                viewToDisplays.get( viewName ).forEach( display ->
+                {
+                    display.getSources().forEach(
+                            source ->
+                            nestedViewSources.add( Collections.singletonList( source) )
+                    );
+                } );
 
+                Display< ? > regionDisplay = createRegionDisplay( viewName, nestedViewSources, false );
+                displays.put( regionDisplay.getName(), regionDisplay );  // TODO: why is this needed?
+                viewToDisplays.get( viewName ).add( regionDisplay );
+            }
 
             final View view = new View(
                     viewName,
-                    viewToGroup.get( viewName ),
+                    viewToGroups.get( viewName ),
                     new ArrayList<>( viewToDisplays.get( viewName ) ),
                     transformations,
                     null,
@@ -157,29 +137,80 @@ public class CollectionTableDataSetter
 
     }
 
-    private RegionDisplay< AnnotatedRegion > createRegionDisplay(
-            String gridName,
-            List< List< String > > gridSources )
+    private boolean columnExists( final String[] columNames )
     {
-        List< String > firstSources = gridSources.stream().map( sources -> sources.get( 0 ) ).collect( Collectors.toList() );
+        for ( String columName : columNames )
+        {
+            if ( table.containsColumn( columName ) )
+                return true;
+        }
+        return false;
+    }
+
+    private void addGridView( String viewName,
+                              ArrayList< Transformation > transformations,
+                              Map< String, Display< ? > > displays )
+    {
+        viewToGrids.get( viewName ).forEach( gridName ->
+        {
+            Map< String, List< String > > positionToSources = gridToPositionsToSources.get( gridName );
+            List< List< String > > nestedSources;
+
+            // FIXME: This is wrong if there are grid_positions given
+            if ( positionToSources.size() == 1 )
+            {
+                assert  positionToSources.keySet().iterator().next().equals( NO_GRID_POSITION );
+
+                nestedSources = positionToSources.values().iterator().next().stream()
+                        .map( Collections::singletonList )
+                        .collect( Collectors.toList() );
+
+                GridTransformation grid = new GridTransformation( nestedSources, "" );
+                transformations.add( grid );
+            }
+            else
+            {
+                List< int[] > positions = positionToSources.keySet().stream()
+                        .map( this::gridPositionToInts )
+                        .collect( Collectors.toList() );
+
+                nestedSources = new ArrayList<>( positionToSources.values() );
+
+                GridTransformation grid = new GridTransformation( nestedSources, positions, "" );
+                grid.centerAtOrigin = true; // FIXME: should depend on something!
+                transformations.add( grid );
+            }
+
+            Display< ? > regionDisplay = createRegionDisplay( gridName, nestedSources, true );
+            displays.put( regionDisplay.getName(), regionDisplay );
+            viewToDisplays.get( viewName ).add( regionDisplay );
+        });
+    }
+
+    private RegionDisplay< AnnotatedRegion > createRegionDisplay(
+            String regionsName,
+            List< List< String > > nestedSources,
+            boolean isGrid )
+    {
+        List< String > firstSources = nestedSources.stream().map( sources -> sources.get( 0 ) ).collect( Collectors.toList() );
 
         Set< String > duplicates = MoBIEHelper.findDuplicates( firstSources );
 
         if ( ! duplicates.isEmpty() )
         {
             throw new UnsupportedOperationException(
-                    "The grid " + gridName + "contains duplicates:\n" +
-                    Strings.join( ",", duplicates ) );
+                    "The region \"" + regionsName + "\" contains duplicates:\n" +
+                    Strings.join( ", ", duplicates ) );
         }
 
         // Create grid regions table
         int[] rowIndices = firstSources.stream()
-                .map( source -> sourceToRowIndex.get( source ) )
+                .map( sourceToRowIndex::get )
                 .mapToInt( Integer::intValue )
                 .toArray();
         Selection rowSelection = Selection.with( rowIndices );
         Table regionTable = table.where( rowSelection );
-        regionTable.setName( gridName + " grid" );
+        regionTable.setName( regionsName + ": regions" );
         regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, firstSources ) );
         final StorageLocation storageLocation = new StorageLocation();
         storageLocation.data = regionTable;
@@ -188,19 +219,30 @@ public class CollectionTableDataSetter
         DataStore.addRawData( regionTableSource );
 
         // Create RegionDisplay to show the grid
-        final RegionDisplay< AnnotatedRegion > gridRegionDisplay =
+        final RegionDisplay< AnnotatedRegion > regionDisplay =
                 new RegionDisplay<>( regionTable.name() );
-        gridRegionDisplay.sources = new LinkedHashMap<>();
-        gridRegionDisplay.tableSource = regionTable.name();
-        gridRegionDisplay.showAsBoundaries( true );
-        gridRegionDisplay.setBoundaryThickness( 0.05 );
-        gridRegionDisplay.boundaryThicknessIsRelative( true );
-        gridRegionDisplay.setRelativeDilation( 2 * gridRegionDisplay.getBoundaryThickness() );
+        regionDisplay.sources = new LinkedHashMap<>();
+        regionDisplay.tableSource = regionTable.name();
+
+        if ( isGrid )
+        {
+            regionDisplay.showAsBoundaries( true );
+            regionDisplay.setBoundaryThickness( 0.05 );
+            regionDisplay.boundaryThicknessIsRelative( true );
+            // TODO: The below "relativeDilation" is used in TableSawAnnotatedRegionCreator
+            //       Here the dilation is really relative for each region.
+            //       If the regions are not painted at boundaries, this relative dilation looks ugly.
+            regionDisplay.setRelativeDilation( 2 * regionDisplay.getBoundaryThickness() );
+        }
+        else
+        {
+            regionDisplay.setOverlap( true );
+        }
 
         for ( String source : firstSources )
-            gridRegionDisplay.sources.put( source, Collections.singletonList( source ) );
+            regionDisplay.sources.put( source, Collections.singletonList( source ) );
 
-        return gridRegionDisplay;
+        return regionDisplay;
     }
 
     private void addSource(
@@ -251,9 +293,11 @@ public class CollectionTableDataSetter
         }
         else if ( dataType.equals( CollectionTableConstants.SPOTS )  )
         {
+            String uri = storageLocation.absolutePath;
+
             SpotDataSource spotDataSource = new SpotDataSource(
                     sourceName,
-                    TableDataFormat.fromPath( storageLocation.absolutePath ),
+                    TableDataFormat.fromPath( uri ),
                     storageLocation );
 
             double[][] boundingBox = getBoundingBox( row );
@@ -299,14 +343,10 @@ public class CollectionTableDataSetter
                 displays.put( display.getName(), display );
             }
         }
-
-        IJ.log("  Name: " + sourceName );
-        IJ.log("  URI: " + storageLocation.absolutePath );
-        IJ.log("  Type: " + dataType );
     }
 
     @NotNull
-    private static SpotDisplay< AnnotatedRegion > createSpotDisplay( Row row, final String spotSourceName )
+    private SpotDisplay< AnnotatedRegion > createSpotDisplay( Row row, final String spotSourceName )
     {
         SpotDisplay< AnnotatedRegion > display = new SpotDisplay<>( getDisplayName( row ) );
         display.spotRadius = getSpotRadius( row );
@@ -314,17 +354,15 @@ public class CollectionTableDataSetter
         return display;
     }
 
-    private static ImageDataFormat getImageDataFormat( Row row, StorageLocation storageLocation )
+    private ImageDataFormat getImageDataFormat( Row row, StorageLocation storageLocation )
     {
         try {
-            String string = row.getString( CollectionTableConstants.FORMAT );
-            ImageDataFormat imageDataFormat = ImageDataFormat.valueOf( string );
-            return imageDataFormat;
+            String string = getString( row, CollectionTableConstants.FORMAT );
+            return ImageDataFormat.valueOf( string );
         }
         catch ( Exception e )
         {
-            ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( storageLocation.absolutePath );
-            return imageDataFormat;
+            return ImageDataFormat.fromPath( storageLocation.absolutePath );
         }
     }
 
@@ -339,10 +377,7 @@ public class CollectionTableDataSetter
             try
             {
                 String string = row.getText( CollectionTableConstants.EXCLUSIVE );
-                if ( string.toLowerCase().equals( CollectionTableConstants.TRUE ) )
-                    return true;
-                else
-                    return false;
+                return string.equalsIgnoreCase( CollectionTableConstants.TRUE );
             }
             catch ( Exception e2 )
             {
@@ -353,52 +388,89 @@ public class CollectionTableDataSetter
 
     private static TableSource getTable( Row row, String rootPath )
     {
-        try {
-            String tablePath = row.getString( CollectionTableConstants.LABELS_TABLE );
-            if ( rootPath != null )
-                tablePath = IOHelper.combinePath( rootPath, tablePath );
-            StorageLocation storageLocation = new StorageLocation();
-            storageLocation.absolutePath = IOHelper.getParentLocation( tablePath );
-            storageLocation.defaultChunk = IOHelper.getFileName( tablePath );
-            return new TableSource( TableDataFormat.fromPath( tablePath ), storageLocation );
-        }
-        catch ( Exception e )
-        {
+        String tablePath;
+        if (row.columnNames().contains(CollectionTableConstants.LABELS_TABLE))
+            tablePath = getString( row, CollectionTableConstants.LABELS_TABLE );
+        else if ( row.columnNames().contains(CollectionTableConstants.LABELS_TABLE_URI) )
+            tablePath = getString( row, CollectionTableConstants.LABELS_TABLE_URI );
+        else
             return null;
-        }
+
+        if ( tablePath == null || tablePath.isEmpty() )
+            return null;
+
+        if ( rootPath != null )
+            tablePath = IOHelper.combinePath( rootPath, tablePath );
+
+        StorageLocation storageLocation = new StorageLocation();
+        storageLocation.absolutePath = IOHelper.getParentLocation( tablePath );
+        storageLocation.defaultChunk = IOHelper.getFileName( tablePath );
+
+        return new TableSource( TableDataFormat.fromPath( tablePath ), storageLocation );
     }
 
-    private static String getUri( Row row )
+    private  String getUri( Row row )
     {
-        String string = row.getString( CollectionTableConstants.URI );
+        String string = getString( row, CollectionTableConstants.URI );
 
+        assert string != null;
         if ( string.isEmpty() )
             throw new RuntimeException("Encountered empty cell in uri column, please add a valid uri!");
 
         return string;
     }
 
-    private static String getName( Row row )
+    private String getString( Row row, final String[] columnNames )
     {
+        for ( String columnName : columnNames )
+        {
+            if ( table.containsColumn( columnName ) )
+                return getString( row, columnName );
+        }
+
+        return null;
+    }
+
+    private String getDataName( Row row )
+    {
+        // Without that, there can be recursive errors because
+        // this function is called several times for one row.
+        if ( rowToSourceName.containsKey( row.getRowNumber() ) )
+            return rowToSourceName.get( row.getRowNumber()  );
+
         String name;
         try {
-            name = row.getString( CollectionTableConstants.NAME );
+            name = getString( row, CollectionTableConstants.NAME );
             if ( name.isEmpty() )
-                name = getNameFromURI( row );
+                name = createFromURI( row );
         }
         catch ( Exception e )
         {
-            name = getNameFromURI( row );
+            name = createFromURI( row );
         }
 
         Integer channel = getChannelIndex( row );
         if ( channel != null ) name = name + Constants.CHANNEL_POSTFIX + channel;
 
+        if ( sourceToRowIndex.containsKey( name ) )
+        {
+            IJ.log( "[WARN] The collection table contains the dataset \"" + name + "\" multiple times." );
+            int duplicateCount = 0;
+            String originalSourceName = name;
+            while ( sourceToRowIndex.containsKey( name ) )
+            {
+                duplicateCount++;
+                name = originalSourceName + " (" + duplicateCount + ")";
+            }
+        }
+
+        rowToSourceName.put( row.getRowNumber(), name );
+
         return name;
     }
 
     @Nullable
-    private static String getNameFromURI( Row row )
+    private String createFromURI( Row row )
     {
         String uri = getUri( row );
 
@@ -411,7 +483,7 @@ public class CollectionTableDataSetter
     {
         try
         {
-            String string = row.getString( CollectionTableConstants.TYPE );
+            String string = getString( row, CollectionTableConstants.TYPE );
             if ( string.isEmpty() )
                 return CollectionTableConstants.INTENSITIES;
 
@@ -426,7 +498,7 @@ public class CollectionTableDataSetter
     private static String getGridId( Row row )
     {
         try {
-            String string = row.getString( CollectionTableConstants.GRID );
+            String string = getString( row, CollectionTableConstants.GRID );
 
             if ( string.isEmpty() )
                 return null;
@@ -437,6 +509,16 @@ public class CollectionTableDataSetter
         {
             return null;
         }
+    }
+
+    private static String getString( Row row, final String columnName )
+    {
+        for (String col : row.columnNames()) {
+            if ( col.equalsIgnoreCase(columnName ) ) {
+                return row.getString(col);
+            }
+        }
+        return null;
     }
 
     private static Integer getChannelIndex( Row row )
@@ -455,28 +537,30 @@ public class CollectionTableDataSetter
 
 
     @NotNull
-    private static String getGroupName( Row row )
+    private String[] getGroups( Row row )
     {
+        String[] defaultValue = { "views" };
+
         try
         {
-            String name = row.getString( CollectionTableConstants.GROUP );
+            String groups = getString( row, CollectionTableConstants.GROUP );
 
-            if ( name.isEmpty() )
-                return "views";
+            if ( groups.isEmpty() )
+                return defaultValue;
 
-            return name;
+            return groups.split( "," );
         }
         catch ( Exception e )
         {
-            return "views";
+            return defaultValue;
         }
     }
 
-    private static String getViewName( Row row )
+    private String getViewName( Row row )
     {
         try
         {
-            String name = row.getString( CollectionTableConstants.VIEW );
+            String name = getString( row, CollectionTableConstants.VIEW );
 
             if ( name == null || name.isEmpty() )
                 return getDisplayName( row );
@@ -490,7 +574,7 @@ public class CollectionTableDataSetter
     }
 
     @NotNull
-    private static SegmentationDisplay< ? > createSegmentationDisplay(
+    private SegmentationDisplay< ? > createSegmentationDisplay(
             String sourceName,
             Row row,
             boolean showTable )
@@ -508,7 +592,7 @@ public class CollectionTableDataSetter
     }
 
     @NotNull
-    private static ImageDisplay< ? > createImageDisplay( String sourceName, Row row )
+    private ImageDisplay< ? > createImageDisplay( String sourceName, Row row )
     {
         return new ImageDisplay<>(
                 getDisplayName( row ),
@@ -521,22 +605,25 @@ public class CollectionTableDataSetter
         );
     }
 
-    private static String getDisplayName( Row row )
+    private String getDisplayName( Row row )
     {
         if ( row.columnNames().contains( CollectionTableConstants.DISPLAY  ) )
-            return row.getString( CollectionTableConstants.DISPLAY );
+            return getString( row, CollectionTableConstants.DISPLAY );
 
         if ( row.columnNames().contains( CollectionTableConstants.GRID  ) )
-            return row.getString( CollectionTableConstants.GRID );
+            return getString( row, CollectionTableConstants.GRID );
 
-        return getName( row );
+        if ( row.columnNames().contains( CollectionTableConstants.VIEW  ) )
+            return getString( row, CollectionTableConstants.VIEW ) + ": " + getDataName( row );
+
+        return getDataName( row );
     }
 
-    private static double[] getContrastLimits( Row row )
+    private double[] getContrastLimits( Row row )
     {
         try
         {
-            String string = row.getString( CollectionTableConstants.CONTRAST_LIMITS );
+            String string = getString( row, CollectionTableConstants.CONTRAST_LIMITS );
             string = string.replace("(", "").replace(")", "");
             String[] strings = string.split("[,;]");
             double[] doubles = new double[strings.length];
@@ -556,11 +643,11 @@ public class CollectionTableDataSetter
         }
     }
 
-    private static String getGridPosition( Row row )
+    private String getGridPosition( Row row )
     {
         try
         {
-            String string = row.getString( CollectionTableConstants.GRID_POSITION );
+            String string = getString( row, CollectionTableConstants.GRID_POSITION );
             string = string.replace("(", "").replace(")", "");
             string = string.trim();
             return string;
@@ -571,7 +658,7 @@ public class CollectionTableDataSetter
         }
     }
 
-    private static int[] gridPositionToInts( String position )
+    private int[] gridPositionToInts( String position )
     {
         position = position.replace("(", "").replace(")", "");
         String[] strings = position.split("[,;]");
@@ -591,7 +678,7 @@ public class CollectionTableDataSetter
     {
         try
         {
-            String string = row.getString( CollectionTableConstants.BOUNDING_BOX );
+            String string = getString( row, CollectionTableConstants.BOUNDING_BOX );
             String[] minMax = string.split( "-" );
             double[][] bb = new double[ 2 ][ 3 ];
             for ( int i = 0; i < 2; i++ )
@@ -629,7 +716,7 @@ public class CollectionTableDataSetter
     {
         try
         {
-            String string = row.getString( CollectionTableConstants.BLEND );
+            String string = getString( row, CollectionTableConstants.BLEND );
 
             if ( string.toLowerCase().equals( "alpha" ) )
                 return BlendingMode.Alpha;
@@ -652,7 +739,7 @@ public class CollectionTableDataSetter
         try
         {
             // FIXME TODO
-            String string = row.getString( CollectionTableConstants.AFFINE );
+            String string = getString( row, CollectionTableConstants.AFFINE );
             string = string.replace("(", "").replace(")", "");
             String[] strings = string.split(",");
             double[] doubles = new double[strings.length];
@@ -682,7 +769,7 @@ public class CollectionTableDataSetter
 
         try
         {
-            String string = row.getString( CollectionTableConstants.AFFINE );
+            String string = getString( row, CollectionTableConstants.AFFINE );
             string = string.replace("(", "").replace(")", "");
             String[] strings = string.split(",");
             double[] doubles = new double[strings.length];
@@ -710,7 +797,7 @@ public class CollectionTableDataSetter
     {
         try
         {
-            String colorString = row.getString( CollectionTableConstants.COLOR );
+            String colorString = getString( row, CollectionTableConstants.COLOR );
             ARGBType argbType = ColorHelper.getARGBType( colorString );
             if ( argbType == null )
                 return "white";

@@ -956,6 +956,51 @@
       ],
       "isExclusive": false,
       "description": ""
+    },
+    "test0": {
+      "uiSelectionGroups": [
+        "sadfdsa"
+      ],
+      "sourceDisplays": [
+        {
+          "imageDisplay": {
+            "sources": [
+              "blobs"
+            ],
+            "color": "r=255,g=255,b=255,a=255",
+            "contrastLimits": [
+              0.0,
+              255.0
+            ],
+            "showImagesIn3d": false,
+            "invert": false,
+            "name": "blobs",
+            "opacity": 1.0,
+            "visible": true,
+            "blendingMode": "sum"
+          }
+        }
+      ],
+      "sourceTransforms": [],
+      "viewerTransform": {
+        "normalizedAffine": [
+          0.0019893048128342247,
+          0.0,
+          0.0,
+          -0.4036363636363636,
+          0.0,
+          0.0019893048128342247,
+          0.0,
+          -0.31619251336898396,
+          0.0,
+          0.0,
+          0.0019893048128342247,
+          0.0
+        ],
+        "timepoint": 0
+      },
+      "isExclusive": true,
+      "description": ""
     }
   }
 }

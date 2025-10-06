@@ -2,8 +2,7 @@ package examples;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.command.open.OpenCollectionTableCommand;
-
-import java.io.File;
+import org.embl.mobie.lib.bdv.BdvViewingMode;
 
 public class OpenCollectionTable
 {
@@ -12,13 +11,32 @@ public class OpenCollectionTable
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
+        openLocalTable();
+        //openPlatyTable();
+    }
+
+    private static void openLocalTable()
+    {
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        //command.table = new File( "src/test/resources/collections/organ_spots_collection.tsv" );
-        //command.table = new File( "src/test/resources/collections/blobs-grid-table.txt" );
-        //command.table = new File( "src/test/resources/collections/blobs-grid-table-grid-pos.txt" );
-        //command.table = new File( "/Users/tischer/Documents/bacteria-fluorescent-foci-analysis/data/local/collection-grid.txt" );
-        command.table = new File( "src/test/resources/collections/blobs-mixed-datatypes.txt" );
-        command.dataRootType = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.tableUri = "src/test/resources/collections/blobs-and-spots.txt";
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
+
+    /*
+    * This example shows how to open a table from a Google Sheet.
+    * It contains a link to a Google Sheet with a table of spots.
+     */
+    private static void openPlatyTable()
+    {
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        // Note that this opens sheet 1 and in sheet 2 there are some spots
+        command.tableUri = "https://docs.google.com/spreadsheets/d/1xZ4Zfpg0RUwhPZVCUrX_whB0QGztLN_VVNLx89_rZs4/edit?gid=0#gid=0";
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.PathsInTableAreAbsolute;
+        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
+        command.run();
+    }
+
+
 }

@@ -81,7 +81,6 @@ public class Plate
 	private int numSlices;
 	private boolean fetchSpatialMetadata = true;
 
-
 	public Plate( String hcsDirectory, @Nullable VoxelDimensions voxelDimensions ) throws IOException
 	{
 		this.hcsDirectory = hcsDirectory;
@@ -213,10 +212,14 @@ public class Plate
 						IJ.log( "Fetching metadata for \"" + channelName + "\" from " + imagePath );
 						Source< ? > source = imageData.getSourcePair( datasetIndex ).getA();
 						int numMipmapLevels = source.getNumMipmapLevels();
-						numSlices = ( int ) source.getSource( 0, 0 ).dimension( 2 );
+						int numZSlices = ( int ) source.getSource( 0, 0 ).dimension( 2 );
+						if ( numZSlices > numSlices ) numSlices = numZSlices;
 						RandomAccessibleInterval< ? > rai = source.getSource( 0, numMipmapLevels - 1 );
 						double[] minMax = computeMinMax( ( RandomAccessibleInterval ) rai );
-						IJ.log( "Min, max: " + Arrays.toString( minMax ) );
+						IJ.log( "Value range: " + Arrays.toString( minMax ) );
+						IJ.log( "Pixel dimensions: " + Arrays.toString( source.getSource( 0, 0 ).dimensionsAsLongArray() ) );
+						IJ.log( "Resolutions: " + source.getNumMipmapLevels() );
+
 						channel.setColor( ColorHelper.getString( imageData.getMetadata( datasetIndex ).getColor() ) );
 						// This currently does not do any auto-contrast, but just returns the datatype's range
 //						double[] contrastLimits = {

@@ -34,18 +34,16 @@ import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class View
 {
 	// Serialisation (do not change names of fields!)
 	//
-	private String uiSelectionGroup;
+	@Deprecated // use uiSelectionGroups instead
+	private String uiSelectionGroup; // https://github.com/mobie/mobie-viewer-fiji/issues/1223
 
-	private String[] uiSelectionGroups;
+	private String[] uiSelectionGroups; // https://github.com/mobie/mobie-viewer-fiji/issues/1223
 
 	private List< Display< ? > > sourceDisplays;
 
@@ -79,7 +77,24 @@ public class View
 				 String description
 	) {
 		this.name = name;
-		this.uiSelectionGroup = uiSelectionGroup;
+		this.uiSelectionGroups = new String[]{ uiSelectionGroup };
+		this.sourceDisplays = sourceDisplays;
+		this.sourceTransforms = sourceTransforms;
+		this.viewerTransform = viewerTransform;
+		this.isExclusive = isExclusive;
+		this.description = description;
+	}
+
+	public View( String name,
+				 String[] uiSelectionGroups,
+				 List< Display< ? > > sourceDisplays,
+				 List< Transformation > sourceTransforms,
+				 ViewerTransform viewerTransform,
+				 boolean isExclusive,
+				 String description
+	) {
+		this.name = name;
+		this.uiSelectionGroups = uiSelectionGroups;
 		this.sourceDisplays = sourceDisplays;
 		this.sourceTransforms = sourceTransforms;
 		this.viewerTransform = viewerTransform;
@@ -151,14 +166,26 @@ public class View
 			return sourceDisplays;
 	}
 
-	public String getUiSelectionGroup()
+	public Set< String > getUiSelectionGroups()
 	{
-		return uiSelectionGroup;
-	}
+		HashSet< String > set = new HashSet<>();
 
-	public String[] getUiSelectionGroups()
-	{
-		return uiSelectionGroups;
+		if ( uiSelectionGroup != null && uiSelectionGroups != null )
+		{
+			System.err.println("The view " + name + " has both the uiSelectionGroup and uiSelectionGroups fields set;\n" +
+					"The uiSelectionGroup field is deprecated, please remove it.");
+		}
+
+		if ( uiSelectionGroup != null )
+			set.add( uiSelectionGroup );
+
+		if ( uiSelectionGroups != null )
+			set.addAll( Arrays.asList( uiSelectionGroups ) );
+
+		if ( set.isEmpty() )
+			set.add("views"); // default
+
+		return set;
 	}
 
 	public ViewerTransform getViewerTransform()
@@ -209,11 +236,12 @@ public class View
 
 	public void setUiSelectionGroup( String uiSelectionGroup )
 	{
-		this.uiSelectionGroup = uiSelectionGroup;
+		this.uiSelectionGroups = new String[]{ uiSelectionGroup };
 	}
 
 	public void setDescription( String description )
 	{
 		this.description = description;
 	}
+
 }

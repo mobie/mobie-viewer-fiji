@@ -28,28 +28,13 @@
  */
 package org.embl.mobie.command.open.special;
 
-import loci.common.DebugTools;
 import net.imagej.ImageJ;
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.command.open.OpenCollectionTableCommand;
-import org.embl.mobie.lib.transform.GridType;
-import org.embl.mobie.ui.UserInterfaceHelper;
-import org.jboss.netty.channel.UpstreamMessageEvent;
-import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
-import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open OpenOrganelle" )
 public class OpenOpenOrganelleDataCommand implements Command {
@@ -62,7 +47,7 @@ public class OpenOpenOrganelleDataCommand implements Command {
 		final URL resource = OpenOpenOrganelleDataCommand.class.getResource( "/open-organelle.txt" );
 		String file = resource.getFile();
 		OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-		command.table = new File( file );
+		command.tableUri = file;
 		command.run();
 	}
 

@@ -105,7 +105,8 @@ public abstract class MoBIEHelper
 		Set<T> duplicates = new HashSet<>();
 
 		for (T element : collection) {
-			if (!seen.add(element)) {
+			if ( ! seen.add(element) )
+			{
 				duplicates.add(element);
 			}
 		}
@@ -652,7 +653,12 @@ public abstract class MoBIEHelper
 
 	public static boolean notNullOrEmpty( final String string )
 	{
-		return string != null && !string.isEmpty();
+		return string != null && ! string.isEmpty();
+	}
+
+	public static boolean nullOrEmpty( final String string )
+	{
+		return string == null || string.isEmpty();
 	}
 
 	public static ArrayList< double[] > getVoxelSpacings( Source<?> source, int t )
@@ -827,6 +833,7 @@ public abstract class MoBIEHelper
 
 	public static double[] getCenter( SourceAndConverter< ? > sourceAndConverter )
 	{
+		// TODO: Add documentation for why the mask is used and
 		final RealInterval bounds = SourceHelper.getMask( sourceAndConverter.getSpimSource(), 0 );
 		final double[] center = getCenter( bounds );
 		return center;
@@ -861,16 +868,6 @@ public abstract class MoBIEHelper
 		}
 		translationTransform.translate( translationX, translationY, 0 );
 		return translationTransform;
-	}
-
-	@Deprecated
-	public static double[] computeSourceUnionRealDimensions( List< SourceAndConverter< ? > > sources, double relativeMargin, int t )
-	{
-		RealInterval bounds = createMask( sources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ), t );
-		final double[] realDimensions = new double[ 2 ];
-		for ( int d = 0; d < 2; d++ )
-			realDimensions[ d ] = ( 1.0 + 2.0 * relativeMargin ) * ( bounds.realMax( d ) - bounds.realMin( d ) );
-		return realDimensions;
 	}
 
 	public static AffineTransform3D createNormalisedViewerTransform( ViewerPanel viewerPanel )

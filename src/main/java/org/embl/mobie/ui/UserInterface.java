@@ -96,7 +96,7 @@ public class UserInterface
 
 		splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		splitPane.setDividerLocation( userInterfaceHelper.getActionPanelHeight() );
+		splitPane.setDividerLocation( userInterfaceHelper.getSelectionPanelHeight() );
 		splitPane.setTopComponent( selectionPanel );
 		splitPane.setBottomComponent( displaySettingsPanel );
 		splitPane.setAutoscrolls( true );
@@ -104,9 +104,13 @@ public class UserInterface
 		// show frame
 		for ( View view : views )
 		{
-			final String text = view.getUiSelectionGroup() + ": " + view.getName();
-			if ( text.length() > longestViewString.length() )
-				this.longestViewString = text;
+			Set< String > selectionGroups = view.getUiSelectionGroups();
+			for ( String selectionGroup : selectionGroups )
+			{
+				final String text = selectionGroup + ": " + view.getName();
+				if ( text.length() > longestViewString.length() )
+					this.longestViewString = text;
+			}
 		}
 
 		final int longestStringWidth = new JPanel().getFontMetrics( new JComboBox<>().getFont() ).stringWidth( longestViewString );
@@ -138,7 +142,7 @@ public class UserInterface
 		selectionPanel.revalidate();
 		selectionPanel.repaint();
 		// update the location of the splitpane divider, so any new uiSelectionGroups are visible
-		final int actionPanelHeight = userInterfaceHelper.getActionPanelHeight();
+		final int actionPanelHeight = userInterfaceHelper.getSelectionPanelHeight();
 		splitPane.setDividerLocation( actionPanelHeight );
 		frame.revalidate();
 		frame.repaint();

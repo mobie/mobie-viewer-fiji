@@ -53,14 +53,14 @@ public class BoundarySource< T extends Type< T > > extends AbstractBoundarySourc
         BiConsumer< RealLocalizable, T > biConsumer = ( l, output ) ->
         {
             final RealRandomAccess< T > access = rra.realRandomAccess();
-            final T pixelValue = access.setPositionAndGet( l ).copy();
+            final T input = access.setPositionAndGet( l ).copy();
             // assumes that the default variable is the background value
-            final T background = pixelValue.createVariable();
+            final T background = input.createVariable();
 
-            // set to background
+            // set output to background by default
             output.set( background );
 
-            if ( pixelValue.valueEquals( background ) )
+            if ( input.valueEquals( background ) )
                 return;
 
             // check whether input is a boundary pixel
@@ -70,11 +70,12 @@ public class BoundarySource< T extends Type< T > > extends AbstractBoundarySourc
                 {
                     access.move( signum * pixelUnitsBoundaryWidth[ d ], d );
                     final T neighbourValue = access.get();
-                    if ( ! neighbourValue.valueEquals( pixelValue )  )
+
+                    if ( ! neighbourValue.valueEquals( input )  )
                     {
-                        // input is a non-background boundary pixel...
-                        // ...thus it keeps its value
-                        output.set( pixelValue );
+                        // input is a boundary pixel
+                        // and thus it keeps its value
+                        output.set( input );
                         return;
                     }
                     // move back to center

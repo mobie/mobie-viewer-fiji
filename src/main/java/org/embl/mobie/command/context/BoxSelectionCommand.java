@@ -106,20 +106,11 @@ public class BoxSelectionCommand implements BdvPlaygroundActionCommand
             center = new double[ 3 ];
             transform.apply( MoBIEHelper.getCenter( interval ), center );
 
-            AffineTransform3D boxTransform = new AffineTransform3D();
-            boxTransform.set(size[0], 0, 0, interval.realMin(0),
-                             0, size[1], 0, interval.realMin(1),
-                              0, 0, size[2], interval.realMin(2)
-            );
-            boxAffineTransform = transform.copy().concatenate( boxTransform );
-//            RealInterval unitInterval = new FinalRealInterval(
-//                    new double[]{0.0, 0.0, 0.0},
-//                    new double[]{1.0, 1.0, 1.0});
-//            RealInterval transformedBounds = concatenate.estimateBounds(unitInterval);
-//            System.out.println( "" + transformedBounds );
-            IJ.log( "  Center in global coordinate system: " + Arrays.toString( center ) );
-            IJ.log( "  Size in global coordinate system: " + Arrays.toString( size ) );
-            IJ.log( "  Box affine transform: " + Arrays.toString( boxAffineTransform.getRowPackedCopy() ) );
+            IJ.log( "Center in global coordinate system: " + Arrays.toString( center ) );
+            IJ.log( "Size in global coordinate system: " + Arrays.toString( size ) );
+            IJ.log( "Interval: " + Arrays.toString( interval.minAsDoubleArray() ) + ", " + Arrays.toString( interval.maxAsDoubleArray() ) );
+            IJ.log( "Interval transform to global coordinate system: " + Arrays.toString( transform.getRowPackedCopy() ) );
+
         }
         else
         {

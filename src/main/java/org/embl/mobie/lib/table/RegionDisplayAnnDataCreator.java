@@ -37,7 +37,7 @@ import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.RegionTableSource;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.table.saw.TableOpener;
-import org.embl.mobie.lib.table.saw.TableSawAnnotatedImages;
+import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegion;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegionCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.lib.table.saw.TableSawAnnotationTableModel;
@@ -73,7 +73,8 @@ public class RegionDisplayAnnDataCreator
 		else
 			fetchTable();
 
-		final TableSawAnnotationCreator< TableSawAnnotatedImages > annotationCreator = new TableSawAnnotatedRegionCreator( table, regionDisplay.sources, regionDisplay.getRelativeDilation() );
+		final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator =
+				new TableSawAnnotatedRegionCreator( table, regionDisplay.sources, regionDisplay.getRelativeDilation() );
 
 		final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( regionDisplay.getName(), annotationCreator, tableLocation, tableFormat, table );
 

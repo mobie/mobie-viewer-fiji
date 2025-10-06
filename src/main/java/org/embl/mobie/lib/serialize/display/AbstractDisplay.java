@@ -59,6 +59,12 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	}
 
 	@Override
+	public void setName( String name )
+	{
+		this.name = name;
+	}
+
+	@Override
 	public double getOpacity()
 	{
 		return opacity;

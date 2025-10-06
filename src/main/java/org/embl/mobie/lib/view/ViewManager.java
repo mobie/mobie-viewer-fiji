@@ -139,7 +139,7 @@ public class ViewManager
 
 		View view = new View(
 				imageName,
-				null, // to be determined by the user in below dialog
+                ( String ) null, // to be determined by the user in below dialog
 				Collections.singletonList( display ),
 				transformations,
 				null,
@@ -236,12 +236,11 @@ public class ViewManager
 			else
 				throw new UnsupportedOperationException( "Serialisation of a " + display.getClass().getName() + " is not yet supported." );
 
-
 			addImageTransforms( transformations, display.images() );
 		}
 
 		// the parameters that are null must be later set via the view's setter methods
-		return new View( null, null, displays, transformations, null, true, "" );
+		return new View( null, ( String[] ) null, displays, transformations, null, true, "" );
 	}
 
 	public synchronized void show( String viewName )
@@ -264,7 +263,7 @@ public class ViewManager
 			MoBIEWindowManager.closeAllWindows();
 		}
 
-		final boolean viewerWasEmpty = currentDisplays.size() == 0;
+		final boolean viewerWasEmpty = currentDisplays.isEmpty();
 
 		// Init and transform the data of this view.
 		// Currently, data is reloaded every time a view is shown.
@@ -303,7 +302,7 @@ public class ViewManager
 		// adjust viewer transform to accommodate the displayed sources.
 		// note that if {@code view.getViewerTransform() != null}
 		// the viewer transform has already been adjusted above.
-		if ( view.getViewerTransform() == null && currentDisplays.size() > 0 && viewerWasEmpty )
+		if ( view.getViewerTransform() == null && !currentDisplays.isEmpty() && viewerWasEmpty )
 		{
 			AffineTransform3D viewerTransform = MoBIEViewerTransformAdjuster.getViewerTransform(
 					sliceViewer.getBdvHandle(),
@@ -450,12 +449,6 @@ public class ViewManager
 
 						List< ? extends Image< ? > > images = DataStore.getImageList( mergedGridTransformation.getSources() );
 
-//						if ( images.size() == 1 )
-//						{
-//							DataStore.addImage( images.get( 0 ) );
-//							continue;
-//						}
-
 						// Fetch grid metadata image
 						Image< ? > metadataImage = ( mergedGridTransformation.metadataSource == null ) ? images.get( 0 ) : DataStore.getImage( mergedGridTransformation.metadataSource );
 
@@ -521,7 +514,7 @@ public class ViewManager
 				// ...as normally a display should visualise an existing image
 				// here however the display creates the image
 				// The imageNames that are referred to here must exist in this view.
-				// Thus the {@code RegionAnnotationImage} must be build
+				// Thus, the {@code RegionAnnotationImage} must be built
 				// *after* the above transformations,
 				// which may create new images
 				// that could be referred to here.
@@ -549,8 +542,8 @@ public class ViewManager
 
 		if ( display instanceof AbstractDisplay )
 		{
-			((AbstractDisplay) display).sliceViewer = sliceViewer;
-			((AbstractDisplay) display).bigVolumeViewer = bigVolumeViewer;
+			(( AbstractDisplay< ? > ) display).sliceViewer = sliceViewer;
+			(( AbstractDisplay< ? > ) display).bigVolumeViewer = bigVolumeViewer;
 		}
 
 		if ( display instanceof ImageDisplay )

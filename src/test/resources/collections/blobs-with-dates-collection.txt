@@ -1,0 +1,3 @@
+uri	view	color	affine	date
+blobs.tif	a	blue	"(0.5,0,0,0,0,0.5,0,0,0,0,0.5,0)"	20240202
+blobs.tif	b	green		20240201

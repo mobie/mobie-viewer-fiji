@@ -142,9 +142,11 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		{
 			if ( display instanceof RegionDisplay )
 			{
-				final RegionDisplay< ? > display = ( RegionDisplay ) this.display;
+				final RegionDisplay< 	? > display = ( RegionDisplay ) this.display;
 				if ( display.boundaryThicknessIsRelative() )
 				{
+					// FIXME: The boundary size here does not make sense if the images
+					//        have very different sizes
 					final String someRegion = display.sources.keySet().iterator().next();
 					final String someSource = display.sources.get( someRegion ).get( 0 );
 					Image< ? > image = DataStore.getImage( someSource );
@@ -208,7 +210,6 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 			final double[] position = selection.positionAsDoubleArray();
 			if ( position == null ) return;
 			viewerTransform = MoBIEHelper.getViewerTransformWithNewCenter( bdvHandle, position );
-
 		}
 
 		new sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger(

@@ -191,7 +191,7 @@ public class ContrastAdjustmentsDialog
         JPanel blendingPanel = SwingHelper.horizontalFlowLayoutPanel();
         blendingPanel.add( new JLabel("Blending  ") );
         JComboBox< BlendingMode > blendingModeComboBox = new JComboBox<>(
-                new BlendingMode[]{ BlendingMode.Sum, BlendingMode.Alpha } );
+                new BlendingMode[]{ BlendingMode.Sum, BlendingMode.Alpha, BlendingMode.AND } );
         BlendingMode currentBlendingMode = ( BlendingMode ) service.getMetadata(
                 contrastAdjustmentManager.getAdjustable().get( 0 ),
                 BlendingMode.class.getName() );

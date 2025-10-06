@@ -29,8 +29,9 @@
 package org.embl.mobie.command.open;
 
 import loci.common.DebugTools;
-import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.command.open.special.OpenSimpleCollectionTableCommand;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.data.ProjectType;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.util.MoBIEHelper;
@@ -40,10 +41,15 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.File;
-import java.io.IOException;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Collection Table..." )
-public class OpenCollectionTableCommand implements Command {
+public class OpenCollectionTableCommand extends OpenSimpleCollectionTableCommand
+{
+
+	// Don't change those Strings to stay compatible with recorded macros
+	public static final String ABSOLUTE = "PathsInTableAreAbsolute";
+	public static final String RELATIVE_TO_TABLE = "UseTableFolder";
+	public static final String RELATIVE_TO_FOLDER = "UseBelowDataRootFolder";
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -54,12 +60,15 @@ public class OpenCollectionTableCommand implements Command {
 		UseBelowDataRootFolder
 	}
 
-	@Parameter( label = "Table Path" )
-	public File table;
 
 	@Parameter( label = "Data Root",
+			choices = { ABSOLUTE, RELATIVE_TO_TABLE, RELATIVE_TO_FOLDER },
 			description = "Specify whether the data URIs in the table are absolute or relative." )
-	public DataRootType dataRootType = DataRootType.PathsInTableAreAbsolute;
+	public String dataRootType; // important to keep the variable name the same for Macro recording
+
+	// Does not work yet properly as a parameter:
+	// https://github.com/scijava/scijava-common/issues/471
+	public DataRootType dataRootTypeEnum;
 
 	@Parameter( label = "( Data Root Folder )",
 			style = "directory",
@@ -68,9 +77,15 @@ public class OpenCollectionTableCommand implements Command {
 	public File dataRoot;
 
 	@Parameter( label = "Viewing mode",
-			description = "Volumetric viewing enables arbitrary plane slicing. Planar viewing mode will restrict browsing to the XY, YZ, or XZ planes.",
+			choices = {"ThreeDimensional", "TwoDimensional"},
+			description = "ThreeDimensional viewing enables arbitrary plane slicing.\n" +
+					"TwoDimensional viewing mode will restrict browsing to the XY, YZ, or XZ planes.",
 			required = false )
-	public BdvViewingMode bdvViewingMode = BdvViewingMode.ThreeDimensional;
+	public String bdvViewingMode; // important to keep the variable name the same for Macro recording
+
+	// Does not work yet properly as a parameter:
+	// https://github.com/scijava/scijava-common/issues/471
+	public BdvViewingMode bdvViewingModeEnum;
 
 	@Parameter ( label = "( S3 Access Key )",
 			description = "Optional. Access key for a protected S3 bucket.",
@@ -84,20 +99,22 @@ public class OpenCollectionTableCommand implements Command {
 			required = false )
 	public String s3SecretKey;
 
-
 	@Override
 	public void run()
 	{
 		DebugTools.setRootLevel( "OFF" );
 
+		dataRootTypeEnum = dataRootTypeEnum == null ? DataRootType.valueOf( dataRootType ) : dataRootTypeEnum;
+		bdvViewingModeEnum = bdvViewingModeEnum == null ? BdvViewingMode.valueOf( bdvViewingMode ) : bdvViewingModeEnum;
+
 		String dataRootString;
-		switch ( dataRootType )
+		switch ( dataRootTypeEnum )
 		{
 			case UseBelowDataRootFolder:
 				dataRootString = dataRoot == null ? null : dataRoot.getAbsolutePath();
 				break;
 			case UseTableFolder:
-				dataRootString = table.getParent();
+				dataRootString = IOHelper.getParentLocation( tableUri );
 				break;
 			case PathsInTableAreAbsolute:
 			default:
@@ -108,18 +125,11 @@ public class OpenCollectionTableCommand implements Command {
 		final MoBIESettings settings = new MoBIESettings()
 				.projectType( ProjectType.CollectionTable )
 				.dataRoot( dataRootString )
-				.bdvViewingMode( bdvViewingMode );
+				.bdvViewingMode( bdvViewingModeEnum );
 
 		if ( MoBIEHelper.notNullOrEmpty( s3AccessKey ) )
 			settings.s3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } );
 
-		try
-		{
-			new MoBIE( MoBIEHelper.toURI( table ), settings );
-		}
-		catch ( IOException e )
-		{
-			throw new RuntimeException( e );
-		}
+		openTable( tableUri, settings );
 	}
 }

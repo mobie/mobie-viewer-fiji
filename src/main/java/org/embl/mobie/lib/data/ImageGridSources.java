@@ -68,24 +68,37 @@ public class ImageGridSources
 	protected Metadata metadata;
 	private String metadataSource;
 
-	public ImageGridSources( String name, String pathRegex, Integer channelIndex, String root, GridType gridType )
+	public ImageGridSources( String name, String path, Integer channelIndex, String root, GridType gridType )
 	{
 		this.gridType = gridType;
 		this.name = name;
 		this.channelIndex = channelIndex;
 
-		List< String > paths;
-		if ( pathRegex.contains( "http" ) || pathRegex.startsWith( "s3" ) )
-			paths = Collections.singletonList(  pathRegex );
-		else
-			paths = MoBIEHelper.getFullPaths( pathRegex, root );
-
-		for ( String path : paths )
+		if ( path.contains( "http" ) || path.startsWith( "s3" ) )
 		{
-			final String fileName = new File( path ).getName();
-			String imageName = createImageName( channelIndex, fileName );
-			nameToFullPath.put( imageName, path );
+			nameToFullPath.put( name, path );
 		}
+		else
+		{
+			// path could be a regExp
+			List< String > paths = MoBIEHelper.getFullPaths( path, root );
+
+			if ( paths.size() == 1 ) // no regExp
+			{
+				nameToFullPath.put( name, path );
+			}
+			else
+			{
+				// regExp
+				for ( String aPath : paths )
+				{
+					final String fileName = new File( aPath ).getName();
+					String imageName = createImageName( channelIndex, fileName );
+					nameToFullPath.put( imageName, aPath );
+				}
+			}
+		}
+
 
 		// TODO: how to deal with the inconsistent metadata (e.g. number of time-points)?
 		// FIXME: We don't always want to prefetch this as this is expensive..
@@ -177,12 +190,12 @@ public class ImageGridSources
 		return containsFolderColumn;
 	}
 
-	private void setMetadata( Integer channelIndex )
+	private void setMetadata( Integer setupIndex )
 	{
 		// Take the first source of the grid to fetch metadata
 		metadataSource = nameToFullPath.keySet().iterator().next();
 		long start = System.currentTimeMillis();
-		IJ.log( "Fetching metadata for \"" + name + "\", channel " + channelIndex );
+		IJ.log( "Fetching metadata for \"" + name + "\", setup " + setupIndex );
 		String uri = nameToFullPath.get( metadataSource );
 		IJ.log( "Source: " + uri );
 		ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( uri );
@@ -193,10 +206,10 @@ public class ImageGridSources
 				imageDataFormat,
 				ThreadHelper.sharedQueue );
 
-		channelIndex = channelIndex == null ? 0 : channelIndex;
-		CanonicalDatasetMetadata canonicalDatasetMetadata = imageData.getMetadata( channelIndex );
+		setupIndex = setupIndex == null ? 0 : setupIndex;
+		CanonicalDatasetMetadata canonicalDatasetMetadata = imageData.getMetadata( setupIndex );
 		metadata = new Metadata( canonicalDatasetMetadata );
-		Source< ? > source = imageData.getSourcePair( channelIndex ).getA();
+		Source< ? > source = imageData.getSourcePair( setupIndex ).getA();
 		RandomAccessibleInterval< ? > highResRAI = source.getSource( 0, 0 );
 		metadata.numZSlices = (int) highResRAI.dimension( 2 );
 		metadata.numTimePoints = SourceHelper.getNumTimePoints( source );

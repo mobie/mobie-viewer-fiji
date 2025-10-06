@@ -1,0 +1,34 @@
+{
+  "layers": [
+    {
+      "name": "EM Overview",
+      "type": "image",
+      "source": "https://uk1s3.embassy.ebi.ac.uk/bia-zarr-test/mobie/clem-example/em-overview.ome.zarr",
+      "shader": "default",
+      "transform": {
+        "matrix": [
+          [-0.102, -0.971, 0.0, 483.043],
+          [-0.985, 0.119, 0.0, 487.003],
+          [0.0, 0.0, 29.308, 0.0],
+          [0.0, 0.0, 0.0, 1.0]
+        ]
+      },
+      "color": "white"
+    },
+    {
+      "name": "Fluorescence A2 FMR C2",
+      "type": "image",
+      "source": "https://uk1s3.embassy.ebi.ac.uk/bia-zarr-test/mobie/clem-example/fluorescence-a2-FMR-c2.ome.zarr",
+      "shader": "default",
+      "transform": {
+        "matrix": [
+          [-0.024241, 0.0611493, 0.0, 193.574],
+          [0.0626282, 0.0230837, 0.0, -39.55],
+          [0.0, 0.0, 0.999608, 0.0],
+          [0.0, 0.0, 0.0, 1.0]
+        ]
+      },
+      "color": "green"
+    }
+  ]
+}

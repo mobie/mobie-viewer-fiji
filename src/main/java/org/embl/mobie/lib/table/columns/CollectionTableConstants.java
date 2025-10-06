@@ -16,7 +16,8 @@ package org.embl.mobie.lib.table.columns;
 public class CollectionTableConstants
 {
     /**
-     * The "uri" column MUST be present, and it MUST point to a valid image or spots dataset.
+     * The "uri" (or "File Path") column MUST be present
+     * and it MUST point to a valid image, labels or spots dataset.
      *
      * The same URI MAY be present several times in the same table;
      * this can be useful to display the same data within various views,
@@ -35,8 +36,13 @@ public class CollectionTableConstants
      * Support spots file formats include:
      * - Parquet
      * - Tab or comma separated value text files
+     * - Google Sheets URLs
+     *
      */
-    public static final String URI = "uri";
+    public static final String[] URI = {
+            "uri", // MoBIE
+            "File Path" // BioFile Finder
+    };
 
     /**
      * The "name" column MAY be present.
@@ -125,6 +131,9 @@ public class CollectionTableConstants
      * The "blend" column MAY be present.
      *
      * The value determines the blending mode for this image.
+     * For the "alpha" blending mode the sequence of the images
+     * in the table matters. Images that come later in the table are 
+     * "on top" of earlier images.
      *
      * Supported values:
      * - "sum"
@@ -213,11 +222,13 @@ public class CollectionTableConstants
     /**
      * The "group" column MAY be present.
      *
-     * The value will create a UI selection group in the MoBIE user interface
+     * The value will create a UI selection group(s) in the MoBIE user interface
      * to which the view of this image will be added.
      *
      * Supported values:
-     * - Free text
+     * - Free text (without ","), e.g.: "em"
+     * - Comma separated list of groups, e.g.: "nice,great"
+     *   - The same view will be selectable from several group drop-downs
      *
      * Default: "views"
      * If the column is absent or contains an empty string the
@@ -237,7 +248,7 @@ public class CollectionTableConstants
      * otherwise it is ignored.
      *
      * Supported values:
-     * - A valid path to a "segmentation" table.
+     * - A valid uri to a "segmentation" table.
      * - For supported columns in segmentation tables see, e.g.
      *   {@code MoBIESegmentColumnNames} or {@code SkimageSegmentColumnNames}.
      *
@@ -249,6 +260,7 @@ public class CollectionTableConstants
      * - Exploration of measurements corresponding to the labels
      */
     public static final String LABELS_TABLE = "labels_table";
+    public static final String LABELS_TABLE_URI = "labels_table_uri";
 
     /**
      * The "contrast_limits" column MAY be present.

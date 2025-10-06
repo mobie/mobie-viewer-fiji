@@ -31,18 +31,24 @@ package org.embl.mobie.lib.bdv.view;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ScaledARGBConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.util.Intervals;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.lib.bdv.ContrastComputer;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.opacity.MoBIEColorConverter;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
+import org.embl.mobie.lib.source.SourceHelper;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
+
+import java.util.Arrays;
 
 public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceView
 {
@@ -76,7 +82,7 @@ public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceV
 			// blending mode and visibility, which are generic to all Displays
 			display.sliceViewer.show( image, sourceAndConverter, display );
 
-			// adapt Image specific contrast limits after showing the image,
+			// adapt contrast limits after showing the image,
 			// because we need the ConverterSetup to exist
 			adaptContrastLimits( sourceAndConverter );
 		}
@@ -130,6 +136,21 @@ public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceV
 							.getConverterSetup( sourceAndConverter );
 			converterSetup.setDisplayRange( contrastLimits[ 0 ], contrastLimits[ 1 ] );
 		}
+
+		// determine contrast limits, if affordable
+//		RandomAccessibleInterval< ? > lowResRAI = source.getSource( 0, source.getNumMipmapLevels() - 1 );
+//		long numElements = Intervals.numElements( lowResRAI.dimensionsAsLongArray() );
+//		if ( numElements < 1024 * 1024 )
+//			metadata.contrastLimits = SourceHelper.estimateMinMax( ( RandomAccessibleInterval ) lowResRAI );
+//
+//		IJ.log( "Contrast limits: " + Arrays.toString( metadata.contrastLimits ) );
+//		IJ.log( "Fetched metadata in " + ( System.currentTimeMillis() - start ) + " ms" );
+
+		// There also is the ContrastComputer iomplementation
+//		ContrastComputer contrastAdjuster = new ContrastComputer(bdvHandle, sac);
+//		// FIXME which down-sampling?
+//		double[] contrast = contrastAdjuster.computeMinMax(1);
+
 	}
 
 	private void adaptColor( SourceAndConverter< ? > sourceAndConverter )

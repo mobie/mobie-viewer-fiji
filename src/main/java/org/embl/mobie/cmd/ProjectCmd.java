@@ -28,11 +28,13 @@
  */
 package org.embl.mobie.cmd;
 
+import ij.IJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 
 @CommandLine.Command(name = "mobie-project", mixinStandardHelpOptions = true, version = "4.0.3", description = "Visualise multi-modal big image data stored as a MoBIE project, see https://mobie.github.io/")
@@ -49,8 +51,7 @@ public class ProjectCmd implements Callable< Void > {
 	@Override
 	public Void call() throws Exception {
 
-		final MoBIESettings settings = new MoBIESettings()
-				.openedFromCLI( true );
+		final MoBIESettings settings = new MoBIESettings().openedFromCLI( true );
 
 		if ( view != null ) settings.view( view );
 
@@ -62,6 +63,8 @@ public class ProjectCmd implements Callable< Void > {
 	public static final void main( final String... args ) {
 
 		final ProjectCmd projectCmd = new ProjectCmd();
+
+		System.out.println( Arrays.toString( args ) );
 
 		if ( args == null || args.length == 0 )
 			new CommandLine( projectCmd ).execute( "--help" );

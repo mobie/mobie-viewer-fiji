@@ -35,4 +35,5 @@ public class TableDataFormatNames
 	public static final String PARQUET = "parquet";
 	public static final String RESULTS_TABLE = "ResultsTable";
 	public static final String TABLE = "Table";
+	public static final String EXCEL = "Excel";
 }

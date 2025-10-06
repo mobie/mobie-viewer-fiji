@@ -165,7 +165,8 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 				g,
 				viewerTransform.estimateBounds( imageMask ),
 				image.getName(),
-				g.getFont() );
+				g.getFont(),
+				-1 );
 
 		boolean addItem = true;
 		for ( OverlayItem item : overlayItems )
