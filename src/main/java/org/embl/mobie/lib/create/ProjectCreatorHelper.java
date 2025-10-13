@@ -349,6 +349,10 @@ public class ProjectCreatorHelper {
     }
 
     public static boolean uriIsInsideDir( String uri, File dir) {
+        if (IOHelper.getType( uri ) != IOHelper.ResourceType.FILE) {
+            return false;
+        }
+
         Path filePath = Paths.get( uri ).normalize();
         Path dirPath = Paths.get( dir.getAbsolutePath() ).normalize();
 
