@@ -66,7 +66,7 @@ public class RemoteMetadataCreator {
 
     private void deleteAllRemoteMetadata() throws IOException {
         for ( String datasetName: projectCreator.getProject().datasets() ) {
-            if ( !datasetName.equals("") ) {
+            if ( !datasetName.isEmpty() ) {
                 Dataset dataset = projectCreator.getDataset( datasetName );
                 for ( String imageName: dataset.sources().keySet() ) {
                     deleteRemoteMetadataForImage( datasetName, imageName );
@@ -91,9 +91,22 @@ public class RemoteMetadataCreator {
             return;
         }
 
-        // Don't allow images without a relative path e.g. those using absolute paths via the 'link' option
         String relativePath = imageSource.imageData.get(localImageDataFormat).relativePath;
-        if (relativePath == null) {
+        String absolutePath = imageSource.imageData.get(localImageDataFormat).absolutePath;
+
+        StorageLocation storageLocation = new StorageLocation();
+        storageLocation.signingRegion = signingRegion;
+
+        // Handle images with remote S3 paths
+        if ( absolutePath != null && IOHelper.getType(absolutePath) != IOHelper.ResourceType.FILE ) {
+            storageLocation.s3Address = absolutePath;
+            imageSource.imageData.put(remoteImageDataFormat, storageLocation);
+            return;
+        }
+
+        // Don't allow images with absolute local file paths - i.e. those linking to local locations outside
+        // the project.
+        if ( relativePath == null ) {
             String errorMesage = "Image: " + imageName + " for dataset:" + datasetName + " has no relative path. \n" +
                     "You can't 'link' to images outside the project folder, when uploading to s3";
             IJ.log( errorMesage );
@@ -116,16 +129,14 @@ public class RemoteMetadataCreator {
         }
 
         // give absolute s3 path to ome.zarr file
-        StorageLocation storageLocation = new StorageLocation();
         storageLocation.s3Address = serviceEndpoint + bucketName + "/" + datasetName + "/" + relativePath;
-        storageLocation.signingRegion = signingRegion;
         imageSource.imageData.put( remoteImageDataFormat, storageLocation );
     }
 
     private void addRemoteMetadataForDataset( String datasetName ) throws IOException {
         Dataset dataset = projectCreator.getDataset( datasetName );
         for ( String imageName: dataset.sources().keySet() ) {
-            if ( !imageName.equals("") ) {
+            if ( !imageName.isEmpty() ) {
                 IJ.log("Adding metadata for image: " + imageName );
                 addRemoteMetadataForImage( datasetName, imageName );
             }
@@ -136,7 +147,7 @@ public class RemoteMetadataCreator {
 
     private void addAllRemoteMetadata() throws SpimDataException, IOException {
         for ( String datasetName: projectCreator.getProject().datasets() ) {
-            if ( !datasetName.equals("") ) {
+            if ( !datasetName.isEmpty() ) {
                 IJ.log("Adding metadata for dataset: " + datasetName );
                 addRemoteMetadataForDataset( datasetName );
             }
@@ -158,7 +169,7 @@ public class RemoteMetadataCreator {
         this.remoteImageDataFormat = ImageDataFormat.OmeZarrS3;
         this.localImageDataFormat = ImageDataFormat.OmeZarr;
 
-        if ( this.signingRegion.equals("") ) {
+        if ( this.signingRegion.isEmpty() ) {
             this.signingRegion = null;
         }
 
