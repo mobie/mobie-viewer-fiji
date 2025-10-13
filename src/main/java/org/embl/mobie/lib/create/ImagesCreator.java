@@ -300,21 +300,19 @@ public class ImagesCreator {
             throw new UnsupportedOperationException("Can't add a 3D image to a 2D dataset" );
         }
 
+        if ( IOHelper.getType(uri) != IOHelper.ResourceType.FILE && addMethod == ProjectCreator.AddMethod.Copy ) {
+            throw new UnsupportedOperationException("Copying isn't supported for remote datasets - use link instead.");
+        }
+
         // If an image of the same name is inside the project, delete it when overwrite=True.
-        if ( addMethod.equals( ProjectCreator.AddMethod.Copy ) )
-        {
-            File oldImageFile = new File( imagesDirectory, imageName + ".ome.zarr" );
-            if ( oldImageFile.exists() )
-            {
-                if ( overwrite )
-                {
-                    IJ.log( "Overwriting image " + imageName + " in dataset " + datasetName );
-                    deleteImageFiles( datasetName, imageName );
-                } else
-                {
-                    throw new UnsupportedOperationException( "An image called " + imageName + "already exists in the dataset " +
-                            datasetName + ", and overwrite is set to false" );
-                }
+        File oldImageFile = new File( imagesDirectory, imageName + ".ome.zarr" );
+        if ( oldImageFile.exists() ) {
+            if ( overwrite ) {
+                IJ.log("Overwriting image " + imageName + " in dataset " + datasetName);
+                deleteImageFiles( datasetName, imageName );
+            } else {
+                throw new UnsupportedOperationException("An image called " + imageName + "already exists in the dataset " +
+                        datasetName + ", and overwrite is set to false");
             }
         }
 
@@ -322,14 +320,8 @@ public class ImagesCreator {
             projectCreator.setVoxelUnit( imageData.getSourcePair( 0 ).getB().getVoxelDimensions().unit() );
         }
 
-        switch (addMethod) {
-            case Link:
-                break;
-            case Copy:
-                uri = copyImage( uri, imagesDirectory, imageName ).getAbsolutePath();
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + addMethod);
+        if ( addMethod == ProjectCreator.AddMethod.Copy ) {
+            uri = copyImage( uri, imagesDirectory, imageName ).getAbsolutePath();
         }
 
         if ( imageType == ProjectCreator.ImageType.Image ) {

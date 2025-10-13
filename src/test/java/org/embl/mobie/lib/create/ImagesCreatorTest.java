@@ -323,4 +323,19 @@ class ImagesCreatorTest {
             copyImageIntoDataset( false);
         } );
     }
+
+    /**
+     * Copying isn't allowed for remote datasets.
+     */
+    @Test
+    void copyS3ImageToDataset() {
+        String s3Path = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr/labels/cells";
+
+        assertThrows( UnsupportedOperationException.class, () -> {
+            imagesCreator.linkOrCopyOMEZarrImage(
+                    s3Path, imageName, datasetName,
+                    ProjectCreator.ImageType.Image,
+                    ProjectCreator.AddMethod.Copy, uiSelectionGroup, false, false );
+        } );
+    }
 }
