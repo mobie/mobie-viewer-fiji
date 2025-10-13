@@ -265,7 +265,7 @@ public class ImagesCreator {
     /**
      * Add existing ome-zarr image to MoBIE project.
      *
-     * @param uri ome-zarr uri
+     * @param uri ome-zarr uri - can be local image path, or remote S3 url
      * @param imageName image name
      * @param datasetName dataset name
      * @param imageType image type i.e. image or segmentation
@@ -349,7 +349,7 @@ public class ImagesCreator {
         }
     }
 
-    private void addDefaultTableForImage ( String imageName, String datasetName ) {
+    private void addDefaultTableForImage ( String imageName, String datasetName, String imageUri ) {
         File tableFolder = new File( getDefaultTableDirPath( datasetName, imageName ) );
         File defaultTable = new File( getDefaultTablePath( datasetName, imageName ) );
         if ( !tableFolder.exists() ){
@@ -361,11 +361,10 @@ public class ImagesCreator {
             IJ.log( " Creating default table... 0 label is counted as background" );
 
             // xml file or zarr file, depending on imageDataFormat
-            String filePath = getDefaultLocalImagePath( datasetName, imageName );
-            ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( filePath );
+            ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( imageUri );
             addS3keys( imageDataFormat );
             ImageData< ? > imageData = ImageDataOpener.open(
-                    filePath,
+                    imageUri,
                     imageDataFormat,
                     ThreadHelper.sharedQueue );
             final Source< ? > labelsSource = imageData.getSourcePair( 0 ).getA();
@@ -439,7 +438,7 @@ public class ImagesCreator {
                                                         String uiSelectionGroup,
                                                         boolean exclusive,
                                                         AffineTransform3D sourceTransform ) {
-        addDefaultTableForImage( imageName, datasetName );
+        addDefaultTableForImage( imageName, datasetName, imageUri );
         DatasetSerializer datasetSerializer = projectCreator.getDatasetJsonCreator();
         datasetSerializer.addSegmentation( imageName, imageUri, datasetName, uiSelectionGroup,
                 exclusive, sourceTransform );
