@@ -38,14 +38,14 @@ public class CollectionDataSetter
     private final String rootPath;
 
     private final Map< String, String[] > viewToGroups = new LinkedHashMap<>();
-    private final Map< String, Set< String > > viewToGrids = new LinkedHashMap<>();
-    private final Map< String, Map< String, List< String > > > gridToPositionsToSources = new LinkedHashMap<>();
+
+    // view: grid: position: sources
+    private final Map< String, Map< String, Map< String, List< String > > > > viewToGrids = new LinkedHashMap<>();
     private final Map< String, Map< String, Display< ? > > > viewToDisplays = new LinkedHashMap<>();
     private final Map< String, Boolean > viewToExclusive = new LinkedHashMap<>();
     private final Map< String, List< Transformation > > viewToTransformations = new LinkedHashMap<>();
     private final Map< String, Integer > sourceToRowIndex = new HashMap<>();
     private final Map< Integer, String > rowToSourceName = new HashMap<>();
-
 
     public CollectionDataSetter( Table table, String rootPath )
     {
@@ -67,25 +67,24 @@ public class CollectionDataSetter
             String sourceName = getDataName( row );
             String displayName = getDisplayName( row );
             String viewName = getViewName( row );
-            String gridName = getGridId( row );
+            String gridName = getGridName( row );
             IJ.log("  Name: " + sourceName );
             IJ.log("  Display: " + displayName );
             IJ.log("  View: " + viewName );
             if ( gridName != null ) IJ.log("  Grid: " + gridName );
             sourceToRowIndex.put( sourceName, row.getRowNumber() );
 
-            viewToDisplays.computeIfAbsent( viewName, k -> new HashMap< String, Display< ? >>() );
+            viewToDisplays.computeIfAbsent( viewName, k -> new LinkedHashMap<>() );
 
             addSource( dataset, row, sourceName, viewToDisplays.get( viewName ), displayName );
 
             if ( gridName != null )
             {
-                viewToGrids.computeIfAbsent( viewName, k -> new HashSet<>() ).add( gridName );
-                String gridPosition = getGridPosition( row );
-                gridToPositionsToSources
-                            .computeIfAbsent( gridName, k -> new LinkedHashMap<>() )
-                            .computeIfAbsent( gridPosition, k -> new ArrayList<>() )
-                            .add( sourceName );
+                viewToGrids
+                        .computeIfAbsent( viewName, k -> new LinkedHashMap<>() )
+                        .computeIfAbsent( gridName, k -> new LinkedHashMap<>() )
+                        .computeIfAbsent( getGridPosition( row ), k -> new ArrayList<>() )
+                        .add( sourceName );
             }
 
             viewToGroups.put( viewName, getGroups( row ) );
@@ -102,7 +101,7 @@ public class CollectionDataSetter
 
             if ( viewToGrids.containsKey( viewName ) )
             {
-                addGridView( viewName, transformations );
+                addGridTransformationsAndRegionDisplay( viewName, transformations );
             }
             else
             {
@@ -146,18 +145,18 @@ public class CollectionDataSetter
         return false;
     }
 
-    private void addGridView( String viewName,
-                              ArrayList< Transformation > transformations)
+    private void addGridTransformationsAndRegionDisplay( String viewName,
+                                                         ArrayList< Transformation > transformations)
     {
-        viewToGrids.get( viewName ).forEach( gridName ->
+        viewToGrids.get( viewName ).keySet().forEach( gridName ->
         {
-            Map< String, List< String > > positionToSources = gridToPositionsToSources.get( gridName );
+            Map< String, List< String > > positionToSources = viewToGrids.get( viewName ).get( gridName );
             List< List< String > > nestedSources;
 
             // FIXME: This is wrong if there are grid_positions given
             if ( positionToSources.size() == 1 )
             {
-                assert  positionToSources.keySet().iterator().next().equals( NO_GRID_POSITION );
+                assert positionToSources.keySet().iterator().next().equals( NO_GRID_POSITION );
 
                 nestedSources = positionToSources.values().iterator().next().stream()
                         .map( Collections::singletonList )
@@ -207,7 +206,7 @@ public class CollectionDataSetter
                 .toArray();
         Selection rowSelection = Selection.with( rowIndices );
         Table regionTable = table.where( rowSelection );
-        regionTable.setName( regionsName + ": regions" );
+        regionTable.setName( regionsName );
         regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, firstSources ) );
         final StorageLocation storageLocation = new StorageLocation();
         storageLocation.data = regionTable;
@@ -492,15 +491,18 @@ public class CollectionDataSetter
         }
     }
 
-    private static String getGridId( Row row )
+    private static String getGridName( Row row )
     {
         try {
-            String string = getString( row, CollectionTableConstants.GRID );
+            String gridName = getString( row, CollectionTableConstants.GRID );
 
-            if ( string.isEmpty() )
+            if ( gridName.isEmpty() )
                 return null;
 
-            return string;
+            if ( row.columnNames().contains( CollectionTableConstants.VIEW  ) )
+                return row.getString( CollectionTableConstants.VIEW  ) + ": " + gridName;
+
+            return gridName;
         }
         catch ( Exception e )
         {

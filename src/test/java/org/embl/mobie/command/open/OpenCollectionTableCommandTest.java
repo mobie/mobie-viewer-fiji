@@ -77,6 +77,19 @@ public class OpenCollectionTableCommandTest
     }
 
     @Test
+    public void alphaBlendingOrder()
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = new File("src/test/resources/collections/alpha-blend-collection.csv").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
+        command.run();
+    }
+
+    @Test
     public void clem( )
     {
         final ImageJ imageJ = new ImageJ();
@@ -268,10 +281,11 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().spots3dWith20000Columns();
         //new OpenCollectionTableCommandTest.createLargeSpotsTable();
         //new OpenCollectionTableCommandTest().addImageTwice();
-        new OpenCollectionTableCommandTest().clem();
+        //new OpenCollectionTableCommandTest().clem();
         //new OpenCollectionTableCommandTest().singleBlobs();
         //new OpenCollectionTableCommandTest().mrc();
         //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
+        new OpenCollectionTableCommandTest().alphaBlendingOrder();
     }
 }
