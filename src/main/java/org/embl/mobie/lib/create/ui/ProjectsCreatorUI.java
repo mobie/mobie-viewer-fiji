@@ -461,13 +461,14 @@ public class ProjectsCreatorUI extends JFrame {
             exclusive = gd.getNextBoolean();
             useFileNameAsImageName = gd.getNextBoolean();
 
-            // TODO: a Browse button for local folders would be nice
-            final GenericDialog gd2 = new GenericDialog( "OME-Zarr Location" );
-            gd2.addStringField( "Folder or S3 address", "", 100 );
-            gd2.showDialog();
-            if ( gd2.wasCanceled() ) return;
-            String uri = gd2.getNextString();
-            linkOrCopyOMEZarr( uri, datasetName );
+            FileChooserWithBrowse zarrLocationDialog = new FileChooserWithBrowse(
+                    "OME-Zarr Location", "Folder or S3 address:"
+            );
+
+            String zarrUri = zarrLocationDialog.getPath();
+            if ( zarrUri != null ) {
+                linkOrCopyOMEZarr(zarrUri, datasetName);
+            }
         }
     }
 
