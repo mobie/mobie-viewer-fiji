@@ -84,7 +84,7 @@ public class DatasetSerializer
     /**
      * Add named image to dataset Json (including a view with the image name and sensible defaults)
      * @param imageName image name
-     * @param imageUri image file
+     * @param imageUri image uri - can be local image path, or remote S3 url
      * @param datasetName dataset name
      * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
      *                         menu it will appear in
@@ -122,7 +122,7 @@ public class DatasetSerializer
     /**
      * Add named segmentation to dataset Json (including a view with the segmentation name and sensible defaults)
      * @param imageName segmentation name
-     * @param imageUri segmentation file
+     * @param imageUri segmentation uri - can be local image path, or remote S3 url
      * @param datasetName dataset name
      * @param uiSelectionGroup name of ui selection group to add segmentation view to i.e. the name of the MoBIE
      *                         dropdown menu it will appear in
