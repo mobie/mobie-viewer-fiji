@@ -7,6 +7,10 @@ import java.util.Map;
 
 public class GoogleSheetURLHelper
 {
+    public static boolean isGoogleSheetUrl( String uri )
+    {
+        return uri.contains( "docs.google.com/spreadsheets" );
+    }
 
     public static String generateExportUrl( String googleSheetUrl )
     {

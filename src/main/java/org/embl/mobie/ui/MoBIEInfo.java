@@ -33,6 +33,9 @@ import ij.IJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.serialize.Project;
+import org.embl.mobie.lib.util.GoogleSheetURLHelper;
+
+import java.io.File;
 
 public class MoBIEInfo
 {
@@ -78,31 +81,49 @@ public class MoBIEInfo
 				IOHelper.openURI( "https://www.nature.com/articles/s41592-023-01776-4" );
 				break;
 			case PROJECT_SOURCE:
-				if ( projectLocation.endsWith( ".txt" ) )
-				{
-					IJ.open( projectLocation );
-				}
-				else
-				{
-					IOHelper.openURI( IOHelper.combinePath( projectLocation, "blob/master/README.md" ) );
-				}
+				openProjectSource( projectLocation );
 				break;
 			case PROJECT_REFERENCES:
-				if ( project.getReferences() == null || project.getReferences().size() == 0 )
-				{
-					IJ.showMessage( "No project references found." );
-				}
-				else
-				{
-					for ( String reference : project.getReferences() )
-					{
-						IOHelper.openURI( reference );
-					}
-				}
+				openProjectReferences();
 				break;
 			case BIG_DATA_VIEWER:
 				showBdvHelp();
 				break;
+		}
+	}
+
+	private void openProjectReferences()
+	{
+		if ( project.getReferences() == null || project.getReferences().size() == 0 )
+		{
+			IJ.showMessage( "No project references found." );
+		}
+		else
+		{
+			for ( String reference : project.getReferences() )
+			{
+				IOHelper.openURI( reference );
+			}
+		}
+	}
+
+	private static void openProjectSource( final String projectUri )
+	{
+		if ( new File( projectUri ).exists() )
+		{
+			IJ.open( projectUri );
+		}
+		else if ( GoogleSheetURLHelper.isGoogleSheetUrl( projectUri ) )
+		{
+			IOHelper.openURI( projectUri );
+		}
+		else if ( projectUri.contains( "github.com" ) )
+		{
+			IOHelper.openURI( IOHelper.combinePath( projectUri, "blob/master/README.md" ) );
+		}
+		else
+		{
+			IJ.showMessage( "Don't know how to open: " + projectUri );
 		}
 	}
 

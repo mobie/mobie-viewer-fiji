@@ -354,7 +354,8 @@ public class CollectionDataSetter
     {
         try {
             String string = getString( row, CollectionTableConstants.FORMAT );
-            return ImageDataFormat.valueOf( string );
+            ImageDataFormat imageDataFormat = ImageDataFormat.valueOf( string );
+            return imageDataFormat;
         }
         catch ( Exception e )
         {

@@ -297,28 +297,28 @@ public class UserInterfaceHelper
 		return commonFileNames;
 	}
 
-	public JPanel createDisplaySettingsContainer() {
-		JPanel displaySettingsContainer = new JPanel();
-		displaySettingsContainer.setLayout( new BoxLayout( displaySettingsContainer, BoxLayout.PAGE_AXIS ));
-		displaySettingsContainer.setBorder( BorderFactory.createEmptyBorder() );
-		displaySettingsContainer.setAlignmentX( Component.LEFT_ALIGNMENT );
-		return displaySettingsContainer;
+	public JPanel createContainerPanel() {
+		JPanel containerPanel = new JPanel();
+		containerPanel.setLayout( new BoxLayout( containerPanel, BoxLayout.PAGE_AXIS ));
+		containerPanel.setBorder( BorderFactory.createEmptyBorder() );
+		containerPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
+		return containerPanel;
 	}
 
-	public JScrollPane createDisplaySettingsScrollPane( JPanel displaySettingsContainer ) {
-		JScrollPane displaySettingsScrollPane = new JScrollPane( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+	public JScrollPane createScrollPane( JPanel container ) {
+		JScrollPane scrollPane = new JScrollPane( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER );
-		displaySettingsScrollPane.setBorder( BorderFactory.createEmptyBorder() );
-		displaySettingsScrollPane.setViewportView( displaySettingsContainer );
-		return displaySettingsScrollPane;
+		scrollPane.setBorder( BorderFactory.createEmptyBorder() );
+		scrollPane.setViewportView( container );
+		return scrollPane;
 	}
 
-	public JPanel createDisplaySettingsPanel( JScrollPane displaySettingsScrollPane )
+	public JPanel createPanel( JScrollPane scrollPane )
 	{
 		final JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.Y_AXIS ) );
 		panel.setAlignmentX( Component.LEFT_ALIGNMENT );
-		panel.add( displaySettingsScrollPane );
+		panel.add( scrollPane );
 		return panel;
 	}
 

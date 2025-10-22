@@ -48,10 +48,12 @@ import java.util.Set;
 
 public class UserInterface
 {
+	private final JPanel selectionPanel;
+	private final JScrollPane selectionPanelScrollPane;
 	private final JPanel displaySettingsContainer;
 	private final JScrollPane displaySettingsScrollPane;
 	private final JFrame frame;
-	private final JPanel selectionPanel;
+	private final JPanel selectionPanelContainer;
 	private final UserInterfaceHelper userInterfaceHelper;
 	private Map< Object, JPanel > displayToPanel;
 	private JSplitPane splitPane;
@@ -64,13 +66,21 @@ public class UserInterface
 	{
 		MoBIELaf.MoBIELafOn();
 		userInterfaceHelper = new UserInterfaceHelper( moBIE );
-		selectionPanel = userInterfaceHelper.createSelectionPanel();
+
+		selectionPanelContainer = userInterfaceHelper.createSelectionPanel();
+		selectionPanelScrollPane = userInterfaceHelper.createScrollPane( selectionPanelContainer );
+		selectionPanel = userInterfaceHelper.createPanel( selectionPanelScrollPane );
+
 		overlayNamesCheckbox = userInterfaceHelper.getOverlayNamesCheckbox();
-		displaySettingsContainer = userInterfaceHelper.createDisplaySettingsContainer();
-		displaySettingsScrollPane = userInterfaceHelper.createDisplaySettingsScrollPane( displaySettingsContainer );
-		JPanel displaySettingsPanel = userInterfaceHelper.createDisplaySettingsPanel( displaySettingsScrollPane );
+
+		displaySettingsContainer = userInterfaceHelper.createContainerPanel();
+		displaySettingsScrollPane = userInterfaceHelper.createScrollPane( displaySettingsContainer );
+		JPanel displaySettingsPanel = userInterfaceHelper.createPanel( displaySettingsScrollPane );
+
 		displayToPanel = new HashMap<>();
-		frame = createAndShowFrame( selectionPanel, displaySettingsPanel, moBIE.getProjectName() + " " + moBIE.getDataset().getName(), moBIE.getViews().values() );
+		String title = moBIE.getProjectName().equals( moBIE.getDataset().getName() ) ?
+				moBIE.getProjectName() : moBIE.getProjectName() + " " + moBIE.getDataset().getName();
+		frame = createAndShowFrame( selectionPanel, displaySettingsPanel, title, moBIE.getViews().values() );
 		MoBIELaf.MoBIELafOff();
 		configureWindowClosing( moBIE );
 	}
@@ -92,11 +102,13 @@ public class UserInterface
 
 	private JFrame createAndShowFrame( JPanel selectionPanel, JPanel displaySettingsPanel, String panelName, Collection< View > views )
 	{
-		JFrame frame = new JFrame( "MoBIE " + panelName );
+		JFrame frame = new JFrame( "MoBIE  " + panelName );
 
 		splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		splitPane.setDividerLocation( userInterfaceHelper.getSelectionPanelHeight() );
+		int selectionPanelHeight = Math.min( userInterfaceHelper.getSelectionPanelHeight(),
+				(int) ( Toolkit.getDefaultToolkit().getScreenSize().height * 0.4 ) );
+		splitPane.setDividerLocation( selectionPanelHeight );
 		splitPane.setTopComponent( selectionPanel );
 		splitPane.setBottomComponent( displaySettingsPanel );
 		splitPane.setAutoscrolls( true );
@@ -115,7 +127,9 @@ public class UserInterface
 
 		final int longestStringWidth = new JPanel().getFontMetrics( new JComboBox<>().getFont() ).stringWidth( longestViewString );
 		final int width = Math.min( longestStringWidth + 550, Toolkit.getDefaultToolkit().getScreenSize().width / 2 );
-		final int height = ( int ) ( Toolkit.getDefaultToolkit().getScreenSize().height * 0.6 );
+
+		int height = (int) ( Toolkit.getDefaultToolkit().getScreenSize().height * 0.65 );
+
 		frame.setPreferredSize( new Dimension( width, height ) );
 		frame.getContentPane().setLayout( new GridLayout() );
 		frame.getContentPane().add( splitPane );
@@ -139,8 +153,8 @@ public class UserInterface
 
 	private void refreshSelection()
 	{
-		selectionPanel.revalidate();
-		selectionPanel.repaint();
+		selectionPanelContainer.revalidate();
+		selectionPanelContainer.repaint();
 		// update the location of the splitpane divider, so any new uiSelectionGroups are visible
 		final int actionPanelHeight = userInterfaceHelper.getSelectionPanelHeight();
 		splitPane.setDividerLocation( actionPanelHeight );
