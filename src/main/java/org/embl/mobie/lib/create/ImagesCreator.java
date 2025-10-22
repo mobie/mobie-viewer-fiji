@@ -169,11 +169,10 @@ public class ImagesCreator {
                 double[] contrastLimits = new double[]{ imp.getDisplayRangeMin(), imp.getDisplayRangeMax() };
                 LUT lut = imp.getLuts()[ 0 ];
                 String colour = ColorHelper.getString( lut );
-                updateTableAndJsonsForNewImage( imageName, imageFile, datasetName, uiSelectionGroup, contrastLimits,
+                updateTableAndJsonsForNewImage( imageName, filePath, datasetName, uiSelectionGroup, contrastLimits,
                         colour, exclusive, sourceTransform );
             } else {
-                updateTableAndJsonsForNewSegmentation( imageName, imageFile, datasetName, uiSelectionGroup,
-                        exclusive, sourceTransform );
+                updateTableAndJsonsForNewSegmentation( imageName, filePath, datasetName, uiSelectionGroup, exclusive, sourceTransform );
             }
         }
 
@@ -266,7 +265,7 @@ public class ImagesCreator {
     /**
      * Add existing ome-zarr image to MoBIE project.
      *
-     * @param uri ome-zarr uri
+     * @param uri ome-zarr uri - can be local image path, or remote S3 url
      * @param imageName image name
      * @param datasetName dataset name
      * @param imageType image type i.e. image or segmentation
@@ -279,14 +278,14 @@ public class ImagesCreator {
      *                  images from the viewer?
      * @param overwrite whether to overwrite any existing images inside the dataset with the same name
      */
-    public void addOMEZarrImage( String uri,
-                                 String imageName,
-                                 String datasetName,
-                                 ProjectCreator.ImageType imageType,
-                                 ProjectCreator.AddMethod addMethod,
-                                 String uiSelectionGroup,
-                                 boolean exclusive,
-                                 boolean overwrite )
+    public void linkOrCopyOMEZarrImage( String uri,
+                                        String imageName,
+                                        String datasetName,
+                                        ProjectCreator.ImageType imageType,
+                                        ProjectCreator.AddMethod addMethod,
+                                        String uiSelectionGroup,
+                                        boolean exclusive,
+                                        boolean overwrite )
     {
         File imagesDirectory = new File( getDefaultLocalImageDirPath( datasetName ) );
 
@@ -297,23 +296,23 @@ public class ImagesCreator {
                 imageDataFormat,
                 ThreadHelper.sharedQueue );
 
-        if ( ! isImageValid( imageData, projectCreator.getVoxelUnit() ) ) {
-            return;
-        }
-
         if ( ! is2D( imageData ) && projectCreator.getDataset( datasetName ).is2D() ) {
             throw new UnsupportedOperationException("Can't add a 3D image to a 2D dataset" );
         }
 
+        if ( IOHelper.getType(uri) != IOHelper.ResourceType.FILE && addMethod == ProjectCreator.AddMethod.Copy ) {
+            throw new UnsupportedOperationException("Copying isn't supported for remote datasets - use link instead.");
+        }
+
         // If an image of the same name is inside the project, delete it when overwrite=True.
-        File oldImageFile = new File(imagesDirectory, imageName + ".ome.zarr" );
-        if (oldImageFile.exists()) {
-            if (overwrite) {
-                IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
+        File oldImageFile = new File( imagesDirectory, imageName + ".ome.zarr" );
+        if ( oldImageFile.exists() ) {
+            if ( overwrite ) {
+                IJ.log("Overwriting image " + imageName + " in dataset " + datasetName);
                 deleteImageFiles( datasetName, imageName );
             } else {
                 throw new UnsupportedOperationException("An image called " + imageName + "already exists in the dataset " +
-                        datasetName + ", and overwrite is set to false" );
+                        datasetName + ", and overwrite is set to false");
             }
         }
 
@@ -321,24 +320,15 @@ public class ImagesCreator {
             projectCreator.setVoxelUnit( imageData.getSourcePair( 0 ).getB().getVoxelDimensions().unit() );
         }
 
-        File newImageFile;
-        switch (addMethod) {
-            case Link:
-                // Do nothing, the relative or absolute path to the linked image will be added to the dataset.json
-                newImageFile = new File(uri);
-                break;
-            case Copy:
-                newImageFile = copyImage( uri, imagesDirectory, imageName);
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + addMethod);
+        if ( addMethod == ProjectCreator.AddMethod.Copy ) {
+            uri = copyImage( uri, imagesDirectory, imageName ).getAbsolutePath();
         }
 
         if ( imageType == ProjectCreator.ImageType.Image ) {
-            updateTableAndJsonsForNewImage( imageName, newImageFile, datasetName, uiSelectionGroup,
+            updateTableAndJsonsForNewImage( imageName, uri, datasetName, uiSelectionGroup,
                     new double[]{0.0, 255.0}, "white", exclusive, new AffineTransform3D() );
         } else {
-            updateTableAndJsonsForNewSegmentation( imageName, newImageFile,
+            updateTableAndJsonsForNewSegmentation( imageName, uri,
                     datasetName, uiSelectionGroup, exclusive, new AffineTransform3D() );
         }
 
@@ -359,7 +349,7 @@ public class ImagesCreator {
         }
     }
 
-    private void addDefaultTableForImage ( String imageName, String datasetName ) {
+    private void addDefaultTableForImage ( String imageName, String datasetName, String imageUri ) {
         File tableFolder = new File( getDefaultTableDirPath( datasetName, imageName ) );
         File defaultTable = new File( getDefaultTablePath( datasetName, imageName ) );
         if ( !tableFolder.exists() ){
@@ -371,11 +361,10 @@ public class ImagesCreator {
             IJ.log( " Creating default table... 0 label is counted as background" );
 
             // xml file or zarr file, depending on imageDataFormat
-            String filePath = getDefaultLocalImagePath( datasetName, imageName );
-            ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( filePath );
+            ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( imageUri );
             addS3keys( imageDataFormat );
             ImageData< ? > imageData = ImageDataOpener.open(
-                    filePath,
+                    imageUri,
                     imageDataFormat,
                     ThreadHelper.sharedQueue );
             final Source< ? > labelsSource = imageData.getSourcePair( 0 ).getA();
@@ -431,7 +420,7 @@ public class ImagesCreator {
 
 
     private void updateTableAndJsonsForNewImage ( String imageName,
-                                                  File imageFile,
+                                                  String imageUri,
                                                   String datasetName,
                                                   String uiSelectionGroup,
                                                   double[] contrastLimits,
@@ -439,19 +428,19 @@ public class ImagesCreator {
                                                   boolean exclusive,
                                                   AffineTransform3D sourceTransform ) {
         DatasetSerializer datasetSerializer = projectCreator.getDatasetJsonCreator();
-        datasetSerializer.addImage( imageName, imageFile, datasetName, uiSelectionGroup, contrastLimits, colour,
+        datasetSerializer.addImage( imageName, imageUri, datasetName, uiSelectionGroup, contrastLimits, colour,
                 exclusive, sourceTransform );
     }
 
     private void updateTableAndJsonsForNewSegmentation( String imageName,
-                                                        File imageFile,
+                                                        String imageUri,
                                                         String datasetName,
                                                         String uiSelectionGroup,
                                                         boolean exclusive,
                                                         AffineTransform3D sourceTransform ) {
-        addDefaultTableForImage( imageName, datasetName );
+        addDefaultTableForImage( imageName, datasetName, imageUri );
         DatasetSerializer datasetSerializer = projectCreator.getDatasetJsonCreator();
-        datasetSerializer.addSegmentation( imageName, imageFile, datasetName, uiSelectionGroup,
+        datasetSerializer.addSegmentation( imageName, imageUri, datasetName, uiSelectionGroup,
                 exclusive, sourceTransform );
     }
 }

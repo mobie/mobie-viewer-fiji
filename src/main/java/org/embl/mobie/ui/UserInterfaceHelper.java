@@ -600,6 +600,7 @@ public class UserInterfaceHelper
 		for ( String viewName : views.keySet() )
 		{
 			final View view = views.get( viewName );
+
 			Set< String > uiSelectionGroups = view.getUiSelectionGroups();
 
 			for ( String uiSelectionGroup : uiSelectionGroups )
@@ -608,6 +609,7 @@ public class UserInterfaceHelper
 					groupingsToViews.put( uiSelectionGroup, new LinkedHashMap<>( ));
 				groupingsToViews.get( uiSelectionGroup ).put( viewName, view );
 			}
+
 		}
 
 		final ArrayList< String > uiSelectionGroups = new ArrayList<>( groupingsToViews.keySet() );

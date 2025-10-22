@@ -30,6 +30,8 @@ package org.embl.mobie.command.context;
 
 import bdv.util.Affine3DHelpers;
 import ij.IJ;
+import net.imglib2.FinalRealInterval;
+import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.util.LinAlgHelpers;
@@ -88,11 +90,19 @@ public class MaskImagesCommand extends BoxSelectionCommand
             double[] sourceCenter = center.clone();
             double[] sourceSize = size.clone();
             sourceTransform.apply( center, sourceCenter );
+            AffineTransform3D voxelBoxAffineTransform = boxAffineTransform.preConcatenate( sourceTransform );
+            RealInterval unitInterval = new FinalRealInterval(
+                    new double[]{0.0, 0.0, 0.0},
+                    new double[]{1.0, 1.0, 1.0});
+            FinalRealInterval transformedBounds = voxelBoxAffineTransform.estimateBounds( unitInterval );
+            System.out.println( "" + transformedBounds );
             for ( int d = 0; d < 3; d++ )
                 sourceSize[ d ] = Affine3DHelpers.extractScale( sourceTransform, d ) * size[ d ];
-            IJ.log( "  Image: " + image.getName() );
-            IJ.log( "    Center in image voxel coordinate system: " + Arrays.toString( sourceCenter ) );
-            IJ.log( "    Size in image voxel coordinate system: " + Arrays.toString( sourceSize ) );
+            IJ.log( "  Masked image: " + image.getName() );
+            IJ.log( "    Mask center in image voxel coordinate system: " + Arrays.toString( sourceCenter ) );
+            IJ.log( "    Mask size in image voxel coordinate system: " + Arrays.toString( sourceSize ) );
+            IJ.log( "    Mask box transform in image voxel coordinate system: " + Arrays.toString( voxelBoxAffineTransform.getRowPackedCopy() ) );
+
             // IJ.log( "Interval in source coordinate system: " + Arrays.toString( interval.minAsDoubleArray() ) + ", " + Arrays.toString( interval.maxAsDoubleArray() ) );
             // IJ.log( "Interval transform in global coordinate system: " + Arrays.toString( transform.getRowPackedCopy() ) );
         }

@@ -307,13 +307,17 @@ public class ProjectCreatorHelper {
      */
     // FIXME: For supporting linking to multi-dataset OME-Zarr we have to pull
     //   apart the voxel dimension check and the multi-channel check
+    //   Even for adding an ImagePlus, we could support selecting the channel
     public static boolean isImageValid( int nChannels, String imageUnit, String projectUnit, boolean isFile ) {
         // reject multi-channel images
         if ( nChannels > 1 ) {
             if ( isFile )
             {
-                // FIXME: Ask the user which channel to add!
-                IJ.log( "Linking multi-channel or multi-data images is not yet supported :-(" );
+                // TODO: Ask the user which channel or dataset to add in a UI!
+                IJ.log( "Linking multi-channel or multi-data images is not yet supported.\n" +
+                        "Please write an issue or forum post if you need this functionality.\n" +
+                        "https://github.com/mobie/mobie-viewer-fiji/issues\n" +
+                        "https://forum.image.sc/" );
             }
             else
             {
@@ -344,8 +348,12 @@ public class ProjectCreatorHelper {
         return true;
     }
 
-    public static boolean pathIsInsideDir(File path, File dir) {
-        Path filePath = Paths.get( path.getAbsolutePath() ).normalize();
+    public static boolean uriIsInsideDir( String uri, File dir) {
+        if (IOHelper.getType( uri ) != IOHelper.ResourceType.FILE) {
+            return false;
+        }
+
+        Path filePath = Paths.get( uri ).normalize();
         Path dirPath = Paths.get( dir.getAbsolutePath() ).normalize();
 
         return filePath.startsWith(dirPath);
