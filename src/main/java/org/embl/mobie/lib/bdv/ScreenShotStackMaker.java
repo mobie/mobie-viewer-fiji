@@ -38,6 +38,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Overlay;
 import ij.gui.Roi;
+import ij.measure.Calibration;
 import ij.plugin.Duplicator;
 import ij.plugin.filter.ThresholdToSelection;
 import ij.process.LUT;
@@ -160,12 +161,12 @@ public class ScreenShotStackMaker
         long[] captureImageSizeInPixelsXY = getCaptureImageSizeInPixelsXY( bdvHandle, targetSamplingInXY );
         screenshotDimensions[0] = captureImageSizeInPixelsXY[0];
         screenshotDimensions[1] = captureImageSizeInPixelsXY[1];
-        screenshotDimensions[2] = numSlices * 2 + 1;
+        screenshotDimensions[2] = numSlices;
 
         final long numPixels = screenshotDimensions[ 0 ] * screenshotDimensions[ 1 ] * screenshotDimensions[ 2 ];
         long pixelsPerThread = numPixels / ThreadHelper.getNumIoThreads();
-        int blockSizeXY = (int) Math.sqrt( pixelsPerThread );
-        int[] blockSize = { blockSizeXY, blockSizeXY, 1 };
+        int blockSizeXY = (int) Math.sqrt( pixelsPerThread / screenshotDimensions[ 2 ]  );
+        int[] blockSize = { blockSizeXY, blockSizeXY, (int) screenshotDimensions[ 2 ] };
         List< Interval > intervals = Grids.collectAllContainedIntervals(
                 screenshotDimensions,
                 blockSize );
@@ -201,13 +202,25 @@ public class ScreenShotStackMaker
         boolean allByteOrShort = types.stream()
                 .allMatch( t -> ( t instanceof UnsignedShortType ) || ( t instanceof UnsignedByteType ) );
 
-        for ( SourceAndConverter< ?  > sac : sacs )
+        for ( int sacIndex = 0; sacIndex < sacs.size(); sacIndex++ )
         {
+            SourceAndConverter< ? > sac = sacs.get( sacIndex );
             RandomAccessibleInterval< ? extends RealType< ? > > realRAI;
 
             // ImageJ 32-bit
             // TODO: Could be dependent on actual datatype
-            realRAI = ArrayImgs.floats( screenshotDimensions );
+            if ( types.get( sacIndex ) instanceof UnsignedByteType )
+            {
+                realRAI = ArrayImgs.unsignedBytes( screenshotDimensions );
+            }
+            else if ( types.get( sacIndex ) instanceof UnsignedShortType )
+            {
+                realRAI = ArrayImgs.unsignedShorts( screenshotDimensions );
+            }
+            else
+            {
+                realRAI = ArrayImgs.floats( screenshotDimensions );
+            }
 
             final RandomAccessibleInterval< BitType > maskRAI
                     = ArrayImgs.bits( screenshotDimensions );
@@ -323,9 +336,17 @@ public class ScreenShotStackMaker
         outputImps = new ArrayList<>();
         if ( ! realCaptures.isEmpty() )
         {
-            for ( RandomAccessibleInterval< ? extends RealType< ? > > realCapture : realCaptures )
+            Calibration calibration = new Calibration();
+            calibration.pixelWidth = targetSamplingInXY;
+            calibration.pixelHeight = targetSamplingInXY;
+            calibration.pixelDepth = targetSamplingInZ;
+            calibration.setUnit( voxelUnit );
+
+            for ( int i = 0; i < realCaptures.size() ; i++ )
             {
-                final ImagePlus imp = ImageJFunctions.wrap( (RandomAccessibleInterval) realCapture, "TODO" );
+                final ImagePlus imp = ImageJFunctions.wrap( (RandomAccessibleInterval) realCaptures.get( i ), sacs.get( i ).getSpimSource().getName() );
+                imp.setDisplayRange( displayRanges.get( i )[0], displayRanges.get( i )[1] );
+                imp.setCalibration( calibration );
                 outputImps.add( imp );
             }
         }

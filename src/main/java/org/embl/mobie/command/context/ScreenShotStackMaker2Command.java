@@ -49,7 +49,7 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.*;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Take Screenshot Stack")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Take Screenshot Stack (Devel)")
 public class ScreenShotStackMaker2Command extends ScreenShotMakerCommand
 {
     static { net.imagej.patcher.LegacyInjector.preinit(); }
@@ -61,8 +61,8 @@ public class ScreenShotStackMaker2Command extends ScreenShotMakerCommand
             stepSize = "0.001")
     public Double targetSamplingInZ = 1D;
 
-    @Parameter(label="Number of slices above & below current",
-            description = "For example, entering 5 here will result in:\n5 above + 1 current + 5 below = 11 slices in total.",
+    @Parameter(label="Number of slices",
+            description = "This is above and including the current slice.",
             persist = false)
     public Integer numSlices = 5;
 
@@ -76,20 +76,20 @@ public class ScreenShotStackMaker2Command extends ScreenShotMakerCommand
         AffineTransform3D initialViewerTransform = viewerTransform.copy();
 
         // compute scaling from viewer to physical coordinates along the current viewing axis
-        double[] physicalA = new double[ 3 ];
-        double[] physicalB = new double[ 3 ];
-        double[] distance = new double[ 3 ];
-        viewerTransform.apply( new double[]{ 0, 0, 0 }, physicalA );
-        viewerTransform.apply( new double[]{ 0, 0, 1 }, physicalB );
-        LinAlgHelpers.subtract( physicalA, physicalB, distance );
-        System.out.println( Arrays.toString( distance ) );
-        double screenToPhysicalScale = LinAlgHelpers.length( distance );
-        System.out.println( screenToPhysicalScale );
-
-        // move viewer to starting point
-        viewerTransform.translate( 0, 0, -numSlices * targetSamplingInZ * screenToPhysicalScale );
-        bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
-        bdvHandle.getViewerPanel().requestRepaint();
+//        double[] physicalA = new double[ 3 ];
+//        double[] physicalB = new double[ 3 ];
+//        double[] distance = new double[ 3 ];
+//        viewerTransform.apply( new double[]{ 0, 0, 0 }, physicalA );
+//        viewerTransform.apply( new double[]{ 0, 0, 1 }, physicalB );
+//        LinAlgHelpers.subtract( physicalA, physicalB, distance );
+//        System.out.println( Arrays.toString( distance ) );
+//        double screenToPhysicalScale = LinAlgHelpers.length( distance );
+//        System.out.println( screenToPhysicalScale );
+//
+//        // move viewer to starting point
+//        viewerTransform.translate( 0, 0, -numSlices * targetSamplingInZ * screenToPhysicalScale );
+//        bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
+//        bdvHandle.getViewerPanel().requestRepaint();
 
         // collect data
         ScreenShotStackMaker maker = new ScreenShotStackMaker( bdvHandle, pixelUnit, numSlices );
