@@ -92,7 +92,7 @@ class ImagesCreatorTest {
         datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "dataset.json" );
     }
 
-    void assertionsForDataset(File imageLocation) throws IOException {
+    void assertionsForDataset(String imageUri) throws IOException {
         assertTrue( new File(datasetJsonPath).exists() );
         Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
         assertTrue( dataset.sources().containsKey(imageName) );
@@ -110,7 +110,12 @@ class ImagesCreatorTest {
         } else {
             imagePath = storageLocation.absolutePath;
         }
-        assertEquals(imageLocation.getCanonicalPath(), new File(imagePath).getCanonicalPath());
+
+        if (IOHelper.getType(imageUri) == IOHelper.ResourceType.FILE) {
+            assertEquals(new File(imageUri).getCanonicalPath(), new File(imagePath).getCanonicalPath());
+        } else {
+            assertEquals(imageUri, imagePath);
+        }
 
         // Check that this follows JSON schema
         assertTrue( validate( datasetJsonPath, JSONValidator.datasetSchemaURL ) );
@@ -160,7 +165,7 @@ class ImagesCreatorTest {
     }
 
     void assertionsForImageAdded(File imageLocation, Object imageObject) throws IOException {
-        assertionsForDataset(imageLocation);
+        assertionsForDataset(imageLocation.getAbsolutePath());
         assertionsForImage(imageLocation, imageObject);
     }
 
@@ -195,7 +200,7 @@ class ImagesCreatorTest {
         // NB: Avoid recursive class loading of ij.* classes.
         ImagePlus image = (ImagePlus) writeImageOutsideProject( is2D );
 
-        imagesCreator.addOMEZarrImage(
+        imagesCreator.linkOrCopyOMEZarrImage(
                 imageOutsideProject.getAbsolutePath(), imageName, datasetName,
                 ProjectCreator.ImageType.Image,
                 ProjectCreator.AddMethod.Copy, uiSelectionGroup, false, false );
@@ -249,7 +254,7 @@ class ImagesCreatorTest {
                 otherImageName + ".ome.zarr");
 
         // Link to the image in the separate dataset
-        imagesCreator.addOMEZarrImage( filePath, imageName, datasetName,
+        imagesCreator.linkOrCopyOMEZarrImage( filePath, imageName, datasetName,
                 ProjectCreator.ImageType.Image, ProjectCreator.AddMethod.Link,
                 uiSelectionGroup, false, false );
 
@@ -264,16 +269,36 @@ class ImagesCreatorTest {
 
     }
 
+    /**
+     * Test linking to a local image that is outside the MoBIE project.
+     */
     @Test
     void linkImageOutsideProject() throws IOException {
         // save example image
         // NB: Avoid recursive class loading of ij.* classes.
         ImagePlus image = (ImagePlus) writeImageOutsideProject( false );
-        imagesCreator.addOMEZarrImage( imageOutsideProject.getAbsolutePath(), imageName, datasetName,
+        imagesCreator.linkOrCopyOMEZarrImage( imageOutsideProject.getAbsolutePath(), imageName, datasetName,
                 ProjectCreator.ImageType.Image, ProjectCreator.AddMethod.Link,
                 uiSelectionGroup, false, false );
 
         assertionsForImageAdded(imageOutsideProject, image);
+
+        // check that an absolute path is used, rather than a relative one
+        Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
+        ImageDataSource source = (ImageDataSource)dataset.sources().get(imageName);
+        StorageLocation storageLocation = source.imageData.get(ImageDataFormat.OmeZarr);
+        assertNull(storageLocation.relativePath);
+        assertNotNull(storageLocation.absolutePath);
+    }
+
+    @Test
+    void linkImageS3() throws IOException {
+        String s3Path = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr/labels/cells";
+        imagesCreator.linkOrCopyOMEZarrImage( s3Path, imageName, datasetName,
+                ProjectCreator.ImageType.Image, ProjectCreator.AddMethod.Link,
+                uiSelectionGroup, false, false );
+
+        assertionsForDataset(s3Path);
 
         // check that an absolute path is used, rather than a relative one
         Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
@@ -296,6 +321,21 @@ class ImagesCreatorTest {
         projectCreator.getDatasetsCreator().makeDataset2D(datasetName, true);
         assertThrows( UnsupportedOperationException.class, () -> {
             copyImageIntoDataset( false);
+        } );
+    }
+
+    /**
+     * Copying isn't allowed for remote datasets.
+     */
+    @Test
+    void copyS3ImageToDataset() {
+        String s3Path = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr/labels/cells";
+
+        assertThrows( UnsupportedOperationException.class, () -> {
+            imagesCreator.linkOrCopyOMEZarrImage(
+                    s3Path, imageName, datasetName,
+                    ProjectCreator.ImageType.Image,
+                    ProjectCreator.AddMethod.Copy, uiSelectionGroup, false, false );
         } );
     }
 }

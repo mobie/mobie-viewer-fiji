@@ -48,6 +48,7 @@ import org.embl.mobie.io.util.IOHelper;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -83,7 +84,7 @@ public class DatasetSerializer
     /**
      * Add named image to dataset Json (including a view with the image name and sensible defaults)
      * @param imageName image name
-     * @param imageFile image file
+     * @param imageUri image uri - can be local image path, or remote S3 url
      * @param datasetName dataset name
      * @param uiSelectionGroup name of ui selection group to add image view to i.e. the name of the MoBIE dropdown
      *                         menu it will appear in
@@ -93,18 +94,18 @@ public class DatasetSerializer
      *                  images from the viewer?
      * @param sourceTransform affine transform of image view
      */
-    public void addImage(String imageName,
-                         File imageFile,
-                         String datasetName,
-                         String uiSelectionGroup,
-                         double[] contrastLimits,
-                         String colour,
-                         boolean exclusive,
-                         AffineTransform3D sourceTransform )
+    public void addImage( String imageName,
+                          String imageUri,
+                          String datasetName,
+                          String uiSelectionGroup,
+                          double[] contrastLimits,
+                          String colour,
+                          boolean exclusive,
+                          AffineTransform3D sourceTransform )
     {
         Dataset dataset = fetchDataset( datasetName );
 
-        addNewImageSource( dataset, datasetName, imageName, imageFile );
+        addNewImageSource( dataset, datasetName, imageName, imageUri );
         if ( uiSelectionGroup != null ) {
             // add a view with the same name as the image, and sensible defaults
             addNewImageView( dataset, imageName, uiSelectionGroup, contrastLimits, colour, exclusive, sourceTransform );
@@ -121,7 +122,7 @@ public class DatasetSerializer
     /**
      * Add named segmentation to dataset Json (including a view with the segmentation name and sensible defaults)
      * @param imageName segmentation name
-     * @param imageFile segmentation file
+     * @param imageUri segmentation uri - can be local image path, or remote S3 url
      * @param datasetName dataset name
      * @param uiSelectionGroup name of ui selection group to add segmentation view to i.e. the name of the MoBIE
      *                         dropdown menu it will appear in
@@ -129,16 +130,15 @@ public class DatasetSerializer
      *                  remove all current images from the viewer?
      * @param sourceTransform affine transform of segmentation view
      */
-    public void addSegmentation(String imageName,
-                                File imageFile,
-                                String datasetName,
-                                String uiSelectionGroup,
-                                boolean exclusive,
-                                AffineTransform3D sourceTransform )
-    {
+    public void addSegmentation( String imageName,
+                                 String imageUri,
+                                 String datasetName,
+                                 String uiSelectionGroup,
+                                 boolean exclusive,
+                                 AffineTransform3D sourceTransform ) {
         Dataset dataset = fetchDataset( datasetName );
 
-        addNewSegmentationSource( dataset, datasetName, imageName, imageFile );
+        addNewSegmentationSource( dataset, datasetName, imageName, imageUri );
         if ( uiSelectionGroup != null ) {
             // add a view with the same name as the image, and sensible defaults
             addNewSegmentationView( dataset, imageName, uiSelectionGroup, exclusive, sourceTransform );
@@ -166,32 +166,28 @@ public class DatasetSerializer
 
     private Dataset fetchDataset( String datasetName )
     {
-        Dataset dataset = projectCreator.getDataset( datasetName );
-        return dataset;
+        return projectCreator.getDataset( datasetName );
     }
 
-    private void addNewImageSource( Dataset dataset, String datasetName, String imageName, File imageFile )
+    private void addNewImageSource( Dataset dataset, String datasetName, String imageName, String imageUri )
     {
         ImageDataSource imageSource = new ImageDataSource();
-        imageSource.imageData = createImageDataLocations( datasetName, imageFile );
+        imageSource.imageData = createImageDataLocations( datasetName, imageUri );
         dataset.sources().put( imageName, imageSource );
     }
 
-    private void addNewSegmentationSource( Dataset dataset, String datasetName, String imageName, File imageFile )
+    private void addNewSegmentationSource( Dataset dataset, String datasetName, String imageName, String imageUri )
     {
         SegmentationDataSource annotatedLabelMaskSource = new SegmentationDataSource();
         annotatedLabelMaskSource.tableData = new HashMap<>();
         StorageLocation tableStorageLocation = new StorageLocation();
         tableStorageLocation.relativePath = "tables/" + imageName;
         annotatedLabelMaskSource.tableData.put( TableDataFormat.TSV, tableStorageLocation );
-        annotatedLabelMaskSource.imageData = createImageDataLocations( datasetName, imageFile );;
-
+        annotatedLabelMaskSource.imageData = createImageDataLocations( datasetName, imageUri );
         dataset.sources().put( imageName, annotatedLabelMaskSource );
     }
 
-    private Map< ImageDataFormat, StorageLocation > createImageDataLocations(
-            String datasetName,
-            File imageFile )
+    private Map< ImageDataFormat, StorageLocation > createImageDataLocations( String datasetName, String imageUri )
     {
         Map< ImageDataFormat, StorageLocation > imageDataLocations = new HashMap<>();
         StorageLocation imageStorageLocation = new StorageLocation();
@@ -199,16 +195,19 @@ public class DatasetSerializer
         // if image file is inside project dir, then use a relative path. Otherwise, use an absolute path.
         File projectDir = projectCreator.getProjectLocation();
         File datasetDir = new File(projectDir, datasetName);
-        if (ProjectCreatorHelper.pathIsInsideDir(imageFile, projectDir)) {
-            String relativePath = datasetDir.toPath().relativize(imageFile.toPath()).toString();
+        if ( ProjectCreatorHelper.uriIsInsideDir( imageUri, projectDir ) ) {
+            String relativePath = datasetDir.toPath().relativize( Paths.get( imageUri ) ).toString();
             // force use of forward slashes in relative paths (even on windows). Windows can handle / or \ in relative
             // paths, so this means they'll work for all OS.
             imageStorageLocation.relativePath = relativePath.replaceAll("\\\\", "/");
         } else {
-            imageStorageLocation.absolutePath = imageFile.getAbsolutePath();
+            // Note that this now also handles S3 addresses
+            imageStorageLocation.absolutePath = imageUri;
         }
         // FIXME imageStorageLocation.channel
 
+        // Note that OmeZarr and OmeZarrS3 are the same within mobie-io
+        // thus we should not need to distinguish this here
         imageDataLocations.put( ImageDataFormat.OmeZarr, imageStorageLocation );
         return imageDataLocations;
     }
@@ -275,7 +274,7 @@ public class DatasetSerializer
         ArrayList<String> sources = new ArrayList<>();
         sources.add( imageName );
 
-        SegmentationDisplay segmentationDisplay = new SegmentationDisplay( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ ColumnNames.ANCHOR_X, ColumnNames.ANCHOR_Y }, null, null );
+        SegmentationDisplay< ? > segmentationDisplay = new SegmentationDisplay<>( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ ColumnNames.ANCHOR_X, ColumnNames.ANCHOR_Y }, null, null );
         displays.add( segmentationDisplay );
 
         if ( sourceTransform.isIdentity() ) {
@@ -298,14 +297,14 @@ public class DatasetSerializer
                     datasetName, "dataset.json" );
             new DatasetJsonParser().saveDataset( dataset, datasetJsonPath );
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException( e );
         }
 
         // whether the dataset json saving succeeded or not, we reload the current dataset
         try {
             projectCreator.reloadCurrentDataset();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException( e );
         }
     }
 }

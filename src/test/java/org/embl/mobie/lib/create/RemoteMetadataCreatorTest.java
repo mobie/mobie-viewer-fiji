@@ -90,10 +90,16 @@ class RemoteMetadataCreatorTest {
 
         // Check s3 address is set correctly in remote metadata
         StorageLocation remoteStorageLocation = source.imageData.get(ImageDataFormat.OmeZarrS3);
-        String localRelativePath = source.imageData.get(ImageDataFormat.OmeZarr).relativePath;
         assertEquals(remoteStorageLocation.signingRegion, signingRegion);
-        assertEquals(remoteStorageLocation.s3Address,
-                serviceEndpoint + bucketName + "/" + datasetName + "/" + localRelativePath);
+        String localRelativePath = source.imageData.get(ImageDataFormat.OmeZarr).relativePath;
+
+        if (localRelativePath != null) {
+            assertEquals(remoteStorageLocation.s3Address,
+                    serviceEndpoint + bucketName + "/" + datasetName + "/" + localRelativePath);
+        } else {
+            assertEquals(remoteStorageLocation.s3Address,
+                    source.imageData.get(ImageDataFormat.OmeZarr).absolutePath);
+        }
     }
 
     @Test
@@ -126,7 +132,7 @@ class RemoteMetadataCreatorTest {
         );
 
         // link to the ome-zarr image
-        projectCreator.getImagesCreator().addOMEZarrImage( filePath, imageName, datasetName,
+        projectCreator.getImagesCreator().linkOrCopyOMEZarrImage( filePath, imageName, datasetName,
                 ProjectCreator.ImageType.Image, ProjectCreator.AddMethod.Link,
                 uiSelectionGroup, false, false );
 
@@ -138,5 +144,18 @@ class RemoteMetadataCreatorTest {
         assertTrue( dataset.sources().containsKey( imageName ) );
         ImageDataSource source = ( ImageDataSource ) dataset.sources().get( imageName );
         assertFalse( source.imageData.containsKey(ImageDataFormat.OmeZarrS3) );
+    }
+
+    @Test
+    void createRemoteMetadataWithS3Images() throws IOException {
+
+        // link to S3 image
+        String s3Path = "https://s3.embl.de/i2k-2020/platy-raw.ome.zarr/labels/cells";
+        projectCreator.getImagesCreator().linkOrCopyOMEZarrImage( s3Path, imageName, datasetName,
+                ProjectCreator.ImageType.Image, ProjectCreator.AddMethod.Link,
+                uiSelectionGroup, false, false );
+
+        remoteMetadataCreator.createOMEZarrRemoteMetadata( signingRegion, serviceEndpoint, bucketName );
+        assertionsForRemoteMetadata();
     }
 }

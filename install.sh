@@ -9,7 +9,7 @@
 # this script is to be used in combination with https://github.com/mobie/mobie-cmd
 
 # set the version here (must match the current one in pom.xml)
-VERSION="6.3.11-SNAPSHOT"
+VERSION="6.3.15-SNAPSHOT"
 MEM=8
 
 mvn clean install -Denforcer.skip -Dmaven.test.skip=true
