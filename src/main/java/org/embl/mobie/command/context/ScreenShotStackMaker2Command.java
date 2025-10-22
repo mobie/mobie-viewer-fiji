@@ -61,7 +61,7 @@ public class ScreenShotStackMaker2Command extends ScreenShotMakerCommand
             stepSize = "0.001")
     public Double targetSamplingInZ = 1D;
 
-    @Parameter(label="Number of slices",
+    @Parameter(label="Number of slices (starting from current)",
             description = "This is above and including the current slice.",
             persist = false)
     public Integer numSlices = 5;

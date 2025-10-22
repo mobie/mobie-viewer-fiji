@@ -124,8 +124,7 @@ public class ScreenShotStackMaker
 
     public void run( double targetSamplingInXY, double targetSamplingInZ )
     {
-        List< SourceAndConverter< ? > > sacs = MoBIEHelper.getVisibleSacsInCurrentView( bdvHandle );
-
+        List< SourceAndConverter< ? > > sacs = MoBIEHelper.getVisibleSacs( bdvHandle );
         run( sacs, targetSamplingInXY, targetSamplingInZ );
     }
 
@@ -175,11 +174,15 @@ public class ScreenShotStackMaker
         final long currentTimeMillis = System.currentTimeMillis();
 
         ArrayList< Type > types = new ArrayList<>();
+        ArrayList< SourceAndConverter > sacsToRemove = new ArrayList< SourceAndConverter >();
         for ( SourceAndConverter< ? > sac : sacs )
         {
             Image< ? > image = DataStore.sourceToImage().get( sac );
             if ( image instanceof RegionAnnotationImage )
+            {
+                sacsToRemove.add( sac );
                 continue;
+            }
 
             if ( image instanceof AnnotatedLabelImage )
             {
@@ -192,15 +195,14 @@ public class ScreenShotStackMaker
             }
         }
 
+        for ( SourceAndConverter sacToRemove : sacsToRemove )
+        {
+            sacs.remove( sacToRemove );
+        }
+
         List< SourceAndConverter< ? > > dataSacs = sacs.stream()
                 .filter( sac -> !( DataStore.sourceToImage().get( sac ) instanceof RegionAnnotationImage ) )
                 .collect( Collectors.toList() );
-
-        boolean allByte = types.stream()
-                .allMatch( t -> t instanceof UnsignedByteType );
-
-        boolean allByteOrShort = types.stream()
-                .allMatch( t -> ( t instanceof UnsignedShortType ) || ( t instanceof UnsignedByteType ) );
 
         for ( int sacIndex = 0; sacIndex < sacs.size(); sacIndex++ )
         {
@@ -505,67 +507,5 @@ public class ScreenShotStackMaker
                         +" pixel_height=" + voxelSpacing[ 1 ]
                         +" voxel_depth=" + voxelSpacing[ 2 ] );
         return rgbImage;
-    }
-
-    public static CompositeImage createCompositeImagePlus(
-            double[] voxelSpacing,
-            String voxelUnit,
-            ArrayList< RandomAccessibleInterval< ? extends RealType< ? >  > > realRAIs,
-            ArrayList< RandomAccessibleInterval< BitType > > maskRAIs,
-            ArrayList< double[] > displayRanges )
-    {
-
-        final ImagePlus imp = ImageJFunctions.wrap( Views.stack( (ArrayList) realRAIs ), "Floats" );
-        final ImagePlus mask = ImageJFunctions.wrap( Views.stack( maskRAIs ), "Masks" );
-
-        // duplicate: otherwise it is virtual and cannot be modified
-        final ImagePlus dup = new Duplicator().run( imp );
-
-        IJ.run( dup,
-                "Properties...",
-                "channels="+realRAIs.size()
-                        +" slices=1 frames=1 unit=" + voxelUnit
-                        +" pixel_width=" + voxelSpacing[ 0 ]
-                        +" pixel_height=" + voxelSpacing[ 1 ]
-                        +" voxel_depth=" + voxelSpacing[ 2 ] );
-
-        final CompositeImage compositeImage = new CompositeImage( dup );
-
-        Overlay rois = new Overlay();
-        for ( int channel = 1; channel <= compositeImage.getNChannels(); ++channel )
-        {
-            final LUT lut = compositeImage.createLutFromColor( Color.WHITE );
-            compositeImage.setC( channel );
-            compositeImage.setChannelLut( lut );
-            final double[] range = displayRanges.get( channel - 1 );
-            compositeImage.setDisplayRange( range[ 0 ], range[ 1 ] );
-            mask.setPosition( channel );
-            mask.getProcessor().setThreshold( 1.0, 255 );
-            Roi roi = new ThresholdToSelection().convert( mask.getProcessor() );
-            if ( roi == null )
-                roi = new Roi( 0, 0, compositeImage.getWidth(), compositeImage.getHeight() );
-            roi.setPosition( channel, 1, 1  );
-            mask.getProcessor().setRoi( roi );
-            rois.add( roi );
-        }
-
-        compositeImage.setOverlay( rois );
-        compositeImage.setHideOverlay( true );
-        compositeImage.setTitle( "Multi-Channel" );
-        return compositeImage;
-    }
-
-    private RealRandomAccess< ? extends RealType< ? > >
-    getRealTypeRealRandomAccess( Source< ? > source, int t, int level, boolean interpolate )
-    {
-        if ( source instanceof AnnotatedLabelSource )
-        {
-            int a = 1;
-        }
-
-        if ( interpolate )
-            return ( RealRandomAccess<? extends RealType<?>> ) source.getInterpolatedSource( t, level, Interpolation.NLINEAR).realRandomAccess();
-        else
-            return ( RealRandomAccess<? extends RealType<?>> ) source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR).realRandomAccess();
     }
 }
