@@ -13,4 +13,9 @@ class OpenMoBIEProjectCommandTest
         final OpenPlatyBrowserCommand command = new OpenPlatyBrowserCommand();
         command.run();
     }
+
+    public static void main( String[] args )
+    {
+        new OpenMoBIEProjectCommandTest().test();
+    }
 }

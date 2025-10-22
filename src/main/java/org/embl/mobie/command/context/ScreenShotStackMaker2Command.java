@@ -39,6 +39,7 @@ import net.imglib2.util.LinAlgHelpers;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
+import org.embl.mobie.lib.bdv.ScreenShotStackMaker;
 import org.embl.mobie.lib.util.Corners;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
@@ -46,13 +47,10 @@ import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Take Screenshot Stack")
-public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
+public class ScreenShotStackMaker2Command extends ScreenShotMakerCommand
 {
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -93,77 +91,24 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
         bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
         bdvHandle.getViewerPanel().requestRepaint();
 
-        // collect all slices
-        ImageStack rgbStack = new ImageStack();
-        ImageStack compositeStack = new ImageStack();
-        numSlices = numSlices * 2 + 1;
-        Calibration calibration = null;
-
-        ArrayList< Corners > corners = new ArrayList<>();
-        Map< Integer, ImageProcessor > sliceToRgb = new LinkedHashMap<>();
-        Map< Integer, ImageStack > sliceToComposite = new LinkedHashMap<>();
-
-        for ( int sliceIndex = 0; sliceIndex < numSlices; sliceIndex++ )
+        // collect data
+        ScreenShotStackMaker maker = new ScreenShotStackMaker( bdvHandle, pixelUnit, numSlices );
+        maker.run( targetSamplingInXY, targetSamplingInZ );
+        List< ImagePlus > outputImps = maker.getOutputImps();
+        for ( ImagePlus outputImp : outputImps )
         {
-            // adapt viewer transform
-            viewerTransform.translate( 0, 0, targetSamplingInZ * screenToPhysicalScale );
-            bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
-            bdvHandle.getViewerPanel().requestRepaint();
-
-            double[] windowCentreInCalibratedUnits = BdvHandleHelper.getWindowCentreInCalibratedUnits( bdvHandle );
-
-            IJ.log( "Slice index " + sliceIndex + "; screen centre: " + Arrays.toString( windowCentreInCalibratedUnits ) );
-
-            ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, pixelUnit );
-            screenShotMaker.run( targetSamplingInXY );
-
-            if ( sliceIndex == 0 )
-                corners.add( screenShotMaker.getCorners() );
-
-            if ( sliceIndex == numSlices - 1 )
-                corners.add( screenShotMaker.getCorners() );
-
-            try
-            {
-                sliceToRgb.put( sliceIndex, screenShotMaker.getRGBImagePlus().getProcessor() );
-                sliceToComposite.put( sliceIndex, screenShotMaker.getCompositeImagePlus().getStack() );
-
-//                rgbStack.addSlice( screenShotMaker.getRGBImagePlus().getProcessor() );
-//                ImageStack stack = screenShotMaker.getCompositeImagePlus().getStack();
-//                for ( int i = 0; i < stack.size(); i++ )
-//                {
-//                    compositeStack.addSlice( stack.getProcessor( i + 1 ) );
-//                }
-
-                calibration = screenShotMaker.getRGBImagePlus().getCalibration();
-            }
-            catch ( Exception e )
-            {
-                sliceToRgb.put( sliceIndex, null );
-                sliceToComposite.put( sliceIndex, null );
-                IJ.log( "[WARNING] Skipping empty screen shot slice" );
-            }
+            outputImp.show();
         }
 
         bdvHandle.getViewerPanel().state().setViewerTransform( initialViewerTransform );
         bdvHandle.getViewerPanel().requestRepaint();
 
-        calibration.pixelDepth = targetSamplingInZ;
 
-        ImagePlus rgbImage = new ImagePlus( "RGB stack", rgbStack );
-        rgbImage.setDimensions( 1, rgbStack.size(), 1 );
-        rgbImage.setCalibration( calibration );
-        rgbImage.show();
 
-        CompositeImage compositeImage = new CompositeImage( new ImagePlus( "Composite stack", compositeStack ) );
-        compositeImage.setDimensions( compositeStack.size() / rgbStack.size(), rgbStack.size(), 1 );
-        compositeImage.setCalibration( calibration );
-        compositeImage.show();
-
-        IJ.log( "Lowest plane corners:" );
-        IJ.log( corners.get( 0 ).toString() );
-        IJ.log( "Highest plane corners:" );
-        IJ.log( corners.get( 1 ).toString() );
+//        IJ.log( "Lowest plane corners:" );
+//        IJ.log( corners.get( 0 ).toString() );
+//        IJ.log( "Highest plane corners:" );
+//        IJ.log( corners.get( 1 ).toString() );
     }
 
     @Override

@@ -1,0 +1,3 @@
+uri,affine,view
+blobs.tif,"(2,0,0,0,0,2,0,0,0,0,1,10)",all
+mri-stack.tif,"(1,0,0,0,0,1,0,0,0,0,1,0)",all

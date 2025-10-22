@@ -233,6 +233,19 @@ public class OpenCollectionTableCommandTest
     }
 
     @Test
+    public void blobsAndMri( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = new File("src/test/resources/collections/blobs-mri-collection.csv").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
+        command.run();
+    }
+
+    @Test
     public void manyGroups( )
     {
         final ImageJ imageJ = new ImageJ();
@@ -299,6 +312,7 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
-        new OpenCollectionTableCommandTest().manyGroups();
+        new OpenCollectionTableCommandTest().blobsAndMri();
+        //new OpenCollectionTableCommandTest().manyGroups();
     }
 }
