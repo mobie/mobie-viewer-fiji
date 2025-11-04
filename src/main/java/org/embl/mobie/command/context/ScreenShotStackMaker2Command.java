@@ -28,28 +28,21 @@
  */
 package org.embl.mobie.command.context;
 
-import ij.CompositeImage;
-import ij.IJ;
 import ij.ImagePlus;
-import ij.ImageStack;
-import ij.measure.Calibration;
-import ij.process.ImageProcessor;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.util.LinAlgHelpers;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.bdv.ScreenShotMaker;
 import org.embl.mobie.lib.bdv.ScreenShotStackMaker;
-import org.embl.mobie.lib.util.Corners;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-import java.util.*;
+import java.util.List;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Take Screenshot Stack (Devel)")
+
+// create separate ImagePlus
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Take Screenshot Stack - Separate Images (Devel)")
 public class ScreenShotStackMaker2Command extends ScreenShotMakerCommand
 {
     static { net.imagej.patcher.LegacyInjector.preinit(); }
