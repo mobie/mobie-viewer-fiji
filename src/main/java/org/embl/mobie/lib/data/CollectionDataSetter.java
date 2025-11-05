@@ -114,7 +114,10 @@ public class CollectionDataSetter
                     );
                 } );
 
-                Display< ? > regionDisplay = createRegionDisplay( viewName, nestedViewSources, false );
+                // Note that the regions name must be unique because it will be instantiated as an image.
+                // The viewName alone may be the same as an image name, which would lead to a crash,
+                // because it will "overwrite" the image.
+                Display< ? > regionDisplay = createRegionDisplay( "regions: " + viewName, nestedViewSources, false );
                 viewToDisplays.get( viewName ).put( regionDisplay.getName(), regionDisplay );
             }
 

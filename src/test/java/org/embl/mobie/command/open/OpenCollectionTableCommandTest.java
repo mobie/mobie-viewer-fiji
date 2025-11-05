@@ -258,6 +258,19 @@ public class OpenCollectionTableCommandTest
         command.run();
     }
 
+    @Test
+    public void thinPlateSpline( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = new File("src/test/resources/collections/tps-collection.csv").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
+        command.run();
+    }
+
     private static void createLargeSpotsTable() {
         int rows = 100;
         int columns = 20000;
@@ -312,7 +325,8 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
-        new OpenCollectionTableCommandTest().blobsAndMri();
+        //new OpenCollectionTableCommandTest().blobsAndMri();
+        new OpenCollectionTableCommandTest().thinPlateSpline();
         //new OpenCollectionTableCommandTest().manyGroups();
     }
 }
