@@ -26,13 +26,44 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.image;
+package org.embl.mobie.lib.serialize.transformation;
 
-import org.embl.mobie.lib.serialize.transformation.Transformation;
+import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.lib.util.MoBIEHelper;
 
-public interface  TransformedImage extends ImageWrapper
+import java.util.ArrayList;
+import java.util.List;
+
+public class TpsTransformation extends AbstractImageTransformation
 {
-    Transformation getTransformation();
 
-    void setTransformation( Transformation transformation );
+    // Serialisation
+	protected String landmarksJson;
+
+	public TpsTransformation( String name,  String landmarksJson, List< String > sources, List< String > sourceNamesAfterTransform )
+	{
+        this.name = name;
+		this.landmarksJson = landmarksJson;
+		this.sources = sources;
+		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
+	}
+
+	public String getLandmarksJson()
+	{
+		return landmarksJson;
+	}
+
+	@Override
+	public String toString()
+	{
+		List<String> lines = new ArrayList<>();
+
+		lines.add( "Thin plate spline transformation: " + getName() );
+
+		lines.add( landmarksJson );
+
+		addSources( lines );
+
+		return String.join( "\n", lines );
+	}
 }

@@ -34,10 +34,9 @@ import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.lib.annotation.LazyAnnotatedSegmentAdapter;
+import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.image.*;
-import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
-import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
-import org.embl.mobie.lib.serialize.transformation.TimepointsTransformation;
+import org.embl.mobie.lib.serialize.transformation.*;
 import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
@@ -51,10 +50,7 @@ public class ImageTransformer
 {
 	public static Image< ? > affineTransform( Image< ? > image, AffineTransformation affineTransformation )
 	{
-		String transformedImageName = affineTransformation.getTransformedImageName( image.getName() );
-
-		if( transformedImageName == null )
-			transformedImageName = image.getName();
+		String transformedImageName = getTransformedImageName( affineTransformation.getTransformedImageName( image.getName() ), image.getName() );
 
 		// FIXME The below will destroy the Transformation History of this image
 		//       Not sure why we had this? For performance??
@@ -84,6 +80,38 @@ public class ImageTransformer
 							affineTransformation );
 
 			return affineTransformedImage;
+		}
+	}
+
+	private static String getTransformedImageName( String transformedImageName, String imageName )
+	{
+		return transformedImageName == null ? imageName : transformedImageName;
+	}
+
+	public static Image< ? > tpsTransform( Image< ? > image, TpsTransformation transformation )
+	{
+		String transformedImageName = getTransformedImageName( transformation.getTransformedImageName( image.getName() ), image.getName() );
+
+		if ( image instanceof AnnotatedLabelImage )
+		{
+			throw new RuntimeException( "Thin plate spline transformations of label images are not yet implemented...");
+//			return createTransformedAnnotatedLabelImage(
+//					( AnnotatedLabelImage ) image,
+//					affineTransformation );
+		}
+		else if ( image instanceof AnnotationImage )
+		{
+			throw new UnsupportedOperationException( "Creating a transformed duplicate of an " + image.getClass() + " is currently not supported." );
+		}
+		else
+		{
+			TpsTransformedImage< ? > tpsTransformedImage =
+					new TpsTransformedImage<>(
+							image,
+							transformedImageName,
+							transformation );
+
+			return tpsTransformedImage;
 		}
 	}
 
@@ -206,4 +234,66 @@ public class ImageTransformer
 		return translatedImages;
 	}
 
+	public static void transformImages( Transformation transformation, List< ? extends Image< ? > > images )
+	{
+		if ( transformation instanceof AffineTransformation )
+		{
+			final AffineTransformation affineTransformation = ( AffineTransformation ) transformation;
+
+			for ( Image< ? > image : images )
+			{
+				Image< ? > transformedImage = affineTransform( image, affineTransformation );
+				DataStore.addImage( transformedImage );
+			}
+		}
+		else if ( transformation instanceof TpsTransformation )
+		{
+			TpsTransformation tpsTransformation = ( TpsTransformation ) transformation;
+
+			for ( Image< ? > image : images )
+			{
+				Image< ? > transformedImage = tpsTransform( image, tpsTransformation );
+				DataStore.addImage( transformedImage );
+			}
+
+		}
+		else if ( transformation instanceof CropTransformation )
+		{
+			final CropTransformation cropTransformation = ( CropTransformation ) transformation;
+
+			for ( Image< ? > image : images )
+			{
+				// TODO: move this into the ImageTransformer class
+				final CroppedImage< ? > croppedImage = new CroppedImage<>(
+						image,
+						cropTransformation.getTransformedImageName( image.getName() ),
+						cropTransformation.min,
+						cropTransformation.max,
+						cropTransformation.centerAtOrigin );
+				DataStore.addImage( croppedImage );
+			}
+		}
+		else if ( transformation instanceof TimepointsTransformation )
+		{
+			final TimepointsTransformation timepointsTransformation = ( TimepointsTransformation ) transformation;
+
+			for ( Image< ? > image : images )
+			{
+				DataStore.addImage( timeTransform( image, timepointsTransformation ) );
+			}
+		}
+		else if ( transformation instanceof InterpolatedAffineTransformation )
+		{
+			InterpolatedAffineTransformation interpolatedAffineTransformation = ( InterpolatedAffineTransformation ) transformation;
+
+			for ( Image< ? > image : images )
+			{
+				DataStore.addImage( interpolatedAffineTransform( image, interpolatedAffineTransformation ) );
+			}
+		}
+		else
+		{
+			throw new UnsupportedOperationException( "Transformations of type " + transformation.getClass().getName() + " are not yet implemented.");
+		}
+	}
 }

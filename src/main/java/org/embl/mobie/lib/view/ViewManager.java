@@ -391,54 +391,7 @@ public class ViewManager
 				{
 					final List< ? extends Image< ? > > images = DataStore.getImageList( transformation.getSources() );
 
-					if ( transformation instanceof AffineTransformation )
-					{
-						final AffineTransformation affineTransformation = ( AffineTransformation ) transformation;
-
-						for ( Image< ? > image : images )
-						{
-							Image< ? > transformedImage = ImageTransformer.affineTransform( image, affineTransformation );
-							DataStore.addImage( transformedImage );
-						}
-					}
-					else if ( transformation instanceof CropTransformation )
-					{
-						final CropTransformation cropTransformation = ( CropTransformation ) transformation;
-
-						for ( Image< ? > image : images )
-						{
-							// TODO: move this into the ImageTransformer class
-							final CroppedImage< ? > croppedImage = new CroppedImage<>(
-									image,
-									cropTransformation.getTransformedImageName( image.getName() ),
-									cropTransformation.min,
-									cropTransformation.max,
-									cropTransformation.centerAtOrigin );
-							DataStore.addImage( croppedImage );
-						}
-					}
-					else if ( transformation instanceof TimepointsTransformation )
-					{
-						final TimepointsTransformation timepointsTransformation = ( TimepointsTransformation ) transformation;
-
-						for ( Image< ? > image : images )
-						{
-							DataStore.addImage( ImageTransformer.timeTransform( image, timepointsTransformation ) );
-						}
-					}
-					else if ( transformation instanceof InterpolatedAffineTransformation )
-					{
-						InterpolatedAffineTransformation interpolatedAffineTransformation = ( InterpolatedAffineTransformation ) transformation;
-
-						for ( Image< ? > image : images )
-						{
-							DataStore.addImage( ImageTransformer.interpolatedAffineTransform( image, interpolatedAffineTransformation ) );
-						}
-					}
-					else
-					{
-						throw new UnsupportedOperationException( "Transformations of type " + transformation.getClass().getName() + " are not yet implemented.");
-					}
+					ImageTransformer.transformImages( transformation, images );
 				}
 				else // not an ImageTransformation
 				{

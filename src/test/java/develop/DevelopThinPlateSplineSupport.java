@@ -27,12 +27,20 @@ public class DevelopThinPlateSplineSupport
         ImageData< T > imageData = ImageDataOpener.open( mriStackFile.getAbsolutePath(), ImageDataFormat.ImageJ, new SharedQueue( 1 ) );
         Pair< Source< T >, Source< ? extends Volatile< T > > > sourcePair = imageData.getSourcePair( 0 );
         WarpedSource< ? extends Volatile< T > > warpedVolatileSource = new WarpedSource<>( sourcePair.getB(), "_vs" );
+
         LandmarkTableModel ltm = new LandmarkTableModel( 3 );
         ltm.load( new File("src/test/resources/bigwarp_mri_stack_landmarks.csv") );
-        InvertibleRealTransform invertibleRealTransform = new BigWarpTransform( ltm, BigWarpTransform.TPS ).getTransformation();
-        warpedVolatileSource.updateTransform( invertibleRealTransform );
+        String json = ltm.toJson().toString();
+        System.out.println( json );
+        BigWarpTransform bigWarpTransform = new BigWarpTransform( ltm, BigWarpTransform.TPS );
 
-        BdvFunctions.show( warpedVolatileSource );
+        TransformWriterJson.write( ltm, bigWarpTransform, new File("src/test/resources/bigwarp_mri_stack_landmarks.json")  );
+
+        InvertibleRealTransform invertibleRealTransform = bigWarpTransform.getTransformation();
+        warpedVolatileSource.updateTransform( invertibleRealTransform );
+        warpedVolatileSource.setIsTransformed( true );
+
+        //BdvFunctions.show( warpedVolatileSource );
 
         // Things to look at:
         // BigWarpApplyTests.class: transformToTarget

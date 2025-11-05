@@ -33,11 +33,19 @@ import bdv.viewer.BigWarpViewerPanel;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TransformListener;
 import bigwarp.BigWarp;
+import bigwarp.landmarks.LandmarkTableModel;
 import bigwarp.transforms.BigWarpTransform;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.InvertibleRealTransform;
+import org.embl.mobie.lib.data.ProjectType;
+import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.serialize.View;
+import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
+import org.embl.mobie.lib.serialize.transformation.TpsTransformation;
 import org.embl.mobie.lib.util.MoBIEHelper;
+import org.embl.mobie.lib.view.ViewManager;
 import org.embl.mobie.ui.UserInterfaceHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -78,9 +86,40 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 
 	public void applyTransform()
 	{
-		applyTransform( bigWarp.getBwTransform().affine3d().inverse() );
+		if ( bigWarp.getTransformType().equals( BigWarpTransform.AFFINE ) )
+		{
+			applyTransform( bigWarp.getBwTransform().affine3d().inverse() );
+		}
+		else if ( bigWarp.getTransformType().equals( BigWarpTransform.TPS ) )
+		{
+			boolean applied = applyTpsTransform( bigWarp.getLandmarkPanel().getTableModel() );
+			if ( applied ) removeMovingImages();
+			else resetTransforms();
+		}
+
 		bigWarp.closeAll();
 		UserInterfaceHelper.closeWindowByName( COMMAND_NAME );
+	}
+
+	private boolean applyTpsTransform( LandmarkTableModel tableModel )
+	{
+		for ( Image< ? > movingImage : movingImages )
+		{
+			String transformedImageName = movingImage.getName();
+			if ( ! suffix.isEmpty() )
+				transformedImageName += "-" + suffix;
+
+			TpsTransformation transformation = new TpsTransformation(
+					suffix,
+					tableModel.toJson().toString(),
+					Collections.singletonList( movingImage.getName() ),
+					Collections.singletonList( transformedImageName )
+			);
+
+			if ( createImageView( movingImage, transformedImageName, transformation ) ) return false;
+		}
+
+		return true;
 	}
 
 	public void launchBigWarp()
@@ -137,7 +176,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 		final String transformType = bigWarp.getTransformType();
 		if ( transformType.equals( BigWarpTransform.TPS ) )
 		{
-			System.err.println( BigWarpTransform.TPS + "is currently not supported by MoBIE please choose any of the other transform types by selecting one of the BigWarp windows and pressing F2.");
+			System.out.println( transformType );
 		}
 	}
 

@@ -37,6 +37,8 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.data.ProjectType;
 import org.embl.mobie.command.widget.SelectableImages;
 import org.embl.mobie.command.widget.SwingSelectableImagesWidget;
+import org.embl.mobie.lib.serialize.transformation.TpsTransformation;
+import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
@@ -93,7 +95,8 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     {
         if ( mode.equals( TransformationOutput.TransformImage ) )
         {
-            throw new RuntimeException( "In place transformation is currently not supported; just give the output image the same name as the input image.");
+            throw new RuntimeException( "In place transformation is currently not supported;\n" +
+                    "to achieve the same result please give the output image the same name as the input image.");
             //   applyTransformInPlace( affineTransform3D );
         }
 
@@ -102,18 +105,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
                 affineTransform3D,
                 suffix ) )
         {
-            // Remove the moving image displays
-            // because the transformed ones are being shown
-            List< String > movingImageNames = selectedImages.getNames();
-            ViewManager viewManager = MoBIE.getInstance().getViewManager();
-            List< Display > displays = viewManager.getCurrentSourceDisplays();
-            List< Display > displaysToRemove = displays.stream()
-                    .filter( display -> display.getSources().size() == 1 )
-                    .filter( display -> display.getSources().stream().anyMatch( movingImageNames::contains ) )
-                    .collect( Collectors.toList() );
-
-            for ( Display display : displaysToRemove )
-                viewManager.removeDisplay( display, false );
+            removeMovingImages();
         }
         else
         {
@@ -125,7 +117,56 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         //    Maybe we use the hack that finds the awt Window based on its name?
         //    https://imagesc.zulipchat.com/#narrow/stream/327238-Fiji/topic/Close.20Scijava.20Command.20UI
     }
-    
+
+    public void removeMovingImages()
+    {
+        // Remove the moving image displays
+        // because the transformed ones are being shown
+        List< String > movingImageNames = selectedImages.getNames();
+        ViewManager viewManager = MoBIE.getInstance().getViewManager();
+        List< Display > displays = viewManager.getCurrentSourceDisplays();
+        List< Display > displaysToRemove = displays.stream()
+                .filter( display -> display.getSources().size() == 1 )
+                .filter( display -> display.getSources().stream().anyMatch( movingImageNames::contains ) )
+                .collect( Collectors.toList() );
+
+        for ( Display display : displaysToRemove )
+            viewManager.removeDisplay( display, false );
+    }
+
+    protected static boolean createImageView(
+            Image< ? > movingImage,
+            String transformedImageName,
+            Transformation transformation )
+    {
+        View view = ViewManager.createImageView(
+                movingImage,
+                transformedImageName,
+                transformation,
+                transformedImageName );
+
+        if( MoBIE.getInstance().getSettings().values.getProjectType().equals( ProjectType.CollectionTable ) )
+        {
+            // only add view
+            MoBIE.getInstance().getViewManager().show( view );
+        }
+        else
+        {
+            // save and add view
+            if ( MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view ) )
+            {
+                MoBIE.getInstance().getViewManager().show( view );
+            }
+            else
+            {
+                // FIXME: if a user clicks "Cancel" in-between two sources this will create a mess
+                //    ...probably anyway better we save all the transformed sources in one go.
+                return true;
+            }
+        }
+        return false;
+    }
+
     protected static boolean createSaveAndViewAffineTransformedImages(
             Collection< Image< ? > > movingImages,
             AffineTransform3D affineTransform3D,
@@ -137,38 +178,14 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
             if ( ! suffix.isEmpty() )
                 transformedImageName += "-" + suffix;
 
-            AffineTransformation affineTransformation = new AffineTransformation(
+            AffineTransformation transformation = new AffineTransformation(
                     suffix,
                     affineTransform3D.getRowPackedCopy(),
                     Collections.singletonList( movingImage.getName() ),
                     Collections.singletonList( transformedImageName )
             );
 
-            View view = ViewManager.createImageView(
-                    movingImage,
-                    transformedImageName,
-                    affineTransformation,
-                    movingImage.getName() + ", " + suffix );
-
-            if( MoBIE.getInstance().getSettings().values.getProjectType().equals( ProjectType.CollectionTable ) )
-            {
-                // only add view
-                MoBIE.getInstance().getViewManager().show( view );
-            }
-            else
-            {
-                // save and add view
-                if ( MoBIE.getInstance().getViewManager().getViewsSaver().saveViewDialog( view ) )
-                {
-                    MoBIE.getInstance().getViewManager().show( view );
-                }
-                else
-                {
-                    // FIXME: if a user clicks "Cancel" in-between two sources this will create a mess
-                    //    ...probably anyway better we save all the transformed sources in one go.
-                    return false;
-                }
-            }
+            if ( createImageView( movingImage, transformedImageName, transformation ) ) return false;
         }
 
         return true;

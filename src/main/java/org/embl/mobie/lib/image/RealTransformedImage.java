@@ -65,6 +65,7 @@ public class RealTransformedImage< T > implements Image< T >, TransformedImage
 		RealTransformedSource< T > realTransformedSource = new RealTransformedSource<>( source, realTransform, name );
 		RealTransformedSource< ? extends Volatile< T > > realTransformedVolatileSource = new RealTransformedSource<>( volatileSource, realTransform, name );
 
+		// Wrap into a transformed source such that they have a shared affine transform
 		final TransformedSource< T > transformedSource = new TransformedSource<>( realTransformedSource, name );
 		final TransformedSource< ? extends Volatile< T > > volatileTransformedSource = new TransformedSource<>( realTransformedVolatileSource, transformedSource );
 		transformedSource.setFixedTransform( affineTransform3D );
