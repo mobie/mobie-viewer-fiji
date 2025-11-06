@@ -37,7 +37,6 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.data.ProjectType;
 import org.embl.mobie.command.widget.SelectableImages;
 import org.embl.mobie.command.widget.SwingSelectableImagesWidget;
-import org.embl.mobie.lib.serialize.transformation.TpsTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.image.Image;

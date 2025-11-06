@@ -35,17 +35,13 @@ import bdv.viewer.TransformListener;
 import bigwarp.BigWarp;
 import bigwarp.landmarks.LandmarkTableModel;
 import bigwarp.transforms.BigWarpTransform;
-import org.embl.mobie.MoBIE;
+import bigwarp.transforms.io.TransformWriterJson;
 import org.embl.mobie.command.CommandConstants;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.InvertibleRealTransform;
-import org.embl.mobie.lib.data.ProjectType;
 import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.serialize.View;
-import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
-import org.embl.mobie.lib.serialize.transformation.TpsTransformation;
+import org.embl.mobie.lib.serialize.transformation.ThinPlateSplineTransformation;
 import org.embl.mobie.lib.util.MoBIEHelper;
-import org.embl.mobie.lib.view.ViewManager;
 import org.embl.mobie.ui.UserInterfaceHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -109,9 +105,12 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 			if ( ! suffix.isEmpty() )
 				transformedImageName += "-" + suffix;
 
-			TpsTransformation transformation = new TpsTransformation(
+
+			String jsonTransform = TransformWriterJson.write( tableModel, new BigWarpTransform( tableModel, BigWarpTransform.TPS ) ).toString();
+
+			ThinPlateSplineTransformation transformation = new ThinPlateSplineTransformation(
 					suffix,
-					tableModel.toJson().toString(),
+					jsonTransform,
 					Collections.singletonList( movingImage.getName() ),
 					Collections.singletonList( transformedImageName )
 			);

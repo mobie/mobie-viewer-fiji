@@ -1,10 +1,9 @@
 package org.embl.mobie.lib.data;
 
 import ij.IJ;
-import net.imglib2.realtransform.ThinplateSplineTransform;
 import net.imglib2.type.numeric.ARGBType;
 import net.thisptr.jackson.jq.internal.misc.Strings;
-import org.embl.mobie.lib.serialize.transformation.TpsTransformation;
+import org.embl.mobie.lib.serialize.transformation.ThinPlateSplineTransformation;
 import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.util.Constants;
 import org.embl.mobie.io.ImageDataFormat;
@@ -70,7 +69,7 @@ public class CollectionDataSetter
             String displayName = getDisplayName( row );
             String viewName = getViewName( row );
             String gridName = getGridName( row );
-            IJ.log("  Name: " + sourceName );
+            IJ.log("  Source: " + sourceName );
             IJ.log("  Display: " + displayName );
             IJ.log("  View: " + viewName );
             if ( gridName != null ) IJ.log("  Grid: " + gridName );
@@ -800,13 +799,17 @@ public class CollectionDataSetter
         {
             String string = getString( row, CollectionTableConstants.TPS );
 
-            TpsTransformation transformation = new TpsTransformation(
-                    "TPS",
-                    string,
-                    Collections.singletonList( sourceName ),
-                    null );
+            // FIXME: Check whether the JSON parsing works
+            if ( ! string.isEmpty() )
+            {
+                ThinPlateSplineTransformation transformation = new ThinPlateSplineTransformation(
+                        "TPS",
+                        string,
+                        Collections.singletonList( sourceName ),
+                        null );
 
-            transformations.add( transformation );
+                transformations.add( transformation );
+            }
         }
         catch ( Exception e )
         {

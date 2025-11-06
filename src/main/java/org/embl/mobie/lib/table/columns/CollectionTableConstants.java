@@ -171,7 +171,7 @@ public class CollectionTableConstants
     public static final String AFFINE = "affine";
 
     /**
-     * The "tps" column MAY be present.
+     * The "thinPlateSpline" column MAY be present.
      *
      * The value defines a thin plate spline (tps) transformation that will
      * be applied to the image upon display, i.e. it will change where
@@ -191,7 +191,7 @@ public class CollectionTableConstants
      * - If you also specified an affine transformation for this image, the thin plate spline
      *   transformation will be applied after the affine transformation
      */
-    public static final String TPS = "tps";
+    public static final String TPS = "thinPlateSpline";
 
     /**
      * The "view" column MAY be present.

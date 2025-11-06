@@ -88,7 +88,7 @@ public class ImageTransformer
 		return transformedImageName == null ? imageName : transformedImageName;
 	}
 
-	public static Image< ? > tpsTransform( Image< ? > image, TpsTransformation transformation )
+	public static Image< ? > tpsTransform( Image< ? > image, ThinPlateSplineTransformation transformation )
 	{
 		String transformedImageName = getTransformedImageName( transformation.getTransformedImageName( image.getName() ), image.getName() );
 
@@ -246,13 +246,13 @@ public class ImageTransformer
 				DataStore.addImage( transformedImage );
 			}
 		}
-		else if ( transformation instanceof TpsTransformation )
+		else if ( transformation instanceof ThinPlateSplineTransformation )
 		{
-			TpsTransformation tpsTransformation = ( TpsTransformation ) transformation;
+			ThinPlateSplineTransformation thinPlateSplineTransformation = ( ThinPlateSplineTransformation ) transformation;
 
 			for ( Image< ? > image : images )
 			{
-				Image< ? > transformedImage = tpsTransform( image, tpsTransformation );
+				Image< ? > transformedImage = tpsTransform( image, thinPlateSplineTransformation );
 				DataStore.addImage( transformedImage );
 			}
 

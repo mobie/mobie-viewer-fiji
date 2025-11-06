@@ -28,19 +28,16 @@
  */
 package org.embl.mobie.lib.serialize.transformation;
 
-import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.lib.util.MoBIEHelper;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class TpsTransformation extends AbstractImageTransformation
+public class ThinPlateSplineTransformation extends AbstractImageTransformation
 {
 
     // Serialisation
 	protected String landmarksJson;
 
-	public TpsTransformation( String name,  String landmarksJson, List< String > sources, List< String > sourceNamesAfterTransform )
+	public ThinPlateSplineTransformation( String name, String landmarksJson, List< String > sources, List< String > sourceNamesAfterTransform )
 	{
         this.name = name;
 		this.landmarksJson = landmarksJson;

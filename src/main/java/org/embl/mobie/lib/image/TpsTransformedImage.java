@@ -38,7 +38,7 @@ import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.InvertibleRealTransform;
 import net.imglib2.roi.RealMaskRealInterval;
-import org.embl.mobie.lib.serialize.transformation.TpsTransformation;
+import org.embl.mobie.lib.serialize.transformation.ThinPlateSplineTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 
 public class TpsTransformedImage< T > implements Image< T >, TransformedImage
@@ -55,7 +55,7 @@ public class TpsTransformedImage< T > implements Image< T >, TransformedImage
 	public TpsTransformedImage(
 			Image< T > image,
 			String transformedImageName,
-			TpsTransformation transformation )
+			ThinPlateSplineTransformation transformation )
 	{
 		this.image = image;
 		this.name = transformedImageName;

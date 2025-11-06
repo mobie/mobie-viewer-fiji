@@ -265,8 +265,35 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri = new File("src/test/resources/collections/tps-collection.tsv").getAbsolutePath();
+        command.tableUri = new File("src/test/resources/collections/thinplatespline-mri-collection.tsv").getAbsolutePath();
         command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
+        command.run();
+    }
+
+    @Test
+    public void thinPlateSplinePlaty( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = new File("src/test/resources/collections/thinplatespline-platy-collection.tsv").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.PathsInTableAreAbsolute;
+        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
+        command.run();
+    }
+
+
+    @Test
+    public void thinPlateSplinePlatyGoogleSheet( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = "https://docs.google.com/spreadsheets/d/1elair242cN5rbYtlODKu5yIscZHQ9O0Lci598-NoY4I/edit?usp=sharing";
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.PathsInTableAreAbsolute;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -326,7 +353,7 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
         //new OpenCollectionTableCommandTest().blobsAndMri();
-        new OpenCollectionTableCommandTest().thinPlateSpline();
+        new OpenCollectionTableCommandTest().thinPlateSplinePlatyGoogleSheet();
         //new OpenCollectionTableCommandTest().manyGroups();
     }
 }

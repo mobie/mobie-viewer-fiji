@@ -15,6 +15,7 @@ import net.imglib2.realtransform.InvertibleRealTransform;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.util.Pair;
+import org.apache.avro.data.Json;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.imagedata.ImageData;
@@ -34,19 +35,14 @@ public class DevelopThinPlateSplineSupport
 
         LandmarkTableModel ltm = new LandmarkTableModel( 3 );
         ltm.load( new File("src/test/resources/bigwarp_mri_stack_landmarks.csv") );
-        String jsonString = ltm.toJson().toString();
-        JsonElement json = ltm.toJson();
-        JsonElement jsonElement = JsonParser.parseString( jsonString );
-        BigWarpLandmarks landmarks = BigWarpLandmarks.fromJson( jsonString );
-        System.out.println(landmarks);
-        LandmarkTableModel ltm2 = new LandmarkTableModel( landmarks.getNumDimensions() );
-        //ltm2.fromJson(  );
-        // to convert back to JSON:
-        String producedJson = landmarks.toJson();
-        System.out.println(producedJson);
+
+        ltm.load( new File("src/test/resources/collections/platy-tps-landmarks.csv") );
+        String jsonTransform = TransformWriterJson.write( ltm, new BigWarpTransform( ltm, BigWarpTransform.TPS ) ).toString();
+        JsonElement jsonElement = JsonParser.parseString( jsonTransform );
+        String string = jsonElement.toString();
+        System.out.println(string);
 
         ltm.fromJson( jsonElement );
-        System.out.println( jsonString );
 
         BigWarpTransform bigWarpTransform = new BigWarpTransform( ltm, BigWarpTransform.TPS );
 
