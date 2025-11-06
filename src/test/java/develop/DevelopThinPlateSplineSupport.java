@@ -7,6 +7,9 @@ import bdv.viewer.Source;
 import bigwarp.landmarks.LandmarkTableModel;
 import bigwarp.transforms.BigWarpTransform;
 import bigwarp.transforms.io.TransformWriterJson;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.InvertibleRealTransform;
 import net.imglib2.type.NativeType;
@@ -15,6 +18,7 @@ import net.imglib2.util.Pair;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.imagedata.ImageData;
+import org.embl.mobie.lib.serialize.BigWarpLandmarks;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,8 +34,20 @@ public class DevelopThinPlateSplineSupport
 
         LandmarkTableModel ltm = new LandmarkTableModel( 3 );
         ltm.load( new File("src/test/resources/bigwarp_mri_stack_landmarks.csv") );
-        String json = ltm.toJson().toString();
-        System.out.println( json );
+        String jsonString = ltm.toJson().toString();
+        JsonElement json = ltm.toJson();
+        JsonElement jsonElement = JsonParser.parseString( jsonString );
+        BigWarpLandmarks landmarks = BigWarpLandmarks.fromJson( jsonString );
+        System.out.println(landmarks);
+        LandmarkTableModel ltm2 = new LandmarkTableModel( landmarks.getNumDimensions() );
+        //ltm2.fromJson(  );
+        // to convert back to JSON:
+        String producedJson = landmarks.toJson();
+        System.out.println(producedJson);
+
+        ltm.fromJson( jsonElement );
+        System.out.println( jsonString );
+
         BigWarpTransform bigWarpTransform = new BigWarpTransform( ltm, BigWarpTransform.TPS );
 
         TransformWriterJson.write( ltm, bigWarpTransform, new File("src/test/resources/bigwarp_mri_stack_landmarks.json")  );

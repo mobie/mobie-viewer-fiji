@@ -265,7 +265,7 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri = new File("src/test/resources/collections/tps-collection.csv").getAbsolutePath();
+        command.tableUri = new File("src/test/resources/collections/tps-collection.tsv").getAbsolutePath();
         command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();

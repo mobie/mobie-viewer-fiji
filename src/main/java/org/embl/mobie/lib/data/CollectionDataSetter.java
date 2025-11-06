@@ -1,8 +1,10 @@
 package org.embl.mobie.lib.data;
 
 import ij.IJ;
+import net.imglib2.realtransform.ThinplateSplineTransform;
 import net.imglib2.type.numeric.ARGBType;
 import net.thisptr.jackson.jq.internal.misc.Strings;
+import org.embl.mobie.lib.serialize.transformation.TpsTransformation;
 import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.util.Constants;
 import org.embl.mobie.io.ImageDataFormat;
@@ -89,7 +91,7 @@ public class CollectionDataSetter
 
             viewToGroups.put( viewName, getGroups( row ) );
             viewToExclusive.put( viewName, getExclusive( row ) );
-            viewToTransformations.computeIfAbsent( viewName, k -> new ArrayList<>() ).addAll( getAffineTransformations( sourceName, row ) );
+            viewToTransformations.computeIfAbsent( viewName, k -> new ArrayList<>() ).addAll( getTransformations( sourceName, row ) );
         }); // table rows
 
 
@@ -766,10 +768,11 @@ public class CollectionDataSetter
     }
 
 
-    private static List< Transformation > getAffineTransformations( String sourceName, Row row )
+    private static List< Transformation > getTransformations( String sourceName, Row row )
     {
         ArrayList< Transformation > transformations = new ArrayList<>();
 
+        // AFFINE
         try
         {
             String string = getString( row, CollectionTableConstants.AFFINE );
@@ -792,8 +795,27 @@ public class CollectionDataSetter
             // Do not add a transformation
         }
 
+        // TPS
+        try
+        {
+            String string = getString( row, CollectionTableConstants.TPS );
+
+            TpsTransformation transformation = new TpsTransformation(
+                    "TPS",
+                    string,
+                    Collections.singletonList( sourceName ),
+                    null );
+
+            transformations.add( transformation );
+        }
+        catch ( Exception e )
+        {
+            // Do not add a transformation
+        }
+
         return transformations;
     }
+
 
 
     private static String getColor( Row row )

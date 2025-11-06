@@ -32,6 +32,7 @@ import bdv.img.WarpedSource;
 import bdv.tools.transformation.TransformedSource;
 import bigwarp.landmarks.LandmarkTableModel;
 import bigwarp.transforms.BigWarpTransform;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -86,7 +87,8 @@ public class TpsTransformedImage< T > implements Image< T >, TransformedImage
 	{
 		// Create the transformation
 		LandmarkTableModel ltm = new LandmarkTableModel( 3 );
-		ltm.fromJson( JsonParser.parseString( landmarksJson ) );
+		JsonElement json = JsonParser.parseString( landmarksJson );
+		ltm.fromJson( json );
 		BigWarpTransform bigWarpTransform = new BigWarpTransform( ltm, BigWarpTransform.TPS );
 		InvertibleRealTransform invertibleRealTransform = bigWarpTransform.getTransformation();
 

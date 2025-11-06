@@ -171,6 +171,29 @@ public class CollectionTableConstants
     public static final String AFFINE = "affine";
 
     /**
+     * The "tps" column MAY be present.
+     *
+     * The value defines a thin plate spline (tps) transformation that will
+     * be applied to the image upon display, i.e. it will change where
+     * the image will be rendered in the viewer.
+     *
+     * Supported values:
+     * - BigWarp Landmark JSON
+     *
+     * Default: No transformation
+     * If the column is absent or the value cannot be parsed, no
+     * additional transformation will be applied on top of the
+     * transformation that is found within the image data itself.
+     *
+     * Notes:
+     * - This tps transformation will be applied on top of any transformation
+     *   that can be discovered within the image URI
+     * - If you also specified an affine transformation for this image, the thin plate spline
+     *   transformation will be applied after the affine transformation
+     */
+    public static final String TPS = "tps";
+
+    /**
      * The "view" column MAY be present.
      *
      * The value will determine to which view this image will be added,
