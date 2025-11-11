@@ -14,7 +14,7 @@
     <!--  https://sites.imagej.net/MoBIE/-->
 
     <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
-
+    <!-- mvn -Denforcer.skip=true site -->
     <!--  ../scijava-scripts/release-version.sh - -skip-version-check - -skip-license-update -->
     <!-- ../scijava-scripts/release-version.sh - -skip-version-check  - -skip-license-update -->
     <!-- force javadoc generation to fetch errors:    -->
@@ -105,6 +105,9 @@
 
         <!-- NB: Deploy releases to the SciJava Maven repository. -->
         <releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
+
+        <!-- NB: Skip tests because the open the GUI and it does not work on github actions -->
+        <skipTests>true</skipTests>
 
     </properties>
 

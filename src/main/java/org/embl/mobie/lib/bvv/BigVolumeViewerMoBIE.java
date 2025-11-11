@@ -250,7 +250,7 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	/** returns RGB LUT from the annotation image, i.e. UnsignedLongType
 	 * value to RGB. The size of LUT is #of labels + 1, 
 	 * since it adds Color.BLACK as zero values. 
-	 * Works only if the number of labels is <=65535 **/
+	 * Works only if the number of labels is smaller or equal to 65535 **/
 	
 	@SuppressWarnings( { "unchecked"} )
 	public IndexColorModel getAnnotationLUT( SourceAndConverter< ? > sac )
