@@ -803,7 +803,7 @@ public class CollectionDataSetter
             if ( ! string.isEmpty() )
             {
                 ThinPlateSplineTransformation transformation = new ThinPlateSplineTransformation(
-                        "TPS",
+                        "ThinPlateSpline",
                         string,
                         Collections.singletonList( sourceName ),
                         null );

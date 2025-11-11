@@ -298,6 +298,33 @@ public class OpenCollectionTableCommandTest
         command.run();
     }
 
+    @Test
+    public void platyGoogleSheet( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = "https://docs.google.com/spreadsheets/d/1xZ4Zfpg0RUwhPZVCUrX_whB0QGztLN_VVNLx89_rZs4/edit?gid=0#gid=0";
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.PathsInTableAreAbsolute;
+        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
+        command.run();
+    }
+
+    @Test
+    public void openOrganelleGoogleSheet( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = "https://docs.google.com/spreadsheets/d/1jEnl-0_pcOFQo8mm8SUtszoWewvjyFXY0icO7gPUaQk/edit?gid=0#gid=0";
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.PathsInTableAreAbsolute;
+        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
+        command.run();
+    }
+
+
     private static void createLargeSpotsTable() {
         int rows = 100;
         int columns = 20000;
@@ -353,7 +380,8 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
         //new OpenCollectionTableCommandTest().blobsAndMri();
-        new OpenCollectionTableCommandTest().thinPlateSplinePlatyGoogleSheet();
+        new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
+        //new OpenCollectionTableCommandTest().thinPlateSplinePlatyGoogleSheet();
         //new OpenCollectionTableCommandTest().manyGroups();
     }
 }

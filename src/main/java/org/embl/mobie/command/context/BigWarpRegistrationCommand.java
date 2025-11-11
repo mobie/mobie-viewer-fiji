@@ -175,7 +175,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 		final String transformType = bigWarp.getTransformType();
 		if ( transformType.equals( BigWarpTransform.TPS ) )
 		{
-			System.out.println( transformType );
+			//System.out.println( transformType );
 		}
 	}
 

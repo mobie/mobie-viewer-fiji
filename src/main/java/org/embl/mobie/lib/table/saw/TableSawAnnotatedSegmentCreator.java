@@ -74,7 +74,7 @@ public class TableSawAnnotatedSegmentCreator implements TableSawAnnotationCreato
 		{
 			throw new RuntimeException( "Could not parse column names of " + table.name() +
 					"\nThe column names in this table are:" +
-					"\n" + String.join( ",", columnNames) );
+					"\n  " + String.join( ",", columnNames) );
 		}
 
 		idColumns = new ArrayList<>();

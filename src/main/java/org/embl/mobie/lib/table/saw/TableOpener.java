@@ -124,15 +124,14 @@ public class TableOpener
 		else if ( tableDataFormat.equals( TableDataFormat.CSV ) || tableDataFormat.equals( TableDataFormat.TSV ) )
 		{
 			// TODO: why are only absolute paths considered here?
-			String uri;
+			String uri = chunk != null ? IOHelper.combinePath( storageLocation.absolutePath, chunk ) : storageLocation.absolutePath;
 
 			if ( storageLocation.absolutePath.contains( "docs.google.com/spreadsheets" ) )
 			{
-				uri = GoogleSheetURLHelper.generateExportUrl( storageLocation.absolutePath );
+				uri = GoogleSheetURLHelper.generateExportUrl( uri );
 			}
 			else
 			{
-				uri = chunk != null ? IOHelper.combinePath( storageLocation.absolutePath, chunk ) : storageLocation.absolutePath;
 				uri = resolveTablePath( uri );
 			}
 
