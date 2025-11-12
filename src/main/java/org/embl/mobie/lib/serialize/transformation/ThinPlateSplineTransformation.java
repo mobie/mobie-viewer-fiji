@@ -33,7 +33,6 @@ import java.util.List;
 
 public class ThinPlateSplineTransformation extends AbstractImageTransformation
 {
-
     // Serialisation
 	protected String landmarksJson;
 

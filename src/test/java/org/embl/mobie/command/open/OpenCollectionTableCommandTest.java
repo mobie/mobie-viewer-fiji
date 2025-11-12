@@ -259,7 +259,7 @@ public class OpenCollectionTableCommandTest
     }
 
     @Test
-    public void thinPlateSpline( )
+    public void thinPlateSplineMri( )
     {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
@@ -380,7 +380,8 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
         //new OpenCollectionTableCommandTest().blobsAndMri();
-        new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
+        //new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
+        new OpenCollectionTableCommandTest().thinPlateSplineMri();
         //new OpenCollectionTableCommandTest().thinPlateSplinePlatyGoogleSheet();
         //new OpenCollectionTableCommandTest().manyGroups();
     }

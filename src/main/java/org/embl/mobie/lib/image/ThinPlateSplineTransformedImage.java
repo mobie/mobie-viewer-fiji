@@ -34,16 +34,21 @@ import bigwarp.landmarks.LandmarkTableModel;
 import bigwarp.transforms.BigWarpTransform;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import net.imglib2.RealInterval;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.BoundingBoxEstimation;
 import net.imglib2.realtransform.InvertibleRealTransform;
+import net.imglib2.roi.RealMask;
 import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.roi.geom.GeomMasks;
+import net.imglib2.roi.geom.real.ClosedWritableBox;
 import org.embl.mobie.lib.serialize.transformation.ThinPlateSplineTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 
-public class TpsTransformedImage< T > implements Image< T >, TransformedImage
+public class ThinPlateSplineTransformedImage< T > implements Image< T >, TransformedImage
 {
-	private final Image< T > image;
+	private final Image< T > wrappedImage;
 	private final String name;
 	private final String landmarksJson;
 	private Transformation transformation;
@@ -51,13 +56,14 @@ public class TpsTransformedImage< T > implements Image< T >, TransformedImage
 
 	private RealMaskRealInterval mask;
 	private DefaultSourcePair< T > sourcePair;
+	private BigWarpTransform bigWarpThinPlateSplineTransform;
 
-	public TpsTransformedImage(
+	public ThinPlateSplineTransformedImage(
 			Image< T > image,
 			String transformedImageName,
 			ThinPlateSplineTransformation transformation )
 	{
-		this.image = image;
+		this.wrappedImage = image;
 		this.name = transformedImageName;
 		this.transformation = transformation;
 		this.landmarksJson = transformation.getLandmarksJson();
@@ -89,18 +95,18 @@ public class TpsTransformedImage< T > implements Image< T >, TransformedImage
 		LandmarkTableModel ltm = new LandmarkTableModel( 3 );
 		JsonElement json = JsonParser.parseString( landmarksJson );
 		ltm.fromJson( json );
-		BigWarpTransform bigWarpTransform = new BigWarpTransform( ltm, BigWarpTransform.TPS );
-		InvertibleRealTransform invertibleRealTransform = bigWarpTransform.getTransformation();
-
+		bigWarpThinPlateSplineTransform = new BigWarpTransform( ltm, BigWarpTransform.TPS );
+		InvertibleRealTransform thinPlateSplineTransform = bigWarpThinPlateSplineTransform.getTransformation();
+		
 		// Apply the transformation
-		SourcePair< T > originalSourcePair = image.getSourcePair();
+		SourcePair< T > originalSourcePair = wrappedImage.getSourcePair();
 
 		WarpedSource< T > warpedSource = new WarpedSource<>( originalSourcePair.getSource(), "" );
-		warpedSource.updateTransform( invertibleRealTransform );
+		warpedSource.updateTransform( thinPlateSplineTransform );
 		warpedSource.setIsTransformed( true );
-
+		
 		WarpedSource< ? extends Volatile< T > > warpedVolatileSource = new WarpedSource<>( originalSourcePair.getVolatileSource(), "" );
-		warpedVolatileSource.updateTransform( invertibleRealTransform );
+		warpedVolatileSource.updateTransform( thinPlateSplineTransform );
 		warpedVolatileSource.setIsTransformed( true );
 
 		// Wrap into a transformed source such that they have a shared affine transform
@@ -127,9 +133,16 @@ public class TpsTransformedImage< T > implements Image< T >, TransformedImage
 	public RealMaskRealInterval getMask( )
 	{
 		if ( mask == null )
-			return image.getMask().transform( affineTransform3D.inverse() );
+		{
+			RealMaskRealInterval wrappedImageMask = wrappedImage.getMask();
+			wrappedImageMask = wrappedImageMask.transform( bigWarpThinPlateSplineTransform.affinePartOfTps() );
+			return wrappedImageMask.transform( affineTransform3D.inverse() );
+		}
 		else
+		{
+			// External mask given.
 			return mask;
+		}
 	}
 
 	@Override
@@ -141,6 +154,6 @@ public class TpsTransformedImage< T > implements Image< T >, TransformedImage
 	@Override
 	public Image< ? > getWrappedImage()
 	{
-		return image;
+		return wrappedImage;
 	}
 }
