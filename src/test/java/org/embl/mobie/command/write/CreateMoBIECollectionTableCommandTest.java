@@ -15,8 +15,8 @@ public class CreateMoBIECollectionTableCommandTest
         imageJ.ui().showUI();
 
         CreateMoBIECollectionTableCommand createCommand = new CreateMoBIECollectionTableCommand();
-        File imageFile0 = new File( "src/test/resources/collections/xyzc-imagej--control.tif" );
-        File imageFile1 = new File( "src/test/resources/collections/xyzc-imagej--treated.tif" );
+        File imageFile0 = new File( "src/test/resources/collections/control--000.tif" );
+        File imageFile1 = new File( "src/test/resources/collections/treated--000.tif" );
         createCommand.files = new File[]{ imageFile0, imageFile1 };
         createCommand.outputTableFile = new File("src/test/resources/collections/mobie-collection.csv");
         createCommand.run();

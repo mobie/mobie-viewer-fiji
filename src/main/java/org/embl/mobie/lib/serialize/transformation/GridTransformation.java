@@ -151,11 +151,11 @@ public class GridTransformation extends AbstractGridTransformation
         for ( List< ? extends Image< ? > > images : nestedImages )
         {
 			List< String > imageNames = images.stream().map( Image::getName ).collect( Collectors.toList() );
-			System.out.println("Computing grid tile size");
-			System.out.println("  Images: " + Strings.join( ", ", imageNames ) );
+			//System.out.println("Computing grid tile size");
+			//System.out.println("  Images: " + Strings.join( ", ", imageNames ) );
 			final RealMaskRealInterval unionMask = MoBIEHelper.union( images );
             final double[] realDimensions = MoBIEHelper.getRealDimensions( unionMask );
-			System.out.println("  Union size: " +  Arrays.toString( realDimensions ) );
+			//System.out.println("  Union size: " +  Arrays.toString( realDimensions ) );
 
 			// Update the overall grid tile size
 			for ( int d = 0; d < 2; d++ )

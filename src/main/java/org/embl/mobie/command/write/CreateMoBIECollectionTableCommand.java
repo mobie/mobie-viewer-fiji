@@ -29,6 +29,8 @@
 package org.embl.mobie.command.write;
 
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.command.open.OpenCollectionTableCommand;
+import org.embl.mobie.lib.bdv.BdvViewingMode;
 import org.embl.mobie.lib.create.CollectionTableCreator;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
@@ -40,22 +42,28 @@ import java.io.File;
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Create>Create MoBIE Collection Table..." )
 public class CreateMoBIECollectionTableCommand implements Command {
 
+    public static final String TOGETHER = "Together";
+    public static final String INDIVIDUAL = "Individual";
+    public static final String GRID = "Grid";
+
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    @Parameter( label= "Files:",
-                description = "The files that will be part of the collection table.")
+    @Parameter( label= "Image files",
+                description = "The image files that will be part of the collection table.")
     public File[] files;
 
-//    @Parameter( label= "( Filename regular expression )",
-//                description = "Optional. Regular expression to extract information from file names." +
-//                        "\nThe extracted information will be added to the table as additional columns." +
-//                        "\nIt can also be used to configure the grid layout (see below).")
-//    public String regExp = "(?<condition>.*)--(?<replicate>.*).*";
+    @Parameter( label= "( Filename regular expression )",
+                description = "Optional. Regular expression to extract information from file names." +
+                        "\nThe extracted information will be added to the table as additional columns." +
+                        "\nIt can also be used to configure the grid layout (see below).")
+    public String regExp = "(?<condition>.*)--(?<replicate>.*).tif";
 
-    @Parameter( label= "Grid layout", choices = {"Yes", "No"},
-            description = "Whether to layout the data in a grid." +
-                    "\nChoosing \"Yes\" mainly makes sense if all images are similar (e.g., same number of channels).")
-    public String gridLayout = "Yes";
+    @Parameter( label= "View layout", choices = { TOGETHER, INDIVIDUAL, GRID },
+            description = "Specifies how the data will be displayed in MoBIE."
+                    + "\nTogether: All images in one view on top of each other (for correlative data)"
+                    + "\nIndividual: Each image is a separate view (for unrelated data of different dimensionality)"
+                    + "\nGrid: All images in one view in a grid (for comparing various experimental conditions, with same microscopy settings)" )
+    public String viewLayout = GRID;
 
 //    @Parameter( label= "( Grid axes )",
 //            description = "Optional. The axes of the grid can be configured using the metadata that is extracted with the above regular expression." +
@@ -72,17 +80,26 @@ public class CreateMoBIECollectionTableCommand implements Command {
                 description = "The collection table file.")
     public File outputTableFile;
 
+    @Parameter( label = "Open table in MoBIE",
+            description = "Immediately open the collection table file with MoBIE.")
+    public Boolean openTableInMoBIE;
 
     @Override
     public void run()
     {
-        CollectionTableCreator tableCreator = new CollectionTableCreator( files, outputTableFile, gridLayout );
+        CollectionTableCreator tableCreator =
+                new CollectionTableCreator( files, outputTableFile, viewLayout, regExp );
         Table table = tableCreator.createTable();
         outputTableFile.getParentFile().mkdirs();
-        try {
-            table.write().csv( outputTableFile );
-        } catch (Exception e) {
-            e.printStackTrace();
+        table.write().csv( outputTableFile );
+
+        if ( openTableInMoBIE )
+        {
+            OpenCollectionTableCommand openCommand = new OpenCollectionTableCommand();
+            openCommand.tableUri = outputTableFile.getAbsolutePath();
+            openCommand.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.PathsInTableAreAbsolute;
+            openCommand.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
+            openCommand.run();
         }
     }
 }

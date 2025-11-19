@@ -7,6 +7,9 @@ import loci.formats.ImageReader;
 import loci.formats.meta.IMetadata;
 import loci.formats.services.OMEXMLService;
 import ome.xml.model.primitives.Color;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.parquet.Strings;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.jetbrains.annotations.NotNull;
 import tech.tablesaw.api.IntColumn;
 import tech.tablesaw.api.StringColumn;
@@ -14,25 +17,38 @@ import tech.tablesaw.api.Table;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.embl.mobie.command.write.CreateMoBIECollectionTableCommand.*;
 
 public class CollectionTableCreator
 {
 
     private final File[] imageFiles;
     private final File outputFolder;
-    private final String gridLayout;
+    private final String viewLayout;
+    private final String regExp;
     private static final String[] COLOR_STRINGS = new String[]{"Blue", "Green", "Red", "White"};
 
-    public CollectionTableCreator( File[] imageFiles, File outputFolder, String gridLayout )
+    public CollectionTableCreator( File[] imageFiles, File outputFolder, String viewLayout, String regExp )
     {
         this.imageFiles = imageFiles;
         this.outputFolder = outputFolder;
-        this.gridLayout = gridLayout;
+        this.viewLayout = viewLayout;
+        this.regExp = regExp;
     }
 
     public Table createTable()
     {
-        boolean doGrid = gridLayout.equals( "Yes" );
+        boolean doGrid = viewLayout.equals( "Grid" );
+
+        final Pattern pattern = Pattern.compile( regExp );
+        final List< String > regExpGroups = MoBIEHelper.getNamedGroups( regExp );
+        int groupCount = regExpGroups.size();
 
         // Table columns
         ArrayList< String > uris = new ArrayList<>();
@@ -42,6 +58,9 @@ public class CollectionTableCreator
         ArrayList< String > views = new ArrayList<>();
         ArrayList< String > gridNames = new ArrayList<>();
         ArrayList< String > gridPositions = new ArrayList<>();
+        ArrayList< ArrayList< String > > regExpValuesList = new ArrayList<>();
+        for ( int groupIndex = 0; groupIndex < groupCount; groupIndex++ )
+            regExpValuesList.add( new ArrayList<>() );
 
         double gridSize = Math.ceil( Math.sqrt( imageFiles.length ) );
 
@@ -49,6 +68,7 @@ public class CollectionTableCreator
         {
             File imageFile = imageFiles[ fileIndex ];
             IJ.log("Parsing " + imageFile );
+
             try
             {
                 // Create reader with metadata support
@@ -60,19 +80,50 @@ public class CollectionTableCreator
                 reader.setMetadataStore( metadata );
                 reader.setId( imageFile.getAbsolutePath() );
 
-                int sizeC = reader.getSizeC();
+                int numChannels = reader.getSizeC();
+
+                // Match regular expressions
+                if ( ! Strings.isNullOrEmpty( regExp ) )
+                {
+                    final Matcher matcher = pattern.matcher( imageFile.getName() );
+                    if ( ! matcher.matches() )
+                    {
+                        System.err.println( "Could not match regex for " + imageFile.getName() );
+                        for ( int groupIndex = 0; groupIndex < groupCount; groupIndex++ )
+                        {
+                            for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
+                            {
+                                regExpValuesList.get( groupIndex ).add( "???" );
+                            }
+                        }
+                    } else
+                    {
+                        for ( int groupIndex = 0; groupIndex < groupCount; groupIndex++ )
+                        {
+                            for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
+                            {
+                                regExpValuesList.get( groupIndex ).add( matcher.group( groupIndex + 1 ) );
+                            }
+                        }
+                    }
+                }
+
 
                 // Extract channel names and colors
-                for ( int c = 0; c < sizeC; c++ )
+                for ( int c = 0; c < numChannels; c++ )
                 {
                     String channelName = getChannelName( metadata, c );
-                    IJ.log( "Channel " + c + " name: " + channelName  );
+                    //IJ.log( "Channel " + c + " name: " + channelName  );
 
-                    String colorString = getColorString( metadata, c, sizeC );
-                    IJ.log( "Channel " + c + " color: " + channelName  );
+                    String colorString = getColorString( metadata, c, numChannels );
+                    //IJ.log( "Channel " + c + " color: " + channelName  );
 
                     // Add to table lists
-                    views.add( "all data" );
+                    if ( viewLayout.equals( TOGETHER ) || viewLayout.equals( GRID )  )
+                        views.add( "all data" );
+                    else if ( viewLayout.equals( INDIVIDUAL ) )
+                        views.add( FilenameUtils.removeExtension( imageFile.getName() ) );
+
                     uris.add( imageFile.getAbsolutePath() );
                     channels.add( c );
                     displays.add( channelName );
@@ -111,6 +162,19 @@ public class CollectionTableCreator
             StringColumn gridPos = StringColumn.create( "grid_position", gridPositions );
             table.addColumns( gridCol, gridPos );
         }
+
+        if ( ! Strings.isNullOrEmpty( regExp ) )
+        {
+            for ( int groupIndex = 0; groupIndex < groupCount; groupIndex++ )
+            {
+                StringColumn stringColumn = StringColumn.create(
+                        regExpGroups.get( groupIndex ),
+                        regExpValuesList.get( groupIndex )
+                );
+                table.addColumns( stringColumn );
+            }
+        }
+
 
         return table;
     }
