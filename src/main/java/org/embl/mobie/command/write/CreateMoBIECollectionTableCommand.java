@@ -28,17 +28,14 @@
  */
 package org.embl.mobie.command.write;
 
-import ij.IJ;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.create.ui.ProjectsCreatorUI;
+import org.embl.mobie.lib.create.CollectionTableCreator;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import tech.tablesaw.api.Table;
 
 import java.io.File;
-import java.io.IOException;
-
-import static org.embl.mobie.ui.UserInterfaceHelper.tidyString;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Create>Create MoBIE Collection Table..." )
 public class CreateMoBIECollectionTableCommand implements Command {
@@ -49,40 +46,43 @@ public class CreateMoBIECollectionTableCommand implements Command {
                 description = "The files that will be part of the collection table.")
     public File[] files;
 
-    @Parameter( label= "( Filename regular expression )",
-                description = "Optional. Regular expression to extract information from file names." +
-                        "\nThe extracted information will be added to the table as additional columns." +
-                        "\nIt can also be used to configure the grid layout (see below).")
-    public String regExp = "(?<condition>.*)--(?<replicate>.*).*";
+//    @Parameter( label= "( Filename regular expression )",
+//                description = "Optional. Regular expression to extract information from file names." +
+//                        "\nThe extracted information will be added to the table as additional columns." +
+//                        "\nIt can also be used to configure the grid layout (see below).")
+//    public String regExp = "(?<condition>.*)--(?<replicate>.*).*";
 
     @Parameter( label= "Grid layout", choices = {"Yes", "No"},
             description = "Whether to layout the data in a grid." +
                     "\nChoosing \"Yes\" mainly makes sense if all images are similar (e.g., same number of channels).")
     public String gridLayout = "Yes";
 
-    @Parameter( label= "( Grid axes )",
-            description = "Optional. The axes of the grid can be configured using the metadata that is extracted with the above regular expression." +
-                    "\nExamples:" +
-                    "\nx=replicate,y=condition"
-                    "\ny=condition" )
-    public String gridAxes = "x=replicate,y=condition";
+//    @Parameter( label= "( Grid axes )",
+//            description = "Optional. The axes of the grid can be configured using the metadata that is extracted with the above regular expression." +
+//                    "\nExamples:" +
+//                    "\nx=replicate,y=condition" +
+//                    "\ny=condition" )
+//    public String gridAxes = "x=replicate,y=condition";
 
-    @Parameter( label = "Convert to OME-Zarr",
-            description = "")
-    public Boolean convertToZarr;
+//    @Parameter( label = "Convert to OME-Zarr",
+//            description = "")
+//    public Boolean convertToZarr;
 
-    @Parameter( label = "Output folder", style = "directory",
-                description = "The folder where the collection table (and OME-Zarrs) will be saved.")
-    public File outputFolder;
+    @Parameter( label = "Output table",
+                description = "The collection table file.")
+    public File outputTableFile;
 
 
     @Override
     public void run()
     {
-        IJ.showMessage( "Under development...please check again later" );
-        return;
-
-        outputFolder.mkdirs();
-
+        CollectionTableCreator tableCreator = new CollectionTableCreator( files, outputTableFile, gridLayout );
+        Table table = tableCreator.createTable();
+        outputTableFile.getParentFile().mkdirs();
+        try {
+            table.write().csv( outputTableFile );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
