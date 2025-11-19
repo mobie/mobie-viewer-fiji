@@ -13,6 +13,7 @@ public class IpfTmaAnalysis
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         //command.tableUri = "/Volumes/TMA_SHG_Run01_Run02/OME_Zarr/zarr_data_with_transformations_20251103a.csv";
         command.tableUri = "/Volumes/TMA_SHG_Run01_Run02/OME_Zarr/zarr_data_with_transformations_20251106a.csv";
+        command.tableUri = "/Volumes/TMA_SHG_Run01_Run02/OME_Zarr/20251117_zarr_data_with_transformations.csv";
         //command.tableUri = "/Users/tischer/Documents/ipf-tma-analysis/data/test/input/data_with_transformations.csv";
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;

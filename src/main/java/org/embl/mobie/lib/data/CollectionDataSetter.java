@@ -139,7 +139,7 @@ public class CollectionDataSetter
 
     }
 
-    private boolean columnExists( final String[] columNames )
+    private boolean columnExists( final String... columNames )
     {
         for ( String columName : columNames )
         {
@@ -389,13 +389,7 @@ public class CollectionDataSetter
 
     private static TableSource getTable( Row row, String rootPath )
     {
-        String tablePath;
-        if (row.columnNames().contains(CollectionTableConstants.LABELS_TABLE))
-            tablePath = getString( row, CollectionTableConstants.LABELS_TABLE );
-        else if ( row.columnNames().contains(CollectionTableConstants.LABELS_TABLE_URI) )
-            tablePath = getString( row, CollectionTableConstants.LABELS_TABLE_URI );
-        else
-            return null;
+        String tablePath = getString( row, CollectionTableConstants.LABELS_TABLE );
 
         if ( tablePath == null || tablePath.isEmpty() )
             return null;
@@ -421,12 +415,17 @@ public class CollectionDataSetter
         return string;
     }
 
-    private String getString( Row row, final String[] columnNames )
+    private static String getString( Row row, final String... columnNames )
     {
-        for ( String columnName : columnNames )
+        for ( String columnInRow : row.columnNames() )
         {
-            if ( table.containsColumn( columnName ) )
-                return getString( row, columnName );
+            for ( String columnName : columnNames )
+            {
+                if ( columnInRow.equalsIgnoreCase( columnName ) )
+                {
+                    return row.getString( columnInRow );
+                }
+            }
         }
 
         return null;
@@ -513,16 +512,6 @@ public class CollectionDataSetter
         {
             return null;
         }
-    }
-
-    private static String getString( Row row, final String columnName )
-    {
-        for (String col : row.columnNames()) {
-            if ( col.equalsIgnoreCase(columnName ) ) {
-                return row.getString(col);
-            }
-        }
-        return null;
     }
 
     private static Integer getChannelIndex( Row row )

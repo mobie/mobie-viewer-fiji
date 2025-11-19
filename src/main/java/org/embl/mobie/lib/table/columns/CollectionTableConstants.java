@@ -5,18 +5,15 @@ package org.embl.mobie.lib.table.columns;
  * row values of a "MoBIE collection table".
  *
  * Tables following this specification can be opened in MoBIE/Fiji via
- * MoBIE..Open..Open Collection Table...
+ * {@code MoBIE > Open > Open Collection Table...}
  *
- * The table currently MUST be a TAB separated text file.
- * - see the "affine" column for why we currently cannot support COMMA separation
- *
- * In addition to the columns that are specified in this class
+ * In addition to the columns that are specified below,
  * tables MAY have as many additional columns as needed.
  */
 public class CollectionTableConstants
 {
     /**
-     * The "uri" (or "File Path") column MUST be present
+     * The "uri" (or "File Path") column MUST be present,
      * and it MUST point to a valid image, labels or spots dataset.
      *
      * The same URI MAY be present several times in the same table;
@@ -27,21 +24,20 @@ public class CollectionTableConstants
      * - Local files system paths
      * - AWS S3 URLs
      *
-     * Supported image formats include:
+     * Supported image (and segmentation label mask) file formats include:
      * - OME-Zarr (local and on S3)
      * - Everything that Bio-Formats can open
      * - BDV XML (incl. HDF5 and N5)
      * - ilastik hdf5
      *
-     * Support spots file formats include:
+     * Supported table file formats include:
      * - Parquet
-     * - Tab or comma separated value text files
+     * - Tab or comma separated value text files (TSV, CSV)
      * - Google Sheets URLs
-     *
      */
     public static final String[] URI = {
-            "uri", // MoBIE
-            "File Path" // BioFile Finder
+            "uri", // Default for MoBIE
+            "File Path" // alternative to be compatible with BioFileFinder
     };
 
     /**
@@ -265,15 +261,16 @@ public class CollectionTableConstants
     public static final String GROUP = "group";
 
     /**
-     * The "labels_table" column MAY be present.
+     * The "labels_table" (or "labels_table_uri") column MAY be present.
      *
      * The value is ONLY used when the "type" column has the value "labels",
      * otherwise it is ignored.
      *
      * Supported values:
      * - A valid uri to a "segmentation" table.
-     * - For supported columns in segmentation tables see, e.g.
+     * - For supported column names in segmentation tables see, e.g.
      *   {@code MoBIESegmentColumnNames} or {@code SkimageSegmentColumnNames}.
+     *
      *
      * Default:
      * If the column is absent or contains an empty string
@@ -282,8 +279,7 @@ public class CollectionTableConstants
      * Use cases:
      * - Exploration of measurements corresponding to the labels
      */
-    public static final String LABELS_TABLE = "labels_table";
-    public static final String LABELS_TABLE_URI = "labels_table_uri";
+    public static final String[] LABELS_TABLE = { "labels_table", "labels_table_uri"};
 
     /**
      * The "contrast_limits" column MAY be present.

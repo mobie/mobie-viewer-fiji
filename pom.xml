@@ -9,7 +9,7 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>6.4.4-SNAPSHOT</version>  <!-- -SNAPSHOT -->
+    <version>6.4.4-SNAPSHOT</version>  <!--  -->
 
     <!--  https://sites.imagej.net/MoBIE/-->
 
