@@ -9,6 +9,7 @@ import loci.formats.services.OMEXMLService;
 import ome.xml.model.primitives.Color;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.parquet.Strings;
+import org.embl.mobie.io.OMEZarrWriter;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.jetbrains.annotations.NotNull;
 import tech.tablesaw.api.IntColumn;
@@ -109,7 +110,11 @@ public class CollectionTableCreator
                 }
 
 
-                // Extract channel names and colors
+                // We could convert to OME-Zarr, using
+                // OMEZarrWriter.write( imp, filePath, getImageType( imageType ), overwrite );
+                // I would however do less chunking, maybe 10 MB instead of one
+
+                // Channel loop
                 for ( int c = 0; c < numChannels; c++ )
                 {
                     String channelName = getChannelName( metadata, c );
@@ -142,7 +147,7 @@ public class CollectionTableCreator
             {
                 e.printStackTrace();
             }
-        }
+        } // file loop
         
         // Create table
         Table table = Table.create( "MoBIE collection table" );
