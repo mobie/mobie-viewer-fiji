@@ -1,4 +1,4 @@
-package org.embl.mobie.command.write;
+package org.embl.mobie.command.create;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -8,7 +8,6 @@ import org.embl.mobie.io.util.IOHelper;
 import org.scijava.Initializable;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
-import org.scijava.log.LogService;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -23,25 +22,22 @@ public class SaveAsOMEZarrCommand extends DynamicCommand implements Initializabl
     public static final String INTENSITY = "Intensity";
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
-
-    @Parameter
-    LogService logService;
-
+    
     @Parameter
     public ImagePlus imp;
 
-    @Parameter ( label="Output folder:", style="directory",
+    @Parameter ( label="Output folder", style="directory",
                  description = "The parent folder where the OME-Zarr image will be created.")
     public File outputFolder;
 
-    @Parameter ( label="Image name:",
-            description = "The name of the image; for example, choosing\n" +
+    @Parameter ( label="Image name",
+                 description = "The name of the image; for example, choosing\n" +
                     "Output folder: /usr/data\n" +
                     "Image name: my_image\n" +
                     "...will result in the creation of /usr/data/my_image.ome.zarr")
     public String imageName;
 
-    @Parameter ( label="Image content type:", choices = { INTENSITY, LABEL_MASK },
+    @Parameter ( label="Image content type", choices = { INTENSITY, LABEL_MASK },
                  description = "This is important, because for a \"Label mask\" (i.e., segmentations)\n" +
                          " a different downsampling method must be used\n" +
                          " in order to preserve your object identities across all resolution layers."
@@ -54,20 +50,17 @@ public class SaveAsOMEZarrCommand extends DynamicCommand implements Initializabl
     @Override
     public void run()
     {
-        int logLevel = 0;
+        IJ.log( "# Save as OME-Zarr..." );
+        IJ.log( "Dimension order: X Y C Z T" );
+        IJ.log( "Image dimensions: " + Arrays.toString( imp.getDimensions() ) );
 
-        logService.log( logLevel, "# Save as OME-Zarr...");
-
-        //ImagePlus imp = IJ.getImage();
-        logService.log( logLevel,  "Dimension order: X Y C Z T");
-        logService.log( logLevel,  "Image dimensions: " + Arrays.toString( imp.getDimensions() ) );
-
-        int[] chunkDimensions = new ChunkSizeComputer( imp.getDimensions(), imp.getBytesPerPixel() ).getChunkDimensionsXYCZT( 8000000 );
-        logService.log( logLevel,  "Chunk dimensions: " + Arrays.toString( chunkDimensions ) );
+        int[] chunkDimensions = new ChunkSizeComputer( imp.getDimensions(), imp.getBytesPerPixel() )
+                .getChunkDimensionsXYCZT( 8000000 );
+        IJ.log( "Chunk dimensions: " + Arrays.toString( chunkDimensions ) );
 
         String omeXml = IOHelper.getOMEXml( imp );
         if ( omeXml != null )
-            logService.log( logLevel,  "OME-XML metadata will be transferred to OME-Zarr." );
+            IJ.log( "OME-XML metadata will be transferred to OME-Zarr." );
 
         OMEZarrWriter.ImageType type = imageType.equals( LABEL_MASK ) ? OMEZarrWriter.ImageType.Labels : OMEZarrWriter.ImageType.Intensities;
 
@@ -81,7 +74,7 @@ public class SaveAsOMEZarrCommand extends DynamicCommand implements Initializabl
                 overwrite,
                 omeXml);
 
-        logService.log( logLevel,  "OME-Zarr created at: " + uri );
+        IJ.log( "OME-Zarr created at: " + uri );
     }
 
     @Override

@@ -1,4 +1,4 @@
-package org.embl.mobie.command.write;
+package org.embl.mobie.command.create;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.command.open.OpenCollectionTableCommand;

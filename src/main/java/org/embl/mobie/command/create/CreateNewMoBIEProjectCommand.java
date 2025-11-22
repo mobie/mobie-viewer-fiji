@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.write;
+package org.embl.mobie.command.create;
 
 import ij.IJ;
 import org.embl.mobie.command.CommandConstants;

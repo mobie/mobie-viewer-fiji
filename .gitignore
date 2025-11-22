@@ -15,8 +15,6 @@ target
 *.orig
 hs_err_*.log
 
-pom.xml.releaseBackup
-
 src/test/java/projects
 src/test/java/debug
 

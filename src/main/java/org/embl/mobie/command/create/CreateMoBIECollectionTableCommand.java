@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.write;
+package org.embl.mobie.command.create;
 
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.open.OpenCollectionTableCommand;
@@ -71,10 +71,6 @@ public class CreateMoBIECollectionTableCommand implements Command {
 //                    "\nx=replicate,y=condition" +
 //                    "\ny=condition" )
 //    public String gridAxes = "x=replicate,y=condition";
-
-//    @Parameter( label = "Convert to OME-Zarr",
-//            description = "")
-//    public Boolean convertToZarr;
 
     @Parameter( label = "Output table",
                 description = "The collection table file.")

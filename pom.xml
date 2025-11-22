@@ -9,7 +9,7 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>6.4.5-SNAPSHOT</version>  <!--  -->
+    <version>6.4.5-SNAPSHOT</version>
 
     <!--  https://sites.imagej.net/MoBIE/-->
 
@@ -86,10 +86,7 @@
 
         <allowedDuplicateClasses>${scijava.allowedDuplicateClasses},org.relaxng.*,sun.*,com.sun.*,sun.rmi.*,com.sun.jdi.*,sun.jvmstat.*,sun.applet.*,com.sun.xml.*,com.sun.tools.*,sun.tools.*,com.sun.istack.*,shaded.parquet.it.unimi.dsi.fastutil.*,javax.xml.bind.*,com.sun.xml.bind.*,com.sun.xml.txw2.*,com.sun.codemodel.*</allowedDuplicateClasses>
 
-        <!-- FIXME: Just for testing https://github.com/bigdataviewer/bigdataviewer-core/pull/205 -->
-        <!--        <bigdataviewer-core.version>10.6.5-TISCHI</bigdataviewer-core.version>-->
-
-        <mobie-io.version>4.0.7-SNAPSHOT</mobie-io.version>
+        <mobie-io.version>4.0.7</mobie-io.version>
         <bigdataviewer-playground.version>0.11.2</bigdataviewer-playground.version>
         <bvv-playground.version>0.3.4</bvv-playground.version>
 
