@@ -13,11 +13,8 @@
 
     <!--  https://sites.imagej.net/MoBIE/-->
 
-    <!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
-    <!-- mvn -Denforcer.skip=true site -->
-    <!--  ../scijava-scripts/release-version.sh - -skip-version-check - -skip-license-update -->
-    <!-- ../scijava-scripts/release-version.sh - -skip-version-check  - -skip-license-update -->
-    <!-- force javadoc generation to fetch errors:    -->
+    <!-- mvn clean install -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
+    <!-- DEBUG=1 ../scijava-scripts/release-version.sh - -skip-version-check  - -skip-license-update -->
     <!-- mvn javadoc:javadoc | grep error -->
 
     <url>https://github.com/mobie/mobie-viewer-fiji</url>
