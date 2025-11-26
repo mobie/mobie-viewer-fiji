@@ -81,7 +81,7 @@ public class CollectionTableCreator
                 int numChannels = reader.getSizeC();
 
                 // Match regular expressions
-                if ( ! Strings.isNullOrEmpty( regExp ) )
+                if ( ! MoBIEHelper.notNullOrEmpty( regExp ) )
                 {
                     final Matcher matcher = pattern.matcher( imageFile.getName() );
                     if ( ! matcher.matches() )
@@ -165,7 +165,7 @@ public class CollectionTableCreator
             table.addColumns( gridCol, gridPos );
         }
 
-        if ( ! Strings.isNullOrEmpty( regExp ) )
+        if ( ! MoBIEHelper.nullOrEmpty( regExp ) )
         {
             for ( int groupIndex = 0; groupIndex < groupCount; groupIndex++ )
             {
