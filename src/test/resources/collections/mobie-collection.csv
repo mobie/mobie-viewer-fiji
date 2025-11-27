@@ -1,5 +1,5 @@
 uri,channel,view,display,color,grid,grid_position,condition,replicate
-/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/treated--000.tif,0,all data,Channel_0,Blue,grid,"(0,0)",treated,000
-/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/treated--000.tif,1,all data,Channel_1,Green,grid,"(0,0)",treated,000
-/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/control--000.tif,0,all data,Channel_0,Blue,grid,"(1,0)",control,000
-/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/control--000.tif,1,all data,Channel_1,Green,grid,"(1,0)",control,000
+/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/control--000.tif,0,all data,Channel_0,Blue,grid,"(0,0)",control,000
+/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/control--000.tif,1,all data,Channel_1,Green,grid,"(0,0)",control,000
+/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/treated--000.tif,0,all data,Channel_0,Blue,grid,"(1,0)",treated,000
+/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/treated--000.tif,1,all data,Channel_1,Green,grid,"(1,0)",treated,000

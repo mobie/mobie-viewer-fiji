@@ -19,6 +19,7 @@ public class CreateMoBIECollectionTableCommandTest
         File imageFile1 = new File( "src/test/resources/collections/treated--000.tif" );
         createCommand.files = new File[]{ imageFile0, imageFile1 };
         createCommand.outputTableFile = new File("src/test/resources/collections/mobie-collection.csv");
+        createCommand.openTableInMoBIE = false;
         createCommand.run();
 
         OpenCollectionTableCommand openCommand = new OpenCollectionTableCommand();

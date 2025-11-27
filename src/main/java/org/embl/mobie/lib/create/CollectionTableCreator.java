@@ -8,7 +8,6 @@ import loci.formats.meta.IMetadata;
 import loci.formats.services.OMEXMLService;
 import ome.xml.model.primitives.Color;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.parquet.Strings;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.jetbrains.annotations.NotNull;
 import tech.tablesaw.api.IntColumn;
@@ -81,7 +80,7 @@ public class CollectionTableCreator
                 int numChannels = reader.getSizeC();
 
                 // Match regular expressions
-                if ( ! MoBIEHelper.notNullOrEmpty( regExp ) )
+                if ( MoBIEHelper.notNullOrEmpty( regExp ) )
                 {
                     final Matcher matcher = pattern.matcher( imageFile.getName() );
                     if ( ! matcher.matches() )
@@ -105,7 +104,6 @@ public class CollectionTableCreator
                         }
                     }
                 }
-
 
                 // We could convert to OME-Zarr, using
                 // OMEZarrWriter.write( imp, filePath, getImageType( imageType ), overwrite );
@@ -165,7 +163,7 @@ public class CollectionTableCreator
             table.addColumns( gridCol, gridPos );
         }
 
-        if ( ! MoBIEHelper.nullOrEmpty( regExp ) )
+        if ( MoBIEHelper.notNullOrEmpty( regExp ) )
         {
             for ( int groupIndex = 0; groupIndex < groupCount; groupIndex++ )
             {

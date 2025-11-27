@@ -656,11 +656,6 @@ public abstract class MoBIEHelper
 		return string != null && ! string.isEmpty();
 	}
 
-	public static boolean nullOrEmpty( final String string )
-	{
-		return string == null || string.isEmpty();
-	}
-
 	public static ArrayList< double[] > getVoxelSpacings( Source<?> source, int t )
 	{
 		ArrayList<double[]> voxelSpacings = new ArrayList<>();

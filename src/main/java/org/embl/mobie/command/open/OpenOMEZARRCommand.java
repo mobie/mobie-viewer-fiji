@@ -109,7 +109,7 @@ public class OpenOMEZARRCommand implements Command {
             for ( int dataSetIndex = 0; dataSetIndex < numDataSets; dataSetIndex++ )
             {
                 String path = n5ImageData.getPath( dataSetIndex );
-                if ( path.contains( "labels" ) && MoBIEHelper.nullOrEmpty( labelsUri ) )
+                if ( path.contains( "labels" ) && ( labelsUri == null || labelsUri.isEmpty() ) )
                     labelsList.add( containerUri + "=" + n5ImageData.getName( dataSetIndex ) + ";" + dataSetIndex );
                 else
                     imageList.add( containerUri + "=" + n5ImageData.getName( dataSetIndex ) + ";" + dataSetIndex );
