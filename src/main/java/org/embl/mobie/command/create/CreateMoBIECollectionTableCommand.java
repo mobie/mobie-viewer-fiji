@@ -28,6 +28,8 @@
  */
 package org.embl.mobie.command.create;
 
+import ij.IJ;
+import loci.common.DebugTools;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.open.OpenCollectionTableCommand;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
@@ -83,11 +85,14 @@ public class CreateMoBIECollectionTableCommand implements Command {
     @Override
     public void run()
     {
+        DebugTools.setRootLevel( "OFF" );
+
         CollectionTableCreator tableCreator =
                 new CollectionTableCreator( files, outputTableFile, viewLayout, regExp );
         Table table = tableCreator.createTable();
         outputTableFile.getParentFile().mkdirs();
         table.write().csv( outputTableFile );
+        IJ.open( outputTableFile.getAbsolutePath() );
 
         if ( openTableInMoBIE )
         {

@@ -39,7 +39,6 @@ import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.MoBIE;
-import org.embl.mobie.lib.bdv.ContrastComputer;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.opacity.MoBIEColorConverter;
 import org.embl.mobie.lib.image.Image;

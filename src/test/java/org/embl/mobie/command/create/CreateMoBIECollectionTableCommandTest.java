@@ -20,6 +20,7 @@ public class CreateMoBIECollectionTableCommandTest
         createCommand.files = new File[]{ imageFile0, imageFile1 };
         createCommand.outputTableFile = new File("src/test/resources/collections/mobie-collection.csv");
         createCommand.openTableInMoBIE = false;
+        createCommand.viewLayout = CreateMoBIECollectionTableCommand.GRID;
         createCommand.run();
 
         OpenCollectionTableCommand openCommand = new OpenCollectionTableCommand();
