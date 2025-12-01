@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SpimData version="0.2">
+  <BasePath type="relative">omero-mobie.xml</BasePath>
+  <SequenceDescription>
+    <ImageLoader format="spimreconstruction.openersimageloader">
+      <version>0.11.2</version>
+      <openers>[{"opt":"","unit":"MICROMETER","nReader":10,"defaultBlockSize":true,"blockSize":[512,512,1],"splitRGB":false,"to16bits":false,"autoPyramidize":false,"type":"OMERO","location":"https://omero-tim.gerbi-gmb.de/webclient/?show\u003dimage-90627","id":-1,"nChannels":3},{"opt":"","unit":"MICROMETER","nReader":10,"defaultBlockSize":true,"blockSize":[512,512,1],"splitRGB":false,"to16bits":false,"autoPyramidize":false,"type":"OMERO","location":"\nhttps://omero-tim.gerbi-gmb.de/webclient/?show\u003dimage-90631","id":-1,"nChannels":3},{"opt":"","unit":"MICROMETER","nReader":10,"defaultBlockSize":true,"blockSize":[512,512,1],"splitRGB":false,"to16bits":false,"autoPyramidize":false,"type":"OMERO","location":"\nhttps://omero-tim.gerbi-gmb.de/webclient/?show\u003dimage-90635","id":-1,"nChannels":3},{"opt":"","unit":"MICROMETER","nReader":10,"defaultBlockSize":true,"blockSize":[512,512,1],"splitRGB":false,"to16bits":false,"autoPyramidize":false,"type":"OMERO","location":"\nhttps://omero-tim.gerbi-gmb.de/webclient/?show\u003dimage-90639","id":-1,"nChannels":3}]</openers>
+    </ImageLoader>
+    <ViewSetups>
+      <ViewSetup>
+        <id>0</id>
+        <name>Slide_00.vsi [10x_01]-FL DAPI</name>
+        <size>7230 6151 1</size>
+        <voxelSize>
+          <unit>MICROMETER</unit>
+          <size>0.6443630681649263 0.6443529805331597 1.0</size>
+        </voxelSize>
+        <attributes>
+          <illumination>0</illumination>
+          <imagename>0</imagename>
+          <channel>0</channel>
+          <tile>0</tile>
+          <angle>0</angle>
+          <omerohost>90627</omerohost>
+          <displaysettings>0</displaysettings>
+        </attributes>
+      </ViewSetup>
+      <ViewSetup>
+        <id>1</id>
+        <name>Slide_00.vsi [10x_01]-FL FITC</name>
+        <size>7230 6151 1</size>
+        <voxelSize>
+          <unit>MICROMETER</unit>
+          <size>0.6443630681649263 0.6443529805331597 1.0</size>
+        </voxelSize>
+        <attributes>
+          <illumination>0</illumination>
+          <imagename>0</imagename>
+          <channel>1</channel>
+          <tile>0</tile>
+          <angle>0</angle>
+          <omerohost>90627</omerohost>
+          <displaysettings>1</displaysettings>
+        </attributes>
+      </ViewSetup>
+      <ViewSetup>
+        <id>2</id>
+        <name>Slide_00.vsi [10x_01]-FL CY3</name>
+        <size>7230 6151 1</size>
+        <voxelSize>
+          <unit>MICROMETER</unit>
+          <size>0.6443630681649263 0.6443529805331597 1.0</size>
+        </voxelSize>
+        <attributes>
+          <illumination>0</illumination>
+          <imagename>0</imagename>
+          <channel>2</channel>
+          <tile>0</tile>
+          <angle>0</angle>
+          <omerohost>90627</omerohost>
+          <displaysettings>2</displaysettings>
+        </attributes>
+      </ViewSetup>
+      <ViewSetup>
+        <id>3</id>
+        <name>Slide_00.vsi [10x_05]-FL DAPI</name>
+        <size>7500 6582 1</size>
+        <voxelSize>
+          <unit>MICROMETER</unit>
+          <size>0.6443438334464736 0.6444165272082496 1.0</size>
+        </voxelSize>
+        <attributes>
+          <illumination>0</illumination>
+          <imagename>1</imagename>
+          <channel>0</channel>
+          <tile>1</tile>
+          <angle>0</angle>
+          <omerohost>90631</omerohost>
+          <displaysettings>3</displaysettings>
+        </attributes>
+      </ViewSetup>
+      <ViewSetup>
+        <id>4</id>
+        <name>Slide_00.vsi [10x_05]-FL FITC</name>
+        <size>7500 6582 1</size>
+        <voxelSize>
+          <unit>MICROMETER</unit>
+          <size>0.6443438334464736 0.6444165272082496 1.0</size>
+        </voxelSize>
+        <attributes>
+          <illumination>0</illumination>
+          <imagename>1</imagename>
+          <channel>1</channel>
+          <tile>1</tile>
+          <angle>0</angle>
+          <omerohost>90631</omerohost>
+          <displaysettings>4</displaysettings>
+        </attributes>
+      </ViewSetup>
+      <ViewSetup>
+        <id>5</id>
+        <name>Slide_00.vsi [10x_05]-FL CY3</name>
+        <size>7500 6582 1</size>
+        <voxelSize>
+          <unit>MICROMETER</unit>
+          <size>0.6443438334464736 0.6444165272082496 1.0</size>
+        </voxelSize>
+        <attributes>
+          <illumination>0</illumination>
+          <imagename>1</imagename>
+          <channel>2</channel>
+          <tile>1</tile>
+          <angle>0</angle>
+          <omerohost>90631</omerohost>
+          <displaysettings>5</displaysettings>
+        </attributes>
+      </ViewSetup>
+      <ViewSetup>
+        <id>6</id>
+        <name>Slide_00.vsi [10x_09]-FL DAPI</name>
+        <size>9658 6912 1</size>
+        <voxelSize>
+          <unit>MICROMETER</unit>
+          <size>0.6443620723729183 0.6443326188062694 1.0</size>
+        </voxelSize>
+        <attributes>
+          <illumination>0</illumination>
+          <imagename>2</imagename>
+          <channel>0</channel>
+          <tile>2</tile>
+          <angle>0</angle>
+          <omerohost>90635</omerohost>
+          <displaysettings>6</displaysettings>
+        </attributes>
+      </ViewSetup>
+      <ViewSetup>
+        <id>7</id>
+        <name>Slide_00.vsi [10x_09]-FL FITC</name>
+        <size>9658 6912 1</size>
+        <voxelSize>
+          <unit>MICROMETER</unit>
+          <size>0.6443620723729183 0.6443326188062694 1.0</size>
+        </voxelSize>
+        <attributes>
+          <illumination>0</illumination>
+          <imagename>2</imagename>
+          <channel>1</channel>
+          <tile>2</tile>
+          <angle>0</angle>
+          <omerohost>90635</omerohost>
+          <displaysettings>7</displaysettings>
+        </attributes>
+      </ViewSetup>
+      <ViewSetup>
+        <id>8</id>
+        <name>Slide_00.vsi [10x_09]-FL CY3</name>
+        <size>9658 6912 1</size>
+        <voxelSize>
+          <unit>MICROMETER</unit>
+          <size>0.6443620723729183 0.6443326188062694 1.0</size>
+        </voxelSize>
+        <attributes>
+          <illumination>0</illumination>
+          <imagename>2</imagename>
+          <channel>2</channel>
+          <tile>2</tile>
+          <angle>0</angle>
+          <omerohost>90635</omerohost>
+          <displaysettings>8</displaysettings>
+        </attributes>
+      </ViewSetup>
+      <ViewSetup>
+        <id>9</id>
+        <name>Slide_00.vsi [10x_13]-FL DAPI</name>
+        <size>10149 7181 1</size>
+        <voxelSize>
+          <unit>MICROMETER</unit>
+          <size>0.6443616467402694 0.6444034341254269 1.0</size>
+        </voxelSize>
+        <attributes>
+          <illumination>0</illumination>
+          <imagename>3</imagename>
+          <channel>0</channel>
+          <tile>3</tile>
+          <angle>0</angle>
+          <omerohost>90639</omerohost>
+          <displaysettings>9</displaysettings>
+        </attributes>
+      </ViewSetup>
+      <ViewSetup>
+        <id>10</id>
+        <name>Slide_00.vsi [10x_13]-FL FITC</name>
+        <size>10149 7181 1</size>
+        <voxelSize>
+          <unit>MICROMETER</unit>
+          <size>0.6443616467402694 0.6444034341254269 1.0</size>
+        </voxelSize>
+        <attributes>
+          <illumination>0</illumination>
+          <imagename>3</imagename>
+          <channel>1</channel>
+          <tile>3</tile>
+          <angle>0</angle>
+          <omerohost>90639</omerohost>
+          <displaysettings>10</displaysettings>
+        </attributes>
+      </ViewSetup>
+      <ViewSetup>
+        <id>11</id>
+        <name>Slide_00.vsi [10x_13]-FL CY3</name>
+        <size>10149 7181 1</size>
+        <voxelSize>
+          <unit>MICROMETER</unit>
+          <size>0.6443616467402694 0.6444034341254269 1.0</size>
+        </voxelSize>
+        <attributes>
+          <illumination>0</illumination>
+          <imagename>3</imagename>
+          <channel>2</channel>
+          <tile>3</tile>
+          <angle>0</angle>
+          <omerohost>90639</omerohost>
+          <displaysettings>11</displaysettings>
+        </attributes>
+      </ViewSetup>
+      <Attributes name="illumination">
+        <Illumination>
+          <id>0</id>
+          <name>0</name>
+        </Illumination>
+      </Attributes>
+      <Attributes name="imagename">
+        <imagename>
+          <id>0</id>
+          <name>Slide_00.vsi [10x_01]</name>
+        </imagename>
+        <imagename>
+          <id>1</id>
+          <name>Slide_00.vsi [10x_05]</name>
+        </imagename>
+        <imagename>
+          <id>2</id>
+          <name>Slide_00.vsi [10x_09]</name>
+        </imagename>
+        <imagename>
+          <id>3</id>
+          <name>Slide_00.vsi [10x_13]</name>
+        </imagename>
+      </Attributes>
+      <Attributes name="channel">
+        <Channel>
+          <id>0</id>
+          <name>FL DAPI</name>
+        </Channel>
+        <Channel>
+          <id>1</id>
+          <name>FL FITC</name>
+        </Channel>
+        <Channel>
+          <id>2</id>
+          <name>FL CY3</name>
+        </Channel>
+      </Attributes>
+      <Attributes name="tile">
+        <Tile>
+          <id>0</id>
+          <name>0</name>
+        </Tile>
+        <Tile>
+          <id>1</id>
+          <name>1</name>
+        </Tile>
+        <Tile>
+          <id>2</id>
+          <name>2</name>
+        </Tile>
+        <Tile>
+          <id>3</id>
+          <name>3</name>
+        </Tile>
+      </Attributes>
+      <Attributes name="angle">
+        <Angle>
+          <id>0</id>
+          <name>0</name>
+        </Angle>
+      </Attributes>
+      <Attributes name="omerohost">
+        <omerohost>
+          <id>90627</id>
+          <name>omero-tim.gerbi-gmb.de/90627</name>
+        </omerohost>
+        <omerohost>
+          <id>90631</id>
+          <name>omero-tim.gerbi-gmb.de/90631</name>
+        </omerohost>
+        <omerohost>
+          <id>90635</id>
+          <name>omero-tim.gerbi-gmb.de/90635</name>
+        </omerohost>
+        <omerohost>
+          <id>90639</id>
+          <name>omero-tim.gerbi-gmb.de/90639</name>
+        </omerohost>
+      </Attributes>
+      <Attributes name="displaysettings">
+        <Displaysettings>
+          <id>0</id>
+          <isset>true</isset>
+          <color>0 0 255 255</color>
+          <min>0.0</min>
+          <max>1000.0</max>
+          <Projection_Mode>Sum</Projection_Mode>
+        </Displaysettings>
+        <Displaysettings>
+          <id>1</id>
+          <isset>true</isset>
+          <color>0 255 0 255</color>
+          <min>0.0</min>
+          <max>1000.0</max>
+          <Projection_Mode>Sum</Projection_Mode>
+        </Displaysettings>
+        <Displaysettings>
+          <id>2</id>
+          <isset>true</isset>
+          <color>255 0 0 255</color>
+          <min>0.0</min>
+          <max>1000.0</max>
+          <Projection_Mode>Sum</Projection_Mode>
+        </Displaysettings>
+        <Displaysettings>
+          <id>3</id>
+          <isset>true</isset>
+          <color>0 0 255 255</color>
+          <min>0.0</min>
+          <max>1000.0</max>
+          <Projection_Mode>Sum</Projection_Mode>
+        </Displaysettings>
+        <Displaysettings>
+          <id>4</id>
+          <isset>true</isset>
+          <color>0 255 0 255</color>
+          <min>0.0</min>
+          <max>1000.0</max>
+          <Projection_Mode>Sum</Projection_Mode>
+        </Displaysettings>
+        <Displaysettings>
+          <id>5</id>
+          <isset>true</isset>
+          <color>255 0 0 255</color>
+          <min>0.0</min>
+          <max>1000.0</max>
+          <Projection_Mode>Sum</Projection_Mode>
+        </Displaysettings>
+        <Displaysettings>
+          <id>6</id>
+          <isset>true</isset>
+          <color>0 0 255 255</color>
+          <min>0.0</min>
+          <max>1000.0</max>
+          <Projection_Mode>Sum</Projection_Mode>
+        </Displaysettings>
+        <Displaysettings>
+          <id>7</id>
+          <isset>true</isset>
+          <color>0 255 0 255</color>
+          <min>0.0</min>
+          <max>1000.0</max>
+          <Projection_Mode>Sum</Projection_Mode>
+        </Displaysettings>
+        <Displaysettings>
+          <id>8</id>
+          <isset>true</isset>
+          <color>255 0 0 255</color>
+          <min>0.0</min>
+          <max>1000.0</max>
+          <Projection_Mode>Sum</Projection_Mode>
+        </Displaysettings>
+        <Displaysettings>
+          <id>9</id>
+          <isset>true</isset>
+          <color>0 0 255 255</color>
+          <min>0.0</min>
+          <max>1000.0</max>
+          <Projection_Mode>Sum</Projection_Mode>
+        </Displaysettings>
+        <Displaysettings>
+          <id>10</id>
+          <isset>true</isset>
+          <color>0 255 0 255</color>
+          <min>0.0</min>
+          <max>1000.0</max>
+          <Projection_Mode>Sum</Projection_Mode>
+        </Displaysettings>
+        <Displaysettings>
+          <id>11</id>
+          <isset>true</isset>
+          <color>255 0 0 255</color>
+          <min>0.0</min>
+          <max>1000.0</max>
+          <Projection_Mode>Sum</Projection_Mode>
+        </Displaysettings>
+      </Attributes>
+    </ViewSetups>
+    <Timepoints type="range">
+      <first>0</first>
+      <last>0</last>
+    </Timepoints>
+    <MissingViews />
+  </SequenceDescription>
+  <ViewRegistrations>
+    <ViewRegistration timepoint="0" setup="0">
+      <ViewTransform type="affine">
+        <affine>0.6443630681649263 0.0 0.0 -103327.52071186149 0.0 0.6443529805331597 0.0 -68188.1343852027 0.0 0.0 1.0 0.0</affine>
+      </ViewTransform>
+    </ViewRegistration>
+    <ViewRegistration timepoint="0" setup="1">
+      <ViewTransform type="affine">
+        <affine>0.6443630681649263 0.0 0.0 -103327.52071186149 0.0 0.6443529805331597 0.0 -68188.1343852027 0.0 0.0 1.0 0.0</affine>
+      </ViewTransform>
+    </ViewRegistration>
+    <ViewRegistration timepoint="0" setup="2">
+      <ViewTransform type="affine">
+        <affine>0.6443630681649263 0.0 0.0 -103327.52071186149 0.0 0.6443529805331597 0.0 -68188.1343852027 0.0 0.0 1.0 0.0</affine>
+      </ViewTransform>
+    </ViewRegistration>
+    <ViewRegistration timepoint="0" setup="3">
+      <ViewTransform type="affine">
+        <affine>0.6443438334464736 0.0 0.0 -82192.81119645978 0.0 0.6444165272082496 0.0 -68813.93678255947 0.0 0.0 1.0 0.0</affine>
+      </ViewTransform>
+    </ViewRegistration>
+    <ViewRegistration timepoint="0" setup="4">
+      <ViewTransform type="affine">
+        <affine>0.6443438334464736 0.0 0.0 -82192.81119645978 0.0 0.6444165272082496 0.0 -68813.93678255947 0.0 0.0 1.0 0.0</affine>
+      </ViewTransform>
+    </ViewRegistration>
+    <ViewRegistration timepoint="0" setup="5">
+      <ViewTransform type="affine">
+        <affine>0.6443438334464736 0.0 0.0 -82192.81119645978 0.0 0.6444165272082496 0.0 -68813.93678255947 0.0 0.0 1.0 0.0</affine>
+      </ViewTransform>
+    </ViewRegistration>
+    <ViewRegistration timepoint="0" setup="6">
+      <ViewTransform type="affine">
+        <affine>0.6443620723729183 0.0 0.0 -108403.46673793264 0.0 0.6443326188062694 0.0 -63877.05120341171 0.0 0.0 1.0 0.0</affine>
+      </ViewTransform>
+    </ViewRegistration>
+    <ViewRegistration timepoint="0" setup="7">
+      <ViewTransform type="affine">
+        <affine>0.6443620723729183 0.0 0.0 -108403.46673793264 0.0 0.6443326188062694 0.0 -63877.05120341171 0.0 0.0 1.0 0.0</affine>
+      </ViewTransform>
+    </ViewRegistration>
+    <ViewRegistration timepoint="0" setup="8">
+      <ViewTransform type="affine">
+        <affine>0.6443620723729183 0.0 0.0 -108403.46673793264 0.0 0.6443326188062694 0.0 -63877.05120341171 0.0 0.0 1.0 0.0</affine>
+      </ViewTransform>
+    </ViewRegistration>
+    <ViewRegistration timepoint="0" setup="9">
+      <ViewTransform type="affine">
+        <affine>0.6443616467402694 0.0 0.0 -83969.39230558468 0.0 0.6444034341254269 0.0 -63480.70968508576 0.0 0.0 1.0 0.0</affine>
+      </ViewTransform>
+    </ViewRegistration>
+    <ViewRegistration timepoint="0" setup="10">
+      <ViewTransform type="affine">
+        <affine>0.6443616467402694 0.0 0.0 -83969.39230558468 0.0 0.6444034341254269 0.0 -63480.70968508576 0.0 0.0 1.0 0.0</affine>
+      </ViewTransform>
+    </ViewRegistration>
+    <ViewRegistration timepoint="0" setup="11">
+      <ViewTransform type="affine">
+        <affine>0.6443616467402694 0.0 0.0 -83969.39230558468 0.0 0.6444034341254269 0.0 -63480.70968508576 0.0 0.0 1.0 0.0</affine>
+      </ViewTransform>
+    </ViewRegistration>
+  </ViewRegistrations>
+</SpimData>

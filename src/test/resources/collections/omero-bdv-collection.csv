@@ -1,0 +1,3 @@
+uri,channel,color,view,contrast_limits
+omero-bdv.xml,0,green,all,"(0,2708)"
+omero-bdv.xml,1,magenta,all,"(29,530)"

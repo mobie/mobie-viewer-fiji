@@ -1,28 +1,34 @@
 package org.embl.mobie.lib.create;
 
+import bdv.cache.SharedQueue;
+import bdv.viewer.Source;
 import ij.IJ;
-import loci.common.services.ServiceFactory;
 import loci.formats.FormatTools;
 import loci.formats.IFormatReader;
-import loci.formats.ImageReader;
-import loci.formats.meta.IMetadata;
-import loci.formats.services.OMEXMLService;
-import ome.units.quantity.Length;
-import ome.units.unit.Unit;
-import ome.xml.model.primitives.Color;
+import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imglib2.Cursor;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.Volatile;
+import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.util.Cast;
+import net.imglib2.util.Intervals;
+import net.imglib2.util.ValuePair;
+import net.imglib2.view.Views;
 import org.apache.commons.io.FilenameUtils;
-import org.ejml.equation.IntegerSequence;
+import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.ImageDataOpener;
+import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.lib.util.MoBIEHelper;
+import org.embl.mobie.lib.util.ThreadHelper;
 import org.jetbrains.annotations.NotNull;
-import tech.tablesaw.api.FloatColumn;
-import tech.tablesaw.api.IntColumn;
-import tech.tablesaw.api.StringColumn;
-import tech.tablesaw.api.Table;
+import tech.tablesaw.api.*;
 
 import java.io.File;
 import java.nio.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,6 +51,7 @@ public class CollectionTableCreator
         this.regExp = regExp;
     }
 
+    // TODO: add count of highest pixel value (saturation)
     public Table createTable()
     {
         boolean doGrid = viewLayout.equals( "Grid" );
@@ -59,19 +66,20 @@ public class CollectionTableCreator
         IntColumn channelCol = IntColumn.create( "channel" );
         StringColumn viewCol = StringColumn.create( "view" );
         StringColumn displayCol = StringColumn.create( "display" );
+        StringColumn nameCol = StringColumn.create( "channel_name" );
         StringColumn colorCol = StringColumn.create( "color" );
         StringColumn gridCol = StringColumn.create( "grid" );
         StringColumn gridPos = StringColumn.create( "grid_position" );
         FloatColumn pixelSizeXCol = FloatColumn.create( "pixel_size_x" );
         FloatColumn pixelSizeYCol = FloatColumn.create( "pixel_size_y" );
         FloatColumn pixelSizeZCol = FloatColumn.create( "pixel_size_z" );
-        FloatColumn imageSizeXCol = FloatColumn.create( "image_size_x" );
-        FloatColumn imageSizeYCol = FloatColumn.create( "image_size_y" );
-        FloatColumn imageSizeZCol = FloatColumn.create( "image_size_z" );
+        LongColumn imageSizeXCol = LongColumn.create( "num_pixels_x" );
+        LongColumn imageSizeYCol = LongColumn.create( "num_pixels_y" );
+        LongColumn imageSizeZCol = LongColumn.create( "num_pixels_z" );
         StringColumn pixelUnitCol = StringColumn.create( "pixel_unit" );
         StringColumn contrastCol = StringColumn.create( "contrast_limits" );
 
-        table.addColumns( uriCol, pixelUnitCol, imageSizeXCol, imageSizeYCol, imageSizeZCol, pixelSizeXCol, pixelSizeYCol, pixelSizeZCol,  channelCol, viewCol, displayCol, colorCol, contrastCol );
+        table.addColumns( uriCol, nameCol, pixelUnitCol, pixelSizeXCol, pixelSizeYCol, pixelSizeZCol, imageSizeXCol, imageSizeYCol, imageSizeZCol, channelCol, viewCol, displayCol, colorCol, contrastCol );
 
         if ( doGrid )
         {
@@ -89,132 +97,95 @@ public class CollectionTableCreator
             File imageFile = imageFiles[ fileIndex ];
             IJ.log("\nAnalysing " + imageFile );
 
-            try
+            ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( imageFile.getAbsolutePath() );
+            IJ.log( "Image format: " + imageDataFormat );
+            ImageData< ? > imageData = ImageDataOpener.open( imageFile.getAbsolutePath(), imageDataFormat, new SharedQueue( ThreadHelper.getNumThreads() ) );
+            int numDatasets = imageData.getNumDatasets();
+            IJ.log( "Number of datasets: " + numDatasets );
+
+            // Grid
+            //
+            if ( doGrid )
             {
-//                ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( imageFile.getAbsolutePath() );
-//                IJ.log( "Image format: " + imageDataFormat );
-//                ImageData< ? > imageData = ImageDataOpener.open( imageFile.getAbsolutePath(), imageDataFormat, new SharedQueue( 1 ) );
-//                int numDatasets = imageData.getNumDatasets();
-//                IJ.log( "numDatasets: " + numDatasets );
-
-                // Create reader with metadata support
-                ServiceFactory factory = new ServiceFactory();
-                OMEXMLService service = factory.getInstance( OMEXMLService.class );
-                IMetadata metadata = service.createOMEXMLMetadata();
-
-                IFormatReader reader = new ImageReader();
-                reader.setMetadataStore( metadata );
-                reader.setId( imageFile.getAbsolutePath() );
-                if( reader.getSeriesCount() > 1 )
-                    IJ.log( "WARNING: contains " + reader.getSeriesCount() + " datasets; only the first one will be considered!" );
-
-                // Analyse image dimensions
-                int numChannels = reader.getSizeC();
-                IJ.log( "numChannels: " + numChannels );
-                Unit< Length > pixelUnit = metadata.getPixelsPhysicalSizeX( 0 ).unit();
-                Number pixelSizeX = metadata.getPixelsPhysicalSizeX( 0 ).value();
-                Number pixelSizeY = metadata.getPixelsPhysicalSizeY( 0 ).value();
-                Number pixelSizeZ = metadata.getPixelsPhysicalSizeZ( 0 ).value();
-                float imageSizeX = metadata.getPixelsSizeX( 0 ).getNumberValue().intValue() * pixelSizeX.floatValue();
-                float imageSizeY = metadata.getPixelsSizeY( 0 ).getNumberValue().intValue() * pixelSizeX.floatValue();
-                float imageSizeZ = metadata.getPixelsSizeZ( 0 ).getNumberValue().intValue() * pixelSizeX.floatValue();
-                FormatTools.getBytesPerPixel( reader.getPixelType() ); // FIXME
-                String pixelUnitSymbol = pixelUnit.getSymbol();
-                IJ.log( "Pixel unit: " + pixelUnitSymbol );
-                IJ.log( "Pixel size (x, y, z, unit): " + pixelSizeX + ", " + pixelSizeY + ", " + pixelSizeZ + ", " + pixelUnit );
-
-                // Append image dimensions to table
-                for ( int c = 0; c < numChannels; c++ )
+                for ( int datasetIndex = 0; datasetIndex < numDatasets; datasetIndex++ )
                 {
-                    // Same for all channels
-                    uriCol.append( imageFile.getAbsolutePath() );
-                    channelCol.append( c );
-                    pixelSizeXCol.append( pixelSizeX.floatValue() );
-                    pixelSizeYCol.append( pixelSizeY.floatValue() );
-                    pixelSizeZCol.append( pixelSizeZ.floatValue() );
-                    pixelUnitCol.append( pixelUnitSymbol );
-                    imageSizeXCol.append( imageSizeX );
-                    imageSizeYCol.append( imageSizeY );
-                    imageSizeZCol.append( imageSizeZ );
+                    gridCol.append( "grid" );
+                    int x = ( int ) ( fileIndex % gridSize );
+                    int y = ( int ) ( fileIndex / gridSize );
+                    gridPos.append( "(" + x + "," + y + ")" );
                 }
+            }
 
-                // Analyse image contrast
-                // Load central z-slice pixels for each channel
-                int sizeZ = reader.getSizeZ();
-                int centralZ = Math.max( 0, sizeZ / 2 );
-                //IJ.log( "Central z-slice index: " + centralZ + " (sizeZ=" + sizeZ + ")" );
-                for ( int c = 0; c < numChannels; c++ )
-                {
-                    int planeIndex = reader.getIndex( centralZ, c, 0 ); // z, c, t
-                    byte[] sliceBytes = reader.openBytes( planeIndex );
-                    float[] floats = bytesToFloatArray(reader, sliceBytes);
-                    float[] quantiles = calculateQuantiles(floats, 0.05, 0.95);
-                    contrastCol.append( "(" + quantiles[0] + "," + quantiles[1] + ")" );
-                }
+            // Image dimensions
+            //
+            for ( int datasetIndex = 0; datasetIndex < numDatasets; datasetIndex++ )
+            {
+                Source< ? extends Volatile< ? > > source = imageData.getSourcePair( 0 ).getB();
+                VoxelDimensions voxelDimensions = source.getVoxelDimensions();
 
-                // Extract metadata from file names
-                if ( MoBIEHelper.notNullOrEmpty( regExp ) )
+                uriCol.append( imageFile.getAbsolutePath() );
+                channelCol.append( datasetIndex );
+                pixelSizeXCol.append( (float) voxelDimensions.dimension( 0 ) );
+                pixelSizeYCol.append( (float) voxelDimensions.dimension( 1 ) );
+                pixelSizeZCol.append( (float) voxelDimensions.dimension( 2 ) );
+                pixelUnitCol.append( voxelDimensions.unit() );
+                imageSizeXCol.append( source.getSource( 0, 0 ).dimension( 0 ) );
+                imageSizeYCol.append( source.getSource( 0, 0 ).dimension( 1 ) );
+                imageSizeZCol.append( source.getSource( 0, 0 ).dimension( 2 ) );
+
+                if ( viewLayout.equals( TOGETHER ) || viewLayout.equals( GRID )  )
+                    viewCol.append( "all data" );
+                else if ( viewLayout.equals( INDIVIDUAL ) )
+                    viewCol.append( FilenameUtils.removeExtension( imageFile.getName() ) );
+            }
+
+            // Extract metadata from file names
+            //
+            if ( MoBIEHelper.notNullOrEmpty( regExp ) )
+            {
+                final Matcher matcher = pattern.matcher( imageFile.getName() );
+                if ( ! matcher.matches() )
                 {
-                    final Matcher matcher = pattern.matcher( imageFile.getName() );
-                    if ( ! matcher.matches() )
+                    for ( int groupIndex = 0; groupIndex < groupCount; groupIndex++ )
                     {
-                        for ( int groupIndex = 0; groupIndex < groupCount; groupIndex++ )
+                        IJ.log( regExpGroups.get( groupIndex ) + ": ??? (could not match regular expression)");
+                        for ( int datasetIndex = 0; datasetIndex < numDatasets; datasetIndex++ )
                         {
-                            IJ.log( regExpGroups.get( groupIndex ) + ": ??? (could not match regular expression)");
-                            for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
-                            {
-                                regExpValuesList.get( groupIndex ).add( "???" );
-                            }
-                        }
-                    }
-                    else
-                    {
-                        for ( int groupIndex = 0; groupIndex < groupCount; groupIndex++ )
-                        {
-                            IJ.log( regExpGroups.get( groupIndex ) + ": " + matcher.group( groupIndex + 1 ) );
-                            for ( int channelIndex = 0; channelIndex < numChannels; channelIndex++ )
-                            {
-                                regExpValuesList.get( groupIndex ).add( matcher.group( groupIndex + 1 ) );
-                            }
+                            regExpValuesList.get( groupIndex ).add( "???" );
                         }
                     }
                 }
-
-                // Channels
-                for ( int c = 0; c < numChannels; c++ )
+                else
                 {
-                    String channelName = getChannelName( metadata, c );
-                    String colorString = getColorString( metadata, c, numChannels );
-
-                    // Add to table lists
-                    if ( viewLayout.equals( TOGETHER ) || viewLayout.equals( GRID )  )
-                        viewCol.append( "all data" );
-                    else if ( viewLayout.equals( INDIVIDUAL ) )
-                        viewCol.append( FilenameUtils.removeExtension( imageFile.getName() ) );
-
-                    displayCol.append( channelName );
-                    colorCol.append( colorString );
-
-                    if ( doGrid )
+                    for ( int groupIndex = 0; groupIndex < groupCount; groupIndex++ )
                     {
-                        gridCol.append( "grid" );
-                        int x = ( int ) (fileIndex % gridSize);
-                        int y = ( int ) (fileIndex / gridSize);
-                        gridPos.append( "("+x+","+y+")");
+                        IJ.log( regExpGroups.get( groupIndex ) + ": " + matcher.group( groupIndex + 1 ) );
+                        for ( int datasetIndex = 0; datasetIndex < numDatasets; datasetIndex++ )
+                        {
+                            regExpValuesList.get( groupIndex ).add( matcher.group( groupIndex + 1 ) );
+                        }
                     }
-
-                    IJ.log( "Channel " + c + "; name: " + channelName + "; color: " + colorString  );
                 }
+            }
 
-                reader.close();
-            }
-            catch ( Exception e )
+            // Channel metadata
+            //
+            for ( int datasetIndex = 0; datasetIndex < numDatasets; datasetIndex++ )
             {
-                e.printStackTrace();
+                String datasetName = getDatasetName( imageData, datasetIndex );
+                String colorString = getColorString( imageData, datasetIndex );
+                ValuePair< Double, Double > contrastLimits = getContrastLimits( imageData, datasetIndex );
+
+                nameCol.append( datasetName );
+                displayCol.append( "Channel_" + datasetIndex );
+                colorCol.append( colorString );
+                contrastCol.append( "(" + contrastLimits.getA() + "," + contrastLimits.getB() + ")" );
             }
+
         } // file loop
 
 
+        // Add regexp columns to table
         if ( MoBIEHelper.notNullOrEmpty( regExp ) )
         {
             for ( int groupIndex = 0; groupIndex < groupCount; groupIndex++ )
@@ -229,6 +200,23 @@ public class CollectionTableCreator
 
         IJ.log( "\nCollection table creation: Done!" );
         return table;
+    }
+
+    private static ValuePair< Double, Double > getContrastLimits( ImageData< ? > imageData, int datasetIndex )
+    {
+        try
+        {
+            ValuePair< Double, Double > valuePair = new ValuePair<>( imageData.getMetadata( datasetIndex ).minIntensity(),
+                    imageData.getMetadata( datasetIndex ).maxIntensity() );
+            IJ.log("Fetched contrast limits from metadata.");
+            return valuePair;
+        }
+        catch ( Exception e )
+        {
+            ValuePair< Double, Double > minMax = getMinMax( imageData.getSourcePair( 0 ).getA() );
+            IJ.log("Fetched contrast limits from data.");
+            return minMax;
+        }
     }
 
     /**
@@ -327,37 +315,56 @@ public class CollectionTableCreator
         }
     }
 
-    private static @NotNull String getChannelName( IMetadata metadata, int c )
+    private static @NotNull String getDatasetName( ImageData imageData, int datasetIndex )
     {
-        // Get channel name
-        String channelName = metadata.getChannelName( 0, c );
-        if ( channelName == null || channelName.isEmpty() )
-        {
-            channelName = "Channel_" + c;
-        }
-        return channelName;
+        return imageData.getName( datasetIndex );
     }
 
-    private static @NotNull String getColorString( IMetadata metadata, int c, int sizeC )
+    private static @NotNull String getColorString( ImageData imageData, int datasetIndex )
     {
-        // Get channel color
-        Color channelColor = metadata.getChannelColor( 0, c );
-        String colorString = "White"; // default
-        if ( sizeC > 1 )
+        try
         {
-            if ( channelColor != null )
-            {
-                colorString = String.format( "a%d-r%d-g%d-b%d",
-                        channelColor.getAlpha(),
-                        channelColor.getRed(),
-                        channelColor.getGreen(),
-                        channelColor.getBlue()
-                );
-            } else
-            {
-                colorString = COLOR_STRINGS[ c ];
-            }
+            ARGBType argbType = imageData.getMetadata( datasetIndex ).getColor();
+            return String.format( "a%d-r%d-g%d-b%d",
+                    ARGBType.alpha( argbType.get() ),
+                    ARGBType.red( argbType.get() ),
+                    ARGBType.green( argbType.get() ),
+                    ARGBType.blue( argbType.get() )
+            );
         }
-        return colorString;
+        catch ( Exception e )
+        {
+            return "White";
+        }
+    }
+
+    //taken from LabKit
+    //https://github.com/juglab/labkit-ui/blob/01a5c8058459a0d1a2eedc10f7212f64e021f893/src/main/java/sc/fiji/labkit/ui/bdv/BdvAutoContrast.java#L51
+    private static ValuePair<Double, Double> getMinMax(final Source<?> src)
+    {
+        int level = src.getNumMipmapLevels() - 1;
+        RandomAccessibleInterval<?> source = src.getSource(0, level);
+        if ( source.getType() instanceof RealType )
+            return getMinMaxForRealType( Cast.unchecked(source));
+        return new ValuePair<>(0.0, 255.0);
+    }
+
+    private static ValuePair<Double, Double> getMinMaxForRealType(
+            RandomAccessibleInterval<? extends RealType<?>> source)
+    {
+        Cursor<? extends RealType<?>> cursor = Views.iterable(source).cursor();
+        if (!cursor.hasNext()) return new ValuePair<>(0.0, 255.0);
+        long stepSize = Intervals.numElements(source) / 10000 + 1;
+        int randomLimit = (int) Math.min(Integer.MAX_VALUE, stepSize);
+        Random random = new Random(42);
+        double min = cursor.next().getRealDouble();
+        double max = min;
+        while (cursor.hasNext()) {
+            double value = cursor.get().getRealDouble();
+            cursor.jumpFwd(stepSize + random.nextInt(randomLimit));
+            min = Math.min(min, value);
+            max = Math.max(max, value);
+        }
+        return new ValuePair<>(min, max);
     }
 }

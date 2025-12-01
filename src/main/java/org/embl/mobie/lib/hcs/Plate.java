@@ -201,7 +201,7 @@ public class Plate
 
 						// TODO: There does not always seem to be enough metadata for the
 						//   contrast limits, thus opening one image may be worth it
-						//   then convert to imagePlus and run once auto contrast on it
+						//   then convert to imagePlus and run once ntrast on it
 						final double[] contrastLimits = operettaMetadata.getContrastLimits( imagePath );
 						channel.setContrastLimits( contrastLimits );
 					}

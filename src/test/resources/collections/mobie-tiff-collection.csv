@@ -1,0 +1,5 @@
+uri,pixel_unit,num_pixels_x,num_pixels_y,num_pixels_z,pixel_size_x,pixel_size_y,pixel_size_z,channel,view,display,color,contrast_limits,grid,grid_position,condition,replicate
+/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/control--000.tif,µm,80,80,25,0.27227503,0.27227503,0.054455,0,all data,Channel_0,a255-r0-g255-b0,"(0.0,230.0)",grid,"(0,0)",control,000
+/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/control--000.tif,µm,80,80,25,0.27227503,0.27227503,0.054455,1,all data,Channel_1,a255-r0-g0-b255,"(0.0,208.0)",grid,"(0,0)",control,000
+/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/treated--000.tif,µm,80,80,25,0.27227503,0.27227503,0.054455,0,all data,Channel_0,a255-r0-g255-b0,"(0.0,230.0)",grid,"(1,0)",treated,000
+/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/treated--000.tif,µm,80,80,25,0.27227503,0.27227503,0.054455,1,all data,Channel_1,a255-r0-g0-b255,"(0.0,208.0)",grid,"(1,0)",treated,000

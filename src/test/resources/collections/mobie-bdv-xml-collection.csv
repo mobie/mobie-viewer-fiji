@@ -1,0 +1,4 @@
+uri,pixel_unit,num_pixels_x,num_pixels_y,num_pixels_z,pixel_size_x,pixel_size_y,pixel_size_z,channel,view,display,color,contrast_limits,condition,replicate
+/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/xyc-fluo-cells-bdv-hdf5.xml,pixel,512,512,1,1.0,1.0,1.0,0,all data,Channel_0,White,"(0.0,255.0)",???,???
+/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/xyc-fluo-cells-bdv-hdf5.xml,pixel,512,512,1,1.0,1.0,1.0,1,all data,Channel_1,White,"(0.0,255.0)",???,???
+/Users/tischer/Documents/mobie-viewer-fiji/src/test/resources/collections/xyc-fluo-cells-bdv-hdf5.xml,pixel,512,512,1,1.0,1.0,1.0,2,all data,Channel_2,White,"(0.0,255.0)",???,???

@@ -74,8 +74,8 @@ public class CreateMoBIECollectionTableCommand implements Command {
 //                    "\ny=condition" )
 //    public String gridAxes = "x=replicate,y=condition";
 
-    @Parameter( label = "Output table",
-                description = "The collection table file.")
+    @Parameter( label = "Output table (CSV)",
+                description = "The output collection table CSV file that will be created.")
     public File outputTableFile;
 
     @Parameter( label = "Open table in MoBIE",
