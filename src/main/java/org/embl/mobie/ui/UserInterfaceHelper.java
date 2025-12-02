@@ -360,7 +360,7 @@ public class UserInterfaceHelper
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() );
-		panel.add( createBVVVisibilityCheckbox( display, sourceAndConverters ) );
+		panel.add( createBVBVolumeVisibilityCheckbox( display, sourceAndConverters ) );
 		panel.add( createTableVisibilityCheckbox( display.tableView, display.showTable() ) );
 		panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotView, display.showScatterPlot() ) );
 		return panel;
@@ -453,7 +453,7 @@ public class UserInterfaceHelper
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createImageVolumeViewerVisibilityCheckbox( display ) );
-		panel.add( createBVVVisibilityCheckbox( display, sourceAndConverters ) );
+		panel.add( createBVBVolumeVisibilityCheckbox( display, sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() ); // Table
 		panel.add( createCheckboxPlaceholder() ); // Scatter plot
 
@@ -503,7 +503,7 @@ public class UserInterfaceHelper
 			// segments 3D view
 			panel.add( createSegmentsVolumeViewerVisibilityCheckbox( display ) );
 			// BVV view
-			panel.add( createBVVVisibilityCheckbox( display, sourceAndConverters ) );
+			panel.add( createBVBVolumeVisibilityCheckbox( display, sourceAndConverters ) );
 			// table view
 			panel.add( createTableVisibilityCheckbox( display.tableView, display.showTable() ) );
 			// scatter plot view
@@ -1144,7 +1144,7 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JCheckBox createBVVVisibilityCheckbox(
+	public static JCheckBox createBVBVolumeVisibilityCheckbox(
 			AbstractDisplay< ? > display,
 			final List< ? extends SourceAndConverter< ? > > sourceAndConverters  )
 	{
@@ -1161,13 +1161,13 @@ public class UserInterfaceHelper
 				new Thread( () -> {
 					for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 					{
-						display.bigVolumeViewer.showSource( sourceAndConverter, checkBox.isSelected() );
+						display.bigVolumeBrowser.showSource( sourceAndConverter, checkBox.isSelected() );
 					}
 				}).start();
 			}
 		} );
 
-		display.bigVolumeViewer.getListeners().add( new VisibilityListener()
+		display.bigVolumeBrowser.getListeners().add( new VisibilityListener()
 		{
 			@Override
 			public void visibility( boolean isVisible )
