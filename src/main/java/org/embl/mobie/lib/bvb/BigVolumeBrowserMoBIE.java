@@ -445,6 +445,7 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 		if ( displayToSpots.containsKey( displayS ) )
 		{
 			displayToSpots.get( displayS ).setVisible( isVisible );
+			bvb.updateSceneRender();
 		}
 		else
 		{
@@ -487,6 +488,7 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 		bvbPoints.setColors( colors );
 		bvbPoints.setName( displayS.getName() );
 		bvb.addShape( bvbPoints );
+		displayToSpots.put( displayS, bvbPoints );
 
 	}
 	
