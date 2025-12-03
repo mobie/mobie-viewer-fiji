@@ -41,11 +41,8 @@ public class OpenPlatybrowser
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-//		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/platybrowser-project",
-//               MoBIESettings.settings()
-//					   .gitProjectBranch( "main" ) );
-		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/arabidopsis-root-lm-project",
-	               MoBIESettings.settings()
-						   .gitProjectBranch( "main" ) );
+		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/platybrowser-project",
+               MoBIESettings.settings()
+					   .gitProjectBranch( "main" ) );
 	}
 }
