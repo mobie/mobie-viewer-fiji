@@ -317,7 +317,8 @@ public class CollectionTableCreator
 
     private static @NotNull String getDatasetName( ImageData imageData, int datasetIndex )
     {
-        return imageData.getName( datasetIndex );
+        String name = imageData.getName( datasetIndex );
+        return name;
     }
 
     private static @NotNull String getColorString( ImageData imageData, int datasetIndex )
@@ -325,11 +326,11 @@ public class CollectionTableCreator
         try
         {
             ARGBType argbType = imageData.getMetadata( datasetIndex ).getColor();
-            return String.format( "a%d-r%d-g%d-b%d",
-                    ARGBType.alpha( argbType.get() ),
+            return String.format( "r%d-g%d-b%d-a%d",
                     ARGBType.red( argbType.get() ),
                     ARGBType.green( argbType.get() ),
-                    ARGBType.blue( argbType.get() )
+                    ARGBType.blue( argbType.get() ),
+                    ARGBType.alpha( argbType.get() )
             );
         }
         catch ( Exception e )

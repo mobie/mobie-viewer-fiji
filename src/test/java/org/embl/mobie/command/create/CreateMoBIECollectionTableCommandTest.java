@@ -6,18 +6,44 @@ import org.embl.mobie.lib.bdv.BdvViewingMode;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 import static org.embl.mobie.command.create.CreateMoBIECollectionTableCommand.TOGETHER;
 
 public class CreateMoBIECollectionTableCommandTest
 {
-    public static void main( String[] args ) throws IOException
+    public static void main( String[] args ) throws IOException, ExecutionException, InterruptedException
     {
-        tiffFiles();
-        xmlHdf5Files();
+        //tiff();
+        //xmlHdf5();
+        xmlOmero();
     }
 
-    private static void xmlHdf5Files()
+    private static void xmlOmero() throws ExecutionException, InterruptedException
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        imageJ.command().run(ch.epfl.biop.bdv.img.omero.command.OmeroConnectCommand.class, true,
+                "host", "omero-tim.gerbi-gmb.de",
+                "username", "read-tim",
+                "password", "read-tim"
+        ).get();
+
+        CreateMoBIECollectionTableCommand createCommand = new CreateMoBIECollectionTableCommand();
+        File imageFile0 = new File( "src/test/resources/collections/omero-bdv.xml" );
+        createCommand.files = new File[]{ imageFile0 };
+        createCommand.outputTableFile = new File("src/test/resources/collections/mobie-omero-xml-collection.csv");
+        createCommand.openTableInMoBIE = true;
+        createCommand.viewLayout = TOGETHER;
+        createCommand.run();
+
+        imageJ.command().run(ch.epfl.biop.bdv.img.omero.command.OmeroDisconnectCommand .class, true,
+                "host", "omero-tim.gerbi-gmb.de"
+        ).get();
+    }
+
+    private static void xmlHdf5()
     {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
@@ -31,7 +57,7 @@ public class CreateMoBIECollectionTableCommandTest
         createCommand.run();
     }
 
-    private static void tiffFiles()
+    private static void tiff()
     {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
