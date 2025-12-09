@@ -101,7 +101,15 @@ public class ViewManager
 		currentDisplays = new ArrayList<>();
 		sliceViewer = new SliceViewer( moBIE, is2D );
 		universeManager = new UniverseManager();
-		bigVolumeBrowser = new BigVolumeBrowserMoBIE();
+		if(System.getProperty("java.class.path").toLowerCase().contains( "bigvolumebrowser"))
+		{
+			bigVolumeBrowser = new BigVolumeBrowserMoBIE();
+		}
+		else
+		{
+			System.out.println("BigVolumeBrowser not installed");
+			bigVolumeBrowser = null;
+		}
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
 		viewSaver = new ViewSaver( moBIE );
 		viewDeleter = new ViewDeleter( moBIE );
@@ -746,8 +754,11 @@ public class ViewManager
 		sliceViewer.getBdvHandle().close();
 		IJ.log( "Closing 3D Viewer..." );
 		universeManager.close();
-		IJ.log ("Closing BVV...");
-		bigVolumeBrowser.close();
+		if(bigVolumeBrowser != null)
+		{
+			IJ.log ("Closing BVV...");
+			bigVolumeBrowser.close();
+		}
 		IJ.log( "Closing UI..." );
 		userInterface.close();
 		// see also https://github.com/mobie/mobie-viewer-fiji/issues/857

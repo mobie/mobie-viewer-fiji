@@ -1154,33 +1154,51 @@ public class UserInterfaceHelper
 		checkBox.setSelected( false );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 
-		checkBox.addActionListener( new ActionListener()
+		if(display.bigVolumeBrowser != null)
 		{
-			@Override
-			public void actionPerformed( ActionEvent e )
-			{
-				new Thread( () -> {
-					for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
-					{
-						display.bigVolumeBrowser.showSource( sourceAndConverter, checkBox.isSelected() );
-					}
-				}).start();
-			}
-		} );
-		
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
-		{
-			display.bigVolumeBrowser.getListeners().add( new BVBVisibilityListener(sourceAndConverter)
+			checkBox.addActionListener( new ActionListener()
 			{
 				@Override
-				public void visibility( boolean isVisible )
+				public void actionPerformed( ActionEvent e )
 				{
-					SwingUtilities.invokeLater( () ->
-					{
-						checkBox.setSelected( isVisible );
-					});
+					new Thread( () -> {
+						for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+						{
+							display.bigVolumeBrowser.showSource( sourceAndConverter, checkBox.isSelected() );
+						}
+					}).start();
 				}
 			} );
+			
+			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+			{
+				display.bigVolumeBrowser.getListeners().add( new BVBVisibilityListener(sourceAndConverter)
+				{
+					@Override
+					public void visibility( boolean isVisible )
+					{
+						SwingUtilities.invokeLater( () ->
+						{
+							checkBox.setSelected( isVisible );
+						});
+					}
+				} );
+			}
+		}
+		else
+		{
+		
+			checkBox.addActionListener( new ActionListener()
+			{
+				@Override
+				public void actionPerformed( ActionEvent e )
+				{
+					IJ.showMessage( "BigVolumeBrowser not installed", 
+							"<html><center>To observe large datasets in 3D,<br>"
+							+ "you need to install <a href=\"https://github.com/UU-cellbiology/bigvolumebrowser/wiki/How-to-install-plugin\">BigVolumeBrowser plugin</a></center></html>" );
+				}
+			} );
+			
 		}
 
 		return checkBox;
@@ -1192,25 +1210,47 @@ public class UserInterfaceHelper
 		checkBox.setToolTipText( "Toggle dataset visibility" );
 		checkBox.setSelected( false );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
-
-		checkBox.addActionListener( new ActionListener()
-		{
-			@Override
-			public void actionPerformed( ActionEvent e )
+		
+		if(display.bigVolumeBrowser != null)
+		{		
+			checkBox.addActionListener( new ActionListener()
 			{
-				new Thread( () -> {
-						display.bigVolumeBrowser.showSpots( display, checkBox.isSelected() );
-				}).start();
-			}
-		} );
-
-//		display.bigVolumeBrowser.getListeners().add( new VisibilityListener()
-//		{
-//			@Override
-//			public void visibility( boolean isVisible );
-//		}
-//		);
+				@Override
+				public void actionPerformed( ActionEvent e )
+				{
+					new Thread( () -> {
+							display.bigVolumeBrowser.showSpots( display, checkBox.isSelected() );
+					}).start();
+				}
+			} );
 	
+			display.bigVolumeBrowser.getListeners().add( new VisibilityListener()
+			{
+				@Override
+				public void visibility( boolean isVisible )
+				{
+					SwingUtilities.invokeLater( () ->
+					{
+						checkBox.setSelected( isVisible );
+					});
+				}					
+			}
+			);
+		}
+		else
+		{
+			checkBox.addActionListener( new ActionListener()
+			{
+				@Override
+				public void actionPerformed( ActionEvent e )
+				{
+					IJ.showMessage( "BigVolumeBrowser not installed", 
+							"<html><center>To observe large datasets in 3D,<br>"
+							+ "you need to install <a href=\"https://github.com/UU-cellbiology/bigvolumebrowser/wiki/How-to-install-plugin\">BigVolumeBrowser plugin</a></center></html>" );
+				}
+			} );
+			
+		}
 		return checkBox;
 	}
 

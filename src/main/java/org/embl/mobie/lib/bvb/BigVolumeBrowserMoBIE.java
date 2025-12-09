@@ -53,7 +53,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 
 @SuppressWarnings( "rawtypes" )
-public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListener, TimePointListener, BigVolumeBrowser.Listener
+public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListener, TimePointListener
 {
 	private BigVolumeBrowser bvb = null;
 	
@@ -61,7 +61,7 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 	private final ConcurrentHashMap< SpotDisplay< ? >, Spots > displayToSpots;	
 
 	
-	private final List< BVBVisibilityListener > listeners = new ArrayList<>(  );
+	private final List< VisibilityListener > listeners = new ArrayList<>(  );
 	
 	WindowAdapter closeWA;
 	
@@ -95,6 +95,7 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 						bvb.shutDownAll();
 						bvb = null;
 						sacToBvbSource.clear();
+						displayToSpots.clear();
 						for ( VisibilityListener listener : listeners )
 						{
 							listener.visibility( false );
@@ -105,7 +106,7 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 			};
 			
 			bvb.bvvFrame.addWindowListener( closeWA );
-			bvb.addBVBListener( this );
+			bvb.addBVBListener( () -> bvbRestarted() );
 			bvb.bvvViewer.state().changeListeners().add( s -> updateCheckBox(s)  );
 			//bvb.bvvViewer.getConverterSetups().listeners().add( s -> updateGUI() );
 		}
@@ -330,7 +331,7 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 	
 	}
 	
-	public Collection< BVBVisibilityListener > getListeners()
+	public Collection< VisibilityListener > getListeners()
 	{
 		return listeners;
 	}
@@ -389,7 +390,6 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 		
 	}
 	
-	@Override
 	public void bvbRestarted()
 	{
 		//update the map
@@ -425,11 +425,15 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 		{
 			for (Map.Entry<SourceAndConverter<?>, ValuePair< BvvStackSource<?>, AbstractSpimData<?>> > entry : sacToBvbSource.entrySet()) 
 			{
-				for(final BVBVisibilityListener listener:listeners)
+				for(final VisibilityListener listenerOne :listeners)
 				{
-					if(listener.getSAC() == entry.getKey())
+					if(listenerOne instanceof BVBVisibilityListener)
 					{
-						listener.visibility( bvb.bvvViewer.state().isSourceVisible( entry.getValue().getA().getSources().get( 0 ) ));
+						final BVBVisibilityListener listener = (BVBVisibilityListener)listenerOne; 
+						if(listener.getSAC() == entry.getKey())
+						{
+							listener.visibility( bvb.bvvViewer.state().isSourceVisible( entry.getValue().getA().getSources().get( 0 ) ));
+						}
 					}
 				}
 			}
@@ -487,6 +491,8 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 		bvbPoints.setPoints( vertices, null, null );
 		bvbPoints.setColors( colors );
 		bvbPoints.setName( displayS.getName() );
+		//make shaded
+		bvbPoints.setPointShade( 1 );
 		bvb.addShape( bvbPoints );
 		displayToSpots.put( displayS, bvbPoints );
 

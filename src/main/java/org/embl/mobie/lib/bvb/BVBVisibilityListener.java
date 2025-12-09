@@ -16,8 +16,7 @@ public class BVBVisibilityListener implements VisibilityListener
 	
 	@Override
 	public void visibility( boolean isVisible )
-	{
-		// TODO Auto-generated method stub
+	{	
 		
 	}
 	
