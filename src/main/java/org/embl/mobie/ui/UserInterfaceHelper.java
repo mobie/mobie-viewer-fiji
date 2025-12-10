@@ -44,6 +44,7 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.Services;
+import org.embl.mobie.lib.bvb.BVBVisibilityListener;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.OpacityHelper;
 import org.embl.mobie.command.context.ConfigureImageRenderingCommand;
@@ -360,7 +361,7 @@ public class UserInterfaceHelper
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() );
-		panel.add( createBVVVisibilityCheckbox( display, sourceAndConverters ) );
+		panel.add( createBVBSpotVisibilityCheckbox( display ) );
 		panel.add( createTableVisibilityCheckbox( display.tableView, display.showTable() ) );
 		panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotView, display.showScatterPlot() ) );
 		return panel;
@@ -453,7 +454,7 @@ public class UserInterfaceHelper
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createImageVolumeViewerVisibilityCheckbox( display ) );
-		panel.add( createBVVVisibilityCheckbox( display, sourceAndConverters ) );
+		panel.add( createBVBVolumeVisibilityCheckbox( display, sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() ); // Table
 		panel.add( createCheckboxPlaceholder() ); // Scatter plot
 
@@ -503,7 +504,7 @@ public class UserInterfaceHelper
 			// segments 3D view
 			panel.add( createSegmentsVolumeViewerVisibilityCheckbox( display ) );
 			// BVV view
-			panel.add( createBVVVisibilityCheckbox( display, sourceAndConverters ) );
+			panel.add( createBVBVolumeVisibilityCheckbox( display, sourceAndConverters ) );
 			// table view
 			panel.add( createTableVisibilityCheckbox( display.tableView, display.showTable() ) );
 			// scatter plot view
@@ -1144,7 +1145,7 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JCheckBox createBVVVisibilityCheckbox(
+	public static JCheckBox createBVBVolumeVisibilityCheckbox(
 			AbstractDisplay< ? > display,
 			final List< ? extends SourceAndConverter< ? > > sourceAndConverters  )
 	{
@@ -1153,32 +1154,103 @@ public class UserInterfaceHelper
 		checkBox.setSelected( false );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 
-		checkBox.addActionListener( new ActionListener()
+		if(display.bigVolumeBrowser != null)
 		{
-			@Override
-			public void actionPerformed( ActionEvent e )
+			checkBox.addActionListener( new ActionListener()
 			{
-				new Thread( () -> {
-					for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
-					{
-						display.bigVolumeViewer.showSource( sourceAndConverter, checkBox.isSelected() );
-					}
-				}).start();
-			}
-		} );
-
-		display.bigVolumeViewer.getListeners().add( new VisibilityListener()
-		{
-			@Override
-			public void visibility( boolean isVisible )
-			{
-				SwingUtilities.invokeLater( () ->
+				@Override
+				public void actionPerformed( ActionEvent e )
 				{
-					checkBox.setSelected( isVisible );
-				});
+					new Thread( () -> {
+						for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+						{
+							display.bigVolumeBrowser.showSource( sourceAndConverter, checkBox.isSelected() );
+						}
+					}).start();
+				}
+			} );
+			
+			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+			{
+				display.bigVolumeBrowser.getListeners().add( new BVBVisibilityListener(sourceAndConverter)
+				{
+					@Override
+					public void visibility( boolean isVisible )
+					{
+						SwingUtilities.invokeLater( () ->
+						{
+							checkBox.setSelected( isVisible );
+						});
+					}
+				} );
 			}
-		} );
+		}
+		else
+		{
+		
+			checkBox.addActionListener( new ActionListener()
+			{
+				@Override
+				public void actionPerformed( ActionEvent e )
+				{
+					IJ.showMessage( "BigVolumeBrowser not installed", 
+							"<html><center>To observe large datasets in 3D,<br>"
+							+ "you need to install <a href=\"https://github.com/UU-cellbiology/bigvolumebrowser/wiki/How-to-install-plugin\">BigVolumeBrowser plugin</a></center></html>" );
+				}
+			} );
+			
+		}
 
+		return checkBox;
+	}
+	public static JCheckBox createBVBSpotVisibilityCheckbox(
+			SpotDisplay display  )
+	{
+		JCheckBox checkBox = new JCheckBox( "B" );
+		checkBox.setToolTipText( "Toggle dataset visibility" );
+		checkBox.setSelected( false );
+		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
+		
+		if(display.bigVolumeBrowser != null)
+		{		
+			checkBox.addActionListener( new ActionListener()
+			{
+				@Override
+				public void actionPerformed( ActionEvent e )
+				{
+					new Thread( () -> {
+							display.bigVolumeBrowser.showSpots( display, checkBox.isSelected() );
+					}).start();
+				}
+			} );
+	
+			display.bigVolumeBrowser.getListeners().add( new VisibilityListener()
+			{
+				@Override
+				public void visibility( boolean isVisible )
+				{
+					SwingUtilities.invokeLater( () ->
+					{
+						checkBox.setSelected( isVisible );
+					});
+				}					
+			}
+			);
+		}
+		else
+		{
+			checkBox.addActionListener( new ActionListener()
+			{
+				@Override
+				public void actionPerformed( ActionEvent e )
+				{
+					IJ.showMessage( "BigVolumeBrowser not installed", 
+							"<html><center>To observe large datasets in 3D,<br>"
+							+ "you need to install <a href=\"https://github.com/UU-cellbiology/bigvolumebrowser/wiki/How-to-install-plugin\">BigVolumeBrowser plugin</a></center></html>" );
+				}
+			} );
+			
+		}
 		return checkBox;
 	}
 

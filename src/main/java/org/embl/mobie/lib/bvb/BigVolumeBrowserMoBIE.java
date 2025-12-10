@@ -1,5 +1,6 @@
-package org.embl.mobie.lib.bvv;
+package org.embl.mobie.lib.bvb;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.imglib2.RandomAccess;
+import net.imglib2.RealPoint;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -18,32 +20,32 @@ import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.type.numeric.real.FloatType;
-import net.imglib2.util.Util;
 import net.imglib2.util.ValuePair;
 
 import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.*;
 import org.embl.mobie.lib.color.ColoringListener;
+import org.embl.mobie.lib.color.MobieColoringModel;
 import org.embl.mobie.lib.color.lut.GlasbeyARGBLut;
 import org.embl.mobie.lib.image.AnnotatedLabelImage;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.select.SelectionListener;
+import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.source.AnnotationType;
+import org.embl.mobie.lib.table.saw.TableSawAnnotatedSpot;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Actions;
-import org.scijava.ui.behaviour.util.Behaviours;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TimePointListener;
 import bdv.viewer.ViewerPanel;
-import bvvpg.core.VolumeViewerFrame;
-import bvvpg.pguitools.GammaConverterSetup;
-import bvvpg.vistools.Bvv;
-import bvvpg.vistools.BvvFunctions;
-import bvvpg.vistools.BvvHandleFrame;
+import bdv.viewer.ViewerStateChange;
+import bvb.core.BigVolumeBrowser;
+import bvb.scene.VisSpots;
+import bvb.shapes.Spots;
 import bvvpg.vistools.BvvStackSource;
 import ij.IJ;
 import mpicbg.spim.data.generic.AbstractSpimData;
@@ -51,140 +53,104 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 
 @SuppressWarnings( "rawtypes" )
-public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener, TimePointListener
+public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListener, TimePointListener
 {
-	private Bvv bvv = null;
+	private BigVolumeBrowser bvb = null;
 	
-	public BvvHandleFrame handle = null;
-	
-	private final ConcurrentHashMap< SourceAndConverter, ValuePair< BvvStackSource, AbstractSpimData> > sacToBvvSource;
+	private final ConcurrentHashMap< SourceAndConverter<?>, ValuePair< BvvStackSource<?>, AbstractSpimData<?>> > sacToBvbSource;	
+	private final ConcurrentHashMap< SpotDisplay< ? >, Spots > displayToSpots;	
+
 	
 	private final List< VisibilityListener > listeners = new ArrayList<>(  );
 	
-	private int nRenderMethod = 1;
+	WindowAdapter closeWA;
 	
-	volatile boolean bRestarting = false;
-	
-	public BigVolumeViewerMoBIE()
+	public BigVolumeBrowserMoBIE()
 	{
-		//sourceAndConverters = new ArrayList<>();
-		sacToBvvSource = new ConcurrentHashMap<>();
-		BvvSettings.readBVVRenderSettings();
+		sacToBvbSource = new ConcurrentHashMap<>();
+		displayToSpots = new ConcurrentHashMap<>();
 	}
 	
 	public synchronized void init()
 	{
-		if ( bvv == null )
+		if (bvb == null)
 		{
-			bvv = BvvFunctions.show( Bvv.options().frameTitle( "MoBIE BigVolumeViewer" ).
-					dCam(BvvSettings.dCam).
-					dClipNear(BvvSettings.dClipNear).
-					dClipFar(BvvSettings.dClipFar).				
-					renderWidth(BvvSettings.renderWidth).
-					renderHeight(BvvSettings.renderHeight).
-					numDitherSamples(BvvSettings.numDitherSamples ).
-					cacheBlockSize(BvvSettings.cacheBlockSize ).
-					maxCacheSizeInMB( BvvSettings.maxCacheSizeInMB ).
-					ditherWidth(BvvSettings.ditherWidth)
-					);
-			
-			handle = (BvvHandleFrame)bvv.getBvvHandle();
-			
-			//change drag rotation for navigation "3D Viewer" style
-			final Rotate3DViewerStyle dragRotate = new Rotate3DViewerStyle( 0.75, handle);
-			final Rotate3DViewerStyle dragRotateFast = new Rotate3DViewerStyle( 2.0, handle);
-			final Rotate3DViewerStyle dragRotateSlow = new Rotate3DViewerStyle( 0.1, handle);
-			
-			final Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
-			behaviours.behaviour( dragRotate, "drag rotate", "button1" );
-			behaviours.behaviour( dragRotateFast, "drag rotate fast", "shift button1" );
-			behaviours.behaviour( dragRotateSlow, "drag rotate slow", "ctrl button1" );
-			behaviours.install( handle.getTriggerbindings(), "mobie-bvv-behaviours" );
-			
+			bvb = new BigVolumeBrowser();
+			bvb.startBVB("MoBIE BigVolumeBrowser");
 			final Actions actions = new Actions( new InputTriggerConfig() ); 
 			actions.runnableAction(
 					() -> {	syncViewWithSliceViewer();},
 					"sync with sliceViewer",
 					"D" );
-			actions.install( handle.getKeybindings(), "mobie-bvv-actions" );
+			actions.install( bvb.bvvHandle.getKeybindings(), "mobie-bvv-actions" );
 			
-			handle.getViewerPanel().addTimePointListener( this );
-			
-			handle.getBigVolumeViewer().getViewerFrame().addWindowListener(  
-					new WindowAdapter()
+			bvb.bvvViewer.addTimePointListener( this );
+			closeWA = new WindowAdapter()
+			{
+				@Override
+				public void windowClosing( WindowEvent ev )
+				{
+					if(bvb!= null)
 					{
-						@Override
-						public void windowClosing( WindowEvent ev )
+						bvb.shutDownAll();
+						bvb = null;
+						sacToBvbSource.clear();
+						displayToSpots.clear();
+						for ( VisibilityListener listener : listeners )
 						{
-							bvv = null;
-							sacToBvvSource.clear();
-							handle = null;
-							if(!bRestarting)
-							{
-								for ( VisibilityListener listener : listeners )
-								{
-									listener.visibility( false );
-								}
-							}							
+							listener.visibility( false );
 						}
-					});
+						//listeners.clear();
+					}
+				}
+			};
+			
+			bvb.bvvFrame.addWindowListener( closeWA );
+			bvb.addBVBListener( () -> bvbRestarted() );
+			bvb.bvvViewer.state().changeListeners().add( s -> updateCheckBox(s)  );
+			//bvb.bvvViewer.getConverterSetups().listeners().add( s -> updateGUI() );
 		}
 	
 	}
 
 	public void showSource( SourceAndConverter< ? > sac, boolean isVisible )
 	{
-		if ( isVisible && bvv == null )
+		if ( isVisible && bvb == null )
 		{
 			init();
 		}
-		if ( sacToBvvSource.containsKey( sac ) )
+		if ( sacToBvbSource.containsKey( sac ) )
 		{
-			sacToBvvSource.get( sac ).getA().setActive( isVisible );
+			sacToBvbSource.get( sac ).getA().setActive( isVisible );
 		}
 		else
 		{
 			if ( isVisible )
 			{
-				addSourceToBVV( sac );
+				addSourceToBVB( sac );
 			}
 		}
 	}
 	
-	void addSourceToBVV( SourceAndConverter< ? > sac )
+	void addSourceToBVB( SourceAndConverter< ? > sac )
 	{
-		System.out.println( "BigVolumeViewer: " + sac.getSpimSource().getName() + ": " + sac );
+		System.out.println( "BigVolumeBrowser: " + sac.getSpimSource().getName() + ": " + sac );
 
 		Source< ? > source = getSource( sac );
-
-		final AbstractSpimData< ? > spimData = SourceToSpimDataWrapper.wrap( source );
-
-//		BvvFunctions.show( source );
-//		BdvFunctions.show( spimData );
+		final ValuePair< AbstractSpimData< ? >, List< BvvStackSource< ? > > > outPair = bvb.addSource( source, bvb.dataTreeModel.getIconMoBIE() );
+		final AbstractSpimData< ? > spimData = outPair.getA();
 		
 		if( spimData == null )
 		{
 			RandomAccess< ? > randomAccess = source.getSource( 0, 0 ).randomAccess();
-			IJ.log( "Cannot display " + source.getName() + " in BVV, incompatible data type:\n" +
+			IJ.log( "Cannot display " + source.getName() + " in BVB, incompatible data type:\n" +
 					randomAccess.get().getClass().getName() );
 			return;
 		}
 
-		nRenderMethod = 1;
-		
-		//in not a first source, ensure consistent rendering of all sources
-		if(	handle.getViewerPanel().state().getSources().size()>0)
-		{
-			@SuppressWarnings( "deprecation" )
-			GammaConverterSetup gConvSetup = ((GammaConverterSetup)handle.getSetupAssignments().getConverterSetups().get( 0 ));	
-			nRenderMethod = gConvSetup.getRenderType();
-		}
-		
 		//assume it is always one source
-		BvvStackSource< ? >  bvvSource = BvvFunctions.show(spimData,
-				Bvv.options().addTo( bvv )).get( 0 );
-		sacToBvvSource.put( sac, new ValuePair< >( bvvSource, spimData));
-
+		final BvvStackSource< ? > bvvSource = outPair.getB().get( 0 );
+		sacToBvbSource.put( sac, new ValuePair< >( outPair.getB().get( 0 ), outPair.getA()));
 		configureRenderingSettings( sac, bvvSource );
 	}
 	
@@ -196,21 +162,23 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 		{
 			return  ( ( AnnotatedLabelImage<?> ) image ).getLabelImage().getSourcePair().getSource();
 		}
-		else
-		{
-			return sac.getSpimSource();
-		}
+		return sac.getSpimSource();
 	}
 	
 	private void configureRenderingSettings(
 			SourceAndConverter< ? > sac,
 			BvvStackSource< ? > bvvSource )
 	{
-		bvvSource.setRenderType( nRenderMethod );
+		
 		double displayRangeMin = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMin();
 		double displayRangeMax = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMax();
+		
+		//render everything as volumetric
+		bvvSource.setRenderType( 1 );
+		
 		if( isAnnotation( sac ) )
 		{
+			
 			final IndexColorModel icmAnnLUT = getAnnotationLUT( sac );
 			bvvSource.setLUT( icmAnnLUT,Integer.toString( icmAnnLUT.hashCode() ) );
 			bvvSource.setDisplayRangeBounds( 0, icmAnnLUT.getMapSize() - 1 );
@@ -218,13 +186,16 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 			bvvSource.setAlphaRangeBounds( 0, 1 );
 			bvvSource.setAlphaRange( 0, 1 );
 			bvvSource.setVoxelRenderInterpolation( 0 );
+			//render as shaded surface
+			bvvSource.setRenderType( 2 );
+			bvvSource.setLightingType( 1 );
 		}
 		else
 		{
 			final ARGBType color = ( ( ColorConverter ) sac.getConverter() ).getColor();
 
 			bvvSource.setColor( color );
-			final Object type = Util.getTypeFromInterval( sac.getSpimSource().getSource( 0, 0 ) );
+			final Object type = sac.getSpimSource().getSource( 0, 0 ).getType();
 			final double[] contrastLimits = new double[ 2 ];
 			contrastLimits[ 0 ] = 0;
 			if ( type instanceof UnsignedByteType )
@@ -269,9 +240,9 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 			{
 				numColors = maxNumColors;
 			}
-			else if( handle.getViewerPanel().state().getNumTimepoints() > 1 )
+			else if( bvb.bvvHandle.getViewerPanel().state().getNumTimepoints() > 1 )
 			{
-				timePoint = handle.getViewerPanel().state().getCurrentTimepoint();
+				timePoint = bvb.bvvHandle.getViewerPanel().state().getCurrentTimepoint();
 				numColors = numberOfAnnotationsPerTimepoint(annotationAdapter, timePoint, imageName);
 			}
 			else
@@ -287,16 +258,18 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 			
 			final byte [][] colors = new byte [3][numColors+1];
 			final byte [] alphas = new byte [numColors+1];
+			//final int [] alphasInt = new int[numColors+1];
 			ARGBType valARGB = new ARGBType();
 			int val;
+			int alphaInt = 0;
 			
 			// 0 is background is black
 			colors[0][0] = 0;
 			colors[1][0] = 0;
 			colors[2][0] = 0;
 			alphas[0] = ( byte ) ( 0 );
-			
-			for(int label=1; label<=numColors; label++)
+			//alphasInt[0] = 0;
+			for(int label = 1; label <= numColors; label++)
 			{
 				final Annotation annotation = annotationAdapter.getAnnotation( imageName, timePoint, label );
 
@@ -305,9 +278,19 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 				colors[ 0 ][ label ] = ( byte ) ARGBType.red( val );
 				colors[ 1 ][ label ] = ( byte ) ARGBType.green( val );
 				colors[ 2 ][ label ] = ( byte ) ARGBType.blue( val );
-				alphas[ label ] = (byte) ARGBType.alpha( val );
+				//alphas[ label ] = (byte) ARGBType.alpha( val );
+				alphaInt = (byte) ARGBType.alpha( val )& 0xff;
+				if(alphaInt < 40)
+				{
+					alphas[ label ] = 0;
+				}
+				else
+				{
+					alphas[ label ] = (byte)255;
+				}
+				//alphasInt [label ] = alphas[ label ]& 0xff;  // bytes to unsigned byte in an integer
 			}
-			return new IndexColorModel(16,numColors+1,colors[0],colors[1],colors[2], alphas);
+			return new IndexColorModel(16, numColors + 1, colors[0], colors[1], colors[2], alphas);
 		}
 		return null;
 	}
@@ -315,23 +298,23 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	static int numberOfAnnotationsPerTimepoint(final AnnotationAdapter< Annotation > annotationAdapter, final int timePoint, String imageName)
 	{
 		int n = 1;
-		while(annotationAdapter.getAnnotation( imageName, timePoint, n ) != null)
+		while( annotationAdapter.getAnnotation( imageName, timePoint, n ) != null )
 		{
 			n++;
 		}
-		return n-1;
+		return n - 1;
 	}
 	
-	public synchronized Bvv getBVV()
+	public synchronized BigVolumeBrowser getBVB()
 	{
-		return bvv;
+		return bvb;
 	}
 	
 	public void close()
 	{
-		if ( bvv != null )
+		if ( bvb != null )
 		{
-			bvv.close();
+			bvb.shutDownAll();
 		}
 	}
 	
@@ -339,10 +322,10 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	{
 		for ( SourceAndConverter< ? > sac : sourceAndConverters )
 		{
-			if(sacToBvvSource.containsKey( sac ))
+			if(sacToBvbSource.containsKey( sac ))
 			{
-				sacToBvvSource.get( sac ).getA().removeFromBdv();
-				sacToBvvSource.remove( sac );
+				sacToBvbSource.get( sac ).getA().removeFromBdv();
+				sacToBvbSource.remove( sac );
 			}
 		}
 	
@@ -353,31 +336,15 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 		return listeners;
 	}
 	
-	public void updateBVVRenderSettings()
-	{
-		boolean bRestartBVV = BvvSettings.readBVVRenderSettings();
-		if (bvv != null)
-		{
-			if(!bRestartBVV)
-			{
-				handle.getViewerPanel().setCamParams( BvvSettings.dCam, BvvSettings.dClipNear, BvvSettings.dClipFar );
-				handle.getViewerPanel().requestRepaint();
-			}
-			else
-			{
-				restartBVV();
-			}
-		}
-	}
 	
 	void syncViewWithSliceViewer()
 	{
-		if(bvv != null)
+		if(bvb != null)
 		{
-			ViewerPanel bdvViewer = MoBIE.getInstance().getViewManager().getSliceViewer().getBdvHandle().getViewerPanel();
-			AffineTransform3D transform = bdvViewer.state().getViewerTransform();
-			Dimension bdvDim = bdvViewer.getSize();
-			Dimension bvvDim = handle.getViewerPanel().getSize();
+			final ViewerPanel bdvViewer = MoBIE.getInstance().getViewManager().getSliceViewer().getBdvHandle().getViewerPanel();
+			final AffineTransform3D transform = bdvViewer.state().getViewerTransform();
+			final Dimension bdvDim = bdvViewer.getSize();
+			final Dimension bvvDim = bvb.bvvHandle.getViewerPanel().getSize();
 			transform.set( transform.get( 0, 3 ) - bdvDim.width / 2, 0, 3 );
 			transform.set( transform.get( 1, 3 ) - bdvDim.height / 2, 1, 3 );
 			transform.scale( 1.0/ bdvDim.width );
@@ -385,58 +352,10 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 			transform.set( transform.get( 0, 3 ) + bvvDim.width / 2, 0, 3 );
 			transform.set( transform.get( 1, 3 ) + bvvDim.height / 2, 1, 3 );
 			
-			handle.getViewerPanel().state().setViewerTransform( transform );
-			handle.getViewerPanel().state().
+			bvb.bvvHandle.getViewerPanel().state().setViewerTransform( transform );
+			bvb.bvvHandle.getViewerPanel().state().
 					setCurrentTimepoint(bdvViewer.state().getCurrentTimepoint());
 		}
-	}
-
-	void restartBVV()
-	{
-		IJ.log( "Restarting BigVolumeViewer..." );
-		//gather all the sources
-		ArrayList<BvvSourceStateMobie> sourceStates = new ArrayList<>();
-		for ( Map.Entry< SourceAndConverter, ValuePair< BvvStackSource, AbstractSpimData> > entry : sacToBvvSource.entrySet() )
-		{
-			sourceStates.add( new BvvSourceStateMobie(entry.getKey(),
-					entry.getValue().getB(),
-					handle.getViewerPanel().state().isSourceVisible( ( SourceAndConverter< ? > ) entry.getValue().getA().getSources().get( 0 ) )
-					) );
-		}
-		//save window position and size on the screen
-		VolumeViewerFrame bvvFrame = handle.getBigVolumeViewer().getViewerFrame();
-	    final java.awt.Point bvv_p = bvvFrame.getLocationOnScreen();
-	    final java.awt.Dimension bvv_d = bvvFrame.getSize();
-		//let's save viewer transform
-		AffineTransform3D viewTransform = handle.getViewerPanel().state().getViewerTransform();
-
-
-		//now restart
-		bRestarting = true;
-		close();
-		init();
-		bRestarting = false;
-		
-		//restore window position
-		bvvFrame = handle.getBigVolumeViewer().getViewerFrame();
-		bvvFrame.setLocation( bvv_p );
-		bvvFrame.setPreferredSize( bvv_d );	
-		bvvFrame.pack();
-		
-		//put back sources
-		for(BvvSourceStateMobie state:sourceStates)
-		{
-			BvvStackSource< ? >  bvvSource = BvvFunctions.show(state.spimData,
-					Bvv.options().addTo( bvv )).get( 0 );
-			sacToBvvSource.put( state.sac, new ValuePair<>( bvvSource, state.spimData));
-
-			configureRenderingSettings( state.sac, bvvSource );
-			bvvSource.setActive( state.bVisible );
-		}
-		//put back viewer transform
-		handle.getViewerPanel().state().setViewerTransform( viewTransform );
-			
-		IJ.log( "..done." );
 	}
 
 	@Override
@@ -460,9 +379,9 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 	
 	public void updateAnnotations()
 	{
-		if(bvv != null)
+		if(bvb != null)
 		{
-			for ( Map.Entry< SourceAndConverter, ValuePair< BvvStackSource, AbstractSpimData> > entry : sacToBvvSource.entrySet() )
+			for ( Map.Entry< SourceAndConverter<?>, ValuePair< BvvStackSource<?>, AbstractSpimData<?>> > entry : sacToBvbSource.entrySet() )
 			{
 				if ( isAnnotation( entry.getKey() ) )
 					configureRenderingSettings( entry.getKey(), entry.getValue().getA() );
@@ -471,13 +390,121 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 		
 	}
 	
+	public void bvbRestarted()
+	{
+		//update the map
+		//first store sac and spimdata
+		ArrayList< ValuePair< SourceAndConverter<?>, AbstractSpimData<?> > > sacSpimList = new ArrayList<>();
+
+		for (Map.Entry<SourceAndConverter<?>, ValuePair< BvvStackSource<?>, AbstractSpimData<?>> > entry : sacToBvbSource.entrySet()) 
+		{
+			sacSpimList.add( new ValuePair< >(entry.getKey(), entry.getValue().getB()) );			
+		}
+		//update map
+		sacToBvbSource.clear();
+		for(int i = 0; i < sacSpimList.size(); i++)
+		{
+			final AbstractSpimData<?> spimData = sacSpimList.get( i ).getB();
+			sacToBvbSource.put( sacSpimList.get( i ).getA(), 
+					new ValuePair< >(bvb.getBVVSourcesList( spimData ).get( 0 ),
+					spimData) );
+		}
+	}
+	
+	@Override
+	public void timePointChanged( int timePointIndex )
+	{
+		updateAnnotations();
+	}
+	
+	/** updates checkbox in MOBiE view,
+	 * if user toggles the visibility in BVB **/
+	void updateCheckBox(ViewerStateChange e)
+	{
+		if(e == ViewerStateChange.VISIBILITY_CHANGED)
+		{
+			for (Map.Entry<SourceAndConverter<?>, ValuePair< BvvStackSource<?>, AbstractSpimData<?>> > entry : sacToBvbSource.entrySet()) 
+			{
+				for(final VisibilityListener listenerOne :listeners)
+				{
+					if(listenerOne instanceof BVBVisibilityListener)
+					{
+						final BVBVisibilityListener listener = (BVBVisibilityListener)listenerOne; 
+						if(listener.getSAC() == entry.getKey())
+						{
+							listener.visibility( bvb.bvvViewer.state().isSourceVisible( entry.getValue().getA().getSources().get( 0 ) ));
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	public void showSpots( SpotDisplay< ? > displayS, boolean isVisible )
+	{
+		if ( isVisible && bvb == null )
+		{
+			init();
+		}
+		if ( displayToSpots.containsKey( displayS ) )
+		{
+			displayToSpots.get( displayS ).setVisible( isVisible );
+			bvb.updateSceneRender();
+		}
+		else
+		{
+			if ( isVisible )
+			{
+				addSpotsToBVB( displayS );
+			}
+		}
+	}
+	
+	@SuppressWarnings( "unchecked" )
+	void addSpotsToBVB(SpotDisplay< ? > displayS)
+	{
+		System.out.println( "BigVolumeBrowser: " + displayS.getName() + ": " + displayS );
+				
+		final ArrayList<TableSawAnnotatedSpot> annList = ( ArrayList< TableSawAnnotatedSpot > ) displayS.getAnnData().getTable().annotations();
+		final ArrayList<RealPoint> vertices = new ArrayList<>();
+		ARGBType valARGB = new ARGBType();
+		final MobieColoringModel< TableSawAnnotatedSpot > coloringModel = ( MobieColoringModel< TableSawAnnotatedSpot > ) displayS.coloringModel;
+		int argb;
+		int label = 0;
+		float [] colors = new float [annList.size()*4];
+		for(TableSawAnnotatedSpot oneSpot : annList)
+		{
+			final RealPoint rp = oneSpot.positionAsRealPoint();
+			vertices.add( rp );	
+			coloringModel.convert( oneSpot, valARGB );
+			argb = valARGB.get();
+			colors[ label*4 ]    = ((argb >> 16) & 0xff) / 255f;//red
+			colors[ label*4 + 1] = ((argb >>  8) & 0xff) / 255f;//green
+			colors[ label*4 + 2] = ( argb        & 0xff) / 255f;//blue
+			colors[ label*4 + 3] = 1.0f; //for now
+			//colors[ label*4 + 3] = ((argb >> 24) & 0xff) / 255f;//alpha
+
+			label++;
+		}
+		
+		final Spots bvbPoints = new Spots(displayS.spotRadius.floatValue(), Color.RED, VisSpots.SHAPE_ROUND, VisSpots.RENDER_FILLED);
+		bvbPoints.setPoints( vertices, null, null );
+		bvbPoints.setColors( colors );
+		bvbPoints.setName( displayS.getName() );
+		//make shaded
+		bvbPoints.setPointShade( 1 );
+		bvb.addShape( bvbPoints );
+		displayToSpots.put( displayS, bvbPoints );
+
+	}
+	
 	/** leftover example of Glasbey LUT, keep it for now.**/
 	public static IndexColorModel getGlasbeyICM()
 	{
 		final GlasbeyARGBLut gARGB = new GlasbeyARGBLut();
 		final byte [][] colors = new byte [3][256];
 		int val;
-		for(int i=0;i<256;i++)
+		for(int i = 0; i < 256; i++)
 		{
 			val = gARGB.getARGB( i );
 			colors[0][i] = ( byte ) ARGBType.red( val );
@@ -488,9 +515,4 @@ public class BigVolumeViewerMoBIE implements ColoringListener, SelectionListener
 		return new IndexColorModel(16,256,colors[0],colors[1],colors[2]);
 	}
 
-	@Override
-	public void timePointChanged( int timePointIndex )
-	{
-		updateAnnotations();
-	}
 }

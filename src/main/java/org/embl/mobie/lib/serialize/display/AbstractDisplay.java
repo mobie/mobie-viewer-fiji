@@ -32,7 +32,7 @@ import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
-import org.embl.mobie.lib.bvv.BigVolumeViewerMoBIE;
+import org.embl.mobie.lib.bvb.BigVolumeBrowserMoBIE;
 import org.embl.mobie.lib.image.Image;
 
 import java.util.ArrayList;
@@ -50,7 +50,7 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	// Runtime
 	private final transient List< Image< T > > images = new ArrayList<>();
 	public transient SliceViewer sliceViewer;
-	public transient BigVolumeViewerMoBIE bigVolumeViewer;
+	public transient BigVolumeBrowserMoBIE bigVolumeBrowser;
 
 	@Override
 	public String getName()

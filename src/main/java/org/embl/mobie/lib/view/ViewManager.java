@@ -44,7 +44,7 @@ import org.embl.mobie.lib.bdv.overlay.ImageNameOverlay;
 import org.embl.mobie.lib.bdv.view.AnnotationSliceView;
 import org.embl.mobie.lib.bdv.view.ImageSliceView;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
-import org.embl.mobie.lib.bvv.BigVolumeViewerMoBIE;
+import org.embl.mobie.lib.bvb.BigVolumeBrowserMoBIE;
 import org.embl.mobie.lib.color.*;
 import org.embl.mobie.lib.color.lut.ColumnARGBLut;
 import org.embl.mobie.lib.color.lut.LUTs;
@@ -89,7 +89,7 @@ public class ViewManager
 	private final SourceAndConverterService sacService;
 	private List< Display > currentDisplays;
 	private final UniverseManager universeManager;
-	private final BigVolumeViewerMoBIE bigVolumeViewer;
+	private final BigVolumeBrowserMoBIE bigVolumeBrowser;
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewSaver viewSaver;
 	private final ViewDeleter viewDeleter;
@@ -101,7 +101,15 @@ public class ViewManager
 		currentDisplays = new ArrayList<>();
 		sliceViewer = new SliceViewer( moBIE, is2D );
 		universeManager = new UniverseManager();
-		bigVolumeViewer = new BigVolumeViewerMoBIE();
+		if(System.getProperty("java.class.path").toLowerCase().contains( "bigvolumebrowser"))
+		{
+			bigVolumeBrowser = new BigVolumeBrowserMoBIE();
+		}
+		else
+		{
+			System.out.println("BigVolumeBrowser not installed");
+			bigVolumeBrowser = null;
+		}
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
 		viewSaver = new ViewSaver( moBIE );
 		viewDeleter = new ViewDeleter( moBIE );
@@ -496,7 +504,7 @@ public class ViewManager
 		if ( display instanceof AbstractDisplay )
 		{
 			(( AbstractDisplay< ? > ) display).sliceViewer = sliceViewer;
-			(( AbstractDisplay< ? > ) display).bigVolumeViewer = bigVolumeViewer;
+			(( AbstractDisplay< ? > ) display).bigVolumeBrowser = bigVolumeBrowser;
 		}
 
 		if ( display instanceof ImageDisplay )
@@ -673,8 +681,8 @@ public class ViewManager
 
 	private void initSegmentVolumeViewer( SegmentationDisplay< ? extends AnnotatedSegment > display )
 	{
-		display.coloringModel.listeners().add( display.bigVolumeViewer );
-		display.selectionModel.listeners().add( display.bigVolumeViewer );
+		display.coloringModel.listeners().add( display.bigVolumeBrowser );
+		display.selectionModel.listeners().add( display.bigVolumeBrowser );
 
 		display.segmentVolumeViewer = new SegmentVolumeViewer( display.selectionModel, display.coloringModel, display.images(), universeManager );
 		Double[] resolution3dView = display.getResolution3dView();
@@ -691,11 +699,11 @@ public class ViewManager
 	{
 		if ( display instanceof AbstractDisplay )
 		{
-			if ( ( ( AbstractDisplay ) display).bigVolumeViewer != null )
+			if ( ( ( AbstractDisplay ) display).bigVolumeBrowser != null )
 			{
-				if ( ( ( AbstractDisplay ) display ).bigVolumeViewer.getBVV() != null )
+				if ( ( ( AbstractDisplay ) display ).bigVolumeBrowser.getBVB() != null )
 				{
-					( ( AbstractDisplay ) display ).bigVolumeViewer.removeSources( display.sourceAndConverters() );
+					( ( AbstractDisplay ) display ).bigVolumeBrowser.removeSources( display.sourceAndConverters() );
 				}
 			}
 		}
@@ -746,8 +754,11 @@ public class ViewManager
 		sliceViewer.getBdvHandle().close();
 		IJ.log( "Closing 3D Viewer..." );
 		universeManager.close();
-		IJ.log ("Closing BVV...");
-		bigVolumeViewer.close();
+		if(bigVolumeBrowser != null)
+		{
+			IJ.log ("Closing BVV...");
+			bigVolumeBrowser.close();
+		}
 		IJ.log( "Closing UI..." );
 		userInterface.close();
 		// see also https://github.com/mobie/mobie-viewer-fiji/issues/857
@@ -755,8 +766,8 @@ public class ViewManager
 		DataStore.clearSpimDataCache();
 	}
 
-	public BigVolumeViewerMoBIE getBigVolumeViewer()
+	public BigVolumeBrowserMoBIE getBigVolumeViewer()
 	{
-		return bigVolumeViewer;
+		return bigVolumeBrowser;
 	}
 }

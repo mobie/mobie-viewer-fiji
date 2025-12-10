@@ -55,6 +55,15 @@
                 <role>support</role>
             </roles>
         </contributor>
+        <contributor>
+            <name>Eugene Katrukha</name>
+            <roles>
+                <role>developer</role>
+                <role>debugger</role>
+                <role>reviewer</role>
+                <role>support</role>
+            </roles>
+        </contributor>
     </contributors>
     <mailingLists>
         <mailingList>
@@ -85,7 +94,10 @@
 
         <mobie-io.version>4.0.8</mobie-io.version>
         <bigdataviewer-playground.version>0.11.2</bigdataviewer-playground.version>
-        <bvv-playground.version>0.3.4</bvv-playground.version>
+        
+        <!-- BigVolumeBrowser -->
+ 		<bigvolumebrowser.version>0.0.5</bigvolumebrowser.version>
+        <bvv-playground.version>0.5.1</bvv-playground.version>
 
         <annotations.version>16.0.2</annotations.version>
         <trove.version>1.0.2</trove.version>
@@ -169,13 +181,13 @@
         </dependency>
         <dependency>
 		<groupId>nl.uu.science.cellbiology</groupId>
+			<artifactId>bigvolumebrowser</artifactId>
+			<version>${bigvolumebrowser.version}</version>
+		</dependency>
+        <dependency>
+		<groupId>nl.uu.science.cellbiology</groupId>
 			<artifactId>bvv-playground</artifactId>
 			<version>${bvv-playground.version}</version>
-		</dependency>
-		<dependency>
-  			<groupId>com.formdev</groupId>
-  			<artifactId>flatlaf-jide-oss</artifactId>
-  			<version>3.0</version>
 		</dependency>
         <dependency>
             <groupId>org.jogamp.java3d</groupId>
