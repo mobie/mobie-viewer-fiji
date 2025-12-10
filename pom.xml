@@ -55,6 +55,15 @@
                 <role>support</role>
             </roles>
         </contributor>
+        <contributor>
+            <name>Eugene Katrukha</name>
+            <roles>
+                <role>developer</role>
+                <role>debugger</role>
+                <role>reviewer</role>
+                <role>support</role>
+            </roles>
+        </contributor>
     </contributors>
     <mailingLists>
         <mailingList>
@@ -87,8 +96,8 @@
         <bigdataviewer-playground.version>0.11.2</bigdataviewer-playground.version>
         
         <!-- BigVolumeBrowser -->
- 		<bigvolumebrowser.version>0.0.5-SNAPSHOT</bigvolumebrowser.version>
-        <bvv-playground.version>0.5.1-SNAPSHOT</bvv-playground.version>
+ 		<bigvolumebrowser.version>0.0.5</bigvolumebrowser.version>
+        <bvv-playground.version>0.5.1</bvv-playground.version>
 
         <annotations.version>16.0.2</annotations.version>
         <trove.version>1.0.2</trove.version>
