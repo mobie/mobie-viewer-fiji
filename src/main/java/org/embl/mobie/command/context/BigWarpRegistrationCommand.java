@@ -82,15 +82,15 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 
 	public void applyTransform()
 	{
-		if ( bigWarp.getTransformType().equals( BigWarpTransform.AFFINE ) )
-		{
-			applyTransform( bigWarp.getBwTransform().affine3d().inverse() );
-		}
-		else if ( bigWarp.getTransformType().equals( BigWarpTransform.TPS ) )
+		if ( bigWarp.getTransformType().equals( BigWarpTransform.TPS ) )
 		{
 			boolean applied = applyTpsTransform( bigWarp.getLandmarkPanel().getTableModel() );
 			if ( applied ) removeMovingImages();
 			else resetTransforms();
+		}
+		else
+		{
+			applyTransform( bigWarp.getBwTransform().affine3d().inverse() );
 		}
 
 		bigWarp.closeAll();

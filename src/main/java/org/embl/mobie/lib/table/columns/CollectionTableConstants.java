@@ -43,22 +43,23 @@ public class CollectionTableConstants
     /**
      * The "name" column MAY be present.
      *
-     * This "name" will determined how the data is called within MoBIE.
-     * In the MoBIE UI this name will show up as a label where the
-     * display settings can be assigned.
+     * Each row (single channel image) of the table MUST have a UNIQUE "name".
+     * By default, the name will be constructed from the uri column and (if present)
+     * the "channel" column.
      *
-     * This is useful for assigning data a nice and meaningful names.
+     * The "name" column is useful for assigning data nice names,
+     * which may be more meaningful than the ones that are created from the uri.
      *
-     * This is important if two image data sets have the same file name,
-     * because in this case they would "overwrite" each other in MoBIE
+     * It is necessary if two image data sets have the same file name,
+     * because in this case, they would "overwrite" each other in MoBIE
      * and only the last one in the table would be accessible.
      *
      * Supported values:
      * - Free text
      *
      * Default value:
-     * - If the column is absent or the cell is empty a name will be automatically assigned
-     *   from the file name part of the URI
+     * - If the column is absent or the cell is empty, a name will be automatically assigned
+     *   from the file name part of the "uri" and, if present, the "channel"
      */
     public static final String NAME = "name";
 
@@ -384,7 +385,7 @@ public class CollectionTableConstants
      * - OmeZarr
      *
      * Default:
-     * If the column is absent or contains an empty or unsupported string the
+     * If the column is absent or contains an empty or unsupported string, the
      * data format will be determined from the file ending
      *
      * Use cases:

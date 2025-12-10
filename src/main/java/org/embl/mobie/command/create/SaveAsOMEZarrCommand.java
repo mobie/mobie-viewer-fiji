@@ -54,8 +54,9 @@ public class SaveAsOMEZarrCommand extends DynamicCommand implements Initializabl
         IJ.log( "Dimension order: X Y C Z T" );
         IJ.log( "Image dimensions: " + Arrays.toString( imp.getDimensions() ) );
 
+        // https://forum.image.sc/t/should-compression-play-a-role-in-selecting-chunk-sizes-for-ome-zarr-v0-4-datasets/117877
         int[] chunkDimensions = new ChunkSizeComputer( imp.getDimensions(), imp.getBytesPerPixel() )
-                .getChunkDimensionsXYCZT( 8000000 );
+                .getChunkDimensionsXYCZT( 50000000 );
         IJ.log( "Chunk dimensions: " + Arrays.toString( chunkDimensions ) );
 
         String omeXml = IOHelper.getOMEXml( imp );
