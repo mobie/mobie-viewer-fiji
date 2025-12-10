@@ -1193,9 +1193,7 @@ public class UserInterfaceHelper
 				@Override
 				public void actionPerformed( ActionEvent e )
 				{
-					IJ.showMessage( "BigVolumeBrowser not installed", 
-							"<html><center>To observe large datasets in 3D,<br>"
-							+ "you need to install <a href=\"https://github.com/UU-cellbiology/bigvolumebrowser/wiki/How-to-install-plugin\">BigVolumeBrowser plugin</a></center></html>" );
+					showBvbInstallationInstructions();
 				}
 			} );
 			
@@ -1203,6 +1201,7 @@ public class UserInterfaceHelper
 
 		return checkBox;
 	}
+
 	public static JCheckBox createBVBSpotVisibilityCheckbox(
 			SpotDisplay display  )
 	{
@@ -1244,14 +1243,19 @@ public class UserInterfaceHelper
 				@Override
 				public void actionPerformed( ActionEvent e )
 				{
-					IJ.showMessage( "BigVolumeBrowser not installed", 
-							"<html><center>To observe large datasets in 3D,<br>"
-							+ "you need to install <a href=\"https://github.com/UU-cellbiology/bigvolumebrowser/wiki/How-to-install-plugin\">BigVolumeBrowser plugin</a></center></html>" );
+					showBvbInstallationInstructions();
 				}
 			} );
 			
 		}
 		return checkBox;
+	}
+
+	private static void showBvbInstallationInstructions()
+	{
+		IJ.showMessage( "BigVolumeBrowser not installed",
+				"<html><center>To observe large datasets in 3D,<br>"
+				+ "you need to install <a href=\"https://github.com/UU-cellbiology/bigvolumebrowser/wiki/How-to-install-plugin\">BigVolumeBrowser plugin</a></center></html>" );
 	}
 
 	public static JCheckBox createImageVolumeViewerVisibilityCheckbox( ImageDisplay display )

@@ -30,6 +30,7 @@ package org.embl.mobie.lib.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import bvb.core.BigVolumeBrowser;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
@@ -96,24 +97,30 @@ public class ViewManager
 
 	public ViewManager( MoBIE moBIE, UserInterface userInterface, boolean is2D )
 	{
-		this.moBIE = moBIE;
+        this.moBIE = moBIE;
 		this.userInterface = userInterface;
 		currentDisplays = new ArrayList<>();
 		sliceViewer = new SliceViewer( moBIE, is2D );
 		universeManager = new UniverseManager();
-		if(System.getProperty("java.class.path").toLowerCase().contains( "bigvolumebrowser"))
-		{
-			bigVolumeBrowser = new BigVolumeBrowserMoBIE();
-		}
-		else
-		{
-			System.out.println("BigVolumeBrowser not installed");
-			bigVolumeBrowser = null;
-		}
-		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
+		bigVolumeBrowser = getBigVolumeBrowserMoBIE();
+        additionalViewsLoader = new AdditionalViewsLoader( moBIE );
 		viewSaver = new ViewSaver( moBIE );
 		viewDeleter = new ViewDeleter( moBIE );
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
+	}
+
+	private static BigVolumeBrowserMoBIE getBigVolumeBrowserMoBIE()
+	{
+		try
+		{
+			Class.forName("bvb.core.BigVolumeBrowser");
+		    return new BigVolumeBrowserMoBIE();
+		}
+		catch (ClassNotFoundException e)
+		{
+		    System.out.println("BigVolumeBrowser not installed");
+			return null;
+		}
 	}
 
 
