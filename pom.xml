@@ -9,7 +9,7 @@
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
-    <version>6.5.1-SNAPSHOT</version>
+    <version>6.5.1</version>
 
     <!--  https://sites.imagej.net/MoBIE/-->
 
@@ -75,7 +75,7 @@
         <connection>scm:git:https://github.com/mobie/mobie-viewer-fiji</connection>
         <developerConnection>scm:git:git@github.com:mobie/mobie-viewer-fiji</developerConnection>
         <url>https://github.com/mobie/mobie-viewer-fiji</url>
-        <tag>HEAD</tag>
+        <tag>mobie-viewer-fiji-6.5.1</tag>
     </scm>
     <issueManagement>
         <system>GitHub</system>
