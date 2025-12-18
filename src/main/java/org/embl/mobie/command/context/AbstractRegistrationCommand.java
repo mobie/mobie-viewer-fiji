@@ -41,10 +41,10 @@ public abstract class AbstractRegistrationCommand extends AbstractTransformation
         super.initialize();
 
         getInfo().getMutableInput( "fixedImageName", String.class )
-                .setChoices( selectedImages.getNames() );
+                .setChoices( selectableImages.getNames() );
 
         getInfo().getMutableInput( "fixedImageName", String.class )
-                .setDefaultValue( selectedImages.getNames().get( 0 ) );
+                .setDefaultValue( selectableImages.getNames().get( 0 ) );
     }
 
 }

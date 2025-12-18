@@ -30,7 +30,6 @@ package org.embl.mobie.command.context;
 
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
@@ -101,7 +100,7 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
     {
         final long[] sizeInPixels = ScreenShotMaker.getCaptureImageSizeInPixels( bdvHandle, targetSamplingInXY, numSlices );
         IJ.log( CAPTURE_SIZE_PIXELS + Arrays.toString( sizeInPixels ) );
-        List< SourceAndConverter< ? > > sacs = MoBIEHelper.getVisibleNonAnnotationSacs( bdvHandle );
+        List< SourceAndConverter< ? > > sacs = MoBIEHelper.getVisibleImageSacs( bdvHandle );
         ArrayList< Type > types = MoBIEHelper.getTypes( sacs );
 
         // Compute total size

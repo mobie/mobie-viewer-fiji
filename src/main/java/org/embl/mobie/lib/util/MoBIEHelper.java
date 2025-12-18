@@ -465,7 +465,7 @@ public abstract class MoBIEHelper
         return visibleSacs;
     }
 
-	public static List< SourceAndConverter< ? > > getVisibleNonAnnotationSacs( BdvHandle bdv )
+	public static List< SourceAndConverter< ? > > getVisibleImageSacs( BdvHandle bdv )
 	{
 		List< SourceAndConverter< ? > > visibleSacs = getVisibleSacs( bdv );
 

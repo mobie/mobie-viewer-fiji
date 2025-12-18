@@ -28,21 +28,14 @@
  */
 package org.embl.mobie.command.context;
 
-import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.MoBIEManualTransformationEditor;
-import org.embl.mobie.lib.serialize.display.Display;
-import org.embl.mobie.lib.view.ViewManager;
 import org.embl.mobie.ui.UserInterfaceHelper;
 import org.scijava.ItemVisibility;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, attrs = {}, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>" + ManualTransformationCommand.COMMAND_NAME )
 public class ManualTransformationCommand extends AbstractTransformationCommand
@@ -84,7 +77,7 @@ public class ManualTransformationCommand extends AbstractTransformationCommand
 		transformationEditor.setActive( true );
 
 		getInfo().getMutableInput( "status", String.class )
-				.setValue( this, "Transforming: " + String.join( ",", selectedImages.getNames() ));
+				.setValue( this, "Transforming: " + String.join( ",", selectableImages.getNames() ));
 	}
 
 	private void acceptManualTransform()

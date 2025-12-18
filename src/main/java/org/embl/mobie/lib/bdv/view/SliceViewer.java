@@ -149,7 +149,7 @@ public class SliceViewer
 
 		final Set< String > actionsKeys = sacService.getActionsKeys();
 		final ArrayList< String > actions = new ArrayList< String >();
-		actions.add( SourceAndConverterService.getCommandName( SourcesInfoCommand.class ) );
+		actions.add( SourceAndConverterService.getCommandName( LogImagesInfoCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( CurrentLocationLoggerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ScreenShotMakerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ScreenShotStackMakerCommand.class ) );

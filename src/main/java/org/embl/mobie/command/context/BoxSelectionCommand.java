@@ -98,7 +98,6 @@ public class BoxSelectionCommand implements BdvPlaygroundActionCommand
                 rangeInterval,
                 BoxSelectionOptions.options().title( "Select box" ) );
 
-
         if ( transformedBox.isValid() )
         {
             interval = transformedBox.getInterval();
@@ -110,7 +109,6 @@ public class BoxSelectionCommand implements BdvPlaygroundActionCommand
             IJ.log( "Size in global coordinate system: " + Arrays.toString( size ) );
             IJ.log( "Interval: " + Arrays.toString( interval.minAsDoubleArray() ) + ", " + Arrays.toString( interval.maxAsDoubleArray() ) );
             IJ.log( "Interval transform to global coordinate system: " + Arrays.toString( transform.getRowPackedCopy() ) );
-
         }
         else
         {

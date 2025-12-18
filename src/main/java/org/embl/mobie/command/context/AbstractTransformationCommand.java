@@ -66,7 +66,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
 
     // Note that this is populated by org.embl.mobie.command.widget.SwingSelectableImagesWidget
     @Parameter ( label = "Moving image(s)" )
-    public SelectableImages selectedImages;
+    public SelectableImages selectableImages;
 
     // FIXME: change the suffix based on the registration method in an init()
     @Parameter ( label = "Transformed image(s) suffix", persist = false,
@@ -87,7 +87,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         sacs = MoBIEHelper.getVisibleSacs( bdvHandle );
         // the below should not be necessary, because the SciJava context should do this
         // but the AbstractRegistrationCommand otherwise gets null for "selectedImages"...
-        selectedImages = SwingSelectableImagesWidget.getSelectableImages();
+        selectableImages = SwingSelectableImagesWidget.getSelectableImages();
     }
 
     protected void applyTransform( AffineTransform3D affineTransform3D )
@@ -121,7 +121,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
     {
         // Remove the moving image displays
         // because the transformed ones are being shown
-        List< String > movingImageNames = selectedImages.getNames();
+        List< String > movingImageNames = selectableImages.getNames();
         ViewManager viewManager = MoBIE.getInstance().getViewManager();
         List< Display > displays = viewManager.getCurrentSourceDisplays();
         List< Display > displaysToRemove = displays.stream()
@@ -213,7 +213,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
 //        else
 //        {
 
-        movingImages = selectedImages.getNames().stream()
+        movingImages = selectableImages.getNames().stream()
                 .map( name -> DataStore.getImage( name ) )
                 .collect( Collectors.toList() );
 

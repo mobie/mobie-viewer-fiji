@@ -51,7 +51,7 @@ import java.util.List;
 
 @Plugin(type = BdvPlaygroundActionCommand.class,
         menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Log Images Info")
-public class SourcesInfoCommand implements BdvPlaygroundActionCommand
+public class LogImagesInfoCommand implements BdvPlaygroundActionCommand
 {
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -88,6 +88,7 @@ public class SourcesInfoCommand implements BdvPlaygroundActionCommand
             IJ.log( "Shape: " + Arrays.toString( source.getSource( t,0 ).dimensionsAsLongArray() ) );
             IJ.log( "Number of resolution levels: " + source.getNumMipmapLevels() );
             IJ.log( "Voxel size: " + Arrays.toString( source.getVoxelDimensions().dimensionsAsDoubleArray() ) );
+            IJ.log( "Voxel unit: " + source.getVoxelDimensions().unit() );
 
             ArrayList< Transformation > transformations = MoBIEHelper.fetchAllImageTransformations( image );
             Transformation imageTransformation = transformations.get( 0 );

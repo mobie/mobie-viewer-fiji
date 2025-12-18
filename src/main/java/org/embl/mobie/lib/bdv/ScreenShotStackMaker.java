@@ -116,7 +116,7 @@ public class ScreenShotStackMaker
 
     public void run( double targetSamplingInXY, double targetSamplingInZ )
     {
-        List< SourceAndConverter< ? > > sacs = MoBIEHelper.getVisibleNonAnnotationSacs( bdvHandle );
+        List< SourceAndConverter< ? > > sacs = MoBIEHelper.getVisibleImageSacs( bdvHandle );
         run( sacs, targetSamplingInXY, targetSamplingInZ );
     }
 
