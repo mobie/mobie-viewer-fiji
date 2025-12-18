@@ -46,13 +46,9 @@ import net.imglib2.Cursor;
 import net.imglib2.roi.geom.real.WritableBox;
 import net.imglib2.type.Type;
 import net.imglib2.type.logic.BitType;
-import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
-import net.imglib2.util.Util;
 import org.embl.mobie.lib.data.DataStore;
-import org.embl.mobie.lib.image.AnnotatedLabelImage;
-import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.util.Corners;
 import org.embl.mobie.lib.util.MoBIEHelper;
@@ -168,23 +164,7 @@ public class ScreenShotMaker
         final long currentTimeMillis = System.currentTimeMillis();
 
 
-        ArrayList< Type > types = new ArrayList<>();
-        for ( SourceAndConverter< ? > sac : sacs )
-        {
-            Image< ? > image = DataStore.sourceToImage().get( sac );
-            if ( image instanceof RegionAnnotationImage )
-                continue;
-
-            if ( image instanceof AnnotatedLabelImage )
-            {
-                RandomAccessibleInterval< ? extends IntegerType< ? > > source = ( ( AnnotatedLabelImage< ? > ) image ).getLabelImage().getSourcePair().getSource().getSource( 0, 0 );
-                types.add( Util.getTypeFromInterval( source ) );
-            }
-            else
-            {
-                types.add( ( Type ) Util.getTypeFromInterval( sac.getSpimSource().getSource( 0, 0 ) ) );
-            }
-        }
+        ArrayList< Type > types = MoBIEHelper.getTypes( sacs );
 
         List< SourceAndConverter< ? > > dataSacs = sacs.stream()
                 .filter( sac -> !( DataStore.sourceToImage().get( sac ) instanceof RegionAnnotationImage ) )
@@ -419,11 +399,11 @@ public class ScreenShotMaker
             List< SourceAndConverter< ? > > sacs )
     {
         final RandomAccessibleInterval< ARGBType > argbTarget = ArrayImgs.argbs( screenshotDimensions[ 0 ], screenshotDimensions[ 1 ]  );
-        createARGBprojection( argbSources, argbTarget, sacs );
+        createArgbProjection( argbSources, argbTarget, sacs );
         return asImagePlus( argbTarget, physicalUnit, voxelSpacing );
     }
 
-    private void createARGBprojection( ArrayList< RandomAccessibleInterval< ARGBType > > argbSources, RandomAccessibleInterval< ARGBType > argbTarget, List< SourceAndConverter< ? > > sacs )
+    private void createArgbProjection( ArrayList< RandomAccessibleInterval< ARGBType > > argbSources, RandomAccessibleInterval< ARGBType > argbTarget, List< SourceAndConverter< ? > > sacs )
     {
         final Cursor< ARGBType > argbCursor = Views.iterable( argbTarget ).localizingCursor();
         final int numVisibleSources = argbSources.size();
@@ -456,13 +436,17 @@ public class ScreenShotMaker
 
         final double[] bdvWindowPhysicalSize = getBdvWindowPhysicalSize( bdvHandle, viewerVoxelSpacing );
 
-        final long[] capturePixelSize = new long[ 2 ];
+        final long[] capturePixelSize = new long[ 2];
         for ( int d = 0; d < 2; d++ )
-        {
             capturePixelSize[ d ] = ( long ) ( Math.ceil( bdvWindowPhysicalSize[ d ] / samplingXY ) );
-        }
 
         return capturePixelSize;
+    }
+
+    public static long[] getCaptureImageSizeInPixels( BdvHandle bdvHandle, double samplingXY, int numSlices )
+    {
+        long[] size = getCaptureImageSizeInPixels( bdvHandle, samplingXY );
+        return new long[]{ size[ 0 ], size[ 1], numSlices };
     }
 
     private static double[] getBdvWindowPhysicalSize( BdvHandle bdvHandle, double viewerVoxelSpacing )

@@ -380,8 +380,8 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
         //new OpenCollectionTableCommandTest().blobsAndMri();
-        new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
-        //new OpenCollectionTableCommandTest().thinPlateSplineMri();
+        //new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
+        new OpenCollectionTableCommandTest().thinPlateSplineMri();
         //new OpenCollectionTableCommandTest().thinPlateSplinePlatyGoogleSheet();
         //new OpenCollectionTableCommandTest().manyGroups();
     }

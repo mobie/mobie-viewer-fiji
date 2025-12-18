@@ -760,7 +760,7 @@ public class CollectionDataSetter
     {
         ArrayList< Transformation > transformations = new ArrayList<>();
 
-        // AFFINE
+        // AFFINE (first)
         try
         {
             String string = getString( row, CollectionTableConstants.AFFINE );
@@ -783,7 +783,7 @@ public class CollectionDataSetter
             // Do not add a transformation
         }
 
-        // TPS
+        // TPS (second)
         try
         {
             String string = getString( row, CollectionTableConstants.TPS );

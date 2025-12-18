@@ -73,7 +73,6 @@ import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.source.Masked;
 import org.embl.mobie.lib.source.RealTransformedSource;
 import org.embl.mobie.lib.source.SourceHelper;
-import org.embl.mobie.lib.source.SourceWrapper;
 import org.embl.mobie.lib.transform.InterpolatedAffineRealTransform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -451,6 +450,7 @@ public abstract class MoBIEHelper
         final SourceAndConverterBdvDisplayService displayService = SourceAndConverterServices.getBdvDisplayService();
 
         final List< SourceAndConverter< ? > > sacs = displayService.getSourceAndConverterOf( bdv );
+
         List< SourceAndConverter< ? > > visibleSacs = new ArrayList<>(  );
         for ( SourceAndConverter< ? > sac : sacs )
         {
@@ -464,6 +464,20 @@ public abstract class MoBIEHelper
 
         return visibleSacs;
     }
+
+	public static List< SourceAndConverter< ? > > getVisibleNonAnnotationSacs( BdvHandle bdv )
+	{
+		List< SourceAndConverter< ? > > visibleSacs = getVisibleSacs( bdv );
+
+		// Remove RegionImages
+		visibleSacs = visibleSacs.stream()
+				.filter( sac -> ! ( DataStore.sourceToImage().get( sac ) instanceof RegionAnnotationImage ) )
+				.collect( Collectors.toList() );
+
+		return visibleSacs;
+	}
+
+
 
 	public static List< SourceAndConverter< ? > > getSacs( BdvHandle bdv )
 	{
@@ -1310,5 +1324,25 @@ public abstract class MoBIEHelper
 		{
 			return null;
 		}
+	}
+
+	public static @NotNull ArrayList< Type > getTypes( List< SourceAndConverter< ? > > sacs )
+	{
+		ArrayList< Type > types = new ArrayList<>();
+		for ( SourceAndConverter< ? > sac : sacs )
+		{
+			Image< ? > image = DataStore.sourceToImage().get( sac );
+
+			if ( image instanceof AnnotatedLabelImage )
+			{
+				RandomAccessibleInterval< ? extends IntegerType< ? > > source = ( ( AnnotatedLabelImage< ? > ) image ).getLabelImage().getSourcePair().getSource().getSource( 0, 0 );
+				types.add( Util.getTypeFromInterval( source ) );
+			}
+			else
+			{
+				types.add( ( Type ) Util.getTypeFromInterval( sac.getSpimSource().getSource( 0, 0 ) ) );
+			}
+		}
+		return types;
 	}
 }

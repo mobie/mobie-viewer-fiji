@@ -153,7 +153,6 @@ public class SliceViewer
 		actions.add( SourceAndConverterService.getCommandName( CurrentLocationLoggerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ScreenShotMakerCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ScreenShotStackMakerCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( ScreenShotStackMaker2Command.class ) );
 		actions.add( SourceAndConverterService.getCommandName( ShowRawImagesCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( BoxSelectionCommand.class ) );
 		actions.add( SourceAndConverterService.getCommandName( MaskImagesCommand.class ) );

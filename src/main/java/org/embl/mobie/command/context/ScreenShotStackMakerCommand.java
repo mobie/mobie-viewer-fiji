@@ -28,29 +28,29 @@
  */
 package org.embl.mobie.command.context;
 
-import ij.CompositeImage;
+import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.measure.Calibration;
-import ij.process.ImageProcessor;
+import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.util.LinAlgHelpers;
+import net.imglib2.type.Type;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.bdv.ScreenShotMaker;
-import org.embl.mobie.lib.util.Corners;
+import org.embl.mobie.lib.bdv.ScreenShotStackMaker;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.List;
 
+
+// create separate ImagePlus
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Take Screenshot Stack")
 public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
 {
@@ -63,8 +63,8 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
             stepSize = "0.001")
     public Double targetSamplingInZ = 1D;
 
-    @Parameter(label="Number of slices above & below current",
-            description = "For example, entering 5 here will result in:\n5 above + 1 current + 5 below = 11 slices in total.",
+    @Parameter(label="Number of slices (starting from current)",
+            description = "This is above and including the current slice.",
             persist = false)
     public Integer numSlices = 5;
 
@@ -77,93 +77,12 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
         AffineTransform3D viewerTransform = bdvHandle.getViewerPanel().state().getViewerTransform();
         AffineTransform3D initialViewerTransform = viewerTransform.copy();
 
-        // compute scaling from viewer to physical coordinates along the current viewing axis
-        double[] physicalA = new double[ 3 ];
-        double[] physicalB = new double[ 3 ];
-        double[] distance = new double[ 3 ];
-        viewerTransform.apply( new double[]{ 0, 0, 0 }, physicalA );
-        viewerTransform.apply( new double[]{ 0, 0, 1 }, physicalB );
-        LinAlgHelpers.subtract( physicalA, physicalB, distance );
-        System.out.println( Arrays.toString( distance ) );
-        double screenToPhysicalScale = LinAlgHelpers.length( distance );
-        System.out.println( screenToPhysicalScale );
-
-        // move viewer to starting point
-        viewerTransform.translate( 0, 0, -numSlices * targetSamplingInZ * screenToPhysicalScale );
-        bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
-        bdvHandle.getViewerPanel().requestRepaint();
-
-        // collect all slices
-        ImageStack rgbStack = new ImageStack();
-        ImageStack compositeStack = new ImageStack();
-        numSlices = numSlices * 2 + 1;
-        Calibration calibration = null;
-
-        ArrayList< Corners > corners = new ArrayList<>();
-        Map< Integer, ImageProcessor > sliceToRgb = new LinkedHashMap<>();
-        Map< Integer, ImageStack > sliceToComposite = new LinkedHashMap<>();
-
-        for ( int sliceIndex = 0; sliceIndex < numSlices; sliceIndex++ )
-        {
-            // adapt viewer transform
-            viewerTransform.translate( 0, 0, targetSamplingInZ * screenToPhysicalScale );
-            bdvHandle.getViewerPanel().state().setViewerTransform( viewerTransform );
-            bdvHandle.getViewerPanel().requestRepaint();
-
-            double[] windowCentreInCalibratedUnits = BdvHandleHelper.getWindowCentreInCalibratedUnits( bdvHandle );
-
-            IJ.log( "Slice index " + sliceIndex + "; screen centre: " + Arrays.toString( windowCentreInCalibratedUnits ) );
-
-            ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvHandle, pixelUnit );
-            screenShotMaker.run( targetSamplingInXY );
-
-            if ( sliceIndex == 0 )
-                corners.add( screenShotMaker.getCorners() );
-
-            if ( sliceIndex == numSlices - 1 )
-                corners.add( screenShotMaker.getCorners() );
-
-            try
-            {
-                sliceToRgb.put( sliceIndex, screenShotMaker.getRGBImagePlus().getProcessor() );
-                sliceToComposite.put( sliceIndex, screenShotMaker.getCompositeImagePlus().getStack() );
-
-//                rgbStack.addSlice( screenShotMaker.getRGBImagePlus().getProcessor() );
-//                ImageStack stack = screenShotMaker.getCompositeImagePlus().getStack();
-//                for ( int i = 0; i < stack.size(); i++ )
-//                {
-//                    compositeStack.addSlice( stack.getProcessor( i + 1 ) );
-//                }
-
-                calibration = screenShotMaker.getRGBImagePlus().getCalibration();
-            }
-            catch ( Exception e )
-            {
-                sliceToRgb.put( sliceIndex, null );
-                sliceToComposite.put( sliceIndex, null );
-                IJ.log( "[WARNING] Skipping empty screen shot slice" );
-            }
-        }
-
+        // collect data
+        ScreenShotStackMaker maker = new ScreenShotStackMaker( bdvHandle, pixelUnit, numSlices );
+        maker.run( targetSamplingInXY, targetSamplingInZ );
+        maker.getOutputImps().forEach( o -> o.show() );
         bdvHandle.getViewerPanel().state().setViewerTransform( initialViewerTransform );
         bdvHandle.getViewerPanel().requestRepaint();
-
-        calibration.pixelDepth = targetSamplingInZ;
-
-        ImagePlus rgbImage = new ImagePlus( "RGB stack", rgbStack );
-        rgbImage.setDimensions( 1, rgbStack.size(), 1 );
-        rgbImage.setCalibration( calibration );
-        rgbImage.show();
-
-        CompositeImage compositeImage = new CompositeImage( new ImagePlus( "Composite stack", compositeStack ) );
-        compositeImage.setDimensions( compositeStack.size() / rgbStack.size(), rgbStack.size(), 1 );
-        compositeImage.setCalibration( calibration );
-        compositeImage.show();
-
-        IJ.log( "Lowest plane corners:" );
-        IJ.log( corners.get( 0 ).toString() );
-        IJ.log( "Highest plane corners:" );
-        IJ.log( corners.get( 1 ).toString() );
     }
 
     @Override
@@ -174,5 +93,55 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
         final MutableModuleItem< Double > targetSamplingItem =
                 getInfo().getMutableInput("targetSamplingInZ", Double.class);
         targetSamplingItem.setValue( this, getTargetSampling() );
+    }
+
+    // callback
+    @Override
+    protected void showNumPixels()
+    {
+        final long[] sizeInPixels = ScreenShotMaker.getCaptureImageSizeInPixels( bdvHandle, targetSamplingInXY, numSlices );
+        IJ.log( CAPTURE_SIZE_PIXELS + Arrays.toString( sizeInPixels ) );
+        List< SourceAndConverter< ? > > sacs = MoBIEHelper.getVisibleNonAnnotationSacs( bdvHandle );
+        ArrayList< Type > types = MoBIEHelper.getTypes( sacs );
+
+        // Compute total size
+        long numPixels = 1;
+        for ( long size : sizeInPixels )
+            numPixels *= size;
+
+        long totalSizeInBytes = 0;
+        for ( Type type : types )
+        {
+            if ( type instanceof UnsignedByteType )
+            {
+                totalSizeInBytes += numPixels * 1;
+            }
+            else if ( type instanceof UnsignedShortType )
+            {
+                totalSizeInBytes += numPixels * 2;
+            }
+            else
+            {
+                totalSizeInBytes += numPixels * 4; // float
+            }
+        }
+
+        // Compare to available memory
+        long currentMemory = IJ.currentMemory();
+        long maxMemory = IJ.maxMemory();
+        long freeMem = maxMemory - currentMemory;
+        double totalSizeInMB = totalSizeInBytes / (1024.0 * 1024.0);
+        double freeSizeInMB = freeMem / (1024.0 * 1024.0);
+
+        IJ.log( "Needed memory [GB]: " + String.format( "%.4f", totalSizeInMB / 1024 ) );
+        IJ.log( "Free memory [GB]:" + String.format( "%.4f", freeSizeInMB / 1024 ) );
+
+        if ( totalSizeInBytes > freeMem )
+        {
+            IJ.showMessage( "Not enough memory available!\n" +
+                    "Increase the sampling or decrease the number of z-planes;\n" +
+                    "or use a computer with more RAM.\n" +
+                    "See IJ Log Window for details." );
+        }
     }
 }

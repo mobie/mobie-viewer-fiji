@@ -36,12 +36,8 @@ import edu.mines.jtk.util.AtomicDouble;
 import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
-import ij.gui.Overlay;
 import ij.gui.Roi;
 import ij.measure.Calibration;
-import ij.plugin.Duplicator;
-import ij.plugin.filter.ThresholdToSelection;
-import ij.process.LUT;
 import net.imglib2.*;
 import net.imglib2.Cursor;
 import net.imglib2.algorithm.util.Grids;
@@ -65,22 +61,18 @@ import org.embl.mobie.lib.bdv.blend.MoBIEAccumulateProjectorARGB;
 import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.image.AnnotatedLabelImage;
 import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.SourceHelper;
-import org.embl.mobie.lib.source.label.AnnotatedLabelSource;
 import org.embl.mobie.lib.util.Corners;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.util.ThreadHelper;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getLevel;
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getViewerVoxelSpacing;
@@ -124,7 +116,7 @@ public class ScreenShotStackMaker
 
     public void run( double targetSamplingInXY, double targetSamplingInZ )
     {
-        List< SourceAndConverter< ? > > sacs = MoBIEHelper.getVisibleSacs( bdvHandle );
+        List< SourceAndConverter< ? > > sacs = MoBIEHelper.getVisibleNonAnnotationSacs( bdvHandle );
         run( sacs, targetSamplingInXY, targetSamplingInZ );
     }
 
@@ -174,15 +166,9 @@ public class ScreenShotStackMaker
         final long currentTimeMillis = System.currentTimeMillis();
 
         ArrayList< Type > types = new ArrayList<>();
-        ArrayList< SourceAndConverter > sacsToRemove = new ArrayList< SourceAndConverter >();
         for ( SourceAndConverter< ? > sac : sacs )
         {
             Image< ? > image = DataStore.sourceToImage().get( sac );
-            if ( image instanceof RegionAnnotationImage )
-            {
-                sacsToRemove.add( sac );
-                continue;
-            }
 
             if ( image instanceof AnnotatedLabelImage )
             {
@@ -194,15 +180,6 @@ public class ScreenShotStackMaker
                 types.add( ( Type ) Util.getTypeFromInterval( sac.getSpimSource().getSource( 0, 0 ) ) );
             }
         }
-
-        for ( SourceAndConverter sacToRemove : sacsToRemove )
-        {
-            sacs.remove( sacToRemove );
-        }
-
-        List< SourceAndConverter< ? > > dataSacs = sacs.stream()
-                .filter( sac -> !( DataStore.sourceToImage().get( sac ) instanceof RegionAnnotationImage ) )
-                .collect( Collectors.toList() );
 
         for ( int sacIndex = 0; sacIndex < sacs.size(); sacIndex++ )
         {
@@ -293,7 +270,7 @@ public class ScreenShotStackMaker
                                 maskAccess.get().set( true );
                                 setArgbPixelValue( converter, sourceAccess, argbAccess, argbType );
 
-                                if ( dataSacs.contains( sac ) )
+                                if ( sacs.contains( sac ) )
                                     setPixelValue( sourceAccess, targetAccess );
                             }
                             else
@@ -325,7 +302,7 @@ public class ScreenShotStackMaker
 
             ThreadHelper.waitUntilFinished( futures );
 
-            if ( dataSacs.contains( sac ) )
+            if ( sacs.contains( sac ) )
             {
                 realCaptures.add( realRAI );
                 maskCaptures.add( maskRAI );
@@ -347,6 +324,7 @@ public class ScreenShotStackMaker
             for ( int i = 0; i < realCaptures.size() ; i++ )
             {
                 final ImagePlus imp = ImageJFunctions.wrap( (RandomAccessibleInterval) realCaptures.get( i ), sacs.get( i ).getSpimSource().getName() );
+                imp.setDimensions( 1, imp.getNSlices(), 1 );
                 imp.setDisplayRange( displayRanges.get( i )[0], displayRanges.get( i )[1] );
                 imp.setCalibration( calibration );
                 outputImps.add( imp );
