@@ -1,4 +1,6 @@
 [![Build Status](https://github.com/mobie/mobie-viewer-fiji/actions/workflows/build.yml/badge.svg)](https://github.com/mobie/mobie-viewer-fiji/actions/workflows/build.yml)
+[![Maven Scijava Version](https://img.shields.io/github/v/tag/mobie/mobie-viewer-fiji?label=Version-[Maven%20Scijava])](https://maven.scijava.org/#browse/browse:releases:org%2Fembl%2Fmobie%2Fmobie-viewer-fiji)
+
 
 [![DOI](https://zenodo.org/badge/177135630.svg)](https://zenodo.org/badge/latestdoi/177135630)
 
