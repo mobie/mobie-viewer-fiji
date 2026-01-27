@@ -35,6 +35,7 @@ import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions;
 import net.tlabs.tablesaw.parquet.TablesawParquetReader;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.io.StorageLocation;
+import org.embl.mobie.lib.table.columns.CollectionTableConstants;
 import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.columns.SegmentColumnNames;
@@ -66,6 +67,10 @@ public class TableOpener
 		nameToType.put( ColumnNames.SPOT_X, ColumnType.FLOAT );
 		nameToType.put( ColumnNames.SPOT_Y, ColumnType.FLOAT );
 		nameToType.put( ColumnNames.SPOT_Z, ColumnType.FLOAT );
+		nameToType.put( CollectionTableConstants.VIEW, ColumnType.STRING );
+		nameToType.put( CollectionTableConstants.GRID, ColumnType.STRING );
+		nameToType.put( CollectionTableConstants.DISPLAY, ColumnType.STRING );
+		nameToType.put( CollectionTableConstants.NAME, ColumnType.STRING );
 	}
 
 	public static Table open( String uri )

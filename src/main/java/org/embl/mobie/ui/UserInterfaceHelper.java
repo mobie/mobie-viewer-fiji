@@ -1350,7 +1350,7 @@ public class UserInterfaceHelper
 	}
 
 	@NotNull
-	private static JButton getIconButton( final String iconResource )
+    static JButton getIconButton( final String iconResource )
 	{
 		final URL resource = UserInterfaceHelper.class.getResource( "/" + iconResource );
 		Image scaledInstance = new ImageIcon( resource ).getImage().getScaledInstance( 19, 19, Image.SCALE_SMOOTH );

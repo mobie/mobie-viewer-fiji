@@ -115,17 +115,19 @@ public class CollectionDataSetter
                     );
                 } );
 
-                // Note that the regions name must be unique because it will be instantiated as an image.
+                // Note that the region name must be unique because it will be instantiated as an image.
                 // The viewName alone may be the same as an image name, which would lead to a crash,
                 // because it will "overwrite" the image.
                 Display< ? > regionDisplay = createRegionDisplay( "regions: " + viewName, nestedViewSources, false );
                 viewToDisplays.get( viewName ).put( regionDisplay.getName(), regionDisplay );
             }
 
+            ArrayList< Display< ? > > sourceDisplays = new ArrayList<>( viewToDisplays.get( viewName ).values() );
+            String[] uiSelectionGroups = viewToGroups.get( viewName );
             final View view = new View(
                     viewName,
-                    viewToGroups.get( viewName ),
-                    new ArrayList<>( viewToDisplays.get( viewName ).values() ),
+                    uiSelectionGroups,
+                    sourceDisplays,
                     transformations,
                     null,
                     viewToExclusive.get( viewName ),
@@ -160,7 +162,10 @@ public class CollectionDataSetter
             // FIXME: This is wrong if there are grid_positions given
             if ( positionToSources.size() == 1 )
             {
-                assert positionToSources.keySet().iterator().next().equals( NO_GRID_POSITION );
+                if ( ! positionToSources.keySet().iterator().next().equals( NO_GRID_POSITION ) )
+                {
+                    System.err.println("error in addGridTransformationsAndRegionDisplay");
+                }
 
                 nestedSources = positionToSources.values().iterator().next().stream()
                         .map( Collections::singletonList )
@@ -387,7 +392,7 @@ public class CollectionDataSetter
         }
     }
 
-    private static TableSource getTable( Row row, String rootPath )
+    private TableSource getTable( Row row, String rootPath )
     {
         String tablePath = getString( row, CollectionTableConstants.LABELS_TABLE );
 
@@ -415,7 +420,7 @@ public class CollectionDataSetter
         return string;
     }
 
-    private static String getString( Row row, final String... columnNames )
+    private String getString( Row row, final String... columnNames )
     {
         for ( String columnInRow : row.columnNames() )
         {
@@ -479,7 +484,7 @@ public class CollectionDataSetter
         return name;
     }
 
-    private static String getDataType( Row row )
+    private String getDataType( Row row )
     {
         try
         {
@@ -495,7 +500,7 @@ public class CollectionDataSetter
         }
     }
 
-    private static String getGridName( Row row )
+    private String getGridName( Row row )
     {
         try {
             String gridName = getString( row, CollectionTableConstants.GRID );
@@ -503,10 +508,11 @@ public class CollectionDataSetter
             if ( gridName.isEmpty() )
                 return null;
 
-            if ( row.columnNames().contains( CollectionTableConstants.VIEW  ) )
-                return row.getString( CollectionTableConstants.VIEW  ) + ": " + gridName;
+            return getViewName( row ) + ": " + gridName;
+            //if ( row.columnNames().contains( CollectionTableConstants.VIEW  ) )
+            //    return row.getString( CollectionTableConstants.VIEW  ) + ": " + gridName;
 
-            return gridName;
+            //return gridName;
         }
         catch ( Exception e )
         {
@@ -556,13 +562,15 @@ public class CollectionDataSetter
             String name = getString( row, CollectionTableConstants.VIEW );
 
             if ( name == null || name.isEmpty() )
-                return getDisplayName( row );
+                name = getDisplayName( row );
 
             return name;
         }
         catch ( Exception e )
         {
-            return getDisplayName( row );
+            String name = getDisplayName( row );
+
+            return name;
         }
     }
 
@@ -667,7 +675,7 @@ public class CollectionDataSetter
         return ints;
 }
 
-    private static double[][] getBoundingBox( Row row )
+    private double[][] getBoundingBox( Row row )
     {
         try
         {
@@ -705,7 +713,7 @@ public class CollectionDataSetter
         }
     }
 
-    private static BlendingMode getBlendingMode( Row row )
+    private BlendingMode getBlendingMode( Row row )
     {
         try
         {
@@ -725,7 +733,7 @@ public class CollectionDataSetter
     // Note that this returns just a single AffineTransformation.
     // The fact that it returns a list is just for convenient consumption of
     // the downstream methods.
-    private static List< Transformation > getIntensityTransformationAsList( List< String > sources, Row row )
+    private List< Transformation > getIntensityTransformationAsList( List< String > sources, Row row )
     {
         ArrayList< Transformation > transformations = new ArrayList<>();
 
@@ -756,7 +764,7 @@ public class CollectionDataSetter
     }
 
 
-    private static List< Transformation > getTransformations( String sourceName, Row row )
+    private List< Transformation > getTransformations( String sourceName, Row row )
     {
         ArrayList< Transformation > transformations = new ArrayList<>();
 
@@ -808,9 +816,7 @@ public class CollectionDataSetter
         return transformations;
     }
 
-
-
-    private static String getColor( Row row )
+    private String getColor( Row row )
     {
         try
         {

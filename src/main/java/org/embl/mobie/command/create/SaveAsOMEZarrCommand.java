@@ -44,6 +44,14 @@ public class SaveAsOMEZarrCommand extends DynamicCommand implements Initializabl
     )
     public String imageType;
 
+    @Parameter ( label="Chunk size (MB)",
+            description = "Smaller chunk sizes can help to more efficiently lazy-load parts of the dataset;\n" +
+                    "however, going too small might actually decrease the performance due I/O overhead,\n" +
+                    "and there can be very many chunks (files), which can cause a problem for your file system.\n" +
+                    "It is considered that chunk sizes on disk between 1 and 10 MB is reasonable.\n" +
+                    "Since the chunks are compressed we recommend selecting here large chunk sizes, e.g. 50 MB." )
+    public int chunkSizeMB = 50;
+
     @Parameter ( label="Overwrite" )
     public Boolean overwrite;
 
@@ -56,7 +64,7 @@ public class SaveAsOMEZarrCommand extends DynamicCommand implements Initializabl
 
         // https://forum.image.sc/t/should-compression-play-a-role-in-selecting-chunk-sizes-for-ome-zarr-v0-4-datasets/117877
         int[] chunkDimensions = new ChunkSizeComputer( imp.getDimensions(), imp.getBytesPerPixel() )
-                .getChunkDimensionsXYCZT( 50000000 );
+                .getChunkDimensionsXYCZT( chunkSizeMB * 1000000 );
         IJ.log( "Chunk dimensions: " + Arrays.toString( chunkDimensions ) );
 
         String omeXml = IOHelper.getOMEXml( imp );

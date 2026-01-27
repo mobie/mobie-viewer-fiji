@@ -311,6 +311,19 @@ public class OpenCollectionTableCommandTest
         command.run();
     }
 
+    //@Test
+    public void segmentedNuclei( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = "/Users/tischer/Documents/mobie.github.io/tutorials/data/collection_tables/segmented_nuclei/collection.csv";
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
+        command.run();
+    }
+
     @Test
     public void openOrganelleGoogleSheet( )
     {
@@ -371,17 +384,17 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().simple();
         //new OpenCollectionTableCommandTest().spots3D();
         //new OpenCollectionTableCommandTest().spots3dWith20000Columns();
-        //new OpenCollectionTableCommandTest.createLargeSpotsTable();
+        //new OpenCollectionTableCommandTest().createLargeSpotsTable();
         //new OpenCollectionTableCommandTest().addImageTwice();
         //new OpenCollectionTableCommandTest().clem();
         //new OpenCollectionTableCommandTest().singleBlobs();
         //new OpenCollectionTableCommandTest().mrc();
-        //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
+        new OpenCollectionTableCommandTest().largeAndSmallBlobs();
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
         //new OpenCollectionTableCommandTest().blobsAndMri();
         //new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
-        new OpenCollectionTableCommandTest().thinPlateSplineMri();
+        //new OpenCollectionTableCommandTest().segmentedNuclei();
         //new OpenCollectionTableCommandTest().thinPlateSplinePlatyGoogleSheet();
         //new OpenCollectionTableCommandTest().manyGroups();
     }

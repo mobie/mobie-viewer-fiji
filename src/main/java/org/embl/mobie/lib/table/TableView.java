@@ -32,7 +32,7 @@ import ij.IJ;
 import ij.gui.GenericDialog;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
-import org.embl.mobie.lib.annotation.AnnotationUI;
+import org.embl.mobie.ui.AnnotationDialog;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.bdv.overlay.AnnotatedRegionsOverlay;
 import org.embl.mobie.lib.bdv.overlay.AnnotatedSegmentsOrSpotsOverlay;
@@ -64,8 +64,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.embl.mobie.lib.io.FileLocation;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import static org.embl.mobie.ui.UserInterfaceHelper.loadFromProjectOrFileSystemDialog;
 
@@ -638,7 +636,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	public void continueAnnotation( String annotationColumnName )
 	{
-		final AnnotationUI annotationUI = new AnnotationUI(
+		final AnnotationDialog annotationDialog = new AnnotationDialog(
 				annotationColumnName,
 				tableModel,
 				selectionModel,
@@ -647,9 +645,9 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		// base the current coloring model
 		// on the values in the annotation column
-		this.coloringModel.setColoringModel( annotationUI.getColoringModel() );
+		this.coloringModel.setColoringModel( annotationDialog.getColoringModel() );
 
-		annotationUI.showDialog();
+		annotationDialog.showDialog();
 	}
 
 	public void setVisible( boolean visible )

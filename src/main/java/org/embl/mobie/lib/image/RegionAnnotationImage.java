@@ -43,6 +43,7 @@ import org.embl.mobie.lib.serialize.display.RegionDisplay;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.lib.table.AnnData;
+import org.embl.mobie.lib.table.AnnotationTableModel;
 import org.embl.mobie.lib.table.saw.TableSawAnnotatedRegion;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.jetbrains.annotations.NotNull;
@@ -279,7 +280,9 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	{
 		if ( mask == null )
 		{
-			mask = MoBIEHelper.unionBox( annData.getTable().annotations() );
+			AnnotationTableModel< AR > table = annData.getTable();
+			ArrayList< AR > maskedCollection = table.annotations();
+			mask = MoBIEHelper.unionBox( maskedCollection );
 		}
 
 		return mask;

@@ -26,10 +26,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.annotation;
+package org.embl.mobie.ui;
 
 import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.lib.annotation.AnnotatedRegion;
+import org.embl.mobie.lib.annotation.AnnotatedSegment;
+import org.embl.mobie.lib.annotation.AnnotatedSpot;
+import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.color.CategoricalAnnotationColoringModel;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.ColoringModels;
@@ -37,8 +41,6 @@ import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.select.SelectionModel;
 import org.embl.mobie.lib.table.AnnotationTableModel;
 import org.embl.mobie.lib.table.DefaultValues;
-import org.embl.mobie.ui.MoBIELaf;
-import org.embl.mobie.ui.SwingHelper;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
@@ -49,8 +51,9 @@ import java.util.stream.Collectors;
 
 import static org.embl.mobie.lib.color.lut.LUTs.DARK_GREY;
 import static org.embl.mobie.lib.color.lut.LUTs.GLASBEY;
+import static org.embl.mobie.ui.UserInterfaceHelper.getIconButton;
 
-public class AnnotationUI< A extends Annotation > extends JFrame implements SelectionListener< A >
+public class AnnotationDialog< A extends Annotation > extends JFrame implements SelectionListener< A >
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -73,7 +76,7 @@ public class AnnotationUI< A extends Annotation > extends JFrame implements Sele
 	private String objectName = "Entity";
 	private ArrayList< A > annotations;
 
-	public AnnotationUI( String columnName, AnnotationTableModel< A > tableModel, SelectionModel< A > selectionModel, RowSorter< ? extends TableModel > rowSorter )
+	public AnnotationDialog( String columnName, AnnotationTableModel< A > tableModel, SelectionModel< A > selectionModel, RowSorter< ? extends TableModel > rowSorter )
 	{
 		super("");
 		this.annotationColumnName = columnName;
@@ -116,11 +119,11 @@ public class AnnotationUI< A extends Annotation > extends JFrame implements Sele
 		}
 		else if ( tableModel.annotation( 0 ) instanceof AnnotatedSpot )
 		{
-			objectName = "Spot";
+			objectName = "spot";
 		}
 		else
 		{
-			objectName = "Region";
+			objectName = "region";
 		}
 	}
 
@@ -162,10 +165,12 @@ public class AnnotationUI< A extends Annotation > extends JFrame implements Sele
 	private void addCreateCategoryButton()
 	{
 		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
-		final JButton button = new JButton( "Create new category" );
+		final JLabel label = new JLabel( "Category name " );
 		final JTextField textField = new JTextField( "nice_cell" );
-		panel.add( button );
+		final JButton button = new JButton( "Create" );
+		panel.add( label );
 		panel.add( textField );
+		panel.add( button );
 		button.addActionListener( e -> {
 			String newClassName = textField.getText();
 			if ( getAnnotations().containsKey( newClassName ) || annotationNames.contains( newClassName )  )
@@ -173,6 +178,7 @@ public class AnnotationUI< A extends Annotation > extends JFrame implements Sele
 				IJ.error( "Category " + newClassName + " exists already." );
 				return;
 			}
+			textField.setText( "" ); // clear the annotation
 			addAnnotationButtonPanel( newClassName, null );
 		} );
 		this.panel.add( panel );
@@ -248,7 +254,8 @@ public class AnnotationUI< A extends Annotation > extends JFrame implements Sele
 			}
 		} );
 
-		final JButton changeColor = new JButton( "C" );
+
+		final JButton changeColor = getIconButton( "color.png" );
 		changeColor.addActionListener( e ->
 		{
 			Color color = JColorChooser.showDialog( this.panel, "", null );
@@ -258,6 +265,7 @@ public class AnnotationUI< A extends Annotation > extends JFrame implements Sele
 		} );
 
 		panel.add( annotateButton );
+		panel.add( new JLabel(" ") );
 		panel.add( changeColor );
 		annotationButtonsContainer.add( panel );
 		refreshDialog();

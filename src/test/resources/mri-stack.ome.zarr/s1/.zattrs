@@ -1,0 +1,1 @@
+{"path":"s1","axes":[{"type":"space","name":"z","unit":"pixel"},{"type":"space","name":"y","unit":"pixel"},{"type":"space","name":"x","unit":"pixel"}],"coordinateTransformations":[{"scale":[2.0,2.0,2.0],"type":"scale"},{"translation":[0.5,0.5,0.5],"type":"translation"}]}
