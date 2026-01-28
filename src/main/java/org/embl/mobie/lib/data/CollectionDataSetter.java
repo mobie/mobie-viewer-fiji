@@ -257,24 +257,25 @@ public class CollectionDataSetter
         for ( String source : firstSources )
             regionDisplay.sources.put( source, Collections.singletonList( source ) );
 
-        DataSource dataSource = dataset.sources().get( firstSources.get( 0 ) );
-        if ( dataSource instanceof ImageDataSource )
-        {
-            IJ.log( "Fetching timepoints metadata from " + firstSources.get( 0 ) );
-            try
-            {
-                Map.Entry< ImageDataFormat, StorageLocation > formatAndStorage = ( ( ImageDataSource ) dataSource ).imageData.entrySet().iterator().next();
-                ImageData< ? > imageData = ImageDataOpener.open( formatAndStorage.getValue().absolutePath, formatAndStorage.getKey(), ThreadHelper.sharedQueue );
-                int numTimePoints = SourceHelper.getNumTimePoints( imageData.getSourcePair( 0 ).getB() );
-                IJ.log( "Number of timepoints: " + numTimePoints );
-                for ( int t = 0; t < numTimePoints; t++ )
-                    regionDisplay.timepoints().add( t );
-            }
-            catch ( Exception e )
-            {
-                IJ.log( "[WARNING] Failed to fetch timepoints metadata.");
-            }
-        }
+        // This happens now in the ViewManager, which is more lazy if there are many views
+//        DataSource dataSource = dataset.sources().get( firstSources.get( 0 ) );
+//        if ( dataSource instanceof ImageDataSource )
+//        {
+//            IJ.log( "\nFetching timepoints metadata from " + firstSources.get( 0 ) );
+//            try
+//            {
+//                Map.Entry< ImageDataFormat, StorageLocation > formatAndStorage = ( ( ImageDataSource ) dataSource ).imageData.entrySet().iterator().next();
+//                ImageData< ? > imageData = ImageDataOpener.open( formatAndStorage.getValue().absolutePath, formatAndStorage.getKey(), ThreadHelper.sharedQueue );
+//                int numTimePoints = SourceHelper.getNumTimePoints( imageData.getSourcePair( 0 ).getB() );
+//                IJ.log( "Number of timepoints: " + numTimePoints );
+//                for ( int t = 0; t < numTimePoints; t++ )
+//                    regionDisplay.timepoints().add( t );
+//            }
+//            catch ( Exception e )
+//            {
+//                IJ.log( "[WARNING] Failed to fetch timepoints metadata.");
+//            }
+//        }
 
         return regionDisplay;
     }

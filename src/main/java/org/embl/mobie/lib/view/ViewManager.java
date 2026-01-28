@@ -29,9 +29,11 @@
 package org.embl.mobie.lib.view;
 
 import bdv.util.BdvHandle;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bvb.core.BigVolumeBrowser;
 import ij.IJ;
+import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
@@ -58,6 +60,7 @@ import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.*;
 import org.embl.mobie.lib.serialize.transformation.*;
 import org.embl.mobie.lib.source.AnnotationType;
+import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.table.*;
 import org.embl.mobie.lib.transform.ImageTransformer;
 import org.embl.mobie.lib.transform.viewer.*;
@@ -486,10 +489,30 @@ public class ViewManager
 				// *after* the above transformations,
 				// which may create new images
 				// that could be referred to here.
+				RegionDisplay< ? > regionDisplay = ( RegionDisplay< ? > ) display;
+
+				// If necessary, determine the number of timepoints
+				if ( regionDisplay.timepoints().isEmpty() )
+				{
+					try
+					{
+						String referenceImageName = regionDisplay.sources.values().iterator().next().get( 0 );
+						Source< ? extends Volatile< ? > > volatileSource = DataStore.getImage( referenceImageName ).getSourcePair().getVolatileSource();
+						int numTimePoints = SourceHelper.getNumTimePoints( volatileSource );
+						for ( int t = 0; t < numTimePoints; t++ )
+							regionDisplay.timepoints().add( t );
+					}
+					catch ( Exception e )
+					{
+						// default to just one timepoint
+						regionDisplay.timepoints().add( 0 );
+					}
+				}
+
 				AnnData< AnnotatedRegion > annData = new RegionDisplayAnnDataCreator(
-						moBIE, ( RegionDisplay< ? > ) display ).createAnnData();
+					moBIE, regionDisplay ).createAnnData();
 				final RegionAnnotationImage< AnnotatedRegion > regionAnnotationImage =
-						new RegionAnnotationImage( ( RegionDisplay< ? > ) display, annData );
+						new RegionAnnotationImage( regionDisplay, annData );
 				// The region image has the same name as the display,
 				// thus it can be identified later to be the image that
 				// will be shown by this display (via {@code regionDisplay.getSources()})

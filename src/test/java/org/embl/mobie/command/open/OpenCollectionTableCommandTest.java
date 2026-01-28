@@ -395,7 +395,7 @@ public class OpenCollectionTableCommandTest
     public static void main( String[] args )
     {
         //new OpenCollectionTableCommandTest().simple();
-        //new OpenCollectionTableCommandTest().spots3D();
+        new OpenCollectionTableCommandTest().spots3D();
         //new OpenCollectionTableCommandTest().spots3dWith20000Columns();
         //new OpenCollectionTableCommandTest().createLargeSpotsTable();
         //new OpenCollectionTableCommandTest().addImageTwice();
@@ -403,7 +403,7 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().singleBlobs();
         //new OpenCollectionTableCommandTest().mrc();
         //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
-        new OpenCollectionTableCommandTest().timelapse();
+        //new OpenCollectionTableCommandTest().timelapse();
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
         //new OpenCollectionTableCommandTest().blobsAndMri();

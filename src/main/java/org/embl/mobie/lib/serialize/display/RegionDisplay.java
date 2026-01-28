@@ -51,7 +51,7 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AbstractAnnotat
 
 	// Other
 
-	private transient Set< Integer > timepoints = new HashSet<>( Arrays.asList( 0 ) ); // which timepoints to annotate
+	private transient Set< Integer > timepoints = new HashSet<>(); // which timepoints to annotate
 
 	private transient String sourceNamesRegex; // optionally parse the source names to create annotations
 
