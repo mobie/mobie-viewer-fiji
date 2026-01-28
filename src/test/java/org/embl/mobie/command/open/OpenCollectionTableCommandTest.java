@@ -324,6 +324,19 @@ public class OpenCollectionTableCommandTest
         command.run();
     }
 
+    //@Test
+    public void timelapse( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = new File("src/test/resources/collections/timelapse-collection.csv").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
+        command.run();
+    }
+
     @Test
     public void openOrganelleGoogleSheet( )
     {
@@ -389,7 +402,8 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().clem();
         //new OpenCollectionTableCommandTest().singleBlobs();
         //new OpenCollectionTableCommandTest().mrc();
-        new OpenCollectionTableCommandTest().largeAndSmallBlobs();
+        //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
+        new OpenCollectionTableCommandTest().timelapse();
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
         //new OpenCollectionTableCommandTest().blobsAndMri();

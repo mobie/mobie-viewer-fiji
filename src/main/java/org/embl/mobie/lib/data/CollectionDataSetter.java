@@ -3,7 +3,10 @@ package org.embl.mobie.lib.data;
 import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
 import net.thisptr.jackson.jq.internal.misc.Strings;
+import org.embl.mobie.io.ImageDataOpener;
+import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.lib.serialize.transformation.ThinPlateSplineTransformation;
+import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.util.Constants;
 import org.embl.mobie.io.ImageDataFormat;
@@ -21,6 +24,7 @@ import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
 import org.embl.mobie.lib.table.columns.CollectionTableConstants;
 import org.embl.mobie.lib.util.MoBIEHelper;
+import org.embl.mobie.lib.util.ThreadHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tech.tablesaw.api.Row;
@@ -102,7 +106,7 @@ public class CollectionDataSetter
 
             if ( viewToGrids.containsKey( viewName ) )
             {
-                addGridTransformationsAndRegionDisplay( viewName, transformations );
+                addGridTransformationsAndRegionDisplay( dataset, viewName, transformations );
             }
             else
             {
@@ -118,7 +122,7 @@ public class CollectionDataSetter
                 // Note that the region name must be unique because it will be instantiated as an image.
                 // The viewName alone may be the same as an image name, which would lead to a crash,
                 // because it will "overwrite" the image.
-                Display< ? > regionDisplay = createRegionDisplay( "regions: " + viewName, nestedViewSources, false );
+                Display< ? > regionDisplay = createRegionDisplay( dataset, "regions: " + viewName, nestedViewSources, false );
                 viewToDisplays.get( viewName ).put( regionDisplay.getName(), regionDisplay );
             }
 
@@ -151,7 +155,7 @@ public class CollectionDataSetter
         return false;
     }
 
-    private void addGridTransformationsAndRegionDisplay( String viewName,
+    private void addGridTransformationsAndRegionDisplay( Dataset dataset, String viewName,
                                                          ArrayList< Transformation > transformations)
     {
         viewToGrids.get( viewName ).keySet().forEach( gridName ->
@@ -187,12 +191,13 @@ public class CollectionDataSetter
                 transformations.add( grid );
             }
 
-            Display< ? > regionDisplay = createRegionDisplay( gridName, nestedSources, true );
+            Display< ? > regionDisplay = createRegionDisplay( dataset, gridName, nestedSources, true );
             viewToDisplays.get( viewName ).put( regionDisplay.getName(), regionDisplay );
         });
     }
 
     private RegionDisplay< AnnotatedRegion > createRegionDisplay(
+            Dataset dataset,
             String regionsName,
             List< List< String > > nestedSources,
             boolean isGrid )
@@ -228,6 +233,11 @@ public class CollectionDataSetter
                 new RegionDisplay<>( regionTable.name() );
         regionDisplay.sources = new LinkedHashMap<>();
         regionDisplay.tableSource = regionTable.name();
+//        Integer numTimePoints = sources.getMetadata().numTimePoints;
+//        if ( numTimePoints == null )
+//            numTimePoints = 1000; // TODO
+//        for ( int t = 0; t < numTimePoints; t++ )
+//            regionDisplay.timepoints().add( t );
 
         if ( isGrid )
         {
@@ -246,6 +256,25 @@ public class CollectionDataSetter
 
         for ( String source : firstSources )
             regionDisplay.sources.put( source, Collections.singletonList( source ) );
+
+        DataSource dataSource = dataset.sources().get( firstSources.get( 0 ) );
+        if ( dataSource instanceof ImageDataSource )
+        {
+            IJ.log( "Fetching timepoints metadata from " + firstSources.get( 0 ) );
+            try
+            {
+                Map.Entry< ImageDataFormat, StorageLocation > formatAndStorage = ( ( ImageDataSource ) dataSource ).imageData.entrySet().iterator().next();
+                ImageData< ? > imageData = ImageDataOpener.open( formatAndStorage.getValue().absolutePath, formatAndStorage.getKey(), ThreadHelper.sharedQueue );
+                int numTimePoints = SourceHelper.getNumTimePoints( imageData.getSourcePair( 0 ).getB() );
+                IJ.log( "Number of timepoints: " + numTimePoints );
+                for ( int t = 0; t < numTimePoints; t++ )
+                    regionDisplay.timepoints().add( t );
+            }
+            catch ( Exception e )
+            {
+                IJ.log( "[WARNING] Failed to fetch timepoints metadata.");
+            }
+        }
 
         return regionDisplay;
     }

@@ -85,7 +85,7 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	{
 		this.name = regionDisplay.getName();
 		this.annData = annData;
-		this.timepoints = regionDisplay.timepoints();
+		this.timepoints = regionDisplay.timepoints(); // TODO: Maybe the AnnotatedRegions (AR) should actually be the ones that can extend across multiple time-points?
 		this.selectionModel = regionDisplay.selectionModel;
 		this.overlap = regionDisplay.overlap();
 
@@ -194,7 +194,7 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 				Collections.reverse( annotations );
 			}
 
-			// one could add a time point parameter to LocationToAnnotatedRegionSupplier
+			// TODO: one could add a time point parameter to LocationToAnnotatedRegionSupplier
 			// and then make a Map< Timepoint, regions > and modify RealRandomAccessibleIntervalTimelapseSource to consume this map
 			final FunctionRealRandomAccessible< AnnotationType< AR > > regions =
 					new FunctionRealRandomAccessible(
@@ -202,9 +202,11 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 							new LocationToAnnotatedRegionSupplier(),
 							() -> new AnnotationType<>( annotations.get( 0 ) ) );
 
-			// TODO This Source should have the same voxel unit
+			// TODO: This Source should have the same voxel unit
 			//   as the other sources, but that would mean touching one of the
 			//   annotated images which could be expensive.
+			// TODO: We currently also don't have a good way of determining the number of timepoints (without touching the image)
+			//   see also comment above
 			source = new RealRandomAccessibleIntervalTimelapseSource<>(
 					regions,
 					interval,

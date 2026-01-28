@@ -1,0 +1,3 @@
+uri,channel,name,grid,grid_position,view
+xyzct-mitosis.tif,0,mitosis_nuc,grid,"(0,0)",all
+xyzct-mitosis.tif,1,mitosis_mt,grid,"(1,0)",all
