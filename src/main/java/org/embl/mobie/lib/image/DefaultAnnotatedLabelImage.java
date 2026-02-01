@@ -31,7 +31,7 @@ package org.embl.mobie.lib.image;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
-import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.Type;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import org.embl.mobie.lib.source.label.AnnotatedLabelSource;
@@ -41,12 +41,12 @@ import org.embl.mobie.lib.table.AnnData;
 
 public class DefaultAnnotatedLabelImage< A extends Annotation > implements AnnotatedLabelImage< A >
 {
-	protected Image< ? extends IntegerType< ? > > labelImage;
+	protected Image< ? extends Type< ? > > labelImage;
 	protected AnnData< A > annData;
 	protected SourcePair< AnnotationType< A > > sourcePair;
 	private AnnotationAdapter< A > annotationAdapter;
 
-	public DefaultAnnotatedLabelImage( Image< ? extends IntegerType< ? > > labelImage,
+	public DefaultAnnotatedLabelImage( Image< ? extends Type< ? > > labelImage,
                                        AnnData< A > annData,
                                        AnnotationAdapter< A > annotationAdapter )
 	{
@@ -60,7 +60,7 @@ public class DefaultAnnotatedLabelImage< A extends Annotation > implements Annot
 	{
 		if ( sourcePair == null )
 		{
-			final SourcePair< ? extends IntegerType< ? > > sourcePair = labelImage.getSourcePair();
+			final SourcePair< ? extends Type< ? > > sourcePair = labelImage.getSourcePair();
 
 			// non-volatile source
 			final AnnotatedLabelSource< ?, A > source = new AnnotatedLabelSource( sourcePair.getSource(), annotationAdapter );
@@ -116,7 +116,7 @@ public class DefaultAnnotatedLabelImage< A extends Annotation > implements Annot
 	}
 
 	@Override
-	public Image< ? extends IntegerType< ? > > getLabelImage()
+	public Image< ? extends Type< ? > > getLabelImage()
 	{
 		return labelImage;
 	}

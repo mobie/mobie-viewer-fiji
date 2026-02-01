@@ -33,6 +33,7 @@ import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.RealPoint;
+import net.imglib2.RealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.bdv.CalibratedMousePositionProvider;
 import org.embl.mobie.lib.serialize.display.AbstractAnnotationDisplay;
@@ -97,7 +98,8 @@ public class SliceViewAnnotationSelector< A extends Annotation > implements Runn
 					source.getSourceTransform( timePoint, 0, sourceTransform);
 					final RealPoint positionInSource = new RealPoint( 3 );
 					sourceTransform.inverse().apply( realPosition, positionInSource );
-					final AnnotationType< A > annotationType = source.getInterpolatedSource( timePoint, 0, Interpolation.NEARESTNEIGHBOR ).getAt( positionInSource );
+					RealRandomAccessible< AnnotationType< A > > interpolatedSource = source.getInterpolatedSource( timePoint, 0, Interpolation.NEARESTNEIGHBOR );
+					final AnnotationType< A > annotationType = interpolatedSource.getAt( positionInSource );
 
 					final A annotation = annotationType.getAnnotation();
 

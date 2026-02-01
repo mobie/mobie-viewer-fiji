@@ -29,7 +29,7 @@
 package org.embl.mobie.lib.transform;
 
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.Type;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
@@ -157,9 +157,9 @@ public class ImageTransformer
 			AnnotatedLabelImage< A > annotatedLabelImage,
 			AffineTransformation affineTransformation )
 	{
-		final Image< ? extends IntegerType< ? > > labelImage = annotatedLabelImage.getLabelImage();
-		final Image< ? extends IntegerType< ? > > transformedLabelImage =
-				( Image< ? extends IntegerType< ? > > ) affineTransform( labelImage, affineTransformation );
+		final Image< ? extends Type< ? > > labelImage = annotatedLabelImage.getLabelImage();
+		final Image< ? extends Type< ? > > transformedLabelImage =
+				( Image< ? extends Type< ? > > ) affineTransform( labelImage, affineTransformation );
 		final AnnData< A > annData = annotatedLabelImage.getAnnData();
 
 		AnnotationAdapter< A > annotationAdapter = annotatedLabelImage.getAnnotationAdapter();

@@ -36,7 +36,7 @@ import ij.WindowManager;
 import loci.common.DebugTools;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imagej.ImageJ;
-import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
@@ -689,7 +689,7 @@ public class MoBIE
 				AnnotatedLabelImageCreator creator = new AnnotatedLabelImageCreator(
 						this,
 						( TableDataSource ) dataSource, // label table
-						( Image< ? extends IntegerType< ? > > ) image // label image
+						( Image< ? extends RealType< ? > > ) image // label image
 				);
 				AnnotatedLabelImage< ? > annotatedLabelImage = creator.create();
 				DataStore.addImage( annotatedLabelImage );

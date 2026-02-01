@@ -52,7 +52,6 @@ import net.imglib2.roi.labeling.ImgLabeling;
 import net.imglib2.roi.labeling.LabelingMapping;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.Type;
-import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.util.Intervals;
@@ -222,7 +221,7 @@ public abstract class MoBIEHelper
 		}
 		else if ( image instanceof AnnotatedLabelImage )
 		{
-			Image< ? extends IntegerType< ? > > labelImage = ( ( AnnotatedLabelImage< ? > ) image ).getLabelImage();
+			Image< ? extends Type< ? > > labelImage = ( ( AnnotatedLabelImage< ? > ) image ).getLabelImage();
 			return fetchImageDataInfo( labelImage );
 		}
 		else
@@ -1129,7 +1128,7 @@ public abstract class MoBIEHelper
 		}
 		else if ( image instanceof AnnotatedLabelImage )
 		{
-			Image< ? extends IntegerType< ? > > labelImage = ( ( AnnotatedLabelImage< ? > ) image ).getLabelImage();
+			Image< ? extends Type< ? > > labelImage = ( ( AnnotatedLabelImage< ? > ) image ).getLabelImage();
 			collectTransformations( labelImage, transformations );
 		}
 		else
@@ -1335,7 +1334,7 @@ public abstract class MoBIEHelper
 
 			if ( image instanceof AnnotatedLabelImage )
 			{
-				RandomAccessibleInterval< ? extends IntegerType< ? > > source = ( ( AnnotatedLabelImage< ? > ) image ).getLabelImage().getSourcePair().getSource().getSource( 0, 0 );
+				RandomAccessibleInterval< ? extends Type< ? > > source = ( ( AnnotatedLabelImage< ? > ) image ).getLabelImage().getSourcePair().getSource().getSource( 0, 0 );
 				types.add( Util.getTypeFromInterval( source ) );
 			}
 			else

@@ -49,7 +49,6 @@ import net.imglib2.roi.geom.real.WritableBox;
 import net.imglib2.type.Type;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
@@ -172,7 +171,7 @@ public class ScreenShotStackMaker
 
             if ( image instanceof AnnotatedLabelImage )
             {
-                RandomAccessibleInterval< ? extends IntegerType< ? > > source = ( ( AnnotatedLabelImage< ? > ) image ).getLabelImage().getSourcePair().getSource().getSource( 0, 0 );
+                RandomAccessibleInterval< ? extends Type< ? > > source = ( ( AnnotatedLabelImage< ? > ) image ).getLabelImage().getSourcePair().getSource().getSource( 0, 0 );
                 types.add( Util.getTypeFromInterval( source ) );
             }
             else

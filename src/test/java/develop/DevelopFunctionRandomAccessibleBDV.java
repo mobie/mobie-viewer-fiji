@@ -33,9 +33,7 @@ import net.imglib2.FinalInterval;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.position.FunctionRandomAccessible;
-import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
-import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
 import java.util.concurrent.atomic.AtomicInteger;

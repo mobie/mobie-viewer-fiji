@@ -1,0 +1,3 @@
+﻿uri,type,labels_table,view 
+image_with_two_objects.tif,intensities,,segmented image
+image_with_two_objects_float_labels.tif,labels,image_with_two_objects_float_labels_table.csv,segmented image

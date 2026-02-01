@@ -30,16 +30,16 @@ package org.embl.mobie.lib.source.label;
 
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
+import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.converter.Converters;
-import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.lib.source.AbstractSourceWrapper;
 import org.embl.mobie.lib.source.AnnotationType;
 
-public class AnnotatedLabelSource< T extends IntegerType< T >, A extends Annotation > extends AbstractSourceWrapper< T, AnnotationType< A > >
+public class AnnotatedLabelSource< T extends RealType< T >, A extends Annotation > extends AbstractSourceWrapper< T, AnnotationType< A > >
 {
     private final AnnotationAdapter< A > annotationAdapter;
 
@@ -76,7 +76,7 @@ public class AnnotatedLabelSource< T extends IntegerType< T >, A extends Annotat
 
     private void setOutput( T input, int t, AnnotationType< A > output  )
     {
-        final int label = input.getInteger();
+        final int label = (int) input.getRealDouble();
         final A annotation = annotationAdapter.getAnnotation( getName(), t, label );
         output.setAnnotation( annotation );
     }

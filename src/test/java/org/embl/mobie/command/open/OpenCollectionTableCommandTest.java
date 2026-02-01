@@ -337,6 +337,18 @@ public class OpenCollectionTableCommandTest
         command.run();
     }
 
+    public void segmentedImageWithFloatLabels( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = new File("src/test/resources/collections/segmented-image-collection.csv").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
+        command.run();
+    }
+
     @Test
     public void openOrganelleGoogleSheet( )
     {
@@ -395,7 +407,8 @@ public class OpenCollectionTableCommandTest
     public static void main( String[] args )
     {
         //new OpenCollectionTableCommandTest().simple();
-        new OpenCollectionTableCommandTest().spots3D();
+        //new OpenCollectionTableCommandTest().spots3D();
+        new OpenCollectionTableCommandTest().segmentedImageWithFloatLabels();
         //new OpenCollectionTableCommandTest().spots3dWith20000Columns();
         //new OpenCollectionTableCommandTest().createLargeSpotsTable();
         //new OpenCollectionTableCommandTest().addImageTwice();

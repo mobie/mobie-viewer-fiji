@@ -28,7 +28,7 @@
  */
 package org.embl.mobie.lib.image;
 
-import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.AnnotatedSegment;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
@@ -50,7 +50,7 @@ public class AnnotatedLabelImageCreator
 
 	public AnnotatedLabelImageCreator( MoBIE moBIE,
 									   TableDataSource dataSource,
-									   Image< ? extends IntegerType< ? > > labelImage // this must be IntegerType
+									   Image< ? extends RealType< ? > > labelImage
 	)
 	{
 		if ( dataSource.getTableData() != null )

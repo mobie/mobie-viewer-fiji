@@ -30,18 +30,20 @@ package org.embl.mobie.lib.source.label;
 
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
+import net.imglib2.type.Type;
+import net.imglib2.type.numeric.NumericType;
+import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converters;
-import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.lib.source.AbstractSourceWrapper;
 import org.embl.mobie.lib.source.AnnotationType;
 
 // MAYBE: This does not need to know that this is a Segment?!
-public class VolatileAnnotatedLabelSource< T extends IntegerType< T >, V extends Volatile< T >, A extends Annotation > extends AbstractSourceWrapper< V, VolatileAnnotationType< A > >
+public class VolatileAnnotatedLabelSource< T extends RealType< T >, V extends Volatile< T >, A extends Annotation > extends AbstractSourceWrapper< V, VolatileAnnotationType< A > >
 {
     private final AnnotationAdapter<A> annotationAdapter;
 
@@ -78,7 +80,7 @@ public class VolatileAnnotatedLabelSource< T extends IntegerType< T >, V extends
             return;
         }
 
-        final int label = input.get().getInteger();
+        final int label = (int) input.get().getRealDouble();
 
         final A annotation = annotationAdapter.getAnnotation( getName(), t, label );
         output.get().setAnnotation( annotation );

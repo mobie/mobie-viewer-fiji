@@ -28,13 +28,13 @@
  */
 package org.embl.mobie.lib.image;
 
-import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.Type;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 
 public interface AnnotatedLabelImage< A extends Annotation > extends AnnotationImage< A >, ImageWrapper
 {
-	Image< ? extends IntegerType< ? > > getLabelImage();
+	Image< ? extends Type< ? > > getLabelImage();
 
 	AnnotationAdapter< A > getAnnotationAdapter();
 }
