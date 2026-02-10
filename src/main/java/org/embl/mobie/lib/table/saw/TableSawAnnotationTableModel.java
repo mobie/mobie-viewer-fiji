@@ -197,6 +197,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > extends Abstra
 		}
 		catch ( Exception e )
 		{
+			System.err.println("Added table column names" );
 			throw new RuntimeException( e );
 		}
 	}

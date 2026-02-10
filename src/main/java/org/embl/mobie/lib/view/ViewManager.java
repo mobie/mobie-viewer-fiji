@@ -497,8 +497,8 @@ public class ViewManager
 					try
 					{
 						String referenceImageName = regionDisplay.sources.values().iterator().next().get( 0 );
-						Source< ? extends Volatile< ? > > volatileSource = DataStore.getImage( referenceImageName ).getSourcePair().getVolatileSource();
-						int numTimePoints = SourceHelper.getNumTimePoints( volatileSource );
+						Source< ? > source = DataStore.getImage( referenceImageName ).getSourcePair().getSource();
+						int numTimePoints = SourceHelper.getNumTimePoints( source );
 						for ( int t = 0; t < numTimePoints; t++ )
 							regionDisplay.timepoints().add( t );
 					}
