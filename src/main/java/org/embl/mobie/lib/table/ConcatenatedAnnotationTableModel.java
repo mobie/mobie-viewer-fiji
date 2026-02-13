@@ -46,6 +46,7 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > extends Ab
 	private ArrayList< A > annotations = new ArrayList<>();
 	private boolean allTablesLoaded = false;
 
+
 	public ConcatenatedAnnotationTableModel( Set< AnnotationTableModel< A > > tableModels )
 	{
 		this.tableModels = tableModels;

@@ -491,24 +491,6 @@ public class ViewManager
 				// that could be referred to here.
 				RegionDisplay< ? > regionDisplay = ( RegionDisplay< ? > ) display;
 
-				// If necessary, determine the number of timepoints
-				if ( regionDisplay.timepoints().isEmpty() )
-				{
-					try
-					{
-						String referenceImageName = regionDisplay.sources.values().iterator().next().get( 0 );
-						Source< ? > source = DataStore.getImage( referenceImageName ).getSourcePair().getSource();
-						int numTimePoints = SourceHelper.getNumTimePoints( source );
-						for ( int t = 0; t < numTimePoints; t++ )
-							regionDisplay.timepoints().add( t );
-					}
-					catch ( Exception e )
-					{
-						// default to just one timepoint
-						regionDisplay.timepoints().add( 0 );
-					}
-				}
-
 				AnnData< AnnotatedRegion > annData = new RegionDisplayAnnDataCreator(
 					moBIE, regionDisplay ).createAnnData();
 				final RegionAnnotationImage< AnnotatedRegion > regionAnnotationImage =
@@ -537,6 +519,7 @@ public class ViewManager
 			(( AbstractDisplay< ? > ) display).bigVolumeBrowser = bigVolumeBrowser;
 		}
 
+
 		if ( display instanceof ImageDisplay )
 		{
 			for ( String name : display.getSources() )
@@ -553,6 +536,10 @@ public class ViewManager
 				final Image< ? > image = DataStore.getImage( name );
 				annotationDisplay.images().add( ( Image< AnnotationType< A > > ) image );
 			}
+
+			// This needs to happen before(!) any of the label images is accessed,
+			// because otherwise the tables are loaded before the listening
+			// is instantiated
 			annotationDisplay.combineAnnData();
 
 			// load additional tables (to be merged)
@@ -609,6 +596,29 @@ public class ViewManager
 						annotationDisplay.selectionModel,
 						annotationDisplay.getSelectionColor(),
 						annotationDisplay.getOpacityNotSelected() );
+
+				if ( annotationDisplay instanceof RegionDisplay )
+				{
+					RegionDisplay< ? > regionDisplay = ( RegionDisplay ) annotationDisplay;
+
+					// Determine number of timepoints
+					if ( regionDisplay.timepoints().isEmpty() )
+					{
+						try
+						{
+							String referenceImageName = regionDisplay.sources.values().iterator().next().get( 0 );
+							Source< ? > source = DataStore.getImage( referenceImageName ).getSourcePair().getSource();
+							int numTimePoints = SourceHelper.getNumTimePoints( source );
+							for ( int t = 0; t < numTimePoints; t++ )
+								regionDisplay.timepoints().add( t );
+						}
+						catch ( Exception e )
+						{
+							// default to just one timepoint
+							regionDisplay.timepoints().add( 0 );
+						}
+					}
+				}
 			}
 			else
 			{

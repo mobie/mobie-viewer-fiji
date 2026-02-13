@@ -436,6 +436,8 @@ public class CollectionDataSetter
         storageLocation.absolutePath = IOHelper.getParentLocation( tablePath );
         storageLocation.defaultChunk = IOHelper.getFileName( tablePath );
 
+        IJ.log("  Labels table: " + storageLocation.defaultChunk );
+
         return new TableSource( TableDataFormat.fromPath( tablePath ), storageLocation );
     }
 

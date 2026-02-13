@@ -50,6 +50,7 @@ public class OpenCollectionTableCommandTest
         command.run();
     }
 
+
     @Test
     public void largeAndSmallBlobs()
     {
@@ -318,7 +319,7 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri = "/Users/tischer/Documents/mobie.github.io/tutorials/data/collection_tables/segmented_nuclei/collection.csv";
+        command.tableUri = "/Users/tischer/Documents/mobie.github.io/tutorials/data/collection_tables/segmented_nuclei/two-images-collection.csv";
         command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
@@ -408,7 +409,7 @@ public class OpenCollectionTableCommandTest
     {
         //new OpenCollectionTableCommandTest().simple();
         //new OpenCollectionTableCommandTest().spots3D();
-        new OpenCollectionTableCommandTest().segmentedImageWithFloatLabels();
+        //new OpenCollectionTableCommandTest().segmentedImageWithFloatLabels();
         //new OpenCollectionTableCommandTest().spots3dWith20000Columns();
         //new OpenCollectionTableCommandTest().createLargeSpotsTable();
         //new OpenCollectionTableCommandTest().addImageTwice();
@@ -416,7 +417,7 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().singleBlobs();
         //new OpenCollectionTableCommandTest().mrc();
         //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
-        //new OpenCollectionTableCommandTest().timelapse();
+        new OpenCollectionTableCommandTest().timelapse();
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
         //new OpenCollectionTableCommandTest().blobsAndMri();

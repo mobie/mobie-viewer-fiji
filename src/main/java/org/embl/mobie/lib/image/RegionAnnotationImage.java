@@ -56,8 +56,8 @@ import java.util.stream.Collectors;
 public class RegionAnnotationImage< AR extends AnnotatedRegion > implements AnnotationImage< AR >
 {
 	private final String name;
-	private final AnnData< AR > annData;
-	private final Set< Integer > timepoints;
+    private final Set< Integer > timepoints;
+    private final AnnData< AR > annData;
 	private final SelectionModel< ? > selectionModel;
 	private Source< AnnotationType< AR > > source;
 	private SourcePair< AnnotationType< AR > > sourcePair;
@@ -84,8 +84,8 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 	public RegionAnnotationImage( RegionDisplay< ? > regionDisplay, AnnData< AR > annData )
 	{
 		this.name = regionDisplay.getName();
-		this.annData = annData;
-		this.timepoints = regionDisplay.timepoints(); // TODO: Maybe the AnnotatedRegions (AR) should actually be the ones that can extend across multiple time-points?
+        this.timepoints = regionDisplay.timepoints();
+        this.annData = annData;
 		this.selectionModel = regionDisplay.selectionModel;
 		this.overlap = regionDisplay.overlap();
 
