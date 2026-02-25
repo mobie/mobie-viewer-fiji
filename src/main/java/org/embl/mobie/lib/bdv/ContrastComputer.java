@@ -15,7 +15,6 @@ public class ContrastComputer
     private final SourceAndConverter< ? > sourceAndConverter;
     private ImagePlus imagePlus;
 
-
     public ContrastComputer( BdvHandle bdvHandle, SourceAndConverter< ? > sourceAndConverter )
     {
         this.bdvHandle = bdvHandle;
@@ -35,7 +34,8 @@ public class ContrastComputer
         if ( rois != null && rois.length > 0 )
             imagePlus.setRoi( rois[ 0 ] );
         IJ.run( imagePlus, "Enhance Contrast", "saturated=0.03" );
-        // imagePlus.show();
+        System.out.println( sourceAndConverter );
+        imagePlus.show();
         double[] minMax = { imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
         return minMax;
     }

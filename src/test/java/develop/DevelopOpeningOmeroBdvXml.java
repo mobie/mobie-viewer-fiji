@@ -16,15 +16,29 @@ public class DevelopOpeningOmeroBdvXml
     public static void main( String[] args )
     {
         //openXml();
-        openCollection();
+        //openCollection();
+        openAutoContrastCollection();
     }
 
     private static void openCollection()
     {
         new ImageJ().ui().showUI();
 
+        // usr & pwd: read-tim
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.tableUri = new File("src/test/resources/collections/omero-bdv-collection.csv").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
+        command.run();
+    }
+
+    private static void openAutoContrastCollection()
+    {
+        new ImageJ().ui().showUI();
+
+        // usr & pwd: read-tim
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = new File("src/test/resources/collections/omero-bdv-collection-auto-contrast.csv").getAbsolutePath();
         command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();

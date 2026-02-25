@@ -61,6 +61,7 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 
 	private transient Map< String, double[] > sourceToContrastLimits = new HashMap<>();
 
+
 	// Gson deserialization
 	public ImageDisplay()
 	{

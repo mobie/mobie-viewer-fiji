@@ -657,6 +657,10 @@ public class CollectionDataSetter
         try
         {
             String string = getString( row, CollectionTableConstants.CONTRAST_LIMITS );
+            if ( string.equals( "auto" ) ) {
+                return new double[]{0.0}; // array of length one encodes auto-contrast
+            }
+
             string = string.replace("(", "").replace(")", "");
             String[] strings = string.split("[,;]");
             double[] doubles = new double[strings.length];
