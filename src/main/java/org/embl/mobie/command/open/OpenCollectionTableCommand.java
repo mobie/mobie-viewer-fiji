@@ -60,7 +60,6 @@ public class OpenCollectionTableCommand extends OpenSimpleCollectionTableCommand
 		UseBelowDataRootFolder
 	}
 
-
 	@Parameter( label = "Data Root",
 			choices = { ABSOLUTE, RELATIVE_TO_TABLE, RELATIVE_TO_FOLDER },
 			description = "Specify whether the data URIs in the table are absolute or relative." )

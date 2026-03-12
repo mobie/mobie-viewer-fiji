@@ -29,7 +29,7 @@ public class ContrastComputer
                 Collections.singletonList( sourceAndConverter ),
                 downSampling * viewerVoxelSpacing
         );
-        imagePlus = screenShotMaker.getCompositeImagePlus();
+        //imagePlus = screenShotMaker.getCompositeImagePlus();
         Roi[] rois = screenShotMaker.getMasks();
         if ( rois != null && rois.length > 0 )
             imagePlus.setRoi( rois[ 0 ] );

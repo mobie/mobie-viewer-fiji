@@ -57,9 +57,10 @@ public class VolatileAnnotatedLabelSource< T extends RealType< T >, V extends Vo
     public RandomAccessibleInterval< VolatileAnnotationType< A > > getSource( final int t, final int level )
     {
         final RandomAccessibleInterval< V > rai = source.getSource( t, level );
-        final RandomAccessibleInterval< VolatileAnnotationType< A > > convert = Converters.convert( rai, ( input, output ) -> {
-            set( input, t, output );
-        }, createVariable() );
+        final RandomAccessibleInterval< VolatileAnnotationType< A > > convert =
+                Converters.convert( rai, ( input, output ) -> {
+                    set( input, t, output );
+                }, createVariable() );
 
         return convert;
     }

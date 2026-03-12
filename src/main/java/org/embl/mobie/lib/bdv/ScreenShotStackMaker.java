@@ -86,7 +86,7 @@ public class ScreenShotStackMaker
     private ImagePlus rgbImagePlus = null;
     private CompositeImage compositeImagePlus = null;
     private long[] screenshotDimensions = new long[3];
-    private AffineTransform3D canvasToGlobalTransform;
+    private AffineTransform3D targetToGlobalTransform;
     private AffineTransform3D viewerToGlobal;
     private Corners corners;
     private String progress;
@@ -131,13 +131,16 @@ public class ScreenShotStackMaker
 
         final int timePoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
         final AffineTransform3D viewerTransform = bdvHandle.getViewerPanel().state().getViewerTransform( );
-        canvasToGlobalTransform = new AffineTransform3D();
+        targetToGlobalTransform = new AffineTransform3D();
         // target canvas to viewer canvas...
-        double targetToViewer = targetSamplingInXY / getViewerVoxelSpacing( bdvHandle );
-        canvasToGlobalTransform.scale( targetToViewer, targetToViewer, 1.0 );
+        double viewerVoxelSpacing = getViewerVoxelSpacing( bdvHandle );
+        double targetXYToViewer = targetSamplingInXY / viewerVoxelSpacing;
+        double targetZToViewer = targetSamplingInZ / viewerVoxelSpacing;
+        targetToGlobalTransform.scale( targetXYToViewer, targetXYToViewer, targetZToViewer );
         // ...viewer canvas to global
-        viewerToGlobal = viewerTransform.inverse();
-        canvasToGlobalTransform.preConcatenate( viewerToGlobal );
+        viewerToGlobal = viewerTransform.inverse().copy();
+        targetToGlobalTransform.preConcatenate( viewerToGlobal );
+        //targetToGlobalTransform.set( targetSamplingInZ, 2, 2 );
         //IJ.log( "Canvas to global transform: " + canvasToGlobalTransform );
 
         //IJ.log( "Fetching data from " + sacs.size() + " image(s)..."  );
@@ -212,9 +215,9 @@ public class ScreenShotStackMaker
             final AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( source, timePoint, level );
 
             // global to source
-            AffineTransform3D targetCanvasToSourceTransform = canvasToGlobalTransform.copy();
+            AffineTransform3D targetToSourceTransform = targetToGlobalTransform.copy();
             AffineTransform3D globalToSource = sourceTransform.inverse();
-            targetCanvasToSourceTransform.preConcatenate( globalToSource );
+            targetToSourceTransform.preConcatenate( globalToSource );
 
             boolean interpolate = ! ( source.getType() instanceof AnnotationType );
 
@@ -245,8 +248,8 @@ public class ScreenShotStackMaker
                         // to collect colored data
                         final RandomAccess< ARGBType > argbAccess = Views.interval( argbRAI, interval ).randomAccess();
 
-                        final double[] canvasPosition = new double[ 3 ];
-                        final double[] sourceRealPosition = new double[ 3 ];
+                        final double[] targetPosition = new double[ 3 ];
+                        final double[] sourcePosition = new double[ 3 ];
 
                         final ARGBType argbType = new ARGBType();
 
@@ -255,16 +258,17 @@ public class ScreenShotStackMaker
                         {
                             // set the positions
                             targetCursor.fwd();
-                            targetCursor.localize( canvasPosition );
                             targetAccess.setPosition( targetCursor );
                             maskAccess.setPosition( targetCursor );
                             argbAccess.setPosition( targetCursor );
-                            targetCanvasToSourceTransform.apply( canvasPosition, sourceRealPosition );
-                            sourceAccess.setPosition( sourceRealPosition );
+
+                            targetCursor.localize( targetPosition );
+                            targetToSourceTransform.apply( targetPosition, sourcePosition );
+                            sourceAccess.setPosition( sourcePosition );
 
                             // set the pixel and mask values depending on whether the
                             // pixel is within the source data
-                            if ( sourceMask.test( new RealPoint( sourceRealPosition ) ) )
+                            if ( sourceMask.test( new RealPoint( sourcePosition ) ) )
                             {
                                 maskAccess.get().set( true );
                                 setArgbPixelValue( converter, sourceAccess, argbAccess, argbType );
@@ -341,9 +345,9 @@ public class ScreenShotStackMaker
         return corners;
     }
 
-    public AffineTransform3D getCanvasToGlobalTransform()
+    public AffineTransform3D getTargetToGlobalTransform()
     {
-        return canvasToGlobalTransform;
+        return targetToGlobalTransform;
     }
 
     private void setArgbPixelValue( Converter converter, RealRandomAccess< ? > access, RandomAccess< ARGBType > argbCaptureAccess, ARGBType argbType )

@@ -417,10 +417,10 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().singleBlobs();
         //new OpenCollectionTableCommandTest().mrc();
         //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
-        new OpenCollectionTableCommandTest().timelapse();
+        //new OpenCollectionTableCommandTest().timelapse();
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
-        //new OpenCollectionTableCommandTest().blobsAndMri();
+        new OpenCollectionTableCommandTest().blobsAndMri();
         //new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
         //new OpenCollectionTableCommandTest().segmentedNuclei();
         //new OpenCollectionTableCommandTest().thinPlateSplinePlatyGoogleSheet();
