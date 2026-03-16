@@ -29,13 +29,12 @@ public class ContrastComputer
                 Collections.singletonList( sourceAndConverter ),
                 downSampling * viewerVoxelSpacing
         );
-        //imagePlus = screenShotMaker.getCompositeImagePlus();
+        imagePlus = screenShotMaker.getCompositeImagePlus();
         Roi[] rois = screenShotMaker.getMasks();
         if ( rois != null && rois.length > 0 )
             imagePlus.setRoi( rois[ 0 ] );
         IJ.run( imagePlus, "Enhance Contrast", "saturated=0.03" );
         System.out.println( sourceAndConverter );
-        imagePlus.show();
         double[] minMax = { imagePlus.getDisplayRangeMin(), imagePlus.getDisplayRangeMax() };
         return minMax;
     }

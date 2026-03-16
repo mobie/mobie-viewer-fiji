@@ -30,5 +30,5 @@ package org.embl.mobie.lib.color;
 
 public interface MobieColoringModelWrapper
 {
-	MobieColoringModel getMoBIEColoringModel();
+	MoBIEColoringModel getMoBIEColoringModel();
 }

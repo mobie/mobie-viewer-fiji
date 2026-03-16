@@ -38,7 +38,7 @@ import org.embl.mobie.lib.color.AbstractAnnotationColoringModel;
 import org.embl.mobie.lib.color.CategoricalAnnotationColoringModel;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.ColoringModel;
-import org.embl.mobie.lib.color.MobieColoringModel;
+import org.embl.mobie.lib.color.MoBIEColoringModel;
 import org.embl.mobie.lib.color.NumericAnnotationColoringModel;
 import org.embl.mobie.lib.color.OpacityHelper;
 import org.embl.mobie.lib.color.lut.LUTs;
@@ -87,7 +87,7 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 
 	// Runtime
 	public final transient SelectionModel< A > selectionModel = new MoBIESelectionModel<>();
-	public transient MobieColoringModel< A > coloringModel;
+	public transient MoBIEColoringModel< A > coloringModel;
 	public transient AnnotationAdapter< A > annotationAdapter;
 	public transient TableView< A > tableView;
 	public transient ScatterPlotView< A > scatterPlotView;
@@ -223,7 +223,7 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 		this.blendingMode = null; // default is Alpha so we don't serialise it
 		// this.blendingMode = ( BlendingMode ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.class.getName() );
 
-		final MobieColoringModel< ? extends Annotation > mobieColoringModel = annotationDisplay.coloringModel;
+		final MoBIEColoringModel< ? extends Annotation > mobieColoringModel = annotationDisplay.coloringModel;
 
 		this.opacityNotSelected = mobieColoringModel.getOpacityNotSelected();
 		this.selectionColor = ColorHelper.getString( mobieColoringModel.getSelectionColor() );

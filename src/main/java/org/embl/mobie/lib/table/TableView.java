@@ -73,7 +73,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private final AnnotationTableModel< A > tableModel;
 	private final SelectionModel< A > selectionModel;
-	private final MobieColoringModel< A > coloringModel;
+	private final MoBIEColoringModel< A > coloringModel;
 	private final String tableName;
 	private final SliceViewer sliceViewer;
 	private final AbstractAnnotationDisplay< A > display;

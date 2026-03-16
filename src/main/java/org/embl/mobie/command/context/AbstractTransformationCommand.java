@@ -31,6 +31,7 @@ package org.embl.mobie.command.context;
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.MoBIE;
@@ -105,12 +106,16 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
                 suffix ) )
         {
             removeMovingImages();
+
+            IJ.log("\nThe transformation has been applied." +
+                    "\nTo see the transformation numerically please right click in BDV and select \"Log Images Info\"." +
+                    "\nIf you are working with MoBIE collection tables you may put the" +
+                    "\n\"Combined additional transformation\" into the affine column.");
         }
         else
         {
             resetTransforms();
         }
-
 
         // FIXME close the Command UI, HOW?
         //    Maybe we use the hack that finds the awt Window based on its name?

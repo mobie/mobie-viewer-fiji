@@ -26,7 +26,7 @@ import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.annotation.*;
 import org.embl.mobie.lib.color.ColoringListener;
-import org.embl.mobie.lib.color.MobieColoringModel;
+import org.embl.mobie.lib.color.MoBIEColoringModel;
 import org.embl.mobie.lib.color.lut.GlasbeyARGBLut;
 import org.embl.mobie.lib.image.AnnotatedLabelImage;
 import org.embl.mobie.lib.image.Image;
@@ -468,7 +468,7 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 		final ArrayList<TableSawAnnotatedSpot> annList = ( ArrayList< TableSawAnnotatedSpot > ) displayS.getAnnData().getTable().annotations();
 		final ArrayList<RealPoint> vertices = new ArrayList<>();
 		ARGBType valARGB = new ARGBType();
-		final MobieColoringModel< TableSawAnnotatedSpot > coloringModel = ( MobieColoringModel< TableSawAnnotatedSpot > ) displayS.coloringModel;
+		final MoBIEColoringModel< TableSawAnnotatedSpot > coloringModel = ( MoBIEColoringModel< TableSawAnnotatedSpot > ) displayS.coloringModel;
 		int argb;
 		int label = 0;
 		float [] colors = new float [annList.size()*4];

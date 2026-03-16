@@ -78,8 +78,9 @@ public class CollectionTableCreator
         LongColumn imageSizeZCol = LongColumn.create( "num_pixels_z" );
         StringColumn pixelUnitCol = StringColumn.create( "pixel_unit" );
         StringColumn contrastCol = StringColumn.create( "contrast_limits" );
+        StringColumn exclusiveCol = StringColumn.create( "exclusive" );
 
-        table.addColumns( uriCol, nameCol, pixelUnitCol, pixelSizeXCol, pixelSizeYCol, pixelSizeZCol, imageSizeXCol, imageSizeYCol, imageSizeZCol, channelCol, viewCol, displayCol, colorCol, contrastCol );
+        table.addColumns( uriCol, nameCol, pixelUnitCol, pixelSizeXCol, pixelSizeYCol, pixelSizeZCol, imageSizeXCol, imageSizeYCol, imageSizeZCol, channelCol, viewCol, displayCol, colorCol, contrastCol, exclusiveCol );
 
         if ( doGrid )
         {
@@ -134,9 +135,15 @@ public class CollectionTableCreator
                 imageSizeZCol.append( source.getSource( 0, 0 ).dimension( 2 ) );
 
                 if ( viewLayout.equals( TOGETHER ) || viewLayout.equals( GRID )  )
+                {
                     viewCol.append( "all data" );
+                    exclusiveCol.append( "true" ); // does not really matter since everything is in one view
+                }
                 else if ( viewLayout.equals( INDIVIDUAL ) )
+                {
                     viewCol.append( FilenameUtils.removeExtension( imageFile.getName() ) );
+                    exclusiveCol.append( "true" );
+                }
             }
 
             // Extract metadata from file names

@@ -31,9 +31,7 @@ package org.embl.mobie.lib.view;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import bvb.core.BigVolumeBrowser;
 import ij.IJ;
-import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
@@ -591,7 +589,7 @@ public class ViewManager
 
 				coloringModel.setRandomSeed( annotationDisplay.getRandomColorSeed() );
 
-				annotationDisplay.coloringModel = new MobieColoringModel(
+				annotationDisplay.coloringModel = new MoBIEColoringModel(
 						coloringModel,
 						annotationDisplay.selectionModel,
 						annotationDisplay.getSelectionColor(),
@@ -630,7 +628,7 @@ public class ViewManager
 						 true
 							);
 
-				annotationDisplay.coloringModel = new MobieColoringModel( coloringModel, annotationDisplay.selectionModel, annotationDisplay.getSelectionColor(), annotationDisplay.getOpacityNotSelected() );
+				annotationDisplay.coloringModel = new MoBIEColoringModel( coloringModel, annotationDisplay.selectionModel, annotationDisplay.getSelectionColor(), annotationDisplay.getOpacityNotSelected() );
 			}
 
 			// show the data

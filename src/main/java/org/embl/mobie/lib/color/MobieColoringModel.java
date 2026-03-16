@@ -36,7 +36,7 @@ import static net.imglib2.type.numeric.ARGBType.blue;
 import static net.imglib2.type.numeric.ARGBType.green;
 import static net.imglib2.type.numeric.ARGBType.red;
 
-public class MobieColoringModel< T > extends AbstractColoringModel< T >
+public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 {
 	private ColoringModel< T > coloringModel;
 	private SelectionModel< T > selectionModel;
@@ -45,7 +45,7 @@ public class MobieColoringModel< T > extends AbstractColoringModel< T >
 
 	// Wraps a base coloring model and combines it with a selection model,
 	// such that selected elements can have special colors and opacities.
-	public MobieColoringModel( ColoringModel< T > coloringModel, SelectionModel< T > selectionModel, ARGBType selectionColor, double opacityNotSelected  )
+	public MoBIEColoringModel( ColoringModel< T > coloringModel, SelectionModel< T > selectionModel, ARGBType selectionColor, double opacityNotSelected  )
 	{
 		setColoringModel( coloringModel );
 		this.selectionModel = selectionModel;

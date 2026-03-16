@@ -34,7 +34,7 @@ import ij.IJ;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.color.CategoricalAnnotationColoringModel;
 import org.embl.mobie.lib.color.ColoringModel;
-import org.embl.mobie.lib.color.MobieColoringModel;
+import org.embl.mobie.lib.color.MoBIEColoringModel;
 import org.embl.mobie.lib.color.MobieColoringModelWrapper;
 import org.embl.mobie.lib.source.boundary.BoundarySource;
 import org.embl.mobie.lib.source.SourceHelper;
@@ -177,7 +177,7 @@ public class ConfigureLabelRenderingCommand extends DynamicCommand implements Bd
 			// same instance of the selectionColoringModel.
 			if ( converter instanceof MobieColoringModelWrapper )
 			{
-				final MobieColoringModel moBIEColoringModel = ( ( MobieColoringModelWrapper ) converter ).getMoBIEColoringModel();
+				final MoBIEColoringModel moBIEColoringModel = ( ( MobieColoringModelWrapper ) converter ).getMoBIEColoringModel();
 
 				if ( coloringMode.equals( SEGMENT_COLOR ) )
 					moBIEColoringModel.setSelectionColor( null );

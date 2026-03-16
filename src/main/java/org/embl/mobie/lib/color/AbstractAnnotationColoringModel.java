@@ -39,6 +39,7 @@ public abstract class AbstractAnnotationColoringModel< T > extends AbstractColor
 	{
 		return columnName;
 	}
+
 	public ARGBLut getLut() {
 		return this.lut;
 	}

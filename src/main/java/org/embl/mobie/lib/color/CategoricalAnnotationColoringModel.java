@@ -74,6 +74,7 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 		}
 		else
 		{
+			//convertStringToARGB( "" + input.label(), output );
 			convertStringToARGB( input.uuid(), output );
 		}
 	}

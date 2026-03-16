@@ -35,16 +35,16 @@ import org.embl.mobie.lib.color.opacity.OpacityAdjuster;
 
 public abstract class AbstractAnnotationARGBConverter< T, A > implements Converter< A, ARGBType >, OpacityAdjuster, MobieColoringModelWrapper
 {
-	private final MobieColoringModel< T > coloringModel;
+	private final MoBIEColoringModel< T > coloringModel;
 	private double opacity = 1.0;
 
-	public AbstractAnnotationARGBConverter( MobieColoringModel< T > coloringModel )
+	public AbstractAnnotationARGBConverter( MoBIEColoringModel< T > coloringModel )
 	{
 		this.coloringModel = coloringModel;
 	}
 
 	@Override
-	public MobieColoringModel getMoBIEColoringModel()
+	public MoBIEColoringModel getMoBIEColoringModel()
 	{
 		return coloringModel;
 	}

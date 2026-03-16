@@ -34,7 +34,7 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.color.ColoringModels;
-import org.embl.mobie.lib.color.MobieColoringModel;
+import org.embl.mobie.lib.color.MoBIEColoringModel;
 import org.embl.mobie.lib.color.NumericAnnotationColoringModel;
 import org.embl.mobie.lib.color.lut.LUTs;
 import org.embl.mobie.lib.select.SelectionModel;
@@ -57,7 +57,7 @@ public class DistanceComputer
         Cosine;
     }
 
-    public static < A extends Annotation > void showUI( AnnotationTableModel< A > tableModel, SelectionModel< A > selectionModel, MobieColoringModel< A > coloringModel )
+    public static < A extends Annotation > void showUI( AnnotationTableModel< A > tableModel, SelectionModel< A > selectionModel, MoBIEColoringModel< A > coloringModel )
     {
         Set< A > referenceRows = selectionModel.getSelected();
         if ( referenceRows.isEmpty() )

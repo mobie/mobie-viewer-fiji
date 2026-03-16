@@ -49,7 +49,7 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.color.ColoringListener;
 import org.embl.mobie.lib.color.ColoringModel;
-import org.embl.mobie.lib.color.MobieColoringModel;
+import org.embl.mobie.lib.color.MoBIEColoringModel;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.ui.BdvPopupMenus;
 import org.embl.mobie.lib.select.SelectionListener;
@@ -95,7 +95,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	private double selectionRadius = 1.0;
 
 	private final AnnotationTableModel< A > tableModel;
-	private final MobieColoringModel< A > coloringModel;
+	private final MoBIEColoringModel< A > coloringModel;
 	private final SelectionModel< A > selectionModel;
 
 	private BdvHandle bdvHandle;
@@ -111,7 +111,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	public ScatterPlotView(
 			AnnotationTableModel< A > tableModel,
 			SelectionModel< A > selectionModel,
-			MobieColoringModel< A > coloringModel,
+			MoBIEColoringModel< A > coloringModel,
 			ScatterPlotSettings settings )
 	{
 		this.tableModel = tableModel;

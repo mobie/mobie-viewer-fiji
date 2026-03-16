@@ -163,14 +163,8 @@ public class CollectionDataSetter
             Map< String, List< String > > positionToSources = viewToGrids.get( viewName ).get( gridName );
             List< List< String > > nestedSources;
 
-            // FIXME: This is wrong if there are grid_positions given
-            if ( positionToSources.size() == 1 )
+            if ( positionToSources.size() == 1 && positionToSources.keySet().iterator().next().equals( NO_GRID_POSITION )  )
             {
-                if ( ! positionToSources.keySet().iterator().next().equals( NO_GRID_POSITION ) )
-                {
-                    System.err.println("error in addGridTransformationsAndRegionDisplay");
-                }
-
                 nestedSources = positionToSources.values().iterator().next().stream()
                         .map( Collections::singletonList )
                         .collect( Collectors.toList() );
@@ -447,7 +441,7 @@ public class CollectionDataSetter
 
         assert string != null;
         if ( string.isEmpty() )
-            throw new RuntimeException("Encountered empty cell in uri column, please add a valid uri!");
+            throw new RuntimeException("Encountered empty cell in \"uri\" column, please add a valid uri!");
 
         return string;
     }
