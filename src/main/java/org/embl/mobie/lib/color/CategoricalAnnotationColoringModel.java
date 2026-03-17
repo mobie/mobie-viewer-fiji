@@ -126,7 +126,11 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 			}
 		}
 
-		final double random = createRandom( categoricalValue.hashCode() );
+		// if it (very likely) is a MoBIE uuid: source;timepoint;label
+		// we only color by the label, because
+		String[] split = categoricalValue.split( ";" );
+		String colorString = split.length == 3 ? split[ 2 ] : categoricalValue;
+		final double random = createRandom( colorString.hashCode() );
 		final int argb = lut.getARGB( random );
 		inputToRandomColor.put( categoricalValue, argb );
 		output.set( argb );

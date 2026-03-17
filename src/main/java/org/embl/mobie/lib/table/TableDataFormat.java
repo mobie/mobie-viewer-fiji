@@ -132,6 +132,11 @@ public enum TableDataFormat
 			return new MorphoLibJSegmentColumnNames();
 		}
 
+//		if ( TrackMateSegmentColumnNames.matches( columnNames ) )
+//		{
+//			return new MorphoLibJSegmentColumnNames();
+//		}
+
 		if ( SkimageSegmentColumnNames.matches( columnNames ) ) 
 		{
 			return new SkimageSegmentColumnNames( columnNames );
