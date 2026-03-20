@@ -64,6 +64,19 @@ public class OpenCollectionTableCommandTest
     }
 
     @Test
+    public void autoContrastBlobs()
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = new File("src/test/resources/collections/blobs-auto-contrast-collection.csv").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
+        command.run();
+    }
+
+    @Test
     public void blobsGrid()
     {
         final ImageJ imageJ = new ImageJ();
@@ -428,7 +441,7 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().clem();
         //new OpenCollectionTableCommandTest().singleBlobs();
         //new OpenCollectionTableCommandTest().mrc();
-        new OpenCollectionTableCommandTest().blobsGrid();
+        //new OpenCollectionTableCommandTest().blobsGrid();
         //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
         //new OpenCollectionTableCommandTest().timelapse();
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
@@ -438,5 +451,6 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().segmentedNuclei();
         //new OpenCollectionTableCommandTest().thinPlateSplinePlatyGoogleSheet();
         //new OpenCollectionTableCommandTest().manyGroups();
+        new OpenCollectionTableCommandTest().autoContrastBlobs();
     }
 }

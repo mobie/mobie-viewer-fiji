@@ -288,15 +288,13 @@ public class CollectionTableConstants
      * The value is ONLY used when the "type" column has the value "intensities",
      * or if the "type" column is absent, which causes the type to default to "intensities",
      * otherwise this value is ignored.
+     *
      * Supported values:
-     * - Bracketed, comma (or semi-colon) separated list of min and max, e.g.
-     *   - (10,240)
+     * - Bracketed, comma (or semi-colon) separated list of min and max, e.g. (10,240) or (0;1500)
+     * - "auto": will trigger an auto-contrast computation
      *
      * Default:
-     * If the column is absent or can't be parsed, MoBIE will apply an
-     * auto-contrast algorithm, if the data is not too big. // TODO explain more
-     * If the data is too big, the contrast limits will be set to
-     * the limits of the pixel data type.
+     * The contrast limits will be set to the limits of the pixel data type.
      *
      * Use cases:
      * - Adjust the contrast limits such that the intensities are readily visible
