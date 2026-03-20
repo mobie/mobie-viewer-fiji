@@ -140,8 +140,10 @@ public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceV
 				//contrastLimits = contrastAdjuster.computeMinMax( 1 );
 
 				Source< ? > source = sourceAndConverter.getSpimSource();
+				IJ.log( "Computing contrast limits for " + source.getName() + "..." );
 				RandomAccessibleInterval< ? > lowResRAI = source.getSource( 0, source.getNumMipmapLevels() - 1 );
 				contrastLimits = SourceHelper.estimateMinMax( ( RandomAccessibleInterval ) lowResRAI );
+				IJ.log( "Contrast limits: (" + contrastLimits[0] + "," + contrastLimits[1] + ")" );
 			}
 
 			final ConverterSetup converterSetup =

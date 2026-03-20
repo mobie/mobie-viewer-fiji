@@ -1,2 +1,4 @@
-uri,contrast_limits
-blobs-uint16.tif,auto
+uri,contrast_limits,grid
+blobs-uint16.tif,auto,grid
+blobs-uint16-brighter.tif,auto,grid
+
