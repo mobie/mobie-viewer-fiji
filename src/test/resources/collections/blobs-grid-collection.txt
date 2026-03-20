@@ -1,0 +1,3 @@
+uri	name	type	contrast_limits	affine	view	color	grid	display
+blobs.tif	blobs1	intensities	(0;255)	"(10,0,0,0,0,10,0,0,0,0,1,0)"	blobs	green	grid	image
+blobs.tif	blobs2	intensities	(50;200)	"(10,0,0,0,0,10,0,0,0,0,1,0)"	blobs	green	grid	image

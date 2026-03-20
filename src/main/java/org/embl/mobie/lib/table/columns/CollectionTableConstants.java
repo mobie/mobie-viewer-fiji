@@ -383,6 +383,7 @@ public class CollectionTableConstants
      *
      * Supported values:
      * - OmeZarr
+     * - BioFormats
      *
      * Default:
      * If the column is absent or contains an empty or unsupported string, the
@@ -390,6 +391,7 @@ public class CollectionTableConstants
      *
      * Use cases:
      * - OME-Zarr data that does not contain ".ome.zarr" in the path
+     * - Use BioFormats for TIFF stacks that cannot be opened with ImageJ
      */
     public static final String FORMAT = "format";
 

@@ -50,7 +50,6 @@ public class OpenCollectionTableCommandTest
         command.run();
     }
 
-
     @Test
     public void largeAndSmallBlobs()
     {
@@ -59,6 +58,19 @@ public class OpenCollectionTableCommandTest
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.tableUri = new File("src/test/resources/collections/blobs-large-and-small-collection.txt").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
+        command.run();
+    }
+
+    @Test
+    public void blobsGrid()
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = new File("src/test/resources/collections/blobs-grid-collection.txt").getAbsolutePath();
         command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
@@ -110,7 +122,7 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-        command.tableUri = new File("src/test/resources/collections/blobs-grid-table.txt").getAbsolutePath();
+        command.tableUri = new File("src/test/resources/collections/segmented-blobs-grid-table.txt").getAbsolutePath();
         command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
@@ -416,11 +428,12 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().clem();
         //new OpenCollectionTableCommandTest().singleBlobs();
         //new OpenCollectionTableCommandTest().mrc();
+        new OpenCollectionTableCommandTest().blobsGrid();
         //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
         //new OpenCollectionTableCommandTest().timelapse();
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
-        new OpenCollectionTableCommandTest().blobsAndMri();
+        //new OpenCollectionTableCommandTest().blobsAndMri();
         //new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
         //new OpenCollectionTableCommandTest().segmentedNuclei();
         //new OpenCollectionTableCommandTest().thinPlateSplinePlatyGoogleSheet();

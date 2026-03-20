@@ -165,11 +165,14 @@ public class CollectionDataSetter
 
             if ( positionToSources.size() == 1 && positionToSources.keySet().iterator().next().equals( NO_GRID_POSITION )  )
             {
+                // All sources are at the same NO_GRID_POSITION position
+                // thus this is a grid without given positions
+
                 nestedSources = positionToSources.values().iterator().next().stream()
                         .map( Collections::singletonList )
                         .collect( Collectors.toList() );
 
-                GridTransformation grid = new GridTransformation( nestedSources, "" );
+                GridTransformation grid = new GridTransformation( nestedSources, true );
                 transformations.add( grid );
             }
             else
@@ -180,7 +183,7 @@ public class CollectionDataSetter
 
                 nestedSources = new ArrayList<>( positionToSources.values() );
 
-                GridTransformation grid = new GridTransformation( nestedSources, positions, "" );
+                GridTransformation grid = new GridTransformation( nestedSources, positions, true );
                 grid.centerAtOrigin = true; // FIXME: should depend on something!
                 transformations.add( grid );
             }

@@ -51,7 +51,7 @@ public class GridTransformation extends AbstractGridTransformation
 	public boolean centerAtOrigin = true;
 
 	public GridTransformation( List< List< String > > sources,
-							   @Nullable String nestedSources // flag to make this constructor have a different erasure
+							   boolean nestedSources // flag to make this constructor have a different erasure
 	)
 	{
 		this.nestedSources = sources;
@@ -59,7 +59,7 @@ public class GridTransformation extends AbstractGridTransformation
 
 	public GridTransformation( List< List< String > > sources,
 							   List< int[] > positions,
-							   @Nullable String nestedSources// flag to make this constructor have a different erasure
+							   boolean nestedSources// flag to make this constructor have a different erasure
 	)
 	{
 		this.nestedSources = sources;
