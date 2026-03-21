@@ -20,7 +20,6 @@ import static org.embl.mobie.lib.view.save.ViewSaver.CREATE_SELECTION_GROUP;
 
 public class ViewSaverDialog
 {
-
     private static final JComboBox< FileLocation > fileLocation = new JComboBox<>( FileLocation.values() );
     private static final JTextField viewJsonPath = new JTextField( "", 20 );
     private static final JCheckBox makeViewExclusive = new JCheckBox( "Make view exclusive" );
@@ -30,16 +29,18 @@ public class ViewSaverDialog
 
     private final View view;
     private final ProjectType projectType;
+    private final String projectLocation;
     private boolean isOkPressed;
 
     private JDialog dialog;
     private JTextField newGroup;
     private JTextField viewName;
 
-    public ViewSaverDialog( View view, ProjectType projectType )
+    public ViewSaverDialog( View view, ProjectType projectType, String projectLocation )
     {
         this.view = view;
         this.projectType = projectType;
+        this.projectLocation = projectLocation;
     }
 
     public boolean show()
@@ -213,7 +214,9 @@ public class ViewSaverDialog
             public void actionPerformed( ActionEvent e )
             {
                 // Create a JFileChooser
-                JFileChooser fileChooser = new JFileChooser();
+                JFileChooser fileChooser = projectType.equals( ProjectType.CollectionTable )
+                    ? new JFileChooser( new File( projectLocation ).getParentFile().getAbsolutePath() )
+                        : new JFileChooser();
                 fileChooser.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
 
                 // Show the file chooser dialog

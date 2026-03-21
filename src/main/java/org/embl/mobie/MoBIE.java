@@ -136,22 +136,15 @@ public class MoBIE
 			IJ.log("Opening collection table: " + projectUri );
 
 			// Read the table
-
-			HashMap< String, ColumnType > nameToType = new HashMap<>();
-			nameToType.put( CollectionTableConstants.GRID, ColumnType.STRING );
-			nameToType.put( CollectionTableConstants.VIEW, ColumnType.STRING );
-
-			// TODO: This should happen only in TableOpener
-			//       The issue is to determine the TableDataFormat.fromPath( uri )
-			//       but we can check for uri.contains( "docs.google.com/spreadsheets" ) in there
-			//       That is all the code below should go into TableOpener
-
 			Table table = TableOpener.open( projectUri );
 			initProject( IOHelper.getFileName( projectUri ) );
 
+			// Add table content to the dataset
 			CollectionDataSetter dataSetter = new CollectionDataSetter( table, settings.values.getDataRoot() );
 			dataSetter.addTableToDataset( dataset );
+			dataset.is2D( settings.values.getBdvViewingMode().equals( BdvViewingMode.TwoDimensional ) );
 
+			// Check for addition view.json files
 			if ( IOHelper.getType( projectUri ).equals( ResourceType.FILE ) )
 			{
 				// Find all .json files in the table parent dir
@@ -171,13 +164,10 @@ public class MoBIE
 						catch ( Exception e )
 						{
 							// JSON file could not be parsed
-							// this is OK
-							IJ.log("Parsing failed: " + p );
+							IJ.log("[WARNING] Parsing failed: " + p );
 						}
 					});
 			}
-
-			dataset.is2D( settings.values.getBdvViewingMode().equals( BdvViewingMode.TwoDimensional ) );
 
 			initUiAndShowView( dataset.views().values().iterator().next().getName() );
 		}

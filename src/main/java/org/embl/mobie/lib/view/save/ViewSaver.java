@@ -72,7 +72,7 @@ public class ViewSaver
     {
         ProjectType projectType = moBIE.getSettings().values.getProjectType();
 
-        ViewSaverDialog dialog = new ViewSaverDialog( view, projectType );
+        ViewSaverDialog dialog = new ViewSaverDialog( view, projectType, moBIE.getProjectLocation() );
         if ( ! dialog.show() )
             return false;
 
