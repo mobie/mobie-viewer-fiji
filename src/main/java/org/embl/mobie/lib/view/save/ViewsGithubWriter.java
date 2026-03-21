@@ -33,10 +33,10 @@ import com.google.gson.internal.LinkedTreeMap;
 import ij.IJ;
 import ij.Prefs;
 import ij.gui.GenericDialog;
-import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
+import org.embl.mobie.lib.serialize.ViewsJsonParser;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.DatasetJsonParser;
-import org.embl.mobie.lib.view.AdditionalViews;
+import org.embl.mobie.lib.view.ViewsMap;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.io.github.GitHubContentGetter;
 import org.embl.mobie.io.github.GitHubFileCommitter;
@@ -65,8 +65,8 @@ public class ViewsGithubWriter {
         }
     }
 
-    private static String writeAdditionalViewsToBase64String ( AdditionalViews additionalViews ) {
-        String jsonString = new AdditionalViewsJsonParser().viewsToJsonString( additionalViews, true );
+    private static String writeAdditionalViewsToBase64String ( ViewsMap viewsMap ) {
+        String jsonString = ViewsJsonParser.viewsToJsonString( viewsMap, true );
         jsonString += "\n";
         byte[] jsonBytes = jsonString.getBytes( StandardCharsets.UTF_8);
         return Base64.getEncoder().encodeToString(jsonBytes);
@@ -166,14 +166,14 @@ public class ViewsGithubWriter {
     public void writeViewToViewsJson( View view ) {
         if ( showDialog() ) {
             if ( viewJsonGitLocation.path.endsWith( ".json" )) {
-                AdditionalViews additionalViews;
+                ViewsMap viewsMap;
                 // if 404, then file doesn't exist, so make new one
                 if ( !jsonExists() ) {
-                    additionalViews = new AdditionalViews();
-                    additionalViews.views = new HashMap<>();
-                    additionalViews.views.put(view.getName(), view);
+                    viewsMap = new ViewsMap();
+                    viewsMap.views = new HashMap<>();
+                    viewsMap.views.put(view.getName(), view);
 
-                    final String additionalViewsBase64String = writeAdditionalViewsToBase64String(additionalViews);
+                    final String additionalViewsBase64String = writeAdditionalViewsToBase64String( viewsMap );
                     writeNewFile(additionalViewsBase64String);
                     // otherwise, append to file
                 } else {
@@ -183,10 +183,10 @@ public class ViewsGithubWriter {
                         String content = contentGetter.getContent();
                         if (content != null) {
                             FilePathAndSha filePathAndSha = getFilePathAndSha(content);
-                            additionalViews = new AdditionalViewsJsonParser().getViews(filePathAndSha.filePath);
-                            additionalViews.views.put(view.getName(), view);
+                            viewsMap = ViewsJsonParser.loadViews(filePathAndSha.filePath);
+                            viewsMap.views.put(view.getName(), view);
 
-                            final String additionalViewsBase64String = writeAdditionalViewsToBase64String(additionalViews);
+                            final String additionalViewsBase64String = writeAdditionalViewsToBase64String( viewsMap );
                             overwriteExistingFile(filePathAndSha, additionalViewsBase64String);
                         }
                     } catch (IOException e) {

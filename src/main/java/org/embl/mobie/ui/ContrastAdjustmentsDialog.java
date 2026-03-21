@@ -271,14 +271,13 @@ public class ContrastAdjustmentsDialog
 
             for ( SourceAndConverter<?> sac : visibleSacs )
             {
-                ContrastComputer contrastAdjuster = new ContrastComputer(bdvHandle, sac);
-                // FIXME which down-sampling?
-                double[] contrast = contrastAdjuster.computeContrastLimitsWithinCurrentView(1);
+                ContrastComputer contrastAdjuster = new ContrastComputer( bdvHandle, sac );
+                double[] contrast = contrastAdjuster.computeContrastLimitsWithinCurrentView( 1 );
                 sacToContrast.put( sac, contrast );
 
                 SwingUtilities.invokeLater(() ->
-                        IJ.log( "Contrast of  " + sac.getSpimSource().getName()
-                                + ": " + Arrays.toString(contrast)));
+                        IJ.log( sac.getSpimSource().getName()
+                                + ": (" + contrast[ 0 ] + "," + contrast[ 1 ] + ")" ) );
             }
 
             // overall min and max of all visible sources

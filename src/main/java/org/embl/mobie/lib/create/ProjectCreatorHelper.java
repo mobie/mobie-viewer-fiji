@@ -40,7 +40,7 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.util.ThreadHelper;
-import org.embl.mobie.lib.view.AdditionalViews;
+import org.embl.mobie.lib.view.ViewsMap;
 import ucar.units.*;
 
 import java.io.File;
@@ -158,11 +158,11 @@ public class ProjectCreatorHelper {
     /**
      * Get mapping of ui selection groups (i.e. MoBIE dropdown menu names) to views for given additionalViews (i.e.
      * views saved in a separate views json file).
-     * @param additionalViews additional views - from a separate views json file
+     * @param viewsMap additional views - from a separate views json file
      * @return Map of ui selection group names to array of view names
      */
-    public static Map<String, ArrayList<String>> getGroupToViewsMap( AdditionalViews additionalViews ) {
-        return getGroupToViewsMap(additionalViews.views);
+    public static Map<String, ArrayList<String>> getGroupToViewsMap( ViewsMap viewsMap ) {
+        return getGroupToViewsMap( viewsMap.views);
     }
 
     /**

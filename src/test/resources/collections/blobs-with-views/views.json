@@ -1,0 +1,75 @@
+{
+  "views": {
+    "zoom": {
+      "uiSelectionGroups": [
+        "views"
+      ],
+      "sourceDisplays": [
+        {
+          "imageDisplay": {
+            "sources": [
+              "blobs"
+            ],
+            "color": "r=255,g=255,b=255,a=255",
+            "contrastLimits": [
+              0.0,
+              255.0
+            ],
+            "showImagesIn3d": false,
+            "invert": false,
+            "name": "blobs",
+            "opacity": 1.0,
+            "visible": true,
+            "blendingMode": "sum"
+          }
+        },
+        {
+          "regionDisplay": {
+            "sources": {
+              "blobs": [
+                "blobs"
+              ]
+            },
+            "tableSource": "regions: blobs",
+            "selectedRegionIds": [],
+            "overlap": false,
+            "lut": "glasbey",
+            "showScatterPlot": false,
+            "scatterPlotAxes": [
+              "anchor_x",
+              "anchor_y"
+            ],
+            "showTable": true,
+            "showAsBoundaries": false,
+            "boundaryThickness": 1.0,
+            "randomColorSeed": 42,
+            "opacityNotSelected": 0.15,
+            "name": "regions: blobs",
+            "opacity": 0.5,
+            "visible": false
+          }
+        }
+      ],
+      "sourceTransforms": [],
+      "viewerTransform": {
+        "normalizedAffine": [
+          0.019159892103283716,
+          0.0,
+          0.0,
+          -0.4466847025244042,
+          0.0,
+          0.019159892103283716,
+          0.0,
+          -0.46869732608907266,
+          0.0,
+          0.0,
+          0.019159892103283716,
+          0.0
+        ],
+        "timepoint": 0
+      },
+      "isExclusive": true,
+      "description": ""
+    }
+  }
+}

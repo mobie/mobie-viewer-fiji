@@ -1,19 +1,17 @@
 package org.embl.mobie.lib.view.delete;
 
-import IceInternal.Ex;
 import ij.IJ;
 import org.apache.commons.lang.NotImplementedException;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.io.FileLocation;
-import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
+import org.embl.mobie.lib.serialize.ViewsJsonParser;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.DatasetJsonParser;
 import org.embl.mobie.lib.serialize.View;
-import org.embl.mobie.lib.view.AdditionalViews;
+import org.embl.mobie.lib.view.ViewsMap;
 import org.embl.mobie.lib.view.save.SelectExistingViewDialog;
 import org.embl.mobie.ui.UserInterfaceHelper;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -95,7 +93,7 @@ public class ViewDeleter {
             return;
         }
 
-        Map<String, View> views = new AdditionalViewsJsonParser().getViews( selectedFilePath ).views;
+        Map<String, View> views = ViewsJsonParser.loadViews( selectedFilePath ).views;
         if ( views.isEmpty() ) {
             IJ.log("No valid views in file");
             return;
@@ -133,10 +131,10 @@ public class ViewDeleter {
 
     public void removeViewsFromAdditionalViewsJson( Map<String, View> views, String jsonPath ) throws IOException
     {
-        AdditionalViews additionalViews = new AdditionalViewsJsonParser().getViews( jsonPath );
-        additionalViews.views.keySet().removeAll( views.keySet() );
+        ViewsMap viewsMap = ViewsJsonParser.loadViews( jsonPath );
+        viewsMap.views.keySet().removeAll( views.keySet() );
 
-        new AdditionalViewsJsonParser().saveViews( additionalViews, jsonPath );
+        ViewsJsonParser.saveViews( viewsMap, jsonPath );
         IJ.log( "Views \"" + views.keySet() + "\" removed from " + jsonPath );
     }
 

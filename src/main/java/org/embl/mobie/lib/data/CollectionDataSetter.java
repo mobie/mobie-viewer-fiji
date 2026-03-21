@@ -3,10 +3,7 @@ package org.embl.mobie.lib.data;
 import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
 import net.thisptr.jackson.jq.internal.misc.Strings;
-import org.embl.mobie.io.ImageDataOpener;
-import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.lib.serialize.transformation.ThinPlateSplineTransformation;
-import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.table.columns.ColumnNames;
 import org.embl.mobie.lib.util.Constants;
 import org.embl.mobie.io.ImageDataFormat;
@@ -24,7 +21,6 @@ import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.table.TableSource;
 import org.embl.mobie.lib.table.columns.CollectionTableConstants;
 import org.embl.mobie.lib.util.MoBIEHelper;
-import org.embl.mobie.lib.util.ThreadHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tech.tablesaw.api.Row;
@@ -58,7 +54,7 @@ public class CollectionDataSetter
         this.rootPath = rootPath;
     }
 
-    public void addToDataset( Dataset dataset )
+    public void addTableToDataset( Dataset dataset )
     {
         if ( ! columnExists( CollectionTableConstants.URI ) )
             throw new RuntimeException( "Column \"" + CollectionTableConstants.URI[0] + "\" must be present in the collection table." );

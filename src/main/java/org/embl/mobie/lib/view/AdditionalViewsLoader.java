@@ -31,7 +31,7 @@ package org.embl.mobie.lib.view;
 import ij.IJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.io.FileLocation;
-import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
+import org.embl.mobie.lib.serialize.ViewsJsonParser;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.ui.UserInterfaceHelper;
 
@@ -70,11 +70,11 @@ public class AdditionalViewsLoader {
         }).start();
     }
 
-    public void loadViews( String selectedFilePath ) throws IOException
+    public void loadViews( String jsonFilePath ) throws IOException
     {
-        Map< String, View > views = new AdditionalViewsJsonParser().getViews( selectedFilePath ).views;
+        Map< String, View > views = ViewsJsonParser.loadViews( jsonFilePath ).views;
         moBIE.getViews().putAll( views );
         moBIE.getUserInterface().addViews( views );
-        IJ.log( "New views loaded from:\n" + selectedFilePath );
+        IJ.log( "New views loaded from:\n" + jsonFilePath );
     }
 }

@@ -35,15 +35,14 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.create.ui.ViewSaverDialog;
 import org.embl.mobie.lib.data.ProjectType;
 import org.embl.mobie.lib.io.FileLocation;
-import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
+import org.embl.mobie.lib.serialize.ViewsJsonParser;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.DatasetJsonParser;
 import org.embl.mobie.lib.serialize.transformation.NormalizedAffineViewerTransform;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.ui.UserInterfaceHelper;
-import org.embl.mobie.lib.view.AdditionalViews;
+import org.embl.mobie.lib.view.ViewsMap;
 import org.embl.mobie.lib.serialize.View;
-import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.github.GitHubUtils;
 
 import java.io.File;
@@ -52,7 +51,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.embl.mobie.io.util.IOHelper.getFileNames;
 import static org.embl.mobie.lib.view.save.ViewSavingHelper.writeAdditionalViewsJson;
 import static org.embl.mobie.lib.view.save.ViewSavingHelper.writeDatasetJson;
 import static org.embl.mobie.io.github.GitHubUtils.isGithub;
@@ -246,15 +244,15 @@ public class ViewSaver
 
     private void saveNewViewToAdditionalViewsJson( View view, String jsonPath ) throws IOException
     {
-        AdditionalViews additionalViews;
+        ViewsMap viewsMap;
         if ( jsonExists( jsonPath ) ) {
-            additionalViews = new AdditionalViewsJsonParser().getViews( jsonPath );
+            viewsMap = ViewsJsonParser.loadViews( jsonPath );
         } else {
-            additionalViews = new AdditionalViews();
-            additionalViews.views = new HashMap<>();
+            viewsMap = new ViewsMap();
+            viewsMap.views = new HashMap<>();
         }
 
-        writeAdditionalViewsJson( additionalViews, view, jsonPath );
+        writeAdditionalViewsJson( viewsMap, view, jsonPath );
         IJ.log( "Saved view \"" + view.getName() + "\" to " + jsonPath );
     }
 

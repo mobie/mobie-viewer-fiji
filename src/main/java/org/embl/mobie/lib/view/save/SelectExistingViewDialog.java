@@ -34,7 +34,7 @@ import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.ui.MoBIELaf;
 import org.embl.mobie.ui.SwingHelper;
 import org.embl.mobie.ui.UserInterfaceHelper;
-import org.embl.mobie.lib.view.AdditionalViews;
+import org.embl.mobie.lib.view.ViewsMap;
 
 import javax.swing.*;
 import java.awt.*;
@@ -63,8 +63,8 @@ public class SelectExistingViewDialog {
     }
 
     // write to additional views json
-    public SelectExistingViewDialog( AdditionalViews additionalViews ) {
-        groupToViewsMap = ProjectCreatorHelper.getGroupToViewsMap(additionalViews);
+    public SelectExistingViewDialog( ViewsMap viewsMap ) {
+        groupToViewsMap = ProjectCreatorHelper.getGroupToViewsMap( viewsMap );
     }
 
     public SelectExistingViewDialog( Map<String, View> views ) {

@@ -28,6 +28,7 @@
  */
 package org.embl.mobie;
 
+import IceInternal.Ex;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -72,6 +73,9 @@ import tech.tablesaw.io.csv.CsvReadOptions;
 import javax.annotation.Nullable;
 import java.awt.*;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.Future;
@@ -146,7 +150,33 @@ public class MoBIE
 			initProject( IOHelper.getFileName( projectUri ) );
 
 			CollectionDataSetter dataSetter = new CollectionDataSetter( table, settings.values.getDataRoot() );
-			dataSetter.addToDataset( dataset );
+			dataSetter.addTableToDataset( dataset );
+
+			if ( IOHelper.getType( projectUri ).equals( ResourceType.FILE ) )
+			{
+				// Find all .json files in the table parent dir
+				// and try to load them as views
+				String parentDir = getParentLocation( projectUri );
+				Files.walk( Paths.get( parentDir ), 1 )
+					.filter( p -> p.toString().endsWith( ".json" ) )
+					.forEach( p ->
+					{
+						try
+						{
+							Map< String, View > nameToViews = ViewsJsonParser.loadViews( p.toString() ).views;
+							for ( Map.Entry< String, View > nameViewEntry : nameToViews.entrySet() )
+								dataset.views().put( nameViewEntry.getKey(), nameViewEntry.getValue() );
+							IJ.log("Added views from: " + p );
+						}
+						catch ( Exception e )
+						{
+							// JSON file could not be parsed
+							// this is OK
+							IJ.log("Parsing failed: " + p );
+						}
+					});
+			}
+
 			dataset.is2D( settings.values.getBdvViewingMode().equals( BdvViewingMode.TwoDimensional ) );
 
 			initUiAndShowView( dataset.views().values().iterator().next().getName() );

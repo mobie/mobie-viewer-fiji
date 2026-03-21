@@ -214,6 +214,7 @@ public class ViewSaverDialog
             {
                 // Create a JFileChooser
                 JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
 
                 // Show the file chooser dialog
                 int result = fileChooser.showOpenDialog( null );

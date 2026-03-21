@@ -28,11 +28,10 @@
  */
 package org.embl.mobie.lib.view.save;
 
-import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
+import org.embl.mobie.lib.serialize.ViewsJsonParser;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.DatasetJsonParser;
-import org.embl.mobie.lib.view.AdditionalViews;
+import org.embl.mobie.lib.view.ViewsMap;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.io.github.GitHubUtils;
 
@@ -51,14 +50,14 @@ public class ViewSavingHelper
         }
     }
 
-    public static void writeAdditionalViewsJson( AdditionalViews additionalViews, View view, String jsonPath ) throws IOException
+    public static void writeAdditionalViewsJson( ViewsMap viewsMap, View view, String jsonPath ) throws IOException
     {
-        additionalViews.views.put( view.getName(), view );
+        viewsMap.views.put( view.getName(), view );
 
         if ( GitHubUtils.isGithub( jsonPath ) ) {
             new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation( jsonPath ) ).writeViewToViewsJson( view );
         } else {
-            new AdditionalViewsJsonParser().saveViews( additionalViews, jsonPath );
+            ViewsJsonParser.saveViews( viewsMap, jsonPath );
         }
     }
 }

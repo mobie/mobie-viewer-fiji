@@ -32,6 +32,7 @@ import org.embl.mobie.lib.serialize.View;
 
 import java.util.Map;
 
-public class AdditionalViews {
+public class ViewsMap
+{
     public Map< String, View > views;
 }
