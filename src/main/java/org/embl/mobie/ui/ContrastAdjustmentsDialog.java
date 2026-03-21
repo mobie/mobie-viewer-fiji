@@ -273,7 +273,7 @@ public class ContrastAdjustmentsDialog
             {
                 ContrastComputer contrastAdjuster = new ContrastComputer(bdvHandle, sac);
                 // FIXME which down-sampling?
-                double[] contrast = contrastAdjuster.computeMinMax(1);
+                double[] contrast = contrastAdjuster.computeContrastLimitsWithinCurrentView(1);
                 sacToContrast.put( sac, contrast );
 
                 SwingUtilities.invokeLater(() ->

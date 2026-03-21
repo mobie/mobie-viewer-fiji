@@ -395,48 +395,4 @@ public abstract class SourceHelper
 		return new double[]{ min.getRealDouble(), max.getRealDouble() };
 	}
 
-	public static double[] estimateMinMax( RandomAccessibleInterval<? extends RealType<?> > rai)
-	{
-		Cursor<? extends RealType<?>> cursor = Views.iterable(rai).cursor();
-		if (!cursor.hasNext()) return new double[]{0, 255};
-		long stepSize = Intervals.numElements(rai) / 10000 + 1;
-		int randomLimit = (int) Math.min(Integer.MAX_VALUE, stepSize);
-		Random random = new Random(42);
-		double min = cursor.next().getRealDouble();
-		double max = min;
-		while (cursor.hasNext()) {
-			double value = cursor.get().getRealDouble();
-			cursor.jumpFwd(stepSize + random.nextInt(randomLimit));
-			min = Math.min(min, value);
-			max = Math.max(max, value);
-		}
-		return new double[]{min, max};
-	}
-
-	// TODO: finish implementation
-	public static double[] estimateMinMaxWithinViewerUNFINISHED(
-			RandomAccessibleInterval<? extends RealType<?> > rai,
-			AffineTransform3D sourceToGlobal,
-			BdvHandle bdvHandle)
-	{
-		AffineTransform3D globalToViewer = bdvHandle.getViewerPanel().state().getViewerTransform();
-		AffineTransform3D sourceToViewer = sourceToGlobal.preConcatenate( globalToViewer );
-
-		Cursor<? extends RealType<?>> cursor = Views.iterable(rai).cursor();
-		if (!cursor.hasNext()) return new double[]{0, 255};
-		long stepSize = Intervals.numElements(rai) / 10000 + 1;
-		int randomLimit = (int) Math.min(Integer.MAX_VALUE, stepSize);
-		Random random = new Random(42);
-		double min = cursor.next().getRealDouble();
-		double max = min;
-		while (cursor.hasNext()) {
-			// TODO: how to move without triggering data access?
-			double value = cursor.get().getRealDouble();
-			cursor.jumpFwd(stepSize + random.nextInt(randomLimit));
-			long[] longs = cursor.positionAsLongArray();
-			min = Math.min(min, value);
-			max = Math.max(max, value);
-		}
-		return new double[]{min, max};
-	}
 }

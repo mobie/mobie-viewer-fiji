@@ -76,6 +76,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
+import javax.xml.crypto.Data;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
@@ -480,8 +481,8 @@ public class ViewManager
 				// Build the image that visualises this RegionDisplay
 				// The logic here is not ideal:
 				// https://github.com/mobie/mobie-viewer-fiji/issues/818
-				// ...as normally a display should visualise an existing image
-				// here however the display creates the image
+				// ...as normally a display should visualise an existing image,
+				// here, however the display creates the image
 				// The imageNames that are referred to here must exist in this view.
 				// Thus, the {@code RegionAnnotationImage} must be built
 				// *after* the above transformations,
@@ -493,6 +494,28 @@ public class ViewManager
 					moBIE, regionDisplay ).createAnnData();
 				final RegionAnnotationImage< AnnotatedRegion > regionAnnotationImage =
 						new RegionAnnotationImage( regionDisplay, annData );
+
+				if ( regionDisplay.sources != null && regionDisplay.sources.size() == 2 )
+				{
+					Collection< List< String > > sources = regionDisplay.sources.values();
+					Iterator< List< String > > iterator = sources.iterator();
+					String source0 = iterator.next().get( 0 );
+					String source1 = iterator.next().get( 0 );
+					Image< ? > image0 = DataStore.getImage( source0 );
+					Image< ? > image1 = DataStore.getImage( source1 );
+					// if there is only on intensity and one label image
+					// showing the region overlay is typically not useful
+					if ( image0 instanceof ImageDataImage && image1 instanceof AnnotationImage )
+						regionDisplay.setVisible( false );
+					if ( image1 instanceof ImageDataImage && image0 instanceof AnnotationImage )
+						regionDisplay.setVisible( false );
+				}
+				else
+				{
+					// Showing the region overlay for only one annotated image typically is not useful
+					regionDisplay.setVisible( annData.getTable().numAnnotations() > 1 );
+				}
+
 				// The region image has the same name as the display,
 				// thus it can be identified later to be the image that
 				// will be shown by this display (via {@code regionDisplay.getSources()})

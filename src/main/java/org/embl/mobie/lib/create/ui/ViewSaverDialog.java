@@ -1,6 +1,7 @@
 package org.embl.mobie.lib.create.ui;
 
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.lib.data.ProjectType;
 import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.ui.SwingHelper;
@@ -28,15 +29,17 @@ public class ViewSaverDialog
     private JComboBox< String > viewGroup;
 
     private final View view;
+    private final ProjectType projectType;
     private boolean isOkPressed;
 
     private JDialog dialog;
     private JTextField newGroup;
     private JTextField viewName;
 
-    public ViewSaverDialog( View view )
+    public ViewSaverDialog( View view, ProjectType projectType )
     {
         this.view = view;
+        this.projectType = projectType;
     }
 
     public boolean show()
@@ -54,7 +57,7 @@ public class ViewSaverDialog
             JPanel viewNamePanel = SwingHelper.horizontalFlowLayoutPanel();
             viewName = new JTextField( "", 15 );
             viewName.setMaximumSize( maximumSize );
-            viewNamePanel.add( new JLabel("View name:  ") );
+            viewNamePanel.add( new JLabel("View name: ") );
             viewNamePanel.add( viewName );
             //viewNamePanel.add( Box.createHorizontalGlue() );
             dialog.add( viewNamePanel );
@@ -62,38 +65,6 @@ public class ViewSaverDialog
 
         // View description
         // TODO: add dialog field and consume it here
-
-        // Save location
-        //
-        JPanel locationPanel = SwingHelper.horizontalFlowLayoutPanel();
-        fileLocation.setMaximumSize( maximumSize );
-        locationPanel.add( new JLabel("Save location:  ") );
-        locationPanel.add( fileLocation );
-        dialog.add( locationPanel );
-
-        JPanel jsonPathPanel = SwingHelper.horizontalFlowLayoutPanel();
-        viewJsonPath.setMaximumSize( maximumSize );
-        JButton browseButton = getBrowseButton();
-        jsonPathPanel.add( new JLabel("File path:  ") );
-        jsonPathPanel.add( viewJsonPath );
-        jsonPathPanel.add( browseButton );
-        dialog.add( jsonPathPanel );
-
-        // Add item listener to the combo box
-        fileLocation.addItemListener( new ItemListener()
-        {
-            @Override
-            public void itemStateChanged( ItemEvent e )
-            {
-                if ( e.getStateChange() == ItemEvent.SELECTED )
-                {
-                    FileLocation selectedItem = ( FileLocation ) fileLocation.getSelectedItem();
-                    jsonPathPanel.setVisible( FileLocation.ExternalFile.equals( selectedItem ) );
-                    dialog.revalidate();
-                    dialog.repaint();
-                }
-            }
-        } );
 
         // Selection group for UI
         //
@@ -106,15 +77,16 @@ public class ViewSaverDialog
             viewGroup.setSelectedItem( selectedViewGroup );
         }
         viewGroup.setMaximumSize( maximumSize );
-        viewGroupPanel.add( new JLabel("View group:  ") );
+        viewGroupPanel.add( new JLabel("View group: ") );
         viewGroupPanel.add( viewGroup );
         dialog.add( viewGroupPanel );
 
         JPanel newGroupPanel = SwingHelper.horizontalFlowLayoutPanel();
-        newGroup = new JTextField( "", 30 );
+        newGroup = new JTextField( "", 20 );
         newGroup.setMaximumSize( maximumSize );
-        newGroupPanel.add( new JLabel("Group name:   ") );
+        newGroupPanel.add( new JLabel("Group name: ") );
         newGroupPanel.add( newGroup );
+        newGroupPanel.setVisible( false );
         dialog.add( newGroupPanel );
 
         viewGroup.addItemListener( new ItemListener()
@@ -126,8 +98,9 @@ public class ViewSaverDialog
                 {
                     String selectedItem = ( String ) viewGroup.getSelectedItem();
                     newGroupPanel.setVisible( CREATE_SELECTION_GROUP.equals( selectedItem ) );
-                    dialog.revalidate();
-                    dialog.repaint();
+                    dialog.getContentPane().revalidate();
+                    dialog.getContentPane().repaint();
+                    dialog.pack();
                 }
             }
         } );
@@ -138,6 +111,52 @@ public class ViewSaverDialog
         checkBoxPanel.add( makeViewExclusive );
         dialog.add( checkBoxPanel );
 
+        if ( projectType.equals( ProjectType.MoBIEJSON ) )
+        {
+            // Save location
+            //
+            JPanel locationPanel = SwingHelper.horizontalFlowLayoutPanel();
+            fileLocation.setMaximumSize( maximumSize );
+            locationPanel.add( new JLabel( "Save location: " ) );
+            locationPanel.add( fileLocation );
+            dialog.add( locationPanel );
+        }
+
+        JPanel jsonPathPanel = SwingHelper.horizontalFlowLayoutPanel();
+        viewJsonPath.setMaximumSize( maximumSize );
+        JButton browseButton = getBrowseButton();
+        jsonPathPanel.add( new JLabel("File path: ") );
+        jsonPathPanel.add( viewJsonPath );
+        jsonPathPanel.add( browseButton );
+        jsonPathPanel.setVisible( ! projectType.equals( ProjectType.MoBIEJSON ) );
+        dialog.add( jsonPathPanel );
+
+        if ( projectType.equals( ProjectType.MoBIEJSON ) )
+        {
+            // Add item listener to the combo box
+            fileLocation.addItemListener( new ItemListener()
+            {
+                @Override
+                public void itemStateChanged( ItemEvent e )
+                {
+                    if ( e.getStateChange() == ItemEvent.SELECTED )
+                    {
+                        FileLocation selectedItem = ( FileLocation ) fileLocation.getSelectedItem();
+                        jsonPathPanel.setVisible( FileLocation.ExternalFile.equals( selectedItem ) );
+                        dialog.getContentPane().revalidate();
+                        dialog.getContentPane().repaint();
+                        dialog.pack();
+                    }
+                }
+            } );
+        }
+        else
+        {
+            fileLocation.setSelectedItem( FileLocation.ExternalFile );
+        }
+
+        // OK Cancel buttons
+        //
         JPanel buttonPanel = new JPanel();
         JButton okButton = new JButton( "OK" );
         JButton cancelButton = new JButton( "Cancel" );
@@ -163,14 +182,12 @@ public class ViewSaverDialog
             }
         } );
 
-        dialog.setPreferredSize( new Dimension( 400, 300 ) );
+        //dialog.setPreferredSize( new Dimension( 600, 300 ) );
         dialog.setLocation(
-                Toolkit.getDefaultToolkit().getScreenSize().width / 2 - 200,
-                Toolkit.getDefaultToolkit().getScreenSize().height / 2 - 200
+                Toolkit.getDefaultToolkit().getScreenSize().width / 2 - 300,
+                Toolkit.getDefaultToolkit().getScreenSize().height / 2 - 300
         );
         dialog.pack();
-        jsonPathPanel.setVisible( false );
-        newGroupPanel.setVisible( false );
         dialog.setVisible( true );
 
         return isOkPressed;

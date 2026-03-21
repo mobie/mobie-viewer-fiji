@@ -33,6 +33,7 @@ import ij.gui.GenericDialog;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.create.ui.ViewSaverDialog;
+import org.embl.mobie.lib.data.ProjectType;
 import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.lib.serialize.Dataset;
@@ -71,7 +72,9 @@ public class ViewSaver
 
     public boolean saveViewDialog( View view )
     {
-        ViewSaverDialog dialog = new ViewSaverDialog( view );
+        ProjectType projectType = moBIE.getSettings().values.getProjectType();
+
+        ViewSaverDialog dialog = new ViewSaverDialog( view, projectType );
         if ( ! dialog.show() )
             return false;
 

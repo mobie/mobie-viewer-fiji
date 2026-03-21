@@ -101,4 +101,9 @@ public abstract class AbstractDisplay< T > implements Display< T >
 	{
 		this.blendingMode = blendingMode;
 	}
+
+	public void setVisible( boolean visible )
+	{
+		this.visible = visible;
+	}
 }

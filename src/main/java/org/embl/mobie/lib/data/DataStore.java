@@ -251,4 +251,9 @@ public abstract class DataStore
 
 		return new ImagePlusImageData<>( imagePlus, sharedQueue );
 	}
+
+	public static Collection< Image<?> > getImages()
+	{
+		return images.values();
+	}
 }

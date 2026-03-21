@@ -140,7 +140,7 @@ public class RegionAnnotationImage< AR extends AnnotatedRegion > implements Anno
 				if ( ! overlap )
 				{
 					// It is likely that the next location
-					// is within the same mask, thus we test that one first
+					// is within the same mask; thus we test that one first
 					// to safe some computations.
 					if ( recentAnnotation.getMask().test( location ) )
 					{

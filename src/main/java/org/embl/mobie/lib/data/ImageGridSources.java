@@ -34,6 +34,7 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.lib.bdv.ContrastComputer;
 import org.embl.mobie.lib.util.Constants;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.ImageData;
@@ -220,7 +221,7 @@ public class ImageGridSources
 		RandomAccessibleInterval< ? > lowResRAI = source.getSource( 0, source.getNumMipmapLevels() - 1 );
 		long numElements = Intervals.numElements( lowResRAI.dimensionsAsLongArray() );
 		if ( numElements < 1024 * 1024 )
-			metadata.contrastLimits = SourceHelper.estimateMinMax( ( RandomAccessibleInterval ) lowResRAI );
+			metadata.contrastLimits = ContrastComputer.estimateMinMax( ( RandomAccessibleInterval ) lowResRAI );
 
 		IJ.log( "Contrast limits: " + Arrays.toString( metadata.contrastLimits ) );
 		IJ.log( "Fetched metadata in " + ( System.currentTimeMillis() - start ) + " ms" );

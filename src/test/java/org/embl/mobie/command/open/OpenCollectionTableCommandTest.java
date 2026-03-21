@@ -434,7 +434,7 @@ public class OpenCollectionTableCommandTest
     {
         //new OpenCollectionTableCommandTest().simple();
         //new OpenCollectionTableCommandTest().spots3D();
-        //new OpenCollectionTableCommandTest().segmentedImageWithFloatLabels();
+        new OpenCollectionTableCommandTest().segmentedImageWithFloatLabels();
         //new OpenCollectionTableCommandTest().spots3dWith20000Columns();
         //new OpenCollectionTableCommandTest().createLargeSpotsTable();
         //new OpenCollectionTableCommandTest().addImageTwice();
@@ -451,6 +451,6 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().segmentedNuclei();
         //new OpenCollectionTableCommandTest().thinPlateSplinePlatyGoogleSheet();
         //new OpenCollectionTableCommandTest().manyGroups();
-        new OpenCollectionTableCommandTest().autoContrastBlobs();
+        //new OpenCollectionTableCommandTest().autoContrastBlobs();
     }
 }

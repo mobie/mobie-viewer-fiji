@@ -38,18 +38,16 @@ import net.imglib2.display.ScaledARGBConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.util.Intervals;
+import net.imglib2.view.IntervalView;
+import net.imglib2.view.Views;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.bdv.ContrastComputer;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.opacity.MoBIEColorConverter;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
-import org.embl.mobie.lib.source.SourceHelper;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
-
-import java.util.Arrays;
 
 public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceView
 {
@@ -133,17 +131,20 @@ public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceV
 		{
 			if ( contrastLimits.length == 1)
 			{
-				// do auto contrast
-
-				// The below does not work because the viewer transform may not yet accommodate the data
-				//ContrastComputer contrastAdjuster = new ContrastComputer( display.sliceViewer.getBdvHandle(), sourceAndConverter );
-				//contrastLimits = contrastAdjuster.computeMinMax( 1 );
-
+				// compute contrast limits on central z plane of time point 0
 				Source< ? > source = sourceAndConverter.getSpimSource();
 				IJ.log( "Computing contrast limits for " + source.getName() + "..." );
 				RandomAccessibleInterval< ? > lowResRAI = source.getSource( 0, source.getNumMipmapLevels() - 1 );
-				contrastLimits = SourceHelper.estimateMinMax( ( RandomAccessibleInterval ) lowResRAI );
+				long[] min = lowResRAI.minAsLongArray();
+				long[] max = lowResRAI.maxAsLongArray();
+				long centralZ = ( max[ 2 ] - min[ 2 ] ) / 2 + min[ 2 ];
+				IntervalView< ? > interval = Views.interval( lowResRAI, new long[]{ min[ 0 ], min[ 1 ], centralZ }, new long[]{ max[ 0 ], max[ 1 ], centralZ } );
+				contrastLimits = ContrastComputer.estimateMinMax( ( RandomAccessibleInterval ) interval );
 				IJ.log( "Contrast limits: (" + contrastLimits[0] + "," + contrastLimits[1] + ")" );
+
+				// NB: Using the ContrastComputer does not work because the viewer transform may not yet accommodate the data
+				// ContrastComputer contrastAdjuster = new ContrastComputer( display.sliceViewer.getBdvHandle(), sourceAndConverter );
+				// contrastLimits = contrastAdjuster.computeMinMax( 1 );
 			}
 
 			final ConverterSetup converterSetup =
