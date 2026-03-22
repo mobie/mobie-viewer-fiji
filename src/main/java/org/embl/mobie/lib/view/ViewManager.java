@@ -76,7 +76,6 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
-import javax.xml.crypto.Data;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
@@ -672,7 +671,7 @@ public class ViewManager
 				initSegmentVolumeViewer( ( SegmentationDisplay ) annotationDisplay );
 		}
 
-		userInterface.addSourceDisplay( display );
+		userInterface.addSourceDisplaySettingsPanel( display );
 		currentDisplays.add( display );
 	}
 

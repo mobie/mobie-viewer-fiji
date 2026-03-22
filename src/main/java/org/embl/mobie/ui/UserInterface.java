@@ -65,14 +65,12 @@ public class UserInterface
 	public UserInterface( MoBIE moBIE )
 	{
 		MoBIELaf.MoBIELafOn();
-		userInterfaceHelper = new UserInterfaceHelper( moBIE );
 
+		userInterfaceHelper = new UserInterfaceHelper( moBIE );
 		selectionPanelContainer = userInterfaceHelper.createSelectionPanel();
 		selectionPanelScrollPane = userInterfaceHelper.createScrollPane( selectionPanelContainer );
 		selectionPanel = userInterfaceHelper.createPanel( selectionPanelScrollPane );
-
 		overlayNamesCheckbox = userInterfaceHelper.getOverlayNamesCheckbox();
-
 		displaySettingsContainer = userInterfaceHelper.createContainerPanel();
 		displaySettingsScrollPane = userInterfaceHelper.createScrollPane( displaySettingsContainer );
 		JPanel displaySettingsPanel = userInterfaceHelper.createPanel( displaySettingsScrollPane );
@@ -81,7 +79,9 @@ public class UserInterface
 		String title = moBIE.getProjectName().equals( moBIE.getDataset().getName() ) ?
 				moBIE.getProjectName() : moBIE.getProjectName() + " " + moBIE.getDataset().getName();
 		frame = createAndShowFrame( selectionPanel, displaySettingsPanel, title, moBIE.getViews().values() );
+
 		MoBIELaf.MoBIELafOff();
+
 		configureWindowClosing( moBIE );
 	}
 
@@ -100,7 +100,10 @@ public class UserInterface
 			});
 	}
 
-	private JFrame createAndShowFrame( JPanel selectionPanel, JPanel displaySettingsPanel, String panelName, Collection< View > views )
+	private JFrame createAndShowFrame( JPanel selectionPanel,
+									   JPanel displaySettingsPanel,
+									   String panelName,
+									   Collection< View > views )
 	{
 		JFrame frame = new JFrame( "MoBIE  " + panelName );
 
@@ -147,12 +150,15 @@ public class UserInterface
 	{
 		displaySettingsContainer.revalidate();
 		displaySettingsContainer.repaint();
+		selectionPanel.repaint();
+		selectionPanelContainer.repaint();
 		frame.revalidate();
 		frame.repaint();
 	}
 
-	private void refreshSelection()
+	private void refreshSelectionPanel()
 	{
+		MoBIELaf.MoBIELafOn();
 		selectionPanelContainer.revalidate();
 		selectionPanelContainer.repaint();
 		// update the location of the splitpane divider, so any new uiSelectionGroups are visible
@@ -160,19 +166,18 @@ public class UserInterface
 		splitPane.setDividerLocation( actionPanelHeight );
 		frame.revalidate();
 		frame.repaint();
+		MoBIELaf.MoBIELafOff();
 	}
 
 	public void addViews( Map<String, View > views )
 	{
-		MoBIELaf.MoBIELafOn();
 		userInterfaceHelper.addViewsToViewSelectionPanel( views );
-		refreshSelection();
-		MoBIELaf.MoBIELafOff();
+		refreshSelectionPanel();
 	}
 
 	public void removeViews( Map<String, View > views ) {
 		userInterfaceHelper.removeViewsFromViewSelectionPanel( views );
-		refreshSelection();
+		refreshSelectionPanel();
 	}
 
 	public Map< String, Map< String, View > > getGroupingsToViews()
@@ -180,7 +185,7 @@ public class UserInterface
 		return userInterfaceHelper.getGroupingsToViews();
 	}
 
-	public void addSourceDisplay( Display display )
+	public void addSourceDisplaySettingsPanel( Display display )
 	{
 		MoBIELaf.MoBIELafOn();
 		final JPanel panel = createDisplaySettingPanel( display );

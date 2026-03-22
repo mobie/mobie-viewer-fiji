@@ -41,25 +41,31 @@ public class MoBIELaf
         systemLaf = UIManager.getLookAndFeel();
     }
 
-    public static void MoBIELafOn() {
+    public static synchronized void MoBIELafOn() {
         if ( isMoBIELaf ) return;
         storeSystemLaf();
-        FlatLightLaf.install();
+        FlatLightLaf.setup();
         System.setProperty("apple.laf.useScreenMenuBar", "false");
-        isMoBIELaf = true;
         try {
             UIManager.setLookAndFeel( new FlatLightLaf() );
+            isMoBIELaf = true;
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void MoBIELafOff() {
+    public static synchronized void MoBIELafOff() {
         try {
+            //System.out.println("MoBIELafOff");
             UIManager.setLookAndFeel( systemLaf );
             isMoBIELaf = false;
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static UIManager.LookAndFeelInfo getMoBIELafInfo()
+    {
+        return new UIManager.LookAndFeelInfo( FlatLightLaf.NAME, FlatLightLaf.class.getName() );
     }
 }

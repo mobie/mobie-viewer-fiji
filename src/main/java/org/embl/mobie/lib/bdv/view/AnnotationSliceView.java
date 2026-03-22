@@ -83,7 +83,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		{
 			SourceAndConverter< ? > sac = createSourceAndConverter( display, image );
 
-			System.out.println("AnnotationSliceView: " + image.getName() + ": " + sac );
+			// System.out.println("AnnotationSliceView: " + image.getName() + ": " + sac );
 
 			configureRendering( sac );
 

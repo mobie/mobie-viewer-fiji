@@ -29,6 +29,7 @@
 package org.embl.mobie.lib.bdv;
 
 import bdv.TransformEventHandler2D;
+import bdv.ui.appearance.AppearanceManager;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
@@ -37,11 +38,13 @@ import bdv.util.Prefs;
 import bdv.viewer.Interpolation;
 import bdv.viewer.OverlayRenderer;
 import bdv.viewer.ViewerPanel;
+import com.formdev.flatlaf.FlatLightLaf;
 import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.img.basictypeaccess.array.ByteArray;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.integer.ByteType;
+import org.embl.mobie.ui.MoBIELaf;
 import org.scijava.ui.behaviour.Behaviour;
 import org.scijava.ui.behaviour.BehaviourMap;
 import sc.fiji.bdvpg.bdv.supplier.IBdvSupplier;
@@ -65,6 +68,13 @@ public class MobieBdvSupplier implements IBdvSupplier {
         Prefs.sourceNameOverlayPosition( Prefs.OverlayPosition.TOP_RIGHT );
 
         BdvOptions options = sOptions.getBdvOptions();
+
+        // set the LaF of BDV the same as MoBIE
+        // otherwise there are conflicts and parts of the
+        // MoBIE UI are rendered inconsistently
+        AppearanceManager appearanceManager = new AppearanceManager();
+        appearanceManager.appearance().setLookAndFeel( MoBIELaf.getMoBIELafInfo() );
+        options.appearanceManager( appearanceManager );
 
         //options = options.screenScales(new double[]{1,0.25});
 

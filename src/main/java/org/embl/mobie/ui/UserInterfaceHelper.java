@@ -407,6 +407,7 @@ public class UserInterfaceHelper
 		final JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.Y_AXIS ) );
 
+		// renders buttons round
 		panel.add( createInfoPanel( moBIE.getProjectLocation(), moBIE.getProject() ) );
 
 		if ( moBIE.getDatasets() != null && moBIE.getDatasets().size() > 1 )
@@ -415,15 +416,21 @@ public class UserInterfaceHelper
 			panel.add( createDatasetSelectionPanel() );
 		}
 
+		// renders buttons with edges
 		if ( moBIE.getViews() != null )
 		{
 			panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 			panel.add( createViewsSelectionPanel( moBIE.getViews() ) );
 		}
 
-		panel.add( createViewPanel() );
+		// renders buttons with edges
+		panel.add( createEnterViewPanel() );
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
+
+		// renders buttons with edges
 		panel.add( createLocationPanel( moBIE.getDataset().getDefaultLocation() )  );
+
+		//  renders buttons round
 		panel.add( createClearAndSourceNamesOverlayPanel( moBIE ) );
 
 		return panel;
@@ -590,7 +597,6 @@ public class UserInterfaceHelper
 		groupingsToPanels = new HashMap<>();
 		viewSelectionPanel = new JPanel( new BorderLayout() );
 		viewSelectionPanel.setLayout( new BoxLayout( viewSelectionPanel, BoxLayout.Y_AXIS ) );
-
 		addViewsToViewSelectionPanel( views );
 
 		return viewSelectionPanel;
@@ -610,7 +616,6 @@ public class UserInterfaceHelper
 					groupingsToViews.put( uiSelectionGroup, new LinkedHashMap<>( ));
 				groupingsToViews.get( uiSelectionGroup ).put( viewName, view );
 			}
-
 		}
 
 		final ArrayList< String > uiSelectionGroups = new ArrayList<>( groupingsToViews.keySet() );
@@ -631,7 +636,7 @@ public class UserInterfaceHelper
 				viewSelectionPanel.add(selectionPanel);
 			}
 
-			refreshViewsSelectionPanelHeight();
+			updateViewsSelectionPanelHeight();
 			return;
 		}
 
@@ -668,7 +673,8 @@ public class UserInterfaceHelper
 				viewSelectionPanel.add(indexToPanel.get(index), index.intValue());
 			}
 		}
-		refreshViewsSelectionPanelHeight();
+
+		updateViewsSelectionPanelHeight();
 	}
 
 	public void removeViewsFromViewSelectionPanel( Map< String, View > views )
@@ -704,10 +710,10 @@ public class UserInterfaceHelper
 			}
 		}
 
-		refreshViewsSelectionPanelHeight();
+		updateViewsSelectionPanelHeight();
 	}
 
-	private void refreshViewsSelectionPanelHeight() {
+	private void updateViewsSelectionPanelHeight() {
 		viewsSelectionPanelHeight = groupingsToViews.keySet().size() * 40;
 	}
 
@@ -782,7 +788,7 @@ public class UserInterfaceHelper
 		return horizontalLayoutPanel;
 	}
 
-	public JPanel createViewPanel( )
+	public JPanel createEnterViewPanel( )
 	{
 		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
 		final JButton button = SwingHelper.createButton( VIEW );
@@ -842,15 +848,17 @@ public class UserInterfaceHelper
 
 		button.addActionListener( e ->
 		{
-			String text = jTextField.getText();
-			if ( views.contains( text ) )
+			SwingUtilities.invokeLater( () ->
 			{
-				this.moBIE.getViewManager().show( text );
-			}
-			else
-			{
-				IJ.log( "[WARNING] View " + text + " not found." );
-			}
+				String text = jTextField.getText();
+				if ( views.contains( text ) )
+				{
+					this.moBIE.getViewManager().show( text );
+				} else
+				{
+					IJ.log( "[WARNING] View " + text + " not found." );
+				}
+			});
 		} );
 
 		JLabel label = SwingHelper.getJLabel( "enter view" );
