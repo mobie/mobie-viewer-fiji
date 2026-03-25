@@ -30,7 +30,7 @@ package org.embl.mobie.command.open.special;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.command.open.OpenCollectionTableCommand;
+import org.embl.mobie.command.open.OpenCollectionTableExpertCommand;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
 
@@ -46,7 +46,7 @@ public class OpenOpenOrganelleDataCommand implements Command {
 	{
 		final URL resource = OpenOpenOrganelleDataCommand.class.getResource( "/open-organelle.txt" );
 		String file = resource.getFile();
-		OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+		OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
 		command.tableUri = file;
 		command.run();
 	}

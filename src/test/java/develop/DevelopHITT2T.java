@@ -1,7 +1,7 @@
 package develop;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenCollectionTableCommand;
+import org.embl.mobie.command.open.OpenCollectionTableExpertCommand;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 
 public class DevelopHITT2T
@@ -11,9 +11,9 @@ public class DevelopHITT2T
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = "/Users/tischer/Desktop/hitt2t/mobie-s3.xlsx";
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.PathsInTableAreAbsolute;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.PathsInTableAreAbsolute;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }

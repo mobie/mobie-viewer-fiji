@@ -151,22 +151,23 @@ public class MoBIE
 				// and try to load them as views
 				String parentDir = getParentLocation( projectUri );
 				Files.walk( Paths.get( parentDir ), 1 )
-					.filter( p -> p.toString().endsWith( ".json" ) )
-					.forEach( p ->
-					{
-						try
+						.filter( p -> Files.isRegularFile( p ) )
+						.filter( p -> p.toString().endsWith( ".json" ) )
+						.forEach( p ->
 						{
-							Map< String, View > nameToViews = ViewsJsonParser.loadViews( p.toString() ).views;
-							for ( Map.Entry< String, View > nameViewEntry : nameToViews.entrySet() )
-								dataset.views().put( nameViewEntry.getKey(), nameViewEntry.getValue() );
-							IJ.log("Added views from: " + p );
-						}
-						catch ( Exception e )
-						{
-							// JSON file could not be parsed
-							IJ.log("[WARNING] Parsing failed: " + p );
-						}
-					});
+							try
+							{
+								Map< String, View > nameToViews = ViewsJsonParser.loadViews( p.toString() ).views;
+								for ( Map.Entry< String, View > nameViewEntry : nameToViews.entrySet() )
+									dataset.views().put( nameViewEntry.getKey(), nameViewEntry.getValue() );
+								IJ.log("Added views from: " + p );
+							}
+							catch ( Exception e )
+							{
+								// JSON file could not be parsed
+								IJ.log("[WARNING] Parsing failed: " + p );
+							}
+						});
 			}
 
 			initUiAndShowView( dataset.views().values().iterator().next().getName() );

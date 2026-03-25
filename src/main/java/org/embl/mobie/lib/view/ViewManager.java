@@ -502,7 +502,7 @@ public class ViewManager
 					String source1 = iterator.next().get( 0 );
 					Image< ? > image0 = DataStore.getImage( source0 );
 					Image< ? > image1 = DataStore.getImage( source1 );
-					// if there is only on intensity and one label image
+					// if there is only one intensity and one label image
 					// showing the region overlay is typically not useful
 					if ( image0 instanceof ImageDataImage && image1 instanceof AnnotationImage )
 						regionDisplay.setVisible( false );

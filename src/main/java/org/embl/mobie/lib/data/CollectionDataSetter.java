@@ -283,9 +283,12 @@ public class CollectionDataSetter
         String dataType = getDataType( row );
 
         final StorageLocation storageLocation = new StorageLocation();
-        storageLocation.absolutePath = getUri( row );
-        if ( rootPath != null )
-            storageLocation.absolutePath = IOHelper.combinePath( rootPath, storageLocation.absolutePath );
+        String uri = getUri( row );
+        boolean isRelativePath = MoBIEHelper.isRelativePath( uri );
+        if ( rootPath != null && isRelativePath )
+            storageLocation.absolutePath = IOHelper.combinePath( rootPath, uri );
+        else
+            storageLocation.absolutePath = uri;
 
         if ( dataType.equals( CollectionTableConstants.LABELS )  )
         {
@@ -321,11 +324,9 @@ public class CollectionDataSetter
         }
         else if ( dataType.equals( CollectionTableConstants.SPOTS )  )
         {
-            String uri = storageLocation.absolutePath;
-
             SpotDataSource spotDataSource = new SpotDataSource(
                     sourceName,
-                    TableDataFormat.fromPath( uri ),
+                    TableDataFormat.fromPath( storageLocation.absolutePath ),
                     storageLocation );
 
             double[][] boundingBox = getBoundingBox( row );

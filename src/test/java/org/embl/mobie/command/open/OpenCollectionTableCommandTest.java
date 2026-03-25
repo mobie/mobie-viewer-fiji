@@ -1,7 +1,6 @@
 package org.embl.mobie.command.open;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.special.OpenSimpleCollectionTableCommand;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +20,7 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenSimpleCollectionTableCommand command = new OpenSimpleCollectionTableCommand();
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.tableUri = "src/test/resources/collections/clem-collection.xlsx";
         command.run();
     }
@@ -32,7 +31,7 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenSimpleCollectionTableCommand command = new OpenSimpleCollectionTableCommand();
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.tableUri = "https://docs.google.com/spreadsheets/d/1d_khb5P-z1SHu09SHSS7HV0PmN_VK9ZkMKDuqF52KRg/edit?usp=sharing";
         command.run();
     }
@@ -43,9 +42,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/blobs-table.txt").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -56,9 +55,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/blobs-large-and-small-collection.txt").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -71,8 +70,20 @@ public class OpenCollectionTableCommandTest
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.tableUri = new File("src/test/resources/collections/blobs-auto-contrast-collection.csv").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
-        command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
+        //command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
+        command.run();
+    }
+
+
+    @Test
+    public void mix2d3d()
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = new File("src/test/resources/collections/2d-3d-mix-collection.csv").getAbsolutePath();
+        //command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
 
@@ -82,10 +93,10 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/blobs-grid-collection.txt").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
-        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
+        //command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
 
@@ -95,10 +106,10 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/blobs-image-twice-collection.txt").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
-        command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
+        //command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
 
@@ -108,9 +119,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/alpha-blend-collection.csv").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -121,9 +132,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/clem-example-collection.tsv").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.PathsInTableAreAbsolute;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.PathsInTableAreAbsolute;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -134,9 +145,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/segmented-blobs-grid-table.txt").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -147,9 +158,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/spots-2d-collection.txt").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -160,9 +171,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/spots-2d-collection-non-consecutive.txt").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -173,9 +184,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/spots-3d-collection.txt").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -186,9 +197,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/spots-3d-20000-columns-collection.txt").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -199,9 +210,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/blobs-collection.txt").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -212,9 +223,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/blobs-with-views/blobs-collection.txt").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -225,9 +236,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/two-same-blobs-collection.txt").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -238,9 +249,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/blobs-with-dates-collection.txt").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -251,9 +262,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/boats-png-collection.txt").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -264,9 +275,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/mrc-collection.txt").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -277,9 +288,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/blobs-mri-collection.csv").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -290,9 +301,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/many-groups-collection.csv").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -303,9 +314,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/thinplatespline-mri-collection.tsv").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -316,9 +327,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/thinplatespline-platy-collection.tsv").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.PathsInTableAreAbsolute;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.PathsInTableAreAbsolute;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -330,9 +341,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = "https://docs.google.com/spreadsheets/d/1elair242cN5rbYtlODKu5yIscZHQ9O0Lci598-NoY4I/edit?usp=sharing";
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.PathsInTableAreAbsolute;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.PathsInTableAreAbsolute;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -343,9 +354,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = "https://docs.google.com/spreadsheets/d/1xZ4Zfpg0RUwhPZVCUrX_whB0QGztLN_VVNLx89_rZs4/edit?gid=0#gid=0";
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.PathsInTableAreAbsolute;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.PathsInTableAreAbsolute;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -356,9 +367,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = "/Users/tischer/Documents/mobie.github.io/tutorials/data/collection_tables/segmented_nuclei/two-images-collection.csv";
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -369,9 +380,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/timelapse-collection.csv").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -381,9 +392,9 @@ public class OpenCollectionTableCommandTest
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/segmented-image-collection.csv").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }
@@ -396,11 +407,8 @@ public class OpenCollectionTableCommandTest
 
         OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.tableUri = "https://docs.google.com/spreadsheets/d/1jEnl-0_pcOFQo8mm8SUtszoWewvjyFXY0icO7gPUaQk/edit?gid=0#gid=0";
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.PathsInTableAreAbsolute;
-        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
-
 
     private static void createLargeSpotsTable() {
         int rows = 100;
@@ -453,7 +461,7 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().addImageTwice();
         //new OpenCollectionTableCommandTest().clem();
         //new OpenCollectionTableCommandTest().singleBlobs();
-        new OpenCollectionTableCommandTest().blobsWithViews();
+        //new OpenCollectionTableCommandTest().blobsWithViews();
         //new OpenCollectionTableCommandTest().mrc();
         //new OpenCollectionTableCommandTest().blobsGrid();
         //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
@@ -461,10 +469,11 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
         //new OpenCollectionTableCommandTest().blobsAndMri();
-        //new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
+        new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
         //new OpenCollectionTableCommandTest().segmentedNuclei();
         //new OpenCollectionTableCommandTest().thinPlateSplinePlatyGoogleSheet();
         //new OpenCollectionTableCommandTest().manyGroups();
         //new OpenCollectionTableCommandTest().autoContrastBlobs();
+        //new OpenCollectionTableCommandTest().mix2d3d();
     }
 }

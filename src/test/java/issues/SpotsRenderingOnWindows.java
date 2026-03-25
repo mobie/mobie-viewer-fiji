@@ -1,7 +1,7 @@
 package issues;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenCollectionTableCommand;
+import org.embl.mobie.command.open.OpenCollectionTableExpertCommand;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 
 public class SpotsRenderingOnWindows
@@ -10,9 +10,9 @@ public class SpotsRenderingOnWindows
     {
         new ImageJ().ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = "/Users/tischer/Desktop/mobie-bug/collection.txt";
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
     }

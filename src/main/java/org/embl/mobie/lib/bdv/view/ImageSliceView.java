@@ -46,8 +46,12 @@ import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.opacity.MoBIEColorConverter;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
+import org.embl.mobie.lib.util.ThreadHelper;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
+
+import java.util.List;
+import java.util.Optional;
 
 public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceView
 {
@@ -60,6 +64,7 @@ public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceV
 		super( moBIE, display );
 		this.display = display;
 		show();
+		adjust2d3dBrowsingMode();
 	}
 
 	private void show( )
@@ -83,7 +88,7 @@ public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceV
 
 			// adapt contrast limits after showing the image,
 			// because we need the ConverterSetup to exist
-			adaptContrastLimits( sourceAndConverter );
+			ThreadHelper.executorService.submit( () -> adaptContrastLimits( sourceAndConverter ) );
 		}
 	}
 
@@ -133,14 +138,13 @@ public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceV
 			{
 				// compute contrast limits on central z plane of time point 0
 				Source< ? > source = sourceAndConverter.getSpimSource();
-				IJ.log( "Computing contrast limits for " + source.getName() + "..." );
 				RandomAccessibleInterval< ? > lowResRAI = source.getSource( 0, source.getNumMipmapLevels() - 1 );
 				long[] min = lowResRAI.minAsLongArray();
 				long[] max = lowResRAI.maxAsLongArray();
 				long centralZ = ( max[ 2 ] - min[ 2 ] ) / 2 + min[ 2 ];
 				IntervalView< ? > interval = Views.interval( lowResRAI, new long[]{ min[ 0 ], min[ 1 ], centralZ }, new long[]{ max[ 0 ], max[ 1 ], centralZ } );
 				contrastLimits = ContrastComputer.estimateMinMax( ( RandomAccessibleInterval ) interval );
-				IJ.log( "Contrast limits: (" + contrastLimits[0] + "," + contrastLimits[1] + ")" );
+				IJ.log( "Auto contrast for " + source.getName() + ": (" + contrastLimits[0] + "," + contrastLimits[1] + ")" );
 
 				// NB: Using the ContrastComputer does not work because the viewer transform may not yet accommodate the data
 				// ContrastComputer contrastAdjuster = new ContrastComputer( display.sliceViewer.getBdvHandle(), sourceAndConverter );

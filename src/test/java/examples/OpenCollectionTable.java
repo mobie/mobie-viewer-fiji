@@ -1,7 +1,7 @@
 package examples;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenCollectionTableCommand;
+import org.embl.mobie.command.open.OpenCollectionTableExpertCommand;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 
 public class OpenCollectionTable
@@ -17,9 +17,9 @@ public class OpenCollectionTable
 
     private static void openLocalTable()
     {
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = "src/test/resources/collections/blobs-and-spots.txt";
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -30,10 +30,10 @@ public class OpenCollectionTable
      */
     private static void openPlatyTable()
     {
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         // Note that this opens sheet 1 and in sheet 2 there are some spots
         command.tableUri = "https://docs.google.com/spreadsheets/d/1xZ4Zfpg0RUwhPZVCUrX_whB0QGztLN_VVNLx89_rZs4/edit?gid=0#gid=0";
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.PathsInTableAreAbsolute;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.PathsInTableAreAbsolute;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }

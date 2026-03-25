@@ -63,6 +63,7 @@ import javax.swing.*;
 import java.awt.Window;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public class SliceViewer
@@ -297,4 +298,8 @@ public class SliceViewer
 		bdvHandle.getViewerPanel().state().setNumTimepoints( maxNumTimePoints );
 	}
 
+	public boolean is2D()
+	{
+		return is2D;
+	}
 }

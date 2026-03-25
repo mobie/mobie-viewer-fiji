@@ -51,6 +51,7 @@ import sc.fiji.bdvpg.bdv.supplier.IBdvSupplier;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Map;
 
 public class MobieBdvSupplier implements IBdvSupplier {
     public final MobieSerializableBdvOptions sOptions;
@@ -98,7 +99,7 @@ public class MobieBdvSupplier implements IBdvSupplier {
         bdvHandle.getViewerPanel().state().removeSource( bdvHandle.getViewerPanel().state().getCurrentSource() );
 
         // remove manual transform keyboard shortcut
-        JFrame bdvFrame = (JFrame) SwingUtilities.getWindowAncestor(bdvHandle.getViewerPanel());
+        JFrame bdvFrame = (JFrame) SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
 
         // Get the existing menu bar
         // TODO: Here we could add or remove stuff...

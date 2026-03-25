@@ -29,7 +29,7 @@
 package develop;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenCollectionTableCommand;
+import org.embl.mobie.command.open.OpenCollectionTableExpertCommand;
 
 import java.io.IOException;
 
@@ -40,8 +40,8 @@ public class OpenSpotCollectionGrid
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		OpenCollectionTableCommand command = new OpenCollectionTableCommand();
-		command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+		OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
+		command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
 		command.tableUri = "src/test/resources/collections/organ_spots_collection_grid.tsv";
 		command.run();
 	}

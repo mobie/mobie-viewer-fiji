@@ -1,7 +1,7 @@
 package org.embl.mobie.command.create;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenCollectionTableCommand;
+import org.embl.mobie.command.open.OpenCollectionTableExpertCommand;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 
 import java.io.File;
@@ -71,9 +71,9 @@ public class CreateMoBIECollectionTableCommandTest
         createCommand.viewLayout = CreateMoBIECollectionTableCommand.GRID;
         createCommand.run();
 
-        OpenCollectionTableCommand openCommand = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand openCommand = new OpenCollectionTableExpertCommand();
         openCommand.tableUri = createCommand.outputTableFile.getAbsolutePath();
-        openCommand.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.PathsInTableAreAbsolute;
+        openCommand.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.PathsInTableAreAbsolute;
         openCommand.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         openCommand.run();
     }

@@ -3,7 +3,7 @@ package develop;
 import bdv.cache.SharedQueue;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenCollectionTableCommand;
+import org.embl.mobie.command.open.OpenCollectionTableExpertCommand;
 import org.embl.mobie.io.imagedata.BDVXMLImageData;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 
@@ -25,9 +25,9 @@ public class DevelopOpeningOmeroBdvXml
         new ImageJ().ui().showUI();
 
         // usr & pwd: read-tim
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/omero-bdv-collection.csv").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
@@ -37,9 +37,9 @@ public class DevelopOpeningOmeroBdvXml
         new ImageJ().ui().showUI();
 
         // usr & pwd: read-tim
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = new File("src/test/resources/collections/omero-bdv-collection-auto-contrast.csv").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }

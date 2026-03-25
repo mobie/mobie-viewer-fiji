@@ -29,64 +29,85 @@
 package org.embl.mobie.command.open;
 
 import loci.common.DebugTools;
-import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.data.ProjectType;
+import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.util.MoBIEHelper;
+import org.embl.mobie.lib.bdv.BdvViewingMode;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import java.io.IOException;
+import java.io.File;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Collection Table..." )
-public class OpenCollectionTableCommand implements Command {
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Special > Open Collection Table Expert Mode..." )
+public class OpenCollectionTableExpertCommand extends OpenCollectionTableCommand
+{
 
-	static { net.imagej.patcher.LegacyInjector.preinit(); DebugTools.setRootLevel( "OFF" ); }
+	// Don't change those Strings to stay compatible with recorded macros
+	public static final String ABSOLUTE = "PathsInTableAreAbsolute";
+	public static final String RELATIVE_TO_TABLE = "UseTableFolder";
+	public static final String RELATIVE_TO_FOLDER = "UseBelowDataRootFolder";
 
-	@Parameter( label = "Table Uri",
-			description = "Location of the table. Supported formats: TSV, CSV, Excel, Google Sheet URLs")
-	public String tableUri;
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter ( label = "( S3 Access Key )",
-			description = "Optional. Access key for a protected S3 bucket.",
-			persist = false,
+	public enum DataRootType
+	{
+		PathsInTableAreAbsolute,
+		UseTableFolder,
+		UseBelowDataRootFolder
+	}
+
+	@Parameter( label = "Data Root",
+			choices = { ABSOLUTE, RELATIVE_TO_TABLE, RELATIVE_TO_FOLDER },
+			description = "Specify whether the data URIs in the table are absolute or relative." )
+	public String dataRootType; // important to keep the variable name the same for Macro recording
+
+	// Does not work yet properly as a parameter:
+	// https://github.com/scijava/scijava-common/issues/471
+	public DataRootType dataRootTypeEnum;
+
+	@Parameter( label = "( Data Root Folder )",
+			style = "directory",
+			description = "Optional. Use this is if the paths to the images and labels in the table are relative.",
 			required = false )
-	public String s3AccessKey;
+	public File dataRoot;
 
-	@Parameter ( label = "( S3 Secret Key )",
-			description = "Optional. Secret key for a protected S3 bucket.",
-			persist = false,
-			required = false )
-	public String s3SecretKey;
+	public BdvViewingMode bdvViewingModeEnum;
+
 
 	@Override
 	public void run()
 	{
-		// NB: this is unfortunately necessary to support both the GUI and the helpless execution of this command.
+		DebugTools.setRootLevel( "OFF" );
+
+		dataRootTypeEnum = dataRootTypeEnum == null ? DataRootType.valueOf( dataRootType ) : dataRootTypeEnum;
 		//bdvViewingModeEnum = bdvViewingModeEnum == null ? BdvViewingMode.valueOf( bdvViewingMode ) : bdvViewingModeEnum;
+
+		String dataRootString;
+		switch ( dataRootTypeEnum )
+		{
+			case UseBelowDataRootFolder:
+				dataRootString = dataRoot == null ? null : dataRoot.getAbsolutePath();
+				break;
+			case UseTableFolder:
+				dataRootString = IOHelper.getParentLocation( tableUri );
+				break;
+			case PathsInTableAreAbsolute:
+			default:
+				dataRootString = null;
+				break;
+		}
 
 		final MoBIESettings settings = new MoBIESettings()
 				.projectType( ProjectType.CollectionTable )
-				.dataRoot( IOHelper.getParentLocation( tableUri ) );
+				.dataRoot( dataRootString )
+				.bdvViewingMode( bdvViewingModeEnum );
 
 		if ( MoBIEHelper.notNullOrEmpty( s3AccessKey ) )
 			settings.s3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } );
 
 		openTable( tableUri, settings );
-	}
-
-	protected void openTable( String tableUri, MoBIESettings settings )
-	{
-		try
-		{
-			new MoBIE( tableUri, settings );
-		}
-		catch ( IOException e )
-		{
-			throw new RuntimeException( e );
-		}
 	}
 }

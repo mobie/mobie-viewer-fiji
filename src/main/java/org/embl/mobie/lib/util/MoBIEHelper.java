@@ -98,6 +98,46 @@ import static sc.fiji.bdvpg.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
 
 public abstract class MoBIEHelper
 {
+	public static boolean isRelativePath(String uri) {
+		if (uri == null || uri.isEmpty()) {
+			return false;
+		}
+
+		// Matches any absolute URL/URI scheme (http://, https://, file://, ftp://, etc.)
+		if (uri.contains("://")) {
+			return false;
+		}
+
+		// Use Java's URI class to detect if a scheme is present
+		try {
+			java.net.URI parsed = new java.net.URI(uri);
+			if (parsed.isAbsolute()) {
+				return false; // has a scheme like "mailto:", "urn:", etc.
+			}
+		} catch (java.net.URISyntaxException e) {
+			// Not a valid URI — fall through to path-based checks
+		}
+
+		// Windows absolute path: e.g. "C:\..." or "C:/..."
+		if (uri.length() >= 3 && Character.isLetter(uri.charAt(0))
+				&& uri.charAt(1) == ':'
+				&& (uri.charAt(2) == '\\' || uri.charAt(2) == '/')) {
+			return false;
+		}
+
+		// UNC path (Windows network share): e.g. "\\server\share"
+		if (uri.startsWith("\\\\") || uri.startsWith("//")) {
+			return false;
+		}
+
+		// Unix/macOS absolute path
+		if (uri.startsWith("/")) {
+			return false;
+		}
+
+		return true;
+	}
+
 	public static <T> Set<T> findDuplicates(Collection<T> collection) {
 		Set<T> seen = new HashSet<>();
 		Set<T> duplicates = new HashSet<>();

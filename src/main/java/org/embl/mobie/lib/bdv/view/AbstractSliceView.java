@@ -28,18 +28,31 @@
  */
 package org.embl.mobie.lib.bdv.view;
 
+import bdv.TransformEventHandler3D;
+import bdv.util.BdvHandle;
+import bdv.util.PlaceHolderSource;
 import bdv.viewer.SourceAndConverter;
+import ij.IJ;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.lib.data.DataStore;
+import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.serialize.display.AbstractDisplay;
+import org.scijava.ui.behaviour.Behaviour;
+import org.scijava.ui.behaviour.BehaviourMap;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.List;
+import java.util.Optional;
 
 public abstract class AbstractSliceView implements SliceView
 {
 	protected final MoBIE moBIE;
 	protected final AbstractDisplay< ? > display;
 	protected final SliceViewer sliceViewer;
+
+	protected static boolean is2D = false;
+	private final BehaviourMap blocking3dBehaviourMap;
+	private Behaviour dragRotate;
 
 	// TODO: get rid of MoBIE here, which is only needed to close the sacs...
 	//  in fact, using Nico's addition to the SACService will resolve this!
@@ -48,7 +61,15 @@ public abstract class AbstractSliceView implements SliceView
 	{
 		this.moBIE = moBIE;
 		this.display = display;
-		sliceViewer = display.sliceViewer;
+		this.sliceViewer = display.sliceViewer;
+
+		blocking3dBehaviourMap = new BehaviourMap();
+		blocking3dBehaviourMap.put( TransformEventHandler3D.DRAG_ROTATE, new Behaviour() {} );
+		blocking3dBehaviourMap.put( TransformEventHandler3D.DRAG_ROTATE_FAST, new Behaviour() {} );
+		blocking3dBehaviourMap.put( TransformEventHandler3D.DRAG_ROTATE_SLOW, new Behaviour() {} );
+		blocking3dBehaviourMap.put( TransformEventHandler3D.SCROLL_Z, new Behaviour() {} );
+		blocking3dBehaviourMap.put( TransformEventHandler3D.SCROLL_Z_FAST, new Behaviour() {} );
+		blocking3dBehaviourMap.put( TransformEventHandler3D.SCROLL_Z_SLOW, new Behaviour() {} );
 	}
 
 	@Override
@@ -75,5 +96,43 @@ public abstract class AbstractSliceView implements SliceView
 	public boolean isVisible()
 	{
 		return SourceAndConverterServices.getBdvDisplayService().isVisible( display.sourceAndConverters().get( 0 ), display.sliceViewer.getBdvHandle() );
+	}
+
+	protected synchronized void adjust2d3dBrowsingMode()
+	{
+		BdvHandle bdvHandle = sliceViewer.getBdvHandle();
+		List< SourceAndConverter< ? > > sources = bdvHandle.getViewerPanel().state().getSources();
+		Optional< SourceAndConverter< ? > > source3D = sources.stream()
+				.filter( s -> ! ( DataStore.sourceToImage().get( s ) instanceof RegionAnnotationImage ) )
+				.filter( s -> ! ( s.getSpimSource() instanceof PlaceHolderSource ) )
+				.filter( s -> s.getSpimSource().getSource( 0, 0 ).dimension( 2 ) > 1 )
+				.findFirst();
+
+
+		if ( getSliceViewer().is2D() )
+		{
+			// we don't want to disturb legacy settings of the 2D mode
+			return;
+		}
+
+		// https://forum.image.sc/t/switch-bigdataviewer-browsing-mode-on-the-fly/119921
+		if ( source3D.isPresent() )
+		{
+			if ( !is2D ) return;
+
+			bdvHandle.getTriggerbindings().removeBehaviourMap( "2D" );
+
+			is2D = false;
+			IJ.log("BDV: 3D browsing mode.");
+		}
+		else
+		{
+			if ( is2D ) return;
+
+			bdvHandle.getTriggerbindings().addBehaviourMap( "2D", blocking3dBehaviourMap );
+
+			is2D = true;
+			IJ.log("BDV: 2D browsing mode.");
+		}
 	}
 }

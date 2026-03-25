@@ -79,6 +79,12 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		display.selectionModel.listeners().add( this );
 		display.coloringModel.listeners().add( this );
 
+		show();
+		adjust2d3dBrowsingMode();
+	}
+
+	private void show()
+	{
 		for ( Image< AnnotationType< A > > image : display.images() )
 		{
 			SourceAndConverter< ? > sac = createSourceAndConverter( display, image );

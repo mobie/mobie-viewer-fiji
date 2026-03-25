@@ -29,7 +29,7 @@
 package develop;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenCollectionTableCommand;
+import org.embl.mobie.command.open.OpenCollectionTableExpertCommand;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 
 public class OpenSpatialDataCollectionTable
@@ -39,9 +39,9 @@ public class OpenSpatialDataCollectionTable
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = "/Users/tischer/Desktop/iss-nf/qc_spatialdata_processed/mobie-collection.txt";
-        command.dataRootTypeEnum = OpenCollectionTableCommand.DataRootType.UseTableFolder;
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
 
