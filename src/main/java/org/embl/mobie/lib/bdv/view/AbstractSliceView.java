@@ -100,6 +100,14 @@ public abstract class AbstractSliceView implements SliceView
 
 	protected synchronized void adjust2d3dBrowsingMode()
 	{
+		if ( getSliceViewer().is2D() )
+		{
+			// we don't want to disturb legacy settings of the 2D mode
+			return;
+		}
+
+		// Determine whether there is a 3D source
+		//
 		BdvHandle bdvHandle = sliceViewer.getBdvHandle();
 		List< SourceAndConverter< ? > > sources = bdvHandle.getViewerPanel().state().getSources();
 		Optional< SourceAndConverter< ? > > source3D = sources.stream()
@@ -107,13 +115,6 @@ public abstract class AbstractSliceView implements SliceView
 				.filter( s -> ! ( s.getSpimSource() instanceof PlaceHolderSource ) )
 				.filter( s -> s.getSpimSource().getSource( 0, 0 ).dimension( 2 ) > 1 )
 				.findFirst();
-
-
-		if ( getSliceViewer().is2D() )
-		{
-			// we don't want to disturb legacy settings of the 2D mode
-			return;
-		}
 
 		// https://forum.image.sc/t/switch-bigdataviewer-browsing-mode-on-the-fly/119921
 		if ( source3D.isPresent() )
