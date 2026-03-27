@@ -86,6 +86,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import static org.embl.mobie.ui.SwingHelper.COMBOBOX_WIDTH;
+
 public class UserInterfaceHelper
 {
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
@@ -632,7 +634,7 @@ public class UserInterfaceHelper
 		// If it's the first time, add all the view selection panels in order
 		if ( groupingsToComboBox.keySet().isEmpty() ) {
 			for (String uiSelectionGroup : uiSelectionGroups) {
-				final JPanel selectionPanel = createViewSelectionPanel(moBIE, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
+				final JPanel selectionPanel = createMultiViewSelectionPanel(moBIE, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
 				viewSelectionPanel.add(selectionPanel);
 			}
 
@@ -658,7 +660,7 @@ public class UserInterfaceHelper
 				}
 				else
 				{
-					final JPanel selectionPanel = createViewSelectionPanel( moBIE, group, groupingsToViews.get( group ) );
+					final JPanel selectionPanel = createMultiViewSelectionPanel( moBIE, group, groupingsToViews.get( group ) );
 					int alphabeticalIndex = uiSelectionGroups.indexOf( group );
 					indexToPanel.put( alphabeticalIndex, selectionPanel );
 				}
@@ -759,12 +761,44 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
+	// https://github.com/mobie/mobie-viewer-fiji/issues/1288
+	private JPanel createMultiViewSelectionPanel( MoBIE moBIE, String panelName, Map< String, View > views )
+	{
+		final JPanel horizontalLayoutPanel = SwingHelper.horizontalBoxLayoutPanel();
+
+		final JList<String> list = new JList<>(views.keySet().toArray(new String[0]));
+		list.setSelectionMode( ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
+		final JScrollPane scrollPane = new JScrollPane(list);
+
+		final JButton button = SwingHelper.createButton( VIEW );
+		button.addActionListener( e ->
+		{
+//			new Thread( () -> {
+//				final String viewName = ( String ) comboBox.getSelectedItem();
+//				final View view = views.get( viewName );
+//				view.setName( viewName );
+//				moBIE.getViewManager().show( view );
+//			} ).start();
+		} );
+
+		scrollPane.setPreferredSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
+		scrollPane.setMaximumSize( new Dimension( Integer.MAX_VALUE, 20 ) );
+
+		horizontalLayoutPanel.add( SwingHelper.getJLabel( panelName ) );
+		horizontalLayoutPanel.add( scrollPane );
+		horizontalLayoutPanel.add( button );
+
+		//groupingsToComboBox.put( panelName, comboBox ); // FIXME
+		groupingsToPanels.put( panelName, horizontalLayoutPanel );
+
+		return horizontalLayoutPanel;
+	}
+
 	private JPanel createViewSelectionPanel( MoBIE moBIE, String panelName, Map< String, View > views )
 	{
 		final JPanel horizontalLayoutPanel = SwingHelper.horizontalBoxLayoutPanel();
 
 		final JComboBox< String > comboBox = new JComboBox<>( views.keySet().toArray( new String[ 0 ] ) );
-
 		final JButton button = SwingHelper.createButton( VIEW );
 		button.addActionListener( e ->
 		{
@@ -793,8 +827,8 @@ public class UserInterfaceHelper
 		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
 		final JButton button = SwingHelper.createButton( VIEW );
 		final JTextField jTextField = new JTextField( "" );
-		jTextField.setPreferredSize( new Dimension( SwingHelper.COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
-		jTextField.setMinimumSize( new Dimension( SwingHelper.COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
+		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
+		jTextField.setMinimumSize( new Dimension( COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
 		jTextField.setMaximumSize( new Dimension( Integer.MAX_VALUE, SwingHelper.TEXT_FIELD_HEIGHT ) );
 
 		JPopupMenu suggestionsPopup = new JPopupMenu();
@@ -876,8 +910,8 @@ public class UserInterfaceHelper
 		final JPanel panel = SwingHelper.horizontalBoxLayoutPanel();
 		final JButton button = SwingHelper.createButton( MOVE );
 		final JTextField jTextField = new JTextField( ViewerTransform.toString( transform ) );
-		jTextField.setPreferredSize( new Dimension( SwingHelper.COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
-		jTextField.setMinimumSize( new Dimension( SwingHelper.COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
+		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
+		jTextField.setMinimumSize( new Dimension( COMBOBOX_WIDTH, SwingHelper.TEXT_FIELD_HEIGHT ) );
 		jTextField.setMaximumSize( new Dimension( Integer.MAX_VALUE, SwingHelper.TEXT_FIELD_HEIGHT ) );
 
 		JPopupMenu suggestionsPopup = new JPopupMenu();

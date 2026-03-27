@@ -829,7 +829,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	public void showColorByColumnDialog()
 	{
 		final ColoringModel< A > coloringModel =
-				new ColorByColumnDialog<>( tableModel  ).show();
+				new ColorByColumnDialog<>( tableModel ).show();
 
 		if ( coloringModel != null )
 			this.coloringModel.setColoringModel( coloringModel );

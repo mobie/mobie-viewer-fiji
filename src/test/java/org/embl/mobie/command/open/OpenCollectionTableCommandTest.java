@@ -469,11 +469,11 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
         //new OpenCollectionTableCommandTest().blobsAndMri();
-        new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
+        //new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
         //new OpenCollectionTableCommandTest().segmentedNuclei();
         //new OpenCollectionTableCommandTest().thinPlateSplinePlatyGoogleSheet();
         //new OpenCollectionTableCommandTest().manyGroups();
         //new OpenCollectionTableCommandTest().autoContrastBlobs();
-        //new OpenCollectionTableCommandTest().mix2d3d();
+        new OpenCollectionTableCommandTest().mix2d3d();
     }
 }

@@ -28,9 +28,6 @@
  */
 package org.embl.mobie.lib.color.lut;
 
-
-import org.ojalgo.matrix.decomposition.LU;
-
 public class LinearARGBLut implements AdjustableARGBLut
 {
 	double min, max;

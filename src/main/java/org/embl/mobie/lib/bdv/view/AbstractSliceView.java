@@ -37,6 +37,7 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.serialize.display.AbstractDisplay;
+import org.embl.mobie.lib.util.ThreadHelper;
 import org.scijava.ui.behaviour.Behaviour;
 import org.scijava.ui.behaviour.BehaviourMap;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -98,7 +99,7 @@ public abstract class AbstractSliceView implements SliceView
 		return SourceAndConverterServices.getBdvDisplayService().isVisible( display.sourceAndConverters().get( 0 ), display.sliceViewer.getBdvHandle() );
 	}
 
-	protected synchronized void adjust2d3dBrowsingMode()
+	protected void adjust2d3dBrowsingMode()
 	{
 		if ( getSliceViewer().is2D() )
 		{
@@ -106,34 +107,36 @@ public abstract class AbstractSliceView implements SliceView
 			return;
 		}
 
-		// Determine whether there is a 3D source
-		//
-		BdvHandle bdvHandle = sliceViewer.getBdvHandle();
-		List< SourceAndConverter< ? > > sources = bdvHandle.getViewerPanel().state().getSources();
-		Optional< SourceAndConverter< ? > > source3D = sources.stream()
-				.filter( s -> ! ( DataStore.sourceToImage().get( s ) instanceof RegionAnnotationImage ) )
-				.filter( s -> ! ( s.getSpimSource() instanceof PlaceHolderSource ) )
-				.filter( s -> s.getSpimSource().getSource( 0, 0 ).dimension( 2 ) > 1 )
-				.findFirst();
+		ThreadHelper.executorService.submit( () -> {
+			// Determine whether there is a 3D source
+			//
+			BdvHandle bdvHandle = sliceViewer.getBdvHandle();
+			List< SourceAndConverter< ? > > sources = bdvHandle.getViewerPanel().state().getSources();
+			Optional< SourceAndConverter< ? > > source3D = sources.stream()
+					.filter( s -> ! ( DataStore.sourceToImage().get( s ) instanceof RegionAnnotationImage ) )
+					.filter( s -> ! ( s.getSpimSource() instanceof PlaceHolderSource ) )
+					.filter( s -> s.getSpimSource().getSource( 0, 0 ).dimension( 2 ) > 1 )
+					.findFirst();
 
-		// https://forum.image.sc/t/switch-bigdataviewer-browsing-mode-on-the-fly/119921
-		if ( source3D.isPresent() )
-		{
-			if ( !is2D ) return;
+			// https://forum.image.sc/t/switch-bigdataviewer-browsing-mode-on-the-fly/119921
+			if ( source3D.isPresent() )
+			{
+				if ( !is2D ) return;
 
-			bdvHandle.getTriggerbindings().removeBehaviourMap( "2D" );
+				bdvHandle.getTriggerbindings().removeBehaviourMap( "2D" );
 
-			is2D = false;
-			IJ.log("BDV: 3D browsing mode.");
-		}
-		else
-		{
-			if ( is2D ) return;
+				is2D = false;
+				IJ.log("BDV: 3D browsing mode.");
+			}
+			else
+			{
+				if ( is2D ) return;
 
-			bdvHandle.getTriggerbindings().addBehaviourMap( "2D", blocking3dBehaviourMap );
+				bdvHandle.getTriggerbindings().addBehaviourMap( "2D", blocking3dBehaviourMap );
 
-			is2D = true;
-			IJ.log("BDV: 2D browsing mode.");
-		}
+				is2D = true;
+				IJ.log("BDV: 2D browsing mode.");
+			}
+		} );
 	}
 }

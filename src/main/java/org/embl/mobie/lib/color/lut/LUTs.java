@@ -49,7 +49,6 @@ public class LUTs
 	};
 
 	public static final byte[][] GRAYSCALE_LUT = grayscaleLut();
-
 	public static final ARGBType TRANSPARENT = new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) );
 	public static final ARGBType DARK_GREY = new ARGBType( ARGBType.rgba( 100, 100, 100, 255 ) );
 

@@ -15,7 +15,7 @@ import static org.embl.mobie.lib.color.lut.LUTs.TRANSPARENT;
 
 public class ColorByColumnDialog< A extends Annotation >
 {
-    private static String lut;
+    private static String lutName;
     private static String columnName;
     private static boolean paintZeroTransparent;
     private final AnnotationTableModel< A > table;
@@ -57,24 +57,24 @@ public class ColorByColumnDialog< A extends Annotation >
         if ( ! isOkPressed ) return null;
 
         columnName = getColumnName();
-        lut = getLut();
+        lutName = getLutName();
         paintZeroTransparent = getPaintZeroTransparent();
 
         if ( paintZeroTransparent )
-            lut += LUTs.ZERO_TRANSPARENT;
+            lutName += LUTs.ZERO_TRANSPARENT;
 
-        if ( lut.equals( LUTs.GLASBEY ) )
+        if ( lutName.equals( LUTs.GLASBEY ) )
         {
-            return ColoringModels.createCategoricalModel( columnName, lut, TRANSPARENT );
+            return ColoringModels.createCategoricalModel( columnName, lutName, TRANSPARENT );
         }
         else if ( Number.class.isAssignableFrom( table.columnClass( columnName ) ) )
         {
             final Pair< Double, Double > minMax = table.getMinMax( columnName );
-            return ColoringModels.createNumericModel( columnName, lut, minMax, true );
+            return ColoringModels.createNumericModel( columnName, lutName, minMax, true );
         }
         else
         {
-            return ColoringModels.createCategoricalModel( columnName, lut, TRANSPARENT );
+            return ColoringModels.createCategoricalModel( columnName, lutName, TRANSPARENT );
         }
     }
 
@@ -126,7 +126,7 @@ public class ColorByColumnDialog< A extends Annotation >
     {
         JPanel panel = SwingHelper.horizontalFlowLayoutPanel();
         lutComboBox = new JComboBox<>( COLORING_LUTS );
-        lutComboBox.setSelectedItem( lut == null ? COLORING_LUTS[ 0 ] : lut );
+        lutComboBox.setSelectedItem( lutName == null ? COLORING_LUTS[ 0 ] : lutName );
         Dimension maximumSize = new Dimension( 300, 20 );
         lutComboBox.setMaximumSize( maximumSize );
         panel.add( new JLabel("Color:  ") );
@@ -139,7 +139,7 @@ public class ColorByColumnDialog< A extends Annotation >
         return (String) columnComboBox.getSelectedItem();
     }
 
-    private String getLut()
+    private String getLutName()
     {
         return (String) lutComboBox.getSelectedItem();
     }
