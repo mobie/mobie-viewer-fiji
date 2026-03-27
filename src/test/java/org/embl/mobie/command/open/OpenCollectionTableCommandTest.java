@@ -37,15 +37,13 @@ public class OpenCollectionTableCommandTest
     }
 
     @Test
-    public void simple()
+    public void segmentedBlobs()
     {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
         command.tableUri = new File("src/test/resources/collections/blobs-table.txt").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
-        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
     }
 
@@ -453,7 +451,7 @@ public class OpenCollectionTableCommandTest
 
     public static void main( String[] args )
     {
-        //new OpenCollectionTableCommandTest().simple();
+        new OpenCollectionTableCommandTest().segmentedBlobs();
         //new OpenCollectionTableCommandTest().spots3D();
         //new OpenCollectionTableCommandTest().segmentedImageWithFloatLabels();
         //new OpenCollectionTableCommandTest().spots3dWith20000Columns();
@@ -474,6 +472,6 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().thinPlateSplinePlatyGoogleSheet();
         //new OpenCollectionTableCommandTest().manyGroups();
         //new OpenCollectionTableCommandTest().autoContrastBlobs();
-        new OpenCollectionTableCommandTest().mix2d3d();
+        //new OpenCollectionTableCommandTest().mix2d3d();
     }
 }

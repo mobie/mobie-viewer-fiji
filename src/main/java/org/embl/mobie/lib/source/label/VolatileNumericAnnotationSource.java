@@ -30,51 +30,54 @@ package org.embl.mobie.lib.source.label;
 
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import net.imglib2.type.Type;
-import net.imglib2.type.numeric.NumericType;
-import net.imglib2.type.numeric.RealType;
-import org.embl.mobie.lib.annotation.Annotation;
-import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converters;
+import net.imglib2.type.numeric.real.DoubleType;
+import net.imglib2.type.volatiles.VolatileDoubleType;
+import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.source.AbstractSourceWrapper;
 import org.embl.mobie.lib.source.AnnotationType;
 
-public class VolatileAnnotatedLabelSource< T extends RealType< T >, V extends Volatile< T >, A extends Annotation > extends AbstractSourceWrapper< V, VolatileAnnotationType< A > >
+public class VolatileNumericAnnotationSource< A extends Annotation > extends AbstractSourceWrapper< Volatile< AnnotationType< A > >, VolatileDoubleType >
 {
-    private final AnnotationAdapter<A> annotationAdapter;
+    private final String featureName;
 
-    public VolatileAnnotatedLabelSource( final Source< V > source, AnnotationAdapter<A> annotationAdapter )
+    public VolatileNumericAnnotationSource( Source< Volatile< AnnotationType< A > > > source, String featureName )
     {
         super( source );
-        this.annotationAdapter = annotationAdapter;
+        this.featureName = featureName;
     }
 
     @Override
-    public RandomAccessibleInterval< VolatileAnnotationType< A > > getSource( final int t, final int level )
+    public boolean isPresent( final int t )
     {
-        final RandomAccessibleInterval< V > rai = source.getSource( t, level );
-        final RandomAccessibleInterval< VolatileAnnotationType< A > > convert =
-                Converters.convert( rai, ( input, output ) -> {
-                    set( input, t, output );
-                }, getType() );
-
-        return convert;
+        return source.isPresent( t );
     }
 
     @Override
-    public RealRandomAccessible< VolatileAnnotationType< A > > getInterpolatedSource( final int t, final int level, final Interpolation method)
+    public RandomAccessibleInterval< VolatileDoubleType > getSource( final int t, final int level )
     {
-        final RealRandomAccessible< V > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
+        RandomAccessibleInterval< Volatile< AnnotationType< A > > > rai = source.getSource( t, level );
+
+        return Converters.convert( rai,
+                ( input, output ) ->
+                { setOutput( input, t, output ); }, new VolatileDoubleType()  );
+    }
+
+    @Override
+    public RealRandomAccessible< VolatileDoubleType > getInterpolatedSource( final int t, final int level, final Interpolation method)
+    {
+        RealRandomAccessible< Volatile< AnnotationType< A > > > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
 
         return Converters.convert( rra,
-                ( input, output ) -> set( input, t, output ),
-                getType() );
+                ( input, output ) ->
+                setOutput( input, t, output ),
+                new VolatileDoubleType() );
     }
 
-    private void set( V input, int t, VolatileAnnotationType< A > output )
+    private void setOutput( Volatile< AnnotationType< A > > input, int t, Volatile< DoubleType > output  )
     {
         if ( ! input.isValid() )
         {
@@ -82,17 +85,14 @@ public class VolatileAnnotatedLabelSource< T extends RealType< T >, V extends Vo
             return;
         }
 
-        final int label = (int) input.get().getRealDouble();
-
-        final A annotation = annotationAdapter.getAnnotation( getName(), t, label );
-        output.get().setAnnotation( annotation );
+        Double number = input.get().getAnnotation().getNumber( featureName );
+        output.get().setReal( number );
         output.setValid( true );
     }
 
     @Override
-    public VolatileAnnotationType< A > getType()
+    public VolatileDoubleType getType()
     {
-        return new VolatileAnnotationType( new AnnotationType<>() , true );
+        return new VolatileDoubleType();
     }
-
 }

@@ -30,8 +30,17 @@ package org.embl.mobie.lib.table;
 
 import ij.IJ;
 import ij.gui.GenericDialog;
+import org.embl.mobie.MoBIE;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
+import org.embl.mobie.lib.data.DataStore;
+import org.embl.mobie.lib.data.ProjectType;
+import org.embl.mobie.lib.image.Image;
+import org.embl.mobie.lib.image.MaskedImage;
+import org.embl.mobie.lib.image.NumericAnnotationImage;
+import org.embl.mobie.lib.serialize.View;
+import org.embl.mobie.lib.source.AnnotationType;
+import org.embl.mobie.lib.view.ViewManager;
 import org.embl.mobie.ui.AnnotationDialog;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.bdv.overlay.AnnotatedRegionsOverlay;
@@ -261,7 +270,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		menu.add( continueAnnotationMenuItem() );
 		menu.add( overlayAnnotationMenuItem() );
 		menu.add( removeAnnotationOverlayMenuItem() );
-
+		menu.add( createAnnotationDisplayMenuItem() );
 		return menu;
 	}
 
@@ -482,6 +491,15 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		return menuItem;
 	}
 
+	private JMenuItem createAnnotationDisplayMenuItem()
+	{
+		final JMenuItem menuItem = new JMenuItem( "Create Annotation Display Layer..." );
+
+		menuItem.addActionListener( e -> createAnnotationDisplayDialog() );
+
+		return menuItem;
+	}
+
 	private JMenuItem removeAnnotationOverlayMenuItem()
 	{
 		final JMenuItem menuItem = new JMenuItem( "Remove Annotation Overlay" );
@@ -528,6 +546,33 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 						tableModel.annotations(),
 						dialog.getColumnName() );
 			}
+		});
+	}
+
+	private void createAnnotationDisplayDialog()
+	{
+		SwingUtilities.invokeLater( () ->
+		{
+			ColumnSelectionDialog dialog = new ColumnSelectionDialog( tableModel.columnNames() );
+			if ( ! dialog.show() ) return;
+			String columnName = dialog.getColumnName();
+			List< Image< AnnotationType< A > > > images = display.images();
+
+			if( images.size() > 1 )
+				throw new RuntimeException("Creating an annotation display layer for multiple images is not yet supported");
+
+			Image< AnnotationType< A > > image = images.get( 0 );
+
+			NumericAnnotationImage< ?, A > numericAnnotationImage = new NumericAnnotationImage<>( image, columnName );
+			DataStore.addImage( numericAnnotationImage );
+
+			View view = ViewManager.createImageView(
+					image,
+					numericAnnotationImage.getName(),
+					null,
+					null );
+
+			MoBIE.getInstance().getViewManager().show( view );
 		});
 	}
 
