@@ -554,7 +554,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		SwingUtilities.invokeLater( () ->
 		{
-			ColumnSelectionDialog dialog = new ColumnSelectionDialog( tableModel.columnNames() );
+			ColumnSelectionDialog dialog = new ColumnSelectionDialog( tableModel.numericColumnNames() );
 			if ( ! dialog.show() ) return;
 			String columnName = dialog.getColumnName();
 			List< Image< AnnotationType< A > > > images = display.images();
