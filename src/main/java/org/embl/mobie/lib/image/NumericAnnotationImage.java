@@ -49,7 +49,7 @@ public class NumericAnnotationImage< A extends Annotation > implements Image< Do
 	{
         this.annotationImage = annotationImage;
         this.featureName = featureName;
-        this.name = annotationImage.getName() + "_" + featureName;
+        this.name = annotationImage.getName() + "-" + featureName;
     }
 
 	@Override
@@ -60,7 +60,7 @@ public class NumericAnnotationImage< A extends Annotation > implements Image< Do
 			SourcePair< AnnotationType< A > > annotationSourcePair = annotationImage.getSourcePair();
 
 			// non-volatile source
-			Source< DoubleType > numericAnnotationSource = new NumericAnnotationSource<>( annotationSourcePair.getSource(), featureName );
+			Source< DoubleType > numericAnnotationSource = new NumericAnnotationSource<>( annotationSourcePair.getSource(), featureName, name );
 
 			if ( annotationSourcePair.getVolatileSource() == null )
 			{
@@ -69,7 +69,7 @@ public class NumericAnnotationImage< A extends Annotation > implements Image< Do
 			else
 			{
 				// volatile source
-				VolatileNumericAnnotationSource< A, ? extends Volatile< AnnotationType< A > > > volatileNumericAnnotationSource = new VolatileNumericAnnotationSource<>( annotationImage.getSourcePair().getVolatileSource(), featureName );
+				VolatileNumericAnnotationSource< A, ? extends Volatile< AnnotationType< A > > > volatileNumericAnnotationSource = new VolatileNumericAnnotationSource<>( annotationImage.getSourcePair().getVolatileSource(), featureName, name );
 				this.sourcePair = new DefaultSourcePair<>( numericAnnotationSource, volatileNumericAnnotationSource );
 			}
 		}

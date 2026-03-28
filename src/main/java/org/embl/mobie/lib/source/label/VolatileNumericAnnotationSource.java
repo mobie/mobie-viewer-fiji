@@ -44,22 +44,22 @@ public class VolatileNumericAnnotationSource< A extends Annotation, V extends Vo
 {
     private final String featureName;
 
-    public VolatileNumericAnnotationSource( Source< V > source, String featureName )
+    public VolatileNumericAnnotationSource( Source< V > source, String featureName, String name )
     {
-        super( source );
+        super( source, name );
         this.featureName = featureName;
     }
 
     @Override
     public boolean isPresent( final int t )
     {
-        return source.isPresent( t );
+        return wrappedSource.isPresent( t );
     }
 
     @Override
     public RandomAccessibleInterval< VolatileDoubleType > getSource( final int t, final int level )
     {
-        RandomAccessibleInterval< V > rai = source.getSource( t, level );
+        RandomAccessibleInterval< V > rai = wrappedSource.getSource( t, level );
 
         return Converters.convert( rai,
                 ( input, output ) ->
@@ -69,7 +69,7 @@ public class VolatileNumericAnnotationSource< A extends Annotation, V extends Vo
     @Override
     public RealRandomAccessible< VolatileDoubleType > getInterpolatedSource( final int t, final int level, final Interpolation method)
     {
-        RealRandomAccessible< V > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
+        RealRandomAccessible< V > rra = wrappedSource.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
 
         return Converters.convert( rra,
                 ( input, output ) ->

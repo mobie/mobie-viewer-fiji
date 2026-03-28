@@ -35,46 +35,54 @@ import net.imglib2.realtransform.AffineTransform3D;
 // During the wrapping the type changes from A to B
 public abstract class AbstractSourceWrapper< A, B > implements Source< B >, SourceWrapper< A >
 {
-    protected final Source< A > source;
+    protected final Source< A > wrappedSource;
+    private final String name;
 
-    public AbstractSourceWrapper( final Source< A > source )
+    public AbstractSourceWrapper( final Source< A > wrappedSource )
     {
-        this.source = source;
+        this.wrappedSource = wrappedSource;
+        this.name = wrappedSource.getName();
+    }
+
+    public AbstractSourceWrapper( Source< A > wrappedSource, String name  )
+    {
+        this.wrappedSource = wrappedSource;
+        this.name = name;
     }
 
     @Override
     public boolean doBoundingBoxCulling() {
-        return source.doBoundingBoxCulling();
+        return wrappedSource.doBoundingBoxCulling();
     }
 
     @Override
     public synchronized void getSourceTransform(final int t, final int level, final AffineTransform3D transform) {
-        source.getSourceTransform(t, level, transform);
+        wrappedSource.getSourceTransform(t, level, transform);
     }
 
     @Override
     public boolean isPresent( final int t )
     {
-        return source.isPresent(t);
+        return wrappedSource.isPresent(t);
     }
 
     @Override
     public String getName() {
-        return source.getName();
+        return name;
     }
 
     @Override
     public VoxelDimensions getVoxelDimensions() {
-        return source.getVoxelDimensions();
+        return wrappedSource.getVoxelDimensions();
     }
 
     @Override
     public int getNumMipmapLevels() {
-        return source.getNumMipmapLevels();
+        return wrappedSource.getNumMipmapLevels();
     }
 
     @Override
     public Source< A > getWrappedSource() {
-        return source;
+        return wrappedSource;
     }
 }

@@ -52,13 +52,13 @@ public class AnnotatedLabelSource< T extends RealType< T >, A extends Annotation
     @Override
     public boolean isPresent( final int t )
     {
-        return source.isPresent(t);
+        return wrappedSource.isPresent(t);
     }
 
     @Override
     public RandomAccessibleInterval< AnnotationType< A > > getSource( final int t, final int level )
     {
-        return Converters.convert( source.getSource( t, level ), ( input, output ) -> {
+        return Converters.convert( wrappedSource.getSource( t, level ), ( input, output ) -> {
             setOutput( input, t, output );
         }, new AnnotationType()  ); // annotationAdapter.createVariable()
     }
@@ -66,7 +66,7 @@ public class AnnotatedLabelSource< T extends RealType< T >, A extends Annotation
     @Override
     public RealRandomAccessible< AnnotationType< A > > getInterpolatedSource( final int t, final int level, final Interpolation method)
     {
-        final RealRandomAccessible< T > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
+        final RealRandomAccessible< T > rra = wrappedSource.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
 
         return Converters.convert( rra,
                 ( T input, AnnotationType< A > output ) ->

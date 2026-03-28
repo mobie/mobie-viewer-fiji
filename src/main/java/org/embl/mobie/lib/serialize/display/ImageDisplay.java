@@ -109,6 +109,14 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		this.sources = Collections.singletonList( sourceName );
 	}
 
+	public ImageDisplay( String name, String sourceName, double[] contrastLimits )
+	{
+		this.name = name;
+		this.sources = Collections.singletonList( sourceName );
+		this.contrastLimits = contrastLimits;
+		initContrastLimits();
+	}
+
 	public ImageDisplay(
 			String name,
 			double opacity,

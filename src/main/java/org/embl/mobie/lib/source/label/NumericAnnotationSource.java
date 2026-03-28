@@ -42,22 +42,22 @@ public class NumericAnnotationSource< A extends Annotation > extends AbstractSou
 {
     private final String featureName;
 
-    public NumericAnnotationSource( Source< AnnotationType< A > > source, String featureName )
+    public NumericAnnotationSource( Source< AnnotationType< A > > source, String featureName, String name )
     {
-        super( source );
+        super( source, name );
         this.featureName = featureName;
     }
 
     @Override
     public boolean isPresent( final int t )
     {
-        return source.isPresent( t );
+        return wrappedSource.isPresent( t );
     }
 
     @Override
     public RandomAccessibleInterval< DoubleType > getSource( final int t, final int level )
     {
-        RandomAccessibleInterval< AnnotationType< A > > rai = source.getSource( t, level );
+        RandomAccessibleInterval< AnnotationType< A > > rai = wrappedSource.getSource( t, level );
 
         return Converters.convert( rai,
                 ( input, output ) ->
@@ -67,7 +67,7 @@ public class NumericAnnotationSource< A extends Annotation > extends AbstractSou
     @Override
     public RealRandomAccessible< DoubleType > getInterpolatedSource( final int t, final int level, final Interpolation method)
     {
-        final RealRandomAccessible< AnnotationType< A > > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
+        final RealRandomAccessible< AnnotationType< A > > rra = wrappedSource.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
 
         return Converters.convert( rra,
                 ( input, output ) ->

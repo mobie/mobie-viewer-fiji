@@ -30,8 +30,6 @@ package org.embl.mobie.lib.source.label;
 
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import net.imglib2.type.Type;
-import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
@@ -55,7 +53,7 @@ public class VolatileAnnotatedLabelSource< T extends RealType< T >, V extends Vo
     @Override
     public RandomAccessibleInterval< VolatileAnnotationType< A > > getSource( final int t, final int level )
     {
-        final RandomAccessibleInterval< V > rai = source.getSource( t, level );
+        final RandomAccessibleInterval< V > rai = wrappedSource.getSource( t, level );
         final RandomAccessibleInterval< VolatileAnnotationType< A > > convert =
                 Converters.convert( rai, ( input, output ) -> {
                     set( input, t, output );
@@ -67,7 +65,7 @@ public class VolatileAnnotatedLabelSource< T extends RealType< T >, V extends Vo
     @Override
     public RealRandomAccessible< VolatileAnnotationType< A > > getInterpolatedSource( final int t, final int level, final Interpolation method)
     {
-        final RealRandomAccessible< V > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
+        final RealRandomAccessible< V > rra = wrappedSource.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
 
         return Converters.convert( rra,
                 ( input, output ) -> set( input, t, output ),

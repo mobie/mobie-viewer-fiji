@@ -145,15 +145,19 @@ public class ViewManager
 		}
 		else
 		{
-			ImageDisplay< ? > imageDisplay = new ImageDisplay<>( imageName, imageName );
 			SourceAndConverter< ? > sourceAndConverter = DataStore.sourceToImage().inverse().get( image );
 			if ( sourceAndConverter != null )
 			{
 				// this image has been previously displayed
-				// and we fetch the display settings
-				imageDisplay.setDisplaySettings( sourceAndConverter );
+				// we fetch the display settings
+				display = new ImageDisplay<>( imageName, imageName );
+				((ImageDisplay) display).setDisplaySettings( sourceAndConverter );
 			}
-			display = imageDisplay;
+			else
+			{
+				//  configure auto-contrast
+				display = new ImageDisplay<>( imageName, imageName, new double[]{0} );
+			}
 		}
 
 		View view = new View(

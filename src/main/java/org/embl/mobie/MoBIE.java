@@ -162,7 +162,7 @@ public class MoBIE
 							catch ( Exception e )
 							{
 								// JSON file could not be parsed
-								IJ.log("[WARNING] Parsing failed: " + p );
+								IJ.log("[WARNING] Additional views parsing failed: " + p );
 							}
 						});
 			}
