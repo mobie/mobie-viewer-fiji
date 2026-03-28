@@ -40,11 +40,11 @@ import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.source.AbstractSourceWrapper;
 import org.embl.mobie.lib.source.AnnotationType;
 
-public class VolatileNumericAnnotationSource< A extends Annotation > extends AbstractSourceWrapper< Volatile< AnnotationType< A > >, VolatileDoubleType >
+public class VolatileNumericAnnotationSource< A extends Annotation, V extends Volatile< AnnotationType< A > > > extends AbstractSourceWrapper< V, VolatileDoubleType >
 {
     private final String featureName;
 
-    public VolatileNumericAnnotationSource( Source< Volatile< AnnotationType< A > > > source, String featureName )
+    public VolatileNumericAnnotationSource( Source< V > source, String featureName )
     {
         super( source );
         this.featureName = featureName;
@@ -59,7 +59,7 @@ public class VolatileNumericAnnotationSource< A extends Annotation > extends Abs
     @Override
     public RandomAccessibleInterval< VolatileDoubleType > getSource( final int t, final int level )
     {
-        RandomAccessibleInterval< Volatile< AnnotationType< A > > > rai = source.getSource( t, level );
+        RandomAccessibleInterval< V > rai = source.getSource( t, level );
 
         return Converters.convert( rai,
                 ( input, output ) ->
@@ -69,7 +69,7 @@ public class VolatileNumericAnnotationSource< A extends Annotation > extends Abs
     @Override
     public RealRandomAccessible< VolatileDoubleType > getInterpolatedSource( final int t, final int level, final Interpolation method)
     {
-        RealRandomAccessible< Volatile< AnnotationType< A > > > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
+        RealRandomAccessible< V > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
 
         return Converters.convert( rra,
                 ( input, output ) ->
@@ -85,8 +85,19 @@ public class VolatileNumericAnnotationSource< A extends Annotation > extends Abs
             return;
         }
 
-        Double number = input.get().getAnnotation().getNumber( featureName );
-        output.get().setReal( number );
+        A annotation = input.get().getAnnotation();
+
+        if ( annotation == null )
+        {
+            // background
+            output.get().setReal( 0 );
+        }
+        else
+        {
+            Double number = annotation.getNumber( featureName );
+            output.get().setReal( number );
+        }
+
         output.setValid( true );
     }
 

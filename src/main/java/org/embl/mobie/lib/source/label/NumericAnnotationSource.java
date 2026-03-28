@@ -77,8 +77,17 @@ public class NumericAnnotationSource< A extends Annotation > extends AbstractSou
 
     private void setOutput( AnnotationType< A > input, int t, DoubleType output  )
     {
-        Double number = input.getAnnotation().getNumber( featureName );
-        output.setReal( number );
+        A annotation = input.getAnnotation();
+        if ( annotation == null )
+        {
+            // background
+            output.setReal( 0 );
+        }
+        else
+        {
+            Double number = annotation.getNumber( featureName );
+            output.setReal( number );
+        }
     }
 
     @Override

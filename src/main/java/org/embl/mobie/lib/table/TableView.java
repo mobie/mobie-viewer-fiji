@@ -30,6 +30,7 @@ package org.embl.mobie.lib.table;
 
 import ij.IJ;
 import ij.gui.GenericDialog;
+import net.imglib2.type.numeric.real.DoubleType;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
@@ -493,7 +494,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private JMenuItem createAnnotationDisplayMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Create Annotation Display Layer..." );
+		final JMenuItem menuItem = new JMenuItem( "Create Numeric Annotation Display Layer..." );
 
 		menuItem.addActionListener( e -> createAnnotationDisplayDialog() );
 
@@ -562,13 +563,11 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				throw new RuntimeException("Creating an annotation display layer for multiple images is not yet supported");
 
 			Image< AnnotationType< A > > image = images.get( 0 );
-
-			NumericAnnotationImage< ?, A > numericAnnotationImage = new NumericAnnotationImage<>( image, columnName );
+			Image< DoubleType > numericAnnotationImage = new NumericAnnotationImage<>( image, columnName );
 			DataStore.addImage( numericAnnotationImage );
 
 			View view = ViewManager.createImageView(
-					image,
-					numericAnnotationImage.getName(),
+					numericAnnotationImage,
 					null,
 					null );
 

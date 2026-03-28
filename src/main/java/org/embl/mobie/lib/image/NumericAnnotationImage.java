@@ -28,54 +28,49 @@
  */
 package org.embl.mobie.lib.image;
 
+import bdv.viewer.Source;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
-import net.imglib2.type.Type;
-import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.real.DoubleType;
 import org.embl.mobie.lib.annotation.Annotation;
-import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import org.embl.mobie.lib.source.AnnotationType;
-import org.embl.mobie.lib.source.label.AnnotatedLabelSource;
 import org.embl.mobie.lib.source.label.NumericAnnotationSource;
-import org.embl.mobie.lib.source.label.VolatileAnnotatedLabelSource;
-import org.embl.mobie.lib.table.AnnData;
+import org.embl.mobie.lib.source.label.VolatileNumericAnnotationSource;
 
-public class NumericAnnotationImage< R extends RealType< R >, A extends Annotation > implements Image< R >, ImageWrapper
+public class NumericAnnotationImage< A extends Annotation > implements Image< DoubleType >, ImageWrapper
 {
-    private final Image< AnnotationType< A > > annotationTypeImage;
+    private final Image< AnnotationType< A > > annotationImage;
     private final String featureName;
     private final String name;
-	private SourcePair< R > sourcePair;
+	private SourcePair< DoubleType > sourcePair;
 
 	public NumericAnnotationImage( Image< AnnotationType< A > > annotationImage, String featureName )
 	{
-        this.annotationTypeImage = annotationImage;
+        this.annotationImage = annotationImage;
         this.featureName = featureName;
         this.name = annotationImage.getName() + "_" + featureName;
     }
 
 	@Override
-	public SourcePair< R > getSourcePair()
+	public SourcePair< DoubleType > getSourcePair()
 	{
 		if ( sourcePair == null )
 		{
-			SourcePair< AnnotationType< A > > annotationTypeSourcePair = annotationTypeImage.getSourcePair();
+			SourcePair< AnnotationType< A > > annotationSourcePair = annotationImage.getSourcePair();
 
 			// non-volatile source
-			final AnnotatedLabelSource< ?, A > source = new NumericAnnotationSource( annotationTypeSourcePair.getSource(), featureName );
+			Source< DoubleType > numericAnnotationSource = new NumericAnnotationSource<>( annotationSourcePair.getSource(), featureName );
 
-			annotationAdapter.init();
-
-			if ( sourcePair.getVolatileSource() == null )
+			if ( annotationSourcePair.getVolatileSource() == null )
 			{
-				this.sourcePair = new DefaultSourcePair<>( source, null );
+				sourcePair = new DefaultSourcePair< >( numericAnnotationSource, null );
 			}
 			else
 			{
 				// volatile source
-				final VolatileAnnotatedLabelSource< ?, ? extends Volatile< ? >, A > volatileSource = new VolatileAnnotatedLabelSource( getLabelImage().getSourcePair().getVolatileSource(), annotationAdapter );
-				this.sourcePair = new DefaultSourcePair<>( source, volatileSource );
+				VolatileNumericAnnotationSource< A, ? extends Volatile< AnnotationType< A > > > volatileNumericAnnotationSource = new VolatileNumericAnnotationSource<>( annotationImage.getSourcePair().getVolatileSource(), featureName );
+				this.sourcePair = new DefaultSourcePair<>( numericAnnotationSource, volatileNumericAnnotationSource );
 			}
 		}
 
@@ -91,7 +86,7 @@ public class NumericAnnotationImage< R extends RealType< R >, A extends Annotati
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		annotationTypeImage.transform( affineTransform3D );
+		annotationImage.transform( affineTransform3D );
 		for ( ImageListener listener : listeners.list )
 			listener.imageChanged();
 	}
@@ -99,18 +94,18 @@ public class NumericAnnotationImage< R extends RealType< R >, A extends Annotati
 	@Override
 	public RealMaskRealInterval getMask()
 	{
-		return annotationTypeImage.getMask();
+		return annotationImage.getMask();
 	}
 
 	@Override
 	public void setMask( RealMaskRealInterval mask )
 	{
-		annotationTypeImage.setMask( mask );
+		annotationImage.setMask( mask );
 	}
 
 	@Override
 	public Image< ? > getWrappedImage()
 	{
-		return annotationTypeImage;
+		return annotationImage;
 	}
 }

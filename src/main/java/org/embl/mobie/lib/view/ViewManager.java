@@ -124,16 +124,19 @@ public class ViewManager
 		}
 	}
 
-
 	public static View createImageView(
 			Image< ? > image,
-			String imageName,
-			@Nullable Transformation transformation,
-			String viewDescription )
+			@Nullable ImageTransformation imageTransformation, // optional additional image transformation
+			@Nullable String viewDescription )
 	{
+		String imageName = image.getName();
+
 		ArrayList< Transformation > transformations = MoBIEHelper.fetchAddedImageTransformations( image );
-		if ( transformation != null )
-			transformations.add( transformation );
+		if ( imageTransformation != null )
+		{
+			transformations.add( imageTransformation );
+			imageName = imageTransformation.getTransformedImageName( imageName );
+		}
 
 		Display< ? > display;
 		if ( image instanceof AnnotationImage )
@@ -155,7 +158,7 @@ public class ViewManager
 
 		View view = new View(
 				imageName,
-                ( String ) null, // to be determined by the user in below dialog
+                ( String ) null,
 				Collections.singletonList( display ),
 				transformations,
 				null,
@@ -502,11 +505,10 @@ public class ViewManager
 					String source1 = iterator.next().get( 0 );
 					Image< ? > image0 = DataStore.getImage( source0 );
 					Image< ? > image1 = DataStore.getImage( source1 );
-					// if there is only one intensity and one label image
+					// if one of those is an AnnotationImage
 					// showing the region overlay is typically not useful
-					if ( image0 instanceof ImageDataImage && image1 instanceof AnnotationImage )
-						regionDisplay.setVisible( false );
-					if ( image1 instanceof ImageDataImage && image0 instanceof AnnotationImage )
+					if ( image0 instanceof AnnotationImage
+						|| image1 instanceof AnnotationImage )
 						regionDisplay.setVisible( false );
 				}
 				else

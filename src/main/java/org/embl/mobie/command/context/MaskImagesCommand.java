@@ -78,7 +78,7 @@ public class MaskImagesCommand extends BoxSelectionCommand
             DataStore.addImage( maskedImage );
             // TODO: probably the masking should happen within the view
             //       then we would need a new "MaskingTransformation"
-            View view = ViewManager.createImageView( maskedImage, maskedImage.getName(), null, "" );
+            View view = ViewManager.createImageView( maskedImage, null, "" );
 
             MoBIE.getInstance().getViewManager().show( view );
 

@@ -115,7 +115,7 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 					Collections.singletonList( transformedImageName )
 			);
 
-			if ( createImageView( movingImage, transformedImageName, transformation ) ) return false;
+			if ( createImageView( movingImage, transformation ) ) return false;
 		}
 
 		return true;

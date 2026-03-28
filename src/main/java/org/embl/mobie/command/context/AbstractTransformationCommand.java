@@ -38,6 +38,7 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.lib.data.ProjectType;
 import org.embl.mobie.command.widget.SelectableImages;
 import org.embl.mobie.command.widget.SwingSelectableImagesWidget;
+import org.embl.mobie.lib.serialize.transformation.ImageTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.image.Image;
@@ -140,14 +141,12 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
 
     protected static boolean createImageView(
             Image< ? > movingImage,
-            String transformedImageName,
-            Transformation transformation )
+            ImageTransformation transformation )
     {
         View view = ViewManager.createImageView(
                 movingImage,
-                transformedImageName,
                 transformation,
-                transformedImageName );
+                "transformed" );
 
         if( MoBIE.getInstance().getSettings().values.getProjectType().equals( ProjectType.CollectionTable ) )
         {
@@ -189,7 +188,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
                     Collections.singletonList( transformedImageName )
             );
 
-            if ( createImageView( movingImage, transformedImageName, transformation ) ) return false;
+            if ( createImageView( movingImage, transformation ) ) return false;
         }
 
         return true;
