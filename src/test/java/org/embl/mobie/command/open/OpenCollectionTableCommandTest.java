@@ -99,6 +99,17 @@ public class OpenCollectionTableCommandTest
     }
 
     @Test
+    public void blobsGridWithPositionIDs()
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = new File("src/test/resources/collections/segmented-blobs-grid-with-id-position-collection.csv").getAbsolutePath();
+        command.run();
+    }
+
+    @Test
     public void addImageTwice()
     {
         final ImageJ imageJ = new ImageJ();
@@ -451,7 +462,8 @@ public class OpenCollectionTableCommandTest
 
     public static void main( String[] args )
     {
-        new OpenCollectionTableCommandTest().segmentedBlobs();
+        new OpenCollectionTableCommandTest().blobsGridWithPositionIDs();
+        //new OpenCollectionTableCommandTest().segmentedBlobs();
         //new OpenCollectionTableCommandTest().spots3D();
         //new OpenCollectionTableCommandTest().segmentedImageWithFloatLabels();
         //new OpenCollectionTableCommandTest().spots3dWith20000Columns();

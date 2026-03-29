@@ -308,4 +308,9 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 	{
 		return annotationAdapter;
 	}
+
+	public TableView< A > getTableView()
+	{
+		return tableView;
+	}
 }

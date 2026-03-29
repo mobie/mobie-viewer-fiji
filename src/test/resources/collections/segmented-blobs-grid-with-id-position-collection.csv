@@ -1,0 +1,5 @@
+uri,name,type,display,contrast_limits,affine,view,color,grid,grid_position
+blobs.tif,blobs1,intensities,blobs,"(0;255)","(10,0,0,0,0,10,0,0,0,0,1,0)",all,green,grid,blobs1
+blobs-labels.tif,labels1,labels,segmentation,,"(10,0,0,0,0,10,0,0,0,0,1,0)",all,,grid,blobs1
+blobs.tif,blobs2,intensities,blobs,"(50;200)","(10,0,0,0,0,10,0,0,0,0,1,0)",all,green,grid,blobs2
+blobs-labels.tif,labels2,labels,segmentation,,"(10,0,0,0,0,10,0,0,0,0,1,0)",all,,grid,blobs2

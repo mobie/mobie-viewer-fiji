@@ -110,6 +110,11 @@ public class MoBIE
 	private UserInterface userInterface;
 	private final ArrayList< String > projectCommands = new ArrayList<>();
 
+	public MoBIE( String projectUri ) throws IOException
+	{
+		this( projectUri, new MoBIESettings() );
+	}
+
 	public MoBIE( String projectUri, MoBIESettings settings ) throws IOException
 	{
 		this.settings = settings;

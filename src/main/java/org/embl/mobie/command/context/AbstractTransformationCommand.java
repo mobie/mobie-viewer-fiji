@@ -39,7 +39,6 @@ import org.embl.mobie.lib.data.ProjectType;
 import org.embl.mobie.command.widget.SelectableImages;
 import org.embl.mobie.command.widget.SwingSelectableImagesWidget;
 import org.embl.mobie.lib.serialize.transformation.ImageTransformation;
-import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
@@ -129,7 +128,7 @@ public abstract class AbstractTransformationCommand extends DynamicCommand imple
         // because the transformed ones are being shown
         List< String > movingImageNames = selectableImages.getNames();
         ViewManager viewManager = MoBIE.getInstance().getViewManager();
-        List< Display > displays = viewManager.getCurrentSourceDisplays();
+        List< Display > displays = viewManager.getCurrentDisplays();
         List< Display > displaysToRemove = displays.stream()
                 .filter( display -> display.getSources().size() == 1 )
                 .filter( display -> display.getSources().stream().anyMatch( movingImageNames::contains ) )

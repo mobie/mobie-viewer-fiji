@@ -83,14 +83,14 @@ public class ScreenShotStackMaker
     private final BdvHandle bdvHandle;
     private String voxelUnit = "Pixels";
     private final Integer numSlices;
-    private ImagePlus rgbImagePlus = null;
+    private ImagePlus rgbImp = null;
     private CompositeImage compositeImagePlus = null;
     private long[] screenshotDimensions = new long[3];
     private AffineTransform3D targetToGlobalTransform;
     private AffineTransform3D viewerToGlobal;
     private Corners corners;
     private String progress;
-    private List< ImagePlus > outputImps;
+    private List< ImagePlus > singleChannelImps;
 
     public ScreenShotStackMaker( BdvHandle bdvHandle, String voxelUnit, Integer numSlices ) {
         this.bdvHandle = bdvHandle;
@@ -100,18 +100,18 @@ public class ScreenShotStackMaker
 
     public ImagePlus getRGBImagePlus()
     {
-        return rgbImagePlus;
+        return rgbImp;
     }
 
-    public CompositeImage getCompositeImagePlus()
-    {
-        return compositeImagePlus;
-    }
+//    public CompositeImage getCompositeImagePlus()
+//    {
+//        return compositeImagePlus;
+//    }
 
-    public Roi[] getMasks()
-    {
-        return compositeImagePlus.getOverlay().toArray();
-    }
+//    public Roi[] getMasks()
+//    {
+//        return compositeImagePlus.getOverlay().toArray();
+//    }
 
     public void run( double targetSamplingInXY, double targetSamplingInZ )
     {
@@ -310,12 +310,13 @@ public class ScreenShotStackMaker
                 realCaptures.add( realRAI );
                 maskCaptures.add( maskRAI );
             }
+
             argbCaptures.add( argbRAI );
             displayRanges.add( displayRange );
         }
 
         //IJ.log( "Fetched data in " + ( System.currentTimeMillis() - currentTimeMillis ) + " ms." );
-        outputImps = new ArrayList<>();
+        singleChannelImps = new ArrayList<>();
         if ( ! realCaptures.isEmpty() )
         {
             Calibration calibration = new Calibration();
@@ -324,20 +325,22 @@ public class ScreenShotStackMaker
             calibration.pixelDepth = targetSamplingInZ;
             calibration.setUnit( voxelUnit );
 
+            rgbImp = createRGBImagePlus( argbCaptures, sacs, calibration );
+
             for ( int i = 0; i < realCaptures.size() ; i++ )
             {
                 final ImagePlus imp = ImageJFunctions.wrap( (RandomAccessibleInterval) realCaptures.get( i ), sacs.get( i ).getSpimSource().getName() );
                 imp.setDimensions( 1, imp.getNSlices(), 1 );
                 imp.setDisplayRange( displayRanges.get( i )[0], displayRanges.get( i )[1] );
                 imp.setCalibration( calibration );
-                outputImps.add( imp );
+                singleChannelImps.add( imp );
             }
         }
     }
 
-    public List< ImagePlus > getOutputImps()
+    public List< ImagePlus > getSingleChannelImps()
     {
-        return outputImps;
+        return singleChannelImps;
     }
 
     public Corners getCorners()
@@ -406,14 +409,12 @@ public class ScreenShotStackMaker
     }
 
     private ImagePlus createRGBImagePlus(
-            String physicalUnit,
             ArrayList< RandomAccessibleInterval< ARGBType > > argbSources,
-            double[] voxelSpacing,
-            List< SourceAndConverter< ? > > sacs )
+            List< SourceAndConverter< ? > > sacs, Calibration calibration )
     {
-        final RandomAccessibleInterval< ARGBType > argbTarget = ArrayImgs.argbs( screenshotDimensions[ 0 ], screenshotDimensions[ 1 ]  );
+        final RandomAccessibleInterval< ARGBType > argbTarget = ArrayImgs.argbs( screenshotDimensions );
         createARGBprojection( argbSources, argbTarget, sacs );
-        return asImagePlus( argbTarget, physicalUnit, voxelSpacing );
+        return asImagePlus( argbTarget, calibration );
     }
 
     private void createARGBprojection( ArrayList< RandomAccessibleInterval< ARGBType > > argbSources, RandomAccessibleInterval< ARGBType > argbTarget, List< SourceAndConverter< ? > > sacs )
@@ -476,17 +477,13 @@ public class ScreenShotStackMaker
         return cursors;
     }
 
-    private ImagePlus asImagePlus( RandomAccessibleInterval< ARGBType > argbCapture, String physicalUnit, double[] voxelSpacing )
+    private ImagePlus asImagePlus(
+            RandomAccessibleInterval< ARGBType > argbCapture,
+            Calibration calibration )
     {
         final ImagePlus rgbImage = ImageJFunctions.wrap( argbCapture, "RGB" );
-
-        IJ.run( rgbImage,
-                "Properties...",
-                "channels=" + 1
-                        +" slices=1 frames=1 unit=" + physicalUnit
-                        +" pixel_width=" + voxelSpacing[ 0 ]
-                        +" pixel_height=" + voxelSpacing[ 1 ]
-                        +" voxel_depth=" + voxelSpacing[ 2 ] );
+        rgbImage.setDimensions( 1, rgbImage.getNSlices(), 1 );
+        rgbImage.setCalibration( calibration );
         return rgbImage;
     }
 }

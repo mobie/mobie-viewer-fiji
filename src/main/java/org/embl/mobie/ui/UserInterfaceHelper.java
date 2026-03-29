@@ -634,7 +634,7 @@ public class UserInterfaceHelper
 		// If it's the first time, add all the view selection panels in order
 		if ( groupingsToComboBox.keySet().isEmpty() ) {
 			for (String uiSelectionGroup : uiSelectionGroups) {
-				final JPanel selectionPanel = createMultiViewSelectionPanel(moBIE, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
+				final JPanel selectionPanel = createViewSelectionPanel(moBIE, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
 				viewSelectionPanel.add(selectionPanel);
 			}
 
@@ -660,7 +660,7 @@ public class UserInterfaceHelper
 				}
 				else
 				{
-					final JPanel selectionPanel = createMultiViewSelectionPanel( moBIE, group, groupingsToViews.get( group ) );
+					final JPanel selectionPanel = createViewSelectionPanel( moBIE, group, groupingsToViews.get( group ) );
 					int alphabeticalIndex = uiSelectionGroups.indexOf( group );
 					indexToPanel.put( alphabeticalIndex, selectionPanel );
 				}
@@ -761,11 +761,12 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	// https://github.com/mobie/mobie-viewer-fiji/issues/1288
+	// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/1288
 	private JPanel createMultiViewSelectionPanel( MoBIE moBIE, String panelName, Map< String, View > views )
 	{
 		final JPanel horizontalLayoutPanel = SwingHelper.horizontalBoxLayoutPanel();
 
+		//
 		final JList<String> list = new JList<>(views.keySet().toArray(new String[0]));
 		list.setSelectionMode( ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
 		final JScrollPane scrollPane = new JScrollPane(list);
@@ -968,12 +969,12 @@ public class UserInterfaceHelper
 			String text = jTextField.getText();
 			if ( views.contains( text ) )
 			{
-				this.moBIE.getViewManager().show( text );
+				moBIE.getViewManager().show( text );
 			}
 			else
 			{
 				ViewerTransform viewerTransform = ViewerTransform.toViewerTransform( text );
-				ViewerTransformChanger.apply( this.moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
+				ViewerTransformChanger.apply( moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
 			}
 		} );
 
@@ -1402,7 +1403,9 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-	private static JButton createColorButton( JPanel parentPanel, List< ? extends SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
+	private static JButton createColorButton( JPanel parentPanel,
+											  List< ? extends SourceAndConverter< ? > > sourceAndConverters,
+											  BdvHandle bdvHandle )
 	{
 		JButton button = getIconButton( "color.png" );
 		button.setToolTipText( "Change color" );

@@ -215,9 +215,17 @@ public class ViewManager
 			display.scatterPlotView.show( false );
 	}
 
-	public List< Display > getCurrentSourceDisplays()
+	public List< Display > getCurrentDisplays()
 	{
 		return currentDisplays;
+	}
+
+	public Map< String, SegmentationDisplay > getCurrentSegmentationDisplays()
+	{
+		return currentDisplays.stream()
+				.filter( d -> d instanceof SegmentationDisplay )
+				.collect( Collectors.toMap( Display::getName, d -> (SegmentationDisplay) d ) );
+
 	}
 
 	public SliceViewer getSliceViewer()
@@ -807,7 +815,7 @@ public class ViewManager
 	// TODO: typing ( or remove )
 	public Collection< AbstractAnnotationDisplay< ? > > getAnnotationDisplays()
 	{
-        return getCurrentSourceDisplays().stream()
+        return getCurrentDisplays().stream()
 				.filter( s -> s instanceof AbstractAnnotationDisplay )
 				.map( s -> ( AbstractAnnotationDisplay< ? > ) s )
 				.collect( Collectors.toList() );

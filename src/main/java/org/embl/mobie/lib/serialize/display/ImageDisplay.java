@@ -176,6 +176,11 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		return color;
 	}
 
+	public void setColor( String color )
+	{
+		this.color = color;
+	}
+
 	public double[] getContrastLimits( String source )
 	{
 		if ( sourceToContrastLimits.isEmpty() )

@@ -35,9 +35,7 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import org.embl.mobie.lib.data.DataStore;
-import org.embl.mobie.lib.data.ProjectType;
 import org.embl.mobie.lib.image.Image;
-import org.embl.mobie.lib.image.MaskedImage;
 import org.embl.mobie.lib.image.NumericAnnotationImage;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.source.AnnotationType;
@@ -496,7 +494,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		final JMenuItem menuItem = new JMenuItem( "Create Numeric Annotation Display Layer..." );
 
-		menuItem.addActionListener( e -> createAnnotationDisplayDialog() );
+		menuItem.addActionListener( e -> createNumericAnnotationDisplayDialog() );
 
 		return menuItem;
 	}
@@ -550,29 +548,37 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		});
 	}
 
-	private void createAnnotationDisplayDialog()
+	private void createNumericAnnotationDisplayDialog()
 	{
 		SwingUtilities.invokeLater( () ->
 		{
 			ColumnSelectionDialog dialog = new ColumnSelectionDialog( tableModel.numericColumnNames() );
 			if ( ! dialog.show() ) return;
 			String columnName = dialog.getColumnName();
-			List< Image< AnnotationType< A > > > images = display.images();
 
-			if( images.size() > 1 )
-				throw new RuntimeException("Creating an annotation display layer for multiple images is not yet supported");
-
-			Image< AnnotationType< A > > image = images.get( 0 );
-			Image< DoubleType > numericAnnotationImage = new NumericAnnotationImage<>( image, columnName );
-			DataStore.addImage( numericAnnotationImage );
-
-			View view = ViewManager.createImageView(
-					numericAnnotationImage,
-					null,
-					null );
-
-			MoBIE.getInstance().getViewManager().show( view );
+			createNumericAnnotationDisplay( columnName );
 		});
+	}
+
+	public String createNumericAnnotationDisplay( String columnName )
+	{
+		List< Image< AnnotationType< A > > > images = display.images();
+
+		if( images.size() > 1 )
+			throw new RuntimeException("Creating an annotation display layer for multiple images is not yet supported");
+
+		Image< AnnotationType< A > > image = images.get( 0 );
+		Image< DoubleType > numericAnnotationImage = new NumericAnnotationImage<>( image, columnName );
+		DataStore.addImage( numericAnnotationImage );
+
+		View view = ViewManager.createImageView(
+				numericAnnotationImage,
+				null,
+				null );
+
+		MoBIE.getInstance().getViewManager().show( view );
+
+		return numericAnnotationImage.getName();
 	}
 
 	public void showContinueAnnotationDialog()

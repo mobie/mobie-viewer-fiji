@@ -7,5 +7,4 @@ public class PixelSizeColumns
     public static String PIXEL_SIZE_Y = "pixel_size_y";
     public static String PIXEL_SIZE_Z = "pixel_size_z";
     public static String PIXEL_UNIT = "pixel_unit";
-
 }

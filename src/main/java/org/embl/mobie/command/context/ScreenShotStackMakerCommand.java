@@ -30,6 +30,7 @@ package org.embl.mobie.command.context;
 
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import ij.ImagePlus;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
@@ -53,19 +54,28 @@ import java.util.List;
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Take Screenshot Stack")
 public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
 {
-    static { net.imagej.patcher.LegacyInjector.preinit(); }
+    static
+    {
+        net.imagej.patcher.LegacyInjector.preinit();
+    }
 
-    @Parameter(label="Slice distance (in above units)",
+    @Parameter( label = "Slice distance (in above units)",
             persist = false,
             min = "0.0",
-            style="format:#.000",
-            stepSize = "0.001")
+            style = "format:#.000",
+            stepSize = "0.001" )
     public Double targetSamplingInZ = 1D;
 
-    @Parameter(label="Number of slices (starting from current)",
+    @Parameter( label = "Number of slices (starting from current)",
             description = "This is above and including the current slice.",
-            persist = false)
+            persist = false )
     public Integer numSlices = 5;
+
+    // For access via scripting
+    public boolean showImages = true;
+
+    private List< ImagePlus > singleChannelImps;
+    private ImagePlus rgbImg;
 
     @Override
     public void run()
@@ -73,15 +83,25 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
         if ( MoBIE.getInstance().getSettings().values.isOpenedFromCLI() )
             MoBIE.imageJ.ui().showUI();
 
+        // remember the starting location
         AffineTransform3D viewerTransform = bdvHandle.getViewerPanel().state().getViewerTransform();
         AffineTransform3D initialViewerTransform = viewerTransform.copy();
 
         // collect data
         ScreenShotStackMaker maker = new ScreenShotStackMaker( bdvHandle, pixelUnit, numSlices );
         maker.run( targetSamplingInXY, targetSamplingInZ );
-        maker.getOutputImps().forEach( o -> o.show() );
+        singleChannelImps = maker.getSingleChannelImps();
+        rgbImg = maker.getRGBImagePlus();
+
+        // reset viewer transform to initial state
         bdvHandle.getViewerPanel().state().setViewerTransform( initialViewerTransform );
         bdvHandle.getViewerPanel().requestRepaint();
+
+        if ( showImages )
+        {
+            singleChannelImps.forEach( o -> o.show() );
+            rgbImg.show();
+        }
     }
 
     @Override
@@ -90,7 +110,7 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
         super.initialize();
 
         final MutableModuleItem< Double > targetSamplingItem =
-                getInfo().getMutableInput("targetSamplingInZ", Double.class);
+                getInfo().getMutableInput( "targetSamplingInZ", Double.class );
         targetSamplingItem.setValue( this, getTargetSampling() );
     }
 
@@ -114,12 +134,10 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
             if ( type instanceof UnsignedByteType )
             {
                 totalSizeInBytes += numPixels * 1;
-            }
-            else if ( type instanceof UnsignedShortType )
+            } else if ( type instanceof UnsignedShortType )
             {
                 totalSizeInBytes += numPixels * 2;
-            }
-            else
+            } else
             {
                 totalSizeInBytes += numPixels * 4; // float
             }
@@ -129,8 +147,8 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
         long currentMemory = IJ.currentMemory();
         long maxMemory = IJ.maxMemory();
         long freeMem = maxMemory - currentMemory;
-        double totalSizeInMB = totalSizeInBytes / (1024.0 * 1024.0);
-        double freeSizeInMB = freeMem / (1024.0 * 1024.0);
+        double totalSizeInMB = totalSizeInBytes / ( 1024.0 * 1024.0 );
+        double freeSizeInMB = freeMem / ( 1024.0 * 1024.0 );
 
         IJ.log( "Needed memory [GB]: " + String.format( "%.4f", totalSizeInMB / 1024 ) );
         IJ.log( "Free memory [GB]:" + String.format( "%.4f", freeSizeInMB / 1024 ) );
@@ -142,5 +160,15 @@ public class ScreenShotStackMakerCommand extends ScreenShotMakerCommand
                     "or use a computer with more RAM.\n" +
                     "See IJ Log Window for details." );
         }
+    }
+
+    public List< ImagePlus > getSingleChannelImps()
+    {
+        return singleChannelImps;
+    }
+
+    public ImagePlus getRgbImg()
+    {
+        return rgbImg;
     }
 }

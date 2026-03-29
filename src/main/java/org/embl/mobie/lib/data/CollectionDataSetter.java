@@ -173,13 +173,22 @@ public class CollectionDataSetter
             }
             else
             {
-                List< int[] > positions = positionToSources.keySet().stream()
-                        .map( this::gridPositionToInts )
-                        .collect( Collectors.toList() );
-
                 nestedSources = new ArrayList<>( positionToSources.values() );
 
-                GridTransformation grid = new GridTransformation( nestedSources, positions, true );
+                GridTransformation grid;
+                try
+                {
+                    List< int[] > positions = positionToSources.keySet().stream()
+                            .map( this::gridPositionToInts )
+                            .collect( Collectors.toList() );
+                    grid = new GridTransformation( nestedSources, positions, true );
+                }
+                catch ( Exception e )
+                {
+                    // positions were not given as integer coordinates
+                    // https://github.com/mobie/mobie-viewer-fiji/issues/1276
+                    grid = new GridTransformation( nestedSources,true );
+                }
                 grid.centerAtOrigin = true; // FIXME: should depend on something!
                 transformations.add( grid );
             }
@@ -525,6 +534,7 @@ public class CollectionDataSetter
             return CollectionTableConstants.INTENSITIES;
         }
     }
+
 
     private String getGridName( Row row )
     {
