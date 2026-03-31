@@ -26,41 +26,30 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open.project;
+package org.embl.mobie.command.open;
 
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.io.DataFormats;
 import org.scijava.command.Command;
-import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open MoBIE Project..." )
-public class OpenMoBIEProjectCommand implements Command
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open PlatyBrowser")
+public class OpenPlatyBrowserCommand implements Command
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
-
-	// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/1164
-	@Parameter ( label = "Project URI" )
-	public String uri = "https://github.com/mobie/platybrowser-datasets";
-
-	@Parameter ( label = "Preferentially Fetch Data From" )
-	public DataFormats.Location location = DataFormats.Location.Remote;
-
-	protected MoBIESettings settings = MoBIESettings.settings();
 
 	@Override
 	public void run()
 	{
-		settings.preferentialDataLocation( location );
+		MoBIESettings settings = MoBIESettings.settings();
 
 		try
 		{
-			new MoBIE( uri.trim(), settings );
+			new MoBIE( "https://github.com/mobie/platybrowser-project",  settings );
 		}
 		catch ( IOException e )
 		{

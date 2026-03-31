@@ -35,5 +35,5 @@ public abstract class CommandConstants
 	public static final String MOBIE_PLUGIN_ROOT = "Plugins>MoBIE>";
 	public static final String CONTEXT_MENU_ITEMS_ROOT = "Plugins>MoBIE>Internal>";
 	public static final String MOBIE_PLUGIN_OPEN = "Plugins>MoBIE>Open>";
-	public static final String MOBIE_PLUGIN_OPEN_PROJECT = MOBIE_PLUGIN_OPEN + "Project>";
+	public static final String MOBIE_PLUGIN_OPEN_SPECIAL = MOBIE_PLUGIN_OPEN + "Special>";
 }

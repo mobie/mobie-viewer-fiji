@@ -26,10 +26,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open;
+package org.embl.mobie.command.open.special;
 
 import loci.common.DebugTools;
+import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import org.embl.mobie.MoBIESettings;
+import org.embl.mobie.command.open.OpenCollectionTableCommand;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.data.ProjectType;
 import org.embl.mobie.command.CommandConstants;
@@ -41,27 +43,31 @@ import org.scijava.plugin.Plugin;
 
 import java.io.File;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Special > Open Collection Table Expert Mode..." )
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_SPECIAL + "Open MoBIE Collection Table Expert Mode..." )
 public class OpenCollectionTableExpertCommand extends OpenCollectionTableCommand
 {
-
 	// Don't change those Strings to stay compatible with recorded macros
-	public static final String ABSOLUTE = "PathsInTableAreAbsolute";
 	public static final String RELATIVE_TO_TABLE = "UseTableFolder";
 	public static final String RELATIVE_TO_FOLDER = "UseBelowDataRootFolder";
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
+	@Parameter( label = "Use Pixel Units for all Images",
+			description = "Checking this will remove all spatial calibration\n" +
+					"that is read from the image metadata." )
+	public Boolean usePixelUnits;
+
 	public enum DataRootType
 	{
-		PathsInTableAreAbsolute,
+		PathsInTableAreAbsolute, // FIXME: Remove this, not needed anymore
 		UseTableFolder,
 		UseBelowDataRootFolder
 	}
 
-	@Parameter( label = "Data Root",
-			choices = { ABSOLUTE, RELATIVE_TO_TABLE, RELATIVE_TO_FOLDER },
-			description = "Specify whether the data URIs in the table are absolute or relative." )
+	@Parameter( label = "Data Root for Relative Paths",
+			choices = { RELATIVE_TO_TABLE, RELATIVE_TO_FOLDER },
+			description = "Specify which data root to prepend for relative paths.\n" +
+					"This will do nothing if all your paths are absolute." )
 	public String dataRootType; // important to keep the variable name the same for Macro recording
 
 	// Does not work yet properly as a parameter:
@@ -82,8 +88,14 @@ public class OpenCollectionTableExpertCommand extends OpenCollectionTableCommand
 	{
 		DebugTools.setRootLevel( "OFF" );
 
-		dataRootTypeEnum = dataRootTypeEnum == null ? DataRootType.valueOf( dataRootType ) : dataRootTypeEnum;
-		//bdvViewingModeEnum = bdvViewingModeEnum == null ? BdvViewingMode.valueOf( bdvViewingMode ) : bdvViewingModeEnum;
+		try
+		{
+			dataRootTypeEnum = dataRootTypeEnum == null ? DataRootType.valueOf( dataRootType ) : dataRootTypeEnum;
+		}
+		catch ( Exception e )
+		{
+			dataRootTypeEnum = DataRootType.UseTableFolder;
+		}
 
 		String dataRootString;
 		switch ( dataRootTypeEnum )
@@ -91,12 +103,8 @@ public class OpenCollectionTableExpertCommand extends OpenCollectionTableCommand
 			case UseBelowDataRootFolder:
 				dataRootString = dataRoot == null ? null : dataRoot.getAbsolutePath();
 				break;
-			case UseTableFolder:
+            default:
 				dataRootString = IOHelper.getParentLocation( tableUri );
-				break;
-			case PathsInTableAreAbsolute:
-			default:
-				dataRootString = null;
 				break;
 		}
 
@@ -104,6 +112,10 @@ public class OpenCollectionTableExpertCommand extends OpenCollectionTableCommand
 				.projectType( ProjectType.CollectionTable )
 				.dataRoot( dataRootString )
 				.bdvViewingMode( bdvViewingModeEnum );
+
+		if ( usePixelUnits )
+			settings.setVoxelDimensions(
+					new FinalVoxelDimensions( "pixel", 1.0, 1.0, 1.0 ) );
 
 		if ( MoBIEHelper.notNullOrEmpty( s3AccessKey ) )
 			settings.s3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } );

@@ -1,7 +1,7 @@
 package examples;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenCollectionTableExpertCommand;
+import org.embl.mobie.command.open.special.OpenCollectionTableExpertCommand;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 
 public class OpenCollectionTable

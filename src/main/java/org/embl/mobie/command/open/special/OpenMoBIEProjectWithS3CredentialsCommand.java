@@ -26,19 +26,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open.project;
+package org.embl.mobie.command.open.special;
 
-import mpicbg.spim.data.SpimDataException;
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.command.open.OpenMoBIEProjectCommand;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import java.io.IOException;
-
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open MoBIE Project With S3 Credentials..." )
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_SPECIAL + "Open MoBIE Project With S3 Credentials..." )
 public class OpenMoBIEProjectWithS3CredentialsCommand extends OpenMoBIEProjectCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }

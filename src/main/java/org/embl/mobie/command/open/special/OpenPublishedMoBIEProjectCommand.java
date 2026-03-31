@@ -26,54 +26,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open.project;
+package org.embl.mobie.command.open.special;
 
 import ij.gui.GenericDialog;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.published.PublishedFigure;
-import org.embl.mobie.published.PublishedFigures;
+import org.embl.mobie.published.PublishedProject;
+import org.embl.mobie.published.PublishedProjects;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
-
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open Published MoBIE View..." )
-public class OpenMoBIEFigureCommand implements Command
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_SPECIAL + "Open Published MoBIE Project..." )
+public class OpenPublishedMoBIEProjectCommand implements Command
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	@Override
 	public void run()
 	{
-		select();
+		selectProject();
 	}
 
-	private void select()
+	private void selectProject()
 	{
-		final List< PublishedFigure > figures = new PublishedFigures().getPublishedFigures();
+		final HashMap< String, PublishedProject > projects = new PublishedProjects().getPublishedProjects();
 
-		final ArrayList< String > figureNames = new ArrayList<>();
-		for ( PublishedFigure figure : figures )
-			figureNames.add( figure.publicationAbbreviation + ": " + figure.name );
+		final GenericDialog gd = new GenericDialog( "Please select a project" );
 
-		final GenericDialog gd = new GenericDialog( "Please select a view" );
-
-		final String[] items = figureNames.toArray( new String[ figureNames.size() ]);
-		gd.addChoice( "Figure", items, items[ 0 ] );
+		final String[] items = ( String[] ) projects.keySet().toArray( new String[ projects.size() ]);
+		gd.addChoice( "Project", items, items[ 0 ] );
 		gd.showDialog();
 		if ( gd.wasCanceled() ) return;
-		final int choice = gd.getNextChoiceIndex();
+		final String choice = gd.getNextChoice();
 
-		final PublishedFigure figure = figures.get( choice );
+		final PublishedProject project = projects.get( choice );
 
 		try
 		{
-			new MoBIE( figure.location, MoBIESettings.settings().view( figure.view ) );
+			new MoBIE( project.location, MoBIESettings.settings() );
 		}
 		catch ( IOException e )
 		{

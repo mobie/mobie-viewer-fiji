@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open.project;
+package org.embl.mobie.command.open.special;
 
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.util.MoBIEHelper;
@@ -38,7 +38,7 @@ import org.scijava.plugin.Plugin;
 
 import java.io.File;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open MoBIE Project Expert Mode..." )
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_SPECIAL + "Open MoBIE Project Expert Mode..." )
 public class OpenMoBIEProjectExpertCommand extends OpenMoBIEProjectBranchCommand
 {
 	@Parameter ( label = "Image Data Location" )

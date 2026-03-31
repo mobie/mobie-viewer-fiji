@@ -30,7 +30,6 @@ package org.embl.mobie.command.open.special;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.command.open.OpenCollectionTableExpertCommand;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
 

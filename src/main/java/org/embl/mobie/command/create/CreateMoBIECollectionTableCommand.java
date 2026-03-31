@@ -31,7 +31,8 @@ package org.embl.mobie.command.create;
 import ij.IJ;
 import loci.common.DebugTools;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.command.open.OpenCollectionTableExpertCommand;
+import org.embl.mobie.command.open.OpenCollectionTableCommand;
+import org.embl.mobie.command.open.special.OpenCollectionTableExpertCommand;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 import org.embl.mobie.lib.create.CollectionTableCreator;
 import org.scijava.command.Command;
@@ -96,10 +97,8 @@ public class CreateMoBIECollectionTableCommand implements Command {
 
         if ( openTableInMoBIE )
         {
-            OpenCollectionTableExpertCommand openCommand = new OpenCollectionTableExpertCommand();
+            OpenCollectionTableCommand openCommand = new OpenCollectionTableCommand();
             openCommand.tableUri = outputTableFile.getAbsolutePath();
-            openCommand.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.PathsInTableAreAbsolute;
-            openCommand.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
             openCommand.run();
         }
     }

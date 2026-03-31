@@ -1,6 +1,7 @@
 package org.embl.mobie.command.open;
 
 import net.imagej.ImageJ;
+import org.embl.mobie.command.open.special.OpenCollectionTableExpertCommand;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 import org.junit.jupiter.api.Test;
 

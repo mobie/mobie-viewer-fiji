@@ -1,6 +1,7 @@
 package org.embl.mobie.command.open.project;
 
 import net.imagej.ImageJ;
+import org.embl.mobie.command.open.OpenPlatyBrowserCommand;
 
 class OpenMoBIEProjectCommandTest
 {

@@ -32,7 +32,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.command.open.project.OpenMoBIEProjectCommand;
+import org.embl.mobie.command.open.OpenMoBIEProjectCommand;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.util.IOHelper;

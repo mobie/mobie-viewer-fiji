@@ -67,7 +67,9 @@ public class OpenMultipleImagesAndLabelsCommand implements Command {
 	@Parameter( label = "Spatial Calibration" )
 	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImage;
 
-	@Parameter( label = "Grid", description = MoBIEHelper.GRID_TYPE_HELP )
+	// 2026-03 Removing this as it is unlikely that users will open that many images via
+	// this dialog
+//	@Parameter( label = "Grid", description = MoBIEHelper.GRID_TYPE_HELP )
 	public GridType gridType = GridType.Transformed;
 
 	@Override

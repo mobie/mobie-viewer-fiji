@@ -1,8 +1,7 @@
 package debug;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.command.open.OpenOMEZARRCommand;
-import org.embl.mobie.command.open.project.OpenMoBIEProjectCommand;
+import org.embl.mobie.command.open.OpenMoBIEProjectCommand;
 import org.embl.mobie.lib.io.DataFormats;
 
 public class DegugMareiCredentialsIssue

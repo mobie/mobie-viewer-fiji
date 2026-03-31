@@ -26,52 +26,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open.project;
+package org.embl.mobie.command.open.special;
 
-import ij.gui.GenericDialog;
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.published.PublishedProject;
-import org.embl.mobie.published.PublishedProjects;
+import org.embl.mobie.command.open.OpenMoBIEProjectCommand;
 import org.scijava.command.Command;
+import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import java.io.IOException;
-import java.util.HashMap;
-
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_PROJECT + "Open Published MoBIE Project..." )
-public class OpenPublishedMoBIEProjectCommand implements Command
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_SPECIAL + "Open MoBIE Project Branch..." )
+public class OpenMoBIEProjectBranchCommand extends OpenMoBIEProjectCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
+	@Parameter ( label = "Project Branch" )
+	public String projectBranch = "master";
 
 	@Override
 	public void run()
 	{
-		selectProject();
-	}
+		settings.preferentialDataLocation( location )
+				.gitProjectBranch( projectBranch );
 
-	private void selectProject()
-	{
-		final HashMap< String, PublishedProject > projects = new PublishedProjects().getPublishedProjects();
-
-		final GenericDialog gd = new GenericDialog( "Please select a project" );
-
-		final String[] items = ( String[] ) projects.keySet().toArray( new String[ projects.size() ]);
-		gd.addChoice( "Project", items, items[ 0 ] );
-		gd.showDialog();
-		if ( gd.wasCanceled() ) return;
-		final String choice = gd.getNextChoice();
-
-		final PublishedProject project = projects.get( choice );
-
-		try
-		{
-			new MoBIE( project.location, MoBIESettings.settings() );
-		}
-		catch ( IOException e )
-		{
-			e.printStackTrace();
-		}
+		super.run();
 	}
 }

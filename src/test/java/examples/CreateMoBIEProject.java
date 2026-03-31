@@ -4,7 +4,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.command.open.project.OpenMoBIEProjectCommand;
+import org.embl.mobie.command.open.OpenMoBIEProjectCommand;
 import org.embl.mobie.lib.create.ProjectCreator;
 
 import java.io.File;

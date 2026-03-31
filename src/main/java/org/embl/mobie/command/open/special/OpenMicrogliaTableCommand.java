@@ -46,7 +46,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Special>Open Microglia Morphometry Table..." )
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_SPECIAL + "Open Microglia Morphometry Table..." )
 public class OpenMicrogliaTableCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }

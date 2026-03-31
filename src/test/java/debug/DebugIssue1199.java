@@ -29,11 +29,7 @@
 package debug;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.MoBIE;
-import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.command.open.project.OpenMoBIEProjectCommand;
-import org.embl.mobie.command.open.project.OpenMoBIEProjectExpertCommand;
-import org.embl.mobie.command.open.project.OpenMoBIEProjectWithS3CredentialsCommand;
+import org.embl.mobie.command.open.special.OpenMoBIEProjectWithS3CredentialsCommand;
 
 import java.io.IOException;
 

@@ -36,17 +36,13 @@ import static org.embl.mobie.command.create.CreateMoBIECollectionTableCommand.*;
 
 public class CollectionTableCreator
 {
-
     private final File[] imageFiles;
-    private final File outputFolder;
     private final String viewLayout;
     private final String regExp;
-    private static final String[] COLOR_STRINGS = new String[]{"Blue", "Green", "Red", "White"};
 
     public CollectionTableCreator( File[] imageFiles, File outputFolder, String viewLayout, String regExp )
     {
         this.imageFiles = imageFiles;
-        this.outputFolder = outputFolder;
         this.viewLayout = viewLayout;
         this.regExp = regExp;
     }

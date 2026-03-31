@@ -41,7 +41,7 @@ import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Collection Table..." )
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open MoBIE Collection Table..." )
 public class OpenCollectionTableCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); DebugTools.setRootLevel( "OFF" ); }
