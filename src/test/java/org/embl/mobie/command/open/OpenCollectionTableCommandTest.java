@@ -486,5 +486,6 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().manyGroups();
         //new OpenCollectionTableCommandTest().autoContrastBlobs();
         //new OpenCollectionTableCommandTest().mix2d3d();
+        //new OpenCollectionTableCommandTest().grid();
     }
 }

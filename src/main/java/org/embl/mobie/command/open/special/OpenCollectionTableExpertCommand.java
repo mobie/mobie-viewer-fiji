@@ -55,7 +55,7 @@ public class OpenCollectionTableExpertCommand extends OpenCollectionTableCommand
 	@Parameter( label = "Use Pixel Units for all Images",
 			description = "Checking this will remove all spatial calibration\n" +
 					"that is read from the image metadata." )
-	public Boolean usePixelUnits;
+	public boolean usePixelUnits;
 
 	public enum DataRootType
 	{

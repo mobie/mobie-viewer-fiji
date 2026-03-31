@@ -538,19 +538,29 @@ public class CollectionDataSetter
 
     private String getGridName( Row row )
     {
-        try {
+        if ( row.columnNames().contains( CollectionTableConstants.GRID ) )
+        {
             String gridName = getString( row, CollectionTableConstants.GRID );
 
             if ( gridName.isEmpty() )
                 return null;
+            else
+                return getViewName( row ) + ": " + gridName;
 
-            return getViewName( row ) + ": " + gridName;
-            //if ( row.columnNames().contains( CollectionTableConstants.VIEW  ) )
-            //    return row.getString( CollectionTableConstants.VIEW  ) + ": " + gridName;
-
-            //return gridName;
         }
-        catch ( Exception e )
+        else if ( row.columnNames().contains( CollectionTableConstants.GRID_POSITION ) )
+        {
+            String gridPosition = getString( row, CollectionTableConstants.GRID_POSITION );
+
+            if ( gridPosition.isEmpty() )
+                return null;
+            else
+            {
+                // assign non-empty grid position to default grid
+                return "grid";
+            }
+        }
+        else
         {
             return null;
         }
