@@ -36,12 +36,17 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.data.ProjectType;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.scijava.command.Command;
+import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open MoBIE Collection Table..." )
+@Plugin(type = Command.class,
+		menu = {
+			@Menu(label = "Plugins" ), @Menu(label = "MoBIE" ), @Menu(label = "Open" ),
+				@Menu(label = "Open MoBIE Collection Table...", weight = 1)
+		})
 public class OpenCollectionTableCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); DebugTools.setRootLevel( "OFF" ); }

@@ -35,7 +35,7 @@ import org.scijava.plugin.Plugin;
 
 import java.net.URL;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open OpenOrganelle" )
+//@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open OpenOrganelle" )
 public class OpenOpenOrganelleDataCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }

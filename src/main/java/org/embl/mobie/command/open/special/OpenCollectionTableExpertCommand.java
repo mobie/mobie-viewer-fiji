@@ -38,12 +38,16 @@ import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 import org.scijava.command.Command;
+import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.File;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_SPECIAL + "Open MoBIE Collection Table Expert Mode..." )
+@Plugin(type = Command.class, menu = {
+		@Menu(label = "Plugins" ), @Menu(label = "MoBIE" ), @Menu(label = "Open" ), @Menu(label = "Special" ),
+		@Menu(label = "Open MoBIE Collection Table Expert Mode...", weight = 10)
+} )
 public class OpenCollectionTableExpertCommand extends OpenCollectionTableCommand
 {
 	// Don't change those Strings to stay compatible with recorded macros
@@ -54,7 +58,7 @@ public class OpenCollectionTableExpertCommand extends OpenCollectionTableCommand
 
 	@Parameter( label = "Use Pixel Units for all Images",
 			description = "Checking this will remove all spatial calibration\n" +
-					"that is read from the image metadata." )
+					"from the all images.\nUseful if some images are missing the calibration (e.g., output of CellPose)." )
 	public boolean usePixelUnits;
 
 	public enum DataRootType

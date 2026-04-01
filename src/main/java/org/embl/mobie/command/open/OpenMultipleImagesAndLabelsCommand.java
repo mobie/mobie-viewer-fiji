@@ -30,18 +30,21 @@ package org.embl.mobie.command.open;
 
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.transform.GridType;
 import org.scijava.command.Command;
+import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Multiple Images and Labels..." )
+@Plugin(type = Command.class, menu = {
+		@Menu(label = "Plugins" ), @Menu(label = "MoBIE" ), @Menu(label = "Open" ),
+		@Menu(label = "Open Multiple Images and Labels...", weight = 4)
+} )
 public class OpenMultipleImagesAndLabelsCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }

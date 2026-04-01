@@ -8,6 +8,7 @@ import org.embl.mobie.ui.SwingHelper;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -217,10 +218,11 @@ public class ViewSaverDialog
                 JFileChooser fileChooser = projectType.equals( ProjectType.CollectionTable )
                     ? new JFileChooser( new File( projectLocation ).getParentFile().getAbsolutePath() )
                         : new JFileChooser();
-                fileChooser.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
+                fileChooser.setFileSelectionMode( JFileChooser.FILES_ONLY );
+                fileChooser.setFileFilter( new FileNameExtensionFilter( "JSON Files", "json" ) );
 
                 // Show the file chooser dialog
-                int result = fileChooser.showOpenDialog( null );
+                int result = fileChooser.showSaveDialog( null );
 
                 // If a file is selected, set the text field with the file path
                 if ( result == JFileChooser.APPROVE_OPTION )

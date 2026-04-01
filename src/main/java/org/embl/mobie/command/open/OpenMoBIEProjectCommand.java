@@ -32,14 +32,19 @@ import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.io.DataFormats;
+import org.embl.mobie.lib.util.MoBIEHelper;
 import org.scijava.command.Command;
+import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open MoBIE Project..." )
+@Plugin(type = Command.class, 		menu = {
+		@Menu(label = "Plugins" ), @Menu(label = "MoBIE" ), @Menu(label = "Open" ),
+		@Menu(label = "Open MoBIE Project...", weight = 2)
+} )
 public class OpenMoBIEProjectCommand implements Command
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
@@ -51,12 +56,27 @@ public class OpenMoBIEProjectCommand implements Command
 	@Parameter ( label = "Preferentially Fetch Data From" )
 	public DataFormats.Location location = DataFormats.Location.Remote;
 
+	@Parameter ( label = "( S3 Access Key )",
+			description = "Optional. Access key for a protected S3 bucket.",
+			persist = false,
+			required = false )
+	public String s3AccessKey;
+
+	@Parameter ( label = "( S3 Secret Key )",
+			description = "Optional. Secret key for a protected S3 bucket.",
+			persist = false,
+			required = false )
+	public String s3SecretKey;
+
 	protected MoBIESettings settings = MoBIESettings.settings();
 
 	@Override
 	public void run()
 	{
 		settings.preferentialDataLocation( location );
+
+		if ( MoBIEHelper.notNullOrEmpty( s3AccessKey ) )
+			settings.s3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } );
 
 		try
 		{

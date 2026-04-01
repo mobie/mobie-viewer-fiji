@@ -35,13 +35,17 @@ import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.transform.GridType;
 import org.scijava.command.Command;
+import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Image and Labels..." )
+@Plugin(type = Command.class, menu = {
+		@Menu(label = "Plugins" ), @Menu(label = "MoBIE" ), @Menu(label = "Open" ),
+		@Menu(label = "Open Image and Labels...", weight = 3)
+} )
 public class OpenImageAndLabelsCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }

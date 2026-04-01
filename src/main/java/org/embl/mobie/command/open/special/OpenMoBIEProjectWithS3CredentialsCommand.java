@@ -34,12 +34,13 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_SPECIAL + "Open MoBIE Project With S3 Credentials..." )
+// S3 Credentials can now be set in the standard Open MoBIE project menu
+// @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN_SPECIAL + "Open MoBIE Project With S3 Credentials..." )
 public class OpenMoBIEProjectWithS3CredentialsCommand extends OpenMoBIEProjectCommand
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Parameter ( label = "S3 Access Key" )
+	@Parameter ( label = "( S3 Access Key )" )
 	public String s3AccessKey = "";
 
 	@Parameter ( label = "S3 Secret Key", persist = false )

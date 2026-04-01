@@ -29,9 +29,8 @@
 package i2k2023;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.MoBIE;
 import org.embl.mobie.command.SpatialCalibration;
-import org.embl.mobie.command.open.OpenTableCommand;
+import org.embl.mobie.command.open.special.OpenTableCommand;
 
 import java.io.File;
 

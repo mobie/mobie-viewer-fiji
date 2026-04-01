@@ -26,16 +26,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.command.open;
+package org.embl.mobie.command.open.special;
 
 import loci.common.DebugTools;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
-import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.command.SpatialCalibration;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.transform.GridType;
 import org.scijava.command.Command;
+import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
@@ -46,7 +46,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open Table..." )
+@Plugin(type = Command.class,  menu = {
+		@Menu(label = "Plugins" ), @Menu(label = "MoBIE" ), @Menu(label = "Open" ), @Menu(label = "Special" ),
+		@Menu(label = "Open Table...", weight = 20)
+} )
 public class OpenTableCommand implements Command {
 
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
