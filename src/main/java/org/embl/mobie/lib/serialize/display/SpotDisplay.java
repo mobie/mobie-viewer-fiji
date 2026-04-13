@@ -100,6 +100,12 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AbstractAnnotatio
 		this( name, Collections.singletonList( sourceName ) );
 	}
 
+	public SpotDisplay( String name, String sourceName, Double spotRadius )
+	{
+		this( name, Collections.singletonList( sourceName ) );
+		this.spotRadius = spotRadius;
+	}
+
 	public SpotDisplay( String name, List< String > sources )
 	{
 		super();

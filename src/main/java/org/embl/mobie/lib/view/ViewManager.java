@@ -142,7 +142,8 @@ public class ViewManager
 
 		if ( MoBIEHelper.unwrapImage( image, SpotLabelImage.class ) != null )
 		{
-			display = new SpotDisplay<>( imageName, imageName );
+			SpotLabelImage spotLabelImage = MoBIEHelper.unwrapImage( image, SpotLabelImage.class );
+			display = new SpotDisplay<>( imageName, imageName, spotLabelImage.getSpotRadius() );
 		}
 		else if ( image instanceof AnnotationImage )
 		{
