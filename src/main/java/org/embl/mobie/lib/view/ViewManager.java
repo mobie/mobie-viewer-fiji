@@ -139,9 +139,14 @@ public class ViewManager
 		}
 
 		Display< ? > display;
-		if ( image instanceof AnnotationImage )
+
+		if ( MoBIEHelper.unwrapImage( image, SpotLabelImage.class ) != null )
 		{
-            display = new SegmentationDisplay<>( imageName, imageName );
+			display = new SpotDisplay<>( imageName, imageName );
+		}
+		else if ( image instanceof AnnotationImage )
+		{
+			display = new SegmentationDisplay<>( imageName, imageName );
 		}
 		else
 		{

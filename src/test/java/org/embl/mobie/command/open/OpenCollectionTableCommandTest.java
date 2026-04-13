@@ -202,6 +202,19 @@ public class OpenCollectionTableCommandTest
     }
 
     @Test
+    public void spots3dAffine( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
+        command.tableUri = new File("src/test/resources/collections/spots-3d-affine-collection.txt").getAbsolutePath();
+        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
+        command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
+        command.run();
+    }
+
+    @Test
     public void spots3dWith20000Columns( )
     {
         final ImageJ imageJ = new ImageJ();
@@ -463,9 +476,10 @@ public class OpenCollectionTableCommandTest
 
     public static void main( String[] args )
     {
-        new OpenCollectionTableCommandTest().blobsGridWithPositionIDs();
+        //new OpenCollectionTableCommandTest().blobsGridWithPositionIDs();
         //new OpenCollectionTableCommandTest().segmentedBlobs();
         //new OpenCollectionTableCommandTest().spots3D();
+        new OpenCollectionTableCommandTest().spots3dAffine();
         //new OpenCollectionTableCommandTest().segmentedImageWithFloatLabels();
         //new OpenCollectionTableCommandTest().spots3dWith20000Columns();
         //new OpenCollectionTableCommandTest().createLargeSpotsTable();

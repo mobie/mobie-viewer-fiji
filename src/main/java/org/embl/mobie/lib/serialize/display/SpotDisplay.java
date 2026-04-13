@@ -40,6 +40,7 @@ import org.embl.mobie.lib.util.MoBIEHelper;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -92,6 +93,18 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AbstractAnnotatio
 	public SpotDisplay( String name )
 	{
 		super( name );
+	}
+
+	public SpotDisplay( String name, String sourceName )
+	{
+		this( name, Collections.singletonList( sourceName ) );
+	}
+
+	public SpotDisplay( String name, List< String > sources )
+	{
+		super();
+		this.name = name;
+		this.sources = sources;
 	}
 
 	// Gson

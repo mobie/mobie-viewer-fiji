@@ -1,0 +1,2 @@
+uri	name	type	affine
+spots-3d.txt	spots	spots	(10,0,0,0,0,10,0,0,0,0,10,0)
