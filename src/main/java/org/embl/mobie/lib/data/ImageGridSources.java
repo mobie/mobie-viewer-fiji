@@ -82,7 +82,7 @@ public class ImageGridSources
 		else
 		{
 			// path could be a regExp
-			List< String > paths = MoBIEHelper.getFullPaths( path, root );
+			List< String > paths = MoBIEHelper.getFullPathsForGridSources( path, root );
 
 			if ( paths.size() == 1 ) // no regExp
 			{

@@ -29,7 +29,6 @@
 package org.embl.mobie.lib.data;
 
 import ij.IJ;
-import omero.cmd.IHandle;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.io.StorageLocation;
@@ -40,7 +39,6 @@ import org.embl.mobie.lib.transform.GridType;
 import tech.tablesaw.api.Table;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,9 +92,9 @@ public class LabelGridSources extends ImageGridSources
 		if ( IOHelper.getType( labelTablePath ).equals( IOHelper.ResourceType.FILE ) )
 		{
 			// deal with potential relative paths and also potential regexp
-			final List< String > labelTablePaths = MoBIEHelper.getFullPaths( labelTablePath, root );
-			final ArrayList< String > labelMaskNames = new ArrayList<>( nameToFullPath.keySet() );
-			for ( int tableIndex = 0; tableIndex < labelTablePaths.size(); tableIndex++ )
+			final List< String > labelTablePaths = MoBIEHelper.getFullPathsForGridSources( labelTablePath, root );
+			final List< String > labelMaskNames = getSources();
+			for ( int tableIndex = 0; tableIndex < labelMaskNames.size(); tableIndex++ )
 			{
 				final StorageLocation storageLocation = new StorageLocation();
 				final File tableFile = new File( labelTablePaths.get( tableIndex ) );

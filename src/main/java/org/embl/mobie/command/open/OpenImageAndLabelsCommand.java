@@ -51,20 +51,28 @@ public class OpenImageAndLabelsCommand implements Command {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	// TODO: https://forum.image.sc/t/scijava-ui-open-both-file-and-directory/97389
-	@Parameter( label = "Image URI", style = "both", required = false )
+	@Parameter( label = "Image URI",
+			style = "both",
+			required = false,
+			description = "Use Java regular expressions to open several images, e.g., \"/user/.*-image.tif\"")
 	public String image;
 
-	@Parameter( label = "Label Mask URI", style = "both", required = false )
+	@Parameter( label = "Label Mask URI",
+			style = "both",
+			required = false,
+			description = "Use Java regular expressions to open several label masks, e.g., \"/user/.*-labels.tif\"" )
 	public String labels;
 
-	@Parameter( label = "Label Mask Table URI", required = false )
+	@Parameter( label = "Label Mask Table URI",
+			required = false,
+			description = "Use Java regular expressions to open several tables, e.g., \"/user/.*-measurements.csv\"" )
 	public String table;
 
 	@Parameter( label = "Spatial Calibration" )
 	public SpatialCalibration spatialCalibration = SpatialCalibration.FromImage;
 
-	// 2026-03 Removing this as it is unlikely that users will open that many images via
-	// this dialog
+	// 2026-03 Removing this UI element as it is unlikely that users will open that many images via
+	// this dialog; hopefully the Transformed Grid type is sufficient
 //	@Parameter( label = "Grid", description = MoBIEHelper.GRID_TYPE_HELP )
 	public GridType gridType = GridType.Transformed;
 

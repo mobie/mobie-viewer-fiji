@@ -48,4 +48,9 @@ public class OpenIlastikImageAndSegmentationCommandTest
 		command.table = "src/test/resources/ilastik-2d/table.csv";
 		command.run();
 	}
+
+	public static void main( String[] args )
+	{
+		new OpenIlastikImageAndSegmentationCommandTest().test();
+	}
 }

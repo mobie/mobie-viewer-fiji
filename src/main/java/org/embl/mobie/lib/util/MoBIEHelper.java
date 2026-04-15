@@ -95,7 +95,6 @@ import static org.embl.mobie.io.util.IOHelper.combinePath;
 import static org.embl.mobie.io.util.IOHelper.getPaths;
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
 
-
 public abstract class MoBIEHelper
 {
 	public static boolean isRelativePath(String uri) {
@@ -205,7 +204,7 @@ public abstract class MoBIEHelper
 	{
 		Cursor< T > cursor = Views.iterable( rai ).cursor();
 
-		double maxValue = Double.MIN_VALUE;
+		double maxValue = -Double.MAX_VALUE;
 
 		double value;
 		while ( cursor.hasNext() )
@@ -266,6 +265,7 @@ public abstract class MoBIEHelper
 		}
 		else
 		{
+			// FIXME: implement the spot image case
 			ImageDataInfo imageDataInfo = new ImageDataInfo();
 			imageDataInfo.uri = "Could not determine URI of " + image.getClass().getSimpleName();
 			return imageDataInfo;
@@ -312,7 +312,7 @@ public abstract class MoBIEHelper
 				.toArray(String[]::new);
 	}
 
-	public static int[] asInts( long[] longs) {
+	public static int[] asInts( long[] longs ) {
 		int[] ints = new int[longs.length];
 
 		for(int i = 0; i < longs.length; ++i)
@@ -395,7 +395,6 @@ public abstract class MoBIEHelper
 		//  longest common substring
 		return resultStr;
 	}
-
 
 
 	public static boolean is2D( ImageData< ? > imageData, int datasetIndex )
@@ -529,22 +528,27 @@ public abstract class MoBIEHelper
         return new FinalVoxelDimensions( "pixel", 1.0, 1.0, 1.0 );
     }
 
-	public static List< String > getFullPaths( String regex, String root )
+	public static List< String > getFullPathsForGridSources( String regex,
+															 @Nullable String root )
+	{
+		// FIXME: https://github.com/mobie/mobie-viewer-fiji/issues/1292
+		// 	Why did we have here a maxDepth of 2? What were the use-cases?
+		return getFullPaths( regex, root, 2 );
+	}
+
+	public static List< String > getFullPaths( String regex,
+											   @Nullable String root,
+											   final int maxDepth )
 	{
 		if ( root != null )
 			regex = new File( root, regex ).getAbsolutePath();
 
-		try
+		if ( new File( regex ).exists() )
 		{
-			// TODO: what is the correct path depth here?
-			//   Note that is can become very slow for
-			//   OME-Zarr with its many sub-folders if the depth is too deep
-            return getPaths( regex, 2 );
+			return Collections.singletonList( regex );
 		}
-		catch ( Exception e )
-		{
-			throw new RuntimeException( e );
-		}
+
+		return getPaths( regex, maxDepth );
 	}
 
 	public static String toURI( File file )
