@@ -162,6 +162,7 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 		{
 			return  ( ( AnnotatedLabelImage<?> ) image ).getLabelImage().getSourcePair().getSource();
 		}
+
 		return sac.getSpimSource();
 	}
 	
@@ -229,7 +230,8 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 		Image< ? > image = DataStore.getImage( sac.getSpimSource().getName() );
 		if ( image instanceof AnnotatedLabelImage )
 		{
-			AnnotationAdapter< Annotation > annotationAdapter = ( ( AnnotatedLabelImage< Annotation > ) image ).getAnnotationAdapter();
+			AnnotatedLabelImage< Annotation > annotatedLabelImage = ( AnnotatedLabelImage< Annotation > ) image;
+			AnnotationAdapter< Annotation > annotationAdapter = annotatedLabelImage.getAnnotationAdapter();
 			Converter< AnnotationType, ARGBType > converter = ( Converter< AnnotationType, ARGBType > ) sac.getConverter();
 			String imageName = image.getName();
 			int timePoint = 0;
@@ -243,7 +245,7 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 			else if( bvb.bvvHandle.getViewerPanel().state().getNumTimepoints() > 1 )
 			{
 				timePoint = bvb.bvvHandle.getViewerPanel().state().getCurrentTimepoint();
-				numColors = numberOfAnnotationsPerTimepoint(annotationAdapter, timePoint, imageName);
+				numColors = maximumLabelIndexForTimepoint(annotationAdapter, timePoint, imageName, maxNumColors);
 			}
 			else
 			{
@@ -258,7 +260,7 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 			
 			final byte [][] colors = new byte [3][numColors+1];
 			final byte [] alphas = new byte [numColors+1];
-			//final int [] alphasInt = new int[numColors+1];
+
 			ARGBType valARGB = new ARGBType();
 			int val;
 			int alphaInt = 0;
@@ -268,41 +270,47 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 			colors[1][0] = 0;
 			colors[2][0] = 0;
 			alphas[0] = ( byte ) ( 0 );
-			//alphasInt[0] = 0;
+
 			for(int label = 1; label <= numColors; label++)
 			{
-				final Annotation annotation = annotationAdapter.getAnnotation( imageName, timePoint, label );
+				final Annotation annotation = annotationAdapter.getAnnotation( imageName, timePoint, label, false );
 
-				converter.convert( new AnnotationType<>( annotation ), valARGB );
-				val = valARGB.get();
-				colors[ 0 ][ label ] = ( byte ) ARGBType.red( val );
-				colors[ 1 ][ label ] = ( byte ) ARGBType.green( val );
-				colors[ 2 ][ label ] = ( byte ) ARGBType.blue( val );
-				//alphas[ label ] = (byte) ARGBType.alpha( val );
-				alphaInt = (byte) ARGBType.alpha( val )& 0xff;
-				if(alphaInt < 40)
+				if ( annotation != null ) // can be null if labels are not contiguous
 				{
-					alphas[ label ] = 0;
+					converter.convert( new AnnotationType<>( annotation ), valARGB );
+					val = valARGB.get();
+					colors[ 0 ][ label ] = ( byte ) ARGBType.red( val );
+					colors[ 1 ][ label ] = ( byte ) ARGBType.green( val );
+					colors[ 2 ][ label ] = ( byte ) ARGBType.blue( val );
+					alphaInt = ( byte ) ARGBType.alpha( val ) & 0xff;
+					alphas[ label ] = alphaInt < 40 ? 0 : ( byte ) 255;
 				}
 				else
 				{
-					alphas[ label ] = (byte)255;
+					colors[ 0 ][ label ] = 0;
+					colors[ 1 ][ label ] = 0;
+					colors[ 2 ][ label ] = 0;
+					alphas[ label ] = 0;
 				}
-				//alphasInt [label ] = alphas[ label ]& 0xff;  // bytes to unsigned byte in an integer
 			}
 			return new IndexColorModel(16, numColors + 1, colors[0], colors[1], colors[2], alphas);
 		}
 		return null;
 	}
 
-	static int numberOfAnnotationsPerTimepoint(final AnnotationAdapter< Annotation > annotationAdapter, final int timePoint, String imageName)
+	static int maximumLabelIndexForTimepoint( final AnnotationAdapter< Annotation > annotationAdapter, final int timePoint, String imageName, int maxNumColors )
 	{
-		int n = 1;
-		while( annotationAdapter.getAnnotation( imageName, timePoint, n ) != null )
+		int maxLabelFound =0;
+
+		for ( int label =1; label <= maxNumColors; label++ )
 		{
-			n++;
+			if ( annotationAdapter.getAnnotation( imageName, timePoint, label, false ) != null )
+			{
+				maxLabelFound = label;
+			}
 		}
-		return n - 1;
+
+		return maxLabelFound;
 	}
 	
 	public synchronized BigVolumeBrowser getBVB()

@@ -329,25 +329,26 @@ public class CollectionTableConstants
 
 
     /**
-     * The "grid_position" column MAY be present.
+     * The "grid_position" (or "dataset_id") column MAY be present.
      *
-     * FIXME
-     * The value is ONLY used when the "type" column has the value "intensities",
-     * or if the "type" column is absent, which causes the type to default to "intensities",
-     * otherwise this value is ignored.
+     * The value is used for datasets that are part of a grid.
+     * It can be used together with the "grid" column, or by itself,
+     * in which case a default grid named "grid" will be created.
+     *
      * Supported values:
-     * - Bracketed or quoted, comma or semi-colon separated list of min and max, e.g.
-     *   - (10;240)
-     *   - "10,240"
+     * - Two integer coordinates (x, y), comma or semi-colon separated, optionally bracketed
+     *   - e.g. (0,1)
+     *   - e.g. 0;1
+     * - Free text identifiers are also accepted and can be used to group rows
+     *   to the same grid cell; in this case the layout is computed automatically.
      *
      * Default:
-     * If the column is absent or can't be parsed, MoBIE will apply an
-     * auto-contrast algorithm, if the data is not too big. // TODO explain more
-     * If the data is too big, the contrast limits will be set to
-     * the limits of the pixel data type.
+     * If the column is absent or empty, no explicit grid position is assigned.
+     * MoBIE will then arrange grid items automatically.
      *
      * Use cases:
-     * - Adjust the contrast limits such that the intensities are readily visible
+     * - Place datasets at explicit positions in a grid (e.g. plate coordinates)
+     * - Group multiple rows into the same grid position
      *
      */
     public static final String GRID_POSITION = "grid_position";

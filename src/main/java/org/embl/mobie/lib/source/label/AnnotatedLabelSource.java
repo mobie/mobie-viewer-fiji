@@ -77,7 +77,7 @@ public class AnnotatedLabelSource< T extends RealType< T >, A extends Annotation
     private void setOutput( T input, int t, AnnotationType< A > output  )
     {
         final int label = (int) input.getRealDouble();
-        final A annotation = annotationAdapter.getAnnotation( getName(), t, label );
+        final A annotation = annotationAdapter.getAnnotation( getName(), t, label, true );
         output.setAnnotation( annotation );
     }
 

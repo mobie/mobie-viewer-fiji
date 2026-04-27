@@ -75,7 +75,7 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 	// {@code AnnotatedLabelSource}
 	// to the corresponding annotation.
 	@Override
-	public synchronized A getAnnotation( String source, final int timePoint, final int label )
+	public synchronized A getAnnotation( String source, final int timePoint, final int label, final boolean reportMissingAnnotation )
 	{
 		if ( label == 0 )
 		{
@@ -94,7 +94,7 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 		final String stl = createKey( source, timePoint, label );
 		final A annotation = stlToAnnotation.get( stl );
 
-		if ( annotation == null )
+		if ( annotation == null && reportMissingAnnotation )
 		{
 			// FIXME: Check whether this could be done lazy?
 			if ( throwError.get() )

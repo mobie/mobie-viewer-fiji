@@ -36,7 +36,7 @@ public interface AnnotationAdapter< A extends Annotation >
 	// For mapping of voxels within an
 	// {@code AnnotatedLabelSource}
 	// to the corresponding annotation.
-	A getAnnotation( String source, int timePoint, int label );
+	A getAnnotation( String source, int timePoint, int label, boolean reportMissingAnnotation );
 
 	// Init the mapping, this may cause loading of a table and should
 	// thus only be done once needed.

@@ -82,7 +82,7 @@ public class VolatileAnnotatedLabelSource< T extends RealType< T >, V extends Vo
 
         final int label = (int) input.get().getRealDouble();
 
-        final A annotation = annotationAdapter.getAnnotation( getName(), t, label );
+        final A annotation = annotationAdapter.getAnnotation( getName(), t, label, true );
         output.get().setAnnotation( annotation );
         output.setValid( true );
     }

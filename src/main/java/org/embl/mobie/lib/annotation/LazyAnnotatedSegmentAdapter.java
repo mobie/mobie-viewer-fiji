@@ -59,7 +59,7 @@ public class LazyAnnotatedSegmentAdapter implements AnnotationAdapter< Annotated
 	// {@code AnnotatedLabelSource}
 	// to the corresponding annotation.
 	@Override
-	public AnnotatedSegment getAnnotation( String source, int timePoint, int label )
+	public AnnotatedSegment getAnnotation( final String source, final int timePoint, final int label, final boolean reportMissingAnnotation )
 	{
 		if ( label == 0 )
 		{
