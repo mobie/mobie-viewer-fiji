@@ -62,8 +62,8 @@ import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 import org.embl.mobie.lib.volume.ImageVolumeViewer;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.jetbrains.annotations.NotNull;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
-import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
+import sc.fiji.bdvpg.service.SourceServices;
+import sc.fiji.bdvpg.source.display.ColorChanger;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -470,7 +470,7 @@ public class UserInterfaceHelper
 		// make the panel color listen to color changes of the sources
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter ).setupChangeListeners().add( setup -> {
+			SourceServices.getSourceService().getConverterSetup( sourceAndConverter ).setupChangeListeners().add(setup -> {
 				// color changed listener
 				setPanelColor( panel, setup.getColor() );
 			} );
@@ -1110,7 +1110,7 @@ public class UserInterfaceHelper
 			{
 				for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 				{
-					SourceAndConverterServices.getBdvDisplayService().setVisible( sourceAndConverter, checkBox.isSelected() );
+					SourceServices.getBdvDisplayService().setVisible( sourceAndConverter, checkBox.isSelected() );
 				}
 			}
 		} );

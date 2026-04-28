@@ -56,7 +56,7 @@ import org.embl.mobie.lib.util.MoBIEHelper;
 import org.jogamp.java3d.Transform3D;
 import org.jogamp.java3d.View;
 import org.jogamp.vecmath.Color3f;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.service.SourceServices;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -149,8 +149,8 @@ public class ImageVolumeViewer
 
 	private void addSourceToUniverse( SourceAndConverter< ? > sac )
 	{
-		final double displayRangeMin = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMin();
-		final double displayRangeMax = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMax();
+		final double displayRangeMin = SourceServices.getSourceService().getConverterSetup( sac ).getDisplayRangeMin();
+		final double displayRangeMax = SourceServices.getSourceService().getConverterSetup( sac ).getDisplayRangeMax();
 		final double[] contrastLimits = { displayRangeMin, displayRangeMax };
 		final ARGBType color = ( ( ColorConverter ) sac.getConverter() ).getColor();
 		final Content content = addSourceToUniverse( universe, sac.getSpimSource(), voxelSpacing, maxNumVoxels, ContentConstants.VOLUME, color, transparency, contrastLimits );

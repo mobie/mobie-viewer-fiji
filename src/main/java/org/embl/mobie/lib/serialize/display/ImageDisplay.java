@@ -40,7 +40,7 @@ import org.embl.mobie.lib.color.opacity.MoBIEColorConverter;
 import org.embl.mobie.lib.volume.ImageVolumeViewer;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.NumericType;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.service.SourceServices;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -224,8 +224,8 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		if ( sourceAndConverter == null )
 			throw new UnsupportedOperationException("Cannot fetch display settings from a null object.");
 
-		final ConverterSetup converterSetup = SourceAndConverterServices
-				.getSourceAndConverterService()
+		final ConverterSetup converterSetup = SourceServices
+				.getSourceService()
 				.getConverterSetup( sourceAndConverter );
 
 		Converter< ?, ARGBType > converter = sourceAndConverter.getConverter();
@@ -248,7 +248,7 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		contrastLimits[0] = converterSetup.getDisplayRangeMin();
 		contrastLimits[1] = converterSetup.getDisplayRangeMax();
 
-		blendingMode = ( BlendingMode ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.class.getName() );
+		blendingMode = ( BlendingMode ) SourceServices.getSourceService().getMetadata( sourceAndConverter, BlendingMode.class.getName() );
 	}
 
 

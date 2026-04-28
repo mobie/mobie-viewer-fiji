@@ -53,11 +53,11 @@ import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 import org.scijava.ui.behaviour.util.RunnableAction;
-import sc.fiji.bdvpg.bdv.supplier.IBdvSupplier;
-import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.scijava.service.SourceService;
+import sc.fiji.bdvpg.scijava.service.SourceBdvDisplayService;
+import sc.fiji.bdvpg.service.SourceServices;
+import sc.fiji.bdvpg.viewer.bdv.supplier.IBdvSupplier;
+import sc.fiji.bdvpg.viewer.behaviour.SourceContextMenuClickBehaviour;
 
 import javax.swing.*;
 import java.awt.Window;
@@ -74,14 +74,14 @@ public class SliceViewer
 	public static final String DELETE_VIEW = "Delete View";
 	public static final String FRAME_TITLE = "MoBIE BigDataViewer";
 	public static boolean tileRenderOverlay = false;
-	private final SourceAndConverterBdvDisplayService bdvDisplayService;
+	private final SourceBdvDisplayService bdvDisplayService;
 	private BdvHandle bdvHandle;
 	private final MoBIE moBIE;
 	private final boolean is2D;
 	private final ArrayList< String > projectCommands;
 
-	private SourceAndConverterContextMenuClickBehaviour contextMenu;
-	private final SourceAndConverterService sacService;
+	private SourceContextMenuClickBehaviour contextMenu;
+	private final SourceService sacService;
 	private final ImageNameOverlay imageNameOverlay;
 
 	public SliceViewer( MoBIE moBIE, boolean is2D )
@@ -90,8 +90,8 @@ public class SliceViewer
 		this.is2D = is2D;
 		this.projectCommands = moBIE.getProjectCommands();
 
-		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
-		bdvDisplayService = SourceAndConverterServices.getBdvDisplayService();
+		sacService = ( SourceService ) SourceServices.getSourceService();
+		bdvDisplayService = SourceServices.getBdvDisplayService();
 
 		bdvHandle = getBdvHandle();
 
@@ -150,18 +150,18 @@ public class SliceViewer
 
 		final Set< String > actionsKeys = sacService.getActionsKeys();
 		final ArrayList< String > actions = new ArrayList< String >();
-		actions.add( SourceAndConverterService.getCommandName( LogImagesInfoCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( CurrentLocationLoggerCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( ScreenShotMakerCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( ScreenShotStackMakerCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( ShowRawImagesCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( BoxSelectionCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( MaskImagesCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( BigWarpRegistrationCommand.class ) );
-		//actions.add( SourceAndConverterService.getCommandName( AutomaticRegistrationCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( ManualTransformationCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( EnterTransformationCommand.class ) );
-		actions.add( SourceAndConverterService.getCommandName( FlipCommand.class ) );
+		actions.add( SourceService.getCommandName( LogImagesInfoCommand.class ) );
+		actions.add( SourceService.getCommandName( CurrentLocationLoggerCommand.class ) );
+		actions.add( SourceService.getCommandName( ScreenShotMakerCommand.class ) );
+		actions.add( SourceService.getCommandName( ScreenShotStackMakerCommand.class ) );
+		actions.add( SourceService.getCommandName( ShowRawImagesCommand.class ) );
+		actions.add( SourceService.getCommandName( BoxSelectionCommand.class ) );
+		actions.add( SourceService.getCommandName( MaskImagesCommand.class ) );
+		actions.add( SourceService.getCommandName( BigWarpRegistrationCommand.class ) );
+		//actions.add( SourceService.getCommandName( AutomaticRegistrationCommand.class ) );
+		actions.add( SourceService.getCommandName( ManualTransformationCommand.class ) );
+		actions.add( SourceService.getCommandName( EnterTransformationCommand.class ) );
+		actions.add( SourceService.getCommandName( FlipCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );
 		actions.add( LOAD_ADDITIONAL_VIEWS );
 		actions.add( SAVE_CURRENT_SETTINGS_AS_VIEW );
@@ -172,7 +172,7 @@ public class SliceViewer
 			actions.addAll( projectCommands );
 		}
 
-		contextMenu = new SourceAndConverterContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions.toArray( new String[0] ) );
+		contextMenu = new SourceContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions.toArray( new String[0] ) );
 
 		// Install keyboard shortcuts
 
@@ -204,7 +204,7 @@ public class SliceViewer
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->
 						new Thread( () -> {
-							final SourceAndConverter[] sourceAndConverters = sacService.getSourceAndConverters().toArray( new SourceAndConverter[ 0 ] );
+							final SourceAndConverter[] sourceAndConverters = sacService.getSources().toArray( new SourceAndConverter[ 0 ] );
 							ConfigureLabelRenderingCommand.incrementRandomColorSeed( sourceAndConverters, bdvHandle );
 						}).start(),
 				"Change random color seed", "ctrl L" ) ;
@@ -234,8 +234,8 @@ public class SliceViewer
 		IJ.log("" );
 
 		IBdvSupplier bdvSupplier = new MobieBdvSupplier( sOptions );
-		//SourceAndConverterServices.getBdvDisplayService().setDefaultBdvSupplier( bdvSupplier );
-		//BdvHandle bdvHandle = SourceAndConverterServices.getBdvDisplayService().getNewBdv();
+		//SourceServices.getBdvDisplayService().setDefaultBdvSupplier( bdvSupplier );
+		//BdvHandle bdvHandle = SourceServices.getBdvDisplayService().getNewBdv();
 		return bdvSupplier.get();
 	}
 
@@ -249,22 +249,22 @@ public class SliceViewer
 		try
 		{
 			// register sac
-			SourceAndConverterServices.getSourceAndConverterService().register( sourceAndConverter );
+			SourceServices.getSourceService().register( sourceAndConverter );
 
 			// link sac to image
 			DataStore.sourceToImage().forcePut( sourceAndConverter, image );
 
 			// blending mode
-			SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.class.getName(), display.getBlendingMode() );
+			SourceServices.getSourceService().setMetadata( sourceAndConverter, BlendingMode.class.getName(), display.getBlendingMode() );
 
 			// time added (for alpha blending)
-			SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.TIME_ADDED, System.currentTimeMillis() );
+			SourceServices.getSourceService().setMetadata( sourceAndConverter, BlendingMode.TIME_ADDED, System.currentTimeMillis() );
 
 			// opacity
 			OpacityHelper.setOpacity( sourceAndConverter, display.getOpacity() );
 
 			// show in Bdv
-			SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
+			SourceServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
 
 			updateTimepointSlider();
 		}

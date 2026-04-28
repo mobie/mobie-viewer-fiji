@@ -63,8 +63,8 @@ import org.embl.mobie.ui.UserInterface;
 import org.embl.mobie.ui.WindowArrangementHelper;
 import org.jetbrains.annotations.NotNull;
 import sc.fiji.bdvpg.PlaygroundPrefs;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.scijava.service.SourceService;
+import sc.fiji.bdvpg.service.SourceServices;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
@@ -87,7 +87,7 @@ public class MoBIE
 	static
 	{
 		net.imagej.patcher.LegacyInjector.preinit();
-		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
+		PlaygroundPrefs.setSourceTreeVisibility( false );
 
 		new Thread(() -> {
 			long start = System.currentTimeMillis();
@@ -394,7 +394,7 @@ public class MoBIE
 		if( projectLocation.contains( "platybrowser" ) )
 		{
 			GeneSearchCommand.setMoBIE( this );
-			projectCommands.add( SourceAndConverterService.getCommandName( GeneSearchCommand.class ) );
+			projectCommands.add( SourceService.getCommandName( GeneSearchCommand.class ) );
 		}
 	}
 
@@ -625,7 +625,7 @@ public class MoBIE
 	// TODO https://github.com/bigdataviewer/bigdataviewer-playground/issues/259#issuecomment-1279705489
 	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, boolean closeImgLoader )
 	{
-		SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
+		SourceServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
 		String sourceName = sourceAndConverter.getSpimSource().getName();
 
 		if ( closeImgLoader )
@@ -633,7 +633,7 @@ public class MoBIE
 			// TODO ?
 		}
 
-		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
+		SourceServices.getSourceService().remove( sourceAndConverter );
 	}
 
     public synchronized String getImageLocation( ImageDataFormat imageDataFormat, StorageLocation storageLocation )

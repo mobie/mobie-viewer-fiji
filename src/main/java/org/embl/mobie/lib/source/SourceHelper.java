@@ -50,7 +50,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper.getVoxelPositionInSource;
+import static sc.fiji.bdvpg.source.SourceHelper.getVoxelPositionInSource;
 
 public abstract class SourceHelper
 {

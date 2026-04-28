@@ -71,8 +71,8 @@ import org.embl.mobie.lib.volume.ImageVolumeViewer;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.embl.mobie.lib.volume.UniverseManager;
 import org.embl.mobie.ui.MoBIEWindowManager;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.scijava.service.SourceService;
+import sc.fiji.bdvpg.service.SourceServices;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
@@ -88,7 +88,7 @@ public class ViewManager
 	private final MoBIE moBIE;
 	private final UserInterface userInterface;
 	private final SliceViewer sliceViewer;
-	private final SourceAndConverterService sacService;
+	private final SourceService sacService;
 	private List< Display > currentDisplays;
 	private final UniverseManager universeManager;
 	private final BigVolumeBrowserMoBIE bigVolumeBrowser;
@@ -107,7 +107,7 @@ public class ViewManager
         additionalViewsLoader = new AdditionalViewsLoader( moBIE );
 		viewSaver = new ViewSaver( moBIE );
 		viewDeleter = new ViewDeleter( moBIE );
-		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
+		sacService = ( SourceService ) SourceServices.getSourceService();
 	}
 
 	private static BigVolumeBrowserMoBIE getBigVolumeBrowserMoBIE()

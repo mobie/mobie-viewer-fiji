@@ -38,7 +38,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.bdv.CalibratedMousePositionProvider;
 import org.embl.mobie.lib.serialize.display.AbstractAnnotationDisplay;
 import org.embl.mobie.lib.source.AnnotationType;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
+import sc.fiji.bdvpg.source.SourceHelper;
 
 import java.util.Collection;
 import java.util.function.Supplier;
@@ -82,12 +82,12 @@ public class SliceViewAnnotationSelector< A extends Annotation > implements Runn
 				if ( ! bdvHandle.getViewerPanel().state().isSourceVisible( sourceAndConverter ) )
 					continue;
 
-				if ( SourceAndConverterHelper.isPositionWithinSourceInterval( sourceAndConverter, realPosition, timePoint, is2D ) )
+				if ( SourceHelper.isPositionWithinSourceInterval( sourceAndConverter, realPosition, timePoint, is2D ) )
 				{
 					final Source< AnnotationType< A > > source = sourceAndConverter.getSpimSource();
 
 					// Find Annotation in voxel grid space
-//					final long[] voxelPosition = SourceAndConverterHelper.getVoxelPositionInSource( source, realPosition, timePoint, 0 );
+//					final long[] voxelPosition = SourceHelper.getVoxelPositionInSource( source, realPosition, timePoint, 0 );
 //					final AnnotationType< A > annotationType = source.getSource( timePoint, 0 ).randomAccess().setPositionAndGet( voxelPosition );
 
 					// Find Annotation in voxel grid real space
@@ -173,7 +173,7 @@ public class SliceViewAnnotationSelector< A extends Annotation > implements Runn
 //	private static double getPixelValue( int timePoint, RealPoint realPoint, Source< ? > source )
 //	{
 //		final RandomAccess< RealType > randomAccess = ( RandomAccess< RealType > ) source.getSource( timePoint, 0 ).randomAccess();
-//		final long[] positionInSource = SourceAndConverterHelper.getVoxelPositionInSource( source, realPoint, timePoint, 0 );
+//		final long[] positionInSource = SourceHelper.getVoxelPositionInSource( source, realPoint, timePoint, 0 );
 //		randomAccess.setPosition( positionInSource );
 //		return randomAccess.get().getRealDouble();
 //	}

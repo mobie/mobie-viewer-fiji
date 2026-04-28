@@ -39,7 +39,7 @@ import org.embl.mobie.lib.image.*;
 import org.embl.mobie.lib.serialize.transformation.*;
 import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.util.MoBIEHelper;
-import sc.fiji.bdvpg.bdv.BdvHandleHelper;
+import sc.fiji.bdvpg.viewer.bdv.BdvHandleHelper;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

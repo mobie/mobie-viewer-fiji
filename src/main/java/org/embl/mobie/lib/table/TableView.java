@@ -716,7 +716,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				// see also: https://github.com/mobie/mobie-viewer-fiji/issues/1235
 //				if ( display instanceof RegionDisplay )
 //				{
-//					SourceAndConverterBdvDisplayService service = SourceAndConverterServices.getBdvDisplayService();
+//					SourceBdvDisplayService service = SourceServices.getBdvDisplayService();
 //					display.sourceAndConverters().forEach( sac -> service.setVisible( sac, visible ) );
 //				}
 			}

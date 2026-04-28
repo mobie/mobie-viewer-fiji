@@ -47,8 +47,8 @@ import org.embl.mobie.lib.color.opacity.MoBIEColorConverter;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.util.ThreadHelper;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
-import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
+import sc.fiji.bdvpg.service.SourceServices;
+import sc.fiji.bdvpg.source.display.ColorChanger;
 
 import java.util.List;
 import java.util.Optional;
@@ -152,8 +152,8 @@ public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceV
 			}
 
 			final ConverterSetup converterSetup =
-					SourceAndConverterServices
-							.getSourceAndConverterService()
+					SourceServices
+							.getSourceService()
 							.getConverterSetup( sourceAndConverter );
 			converterSetup.setDisplayRange( contrastLimits[ 0 ], contrastLimits[ 1 ] );
 		}

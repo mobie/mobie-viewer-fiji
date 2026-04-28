@@ -75,9 +75,9 @@ import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.transform.InterpolatedAffineRealTransform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sc.fiji.bdvpg.bdv.BdvHandleHelper;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.viewer.bdv.BdvHandleHelper;
+import sc.fiji.bdvpg.scijava.service.SourceBdvDisplayService;
+import sc.fiji.bdvpg.service.SourceServices;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -93,7 +93,7 @@ import java.util.stream.DoubleStream;
 
 import static org.embl.mobie.io.util.IOHelper.combinePath;
 import static org.embl.mobie.io.util.IOHelper.getPaths;
-import static sc.fiji.bdvpg.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
+import static sc.fiji.bdvpg.viewer.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
 
 public abstract class MoBIEHelper
 {
@@ -485,9 +485,9 @@ public abstract class MoBIEHelper
 
     public static List< SourceAndConverter< ? > > getVisibleSacs( BdvHandle bdv )
     {
-        final SourceAndConverterBdvDisplayService displayService = SourceAndConverterServices.getBdvDisplayService();
+        final SourceBdvDisplayService displayService = SourceServices.getBdvDisplayService();
 
-        final List< SourceAndConverter< ? > > sacs = displayService.getSourceAndConverterOf( bdv );
+        final List< SourceAndConverter< ? > > sacs = displayService.getSourcesOf( bdv );
 
         List< SourceAndConverter< ? > > visibleSacs = new ArrayList<>(  );
         for ( SourceAndConverter< ? > sac : sacs )
@@ -519,8 +519,8 @@ public abstract class MoBIEHelper
 
 	public static List< SourceAndConverter< ? > > getSacs( BdvHandle bdv )
 	{
-		final SourceAndConverterBdvDisplayService displayService = SourceAndConverterServices.getBdvDisplayService();
-		return displayService.getSourceAndConverterOf( bdv );
+		final SourceBdvDisplayService displayService = SourceServices.getBdvDisplayService();
+		return displayService.getSourcesOf( bdv );
 	}
 
     public static VoxelDimensions getPixelDimensions()

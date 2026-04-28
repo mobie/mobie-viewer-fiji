@@ -47,7 +47,7 @@ import net.imglib2.util.Intervals;
 import net.imglib2.view.Views;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.jogamp.vecmath.Point3f;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
+import sc.fiji.bdvpg.source.SourceHelper;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -88,7 +88,7 @@ public class MeshCreator< S extends Segment >
 				throw new UnsupportedOperationException( "The location of segment " + segment.label() + " could not be determined and thus no mesh could be created;\npossibly the corresponding table has no anchor point entries for this segment" );
 			}
 
-			final long[] voxelPositionInSource = SourceAndConverterHelper.getVoxelPositionInSource( source, position, timePoint, renderingLevel );
+			final long[] voxelPositionInSource = SourceHelper.getVoxelPositionInSource( source, position, timePoint, renderingLevel );
 
 			final FloodFill floodFill = new FloodFill(
 					rai,

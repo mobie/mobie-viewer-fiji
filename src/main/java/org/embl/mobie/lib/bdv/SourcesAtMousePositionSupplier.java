@@ -31,8 +31,8 @@ package org.embl.mobie.lib.bdv;
 import bdv.util.BdvHandle;
 import bdv.util.PlaceHolderSource;
 import bdv.viewer.SourceAndConverter;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
+import sc.fiji.bdvpg.service.SourceServices;
+import sc.fiji.bdvpg.source.SourceHelper;
 
 import java.util.Collection;
 import java.util.List;
@@ -55,11 +55,11 @@ public class SourcesAtMousePositionSupplier implements Supplier< Collection< Sou
 	{
 		final CalibratedMousePositionProvider positionProvider = new CalibratedMousePositionProvider( bdvHandle );
 
-		final List< SourceAndConverter< ? > > sourceAndConverters = SourceAndConverterServices.getBdvDisplayService().getSourceAndConverterOf( bdvHandle )
+		final List< SourceAndConverter< ? > > sourceAndConverters = SourceServices.getBdvDisplayService().getSourcesOf( bdvHandle )
 				.stream()
 				.filter( sac -> ! ( sac.getSpimSource() instanceof PlaceHolderSource ) )
-				.filter( sac -> SourceAndConverterHelper.isPositionWithinSourceInterval( sac, positionProvider.getPositionAsRealPoint(), positionProvider.getTimePoint(), is2D ) )
-				.filter( sac -> SourceAndConverterServices.getBdvDisplayService().isVisible( sac, bdvHandle ) )
+				.filter( sac -> SourceHelper.isPositionWithinSourceInterval( sac, positionProvider.getPositionAsRealPoint(), positionProvider.getTimePoint(), is2D ) )
+				.filter( sac -> SourceServices.getBdvDisplayService().isVisible( sac, bdvHandle ) )
 				.collect( Collectors.toList() );
 
 		return sourceAndConverters;
