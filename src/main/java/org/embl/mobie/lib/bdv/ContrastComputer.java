@@ -7,9 +7,10 @@ import ij.ImagePlus;
 import ij.gui.Roi;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Intervals;
-import sc.fiji.bdvpg.bdv.BdvHandleHelper;
+import sc.fiji.bdvpg.viewer.bdv.BdvHandleHelper;
 
 import java.util.Collections;
 import java.util.Random;
@@ -52,20 +53,25 @@ public class ContrastComputer
     // before the image is visible in BDV
     public static double[] estimateMinMax( RandomAccessibleInterval<? extends RealType<?> > rai)
     {
-        Cursor<? extends RealType<?>> cursor = rai.cursor();
-        if (!cursor.hasNext()) return new double[]{0, 255};
-        long stepSize = Intervals.numElements(rai) / 10000 + 1;
-        int randomLimit = (int) Math.min(Integer.MAX_VALUE, stepSize);
-        Random random = new Random(42);
-        double min = cursor.next().getRealDouble();
-        double max = min;
-        while (cursor.hasNext()) {
-            double value = cursor.get().getRealDouble();
-            long steps = stepSize + random.nextInt( randomLimit );
-            cursor.jumpFwd( steps );
-            min = Math.min(min, value);
-            max = Math.max(max, value);
+        if (rai.getType() instanceof ARGBType) {
+            IJ.log("Warning! Could not estimate contrast from RGB image.");
+            return new double[]{0, 255};
+        } else {
+            Cursor<? extends RealType<?>> cursor = rai.cursor();
+            if (!cursor.hasNext()) return new double[]{0, 255};
+            long stepSize = Intervals.numElements(rai) / 10000 + 1;
+            int randomLimit = (int) Math.min(Integer.MAX_VALUE, stepSize);
+            Random random = new Random(42);
+            double min = cursor.next().getRealDouble();
+            double max = min;
+            while (cursor.hasNext()) {
+                double value = cursor.get().getRealDouble();
+                long steps = stepSize + random.nextInt(randomLimit);
+                cursor.jumpFwd(steps);
+                min = Math.min(min, value);
+                max = Math.max(max, value);
+            }
+            return new double[]{min, max};
         }
-        return new double[]{min, max};
     }
 }

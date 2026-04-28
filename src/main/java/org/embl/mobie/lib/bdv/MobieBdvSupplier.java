@@ -47,7 +47,7 @@ import net.imglib2.type.numeric.integer.ByteType;
 import org.embl.mobie.ui.MoBIELaf;
 import org.scijava.ui.behaviour.Behaviour;
 import org.scijava.ui.behaviour.BehaviourMap;
-import sc.fiji.bdvpg.bdv.supplier.IBdvSupplier;
+import sc.fiji.bdvpg.viewer.bdv.supplier.IBdvSupplier;
 
 import javax.swing.*;
 import java.awt.*;

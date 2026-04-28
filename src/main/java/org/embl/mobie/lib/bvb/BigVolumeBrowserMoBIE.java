@@ -49,7 +49,7 @@ import bvb.shapes.Spots;
 import bvvpg.vistools.BvvStackSource;
 import ij.IJ;
 import mpicbg.spim.data.generic.AbstractSpimData;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.service.SourceServices;
 
 
 @SuppressWarnings( "rawtypes" )
@@ -171,8 +171,8 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 			BvvStackSource< ? > bvvSource )
 	{
 		
-		double displayRangeMin = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMin();
-		double displayRangeMax = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ).getDisplayRangeMax();
+		double displayRangeMin = SourceServices.getSourceService().getConverterSetup( sac ).getDisplayRangeMin();
+		double displayRangeMax = SourceServices.getSourceService().getConverterSetup( sac ).getDisplayRangeMax();
 		
 		//render everything as volumetric
 		bvvSource.setRenderType( 1 );

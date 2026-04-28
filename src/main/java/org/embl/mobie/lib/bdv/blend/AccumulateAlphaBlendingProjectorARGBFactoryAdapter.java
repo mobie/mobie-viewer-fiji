@@ -35,7 +35,7 @@ import sc.fiji.persist.IClassRuntimeAdapter;
 /*
  * For serialization of {@link AccumulateOccludingProjectorARGBFactoryAdapter} objects
  *
- * Used in {@link sc.fiji.bdvpg.bdv.supplier.mobie.MobieSerializableBdvOptions}
+ * Used in {@link sc.fiji.bdvpg.viewer.bdv.supplier.mobie.MobieSerializableBdvOptions}
  */
 @Plugin(type = IClassRuntimeAdapter.class)
 public class AccumulateAlphaBlendingProjectorARGBFactoryAdapter implements IClassRuntimeAdapter<AccumulateProjectorFactory, MoBIEAccumulateProjectorARGBFactory > {

@@ -36,8 +36,8 @@ import net.imglib2.Cursor;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.numeric.ARGBType;
-import sc.fiji.bdvpg.services.ISourceAndConverterService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.service.ISourceService;
+import sc.fiji.bdvpg.service.SourceServices;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,7 +47,7 @@ import java.util.List;
 public class MoBIEAccumulateProjectorARGB extends AccumulateProjector< ARGBType, ARGBType >
 {
 	public static BdvHandle bdvHandle;
-	public static ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();;
+	public static ISourceService sacService = SourceServices.getSourceService();;
 
 	private final boolean[] alphaBlending;
 	private final boolean[] andBlending;

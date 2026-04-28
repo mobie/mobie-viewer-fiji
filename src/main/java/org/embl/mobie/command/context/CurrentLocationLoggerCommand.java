@@ -42,7 +42,8 @@ import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
+import sc.fiji.bdvpg.command.BdvPlaygroundActionCommand;
+
 
 import static org.embl.mobie.lib.util.MoBIEHelper.getCurrentViewNormalVector;
 

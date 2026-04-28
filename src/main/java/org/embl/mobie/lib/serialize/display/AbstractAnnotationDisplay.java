@@ -221,7 +221,7 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 		this.opacity = OpacityHelper.getOpacity( sourceAndConverter.getConverter() );
 
 		this.blendingMode = null; // default is Alpha so we don't serialise it
-		// this.blendingMode = ( BlendingMode ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.class.getName() );
+		// this.blendingMode = ( BlendingMode ) SourceServices.getSourceService().getMetadata( sourceAndConverter, BlendingMode.class.getName() );
 
 		final MoBIEColoringModel< ? extends Annotation > mobieColoringModel = annotationDisplay.coloringModel;
 

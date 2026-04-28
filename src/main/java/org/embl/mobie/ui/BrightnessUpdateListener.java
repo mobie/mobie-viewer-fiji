@@ -30,7 +30,7 @@ package org.embl.mobie.ui;
 
 import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BoundedValueDouble;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.service.SourceServices;
 
 public class BrightnessUpdateListener implements BoundedValueDouble.UpdateListener
 {
@@ -64,7 +64,7 @@ public class BrightnessUpdateListener implements BoundedValueDouble.UpdateListen
 
 		contrastAdjustmentManager.getAdjustable()
 				.stream()
-				.map( sac -> SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ) )
+				.map( sac -> SourceServices.getSourceService().getConverterSetup( sac ) )
 				.forEach( cs -> cs.setDisplayRange( minCurrentValue, maxCurrentValue ) );
 	}
 

@@ -46,11 +46,11 @@ import org.embl.mobie.ui.UserInterfaceHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
-import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
-import sc.fiji.bdvpg.services.ISourceAndConverterService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
-import sc.fiji.bdvpg.sourceandconverter.register.BigWarpLauncher;
+import sc.fiji.bdvpg.command.BdvPlaygroundActionCommand;
+import sc.fiji.bdvpg.scijava.service.SourceBdvDisplayService;
+import sc.fiji.bdvpg.service.ISourceService;
+import sc.fiji.bdvpg.service.SourceServices;
+import sc.fiji.bdvpg.source.register.BigWarpLauncher;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -125,8 +125,8 @@ public class BigWarpRegistrationCommand extends AbstractRegistrationCommand impl
 	{
 		setMovingImages();
 
-		ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();
-		SourceAndConverterBdvDisplayService bdvDisplayService = SourceAndConverterServices.getBdvDisplayService();
+		ISourceService sacService = SourceServices.getSourceService();
+		SourceBdvDisplayService bdvDisplayService = SourceServices.getBdvDisplayService();
 
 		SourceAndConverter< ? > fixedSac = sacs.stream()
 				.filter( sac -> sac.getSpimSource().getName().equals( fixedImageName ) )
