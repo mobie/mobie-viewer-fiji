@@ -28,11 +28,13 @@
  */
 package org.embl.mobie.lib.bdv.overlay;
 
+import bdv.ui.UIUtils;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.util.BdvOverlay;
 import bdv.util.BdvOverlaySource;
+import bdv.viewer.ViewerPanel;
 import net.imglib2.FinalInterval;
 
 import org.embl.mobie.lib.bdv.PixelValueAtMouseSupplier;
@@ -48,7 +50,7 @@ public class PixelValueOverlay extends BdvOverlay
 	private static final int RIGHT_PADDING = 12;
 	private static final int BOTTOM_PADDING = 20;
 	private static final int REPAINT_MARGIN = 6;
-	private static final Font FONT = new Font( "Monospaced", Font.PLAIN, 14 );
+	private static final Font FALLBACK_FONT = new Font( "Monospaced", Font.PLAIN, 14 );
 
 	private final BdvHandle bdvHandle;
 	private final SliceViewer sliceViewer;
@@ -112,7 +114,8 @@ public class PixelValueOverlay extends BdvOverlay
 			return;
 		}
 
-		g.setFont( FONT );
+		final Font font = UIUtils.getFont( "monospaced.small.font" );
+		g.setFont( font != null ? font : FALLBACK_FONT );
 		final List< String > lines;
 		try
 		{
@@ -129,6 +132,7 @@ public class PixelValueOverlay extends BdvOverlay
 		final int lineHeight = fontMetrics.getHeight();
 		final int numLines = Math.min( lines.size(), MAX_LINES );
 		final boolean hasMoreLine = lines.size() > MAX_LINES;
+		final String moreLine = hasMoreLine ? "+" + ( lines.size() - MAX_LINES ) + " more" : null;
 		final int renderedLines = numLines + ( hasMoreLine ? 1 : 0 );
 
 		int maxLineWidth = 0;
@@ -138,7 +142,7 @@ public class PixelValueOverlay extends BdvOverlay
 		}
 		if ( hasMoreLine )
 		{
-			maxLineWidth = Math.max( maxLineWidth, fontMetrics.stringWidth( "+" + ( lines.size() - MAX_LINES ) + " more" ) );
+			maxLineWidth = Math.max( maxLineWidth, fontMetrics.stringWidth( moreLine ) );
 		}
 
 		final int displayWidth = bdvHandle.getViewerPanel().getDisplayComponent().getWidth();
@@ -161,7 +165,6 @@ public class PixelValueOverlay extends BdvOverlay
 
 		if ( hasMoreLine )
 		{
-			final String moreLine = "+" + ( lines.size() - MAX_LINES ) + " more";
 			final int x = blockLeft + ( maxLineWidth - fontMetrics.stringWidth( moreLine ) );
 			drawLineWithOutline( g, moreLine, x, y );
 		}
@@ -171,8 +174,15 @@ public class PixelValueOverlay extends BdvOverlay
 		final int maxX = Math.min( displayWidth - 1, blockLeft + maxLineWidth + REPAINT_MARGIN );
 		final int maxY = Math.min( displayHeight - 1, blockTop + blockHeight + REPAINT_MARGIN );
 		
-		final FinalInterval newInterval = new FinalInterval( new long[] { minX, minY }, new long[] { maxX, maxY } );
 		final FinalInterval oldInterval = currentOverlayInterval;
+
+		if ( sameBounds( oldInterval, minX, minY, maxX, maxY ) )
+		{
+			repaintInterval = oldInterval;
+			return;
+		}
+
+		final FinalInterval newInterval = new FinalInterval( new long[] { minX, minY }, new long[] { maxX, maxY } );
 		currentOverlayInterval = newInterval;
 		repaintInterval = oldInterval == null ? newInterval : union( oldInterval, newInterval );
 	}
@@ -197,9 +207,19 @@ public class PixelValueOverlay extends BdvOverlay
 		final FinalInterval interval = repaintInterval != null ? repaintInterval : currentOverlayInterval;
 		if ( interval != null )
 		{
-			bdvHandle.getViewerPanel().requestRepaint( interval );
+			final ViewerPanel viewerPanel = bdvHandle.getViewerPanel();
+			viewerPanel.requestRepaint( interval );
 			repaintInterval = currentOverlayInterval;
 		}
+	}
+
+	private boolean sameBounds( FinalInterval interval, int minX, int minY, int maxX, int maxY )
+	{
+		return interval != null
+				&& interval.min( 0 ) == minX
+				&& interval.min( 1 ) == minY
+				&& interval.max( 0 ) == maxX
+				&& interval.max( 1 ) == maxY;
 	}
 
 	private FinalInterval union( FinalInterval a, FinalInterval b )

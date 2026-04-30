@@ -44,16 +44,17 @@ import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.source.AnnotationType;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class PixelValueAtMouseSupplier implements Supplier< List< String > >
 {
 	private final SourcesAtMousePositionSupplier sourcesAtMousePositionSupplier;
 	private final BdvHandle bdvHandle;
+	private final RealPoint globalPosition = new RealPoint( 3 );
+	private final AffineTransform3D sourceTransform = new AffineTransform3D();
+	private final RealPoint positionInSource = new RealPoint( 3 );
 
 	public PixelValueAtMouseSupplier( BdvHandle bdvHandle, boolean is2D )
 	{
@@ -64,19 +65,16 @@ public class PixelValueAtMouseSupplier implements Supplier< List< String > >
 	@Override
 	public List< String > get()
 	{
-		final CalibratedMousePositionProvider positionProvider = new CalibratedMousePositionProvider( bdvHandle );
-		final int timePoint = positionProvider.getTimePoint();
-		final RealPoint globalPosition = positionProvider.getPositionAsRealPoint();
+		bdvHandle.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( globalPosition );
+		final int timePoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
 
-		final Collection< SourceAndConverter< ? > > sourceAndConverters =
-				sourcesAtMousePositionSupplier.get().stream()
-				.filter( sac -> ! ( DataStore.sourceToImage().get( sac ) instanceof RegionAnnotationImage ) )
-				.collect( Collectors.toList() );
-		
-		final ArrayList< String > lines = new ArrayList<>();
+		final ArrayList< String > lines = new ArrayList<>( 8 );
 
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : sourcesAtMousePositionSupplier.get() )
 		{
+			if ( DataStore.sourceToImage().get( sourceAndConverter ) instanceof RegionAnnotationImage )
+				continue;
+
 			final Source< ? > source = sourceAndConverter.getSpimSource();
 			if ( source.getType() instanceof AnnotationType )
 				continue;
@@ -85,9 +83,10 @@ public class PixelValueAtMouseSupplier implements Supplier< List< String > >
 				continue;
 
 			Source< ? > sourceToSample = source;
-			if ( sourceAndConverter.asVolatile() != null )
+			final SourceAndConverter< ? > volatileSac = sourceAndConverter.asVolatile();
+			if ( volatileSac != null )
 			{
-				final Source< ? > volatileSource = sourceAndConverter.asVolatile().getSpimSource();
+				final Source< ? > volatileSource = volatileSac.getSpimSource();
 				if ( volatileSource != null && volatileSource.isPresent( timePoint ) )
 					sourceToSample = volatileSource;
 			}
@@ -143,10 +142,7 @@ public class PixelValueAtMouseSupplier implements Supplier< List< String > >
 	{
 		try
 		{
-			final AffineTransform3D sourceTransform = new AffineTransform3D();
 			source.getSourceTransform( timePoint, level, sourceTransform );
-
-			final RealPoint positionInSource = new RealPoint( 3 );
 			sourceTransform.inverse().apply( globalPosition, positionInSource );
 
 			Object value = getNearestNeighborValue( source, timePoint, level, positionInSource );
