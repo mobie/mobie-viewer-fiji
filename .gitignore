@@ -2,12 +2,13 @@
 **/.project
 **/.settings
 **/target
+.vscode
+.idea
 .DS_Store
 .classpath
 .project
 .settings
 .factorypath
-.idea
 target
 *.iml
 *.class

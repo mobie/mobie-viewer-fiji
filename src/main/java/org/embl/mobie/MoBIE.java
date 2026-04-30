@@ -685,14 +685,7 @@ public class MoBIE
 				ThreadHelper.ioExecutorService.submit( () ->
 					{
 						String log = MoBIEHelper.getLog( sourceIndex, numImages, sourceLoggingModulo, lastLogMillis );
-						try
-						{
-							initDataSource( dataSource, log );
-						}
-						catch ( Exception e )
-						{
-							System.err.println("Failed initialising " + dataSource.getName() + "\n" + e);
-						}
+						initDataSource( dataSource, log );
 					}
 				) );
 		}

@@ -479,7 +479,7 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().blobsGridWithPositionIDs();
         //new OpenCollectionTableCommandTest().segmentedBlobs();
         //new OpenCollectionTableCommandTest().spots3D();
-        new OpenCollectionTableCommandTest().spots3dAffine();
+        //new OpenCollectionTableCommandTest().spots3dAffine();
         //new OpenCollectionTableCommandTest().segmentedImageWithFloatLabels();
         //new OpenCollectionTableCommandTest().spots3dWith20000Columns();
         //new OpenCollectionTableCommandTest().createLargeSpotsTable();
@@ -501,5 +501,12 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().autoContrastBlobs();
         //new OpenCollectionTableCommandTest().mix2d3d();
         //new OpenCollectionTableCommandTest().grid();
+        new OpenCollectionTableCommandTest().clem();
+        System.out.println("MoBIE loaded. Press ENTER to exit...");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
