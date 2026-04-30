@@ -85,7 +85,7 @@ public class PixelValueOverlay extends BdvOverlay
 		{
 			overlaySource = BdvFunctions.showOverlay(
 					this,
-					"pixelValueOverlay",
+					"", // Otherwise this shows up in the BDV top right window
 					BdvOptions.options().addTo( bdvHandle ) );
 
 			// Workaround for BDV overlay-timepoint interactions.
@@ -170,8 +170,8 @@ public class PixelValueOverlay extends BdvOverlay
 		final int minY = Math.max( 0, blockTop - REPAINT_MARGIN );
 		final int maxX = Math.min( displayWidth - 1, blockLeft + maxLineWidth + REPAINT_MARGIN );
 		final int maxY = Math.min( displayHeight - 1, blockTop + blockHeight + REPAINT_MARGIN );
+		
 		final FinalInterval newInterval = new FinalInterval( new long[] { minX, minY }, new long[] { maxX, maxY } );
-
 		final FinalInterval oldInterval = currentOverlayInterval;
 		currentOverlayInterval = newInterval;
 		repaintInterval = oldInterval == null ? newInterval : union( oldInterval, newInterval );
@@ -199,10 +199,6 @@ public class PixelValueOverlay extends BdvOverlay
 		{
 			bdvHandle.getViewerPanel().requestRepaint( interval );
 			repaintInterval = currentOverlayInterval;
-		}
-		else
-		{
-			bdvHandle.getViewerPanel().requestRepaint();
 		}
 	}
 

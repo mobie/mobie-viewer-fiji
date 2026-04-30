@@ -501,7 +501,7 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().autoContrastBlobs();
         //new OpenCollectionTableCommandTest().mix2d3d();
         //new OpenCollectionTableCommandTest().grid();
-        new OpenCollectionTableCommandTest().clem();
+        new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
         System.out.println("MoBIE loaded. Press ENTER to exit...");
         try {
             System.in.read();

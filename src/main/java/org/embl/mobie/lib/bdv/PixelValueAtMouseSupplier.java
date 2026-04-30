@@ -34,12 +34,14 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.RealPoint;
 import net.imglib2.RealRandomAccessible;
+import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
+import org.embl.mobie.lib.source.AnnotationType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -76,10 +78,21 @@ public class PixelValueAtMouseSupplier implements Supplier< List< String > >
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			final Source< ? > source = sourceAndConverter.getSpimSource();
+			if ( source.getType() instanceof AnnotationType )
+				continue;
+
 			if ( !source.isPresent( timePoint ) )
 				continue;
 
-			final String value = sampleValueAsString( source, timePoint, globalPosition );
+			Source< ? > sourceToSample = source;
+			if ( sourceAndConverter.asVolatile() != null )
+			{
+				final Source< ? > volatileSource = sourceAndConverter.asVolatile().getSpimSource();
+				if ( volatileSource != null && volatileSource.isPresent( timePoint ) )
+					sourceToSample = volatileSource;
+			}
+
+			final String value = sampleBestAvailableValueAsString( sourceToSample, timePoint, globalPosition );
 			lines.add( source.getName() + ": " + value );
 		}
 
@@ -89,30 +102,70 @@ public class PixelValueAtMouseSupplier implements Supplier< List< String > >
 		return lines;
 	}
 
-	private String sampleValueAsString( Source< ? > source, int timePoint, RealPoint globalPosition )
+	private String sampleBestAvailableValueAsString( Source< ? > source, int timePoint, RealPoint globalPosition )
+	{
+		final int numLevels = source.getNumMipmapLevels();
+		Object highestResolutionFoundValue = null;
+		int highestResolutionFoundLevel = -1;
+
+		for ( int level = numLevels - 1; level >= 0; level-- )
+		{
+			final Object value = sampleValueAtLevel( source, timePoint, level, globalPosition );
+
+			if ( value != null )
+			{
+				highestResolutionFoundValue = value;
+				highestResolutionFoundLevel = level;
+				continue;
+			}
+
+			// Stop immediately once one finer step is unavailable, to avoid triggering loads.
+			if ( highestResolutionFoundLevel >= 0 )
+				return formatValue( highestResolutionFoundValue ) + " (res " + highestResolutionFoundLevel + ")";
+
+			return "Loading... (res " + level + ")";
+		}
+
+		if ( highestResolutionFoundLevel >= 0 )
+			return formatValue( highestResolutionFoundValue ) + " (res " + highestResolutionFoundLevel + ")";
+
+		return "n/a";
+	}
+
+	@SuppressWarnings( { "rawtypes" } )
+	private Object getNearestNeighborValue( Source< ? > source, int timePoint, int level, RealPoint positionInSource )
+	{
+		final RealRandomAccessible interpolatedSource = source.getInterpolatedSource( timePoint, level, Interpolation.NEARESTNEIGHBOR );
+		return interpolatedSource.getAt( positionInSource );
+	}
+
+	private Object sampleValueAtLevel( Source< ? > source, int timePoint, int level, RealPoint globalPosition )
 	{
 		try
 		{
 			final AffineTransform3D sourceTransform = new AffineTransform3D();
-			source.getSourceTransform( timePoint, 0, sourceTransform );
+			source.getSourceTransform( timePoint, level, sourceTransform );
 
 			final RealPoint positionInSource = new RealPoint( 3 );
 			sourceTransform.inverse().apply( globalPosition, positionInSource );
 
-			final Object value = getNearestNeighborValue( source, timePoint, positionInSource );
-			return formatValue( value );
+			Object value = getNearestNeighborValue( source, timePoint, level, positionInSource );
+
+			if ( value instanceof Volatile )
+			{
+				final Volatile< ? > volatileValue = ( Volatile< ? > ) value;
+				if ( !volatileValue.isValid() )
+					return null;
+
+				value = volatileValue.get();
+			}
+
+			return value;
 		}
 		catch ( Exception e )
 		{
-			return "n/a";
+			return null;
 		}
-	}
-
-	@SuppressWarnings( { "rawtypes" } )
-	private Object getNearestNeighborValue( Source< ? > source, int timePoint, RealPoint positionInSource )
-	{
-		final RealRandomAccessible interpolatedSource = source.getInterpolatedSource( timePoint, 0, Interpolation.NEARESTNEIGHBOR );
-		return interpolatedSource.getAt( positionInSource );
 	}
 
 	private String formatValue( Object value )
@@ -131,4 +184,5 @@ public class PixelValueAtMouseSupplier implements Supplier< List< String > >
 
 		return value.toString();
 	}
+
 }
