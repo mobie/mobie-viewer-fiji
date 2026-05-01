@@ -34,41 +34,85 @@ import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.util.BdvOverlay;
 import bdv.util.BdvOverlaySource;
+import bdv.viewer.TransformListener;
 import bdv.viewer.ViewerPanel;
+import ij.IJ;
 import net.imglib2.FinalInterval;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.numeric.RealType;
 
 import org.embl.mobie.lib.bdv.PixelValueAtMouseSupplier;
+import org.embl.mobie.lib.bdv.PixelValueAtMouseSupplier.PixelValueSample;
+import org.embl.mobie.lib.bdv.PixelValueAtMouseSupplier.SampleStatus;
 import org.embl.mobie.lib.bdv.view.SliceViewer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
-public class PixelValueOverlay extends BdvOverlay
+public class PixelValueOverlay extends BdvOverlay implements TransformListener< AffineTransform3D >
 {
 	private static final int MAX_LINES = 20;
 	private static final int RIGHT_PADDING = 12;
 	private static final int BOTTOM_PADDING = 20;
 	private static final int REPAINT_MARGIN = 6;
+	private static final int DEFAULT_UPDATE_INTERVAL_MS = 120;
+	private static final int MAX_STATIONARY_REFINEMENT_TICKS = 300;
 	private static final Font FALLBACK_FONT = new Font( "Monospaced", Font.PLAIN, 14 );
 
 	private final BdvHandle bdvHandle;
 	private final SliceViewer sliceViewer;
 	private final PixelValueAtMouseSupplier pixelValueAtMouseSupplier;
-	private final Timer repaintTimer;
+	private final Timer debounceTimer;
+	private final int updateIntervalMillis;
+	private final MouseMotionAdapter mouseMotionListener;
+	private volatile List< PixelValueSample > sampledValues;
 	private volatile FinalInterval currentOverlayInterval;
 	private volatile FinalInterval repaintInterval;
+	private volatile boolean mouseListenerInstalled;
+	private volatile boolean transformListenerInstalled;
+	private volatile boolean needsStationaryRefinement;
+	private volatile int stationaryRefinementTicks;
 
 	private BdvOverlaySource< PixelValueOverlay > overlaySource;
 	private boolean isActive;
 
 	public PixelValueOverlay( SliceViewer sliceViewer )
 	{
+		this( sliceViewer, DEFAULT_UPDATE_INTERVAL_MS );
+	}
+
+	public PixelValueOverlay( SliceViewer sliceViewer, int updateIntervalMillis )
+	{
 		this.sliceViewer = sliceViewer;
 		this.bdvHandle = sliceViewer.getBdvHandle();
+		this.updateIntervalMillis = Math.max( 1, updateIntervalMillis );
 		this.pixelValueAtMouseSupplier = new PixelValueAtMouseSupplier( bdvHandle, sliceViewer.is2D() );
-		this.repaintTimer = new Timer( 120, e -> safeRepaintOverlayRegion() );
-		this.repaintTimer.setCoalesce( true );
+		this.sampledValues = Collections.emptyList();
+		this.debounceTimer = new Timer( this.updateIntervalMillis, e -> refreshSampledValues() );
+		this.debounceTimer.setRepeats( false );
+		this.debounceTimer.setCoalesce( true );
+		this.mouseMotionListener = new MouseMotionAdapter()
+		{
+			@Override
+			public void mouseMoved( MouseEvent e )
+			{
+				onViewerActivity();
+			}
+
+			@Override
+			public void mouseDragged( MouseEvent e )
+			{
+				onViewerActivity();
+			}
+		};
 	}
 
 	public boolean isActive()
@@ -81,6 +125,7 @@ public class PixelValueOverlay extends BdvOverlay
 		if ( this.isActive == isActive )
 			return;
 
+		final boolean wasActive = this.isActive;
 		this.isActive = isActive;
 
 		if ( isActive && overlaySource == null )
@@ -98,11 +143,43 @@ public class PixelValueOverlay extends BdvOverlay
 			overlaySource.setActive( isActive );
 
 		if ( isActive )
-			repaintTimer.start();
+		{
+			stationaryRefinementTicks = 0;
+			needsStationaryRefinement = false;
+			attachMouseMotionListener();
+			attachTransformListener();
+			scheduleDebouncedValueRefresh();
+			bdvHandle.getViewerPanel().requestRepaint();
+		}
 		else
-			repaintTimer.stop();
+		{
+			detachMouseMotionListener();
+			detachTransformListener();
+			debounceTimer.stop();
+			stationaryRefinementTicks = 0;
+			needsStationaryRefinement = false;
+			if ( wasActive )
+				requestCurrentOverlayRepaint();
+		}
+	}
 
-		safeRepaintOverlayRegion();
+	public synchronized void close()
+	{
+		detachMouseMotionListener();
+		detachTransformListener();
+		debounceTimer.stop();
+		isActive = false;
+		sampledValues = Collections.emptyList();
+		currentOverlayInterval = null;
+		repaintInterval = null;
+		stationaryRefinementTicks = 0;
+		needsStationaryRefinement = false;
+
+		if ( overlaySource != null )
+		{
+			overlaySource.removeFromBdv();
+			overlaySource = null;
+		}
 	}
 
 	@Override
@@ -110,23 +187,13 @@ public class PixelValueOverlay extends BdvOverlay
 	{
 		if ( !isViewerAvailable() )
 		{
-			repaintTimer.stop();
+			debounceTimer.stop();
 			return;
 		}
 
 		final Font font = UIUtils.getFont( "monospaced.small.font" );
 		g.setFont( font != null ? font : FALLBACK_FONT );
-		final List< String > lines;
-		try
-		{
-			lines = pixelValueAtMouseSupplier.get();
-		}
-		catch ( NullPointerException ignored )
-		{
-			// BDV may be disposed while timer/events are still draining.
-			repaintTimer.stop();
-			return;
-		}
+		final List< String > lines = formatLinesForDisplay( sampledValues );
 
 		final FontMetrics fontMetrics = g.getFontMetrics();
 		final int lineHeight = fontMetrics.getHeight();
@@ -196,21 +263,207 @@ public class PixelValueOverlay extends BdvOverlay
 		g.drawString( line, x, y );
 	}
 
-	private void safeRepaintOverlayRegion()
+	private void refreshSampledValues()
 	{
+		if ( !isActive )
+			return;
+
 		if ( !isViewerAvailable() )
 		{
-			repaintTimer.stop();
+			debounceTimer.stop();
 			return;
 		}
 
-		final FinalInterval interval = repaintInterval != null ? repaintInterval : currentOverlayInterval;
-		if ( interval != null )
+		final List< PixelValueSample > values;
+		try
 		{
-			final ViewerPanel viewerPanel = bdvHandle.getViewerPanel();
-			viewerPanel.requestRepaint( interval );
-			repaintInterval = currentOverlayInterval;
+			values = pixelValueAtMouseSupplier.get();
 		}
+		catch ( NullPointerException ignored )
+		{
+			// BDV may be disposed while timer/events are still draining.
+			debounceTimer.stop();
+			return;
+		}
+
+		final boolean valuesChanged = !values.equals( sampledValues );
+		sampledValues = values;
+
+		needsStationaryRefinement = valuesNeedRefinement( values );
+		if ( needsStationaryRefinement )
+		{
+			if ( valuesChanged )
+				stationaryRefinementTicks = 0;
+			else
+				stationaryRefinementTicks++;
+		}
+		else
+		{
+			stationaryRefinementTicks = 0;
+		}
+
+		if ( valuesChanged )
+			requestOverlayRepaint();
+
+		if ( needsStationaryRefinement && stationaryRefinementTicks < MAX_STATIONARY_REFINEMENT_TICKS )
+		{
+			scheduleDebouncedValueRefresh();
+		}
+	}
+
+	private void scheduleDebouncedValueRefresh()
+	{
+		if ( !isActive )
+			return;
+
+		if ( !SwingUtilities.isEventDispatchThread() )
+		{
+			SwingUtilities.invokeLater( this::scheduleDebouncedValueRefresh );
+			return;
+		}
+
+		debounceTimer.restart();
+	}
+
+	private void onViewerActivity()
+	{
+		stationaryRefinementTicks = 0;
+		needsStationaryRefinement = false;
+		scheduleDebouncedValueRefresh();
+	}
+
+	@Override
+	public void transformChanged( AffineTransform3D transform )
+	{
+		onViewerActivity();
+	}
+
+	private boolean valuesNeedRefinement( List< PixelValueSample > values )
+	{
+		for ( PixelValueSample value : values )
+		{
+			if ( sampleNeedsRefinement( value ) )
+				return true;
+		}
+
+		return false;
+	}
+
+	private boolean sampleNeedsRefinement( PixelValueSample sample )
+	{
+		if ( sample == null )
+			return false;
+
+		if ( sample.getStatus() == SampleStatus.LOADING )
+			return true;
+
+		return sample.getStatus() == SampleStatus.AVAILABLE && sample.getResolutionLevel() > 0;
+	}
+
+	private void requestOverlayRepaint()
+	{
+		if ( !isViewerAvailable() )
+			return;
+
+		final FinalInterval interval = repaintInterval != null ? repaintInterval : currentOverlayInterval;
+		final ViewerPanel viewerPanel = bdvHandle.getViewerPanel();
+		if ( interval != null )
+			viewerPanel.requestRepaint( interval );
+		else
+			viewerPanel.requestRepaint();
+
+		repaintInterval = currentOverlayInterval;
+	}
+
+	private List< String > formatLinesForDisplay( List< PixelValueSample > values )
+	{
+		if ( values == null || values.isEmpty() )
+			return Collections.singletonList( "No source at cursor" );
+
+		return values.stream()
+				.map( this::formatSampleLine )
+				.collect( Collectors.toList() );
+	}
+
+	private String formatSampleLine( PixelValueSample sample )
+	{
+		switch ( sample.getStatus() )
+		{
+			case LOADING:
+				return sample.getSourceName() + ": Loading... (res " + sample.getResolutionLevel() + ")";
+			case NOT_AVAILABLE:
+				return sample.getSourceName() + ": n/a";
+			case AVAILABLE:
+			default:
+				return sample.getSourceName() + ": " + formatValue( sample.getValue() ) + " (res " + sample.getResolutionLevel() + ")";
+		}
+	}
+
+	private String formatValue( Object value )
+	{
+		if ( value == null )
+			return "n/a";
+
+		if ( value instanceof ARGBType )
+			return String.format( Locale.US, "0x%08X", ( ( ARGBType ) value ).get() );
+
+		if ( value instanceof IntegerType )
+			return Long.toString( ( ( IntegerType< ? > ) value ).getIntegerLong() );
+
+		if ( value instanceof RealType )
+			return String.format( Locale.US, "%.6g", ( ( RealType< ? > ) value ).getRealDouble() );
+
+		return value.toString();
+	}
+
+	private void attachMouseMotionListener()
+	{
+		if ( mouseListenerInstalled || !isViewerAvailable() )
+			return;
+
+		bdvHandle.getViewerPanel().getDisplayComponent().addMouseMotionListener( mouseMotionListener );
+		mouseListenerInstalled = true;
+	}
+
+	private void detachMouseMotionListener()
+	{
+		if ( !mouseListenerInstalled )
+			return;
+
+		if ( isViewerAvailable() )
+			bdvHandle.getViewerPanel().getDisplayComponent().removeMouseMotionListener( mouseMotionListener );
+
+		mouseListenerInstalled = false;
+	}
+
+	private void attachTransformListener()
+	{
+		if ( transformListenerInstalled || !isViewerAvailable() )
+			return;
+
+		bdvHandle.getViewerPanel().transformListeners().add( this );
+		transformListenerInstalled = true;
+	}
+
+	private void detachTransformListener()
+	{
+		if ( !transformListenerInstalled )
+			return;
+
+		if ( isViewerAvailable() )
+			bdvHandle.getViewerPanel().transformListeners().remove( this );
+
+		transformListenerInstalled = false;
+	}
+
+	private void requestCurrentOverlayRepaint()
+	{
+		if ( !isViewerAvailable() )
+			return;
+
+		final FinalInterval interval = currentOverlayInterval;
+		if ( interval != null )
+			bdvHandle.getViewerPanel().requestRepaint( interval );
 	}
 
 	private boolean sameBounds( FinalInterval interval, int minX, int minY, int maxX, int maxY )

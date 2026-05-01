@@ -36,20 +36,82 @@ import net.imglib2.RealPoint;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.type.numeric.IntegerType;
-import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.source.AnnotationType;
+import org.embl.mobie.lib.source.SourceHelper;
+import org.embl.mobie.lib.source.SourceWrapper;
+import org.embl.mobie.lib.source.label.AnnotatedLabelSource;
+import org.embl.mobie.lib.source.label.VolatileAnnotatedLabelSource;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+import java.util.Objects;
 import java.util.function.Supplier;
 
-public class PixelValueAtMouseSupplier implements Supplier< List< String > >
+public class PixelValueAtMouseSupplier implements Supplier< List< PixelValueAtMouseSupplier.PixelValueSample > >
 {
+	public enum SampleStatus
+	{
+		AVAILABLE,
+		LOADING,
+		NOT_AVAILABLE
+	}
+
+	public static class PixelValueSample
+	{
+		private final String sourceName;
+		private final Object value;
+		private final int resolutionLevel;
+		private final SampleStatus status;
+
+		public PixelValueSample( String sourceName, Object value, int resolutionLevel, SampleStatus status )
+		{
+			this.sourceName = sourceName;
+			this.value = value;
+			this.resolutionLevel = resolutionLevel;
+			this.status = status;
+		}
+
+		public String getSourceName()
+		{
+			return sourceName;
+		}
+
+		public Object getValue()
+		{
+			return value;
+		}
+
+		public int getResolutionLevel()
+		{
+			return resolutionLevel;
+		}
+
+		public SampleStatus getStatus()
+		{
+			return status;
+		}
+
+		@Override
+		public boolean equals( Object o )
+		{
+			if ( this == o ) return true;
+			if ( o == null || getClass() != o.getClass() ) return false;
+			final PixelValueSample that = ( PixelValueSample ) o;
+			return resolutionLevel == that.resolutionLevel
+					&& Objects.equals( sourceName, that.sourceName )
+					&& Objects.equals( value, that.value )
+					&& status == that.status;
+		}
+
+		@Override
+		public int hashCode()
+		{
+			return Objects.hash( sourceName, value, resolutionLevel, status );
+		}
+	}
+
 	private final SourcesAtMousePositionSupplier sourcesAtMousePositionSupplier;
 	private final BdvHandle bdvHandle;
 	private final RealPoint globalPosition = new RealPoint( 3 );
@@ -63,12 +125,12 @@ public class PixelValueAtMouseSupplier implements Supplier< List< String > >
 	}
 
 	@Override
-	public List< String > get()
+	public List< PixelValueSample > get()
 	{
 		bdvHandle.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( globalPosition );
 		final int timePoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
 
-		final ArrayList< String > lines = new ArrayList<>( 8 );
+		final ArrayList< PixelValueSample > samples = new ArrayList<>( 8 );
 
 		for ( SourceAndConverter< ? > sourceAndConverter : sourcesAtMousePositionSupplier.get() )
 		{
@@ -76,32 +138,69 @@ public class PixelValueAtMouseSupplier implements Supplier< List< String > >
 				continue;
 
 			final Source< ? > source = sourceAndConverter.getSpimSource();
-			if ( source.getType() instanceof AnnotationType )
-				continue;
-
 			if ( !source.isPresent( timePoint ) )
 				continue;
 
-			Source< ? > sourceToSample = source;
-			final SourceAndConverter< ? > volatileSac = sourceAndConverter.asVolatile();
-			if ( volatileSac != null )
-			{
-				final Source< ? > volatileSource = volatileSac.getSpimSource();
-				if ( volatileSource != null && volatileSource.isPresent( timePoint ) )
-					sourceToSample = volatileSource;
-			}
+			final Source< ? > sourceToSample = getSourceToSample( sourceAndConverter, source, timePoint );
+			if ( sourceToSample == null )
+				continue;
 
-			final String value = sampleBestAvailableValueAsString( sourceToSample, timePoint, globalPosition );
-			lines.add( source.getName() + ": " + value );
+			final PixelValueSample sample = sampleBestAvailableValue( source.getName(), sourceToSample, timePoint, globalPosition );
+			samples.add( sample );
 		}
 
-		if ( lines.isEmpty() )
-			lines.add( "No source at cursor" );
-
-		return lines;
+		return samples;
 	}
 
-	private String sampleBestAvailableValueAsString( Source< ? > source, int timePoint, RealPoint globalPosition )
+	private Source< ? > getSourceToSample( SourceAndConverter< ? > sourceAndConverter, Source< ? > source, int timePoint )
+	{
+		final SourceAndConverter< ? > volatileSac = sourceAndConverter.asVolatile();
+
+		if ( source.getType() instanceof AnnotationType )
+		{
+			if ( volatileSac != null )
+			{
+				final VolatileAnnotatedLabelSource< ?, ?, ? > volatileAnnotatedLabelSource =
+						SourceHelper.unwrapSource( volatileSac.getSpimSource(), VolatileAnnotatedLabelSource.class );
+				if ( volatileAnnotatedLabelSource != null )
+				{
+					final Source< ? > volatileLabelSource = volatileAnnotatedLabelSource.getWrappedSource();
+					if ( volatileLabelSource != null && volatileLabelSource.isPresent( timePoint ) )
+						return volatileLabelSource;
+				}
+			}
+
+			final AnnotatedLabelSource< ?, ? > annotatedLabelSource =
+					SourceHelper.unwrapSource( source, AnnotatedLabelSource.class );
+			if ( annotatedLabelSource != null )
+			{
+				final Source< ? > labelSource = annotatedLabelSource.getWrappedSource();
+				if ( labelSource != null && labelSource.isPresent( timePoint ) )
+					return labelSource;
+			}
+
+			final SourceWrapper< ? > sourceWrapper = SourceHelper.unwrapSource( source, SourceWrapper.class );
+			if ( sourceWrapper != null )
+			{
+				final Source< ? > wrappedSource = sourceWrapper.getWrappedSource();
+				if ( wrappedSource != null && wrappedSource.isPresent( timePoint ) && !( wrappedSource.getType() instanceof AnnotationType ) )
+					return wrappedSource;
+			}
+
+			return null;
+		}
+
+		if ( volatileSac != null )
+		{
+			final Source< ? > volatileSource = volatileSac.getSpimSource();
+			if ( volatileSource != null && volatileSource.isPresent( timePoint ) )
+				return volatileSource;
+		}
+
+		return source;
+	}
+
+	private PixelValueSample sampleBestAvailableValue( String sourceName, Source< ? > source, int timePoint, RealPoint globalPosition )
 	{
 		final int numLevels = source.getNumMipmapLevels();
 		Object highestResolutionFoundValue = null;
@@ -120,15 +219,15 @@ public class PixelValueAtMouseSupplier implements Supplier< List< String > >
 
 			// Stop immediately once one finer step is unavailable, to avoid triggering loads.
 			if ( highestResolutionFoundLevel >= 0 )
-				return formatValue( highestResolutionFoundValue ) + " (res " + highestResolutionFoundLevel + ")";
+				return new PixelValueSample( sourceName, highestResolutionFoundValue, highestResolutionFoundLevel, SampleStatus.AVAILABLE );
 
-			return "Loading... (res " + level + ")";
+			return new PixelValueSample( sourceName, null, level, SampleStatus.LOADING );
 		}
 
 		if ( highestResolutionFoundLevel >= 0 )
-			return formatValue( highestResolutionFoundValue ) + " (res " + highestResolutionFoundLevel + ")";
+			return new PixelValueSample( sourceName, highestResolutionFoundValue, highestResolutionFoundLevel, SampleStatus.AVAILABLE );
 
-		return "n/a";
+		return new PixelValueSample( sourceName, null, -1, SampleStatus.NOT_AVAILABLE );
 	}
 
 	@SuppressWarnings( { "rawtypes" } )
@@ -162,23 +261,6 @@ public class PixelValueAtMouseSupplier implements Supplier< List< String > >
 		{
 			return null;
 		}
-	}
-
-	private String formatValue( Object value )
-	{
-		if ( value == null )
-			return "n/a";
-
-		if ( value instanceof ARGBType )
-			return String.format( Locale.US, "0x%08X", ( ( ARGBType ) value ).get() );
-
-		if ( value instanceof IntegerType )
-			return Long.toString( ( ( IntegerType< ? > ) value ).getIntegerLong() );
-
-		if ( value instanceof RealType )
-			return String.format( Locale.US, "%.6g", ( ( RealType< ? > ) value ).getRealDouble() );
-
-		return value.toString();
 	}
 
 }

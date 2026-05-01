@@ -73,6 +73,7 @@ public class SliceViewer
 	public static final String DELETE_VIEW = "Delete View";
 	public static final String TOGGLE_PIXEL_VALUE_OVERLAY = "Toggle Pixel Values Under Mouse [ Shift V ]";
 	public static final String FRAME_TITLE = "MoBIE BigDataViewer";
+	private static final int PIXEL_VALUE_OVERLAY_UPDATE_INTERVAL_MS = 120;
 	public static boolean tileRenderOverlay = false;
 	private final SourceAndConverterBdvDisplayService bdvDisplayService;
 	private BdvHandle bdvHandle;
@@ -103,7 +104,7 @@ public class SliceViewer
 		}
 
 		imageNameOverlay = new ImageNameOverlay( this );
-		pixelValueOverlay = new PixelValueOverlay( this );
+		pixelValueOverlay = new PixelValueOverlay( this, PIXEL_VALUE_OVERLAY_UPDATE_INTERVAL_MS );
 
 		installContextMenuAndKeyboardShortCuts();
 
@@ -306,6 +307,11 @@ public class SliceViewer
 			if ( numTimePoints > maxNumTimePoints ) maxNumTimePoints = numTimePoints;
 		}
 		bdvHandle.getViewerPanel().state().setNumTimepoints( maxNumTimePoints );
+	}
+
+	public void close()
+	{
+		pixelValueOverlay.close();
 	}
 
 	public boolean is2D()

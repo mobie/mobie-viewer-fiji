@@ -95,10 +95,10 @@ public class LogImagesInfoCommand implements BdvPlaygroundActionCommand
             if ( imageTransformation instanceof AffineTransformation )
             {
                 AffineTransform3D initialTransform = ( ( AffineTransformation ) imageTransformation ).getAffineTransform3D();
-                IJ.log( "Original image transformation: " + MoBIEHelper.print( initialTransform.getRowPackedCopy(), 3 ) );
+                IJ.log( "Original image transformation: " + MoBIEHelper.print( initialTransform.getRowPackedCopy(), -1 ) );
                 AffineTransform3D additionalTransform = sourceTransform.copy().concatenate( initialTransform.inverse() );
-                IJ.log( "Combined additional transformation: " + MoBIEHelper.print( additionalTransform.getRowPackedCopy(), 3 ) );
-                IJ.log( "Total transformation: " +  MoBIEHelper.print( sourceTransform.getRowPackedCopy(), 3 )  );
+                IJ.log( "Combined additional transformation: " + MoBIEHelper.print( additionalTransform.getRowPackedCopy(), -1 ) );
+                IJ.log( "Total transformation: " +  MoBIEHelper.print( sourceTransform.getRowPackedCopy(), -1 )  );
             }
 
             if ( showTransformationHistory )
