@@ -12,6 +12,10 @@ MoBIE is a Fiji plugin for exploring and sharing big multi-modal image and assoc
 
 The MoBIE was initially developed to explore a cellular atlas for the biological model system _Platynereis dumerilii_, see: [Whole-body integration of gene expression and single-cell morphology](https://www.sciencedirect.com/science/article/pii/S009286742100876X). However, the framework turned out to be so useful and generalisable that it is now used for other projects as well, e.g. see all the repositories ending on "-project" [here](https://github.com/mobie).
 
+## Updates
+
+Please check the [MoBIE Newsfeed](https://forum.image.sc/t/mobie-updates-newsfeed/111262)
+
 ## Cite
 
 If you use MoBIE, please cite:
