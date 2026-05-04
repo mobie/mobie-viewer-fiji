@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.cmd;
 
-import ij.IJ;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.MoBIESettings;
 import picocli.CommandLine;
