@@ -1,0 +1,37 @@
+(Transform "BSplineTransform")
+(NumberOfParameters 32)
+(TransformParameters 360.0 360.0 360.0 360.0 360.0 360.0 360.0 360.0 360.0 360.0 360.0 360.0 360.0 360.0 360.0 360.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0)
+(InitialTransformParametersFileName "NoInitialTransform")
+(HowToCombineTransforms "Compose")
+
+// Image specific
+(FixedImageDimension 2)
+(MovingImageDimension 2)
+(FixedInternalImagePixelType "float")
+(MovingInternalImagePixelType "float")
+(Size 100 100)
+(Index 0 0)
+(Spacing 1.0 1.0)
+(Origin 0.0 0.0)
+(Direction 1.0 0.0 0.0 1.0)
+(UseDirectionCosines "true")
+
+// BSplineTransform specific
+(GridSize 4 4)
+(GridIndex 0 0)
+(GridSpacing 25.0 25.0)
+(GridOrigin -25.0 -25.0)
+(GridDirection 1.0 0.0 0.0 1.0)
+(BSplineTransformSplineOrder 3)
+(UseCyclicTransform "false")
+
+// ResampleInterpolator specific
+(ResampleInterpolator "FinalBSplineInterpolator")
+(FinalBSplineInterpolationOrder 3)
+
+// Resampler specific
+(Resampler "DefaultResampler")
+(DefaultPixelValue 0.0)
+(ResultImageFormat "tif")
+(ResultImagePixelType "short")
+(CompressResultImage "false")

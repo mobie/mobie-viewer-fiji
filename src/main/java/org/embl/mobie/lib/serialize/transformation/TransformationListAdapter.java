@@ -59,6 +59,8 @@ public class TransformationListAdapter implements JsonSerializer< List< Transfor
 		classToName.put( AffineTransformation.class.getName(), "affine");
 		nameToClass.put("thinPlateSpline", ThinPlateSplineTransformation.class);
 		classToName.put( ThinPlateSplineTransformation.class.getName(), "thinPlateSpline");
+		nameToClass.put("elastixBSpline", ElastixBSplineTransformation.class);
+		classToName.put( ElastixBSplineTransformation.class.getName(), "elastixBSpline");
 		nameToClass.put("interpolatedAffine", InterpolatedAffineTransformation.class);
 		classToName.put( InterpolatedAffineTransformation.class.getName(), "interpolatedAffine");
 		nameToClass.put("timepoints", TimepointsTransformation.class);
@@ -94,6 +96,8 @@ public class TransformationListAdapter implements JsonSerializer< List< Transfor
 				jsonArray.add( context.serialize( nameToTransformer , new TypeToken< Map< String, AffineTransformation > >() {}.getType() ) );
 			} else if ( imageTransformation instanceof ThinPlateSplineTransformation ) {
 				jsonArray.add( context.serialize( nameToTransformer , new TypeToken< Map< String, ThinPlateSplineTransformation > >() {}.getType() ) );
+			} else if ( imageTransformation instanceof ElastixBSplineTransformation ) {
+				jsonArray.add( context.serialize( nameToTransformer , new TypeToken< Map< String, ElastixBSplineTransformation > >() {}.getType() ) );
 			} else if ( imageTransformation instanceof CropTransformation ) {
 				jsonArray.add( context.serialize( nameToTransformer , new TypeToken< Map< String, CropTransformation > >() {}.getType() ) );
 			} else if ( imageTransformation instanceof MergedGridTransformation ) {

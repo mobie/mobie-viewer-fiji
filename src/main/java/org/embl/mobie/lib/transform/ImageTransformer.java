@@ -115,6 +115,31 @@ public class ImageTransformer
 		}
 	}
 
+	public static Image< ? > elastixBSplineTransform( Image< ? > image, ElastixBSplineTransformation transformation )
+	{
+		String transformedImageName = getTransformedImageName( transformation.getTransformedImageName( image.getName() ), image.getName() );
+
+		if ( image instanceof AnnotatedLabelImage )
+		{
+			throw new RuntimeException( "Elastix BSpline transformations of label images are not yet implemented..." );
+		}
+		else if ( image instanceof AnnotationImage )
+		{
+			throw new UnsupportedOperationException( "Creating a transformed duplicate of an " + image.getClass() + " is currently not supported." );
+		}
+		else
+		{
+			RealTransformedImage< ? > realTransformedImage =
+					new RealTransformedImage<>(
+							image,
+							transformedImageName,
+							ElastixBSplineRealTransformCreator.create( transformation.getTransformParametersFile() ) );
+
+			realTransformedImage.setTransformation( transformation );
+			return realTransformedImage;
+		}
+	}
+
 	public static Image< ? > timeTransform( Image< ? > image, TimepointsTransformation transformation )
 	{
 		String transformedImageName = transformation.getTransformedImageName( image.getName() );
@@ -256,6 +281,16 @@ public class ImageTransformer
 				DataStore.addImage( transformedImage );
 			}
 
+		}
+		else if ( transformation instanceof ElastixBSplineTransformation )
+		{
+			ElastixBSplineTransformation elastixBSplineTransformation = ( ElastixBSplineTransformation ) transformation;
+
+			for ( Image< ? > image : images )
+			{
+				Image< ? > transformedImage = elastixBSplineTransform( image, elastixBSplineTransformation );
+				DataStore.addImage( transformedImage );
+			}
 		}
 		else if ( transformation instanceof CropTransformation )
 		{

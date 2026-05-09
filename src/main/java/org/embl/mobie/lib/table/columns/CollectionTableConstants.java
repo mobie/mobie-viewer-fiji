@@ -191,6 +191,25 @@ public class CollectionTableConstants
     public static final String TPS = "thin_plate_spline";
 
     /**
+     * The "elastix_bspline" column MAY be present.
+     *
+     * The value points to an Elastix TransformParameters text file for a BSpline transform.
+     *
+     * Supported values:
+     * - Local path to an Elastix TransformParameters file
+     *
+     * Default: No transformation
+     * If the column is absent or the value cannot be parsed/opened, no
+     * additional transformation will be applied on top of the
+     * transformation that is found within the image data itself.
+     *
+     * Notes:
+     * - This transform is applied after the affine transform and after TPS if both are present.
+     * - The transform is assumed to already use the correct physical units of the source.
+     */
+    public static final String ELASTIX_BSPLINE = "elastix_bspline";
+
+    /**
      * The "view" column MAY be present.
      *
      * The value will determine to which view this image will be added,

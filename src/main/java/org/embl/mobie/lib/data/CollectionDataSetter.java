@@ -15,6 +15,7 @@ import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.*;
 import org.embl.mobie.lib.serialize.display.*;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
+import org.embl.mobie.lib.serialize.transformation.ElastixBSplineTransformation;
 import org.embl.mobie.lib.serialize.transformation.GridTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.table.TableDataFormat;
@@ -851,6 +852,29 @@ public class CollectionDataSetter
             {
                 ThinPlateSplineTransformation transformation = new ThinPlateSplineTransformation(
                         "ThinPlateSpline",
+                        string,
+                        Collections.singletonList( sourceName ),
+                        null );
+
+                transformations.add( transformation );
+            }
+        }
+        catch ( Exception e )
+        {
+            // Do not add a transformation
+        }
+
+        // Elastix BSpline (third)
+        try
+        {
+            String string = getString( row, CollectionTableConstants.ELASTIX_BSPLINE );
+            if ( string != null && ! string.isEmpty() )
+            {
+                if ( rootPath != null )
+                    string = IOHelper.combinePath( rootPath, string );
+
+                ElastixBSplineTransformation transformation = new ElastixBSplineTransformation(
+                        "ElastixBSpline",
                         string,
                         Collections.singletonList( sourceName ),
                         null );
