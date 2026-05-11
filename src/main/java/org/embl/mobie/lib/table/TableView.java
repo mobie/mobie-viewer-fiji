@@ -50,6 +50,7 @@ import org.embl.mobie.lib.color.*;
 import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.plot.ScatterPlotSettings;
 import org.embl.mobie.lib.serialize.display.AbstractAnnotationDisplay;
+import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.plot.ScatterPlotView;
 import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.select.SelectionModel;
@@ -576,9 +577,50 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				null,
 				null );
 
+		if ( !view.displays().isEmpty() && view.displays().get( 0 ) instanceof ImageDisplay )
+		{
+			final double[] contrastLimits = getColumnMinMax( columnName );
+			if ( contrastLimits != null )
+			{
+				( ( ImageDisplay< ? > ) view.displays().get( 0 ) )
+						.setContrastLimits( numericAnnotationImage.getName(), contrastLimits );
+			}
+		}
+
 		MoBIE.getInstance().getViewManager().show( view );
 
 		return numericAnnotationImage.getName();
+	}
+
+	private double[] getColumnMinMax( String columnName )
+	{
+		double min = Double.POSITIVE_INFINITY;
+		double max = Double.NEGATIVE_INFINITY;
+
+		for ( A annotation : tableModel.annotations() )
+		{
+			final Double value = annotation.getNumber( columnName );
+			if ( value == null || value.isNaN() || value.isInfinite() )
+				continue;
+
+			if ( value < min ) min = value;
+			if ( value > max ) max = value;
+		}
+
+		if ( !Double.isFinite( min ) || !Double.isFinite( max ) )
+		{
+			IJ.log( "[WARNING] Could not determine contrast limits for column: " + columnName );
+			return null;
+		}
+
+		if ( min == max )
+		{
+			final double pad = min == 0.0 ? 1.0 : Math.abs( min ) * 0.01;
+			min -= pad;
+			max += pad;
+		}
+
+		return new double[]{ min, max };
 	}
 
 	public void showContinueAnnotationDialog()

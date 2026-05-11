@@ -219,6 +219,15 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 		sourceToContrastLimits.put( source, contrastLimits );
 	}
 
+	public void setContrastLimits( String source, double[] contrastLimits )
+	{
+		if ( sourceToContrastLimits.isEmpty() )
+			initContrastLimits();
+
+		sourceToContrastLimits.put( source, contrastLimits );
+		this.contrastLimits = contrastLimits;
+	}
+
 	public void setDisplaySettings( SourceAndConverter< ? > sourceAndConverter )
 	{
 		if ( sourceAndConverter == null )
