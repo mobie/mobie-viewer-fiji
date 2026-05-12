@@ -147,16 +147,22 @@ public class ImageTransformer
 				if ( invert )
 				{
 					IJ.log( "Computing inverse BSpline transform..." );
-					int sampling = 3; // TODO: What makes sense here?
-					double[] origin = ArrayUtils.toPrimitive( elastixTransform.GridOrigin );
-					double[] spacing = Arrays.stream( ArrayUtils.toPrimitive( elastixTransform.GridSpacing ) ).map( x -> x / sampling ).toArray();
-					int[] size = Arrays.stream( ArrayUtils.toPrimitive( elastixTransform.GridSize ) ).map( x -> x * sampling ).toArray();
+
+					final double[] min = ArrayUtils.toPrimitive( elastixTransform.GridOrigin );
+					final double[] gridSpacing = ArrayUtils.toPrimitive( elastixTransform.GridSpacing );
+					final int[] gridSize = ArrayUtils.toPrimitive( elastixTransform.GridSize );
+					final double[] max = new double[ min.length ];
+					for ( int d = 0; d < max.length; d++ )
+						max[ d ] = min[ d ] + gridSpacing[ d ] * gridSize[ d ];
+
+					final int sampling = 3; // TODO: What makes sense here?
+					final double[] spacing = Arrays.stream( gridSpacing ).map( x -> x / sampling ).toArray();
 
 					realTransform = new InverseDisplacementFieldTransformFactory(
 							forwardTransform,
-							origin,
-							spacing,
-							size
+							min,
+							max,
+							spacing
 					).get();
 					IJ.log( "...done." );
 				}
