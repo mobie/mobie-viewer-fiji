@@ -28,7 +28,9 @@
  */
 package org.embl.mobie.lib.transform;
 
+import itc.converters.ElastixBSplineToBSplineRealTransform;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.RealTransform;
 import net.imglib2.type.Type;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
@@ -129,11 +131,21 @@ public class ImageTransformer
 		}
 		else
 		{
+			final RealTransform realTransform;
+			try
+			{
+				realTransform = ElastixBSplineToBSplineRealTransform.loadAndConvert( new java.io.File( transformation.getTransformParametersFile() ) );
+			}
+			catch ( Exception e )
+			{
+				throw new RuntimeException( "Could not create Elastix BSpline transform from: " + transformation.getTransformParametersFile(), e );
+			}
+
 			RealTransformedImage< ? > realTransformedImage =
 					new RealTransformedImage<>(
 							image,
 							transformedImageName,
-							ElastixBSplineRealTransformCreator.create( transformation.getTransformParametersFile() ) );
+							realTransform );
 
 			realTransformedImage.setTransformation( transformation );
 			return realTransformedImage;

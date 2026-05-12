@@ -106,6 +106,7 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
         final AffineTransform3D sourceTransform = new AffineTransform3D();
         source.getSourceTransform( t, level, sourceTransform );
 
+        // NB: The sourceTransform will be applied by BDV, that's why it cancels out here
         final RealTransformSequence totalTransform = new RealTransformSequence();
         totalTransform.add( sourceTransform );
         totalTransform.add( realTransform );

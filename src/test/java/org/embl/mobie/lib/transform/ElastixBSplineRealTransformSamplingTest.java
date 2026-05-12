@@ -1,5 +1,6 @@
 package org.embl.mobie.lib.transform;
 
+import itc.converters.ElastixBSplineToBSplineRealTransform;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.array.ArrayImgs;
@@ -30,8 +31,8 @@ class ElastixBSplineRealTransformSamplingTest
 				.getResource( "/elastix/TransformParameters.BSpline2D.TranslationX.txt" );
 		Assertions.assertNotNull( transformResource, "Missing Elastix BSpline transform test resource" );
 
-		final RealTransform transform = ElastixBSplineRealTransformCreator
-				.create( new File( transformResource.toURI() ).getAbsolutePath() );
+		final RealTransform transform = ElastixBSplineToBSplineRealTransform
+				.loadAndConvert( new File( transformResource.toURI() ) );
 		final double[] source = new double[ 2 ];
 		final double[] target = new double[ 2 ];
 
