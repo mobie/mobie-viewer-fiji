@@ -32,6 +32,7 @@ import bdv.tools.transformation.TransformedSource;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
+import org.embl.mobie.lib.serialize.transformation.TimepointsTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.source.TransformedTimepointSource;
 
@@ -50,13 +51,14 @@ public class TimepointsTransformedImage< T > implements Image< T >, TransformedI
 	private Transformation transformation;
 	private SourcePair< T > sourcePair;
 
-	public TimepointsTransformedImage( Image< T > image, String name, HashMap< Integer, Integer > timepointsMap, boolean keep )
+	public TimepointsTransformedImage( Image< T > image, String name, HashMap< Integer, Integer > timepointsMap, boolean keep, Transformation transformation )
 	{
 		this.image = image;
 		this.transformedImageName = name;
 		this.timepointsMap = timepointsMap;
 		this.keep = keep;
-	}
+        this.transformation = transformation;
+    }
 
 	@Override
 	public synchronized SourcePair< T > getSourcePair()
@@ -118,12 +120,5 @@ public class TimepointsTransformedImage< T > implements Image< T >, TransformedI
 	public Transformation getTransformation()
 	{
 		return transformation;
-	}
-
-	@Override
-	@Deprecated // FIXME This should not be used!
-	public void setTransformation( Transformation transformation )
-	{
-		this.transformation = transformation;
 	}
 }

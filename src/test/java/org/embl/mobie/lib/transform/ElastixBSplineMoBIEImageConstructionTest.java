@@ -62,7 +62,7 @@ class ElastixBSplineMoBIEImageConstructionTest
 				Collections.singletonList( "source" ),
 				Collections.singletonList( "source-bspline" ) );
 
-		final Image< ? > transformedImage = ImageTransformer.elastixBSplineTransform( image, transformation );
+		final Image< ? > transformedImage = ImageTransformer.elastixBSplineTransform( image, transformation, true );
 		Assertions.assertNotNull( transformedImage );
 		Assertions.assertEquals( "source-bspline", transformedImage.getName() );
 		Assertions.assertNotNull( transformedImage.getSourcePair() );

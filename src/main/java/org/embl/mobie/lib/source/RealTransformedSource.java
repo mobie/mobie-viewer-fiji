@@ -38,8 +38,6 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.realtransform.*;
 import net.imglib2.util.Intervals;
-import net.imglib2.view.Views;
-
 
 
 public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, SourceWrapper< T >
@@ -74,7 +72,7 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
     @Override
     public RandomAccessibleInterval<T> getSource( final int t, final int level ) {
 
-        return source.getSource( 0, 0 );
+        return source.getSource( t, level );
 
 //        return Views.interval(
 //                Views.raster(
@@ -88,7 +86,7 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
     private Interval estimateBoundingInterval( final int t, final int level ) {
 
         // TODO: this is currently ignoring the real transform, which may or may not be ok....
-        final Interval wrappedInterval = source.getSource(t, level);
+        final Interval wrappedInterval = source.getSource( t, level );
         AffineTransform3D sourceTransform = new AffineTransform3D();
         source.getSourceTransform( t, level, sourceTransform );
         Interval interval = Intervals.smallestContainingInterval( sourceTransform.estimateBounds( wrappedInterval ) );
@@ -106,11 +104,10 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
         final AffineTransform3D sourceTransform = new AffineTransform3D();
         source.getSourceTransform( t, level, sourceTransform );
 
-        // NB: The sourceTransform will be applied by BDV, that's why it cancels out here
         final RealTransformSequence totalTransform = new RealTransformSequence();
-        totalTransform.add( sourceTransform );
-        totalTransform.add( realTransform );
-        totalTransform.add( sourceTransform.inverse() );
+        totalTransform.add( sourceTransform ); // Map to voxel space
+        totalTransform.add( realTransform ); // Apply real transform in physical space
+        totalTransform.add( sourceTransform.inverse() ); // Remove sourceTransform to stay in physical space
 
         return new RealTransformRealRandomAccessible<>( interpolatedSource, totalTransform );
     }
@@ -119,10 +116,6 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
     public void getSourceTransform(final int t, final int level, final AffineTransform3D transform)
     {
         source.getSourceTransform( t, level, transform );
-        if ( level == 0 )
-        {
-            int a = 1;
-        }
     }
 
     @Override
@@ -165,6 +158,12 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
     public Source< T > getWrappedSource()
     {
         return source;
+    }
+
+    @Override
+    public boolean doBoundingBoxCulling()
+    {
+        return false;
     }
 
     public RealTransform getRealTransform()

@@ -1,6 +1,6 @@
 (Transform "BSplineTransform")
 (NumberOfParameters 3)
-(TransformParameters 2160.0 0.0 0.0)
+(TransformParameters 10.0 0.0 0.0)
 (InitialTransformParametersFileName "NoInitialTransform")
 (HowToCombineTransforms "Compose")
 
@@ -35,4 +35,3 @@
 (ResultImageFormat "mhd")
 (ResultImagePixelType "unsigned char")
 (CompressResultImage "false")
-

@@ -28,10 +28,14 @@
  */
 package org.embl.mobie.lib.transform;
 
+import ij.IJ;
 import itc.converters.ElastixBSplineToBSplineRealTransform;
+import itc.transforms.elastix.ElastixBSplineTransform;
+import itc.transforms.elastix.ElastixTransform;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.RealTransform;
 import net.imglib2.type.Type;
+import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
@@ -44,7 +48,9 @@ import org.embl.mobie.lib.util.MoBIEHelper;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -117,7 +123,7 @@ public class ImageTransformer
 		}
 	}
 
-	public static Image< ? > elastixBSplineTransform( Image< ? > image, ElastixBSplineTransformation transformation )
+	public static Image< ? > elastixBSplineTransform( Image< ? > image, ElastixBSplineTransformation transformation, boolean invert )
 	{
 		String transformedImageName = getTransformedImageName( transformation.getTransformedImageName( image.getName() ), image.getName() );
 
@@ -127,28 +133,51 @@ public class ImageTransformer
 		}
 		else if ( image instanceof AnnotationImage )
 		{
-			throw new UnsupportedOperationException( "Creating a transformed duplicate of an " + image.getClass() + " is currently not supported." );
+			throw new UnsupportedOperationException( "Elastix BSpline transformations of " + image.getClass() + " is currently not supported." );
 		}
 		else
 		{
-			final RealTransform realTransform;
 			try
 			{
-				realTransform = ElastixBSplineToBSplineRealTransform.loadAndConvert( new java.io.File( transformation.getTransformParametersFile() ) );
+				final File transformFile = new File( transformation.getTransformParametersFile() );
+				ElastixBSplineTransform elastixTransform = ( ElastixBSplineTransform ) ElastixTransform.load( transformFile );
+				RealTransform forwardTransform = ElastixBSplineToBSplineRealTransform.convert( elastixTransform );
+
+				final RealTransform realTransform;
+				if ( invert )
+				{
+					IJ.log( "Computing inverse BSpline transform..." );
+					int sampling = 3; // TODO: What makes sense here?
+					double[] origin = ArrayUtils.toPrimitive( elastixTransform.GridOrigin );
+					double[] spacing = Arrays.stream( ArrayUtils.toPrimitive( elastixTransform.GridSpacing ) ).map( x -> x / sampling ).toArray();
+					int[] size = Arrays.stream( ArrayUtils.toPrimitive( elastixTransform.GridSize ) ).map( x -> x * sampling ).toArray();
+
+					realTransform = new InverseDisplacementFieldTransformFactory(
+							forwardTransform,
+							origin,
+							spacing,
+							size
+					).get();
+					IJ.log( "...done." );
+				}
+				else
+				{
+					realTransform = forwardTransform;
+				}
+
+				RealTransformedImage< ? > realTransformedImage =
+						new RealTransformedImage<>(
+								image,
+								transformedImageName,
+								realTransform,
+								transformation );
+
+				return realTransformedImage;
 			}
 			catch ( Exception e )
 			{
-				throw new RuntimeException( "Could not create Elastix BSpline transform from: " + transformation.getTransformParametersFile(), e );
+				throw new RuntimeException( "Could not create inverse Elastix BSpline transform from: " + transformation.getTransformParametersFile(), e );
 			}
-
-			RealTransformedImage< ? > realTransformedImage =
-					new RealTransformedImage<>(
-							image,
-							transformedImageName,
-							realTransform );
-
-			realTransformedImage.setTransformation( transformation );
-			return realTransformedImage;
 		}
 	}
 
@@ -160,10 +189,8 @@ public class ImageTransformer
 				image,
 				transformedImageName == null ? image.getName() : transformedImageName,
 				transformation.getTimepointsMapping(),
-				transformation.isKeep() );
-
-		// FIXME: This should happen in the constructor
-		transformedImage.setTransformation( transformation );
+				transformation.isKeep(),
+				transformation );
 
 		return transformedImage;
 
@@ -182,7 +209,7 @@ public class ImageTransformer
 				new RealTransformedImage<>(
 					image,
 					transformedImageName == null ? image.getName() : transformedImageName,
-					interpolatedTransform );
+					interpolatedTransform, transformation );
 
 		// FIXME: This should be done in the constructor of RealTransformedImage !
 		realTransformedImage.setTransformation( transformation );
@@ -300,7 +327,8 @@ public class ImageTransformer
 
 			for ( Image< ? > image : images )
 			{
-				Image< ? > transformedImage = elastixBSplineTransform( image, elastixBSplineTransformation );
+				boolean invert = true; // FIXME: This may not always be true (but for HITT2T it is)!
+				Image< ? > transformedImage = elastixBSplineTransform( image, elastixBSplineTransformation, invert );
 				DataStore.addImage( transformedImage );
 			}
 		}
