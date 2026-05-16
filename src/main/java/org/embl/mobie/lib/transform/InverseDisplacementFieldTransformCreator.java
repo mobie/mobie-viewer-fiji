@@ -17,6 +17,11 @@ import net.imglib2.type.numeric.real.DoubleType;
  */
 public class InverseDisplacementFieldTransformCreator
 {
+  public interface ProgressListener
+  {
+    void onProgress( int percent );
+  }
+
   private static final double DEFAULT_OPTIMIZER_MAX_STEP = 500.0;
   private static final double DEFAULT_OPTIMIZER_TOLERANCE = 0.5;
   private static final int DEFAULT_OPTIMIZER_MAX_ITERS = 200;
@@ -76,13 +81,23 @@ public class InverseDisplacementFieldTransformCreator
 
   public SampledInverseDisplacement sampleInverseDisplacement()
   {
+    return sampleInverseDisplacement( null );
+  }
+
+  public SampledInverseDisplacement sampleInverseDisplacement( final ProgressListener progressListener )
+  {
     if ( sampled != null )
       return sampled;
 
     final int n = forwardTransform.numSourceDimensions();
     final int[] sourceSamplingSize = samplingSize( sourceDomainMin, sourceDomainMax, inverseSamplingSpacing );
+    final long totalSourceSamples = numberOfSamples( sourceSamplingSize );
     final Domain inverseDomain = estimateInverseDomain( sourceSamplingSize );
     final int[] inverseSamplingSize = samplingSize( inverseDomain.min, inverseDomain.max, inverseSamplingSpacing );
+    final long totalInverseSamples = numberOfSamples( inverseSamplingSize );
+    final long totalSamples = Math.max( 1L, totalSourceSamples + totalInverseSamples );
+    final int[] lastReportedPercent = new int[] { -1 };
+    reportProgress( progressListener, lastReportedPercent, 0 );
 
     final long[] fieldDimensions = new long[ n + 1 ];
     fieldDimensions[ 0 ] = n;
@@ -103,6 +118,7 @@ public class InverseDisplacementFieldTransformCreator
     final double[] forwardPhysical = new double[ n ];
     final long[] idx = new long[ n + 1 ];
     final LocalizingIntervalIterator iterator = new LocalizingIntervalIterator( inverseSamplingSize );
+    long processedInverseSamples = 0L;
     while ( iterator.hasNext() )
     {
       iterator.fwd();
@@ -118,6 +134,10 @@ public class InverseDisplacementFieldTransformCreator
         access.setPosition( idx );
         access.get().set( forwardPhysical[ d ] - inversePhysical[ d ] );
       }
+
+      processedInverseSamples++;
+      final int percent = ( int ) Math.min( 99L, ( totalSourceSamples + processedInverseSamples ) * 100L / totalSamples );
+      reportProgress( progressListener, lastReportedPercent, percent );
     }
 
     sampled = new SampledInverseDisplacement(
@@ -126,6 +146,7 @@ public class InverseDisplacementFieldTransformCreator
         Arrays.copyOf( inverseSamplingSpacing, inverseSamplingSpacing.length ),
         Arrays.copyOf( inverseSamplingSize, inverseSamplingSize.length )
     );
+    reportProgress( progressListener, lastReportedPercent, 100 );
     return sampled;
   }
 
@@ -184,6 +205,27 @@ public class InverseDisplacementFieldTransformCreator
     }
 
     return new Domain( min, max );
+  }
+
+  private static long numberOfSamples( final int[] size )
+  {
+    long samples = 1L;
+    for ( final int s : size )
+      samples *= s;
+    return samples;
+  }
+
+  private static void reportProgress(
+      final ProgressListener listener,
+      final int[] lastReportedPercent,
+      final int percent )
+  {
+    if ( listener == null )
+      return;
+    if ( percent <= lastReportedPercent[ 0 ] )
+      return;
+    lastReportedPercent[ 0 ] = percent;
+    listener.onProgress( percent );
   }
 
   public static final class SampledInverseDisplacement

@@ -19,6 +19,8 @@ public class ElastixBSplineToBSplineRealTransform
 	public static RealTransform convert( final ElastixBSplineTransform elastixBSplineTransform )
 	{
 		final int nd = elastixBSplineTransform.FixedImageDimension;
+		if ( nd != 3 )
+			throw new IllegalArgumentException( "Only 3D Elastix BSpline transforms are currently supported, got " + nd + "D" );
 		return new ElastixBSplineRealTransform(
 				nd,
 				coefficients( elastixBSplineTransform ),

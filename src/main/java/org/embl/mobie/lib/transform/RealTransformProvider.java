@@ -3,6 +3,7 @@ package org.embl.mobie.lib.transform;
 import ij.IJ;
 import net.imglib2.realtransform.RealTransform;
 import org.apache.commons.lang.ArrayUtils;
+import org.embl.mobie.lib.serialize.transformation.DisplacementFieldTransformation;
 import org.embl.mobie.lib.serialize.transformation.ElastixBSplineTransformation;
 import org.embl.mobie.lib.transform.elastix.ElastixBSplineTransform;
 import org.embl.mobie.lib.transform.elastix.ElastixTransform;
@@ -27,6 +28,23 @@ public class RealTransformProvider
 	private static final InverseMode INVERSE_MODE = readInverseMode();
 
 	private final Map< String, RealTransform > elastixBsplineCache = new ConcurrentHashMap<>();
+	private final Map< String, RealTransform > displacementFieldCache = new ConcurrentHashMap<>();
+
+	public RealTransform getDisplacementFieldRealTransform( final DisplacementFieldTransformation transformation ) throws Exception
+	{
+		final String cacheKey = transformation.getDisplacementFieldUri();
+		final RealTransform cached = displacementFieldCache.get( cacheKey );
+		if ( cached != null )
+			return cached;
+
+		final File jsonFile = new File( transformation.getDisplacementFieldUri() );
+		if ( !jsonFile.exists() )
+			throw new IllegalArgumentException( "displacement_field_uri does not exist: " + jsonFile.getAbsolutePath() );
+
+		final RealTransform transform = DisplacementFieldTransformIO.load( jsonFile );
+		displacementFieldCache.put( cacheKey, transform );
+		return transform;
+	}
 
 	public RealTransform getElastixBSplineRealTransform( final ElastixBSplineTransformation transformation, final boolean invert ) throws Exception
 	{

@@ -154,6 +154,38 @@ public class ImageTransformer
 		}
 	}
 
+	public static Image< ? > displacementFieldTransform( Image< ? > image, DisplacementFieldTransformation transformation )
+	{
+		String transformedImageName = getTransformedImageName( transformation.getTransformedImageName( image.getName() ), image.getName() );
+
+		if ( image instanceof AnnotationImage && !( image instanceof AnnotatedLabelImage ) )
+			throw new UnsupportedOperationException( "Displacement field transformations of " + image.getClass() + " are currently not supported." );
+
+		try
+		{
+			final RealTransform realTransform = REAL_TRANSFORM_PROVIDER.getDisplacementFieldRealTransform( transformation );
+
+			if ( image instanceof AnnotatedLabelImage )
+			{
+				return createRealTransformedAnnotatedLabelImage(
+						( AnnotatedLabelImage ) image,
+						transformedImageName,
+						realTransform,
+						transformation );
+			}
+
+			return new RealTransformedImage<>(
+					image,
+					transformedImageName,
+					realTransform,
+					transformation );
+		}
+		catch ( Exception e )
+		{
+			throw new RuntimeException( "Could not create displacement field transform from: " + transformation.getDisplacementFieldUri(), e );
+		}
+	}
+
 	private static < A extends Annotation, TA extends A > DefaultAnnotatedLabelImage< ? > createRealTransformedAnnotatedLabelImage(
 			AnnotatedLabelImage< A > annotatedLabelImage,
 			String transformedImageName,
@@ -353,6 +385,16 @@ public class ImageTransformer
 			{
 				boolean invert = true; // FIXME: This may not always be true (but for HITT2T it is)!
 				Image< ? > transformedImage = elastixBSplineTransform( image, elastixBSplineTransformation, invert );
+				DataStore.addImage( transformedImage );
+			}
+		}
+		else if ( transformation instanceof DisplacementFieldTransformation )
+		{
+			DisplacementFieldTransformation displacementFieldTransformation = ( DisplacementFieldTransformation ) transformation;
+
+			for ( Image< ? > image : images )
+			{
+				Image< ? > transformedImage = displacementFieldTransform( image, displacementFieldTransformation );
 				DataStore.addImage( transformedImage );
 			}
 		}
