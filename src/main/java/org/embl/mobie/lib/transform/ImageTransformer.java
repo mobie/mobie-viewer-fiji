@@ -28,14 +28,11 @@
  */
 package org.embl.mobie.lib.transform;
 
-import ij.IJ;
-import itc.converters.ElastixBSplineToBSplineRealTransform;
-import itc.transforms.elastix.ElastixBSplineTransform;
-import itc.transforms.elastix.ElastixTransform;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.InvertibleRealTransform;
 import net.imglib2.realtransform.RealTransform;
+import net.imglib2.realtransform.inverse.WrappedIterativeInvertibleRealTransform;
 import net.imglib2.type.Type;
-import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
@@ -48,14 +45,14 @@ import org.embl.mobie.lib.util.MoBIEHelper;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public class ImageTransformer
 {
+	private static final RealTransformProvider REAL_TRANSFORM_PROVIDER = new RealTransformProvider();
+
 	public static Image< ? > affineTransform( Image< ? > image, AffineTransformation affineTransformation )
 	{
 		String transformedImageName = getTransformedImageName( affineTransformation.getTransformedImageName( image.getName() ), image.getName() );
@@ -127,64 +124,85 @@ public class ImageTransformer
 	{
 		String transformedImageName = getTransformedImageName( transformation.getTransformedImageName( image.getName() ), image.getName() );
 
-		if ( image instanceof AnnotatedLabelImage )
-		{
-			throw new RuntimeException( "Elastix BSpline transformations of label images are not yet implemented..." );
-		}
-		else if ( image instanceof AnnotationImage )
+		if ( image instanceof AnnotationImage && !( image instanceof AnnotatedLabelImage ) )
 		{
 			throw new UnsupportedOperationException( "Elastix BSpline transformations of " + image.getClass() + " is currently not supported." );
 		}
+
+		try
+		{
+			final RealTransform realTransform = REAL_TRANSFORM_PROVIDER.getElastixBSplineRealTransform( transformation, invert );
+
+			if ( image instanceof AnnotatedLabelImage )
+			{
+				return createRealTransformedAnnotatedLabelImage(
+						( AnnotatedLabelImage ) image,
+						transformedImageName,
+						realTransform,
+						transformation );
+			}
+
+			return new RealTransformedImage<>(
+					image,
+					transformedImageName,
+					realTransform,
+					transformation );
+		}
+		catch ( Exception e )
+		{
+			throw new RuntimeException( "Could not create Elastix BSpline transform from: " + transformation.getTransformParametersFile(), e );
+		}
+	}
+
+	private static < A extends Annotation, TA extends A > DefaultAnnotatedLabelImage< ? > createRealTransformedAnnotatedLabelImage(
+			AnnotatedLabelImage< A > annotatedLabelImage,
+			String transformedImageName,
+			RealTransform realTransform,
+			Transformation transformation )
+	{
+		final Image< ? extends Type< ? > > labelImage = annotatedLabelImage.getLabelImage();
+		final Image< ? extends Type< ? > > transformedLabelImage =
+				( Image< ? extends Type< ? > > ) new RealTransformedImage<>(
+						( Image< Type< ? > > ) labelImage,
+						transformedImageName,
+						realTransform,
+						transformation );
+		final AnnData< A > annData = annotatedLabelImage.getAnnData();
+
+		AnnotationAdapter< A > annotationAdapter = annotatedLabelImage.getAnnotationAdapter();
+
+		if ( annotationAdapter instanceof LazyAnnotatedSegmentAdapter )
+		{
+			return new DefaultAnnotatedLabelImage<>( transformedLabelImage, annData, annotationAdapter );
+		}
 		else
 		{
-			try
-			{
-				final File transformFile = new File( transformation.getTransformParametersFile() );
-				ElastixBSplineTransform elastixTransform = ( ElastixBSplineTransform ) ElastixTransform.load( transformFile );
-				RealTransform forwardTransform = ElastixBSplineToBSplineRealTransform.convert( elastixTransform );
+			final RealTransform annotationTransform = createInverseAnnotationTransform( realTransform );
+			final AnnotationRealTransformer< A, TA > realTransformer =
+					new AnnotationRealTransformer<>( annotationTransform );
 
-				final RealTransform realTransform;
-				if ( invert )
-				{
-					IJ.log( "Computing inverse BSpline transform..." );
+			TransformedAnnData< A, TA > transformedAnnData = new TransformedAnnData<>( annData, realTransformer );
 
-					final double[] min = ArrayUtils.toPrimitive( elastixTransform.GridOrigin );
-					final double[] gridSpacing = ArrayUtils.toPrimitive( elastixTransform.GridSpacing );
-					final int[] gridSize = ArrayUtils.toPrimitive( elastixTransform.GridSize );
-					final double[] max = new double[ min.length ];
-					for ( int d = 0; d < max.length; d++ )
-						max[ d ] = min[ d ] + gridSpacing[ d ] * gridSize[ d ];
+			AnnotationAdapter< TA > newAnnotationAdapter =
+					new DefaultAnnotationAdapter<>(
+							transformedAnnData,
+							annotatedLabelImage.getName() );
 
-					final int sampling = 3; // TODO: What makes sense here?
-					final double[] spacing = Arrays.stream( gridSpacing ).map( x -> x / sampling ).toArray();
-
-					realTransform = new InverseDisplacementFieldTransformFactory(
-							forwardTransform,
-							min,
-							max,
-							spacing
-					).get();
-					IJ.log( "...done." );
-				}
-				else
-				{
-					realTransform = forwardTransform;
-				}
-
-				RealTransformedImage< ? > realTransformedImage =
-						new RealTransformedImage<>(
-								image,
-								transformedImageName,
-								realTransform,
-								transformation );
-
-				return realTransformedImage;
-			}
-			catch ( Exception e )
-			{
-				throw new RuntimeException( "Could not create inverse Elastix BSpline transform from: " + transformation.getTransformParametersFile(), e );
-			}
+			return new DefaultAnnotatedLabelImage<>( transformedLabelImage, transformedAnnData, newAnnotationAdapter );
 		}
+	}
+
+	private static RealTransform createInverseAnnotationTransform( final RealTransform realTransform )
+	{
+		if ( realTransform instanceof InvertibleRealTransform )
+			return ( ( InvertibleRealTransform ) realTransform ).inverse();
+
+		final WrappedIterativeInvertibleRealTransform< RealTransform > wrappedInverse =
+				new WrappedIterativeInvertibleRealTransform<>( realTransform );
+		wrappedInverse.getOptimzer().setMaxStep( 500.0 );
+		wrappedInverse.getOptimzer().setTolerance( 0.5 );
+		wrappedInverse.getOptimzer().setMaxIters( 200 );
+		return wrappedInverse.inverse();
 	}
 
 	public static Image< ? > timeTransform( Image< ? > image, TimepointsTransformation transformation )

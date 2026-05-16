@@ -1,11 +1,12 @@
 package org.embl.mobie.lib.transform;
 
-import itc.converters.ElastixBSplineToBSplineRealTransform;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.realtransform.RealTransform;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import org.embl.mobie.lib.transform.elastix.ElastixBSplineTransform;
+import org.embl.mobie.lib.transform.elastix.ElastixTransform;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -31,8 +32,8 @@ class ElastixBSplineRealTransformSamplingTest
 				.getResource( "/elastix/TransformParameters.BSpline2D.TranslationX.txt" );
 		Assertions.assertNotNull( transformResource, "Missing Elastix BSpline transform test resource" );
 
-		final RealTransform transform = ElastixBSplineToBSplineRealTransform
-				.loadAndConvert( new File( transformResource.toURI() ) );
+		ElastixBSplineTransform elastixTransform = ( ElastixBSplineTransform ) ElastixTransform.load( new File( transformResource.toURI() ) );
+		final RealTransform transform = ElastixBSplineToBSplineRealTransform.convert( elastixTransform );
 		final double[] source = new double[ 2 ];
 		final double[] target = new double[ 2 ];
 

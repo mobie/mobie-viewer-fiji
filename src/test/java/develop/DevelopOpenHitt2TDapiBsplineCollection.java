@@ -3,7 +3,6 @@ package develop;
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import itc.converters.ElastixBSplineToBSplineRealTransform;
 import net.imglib2.RealRandomAccess;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.RealTransform;

@@ -1,8 +1,9 @@
 package develop;
 
-import itc.converters.ElastixBSplineToBSplineRealTransform;
-import itc.transforms.elastix.ElastixTransform;
 import net.imglib2.realtransform.RealTransform;
+import org.embl.mobie.lib.transform.ElastixBSplineToBSplineRealTransform;
+import org.embl.mobie.lib.transform.elastix.ElastixBSplineTransform;
+import org.embl.mobie.lib.transform.elastix.ElastixTransform;
 
 import java.io.File;
 import java.util.Arrays;
@@ -38,7 +39,7 @@ public class DevelopInspectElastixBSplineEffect
 		if ( !transformFile.exists() )
 			throw new IllegalArgumentException( "Transform file not found: " + transformFile.getAbsolutePath() );
 
-		final ElastixTransform elastixTransform = ElastixTransform.load( transformFile );
+		final ElastixBSplineTransform elastixTransform = ( ElastixBSplineTransform ) ElastixTransform.load( transformFile );
 		final RealTransform transform = ElastixBSplineToBSplineRealTransform.convert( elastixTransform );
 
 		final int n = transform.numSourceDimensions();

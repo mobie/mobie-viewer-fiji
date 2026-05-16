@@ -59,8 +59,8 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
         this.name = name;
         this.realTransform = realTransform;
         sourceMipmapOrdering =
-                MipmapOrdering.class.isInstance(source) ?
-                        (MipmapOrdering)source : new DefaultMipmapOrdering(source);
+                source instanceof MipmapOrdering ?
+                        ( MipmapOrdering ) source : null;
     }
 
     @Override
@@ -72,15 +72,17 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
     @Override
     public RandomAccessibleInterval<T> getSource( final int t, final int level ) {
 
+        // TODO: implement transformation?
+
         return source.getSource( t, level );
 
-//        return Views.interval(
-//                Views.raster(
-//                        getInterpolatedSource(
-//                                t,
-//                                level,
-//                                Interpolation.NEARESTNEIGHBOR)),
-//                estimateBoundingInterval(t, level));
+        //        return Views.interval(
+        //                Views.raster(
+        //                        getInterpolatedSource(
+        //                                t,
+        //                                level,
+        //                                Interpolation.NEARESTNEIGHBOR)),
+        //                estimateBoundingInterval(t, level));
     }
 
     private Interval estimateBoundingInterval( final int t, final int level ) {
@@ -148,10 +150,16 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
             final int timepoint,
             final int previousTimepoint) {
 
-        return sourceMipmapOrdering.getMipmapHints(
+        if ( sourceMipmapOrdering != null )
+            return sourceMipmapOrdering.getMipmapHints(
+                    screenTransform,
+                    timepoint,
+                    previousTimepoint);
+
+        return new DefaultMipmapOrdering( source ).getMipmapHints(
                 screenTransform,
                 timepoint,
-                previousTimepoint);
+                previousTimepoint );
     }
 
     @Override

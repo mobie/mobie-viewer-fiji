@@ -64,12 +64,14 @@ public class RealTransformedImage< T > implements Image< T >, TransformedImage
 		final Source< T > source = sourcePair.getSource();
 		final Source< ? extends Volatile< T > > volatileSource = sourcePair.getVolatileSource();
 
-		RealTransformedSource< T > realTransformedSource = new RealTransformedSource<>( source, realTransform, name );
-		RealTransformedSource< ? extends Volatile< T > > realTransformedVolatileSource = new RealTransformedSource<>( volatileSource, realTransform, name );
+		final RealTransformedSource< T > realTransformedSource = new RealTransformedSource<>( source, realTransform, name );
+		final RealTransformedSource< ? extends Volatile< T > > realTransformedVolatileSource =
+				volatileSource == null ? null : new RealTransformedSource<>( volatileSource, realTransform, name );
 
 		// Wrap into a transformed source such that they have a shared affine transform
 		final TransformedSource< T > transformedSource = new TransformedSource<>( realTransformedSource, name );
-		final TransformedSource< ? extends Volatile< T > > volatileTransformedSource = new TransformedSource<>( realTransformedVolatileSource, transformedSource );
+		final TransformedSource< ? extends Volatile< T > > volatileTransformedSource =
+				realTransformedVolatileSource == null ? null : new TransformedSource<>( realTransformedVolatileSource, transformedSource );
 		transformedSource.setFixedTransform( affineTransform3D );
 
 		return new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
