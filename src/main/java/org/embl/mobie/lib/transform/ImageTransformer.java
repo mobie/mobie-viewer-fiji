@@ -265,10 +265,8 @@ public class ImageTransformer
 				new RealTransformedImage<>(
 					image,
 					transformedImageName == null ? image.getName() : transformedImageName,
-					interpolatedTransform, transformation );
-
-		// FIXME: This should be done in the constructor of RealTransformedImage !
-		realTransformedImage.setTransformation( transformation );
+					interpolatedTransform,
+					transformation );
 
 		return realTransformedImage;
 	}

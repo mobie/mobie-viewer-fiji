@@ -30,14 +30,13 @@ package org.embl.mobie.lib.image;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
-import ij.IJ;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.RealTransform;
 import net.imglib2.roi.RealMaskRealInterval;
-import org.embl.mobie.lib.serialize.transformation.ElastixBSplineTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.source.RealTransformedSource;
+import org.embl.mobie.lib.source.SourceHelper;
 
 public class RealTransformedImage< T > implements Image< T >, TransformedImage
 {
@@ -94,11 +93,9 @@ public class RealTransformedImage< T > implements Image< T >, TransformedImage
 	{
 		if ( mask == null )
 		{
-			// TODO: this should be something like
-			//   image.getMask().transform( realTransform.inverse() )
-			//   and probably also include this.affineTransform
-			IJ.log( "[WARN] Masks for " + this.getClass().getName() + " are not yet properly implemented" );
-			return image.getMask();
+			// Estimate from transformed source extents to avoid reusing wrapped masks that do not include real transforms.
+			mask = SourceHelper.estimatePhysicalMask( getSourcePair().getSource(), 0, true );
+			return mask;
 		}
 		else
 			return mask;
@@ -114,11 +111,6 @@ public class RealTransformedImage< T > implements Image< T >, TransformedImage
 	public Image< ? > getWrappedImage()
 	{
 		return image;
-	}
-
-	public void setTransformation( Transformation transformation )
-	{
-		this.transformation = transformation;
 	}
 
 	public Transformation getTransformation()

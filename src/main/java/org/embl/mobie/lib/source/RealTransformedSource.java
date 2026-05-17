@@ -36,8 +36,17 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
-import net.imglib2.realtransform.*;
-import net.imglib2.util.Intervals;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.BoundingBoxEstimation;
+import net.imglib2.realtransform.InvertibleRealTransform;
+import net.imglib2.realtransform.RealTransform;
+import net.imglib2.realtransform.RealTransformRealRandomAccessible;
+import net.imglib2.realtransform.RealTransformSequence;
+import net.imglib2.realtransform.inverse.WrappedIterativeInvertibleRealTransform;
+import net.imglib2.view.Views;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, SourceWrapper< T >
@@ -49,6 +58,11 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
     private final MipmapOrdering sourceMipmapOrdering;
 
     private final RealTransform realTransform;
+
+    private final BoundingBoxEstimation boundingBoxEstimation =
+            new BoundingBoxEstimation( BoundingBoxEstimation.Method.FACES, 5 );
+
+    private final Map< Long, Interval > boundingIntervalCache = new ConcurrentHashMap<>();
 
     public RealTransformedSource(
             final Source<T> source,
@@ -71,28 +85,46 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
 
     @Override
     public RandomAccessibleInterval<T> getSource( final int t, final int level ) {
+        final Interval interval = boundingIntervalCache.computeIfAbsent(
+                cacheKey( t, level ),
+                key -> estimateBoundingInterval( t, level ) );
 
-        // TODO: implement transformation?
+        return Views.interval(
+                Views.raster( getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR ) ),
+                interval );
+    }
 
-        return source.getSource( t, level );
-
-        //        return Views.interval(
-        //                Views.raster(
-        //                        getInterpolatedSource(
-        //                                t,
-        //                                level,
-        //                                Interpolation.NEARESTNEIGHBOR)),
-        //                estimateBoundingInterval(t, level));
+    private static long cacheKey( final int t, final int level )
+    {
+        return ( ( long ) t << 32 ) | ( level & 0xffffffffL );
     }
 
     private Interval estimateBoundingInterval( final int t, final int level ) {
 
-        // TODO: this is currently ignoring the real transform, which may or may not be ok....
-        final Interval wrappedInterval = source.getSource( t, level );
-        AffineTransform3D sourceTransform = new AffineTransform3D();
+        final AffineTransform3D sourceTransform = new AffineTransform3D();
         source.getSourceTransform( t, level, sourceTransform );
-        Interval interval = Intervals.smallestContainingInterval( sourceTransform.estimateBounds( wrappedInterval ) );
-        return interval;
+
+        final InvertibleRealTransform invertible;
+        if ( realTransform instanceof InvertibleRealTransform )
+            invertible = ( ( InvertibleRealTransform ) realTransform ).copy();
+        else
+            invertible = new WrappedIterativeInvertibleRealTransform<>( realTransform.copy() );
+
+        if ( invertible instanceof WrappedIterativeInvertibleRealTransform )
+        {
+            @SuppressWarnings( "rawtypes" )
+            final WrappedIterativeInvertibleRealTransform wrapped =
+                    ( WrappedIterativeInvertibleRealTransform ) invertible;
+            wrapped.getOptimzer().setMaxStep( 500.0 );
+        }
+
+        // Map output local voxel coordinates to wrapped-source local voxel coordinates.
+        final RealTransformSequence inverseChain = new RealTransformSequence();
+        inverseChain.add( sourceTransform );
+        inverseChain.add( invertible.inverse() );
+        inverseChain.add( sourceTransform.inverse() );
+
+        return boundingBoxEstimation.estimatePixelInterval( inverseChain, source.getSource( t, level ) );
     }
 
     @Override
@@ -108,7 +140,7 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
 
         final RealTransformSequence totalTransform = new RealTransformSequence();
         totalTransform.add( sourceTransform ); // Map to voxel space
-        totalTransform.add( realTransform ); // Apply real transform in physical space
+        totalTransform.add( realTransform.copy() ); // Apply real transform in physical space
         totalTransform.add( sourceTransform.inverse() ); // Remove sourceTransform to stay in physical space
 
         return new RealTransformRealRandomAccessible<>( interpolatedSource, totalTransform );
