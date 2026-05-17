@@ -1,0 +1,37 @@
+(Transform "BSplineTransform")
+(NumberOfParameters 3)
+(TransformParameters 10.0 0.0 0.0)
+(InitialTransformParametersFileName "NoInitialTransform")
+(HowToCombineTransforms "Compose")
+
+// Image specific
+(FixedImageDimension 3)
+(MovingImageDimension 3)
+(FixedInternalImagePixelType "float")
+(MovingInternalImagePixelType "float")
+(Size 100 100 100)
+(Index 0 0 0)
+(Spacing 1.0 1.0 1.0)
+(Origin 0.0 0.0 0.0)
+(Direction 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0)
+(UseDirectionCosines "true")
+
+// BSplineTransform specific
+(GridSize 1 1 1)
+(GridIndex 0 0 0)
+(GridSpacing 1.0 1.0 1.0)
+(GridOrigin 0.0 0.0 0.0)
+(GridDirection 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0)
+(BSplineTransformSplineOrder 3)
+(UseCyclicTransform "false")
+
+// ResampleInterpolator specific
+(ResampleInterpolator "FinalBSplineInterpolator")
+(FinalBSplineInterpolationOrder 3)
+
+// Resampler specific
+(Resampler "DefaultResampler")
+(DefaultPixelValue 0.0)
+(ResultImageFormat "mhd")
+(ResultImagePixelType "unsigned char")
+(CompressResultImage "false")

@@ -12,7 +12,7 @@ public class DevelopHITT2T
         imageJ.ui().showUI();
 
         OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
-        command.tableUri = "/Users/tischer/Desktop/hitt2t/mobie-s3.xlsx";
+        command.tableUri = "/Users/tischer/Desktop/hitt2t/Tischi-Mobie-Bspline/mobie.csv";
         command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.PathsInTableAreAbsolute;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();

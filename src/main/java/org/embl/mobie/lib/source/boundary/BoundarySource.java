@@ -63,6 +63,12 @@ public class BoundarySource< T extends Type< T > > extends AbstractBoundarySourc
             if ( input.valueEquals( background ) )
                 return;
 
+
+            // FIXME: This code works well for non-overlapping objects, but for RegionAnnotationImage this creates wrong additional boundaries if one Image
+            //        overlaps with another or fully contains it; in this case only the outermost boundaries of
+            //        of each image should be rendered. I don't know if this can be deduced here...probably not.
+            //        Maybe for rendering boundaries of a RegionAnnotationImage one should rely on another mechanism?
+
             // check whether input is a boundary pixel
             for ( Integer d : dimensions )
             {

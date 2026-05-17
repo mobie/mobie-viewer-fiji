@@ -75,12 +75,6 @@ public class ThinPlateSplineTransformedImage< T > implements Image< T >, Transfo
 	}
 
 	@Override
-	public void setTransformation( Transformation transformation )
-	{
-		this.transformation = transformation;
-	}
-
-	@Override
 	public synchronized SourcePair< T > getSourcePair()
 	{
 		if ( sourcePair == null )

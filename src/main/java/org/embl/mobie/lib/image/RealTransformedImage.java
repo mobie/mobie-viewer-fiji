@@ -34,9 +34,9 @@ import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.RealTransform;
 import net.imglib2.roi.RealMaskRealInterval;
-import org.embl.mobie.lib.serialize.transformation.InterpolatedAffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.source.RealTransformedSource;
+import org.embl.mobie.lib.source.SourceHelper;
 
 public class RealTransformedImage< T > implements Image< T >, TransformedImage
 {
@@ -47,12 +47,13 @@ public class RealTransformedImage< T > implements Image< T >, TransformedImage
 	private final AffineTransform3D affineTransform3D = new AffineTransform3D();
 	private Transformation transformation;
 
-	public RealTransformedImage( Image< T > image, String name, RealTransform realTransform )
+	public RealTransformedImage( Image< T > image, String name, RealTransform realTransform, Transformation transformation )
 	{
 		this.image = image;
 		this.name = name;
 		this.realTransform = realTransform;
-	}
+        this.transformation = transformation;
+    }
 
 	@Override
 	public synchronized SourcePair< T > getSourcePair()
@@ -62,12 +63,14 @@ public class RealTransformedImage< T > implements Image< T >, TransformedImage
 		final Source< T > source = sourcePair.getSource();
 		final Source< ? extends Volatile< T > > volatileSource = sourcePair.getVolatileSource();
 
-		RealTransformedSource< T > realTransformedSource = new RealTransformedSource<>( source, realTransform, name );
-		RealTransformedSource< ? extends Volatile< T > > realTransformedVolatileSource = new RealTransformedSource<>( volatileSource, realTransform, name );
+		final RealTransformedSource< T > realTransformedSource = new RealTransformedSource<>( source, realTransform, name );
+		final RealTransformedSource< ? extends Volatile< T > > realTransformedVolatileSource =
+				volatileSource == null ? null : new RealTransformedSource<>( volatileSource, realTransform, name );
 
 		// Wrap into a transformed source such that they have a shared affine transform
 		final TransformedSource< T > transformedSource = new TransformedSource<>( realTransformedSource, name );
-		final TransformedSource< ? extends Volatile< T > > volatileTransformedSource = new TransformedSource<>( realTransformedVolatileSource, transformedSource );
+		final TransformedSource< ? extends Volatile< T > > volatileTransformedSource =
+				realTransformedVolatileSource == null ? null : new TransformedSource<>( realTransformedVolatileSource, transformedSource );
 		transformedSource.setFixedTransform( affineTransform3D );
 
 		return new DefaultSourcePair<>( transformedSource, volatileTransformedSource );
@@ -90,11 +93,9 @@ public class RealTransformedImage< T > implements Image< T >, TransformedImage
 	{
 		if ( mask == null )
 		{
-			// TODO: this should be something like
-			//   image.getMask().transform( realTransform.inverse() )
-			//   and probably also include this.affineTransform
-			System.err.println( "Masks for " + this.getClass().getName() + " are not yet properly implemented" );
-			return image.getMask();
+			// Estimate from transformed source extents to avoid reusing wrapped masks that do not include real transforms.
+			mask = SourceHelper.estimatePhysicalMask( getSourcePair().getSource(), 0, true );
+			return mask;
 		}
 		else
 			return mask;
@@ -110,11 +111,6 @@ public class RealTransformedImage< T > implements Image< T >, TransformedImage
 	public Image< ? > getWrappedImage()
 	{
 		return image;
-	}
-
-	public void setTransformation( Transformation transformation )
-	{
-		this.transformation = transformation;
 	}
 
 	public Transformation getTransformation()

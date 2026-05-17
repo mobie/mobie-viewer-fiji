@@ -15,6 +15,8 @@ import org.embl.mobie.lib.io.StorageLocation;
 import org.embl.mobie.lib.serialize.*;
 import org.embl.mobie.lib.serialize.display.*;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
+import org.embl.mobie.lib.serialize.transformation.DisplacementFieldTransformation;
+import org.embl.mobie.lib.serialize.transformation.ElastixBSplineTransformation;
 import org.embl.mobie.lib.serialize.transformation.GridTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.embl.mobie.lib.table.TableDataFormat;
@@ -28,6 +30,7 @@ import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.selection.Selection;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -841,7 +844,60 @@ public class CollectionDataSetter
             // Do not add a transformation
         }
 
-        // TPS (second)
+                // Displacement field (second)
+                if ( columnExists( CollectionTableConstants.DISPLACEMENT_FIELD_URI ) )
+                {
+                  try
+                  {
+                    String string = getString( row, CollectionTableConstants.DISPLACEMENT_FIELD_URI );
+                    if ( string != null && !string.isEmpty() )
+                    {
+                      if ( rootPath != null )
+                        string = IOHelper.combinePath( rootPath, string );
+
+                      final File displacementFile = new File( string );
+                      if ( !displacementFile.exists() )
+                        throw new IllegalArgumentException( "displacement_field_uri does not exist: " + displacementFile.getAbsolutePath() );
+
+                      DisplacementFieldTransformation transformation = new DisplacementFieldTransformation(
+                          "DisplacementField",
+                          string,
+                          Collections.singletonList( sourceName ),
+                          null );
+
+                      transformations.add( transformation );
+                    }
+                  }
+                  catch ( Exception e )
+                  {
+                    throw new RuntimeException( "Failed to configure displacement_field_uri transform for source '" + sourceName + "'", e );
+                  }
+                }
+
+            // Elastix BSpline (third)
+            try
+            {
+              String string = getString( row, CollectionTableConstants.ELASTIX_BSPLINE );
+              if ( string != null && ! string.isEmpty() )
+              {
+                if ( rootPath != null )
+                  string = IOHelper.combinePath( rootPath, string );
+
+                ElastixBSplineTransformation transformation = new ElastixBSplineTransformation(
+                    "ElastixBSpline",
+                    string,
+                    Collections.singletonList( sourceName ),
+                    null );
+
+                transformations.add( transformation );
+              }
+            }
+            catch ( Exception e )
+            {
+              // Do not add a transformation
+            }
+
+            // TPS (fourth)
         try
         {
             String string = getString( row, CollectionTableConstants.TPS );

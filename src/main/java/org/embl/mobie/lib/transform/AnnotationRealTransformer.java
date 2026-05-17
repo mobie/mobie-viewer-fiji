@@ -6,13 +6,13 @@
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -26,11 +26,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.lib.image;
+package org.embl.mobie.lib.transform;
 
-import org.embl.mobie.lib.serialize.transformation.Transformation;
+import net.imglib2.realtransform.RealTransform;
+import org.embl.mobie.lib.annotation.AnnotatedSpot;
+import org.embl.mobie.lib.annotation.Annotation;
 
-public interface TransformedImage extends ImageWrapper
+public class AnnotationRealTransformer< A extends Annotation, TA extends A > implements AnnotationTransformer< A, TA >
 {
-    Transformation getTransformation();
+	private final RealTransform realTransform;
+
+	public AnnotationRealTransformer( final RealTransform realTransform )
+	{
+		this.realTransform = realTransform;
+	}
+
+	@Override
+	public TA transform( final A annotation )
+	{
+		if ( annotation instanceof AnnotatedSpot )
+		{
+			final RealTransformedAnnotatedSpot transformedSpot =
+					new RealTransformedAnnotatedSpot( ( AnnotatedSpot ) annotation, realTransform );
+			return ( TA ) transformedSpot;
+		}
+
+		throw new UnsupportedOperationException(
+				"Real transformation of " + annotation.getClass().getName() + " is currently not supported." );
+	}
 }
+
