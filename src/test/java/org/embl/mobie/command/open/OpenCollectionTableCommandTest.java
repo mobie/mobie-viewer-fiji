@@ -113,13 +113,12 @@ public class OpenCollectionTableCommandTest
     @Test
     public void addImageTwice()
     {
+        // https://github.com/mobie/mobie-viewer-fiji/issues/1244
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
 
-        OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
-        command.tableUri = new File("src/test/resources/collections/blobs-image-twice-collection.txt").getAbsolutePath();
-        command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
-        //command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = new File("src/test/resources/collections/blobs-image-twice-collection.csv").getAbsolutePath();
         command.run();
     }
 
@@ -494,14 +493,14 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
         //new OpenCollectionTableCommandTest().blobsAndMri();
-        //new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
+        new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
         //new OpenCollectionTableCommandTest().segmentedNuclei();
         //new OpenCollectionTableCommandTest().thinPlateSplinePlatyGoogleSheet();
         //new OpenCollectionTableCommandTest().manyGroups();
         //new OpenCollectionTableCommandTest().autoContrastBlobs();
         //new OpenCollectionTableCommandTest().mix2d3d();
         //new OpenCollectionTableCommandTest().grid();
-        new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
+        //new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
         System.out.println("MoBIE loaded. Press ENTER to exit...");
         try {
             System.in.read();

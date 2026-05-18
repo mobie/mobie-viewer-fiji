@@ -226,12 +226,12 @@ public class ViewManager
 		return currentDisplays;
 	}
 
-	public Map< String, SegmentationDisplay > getCurrentSegmentationDisplays()
+	public List< SegmentationDisplay > getCurrentSegmentationDisplays()
 	{
 		return currentDisplays.stream()
 				.filter( d -> d instanceof SegmentationDisplay )
-				.collect( Collectors.toMap( Display::getName, d -> (SegmentationDisplay) d ) );
-
+				.map( d -> ( SegmentationDisplay ) d )
+				.collect( Collectors.toList() );
 	}
 
 	public SliceViewer getSliceViewer()

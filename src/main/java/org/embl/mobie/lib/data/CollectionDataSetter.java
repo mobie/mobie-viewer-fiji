@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 public class CollectionDataSetter
 {
     public static final String NO_GRID_POSITION = "no grid position";
+    public static final String REGIONS = "regions: ";
     private final Table table;
     private final String rootPath;
 
@@ -109,20 +110,23 @@ public class CollectionDataSetter
             }
             else
             {
-                List< List< String > > nestedViewSources = new ArrayList<>();
+                List< List< String > > viewSources = new ArrayList<>();
                 viewToDisplays.get( viewName ).values().forEach( display ->
                 {
                     display.getSources().forEach(
                             source ->
-                            nestedViewSources.add( Collections.singletonList( source) )
+                            viewSources.add( Collections.singletonList( source) )
                     );
                 } );
 
                 // Note that the region name must be unique because it will be instantiated as an image.
                 // The viewName alone may be the same as an image name, which would lead to a crash,
                 // because it will "overwrite" the image.
-                Display< ? > regionDisplay = createRegionDisplay( dataset, "regions: " + viewName, nestedViewSources, false );
-                viewToDisplays.get( viewName ).put( regionDisplay.getName(), regionDisplay );
+                if ( viewSources.size() > 1 )
+                {
+                    Display< ? > regionDisplay = createRegionDisplay( dataset, REGIONS + viewName, viewSources, false );
+                    viewToDisplays.get( viewName ).put( regionDisplay.getName(), regionDisplay );
+                }
             }
 
             ArrayList< Display< ? > > sourceDisplays = new ArrayList<>( viewToDisplays.get( viewName ).values() );
@@ -196,7 +200,7 @@ public class CollectionDataSetter
                 transformations.add( grid );
             }
 
-            Display< ? > regionDisplay = createRegionDisplay( dataset, gridName, nestedSources, true );
+            Display< ? > regionDisplay = createRegionDisplay( dataset, REGIONS + gridName, nestedSources, true );
             viewToDisplays.get( viewName ).put( regionDisplay.getName(), regionDisplay );
         });
     }
@@ -261,26 +265,6 @@ public class CollectionDataSetter
 
         for ( String source : firstSources )
             regionDisplay.sources.put( source, Collections.singletonList( source ) );
-
-        // This happens now in the ViewManager, which is more lazy if there are many views
-//        DataSource dataSource = dataset.sources().get( firstSources.get( 0 ) );
-//        if ( dataSource instanceof ImageDataSource )
-//        {
-//            IJ.log( "\nFetching timepoints metadata from " + firstSources.get( 0 ) );
-//            try
-//            {
-//                Map.Entry< ImageDataFormat, StorageLocation > formatAndStorage = ( ( ImageDataSource ) dataSource ).imageData.entrySet().iterator().next();
-//                ImageData< ? > imageData = ImageDataOpener.open( formatAndStorage.getValue().absolutePath, formatAndStorage.getKey(), ThreadHelper.sharedQueue );
-//                int numTimePoints = SourceHelper.getNumTimePoints( imageData.getSourcePair( 0 ).getB() );
-//                IJ.log( "Number of timepoints: " + numTimePoints );
-//                for ( int t = 0; t < numTimePoints; t++ )
-//                    regionDisplay.timepoints().add( t );
-//            }
-//            catch ( Exception e )
-//            {
-//                IJ.log( "[WARNING] Failed to fetch timepoints metadata.");
-//            }
-//        }
 
         return regionDisplay;
     }
@@ -538,7 +522,6 @@ public class CollectionDataSetter
         }
     }
 
-
     private String getGridName( Row row )
     {
         if ( row.columnNames().contains( CollectionTableConstants.GRID ) )
@@ -548,7 +531,7 @@ public class CollectionDataSetter
             if ( gridName.isEmpty() )
                 return null;
             else
-                return getViewName( row ) + ": " + gridName;
+                return gridName;
 
         }
         else if ( row.columnNames().contains( CollectionTableConstants.GRID_POSITION ) )
@@ -658,14 +641,19 @@ public class CollectionDataSetter
     private String getDisplayName( Row row )
     {
         if ( row.columnNames().contains( CollectionTableConstants.DISPLAY  ) )
-            return getString( row, CollectionTableConstants.DISPLAY );
+        {
+            String displayName = getString( row, CollectionTableConstants.DISPLAY );
+            if ( displayName != null && !displayName.trim().isEmpty() )
+                return displayName;
+        }
 
         if ( row.columnNames().contains( CollectionTableConstants.GRID  ) )
-            return getString( row, CollectionTableConstants.GRID );
-
-        if ( row.columnNames().contains( CollectionTableConstants.VIEW  ) )
-            return getString( row, CollectionTableConstants.VIEW ) + ": " + getDataName( row );
-
+        {
+            String gridName = getString( row, CollectionTableConstants.GRID );
+            if ( gridName != null && !gridName.trim().isEmpty() )
+                return gridName;
+        }
+        
         return getDataName( row );
     }
 

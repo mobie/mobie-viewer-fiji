@@ -191,7 +191,7 @@ public class CollectionTableConstants
     public static final String TPS = "thin_plate_spline";
 
     /**
-     * The "elastix_bspline" column MAY be present.
+     * The "elastix_bspline_uri" column MAY be present.
      *
      * The value points to an Elastix TransformParameters text file for a BSpline transform.
      *
@@ -207,7 +207,7 @@ public class CollectionTableConstants
      * - This transform is applied after the affine transform and after TPS if both are present.
      * - The transform is assumed to already use the correct physical units of the source.
      */
-    public static final String ELASTIX_BSPLINE = "elastix_bspline";
+    public static final String ELASTIX_BSPLINE = "elastix_bspline_uri";
 
     /**
      * The "displacement_field_uri" column MAY be present.

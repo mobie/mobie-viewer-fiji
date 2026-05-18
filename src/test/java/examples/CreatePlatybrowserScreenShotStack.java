@@ -15,7 +15,7 @@ import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.Map;
+import java.util.List;
 
 // Groovy port: /Users/tischer/Documents/mobie-viewer-fiji/scripts/screenshotAndNumericAnnotationDisplay.groovy
 public class CreatePlatybrowserScreenShotStack
@@ -67,8 +67,12 @@ public class CreatePlatybrowserScreenShotStack
         bdvHandle.getViewerPanel().state().setSourceActive( cellsSource, false );
 
         // Create a new numeric annotation image display...
-        Map< String, SegmentationDisplay > displays = moBIE.getViewManager().getCurrentSegmentationDisplays();
-        String name = displays.get( "cells" ).getTableView().createNumericAnnotationDisplay( "anchor_x" );
+            List< SegmentationDisplay > displays = moBIE.getViewManager().getCurrentSegmentationDisplays();
+            SegmentationDisplay cellsDisplay = displays.stream()
+                .filter( display -> display.getName().equals( "cells" ) )
+                .findFirst()
+                .orElseThrow( () -> new IllegalStateException( "Could not find segmentation display 'cells'." ) );
+            String name = cellsDisplay.getTableView().createNumericAnnotationDisplay( "anchor_x" );
 
         // ...and change its display settings
         SourceAndConverter< ? > source = getSource( bdvHandle, name );

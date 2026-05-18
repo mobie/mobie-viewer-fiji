@@ -21,7 +21,7 @@ public class RealTransformProvider
 		PRECOMPUTED_DISPLACEMENT_FIELD
 	}
 
-	private static final int INVERSE_SAMPLING_FACTOR = 3;
+	private static final int INVERSE_SAMPLING_FACTOR = 1;
 	private static final int INVERSE_MAX_ITERATIONS = 80;
 	private static final double INVERSE_TOLERANCE = 1e-6;
 	private static final double INVERSE_DAMPING = 1.0;

@@ -133,7 +133,9 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AbstractAnnotatio
 	public SpotDisplay( SpotDisplay< ? extends Annotation > spotDisplay )
 	{
 		super( spotDisplay );
-
+		this.sources = new ArrayList<>( spotDisplay.getSources() );
+		this.spotRadiusZ = spotDisplay.spotRadiusZ;
+		
 		// set fields specific to SpotDisplay
 		final SourceAndConverter< ? extends AnnotationType< ? extends Annotation > > sourceAndConverter = spotDisplay.sourceAndConverters().get( 0 );
 

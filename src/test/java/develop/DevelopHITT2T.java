@@ -13,6 +13,7 @@ public class DevelopHITT2T
 
         OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
         command.tableUri = "/Users/tischer/Desktop/hitt2t/Tischi-Mobie-Bspline/mobie.csv";
+        command.tableUri = "/Users/tischer/Desktop/hitt2t/Full-Res/mobie_ki.csv";
         command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.PathsInTableAreAbsolute;
         command.bdvViewingModeEnum = BdvViewingMode.ThreeDimensional;
         command.run();
