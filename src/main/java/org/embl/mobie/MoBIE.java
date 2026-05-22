@@ -28,10 +28,8 @@
  */
 package org.embl.mobie;
 
-import IceInternal.Ex;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import ij.IJ;
 import ij.WindowManager;
 import loci.common.DebugTools;
@@ -65,6 +63,7 @@ import org.jetbrains.annotations.NotNull;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import software.amazon.awssdk.services.s3.S3Client;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
@@ -91,8 +90,8 @@ public class MoBIE
 
 		new Thread(() -> {
 			long start = System.currentTimeMillis();
-			AmazonS3ClientBuilder.standard();
-			IJ.log( "( Initialised AmazonS3ClientBuilder in " + ( System.currentTimeMillis() -start ) + " ms. )" );
+			S3Client.builder();
+			IJ.log( "( Initialised S3Client.builder in " + ( System.currentTimeMillis() - start ) + " ms. )" );
 		}).start();
 	}
 

@@ -115,6 +115,19 @@
         <tablesaw-excel.version>0.43.1</tablesaw-excel.version>
         <tablesaw-parquet.version>0.11.0</tablesaw-parquet.version>
 
+        <!-- NB: This should be removed once Fiji ships the release versions (and there is a corresponding parent pom)-->
+        <n5-viewer_fiji.version>6.2.0</n5-viewer_fiji.version>
+        <n5.version>4.0.0</n5.version>
+        <n5-aws-s3.version>5.0.0</n5-aws-s3.version>
+        <n5-blosc.version>2.0.0</n5-blosc.version>
+        <n5-google-cloud.version>6.0.0</n5-google-cloud.version>
+        <n5-hdf5.version>3.0.0</n5-hdf5.version>
+        <n5-ij.version>5.0.0</n5-ij.version>
+        <n5-imglib2.version>8.0.0</n5-imglib2.version>
+        <n5-universe.version>3.0.0</n5-universe.version>
+        <n5-zarr.version>2.0.0</n5-zarr.version>
+        <n5-zstandard.version>2.0.0</n5-zstandard.version>
+
         <!-- NB: Deploy releases to the SciJava Maven repository. -->
         <releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
 
@@ -131,8 +144,9 @@
     </repositories>
     <dependencies>
         <dependency>
-            <groupId>sc.fiji</groupId>
-            <artifactId>bigwarp_fiji</artifactId>
+            <groupId>org.embl.mobie</groupId>
+            <artifactId>mobie-io</artifactId>
+            <version>${mobie-io.version}</version>
         </dependency>
         <dependency>
             <groupId>net.imagej</groupId>
@@ -142,6 +156,10 @@
             <!-- SIFT Registration, TODO: does this ship with Fiji anyway? -->
             <groupId>mpicbg</groupId>
             <artifactId>mpicbg</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sc.fiji</groupId>
+            <artifactId>bigwarp_fiji</artifactId>
         </dependency>
         <dependency>
             <!-- TurboReg Registration, TODO: could come from update site BIG-EPFL -->
@@ -175,11 +193,6 @@
         <dependency>
             <groupId>sc.fiji</groupId>
             <artifactId>spim_data</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.embl.mobie</groupId>
-            <artifactId>mobie-io</artifactId>
-            <version>${mobie-io.version}</version>
         </dependency>
             <!--
             Temporary: MoBIE currently vendors the needed elastix BSpline code in lib/transform.
