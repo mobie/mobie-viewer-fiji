@@ -146,10 +146,10 @@ public class MoBIE
 			dataSetter.addTableToDataset( dataset );
 			dataset.is2D( settings.values.getBdvViewingMode().equals( BdvViewingMode.TwoDimensional ) );
 
-			// Check for addition view.json files
+			// Check for additional view JSON files
 			if ( IOHelper.getType( projectUri ).equals( ResourceType.FILE ) )
 			{
-				// Find all .json files in the table parent dir
+				// Find all JSON files in the table dir
 				// and try to load them as views
 				String parentDir = getParentLocation( projectUri );
 				Files.walk( Paths.get( parentDir ), 1 )
@@ -169,10 +169,18 @@ public class MoBIE
 								// JSON file could not be parsed
 								IJ.log("[WARNING] Additional views parsing failed: " + p );
 							}
-						});
+						}
+				);
 			}
 
-			initUiAndShowView( dataset.views().values().iterator().next().getName() );
+			if ( dataset.views().keySet().contains( "default" ) )
+			{
+				initUiAndShowView( "default" );
+			}
+			else
+			{
+				initUiAndShowView( dataset.views().values().iterator().next().getName() );
+			}
 		}
 		else if ( settings.values.getProjectType().equals( ProjectType.MoBIEJSON ) )
 		{

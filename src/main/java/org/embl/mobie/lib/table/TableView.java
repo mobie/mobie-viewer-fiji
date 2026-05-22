@@ -653,10 +653,9 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		final boolean isNumeric = tableModel.numericColumnNames().contains( columnName );
 
-		double selectedNumber = 0.0;
 		if ( isNumeric )
 		{
-			selectedNumber = Double.parseDouble( value );
+			double selectedNumber = Double.parseDouble( value );
 			for( A row: rows )
 				if ( row.getNumber( columnName ).equals( selectedNumber ) )
 					selectedRows.add( row );
