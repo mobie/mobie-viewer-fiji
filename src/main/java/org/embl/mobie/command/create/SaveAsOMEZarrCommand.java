@@ -58,7 +58,7 @@ public class SaveAsOMEZarrCommand extends DynamicCommand implements Initializabl
             description = "Set to -1 to save images as OME-Zarr v0.4 with Zarr v2\n" +
                     "Specifying a number here will save images as OME-Zarr v0.5 with Zarr v3\n" +
                     "The shard size must be larger than the chunk size as one shard contains multiple chunks.\n" +
-                    "The larger the shard size the less files you will have on your disk\n" +
+                    "Choosing a larger shard size will create less files you will have on your disk\n" +
                     "Writing performance will be optimal if the number of shards equals the number of processors on your computer." )
     public int shardSizeMB = -1;
 
