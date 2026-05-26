@@ -120,10 +120,11 @@ public class DevelopOpenHitt2TDapiBsplineCollection
 	{
 		final ElastixBSplineTransformation transformation = new ElastixBSplineTransformation(
 				"ElastixBSpline",
+                true,
 				bsplineFile.getAbsolutePath(),
 				Collections.singletonList( image.getName() ),
 				Collections.singletonList( image.getName() + "_bspline" ) );
-		return ImageTransformer.elastixBSplineTransform( image, transformation, true );
+		return ImageTransformer.elastixBSplineTransform( image, transformation );
 	}
 
 	private static double[] worldToLocal( final AffineTransform3D worldFromLocal, final double[] world )

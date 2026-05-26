@@ -31,6 +31,7 @@ import tech.tablesaw.api.Table;
 import tech.tablesaw.selection.Selection;
 
 import java.io.File;
+import java.net.URI;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -865,16 +866,25 @@ public class CollectionDataSetter
             // Elastix BSpline (third)
             try
             {
-              String string = getString( row, CollectionTableConstants.ELASTIX_BSPLINE );
-              if ( string != null && ! string.isEmpty() )
+              String bsplineUrl = getString( row, CollectionTableConstants.ELASTIX_BSPLINE );
+              if ( bsplineUrl != null && ! bsplineUrl.isEmpty() )
               {
+                URI uri = new URI(bsplineUrl);
+
+                String query = uri.getQuery();
+                boolean invert = false;
+                if ( query != null )
+                    invert = query.contains( "invert" );
+
+                String path = uri.getPath();
                 if ( rootPath != null )
-                  string = IOHelper.combinePath( rootPath, string );
+                    path = IOHelper.combinePath( rootPath, path );
 
                 ElastixBSplineTransformation transformation = new ElastixBSplineTransformation(
                     "ElastixBSpline",
-                    string,
-                    Collections.singletonList( sourceName ),
+                        invert,
+                        path,
+                        Collections.singletonList( sourceName ),
                     null );
 
                 transformations.add( transformation );

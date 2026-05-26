@@ -28,14 +28,20 @@
  */
 package develop;
 
-public class DevelopDoubleParsing
-{
-	public static void main( String[] args )
-	{
-		final double v = Double.parseDouble( "1.0" );
-		final double v2 = Double.parseDouble( "1" );
-		final String s = String.valueOf( v );
-		final String s2 = String.valueOf( v2 );
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
+public class DevelopUriParameterParsing
+{
+	public static void main( String[] args ) throws URISyntaxException
+    {
+		String url = "/g/tischer/bspline.txt?invert";
+		//String url = "/g/tischer/bspline.txt";
+		URI uri = new URI(url);
+		String query = uri.getQuery();
+		String path = uri.getPath();
+		int a = 1;
 	}
 }

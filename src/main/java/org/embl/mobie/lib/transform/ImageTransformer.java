@@ -120,7 +120,7 @@ public class ImageTransformer
 		}
 	}
 
-	public static Image< ? > elastixBSplineTransform( Image< ? > image, ElastixBSplineTransformation transformation, boolean invert )
+	public static Image< ? > elastixBSplineTransform( Image< ? > image, ElastixBSplineTransformation transformation )
 	{
 		String transformedImageName = getTransformedImageName( transformation.getTransformedImageName( image.getName() ), image.getName() );
 
@@ -131,7 +131,7 @@ public class ImageTransformer
 
 		try
 		{
-			final RealTransform realTransform = REAL_TRANSFORM_PROVIDER.getElastixBSplineRealTransform( transformation, invert );
+			final RealTransform realTransform = REAL_TRANSFORM_PROVIDER.getElastixBSplineRealTransform( transformation );
 
 			if ( image instanceof AnnotatedLabelImage )
 			{
@@ -381,8 +381,7 @@ public class ImageTransformer
 
 			for ( Image< ? > image : images )
 			{
-				boolean invert = true; // FIXME: This may not always be true (but for HITT2T it is)!
-				Image< ? > transformedImage = elastixBSplineTransform( image, elastixBSplineTransformation, invert );
+				Image< ? > transformedImage = elastixBSplineTransform( image, elastixBSplineTransformation );
 				DataStore.addImage( transformedImage );
 			}
 		}

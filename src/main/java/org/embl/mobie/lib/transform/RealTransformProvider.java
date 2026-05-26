@@ -46,10 +46,10 @@ public class RealTransformProvider
 		return transform;
 	}
 
-	public RealTransform getElastixBSplineRealTransform( final ElastixBSplineTransformation transformation, final boolean invert ) throws Exception
+	public RealTransform getElastixBSplineRealTransform( final ElastixBSplineTransformation transformation ) throws Exception
 	{
 		final String cacheKey = transformation.getTransformParametersFile()
-				+ "|invert=" + invert
+				+ "|invert=" + transformation.isInvert()
 				+ "|inverseType=" + INVERSE_MODE
 				+ "|samplingFactor=" + INVERSE_SAMPLING_FACTOR
 				+ "|maxIter=" + INVERSE_MAX_ITERATIONS
@@ -59,18 +59,18 @@ public class RealTransformProvider
 		if ( cached != null )
 			return cached;
 
-		final RealTransform transform = createElastixBsplineRealTransform( transformation, invert );
+		final RealTransform transform = createElastixBsplineRealTransform( transformation );
 		elastixBsplineCache.put( cacheKey, transform );
 		return transform;
 	}
 
-	private RealTransform createElastixBsplineRealTransform( final ElastixBSplineTransformation transformation, final boolean invert ) throws Exception
+	private RealTransform createElastixBsplineRealTransform( final ElastixBSplineTransformation transformation ) throws Exception
 	{
 		final File transformFile = new File( transformation.getTransformParametersFile() );
 		final ElastixBSplineTransform elastixTransform = ( ElastixBSplineTransform ) ElastixTransform.load( transformFile );
 		final RealTransform forwardTransform = ElastixBSplineToBSplineRealTransform.convert( elastixTransform );
 
-		if ( !invert )
+		if ( ! transformation.isInvert() )
 			return forwardTransform;
 
 		if ( INVERSE_MODE == InverseMode.PRECOMPUTED_DISPLACEMENT_FIELD )

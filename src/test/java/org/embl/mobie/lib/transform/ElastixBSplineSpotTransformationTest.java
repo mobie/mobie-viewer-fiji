@@ -23,7 +23,6 @@ import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import net.imglib2.RealRandomAccess;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.Type;
 import org.embl.mobie.lib.source.AnnotationType;
 
 import java.io.File;
@@ -43,16 +42,17 @@ class ElastixBSplineSpotTransformationTest
 
 		final ElastixBSplineTransformation transformation = new ElastixBSplineTransformation(
 				"bspline-3d",
-				new File( transformResource.toURI() ).getAbsolutePath(),
+				false,
+                new File( transformResource.toURI() ).getAbsolutePath(),
 				Collections.singletonList( "spots" ),
 				Collections.singletonList( "spots-bspline" ) );
 
-		final Image< ? > transformed = ImageTransformer.elastixBSplineTransform( ( Image< ? > ) spotImage, transformation, false );
-		Assertions.assertTrue( transformed instanceof AnnotatedLabelImage );
+		final Image< ? > transformed = ImageTransformer.elastixBSplineTransform( spotImage, transformation );
+        Assertions.assertInstanceOf( AnnotatedLabelImage.class, transformed );
 		final AnnotatedLabelImage< ? > transformedAnnotated = ( AnnotatedLabelImage< ? > ) transformed;
 
 		final Annotation annotation = transformedAnnotated.getAnnData().getTable().annotation( 0 );
-		Assertions.assertTrue( annotation instanceof AnnotatedSpot );
+        Assertions.assertInstanceOf( AnnotatedSpot.class, annotation );
 		final AnnotatedSpot spot = ( AnnotatedSpot ) annotation;
 
 		Assertions.assertEquals( 10.0, spot.getDoublePosition( 0 ), 1e-6 );

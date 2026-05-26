@@ -33,16 +33,19 @@ import java.util.List;
 
 public class ElastixBSplineTransformation extends AbstractImageTransformation
 {
-	// Serialisation
+    private final boolean invert;
+    // Serialisation
 	protected String transformParametersFile;
 
 	public ElastixBSplineTransformation(
 			String name,
+			boolean invert,
 			String transformParametersFile,
 			List< String > sources,
 			List< String > sourceNamesAfterTransform )
 	{
-		this.name = name;
+        this.invert = invert;
+        this.name = name;
 		this.transformParametersFile = transformParametersFile;
 		this.sources = sources;
 		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
@@ -51,6 +54,11 @@ public class ElastixBSplineTransformation extends AbstractImageTransformation
 	public String getTransformParametersFile()
 	{
 		return transformParametersFile;
+	}
+
+	public boolean isInvert()
+	{
+		return invert;
 	}
 
 	@Override

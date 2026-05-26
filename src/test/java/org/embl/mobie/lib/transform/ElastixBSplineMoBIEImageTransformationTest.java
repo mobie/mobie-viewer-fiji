@@ -68,11 +68,12 @@ class ElastixBSplineMoBIEImageTransformationTest
 
 		final ElastixBSplineTransformation transformation = new ElastixBSplineTransformation(
 				"bspline-3d",
+				false,
 				new File( transformResource.toURI() ).getAbsolutePath(),
 				Collections.singletonList( "source" ),
 				Collections.singletonList( "source-bspline" ) );
 
-		final Image< ? > transformedImage = ImageTransformer.elastixBSplineTransform( image, transformation, false );
+		final Image< ? > transformedImage = ImageTransformer.elastixBSplineTransform( image, transformation );
 		final Source< ? > transformedSource = transformedImage.getSourcePair().getSource();
 
 		final int valueAt102030 = sampleNearestAtGlobalPosition( transformedSource, new double[] { 10, 20, 30 } );
@@ -131,11 +132,12 @@ class ElastixBSplineMoBIEImageTransformationTest
 
 		final ElastixBSplineTransformation transformation = new ElastixBSplineTransformation(
 				"bspline-3d",
+				false,
 				new File( transformResource.toURI() ).getAbsolutePath(),
 				Collections.singletonList( "source" ),
 				Collections.singletonList( "source-bspline" ) );
 
-		final Image< ? > transformedImage = ImageTransformer.elastixBSplineTransform( image, transformation, false );
+		final Image< ? > transformedImage = ImageTransformer.elastixBSplineTransform( image, transformation );
 		final Source< ? > transformedSource = transformedImage.getSourcePair().getSource();
 
 		// +10 mm in world x should increase sampled local voxel x by +10 / scaleX = +5.
