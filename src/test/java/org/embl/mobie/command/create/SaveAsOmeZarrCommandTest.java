@@ -17,7 +17,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.concurrent.ExecutionException;
 
-// mvn test-compile exec:java -Dexec.mainClass="org.embl.mobie.command.create.SaveAsOmeZarrCommandTest" -Dexec.classpathScope="test"
 public class SaveAsOmeZarrCommandTest
 {
     public static void main( String[] args ) throws IOException, ExecutionException, InterruptedException, URISyntaxException
