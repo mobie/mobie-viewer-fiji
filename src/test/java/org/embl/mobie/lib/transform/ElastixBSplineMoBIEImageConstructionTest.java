@@ -22,7 +22,7 @@ import java.util.Collections;
 class ElastixBSplineMoBIEImageConstructionTest
 {
 	@Test
-	void createsTransformedMoBIEImageHeadlessly() throws Exception
+	void createsTransformedImage() throws Exception
 	{
 		final long[] dims = new long[] { 64, 64, 64 };
 		final RandomAccessibleInterval< UnsignedByteType > imageData = ArrayImgs.unsignedBytes( dims );
@@ -58,7 +58,6 @@ class ElastixBSplineMoBIEImageConstructionTest
 
 		final ElastixBSplineTransformation transformation = new ElastixBSplineTransformation(
 				"bspline-3d",
-                true,
 				new File( transformResource.toURI() ).getAbsolutePath(),
 				Collections.singletonList( "source" ),
 				Collections.singletonList( "source-bspline" ) );

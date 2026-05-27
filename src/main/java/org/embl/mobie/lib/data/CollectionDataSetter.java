@@ -866,29 +866,14 @@ public class CollectionDataSetter
             // Elastix BSpline (third)
             try
             {
-              String bsplineUrl = getString( row, CollectionTableConstants.ELASTIX_BSPLINE );
-              if ( bsplineUrl != null && ! bsplineUrl.isEmpty() )
-              {
-                URI uri = new URI(bsplineUrl);
+              String path = getString( row, CollectionTableConstants.ELASTIX_BSPLINE );
 
-                String query = uri.getQuery();
-                boolean invert = false;
-                if ( query != null )
-                    invert = query.contains( "invert" );
-
-                String path = uri.getPath();
-                if ( rootPath != null )
-                    path = IOHelper.combinePath( rootPath, path );
-
-                ElastixBSplineTransformation transformation = new ElastixBSplineTransformation(
+              ElastixBSplineTransformation transformation = new ElastixBSplineTransformation(
                     "ElastixBSpline",
-                        invert,
                         path,
                         Collections.singletonList( sourceName ),
                     null );
-
-                transformations.add( transformation );
-              }
+              transformations.add( transformation );
             }
             catch ( Exception e )
             {

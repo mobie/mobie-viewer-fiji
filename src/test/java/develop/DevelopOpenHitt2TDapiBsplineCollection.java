@@ -120,7 +120,6 @@ public class DevelopOpenHitt2TDapiBsplineCollection
 	{
 		final ElastixBSplineTransformation transformation = new ElastixBSplineTransformation(
 				"ElastixBSpline",
-                true,
 				bsplineFile.getAbsolutePath(),
 				Collections.singletonList( image.getName() ),
 				Collections.singletonList( image.getName() + "_bspline" ) );

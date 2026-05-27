@@ -49,7 +49,6 @@ public class RealTransformProvider
 	public RealTransform getElastixBSplineRealTransform( final ElastixBSplineTransformation transformation ) throws Exception
 	{
 		final String cacheKey = transformation.getTransformParametersFile()
-				+ "|invert=" + transformation.isInvert()
 				+ "|inverseType=" + INVERSE_MODE
 				+ "|samplingFactor=" + INVERSE_SAMPLING_FACTOR
 				+ "|maxIter=" + INVERSE_MAX_ITERATIONS
@@ -70,12 +69,12 @@ public class RealTransformProvider
 		final ElastixBSplineTransform elastixTransform = ( ElastixBSplineTransform ) ElastixTransform.load( transformFile );
 		final RealTransform forwardTransform = ElastixBSplineToBSplineRealTransform.convert( elastixTransform );
 
-		if ( ! transformation.isInvert() )
-			return forwardTransform;
+		return forwardTransform;
 
-		if ( INVERSE_MODE == InverseMode.PRECOMPUTED_DISPLACEMENT_FIELD )
-			return createPrecomputedDisplacementFieldInverse( forwardTransform, elastixTransform );
-		return createIterativeInverse( forwardTransform );
+		// We don't support this anymore; people should create the inverse displacement field upfront
+		//		if ( INVERSE_MODE == InverseMode.PRECOMPUTED_DISPLACEMENT_FIELD )
+		//			return createPrecomputedDisplacementFieldInverse( forwardTransform, elastixTransform );
+		//		return createIterativeInverse( forwardTransform );
 	}
 
 	private RealTransform createIterativeInverse( final RealTransform forwardTransform )

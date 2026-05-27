@@ -42,7 +42,6 @@ class ElastixBSplineSpotTransformationTest
 
 		final ElastixBSplineTransformation transformation = new ElastixBSplineTransformation(
 				"bspline-3d",
-				false,
                 new File( transformResource.toURI() ).getAbsolutePath(),
 				Collections.singletonList( "spots" ),
 				Collections.singletonList( "spots-bspline" ) );

@@ -35,16 +35,17 @@ public class CreateInverseDisplacementFieldFromElastixBSplineCommand implements 
 	@Parameter(label = "Output displacement metadata JSON", style = "save")
 	public File outputDisplacementFieldJson;
 
-	@Parameter(label = "Sampling factor", min = "1")
+	@Parameter(label = "Sampling factor", min = "1", description = "Higher values will yield a more accurate transformation.\n" +
+			"To check the accuracy run this command and see ImageJ Log Window: meanRoundTripError (smaller is better). ")
 	public int samplingFactor = 3;
 
-	@Parameter(label = "Optimizer max step")
+	//@Parameter(label = "Optimizer max step")
 	public double optimizerMaxStep = 500.0;
 
-	@Parameter(label = "Optimizer tolerance")
+	//@Parameter(label = "Optimizer tolerance")
 	public double optimizerTolerance = 0.5;
 
-	@Parameter(label = "Optimizer max iterations")
+	//@Parameter(label = "Optimizer max iterations")
 	public int optimizerMaxIterations = 200;
 
 	@Parameter(label = "Overwrite existing output")

@@ -68,7 +68,6 @@ class ElastixBSplineMoBIEImageTransformationTest
 
 		final ElastixBSplineTransformation transformation = new ElastixBSplineTransformation(
 				"bspline-3d",
-				false,
 				new File( transformResource.toURI() ).getAbsolutePath(),
 				Collections.singletonList( "source" ),
 				Collections.singletonList( "source-bspline" ) );
@@ -132,7 +131,6 @@ class ElastixBSplineMoBIEImageTransformationTest
 
 		final ElastixBSplineTransformation transformation = new ElastixBSplineTransformation(
 				"bspline-3d",
-				false,
 				new File( transformResource.toURI() ).getAbsolutePath(),
 				Collections.singletonList( "source" ),
 				Collections.singletonList( "source-bspline" ) );
