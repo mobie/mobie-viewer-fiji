@@ -94,11 +94,13 @@
         <allowedDuplicateClasses>${scijava.allowedDuplicateClasses},org.relaxng.*,sun.*,com.sun.*,sun.rmi.*,com.sun.jdi.*,sun.jvmstat.*,sun.applet.*,com.sun.xml.*,com.sun.tools.*,sun.tools.*,com.sun.istack.*,shaded.parquet.it.unimi.dsi.fastutil.*,javax.xml.bind.*,com.sun.xml.bind.*,com.sun.xml.txw2.*,com.sun.codemodel.*</allowedDuplicateClasses>
 
         <mobie-io.version>5.0.0-SNAPSHOT</mobie-io.version>
-            <!--
+
+        <!--
             Temporary: keep commented while elastix BSpline support is vendored in MoBIE.
             Remove this comment and re-enable the dependency once we can consume a suitable ITC release.
             <image-transform-converters.version>0.2.1-SNAPSHOT</image-transform-converters.version>
             -->
+
         <bigdataviewer-playground.version>0.11.2</bigdataviewer-playground.version>
         
         <!-- BigVolumeBrowser -->
@@ -125,7 +127,7 @@
         <n5-ij.version>5.0.0</n5-ij.version>
         <n5-imglib2.version>8.0.0</n5-imglib2.version>
         <n5-universe.version>3.0.0</n5-universe.version>
-        <n5-zarr.version>2.0.0</n5-zarr.version>
+        <n5-zarr.version>2.0.1</n5-zarr.version>
         <n5-zstandard.version>2.0.0</n5-zstandard.version>
 
         <!-- NB: Deploy releases to the SciJava Maven repository. -->
