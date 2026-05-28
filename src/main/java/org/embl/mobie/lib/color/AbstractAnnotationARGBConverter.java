@@ -61,7 +61,7 @@ public abstract class AbstractAnnotationARGBConverter< T, A > implements Convert
 		// This includes selection model opacity
 		coloringModel.convert( input, color );
 
-		// Opacity for rendering in BDV
+		// This adds a general opacity
 		adjustOpacity( color, opacity );
 	}
 

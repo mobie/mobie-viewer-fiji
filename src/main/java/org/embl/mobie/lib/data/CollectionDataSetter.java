@@ -805,12 +805,11 @@ public class CollectionDataSetter
         return transformations;
     }
 
-
     private List< Transformation > getTransformations( String sourceName, Row row )
     {
         ArrayList< Transformation > transformations = new ArrayList<>();
 
-        // AFFINE (first)
+        // AFFINE
         try
         {
             String string = getString( row, CollectionTableConstants.AFFINE );
@@ -830,76 +829,54 @@ public class CollectionDataSetter
         }
         catch ( Exception e )
         {
-            // Do not add a transformation
+            // Parsing failed: Do not add a transformation
         }
 
-                // Displacement field (second)
-                if ( columnExists( CollectionTableConstants.DISPLACEMENT_FIELD_URI ) )
-                {
-                  try
-                  {
-                    String string = getString( row, CollectionTableConstants.DISPLACEMENT_FIELD_URI );
-                    if ( string != null && !string.isEmpty() )
-                    {
-                      if ( rootPath != null )
-                        string = IOHelper.combinePath( rootPath, string );
+        // Displacement field (second)
+        String displacementFieldUri = getString( row, CollectionTableConstants.DISPLACEMENT_FIELD_URI );
+        if ( MoBIEHelper.notNullOrEmpty( displacementFieldUri ) )
+        {
+            if ( rootPath != null && MoBIEHelper.isRelativePath( displacementFieldUri ) )
+                displacementFieldUri = IOHelper.combinePath( rootPath, displacementFieldUri );
 
-                      final File displacementFile = new File( string );
-                      if ( !displacementFile.exists() )
-                        throw new IllegalArgumentException( "displacement_field_uri does not exist: " + displacementFile.getAbsolutePath() );
+            DisplacementFieldTransformation transformation = new DisplacementFieldTransformation(
+              "DisplacementField",
+              displacementFieldUri,
+              Collections.singletonList( sourceName ),
+              null );
 
-                      DisplacementFieldTransformation transformation = new DisplacementFieldTransformation(
-                          "DisplacementField",
-                          string,
-                          Collections.singletonList( sourceName ),
-                          null );
+            transformations.add( transformation );
+        }
 
-                      transformations.add( transformation );
-                    }
-                  }
-                  catch ( Exception e )
-                  {
-                    throw new RuntimeException( "Failed to configure displacement_field_uri transform for source '" + sourceName + "'", e );
-                  }
-                }
+        // Elastix BSpline
+        String elastixBSplineUri = getString( row, CollectionTableConstants.ELASTIX_BSPLINE );
+        if ( MoBIEHelper.notNullOrEmpty( elastixBSplineUri ) )
+        {
+            if ( rootPath != null && MoBIEHelper.isRelativePath( elastixBSplineUri ) )
+                elastixBSplineUri = IOHelper.combinePath( rootPath, elastixBSplineUri );
 
-            // Elastix BSpline (third)
-            try
-            {
-              String path = getString( row, CollectionTableConstants.ELASTIX_BSPLINE );
-
-              ElastixBSplineTransformation transformation = new ElastixBSplineTransformation(
+            ElastixBSplineTransformation elastixBSplineTransformation = new ElastixBSplineTransformation(
                     "ElastixBSpline",
-                        path,
-                        Collections.singletonList( sourceName ),
+                    elastixBSplineUri,
+                    Collections.singletonList( sourceName ),
                     null );
-              transformations.add( transformation );
-            }
-            catch ( Exception e )
-            {
-              // Do not add a transformation
-            }
-
-            // TPS (fourth)
-        try
-        {
-            String string = getString( row, CollectionTableConstants.TPS );
-
-            // FIXME: Check whether the JSON parsing works
-            if ( ! string.isEmpty() )
-            {
-                ThinPlateSplineTransformation transformation = new ThinPlateSplineTransformation(
-                        "ThinPlateSpline",
-                        string,
-                        Collections.singletonList( sourceName ),
-                        null );
-
-                transformations.add( transformation );
-            }
+            transformations.add( elastixBSplineTransformation );
         }
-        catch ( Exception e )
+
+        // TPS
+        String tpsUri = getString( row, CollectionTableConstants.TPS );
+        if ( MoBIEHelper.notNullOrEmpty( tpsUri ) )
         {
-            // Do not add a transformation
+            if ( rootPath != null && MoBIEHelper.isRelativePath( tpsUri ) )
+                tpsUri = IOHelper.combinePath( rootPath, tpsUri );
+
+            ThinPlateSplineTransformation thinPlateSplineTransformation = new ThinPlateSplineTransformation(
+                    "ThinPlateSpline",
+                    tpsUri,
+                    Collections.singletonList( sourceName ),
+                    null );
+
+            transformations.add( thinPlateSplineTransformation );
         }
 
         return transformations;

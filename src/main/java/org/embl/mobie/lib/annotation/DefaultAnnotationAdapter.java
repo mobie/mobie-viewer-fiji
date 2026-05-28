@@ -40,28 +40,18 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 	private final AtomicBoolean throwError = new AtomicBoolean( true );
 	private final AnnData< A > annData;
 	private final String source;
-	private final A annotation;
 	private Map< String, A > stlToAnnotation; // source, timepoint, label
 
 	public DefaultAnnotationAdapter( AnnData< A > annData )
 	{
 		this.annData = annData;
 		this.source = null;
-		this.annotation = null;
 	}
 
 	public DefaultAnnotationAdapter( AnnData< A > annData, String source )
 	{
 		this.annData = annData;
 		this.source = source;
-		this.annotation = null;
-	}
-
-	public DefaultAnnotationAdapter( AnnData< A > annData, String source, A annotation )
-	{
-		this.annData = annData;
-		this.source = source;
-		this.annotation = annotation;
 	}
 
 	// FIXME: Can we get rid of this? Currently not used...
@@ -71,7 +61,7 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 		return annData.getTable().annotation( 0 );
 	}
 
-	// This is for mapping for voxels within an
+	// This is for mapping voxels within an
 	// {@code AnnotatedLabelSource}
 	// to the corresponding annotation.
 	@Override
@@ -96,7 +86,7 @@ public class DefaultAnnotationAdapter< A extends Annotation > implements Annotat
 
 		if ( annotation == null && reportMissingAnnotation )
 		{
-			// FIXME: Check whether this could be done lazy?
+			// FIXME: Check whether this could be done lazy
 			if ( throwError.get() )
 			{
 				System.err.println( "AnnotationAdapter: Missing annotation: " + source+ "; time point = " + timePoint + "; label = " + label + "\nSuppressing further errors of that kind." );
