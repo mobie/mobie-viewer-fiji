@@ -36,7 +36,7 @@ class DisplacementFieldTransformIOTest
 		final File jsonFile = new File( tempDir, "inverse-field.json" );
 
 		DisplacementFieldTransformIO.save( interleaved, new double[] { 1, 1, 1 }, new double[] { 0, 0, 0 }, jsonFile );
-		final DisplacementFieldTransform transform = DisplacementFieldTransformIO.load( jsonFile );
+		final DisplacementFieldTransform transform = DisplacementFieldTransformIO.load( jsonFile.getAbsolutePath() );
 
 		final double[] sourceA = new double[] { 0, 0, 0 };
 		final double[] targetA = new double[ 3 ];

@@ -37,11 +37,7 @@ public class RealTransformProvider
 		if ( cached != null )
 			return cached;
 
-		final File jsonFile = new File( transformation.getDisplacementFieldUri() );
-		if ( !jsonFile.exists() )
-			throw new IllegalArgumentException( "displacement_field_uri does not exist: " + jsonFile.getAbsolutePath() );
-
-		final RealTransform transform = DisplacementFieldTransformIO.load( jsonFile );
+		final RealTransform transform = DisplacementFieldTransformIO.load( transformation.getDisplacementFieldUri()  );
 		displacementFieldCache.put( cacheKey, transform );
 		return transform;
 	}
