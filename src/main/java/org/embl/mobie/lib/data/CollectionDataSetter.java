@@ -836,8 +836,7 @@ public class CollectionDataSetter
         String displacementFieldUri = getString( row, CollectionTableConstants.DISPLACEMENT_FIELD_URI );
         if ( MoBIEHelper.notNullOrEmpty( displacementFieldUri ) )
         {
-            if ( rootPath != null && MoBIEHelper.isRelativePath( displacementFieldUri ) )
-                displacementFieldUri = IOHelper.combinePath( rootPath, displacementFieldUri );
+            displacementFieldUri = resolveUri( displacementFieldUri );
 
             DisplacementFieldTransformation transformation = new DisplacementFieldTransformation(
               "DisplacementField",
@@ -852,8 +851,7 @@ public class CollectionDataSetter
         String elastixBSplineUri = getString( row, CollectionTableConstants.ELASTIX_BSPLINE );
         if ( MoBIEHelper.notNullOrEmpty( elastixBSplineUri ) )
         {
-            if ( rootPath != null && MoBIEHelper.isRelativePath( elastixBSplineUri ) )
-                elastixBSplineUri = IOHelper.combinePath( rootPath, elastixBSplineUri );
+            elastixBSplineUri = resolveUri( elastixBSplineUri );
 
             ElastixBSplineTransformation elastixBSplineTransformation = new ElastixBSplineTransformation(
                     "ElastixBSpline",
@@ -867,8 +865,7 @@ public class CollectionDataSetter
         String tpsUri = getString( row, CollectionTableConstants.TPS );
         if ( MoBIEHelper.notNullOrEmpty( tpsUri ) )
         {
-            if ( rootPath != null && MoBIEHelper.isRelativePath( tpsUri ) )
-                tpsUri = IOHelper.combinePath( rootPath, tpsUri );
+            tpsUri = resolveUri( tpsUri );
 
             ThinPlateSplineTransformation thinPlateSplineTransformation = new ThinPlateSplineTransformation(
                     "ThinPlateSpline",
@@ -880,6 +877,14 @@ public class CollectionDataSetter
         }
 
         return transformations;
+    }
+
+    private @Nullable String resolveUri( String uri )
+    {
+        if ( rootPath != null && MoBIEHelper.isRelativePath( uri ) )
+            return IOHelper.combinePath( rootPath, uri );
+        else
+            return uri;
     }
 
     private String getColor( Row row )
