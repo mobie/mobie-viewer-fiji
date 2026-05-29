@@ -30,6 +30,7 @@ package org.embl.mobie.lib.color;
 
 import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BoundedValueDouble;
+import net.imglib2.type.numeric.ARGBType;
 
 import javax.swing.*;
 import java.awt.*;
@@ -94,6 +95,8 @@ public class NumericAnnotationColoringModelContrastDialog extends JFrame impleme
 
 		panel.add( minSlider );
 		panel.add( maxSlider );
+		if ( coloringModel.isSingleColorLut() )
+			panel.add( createSingleColorPanel( coloringModel ) );
 
 		final JFrame frame = new JFrame( coloringFeature );
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
@@ -106,6 +109,36 @@ public class NumericAnnotationColoringModelContrastDialog extends JFrame impleme
 		frame.setResizable( false );
 		if ( dialogLocation != null )
 			frame.setLocation( dialogLocation );
+	}
+
+	private JPanel createSingleColorPanel( NumericAnnotationColoringModel< ? > coloringModel )
+	{
+		final JPanel panel = new JPanel( new FlowLayout( FlowLayout.LEFT ) );
+		final JButton button = new JButton( "Color" );
+		button.setToolTipText( "Change single color LUT color" );
+
+		final ARGBType currentColor = coloringModel.getSingleColor();
+		if ( currentColor != null )
+			button.setBackground( ColorHelper.getColor( currentColor ) );
+
+		button.addActionListener( e ->
+		{
+			final Color color = JColorChooser.showDialog(
+					panel,
+					"Choose single color LUT color",
+					button.getBackground() );
+
+			if ( color == null )
+				return;
+
+			button.setBackground( color );
+			coloringModel.setSingleColor( ColorHelper.getARGBType( color ) );
+		} );
+
+		panel.add( new JLabel( "Single color LUT:  " ) );
+		panel.add( button );
+
+		return panel;
 	}
 
 	public void close()

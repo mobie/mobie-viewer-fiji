@@ -63,7 +63,7 @@ public class ColorByColumnDialog< A extends Annotation >
         if ( paintZeroTransparent )
             lutName += LUTs.ZERO_TRANSPARENT;
 
-        if ( lutName.equals( LUTs.GLASBEY ) )
+        if ( lutName.contains( LUTs.GLASBEY ) )
         {
             return ColoringModels.createCategoricalModel( columnName, lutName, TRANSPARENT );
         }
@@ -106,6 +106,7 @@ public class ColorByColumnDialog< A extends Annotation >
     {
         JPanel panel = SwingHelper.horizontalFlowLayoutPanel();
         paintZeroTransparentCheckBox = new JCheckBox( );
+        paintZeroTransparentCheckBox.setSelected( paintZeroTransparent || ( lutName != null && lutName.contains( LUTs.ZERO_TRANSPARENT ) ) );
         panel.add( new JLabel("Paint zero transparent:  ") );
         panel.add( paintZeroTransparentCheckBox );
         dialog.add( panel );
@@ -125,10 +126,13 @@ public class ColorByColumnDialog< A extends Annotation >
     private void addLutSelection( JDialog dialog )
     {
         JPanel panel = SwingHelper.horizontalFlowLayoutPanel();
-        lutComboBox = new JComboBox<>( COLORING_LUTS );
-        lutComboBox.setSelectedItem( lutName == null ? COLORING_LUTS[ 0 ] : lutName );
+        final String[] lutNames = getLutNames( getColumnName() );
+        lutComboBox = new JComboBox<>( lutNames );
+        final String selectedLutName = getSelectedLutName();
+        lutComboBox.setSelectedItem( contains( lutNames, selectedLutName ) ? selectedLutName : lutNames[ 0 ] );
         Dimension maximumSize = new Dimension( 300, 20 );
         lutComboBox.setMaximumSize( maximumSize );
+        columnComboBox.addActionListener( e -> updateLutChoices() );
         panel.add( new JLabel("Color:  ") );
         panel.add( lutComboBox );
         dialog.add( panel );
@@ -144,6 +148,52 @@ public class ColorByColumnDialog< A extends Annotation >
         return (String) lutComboBox.getSelectedItem();
     }
 
+    private String getSelectedLutName()
+    {
+        if ( lutName == null )
+            return COLORING_LUTS[ 0 ];
+
+        if ( lutName.contains( LUTs.SINGLE_COLOR ) )
+            return LUTs.SINGLE_COLOR;
+
+        return lutName.replace( LUTs.ZERO_TRANSPARENT, "" );
+    }
+
+    private void updateLutChoices()
+    {
+        final String selectedLutName = getLutName();
+        final String[] lutNames = getLutNames( getColumnName() );
+        lutComboBox.setModel( new DefaultComboBoxModel<>( lutNames ) );
+        lutComboBox.setSelectedItem( contains( lutNames, selectedLutName ) ? selectedLutName : lutNames[ 0 ] );
+    }
+
+    private String[] getLutNames( String columnName )
+    {
+        if ( Number.class.isAssignableFrom( table.columnClass( columnName ) ) )
+            return COLORING_LUTS;
+
+        final String[] lutNames = new String[ COLORING_LUTS.length - 1 ];
+        int index = 0;
+        for ( String lutName : COLORING_LUTS )
+        {
+            if ( lutName.equals( LUTs.SINGLE_COLOR ) )
+                continue;
+
+            lutNames[ index++ ] = lutName;
+        }
+
+        return lutNames;
+    }
+
+    private boolean contains( String[] values, String value )
+    {
+        for ( String currentValue : values )
+            if ( currentValue.equals( value ) )
+                return true;
+
+        return false;
+    }
+
     private boolean getPaintZeroTransparent()
     {
         return paintZeroTransparentCheckBox.isSelected();
@@ -151,4 +201,3 @@ public class ColorByColumnDialog< A extends Annotation >
 
 
 }
-

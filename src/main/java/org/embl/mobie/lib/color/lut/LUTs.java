@@ -29,6 +29,7 @@
 package org.embl.mobie.lib.color.lut;
 
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.lib.color.ColorHelper;
 
 public class LUTs
 {
@@ -36,6 +37,7 @@ public class LUTs
 	public static final String VIRIDIS = "viridis";
 	public static final String GLASBEY = "glasbey";
 	public static final String GRAYSCALE = "grayscale";
+	public static final String SINGLE_COLOR = "singleColor";
 	public static final String ARGB_COLUMN = "argbColumn"; // https://github.com/mobie/mobie.github.io/issues/100#issuecomment-1405459668
 	public static final String RGBA_COLUMN = "rgbaColumn";
 	public static final String ZERO_TRANSPARENT = "ZeroTransparent";
@@ -44,6 +46,7 @@ public class LUTs
 	{
 		BLUE_WHITE_RED,
 		VIRIDIS,
+		SINGLE_COLOR,
 		GLASBEY,
 		RGBA_COLUMN
 	};
@@ -99,6 +102,14 @@ public class LUTs
 		{
 			lut = new GlasbeyARGBLut();
 		}
+		else if ( lutName.contains( SINGLE_COLOR ) )
+		{
+			final ARGBType color = getSingleColor( lutName );
+			lut = new SingleColorARGBLut(
+					ARGBType.red( color.get() ),
+					ARGBType.green( color.get() ),
+					ARGBType.blue( color.get() ) );
+		}
 		else if ( lutName.contains( ARGB_COLUMN ) || lutName.contains( RGBA_COLUMN ) )
 		{
 			lut = new ColumnARGBLut();
@@ -113,9 +124,33 @@ public class LUTs
 		return lut;
 	}
 
+	public static boolean isSingleColor( String lutName )
+	{
+		return lutName.contains( SINGLE_COLOR );
+	}
+
+	public static String createSingleColorLutName( ARGBType color )
+	{
+		return SINGLE_COLOR + "-" + ColorHelper.getString( color );
+	}
+
 	public static boolean isZeroTransparent( String lutName )
 	{
 		return lutName.contains( ZERO_TRANSPARENT );
+	}
+
+	private static ARGBType getSingleColor( String lutName )
+	{
+		final String colorString = lutName
+				.replace( ZERO_TRANSPARENT, "" )
+				.replace( SINGLE_COLOR + "-", "" )
+				.replace( SINGLE_COLOR, "" );
+
+		final ARGBType color = ColorHelper.getARGBType( colorString );
+		if ( color != null )
+			return color;
+
+		return new ARGBType( ARGBType.rgba( 255, 255, 255, 255 ) );
 	}
 
 	private static byte[][] grayscaleLut( )

@@ -30,6 +30,7 @@ package org.embl.mobie.lib.color;
 
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.color.lut.LUTs;
+import org.embl.mobie.lib.color.lut.SingleColorARGBLut;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;
@@ -80,6 +81,29 @@ public class NumericAnnotationColoringModel< A extends Annotation > extends Abst
 	public void setMax( double max )
 	{
 		contrastLimits = new ValuePair<>( contrastLimits.getA(), max );
+		notifyColoringListeners();
+	}
+
+	public boolean isSingleColorLut()
+	{
+		return lut instanceof SingleColorARGBLut;
+	}
+
+	public ARGBType getSingleColor()
+	{
+		if ( ! isSingleColorLut() )
+			return null;
+
+		return new ARGBType( lut.getARGB( 1.0 ) );
+	}
+
+	public void setSingleColor( ARGBType color )
+	{
+		String lutName = LUTs.createSingleColorLutName( color );
+		if ( isZeroTransparent )
+			lutName += LUTs.ZERO_TRANSPARENT;
+
+		lut = LUTs.getLut( lutName );
 		notifyColoringListeners();
 	}
 
