@@ -6,13 +6,13 @@
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -31,11 +31,11 @@ package org.embl.mobie.lib.color;
 import javax.swing.*;
 import java.awt.*;
 
-public class AdditiveColoringModelDialog extends JFrame
+public class ColoringModelAdjustmentDialog extends JFrame
 {
-	private final AdditiveColoringModel< ? > coloringModel;
+	private final ColoringModel< ? > coloringModel;
 
-	public AdditiveColoringModelDialog( AdditiveColoringModel< ? > coloringModel )
+	public ColoringModelAdjustmentDialog( ColoringModel< ? > coloringModel )
 	{
 		this.coloringModel = coloringModel;
 		setTitle( "Coloring Stack" );
@@ -52,8 +52,16 @@ public class AdditiveColoringModelDialog extends JFrame
 		final JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
 
-		for ( AdditiveColoringModel.Entry< ? > entry : coloringModel.getEntries() )
-			panel.add( createEntryPanel( entry ) );
+		if ( coloringModel instanceof AdditiveColoringModel )
+		{
+			final AdditiveColoringModel< ? > additive = ( AdditiveColoringModel< ? > ) coloringModel;
+			for ( AdditiveColoringModel.Entry< ? > entry : additive.getEntries() )
+				panel.add( createEntryPanel( additive, entry ) );
+		}
+		else
+		{
+			panel.add( createSingleModelPanel( coloringModel ) );
+		}
 
 		setContentPane( new JScrollPane( panel ) );
 		pack();
@@ -61,7 +69,7 @@ public class AdditiveColoringModelDialog extends JFrame
 		repaint();
 	}
 
-	private JPanel createEntryPanel( AdditiveColoringModel.Entry< ? > entry )
+	private JPanel createEntryPanel( AdditiveColoringModel< ? > additive, AdditiveColoringModel.Entry< ? > entry )
 	{
 		final JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
@@ -70,30 +78,47 @@ public class AdditiveColoringModelDialog extends JFrame
 		final JPanel header = new JPanel( new FlowLayout( FlowLayout.LEFT ) );
 		final JCheckBox enabledCheckBox = new JCheckBox();
 		enabledCheckBox.setSelected( entry.isEnabled() );
-		enabledCheckBox.addActionListener( e -> setEntryEnabled( entry, enabledCheckBox.isSelected() ) );
+		enabledCheckBox.addActionListener( e -> setEntryEnabled( additive, entry, enabledCheckBox.isSelected() ) );
 		header.add( enabledCheckBox );
 		header.add( new JLabel( entry.getName() ) );
 		panel.add( header );
 
-		final ColoringModel< ? > entryColoringModel = entry.getColoringModel();
-		if ( entryColoringModel instanceof NumericAnnotationColoringModel )
-		{
-			final NumericAnnotationColoringModel< ? > numericColoringModel = ( NumericAnnotationColoringModel< ? > ) entryColoringModel;
-			panel.add( new NumericAnnotationColoringModelContrastPanel( numericColoringModel ) );
-		}
-		else
-		{
-			final JLabel label = new JLabel( "No contrast controls available." );
-			label.setBorder( BorderFactory.createEmptyBorder( 0, 24, 0, 0 ) );
-			panel.add( label );
-		}
+		panel.add( createContrastComponent( entry.getColoringModel() ) );
 
 		return panel;
 	}
 
-	@SuppressWarnings( "unchecked" )
-	private < T > void setEntryEnabled( AdditiveColoringModel.Entry< T > entry, boolean enabled )
+	private JPanel createSingleModelPanel( ColoringModel< ? > model )
 	{
-		( ( AdditiveColoringModel< T > ) coloringModel ).setEnabled( entry, enabled );
+		final JPanel panel = new JPanel();
+		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
+		panel.setBorder( BorderFactory.createEmptyBorder( 4, 4, 4, 4 ) );
+
+		final JPanel header = new JPanel( new FlowLayout( FlowLayout.LEFT ) );
+		header.add( new JLabel( AdditiveColoringModel.getName( model ) ) );
+		panel.add( header );
+
+		panel.add( createContrastComponent( model ) );
+
+		return panel;
+	}
+
+	private JComponent createContrastComponent( ColoringModel< ? > model )
+	{
+		if ( model instanceof NumericAnnotationColoringModel )
+		{
+			return new NumericAnnotationColoringModelContrastPanel( ( NumericAnnotationColoringModel< ? > ) model );
+		}
+		final JPanel wrapper = new JPanel( new FlowLayout( FlowLayout.LEFT ) );
+		final JLabel label = new JLabel( "No contrast controls available." );
+		label.setBorder( BorderFactory.createEmptyBorder( 0, 24, 0, 0 ) );
+		wrapper.add( label );
+		return wrapper;
+	}
+
+	@SuppressWarnings( { "unchecked", "rawtypes" } )
+	private void setEntryEnabled( AdditiveColoringModel< ? > additive, AdditiveColoringModel.Entry< ? > entry, boolean enabled )
+	{
+		( ( AdditiveColoringModel ) additive ).setEnabled( entry, enabled );
 	}
 }

@@ -6,13 +6,13 @@
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -37,7 +37,7 @@ import java.util.WeakHashMap;
 
 public abstract class ColoringModelUIs
 {
-	private static final WeakHashMap< AdditiveColoringModel< ? >, AdditiveColoringModelDialog > additiveDialogs = new WeakHashMap<>();
+	private static final WeakHashMap< ColoringModel< ? >, ColoringModelAdjustmentDialog > dialogs = new WeakHashMap<>();
 
 	public static void show( ColoringModel< ? > coloringModel )
 	{
@@ -46,42 +46,27 @@ public abstract class ColoringModelUIs
 
 		SwingUtilities.invokeLater( () ->
 		{
-			if ( coloringModel instanceof AdditiveColoringModel )
+			ColoringModelAdjustmentDialog dialog = dialogs.get( coloringModel );
+			if ( dialog == null || ! dialog.isDisplayable() )
 			{
-				showAdditiveDialog( ( AdditiveColoringModel< ? > ) coloringModel );
-			}
-			else if ( coloringModel instanceof NumericAnnotationColoringModel )
-			{
-				final NumericAnnotationColoringModel< ? > numericColoringModel = ( NumericAnnotationColoringModel< ? > ) coloringModel;
-				final NumericAnnotationColoringModelContrastDialog dialog = new NumericAnnotationColoringModelContrastDialog(
-						AdditiveColoringModel.getName( numericColoringModel ),
-						numericColoringModel );
+				dialog = new ColoringModelAdjustmentDialog( coloringModel );
+				dialogs.put( coloringModel, dialog );
 				MoBIEWindowManager.addWindow( dialog );
+				final ColoringModelAdjustmentDialog finalDialog = dialog;
+				dialog.addWindowListener( new WindowAdapter()
+				{
+					@Override
+					public void windowClosed( WindowEvent e )
+					{
+						dialogs.remove( coloringModel, finalDialog );
+					}
+				} );
+			}
+			else
+			{
+				dialog.refresh();
+				dialog.toFront();
 			}
 		} );
-	}
-
-	private static void showAdditiveDialog( AdditiveColoringModel< ? > coloringModel )
-	{
-		AdditiveColoringModelDialog dialog = additiveDialogs.get( coloringModel );
-		if ( dialog == null || ! dialog.isDisplayable() )
-		{
-			dialog = new AdditiveColoringModelDialog( coloringModel );
-			additiveDialogs.put( coloringModel, dialog );
-			MoBIEWindowManager.addWindow( dialog );
-			dialog.addWindowListener( new WindowAdapter()
-			{
-				@Override
-				public void windowClosed( WindowEvent e )
-				{
-					additiveDialogs.remove( coloringModel );
-				}
-			} );
-		}
-		else
-		{
-			dialog.refresh();
-			dialog.toFront();
-		}
 	}
 }
