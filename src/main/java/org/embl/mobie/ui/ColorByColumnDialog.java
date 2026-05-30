@@ -1,7 +1,9 @@
 package org.embl.mobie.ui;
 
+import ij.IJ;
 import net.imglib2.util.Pair;
 import org.embl.mobie.lib.annotation.Annotation;
+import org.embl.mobie.lib.color.AdditiveColoringModel;
 import org.embl.mobie.lib.color.ColoringModel;
 import org.embl.mobie.lib.color.ColoringModels;
 import org.embl.mobie.lib.color.lut.LUTs;
@@ -19,14 +21,23 @@ public class ColorByColumnDialog< A extends Annotation >
     private static String columnName;
     private static boolean paintZeroTransparent;
     private final AnnotationTableModel< A > table;
+    private final ColoringModel< A > currentColoringModel;
     private JComboBox< String > columnComboBox;
     private JComboBox< String > lutComboBox;
     private JCheckBox paintZeroTransparentCheckBox;
+    private JRadioButton replaceColoringRadioButton;
+    private JRadioButton addToExistingColoringRadioButton;
     private boolean isOkPressed;
 
     public ColorByColumnDialog( AnnotationTableModel< A > table )
     {
+        this( table, null );
+    }
+
+    public ColorByColumnDialog( AnnotationTableModel< A > table, ColoringModel< A > currentColoringModel )
+    {
         this.table = table;
+        this.currentColoringModel = currentColoringModel;
     }
 
     public ColoringModel< A > show()
@@ -41,6 +52,8 @@ public class ColorByColumnDialog< A extends Annotation >
         addLutSelection( dialog );
 
         addPaintZeroTransparentCheckbox( dialog );
+
+        addColoringModeSelection( dialog );
 
         addOKCancelButton( dialog );
 
@@ -63,6 +76,42 @@ public class ColorByColumnDialog< A extends Annotation >
         if ( paintZeroTransparent )
             lutName += LUTs.ZERO_TRANSPARENT;
 
+        final ColoringModel< A > coloringModel = createColoringModel();
+
+        if ( addToExistingColoring() && currentColoringModel != null )
+            return createAdditiveColoringModel( coloringModel );
+
+        return coloringModel;
+    }
+
+    private ColoringModel< A > createAdditiveColoringModel( ColoringModel< A > coloringModel )
+    {
+        final String name = AdditiveColoringModel.getName( coloringModel );
+
+        if ( currentColoringModel instanceof AdditiveColoringModel )
+        {
+            final AdditiveColoringModel< A > additiveColoringModel = ( AdditiveColoringModel< A > ) currentColoringModel;
+            if ( additiveColoringModel.containsColoringModel( name ) )
+                return showDuplicateColoringWarning( name );
+
+            additiveColoringModel.addColoringModel( name, coloringModel );
+            return additiveColoringModel;
+        }
+
+        if ( AdditiveColoringModel.getName( currentColoringModel ).equals( name ) )
+            return showDuplicateColoringWarning( name );
+
+        return new AdditiveColoringModel<>( currentColoringModel, coloringModel );
+    }
+
+    private ColoringModel< A > showDuplicateColoringWarning( String name )
+    {
+        IJ.showMessage( "Coloring " + name + " is already active.\nPlease choose a different column or LUT." );
+        return null;
+    }
+
+    private ColoringModel< A > createColoringModel()
+    {
         if ( lutName.contains( LUTs.GLASBEY ) )
         {
             return ColoringModels.createCategoricalModel( columnName, lutName, TRANSPARENT );
@@ -70,12 +119,30 @@ public class ColorByColumnDialog< A extends Annotation >
         else if ( Number.class.isAssignableFrom( table.columnClass( columnName ) ) )
         {
             final Pair< Double, Double > minMax = table.getMinMax( columnName );
-            return ColoringModels.createNumericModel( columnName, lutName, minMax, true );
+            return ColoringModels.createNumericModel( columnName, lutName, minMax );
         }
         else
         {
             return ColoringModels.createCategoricalModel( columnName, lutName, TRANSPARENT );
         }
+    }
+
+    private void addColoringModeSelection( JDialog dialog )
+    {
+        JPanel panel = SwingHelper.horizontalFlowLayoutPanel();
+
+        replaceColoringRadioButton = new JRadioButton( "Replace current coloring" );
+        addToExistingColoringRadioButton = new JRadioButton( "Add to current coloring" );
+        addToExistingColoringRadioButton.setEnabled( currentColoringModel != null );
+
+        ButtonGroup buttonGroup = new ButtonGroup();
+        buttonGroup.add( replaceColoringRadioButton );
+        buttonGroup.add( addToExistingColoringRadioButton );
+        replaceColoringRadioButton.setSelected( true );
+
+        panel.add( replaceColoringRadioButton );
+        panel.add( addToExistingColoringRadioButton );
+        dialog.add( panel );
     }
 
     private void addOKCancelButton( JDialog dialog )
@@ -199,5 +266,9 @@ public class ColorByColumnDialog< A extends Annotation >
         return paintZeroTransparentCheckBox.isSelected();
     }
 
+    private boolean addToExistingColoring()
+    {
+        return addToExistingColoringRadioButton.isSelected();
+    }
 
 }

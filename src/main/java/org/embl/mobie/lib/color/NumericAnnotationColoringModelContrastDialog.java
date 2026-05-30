@@ -28,10 +28,6 @@
  */
 package org.embl.mobie.lib.color;
 
-import bdv.tools.brightness.SliderPanelDouble;
-import bdv.util.BoundedValueDouble;
-import net.imglib2.type.numeric.ARGBType;
-
 import javax.swing.*;
 import java.awt.*;
 
@@ -43,102 +39,17 @@ public class NumericAnnotationColoringModelContrastDialog extends JFrame impleme
 			final String coloringFeature,
 			final NumericAnnotationColoringModel< ? > coloringModel )
 	{
-		// configure UI range relative to current
-		// contrast limits; the same logic is
-		// used for setting the contrast limits of the
-		// images, see UserInterfaceHelper.showBrightnessDialog()
-		final double absCurrentRange = Math.abs( coloringModel.getMax() - coloringModel.getMin() );
-		final double rangeFactor = 1.0; // could be adapted
-		final double rangeMin = coloringModel.getMin() - rangeFactor * absCurrentRange;
-		final double rangeMax = coloringModel.getMax() + rangeFactor * absCurrentRange;
-
-		final BoundedValueDouble min = new BoundedValueDouble(
-				rangeMin,
-				rangeMax,
-				coloringModel.getMin() );
-		final BoundedValueDouble max = new BoundedValueDouble(
-				rangeMin,
-				rangeMax,
-				coloringModel.getMax() );
-
-		JPanel panel = new JPanel();
-		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
-
-		double spinnerStepSize = ( rangeMax - rangeMin ) / 100.0;
-
-		final SliderPanelDouble minSlider = new SliderPanelDouble(
-				"Min", min, spinnerStepSize );
-		minSlider.setNumColummns( 7 );
-		minSlider.setDecimalFormat( "####E0" );
-
-		final SliderPanelDouble maxSlider = new SliderPanelDouble(
-				"Max", max, spinnerStepSize );
-		maxSlider.setNumColummns( 7 );
-		maxSlider.setDecimalFormat( "####E0" );
-
-		class UpdateListener implements BoundedValueDouble.UpdateListener
-		{
-			@Override
-			public void update()
-			{
-				coloringModel.setMin( min.getCurrentValue() );
-				coloringModel.setMax( max.getCurrentValue() );
-				minSlider.update();
-				maxSlider.update();
-			}
-		}
-
-		final UpdateListener updateListener = new UpdateListener();
-
-		min.setUpdateListener( updateListener );
-		max.setUpdateListener( updateListener );
-
-		panel.add( minSlider );
-		panel.add( maxSlider );
-		if ( coloringModel.isSingleColorLut() )
-			panel.add( createSingleColorPanel( coloringModel ) );
-
-		final JFrame frame = new JFrame( coloringFeature );
-		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-		frame.setContentPane( panel );
-		frame.setBounds( MouseInfo.getPointerInfo().getLocation().x,
+		setTitle( coloringFeature );
+		setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+		setContentPane( new NumericAnnotationColoringModelContrastPanel( coloringModel ) );
+		setBounds( MouseInfo.getPointerInfo().getLocation().x,
 				MouseInfo.getPointerInfo().getLocation().y,
 				120, 10);
-		frame.pack();
-		frame.setVisible( true );
-		frame.setResizable( false );
+		pack();
+		setVisible( true );
+		setResizable( false );
 		if ( dialogLocation != null )
-			frame.setLocation( dialogLocation );
-	}
-
-	private JPanel createSingleColorPanel( NumericAnnotationColoringModel< ? > coloringModel )
-	{
-		final JPanel panel = new JPanel( new FlowLayout( FlowLayout.LEFT ) );
-		final JButton button = new JButton( "Color" );
-		button.setToolTipText( "Change single color LUT color" );
-
-		final ARGBType currentColor = coloringModel.getSingleColor();
-		if ( currentColor != null )
-			button.setBackground( ColorHelper.getColor( currentColor ) );
-
-		button.addActionListener( e ->
-		{
-			final Color color = JColorChooser.showDialog(
-					panel,
-					"Choose single color LUT color",
-					button.getBackground() );
-
-			if ( color == null )
-				return;
-
-			button.setBackground( color );
-			coloringModel.setSingleColor( ColorHelper.getARGBType( color ) );
-		} );
-
-		panel.add( new JLabel( "Single color LUT:  " ) );
-		panel.add( button );
-
-		return panel;
+			setLocation( dialogLocation );
 	}
 
 	public void close()

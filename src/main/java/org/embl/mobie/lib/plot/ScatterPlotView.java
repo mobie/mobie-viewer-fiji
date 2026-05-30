@@ -49,6 +49,7 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.color.ColoringListener;
 import org.embl.mobie.lib.color.ColoringModel;
+import org.embl.mobie.lib.color.ColoringModelUIs;
 import org.embl.mobie.lib.color.MoBIEColoringModel;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.ui.BdvPopupMenus;
@@ -246,10 +247,13 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 				( x, y ) ->
 				{
 					final ColoringModel< A > coloringModel =
-							new ColorByColumnDialog<>( tableModel  ).show();
+							new ColorByColumnDialog<>( tableModel, this.coloringModel.getWrappedColoringModel() ).show();
 
 					if ( coloringModel != null )
+					{
 						this.coloringModel.setColoringModel( coloringModel );
+						ColoringModelUIs.show( coloringModel );
+					}
 				});
 
 		installPointSelectionBehaviours( behaviours );

@@ -36,7 +36,6 @@ public class LUTs
 	public static final String BLUE_WHITE_RED = "blueWhiteRed";
 	public static final String VIRIDIS = "viridis";
 	public static final String GLASBEY = "glasbey";
-	public static final String GRAYSCALE = "grayscale";
 	public static final String SINGLE_COLOR = "singleColor";
 	public static final String ARGB_COLUMN = "argbColumn"; // https://github.com/mobie/mobie.github.io/issues/100#issuecomment-1405459668
 	public static final String RGBA_COLUMN = "rgbaColumn";
