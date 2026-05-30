@@ -38,7 +38,7 @@ public class ColoringModelAdjustmentDialog extends JFrame
 	public ColoringModelAdjustmentDialog( ColoringModel< ? > coloringModel )
 	{
 		this.coloringModel = coloringModel;
-		setTitle( "Coloring Stack" );
+		setTitle( "Coloring Adjustment" );
 		setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 		setBounds( MouseInfo.getPointerInfo().getLocation().x,
 				MouseInfo.getPointerInfo().getLocation().y,
@@ -95,7 +95,7 @@ public class ColoringModelAdjustmentDialog extends JFrame
 		panel.setBorder( BorderFactory.createEmptyBorder( 4, 4, 4, 4 ) );
 
 		final JPanel header = new JPanel( new FlowLayout( FlowLayout.LEFT ) );
-		header.add( new JLabel( AdditiveColoringModel.getName( model ) ) );
+		header.add( new JLabel( ColoringModels.getName( model ) ) );
 		panel.add( header );
 
 		panel.add( createContrastComponent( model ) );

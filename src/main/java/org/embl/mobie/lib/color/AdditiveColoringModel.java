@@ -60,7 +60,7 @@ public class AdditiveColoringModel< T > extends AbstractColoringModel< T >
 		if ( coloringModel == null )
 			return;
 
-		addColoringModel( getName( coloringModel ), coloringModel );
+		addColoringModel( ColoringModels.getName( coloringModel ), coloringModel );
 	}
 
 	public void addColoringModel( String name, ColoringModel< T > coloringModel )
@@ -151,20 +151,6 @@ public class AdditiveColoringModel< T > extends AbstractColoringModel< T >
 	{
 		final int sum = current + value;
 		return sum > 255 ? 255 : sum;
-	}
-
-	public static String getName( ColoringModel< ? > coloringModel )
-	{
-		if ( coloringModel == null )
-			return "";
-
-		if ( coloringModel instanceof AbstractAnnotationColoringModel )
-		{
-			final AbstractAnnotationColoringModel< ? > annotationColoringModel = ( AbstractAnnotationColoringModel< ? > ) coloringModel;
-			return annotationColoringModel.getColumnName() + " + " + annotationColoringModel.getLut().getName();
-		}
-
-		return coloringModel.getClass().getSimpleName();
 	}
 
 	public static class Entry< T >

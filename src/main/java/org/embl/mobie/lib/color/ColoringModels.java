@@ -98,4 +98,18 @@ public class ColoringModels
 
 		return coloringModel;
 	}
+
+	public static String getName( ColoringModel< ? > coloringModel )
+	{
+		if ( coloringModel == null )
+			return "";
+
+		if ( coloringModel instanceof AbstractAnnotationColoringModel )
+		{
+			final AbstractAnnotationColoringModel< ? > annotationColoringModel = ( AbstractAnnotationColoringModel< ? > ) coloringModel;
+			return annotationColoringModel.getColumnName() + " + " + annotationColoringModel.getLut().getName();
+		}
+
+		return coloringModel.getClass().getSimpleName();
+	}
 }

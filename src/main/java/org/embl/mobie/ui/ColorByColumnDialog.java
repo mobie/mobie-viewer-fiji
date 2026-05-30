@@ -78,30 +78,21 @@ public class ColorByColumnDialog< A extends Annotation >
 
         final ColoringModel< A > coloringModel = createColoringModel();
 
-        if ( addToExistingColoring() && currentColoringModel != null )
-            return createAdditiveColoringModel( coloringModel );
+        if ( addToExistingColoring() && currentColoringModel instanceof AdditiveColoringModel )
+            return addToExistingAdditiveColoringModel( coloringModel );
 
-        return coloringModel;
+        return new AdditiveColoringModel<>( coloringModel );
     }
 
-    private ColoringModel< A > createAdditiveColoringModel( ColoringModel< A > coloringModel )
+    private ColoringModel< A > addToExistingAdditiveColoringModel( ColoringModel< A > coloringModel )
     {
-        final String name = AdditiveColoringModel.getName( coloringModel );
-
-        if ( currentColoringModel instanceof AdditiveColoringModel )
-        {
-            final AdditiveColoringModel< A > additiveColoringModel = ( AdditiveColoringModel< A > ) currentColoringModel;
-            if ( additiveColoringModel.containsColoringModel( name ) )
-                return showDuplicateColoringWarning( name );
-
-            additiveColoringModel.addColoringModel( name, coloringModel );
-            return additiveColoringModel;
-        }
-
-        if ( AdditiveColoringModel.getName( currentColoringModel ).equals( name ) )
+        final String name = ColoringModels.getName( coloringModel );
+        final AdditiveColoringModel< A > additiveColoringModel = ( AdditiveColoringModel< A > ) currentColoringModel;
+        if ( additiveColoringModel.containsColoringModel( name ) )
             return showDuplicateColoringWarning( name );
 
-        return new AdditiveColoringModel<>( currentColoringModel, coloringModel );
+        additiveColoringModel.addColoringModel( name, coloringModel );
+        return additiveColoringModel;
     }
 
     private ColoringModel< A > showDuplicateColoringWarning( String name )
