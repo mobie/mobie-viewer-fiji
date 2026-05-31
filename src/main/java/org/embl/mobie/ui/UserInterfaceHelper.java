@@ -535,31 +535,8 @@ public class UserInterfaceHelper
 		JButton button = getIconButton( "settings.png" );
 		button.addActionListener( e ->
 		{
-			SwingUtilities.invokeLater( () ->
-			{
-				new Thread( () ->
-				{
-					final SourceAndConverter[] sacArray = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
-					Services.commandService.run( ConfigureImageRenderingCommand.class, true, "sourceAndConverters", sacArray, "volumeViewer", imageVolumeViewer );
-				} ).start();
-			} );
-		} );
-		return button;
-	}
-	
-	private JButton createImageRenderingSettingsButton( List< ? extends SourceAndConverter< ? > > sourceAndConverters )
-	{
-		JButton button = getIconButton( "settings.png" );
-		button.addActionListener( e ->
-		{
-			SwingUtilities.invokeLater( () ->
-			{
-				new Thread( () ->
-				{
-					final SourceAndConverter[] sacArray = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
-					Services.commandService.run( ConfigureImageRenderingCommand.class, true, "sourceAndConverters", sacArray);
-				} ).start();
-			} );
+			final SourceAndConverter[] sacArray = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
+			Services.commandService.run( ConfigureImageRenderingCommand.class, true, "sourceAndConverters", sacArray, "volumeViewer", imageVolumeViewer );
 		} );
 		return button;
 	}

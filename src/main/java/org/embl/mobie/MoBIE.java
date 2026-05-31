@@ -221,20 +221,13 @@ public class MoBIE
 		initImageJAndMoBIE();
 
 		IJ.log("\n# MoBIE" );
-		IJ.log("Opening images: " + Arrays.toString( imagePaths.toArray() ) );
-		IJ.log("Opening labels: " + Arrays.toString( labelPaths.toArray() ) );
-		IJ.log("Opening tables: " + Arrays.toString( labelTablePaths.toArray() ) );
 
 		this.settings = settings;
 
-		final GridSourcesFromPathsCreator sourcesCreator = new GridSourcesFromPathsCreator(
-				imagePaths, labelPaths, labelTablePaths, root, grid );
-
-		final List< ImageGridSources > imageSources = sourcesCreator.getImageSources();
-		final List< LabelGridSources > labelSources = sourcesCreator.getLabelSources();
-		Table regionTable = sourcesCreator.getRegionTable();
-
-		openImageAndLabelGrids( imageSources, labelSources, regionTable );
+		initProject( "" );
+		new GridImagesAndLabelsDataSetter( imagePaths, labelPaths, labelTablePaths, root, grid )
+				.addToDataset( dataset );
+		initUiAndShowView( null );
 	}
 
 	// open an image or object table

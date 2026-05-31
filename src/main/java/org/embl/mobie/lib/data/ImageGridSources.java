@@ -200,8 +200,12 @@ public class ImageGridSources
 		String uri = nameToFullPath.get( metadataSource );
 		IJ.log( "Source: " + uri );
 		ImageDataFormat imageDataFormat = ImageDataFormat.fromPath( uri );
-		String[] s3AccessAndSecretKey = MoBIE.getInstance().getSettings().values.getS3AccessAndSecretKey();
-		imageDataFormat.setS3SecretAndAccessKey( s3AccessAndSecretKey );
+		MoBIE mobie = MoBIE.getInstance();
+		if ( mobie != null )
+		{
+			String[] s3AccessAndSecretKey = mobie.getSettings().values.getS3AccessAndSecretKey();
+			imageDataFormat.setS3SecretAndAccessKey( s3AccessAndSecretKey );
+		}
 		ImageData< ? > imageData = DataStore.fetchImageData(
 				uri,
 				imageDataFormat,
