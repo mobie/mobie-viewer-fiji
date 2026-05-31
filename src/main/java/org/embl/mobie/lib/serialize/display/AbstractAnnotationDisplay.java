@@ -29,6 +29,7 @@
 package org.embl.mobie.lib.serialize.display;
 
 import bdv.viewer.SourceAndConverter;
+import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
@@ -231,19 +232,22 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 
 		ColoringModel< ? extends Annotation > coloringModel = mobieColoringModel.getWrappedColoringModel();
 
-		// TODO: serialize all entries of an AdditiveColoringModel.
-		//   Current view schema only encodes a single coloring (lut, colorByColumn,
-		//   valueLimits, randomColorSeed). When more than one column is active we
-		//   drop everything except the first entry on save, so multi-column views
-		//   cannot round-trip yet. Future plan: add a `colorings: List<ColoringEntry>`
-		//   field where each entry carries { column, lut, valueLimits,
-		//   randomColorSeed, enabled }; on load, rebuild an AdditiveColoringModel
-		//   from the list. Keep the existing scalar fields as the single-entry
-		//   shortcut for backwards compatibility (prefer the list on read when
-		//   present). Defer until the multi-column UX in issue 1309 stabilizes so
-		//   we only design the schema once.
+
 		if ( coloringModel instanceof AdditiveColoringModel )
 		{
+			// TODO: serialize all entries of an AdditiveColoringModel.
+			//   Current view schema only encodes a single coloring (lut, colorByColumn,
+			//   valueLimits, randomColorSeed). When more than one column is active we
+			//   drop everything except the first entry on save, so multi-column views
+			//   cannot round-trip yet. Future plan: add a `colorings: List<ColoringEntry>`
+			//   field where each entry carries { column, lut, valueLimits,
+			//   randomColorSeed, enabled }; on load, rebuild an AdditiveColoringModel
+			//   from the list. Keep the existing scalar fields as the single-entry
+			//   shortcut for backwards compatibility (prefer the list on read when
+			//   present). Defer until the multi-column UX in issue 1309 stabilizes so
+			//   we only design the schema once.
+			IJ.showMessage("Additive coloring view saving not yet supported.\n" +
+					"Will save only the first coloring.");
 			final AdditiveColoringModel< ? extends Annotation > additive = ( AdditiveColoringModel< ? extends Annotation > ) coloringModel;
 			coloringModel = additive.getEntries().get( 0 ).getColoringModel();
 		}

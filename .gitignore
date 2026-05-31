@@ -2,8 +2,11 @@
 **/.project
 **/.settings
 **/target
+
 .vscode
 .idea
+.claude
+
 .DS_Store
 .classpath
 .project

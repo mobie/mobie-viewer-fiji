@@ -44,7 +44,8 @@ public class ColoringModelAdjustmentDialog extends JFrame
 				MouseInfo.getPointerInfo().getLocation().y,
 				360, 480 );
 		refresh();
-		setVisible( true );
+
+		setVisible( coloringModel );
 	}
 
 	public void refresh()
@@ -67,6 +68,28 @@ public class ColoringModelAdjustmentDialog extends JFrame
 		pack();
 		revalidate();
 		repaint();
+		setVisible( coloringModel );
+	}
+
+	private void setVisible( ColoringModel< ? > coloringModel )
+	{
+		// only show if there is at least one coloring model
+		// that has adjustments
+
+		if ( coloringModel instanceof CategoricalAnnotationColoringModel )
+		{
+			setVisible( false );
+		}
+		else if ( coloringModel instanceof AdditiveColoringModel )
+		{
+			boolean allCategorical = ( ( AdditiveColoringModel< ? > ) coloringModel ).getColoringModels()
+					.stream().allMatch( cm -> cm instanceof CategoricalAnnotationColoringModel );
+			setVisible( ! allCategorical );
+		}
+		else
+		{
+			setVisible( true );
+		}
 	}
 
 	private JPanel createEntryPanel( AdditiveColoringModel< ? > additive, AdditiveColoringModel.Entry< ? > entry )
