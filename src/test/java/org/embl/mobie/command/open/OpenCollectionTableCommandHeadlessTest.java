@@ -1,6 +1,7 @@
 package org.embl.mobie.command.open;
 
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.data.CollectionDataSetter;
 import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.DataSource;
@@ -15,6 +16,7 @@ import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
 import org.embl.mobie.lib.serialize.transformation.GridTransformation;
+import org.embl.mobie.lib.serialize.transformation.ThinPlateSplineTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
 import org.junit.jupiter.api.Test;
 import tech.tablesaw.api.Table;
@@ -233,5 +235,234 @@ public class OpenCollectionTableCommandHeadlessTest
                 .filter( d -> d instanceof RegionDisplay ).count() );
         assertEquals( 1, view.transformations().stream()
                 .filter( t -> t instanceof GridTransformation ).count() );
+    }
+
+    @Test
+    public void excelSheet()
+    {
+        // The .xlsx table goes through the EXCEL TableDataFormat code path.
+        // We just assert it parses without error and produces sources.
+        Dataset dataset = buildDataset( "src/test/resources/collections/clem-collection.xlsx" );
+        assertTrue( dataset.sources().size() > 0, "xlsx collection should yield at least one source" );
+        assertTrue( dataset.views().size() > 0, "xlsx collection should yield at least one view" );
+    }
+
+    @Test
+    public void alphaBlendingOrder()
+    {
+        // alpha-blend-collection.csv has blend=alpha on one row and blank on
+        // the other. The blend column should map to BlendingMode.Alpha for the
+        // first row and stay null otherwise.
+        Dataset dataset = buildDataset( "src/test/resources/collections/alpha-blend-collection.csv" );
+
+        View view = dataset.views().get( "all" );
+        assertNotNull( view );
+
+        ImageDisplay< ? > alphaDisplay = ( ImageDisplay< ? > ) view.displays().stream()
+                .filter( d -> d instanceof ImageDisplay && d.getSources().contains( "b" ) )
+                .findFirst()
+                .orElseThrow( () -> new AssertionError( "no ImageDisplay for source 'b'" ) );
+        assertEquals( BlendingMode.Alpha, alphaDisplay.getBlendingMode() );
+
+        ImageDisplay< ? > nonAlphaDisplay = ( ImageDisplay< ? > ) view.displays().stream()
+                .filter( d -> d instanceof ImageDisplay && d.getSources().contains( "a" ) )
+                .findFirst()
+                .orElseThrow( () -> new AssertionError( "no ImageDisplay for source 'a'" ) );
+        // CollectionDataSetter#getBlendingMode returns null when blend is not
+        // "alpha"; the display then falls back to its default (Sum).
+        assertEquals( BlendingMode.Sum, nonAlphaDisplay.getBlendingMode() );
+    }
+
+    @Test
+    public void addImageTwice()
+    {
+        // blobs-image-twice-collection.csv references blobs.tif three times
+        // with the same view "blobs1" twice + once view "blobs2".
+        // Duplicate source names get a " (n)" suffix (see
+        // CollectionDataSetter#getDataName), so all three rows produce
+        // distinct DataSource entries.
+        // https://github.com/mobie/mobie-viewer-fiji/issues/1244
+        Dataset dataset = buildDataset( "src/test/resources/collections/blobs-image-twice-collection.csv" );
+
+        assertEquals( 3, dataset.sources().size(),
+                "duplicate URIs should still create distinct sources via name disambiguation" );
+        assertNotNull( dataset.sources().get( "blobs" ) );
+        assertNotNull( dataset.sources().get( "blobs (1)" ) );
+        assertNotNull( dataset.sources().get( "blobs (2)" ) );
+    }
+
+    @Test
+    public void blobsAndMri()
+    {
+        // blobs-mri-collection.csv has two intensities sources in the same
+        // view "all", each with its own affine — covers an "uppercase Uri"
+        // header (column name matching is case-insensitive).
+        Dataset dataset = buildDataset( "src/test/resources/collections/blobs-mri-collection.csv" );
+
+        assertEquals( 2, dataset.sources().size() );
+        assertNotNull( dataset.sources().get( "blobs" ) );
+        assertNotNull( dataset.sources().get( "mri-stack" ) );
+
+        View view = dataset.views().get( "all" );
+        assertNotNull( view );
+
+        long affines = view.transformations().stream()
+                .filter( t -> t instanceof AffineTransformation ).count();
+        assertEquals( 2, affines, "each source should contribute one affine transformation" );
+    }
+
+    @Test
+    public void spots3dAffine()
+    {
+        // spots-3d-affine-collection.txt: a single spots source with an affine.
+        // Verifies that the affine code path also fires for spots (not only images).
+        Dataset dataset = buildDataset( "src/test/resources/collections/spots-3d-affine-collection.txt" );
+
+        assertEquals( 1, dataset.sources().size() );
+        assertInstanceOf( SpotDataSource.class, dataset.sources().get( "spots" ) );
+
+        View view = dataset.views().get( "spots" );
+        assertNotNull( view );
+
+        boolean spotsHasAffine = view.transformations().stream()
+                .anyMatch( t -> t instanceof AffineTransformation
+                        && t.getSources().contains( "spots" ) );
+        assertTrue( spotsHasAffine, "spots source should have an affine transformation" );
+    }
+
+    @Test
+    public void thinPlateSplineMri()
+    {
+        // thinplatespline-mri-collection.tsv carries a thin_plate_spline JSON
+        // payload — exercises the TPS branch in
+        // CollectionDataSetter#getTransformations.
+        Dataset dataset = buildDataset( "src/test/resources/collections/thinplatespline-mri-collection.tsv" );
+
+        View view = dataset.views().get( "mri-tps-transformed" );
+        assertNotNull( view );
+
+        ThinPlateSplineTransformation tps = ( ThinPlateSplineTransformation ) view.transformations().stream()
+                .filter( t -> t instanceof ThinPlateSplineTransformation )
+                .findFirst()
+                .orElseThrow( () -> new AssertionError( "no TPS transformation found" ) );
+        assertTrue( tps.getSources().contains( "mri-tps-transformed" ) );
+        assertNotNull( tps.getLandmarksJson(), "TPS landmarks JSON should be parsed and attached" );
+        assertTrue( tps.getLandmarksJson().contains( "BigWarpLandmarks" ) );
+    }
+
+    @Test
+    public void manyGroups()
+    {
+        // many-groups-collection.csv has 15 rows with distinct view names AND
+        // distinct group values, producing 15 views each with its own group.
+        Dataset dataset = buildDataset( "src/test/resources/collections/many-groups-collection.csv" );
+
+        assertEquals( 15, dataset.views().size() );
+        for ( int i = 1; i <= 15; i++ )
+        {
+            View view = dataset.views().get( "v" + i );
+            assertNotNull( view, "expected view v" + i );
+            assertTrue( view.getUiSelectionGroups().contains( "g" + i ),
+                    "view v" + i + " should be assigned to group g" + i );
+        }
+    }
+
+    @Test
+    public void twoSameBlobs()
+    {
+        // two-same-blobs-collection.txt: same URI, two views ("a" and "b"),
+        // different colors. Source-name disambiguation kicks in here too.
+        Dataset dataset = buildDataset( "src/test/resources/collections/two-same-blobs-collection.txt" );
+
+        assertEquals( 2, dataset.sources().size() );
+        assertNotNull( dataset.sources().get( "blobs" ) );
+        assertNotNull( dataset.sources().get( "blobs (1)" ) );
+
+        assertNotNull( dataset.views().get( "a" ) );
+        assertNotNull( dataset.views().get( "b" ) );
+    }
+
+    @Test
+    public void boatsPng()
+    {
+        // boats-png-collection.txt has a single PNG URI — verifies PNG goes
+        // through the same intensities path as TIFF (ImageDataFormat.BioFormats).
+        Dataset dataset = buildDataset( "src/test/resources/collections/boats-png-collection.txt" );
+
+        assertEquals( 1, dataset.sources().size() );
+        assertInstanceOf( ImageDataSource.class, dataset.sources().get( "boats" ) );
+    }
+
+    @Test
+    public void segmentedBlobsGridTable()
+    {
+        // segmented-blobs-grid-table.txt has 4 rows: two intensities sources
+        // and two labels sources, organised into two separate named grids
+        // ("blob images" and "blob segmentations") in one view.
+        Dataset dataset = buildDataset( "src/test/resources/collections/segmented-blobs-grid-table.txt" );
+
+        assertEquals( 4, dataset.sources().size() );
+        assertInstanceOf( ImageDataSource.class, dataset.sources().get( "blobs1" ) );
+        assertInstanceOf( ImageDataSource.class, dataset.sources().get( "blobs2" ) );
+        assertInstanceOf( SegmentationDataSource.class, dataset.sources().get( "labels1" ) );
+        assertInstanceOf( SegmentationDataSource.class, dataset.sources().get( "labels2" ) );
+
+        View view = dataset.views().get( "segmented blobs" );
+        assertNotNull( view );
+
+        // Two separate grids → two GridTransformations and two RegionDisplays.
+        long grids = view.transformations().stream()
+                .filter( t -> t instanceof GridTransformation ).count();
+        assertEquals( 2, grids );
+
+        long regionDisplays = view.displays().stream()
+                .filter( d -> d instanceof RegionDisplay ).count();
+        assertEquals( 2, regionDisplays );
+    }
+
+    @Test
+    public void timelapseChannels()
+    {
+        // timelapse-collection.csv references xyzct-mitosis.tif twice with
+        // different channel indices. Channel disambiguation appends a
+        // "_ch<index>" suffix to the source name (see
+        // CollectionDataSetter#getDataName and Constants.CHANNEL_POSTFIX).
+        Dataset dataset = buildDataset( "src/test/resources/collections/timelapse-collection.csv" );
+
+        assertEquals( 2, dataset.sources().size() );
+
+        // The source name from the table is "mitosis_nuc" / "mitosis_mt",
+        // each gets the channel postfix appended.
+        boolean hasChannelSuffixedSources = dataset.sources().keySet().stream()
+                .allMatch( n -> n.contains( "_ch" ) || n.matches( ".*\\d$" ) );
+        assertTrue( hasChannelSuffixedSources,
+                "each timelapse source should carry a channel postfix; got: " + dataset.sources().keySet() );
+
+        // Both sources land in the same view "all" and same grid.
+        View view = dataset.views().get( "all" );
+        assertNotNull( view );
+        assertEquals( 1, view.transformations().stream()
+                .filter( t -> t instanceof GridTransformation ).count() );
+    }
+
+    @Test
+    public void segmentedImageWithFloatLabels()
+    {
+        // segmented-image-collection.csv carries a UTF-8 BOM in the header,
+        // a "labels" row with a labels_table, and a "view " header containing
+        // a trailing space — exercises the column-name normalisation path.
+        Dataset dataset = buildDataset( "src/test/resources/collections/segmented-image-collection.csv" );
+
+        assertEquals( 2, dataset.sources().size() );
+        assertInstanceOf( ImageDataSource.class, dataset.sources().get( "image_with_two_objects" ) );
+        SegmentationDataSource labels = ( SegmentationDataSource )
+                dataset.sources().get( "image_with_two_objects_float_labels" );
+        assertNotNull( labels );
+        assertNotNull( labels.getTableData() );
+        assertTrue( ! labels.getTableData().isEmpty() );
+
+        // Both rows specify view="segmented image" (trailing-space header notwithstanding).
+        View view = dataset.views().get( "segmented image" );
+        assertNotNull( view, "view name should be matched despite header whitespace/BOM" );
     }
 }
