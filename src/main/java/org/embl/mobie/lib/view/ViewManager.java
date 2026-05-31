@@ -674,7 +674,7 @@ public class ViewManager
 							);
 
 				annotationDisplay.coloringModel = new MoBIEColoringModel( coloringModel, annotationDisplay.selectionModel, annotationDisplay.getSelectionColor(), annotationDisplay.getOpacityNotSelected() );
-				ColoringModelUIs.show( coloringModel );
+				ColoringModelUIs.show( coloringModel, annotationDisplay.selectionModel, annotationDisplay.getAnnData().getTable() );
 			}
 
 			// show the data

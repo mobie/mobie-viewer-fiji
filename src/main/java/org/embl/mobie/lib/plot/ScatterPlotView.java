@@ -252,7 +252,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 					if ( coloringModel != null )
 					{
 						this.coloringModel.setColoringModel( coloringModel );
-						ColoringModelUIs.show( coloringModel );
+						ColoringModelUIs.show( coloringModel, this.selectionModel, this.tableModel );
 					}
 				});
 

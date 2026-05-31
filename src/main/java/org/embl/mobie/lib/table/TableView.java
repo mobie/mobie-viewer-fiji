@@ -939,7 +939,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		if ( coloringModel != null )
 		{
 			this.coloringModel.setColoringModel( coloringModel );
-			ColoringModelUIs.show( coloringModel );
+			ColoringModelUIs.show( coloringModel, this.selectionModel, this.tableModel );
 		}
 	}
 

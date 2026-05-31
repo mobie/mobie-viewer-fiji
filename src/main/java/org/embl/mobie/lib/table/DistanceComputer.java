@@ -111,7 +111,7 @@ public class DistanceComputer
                             LUTs.BLUE_WHITE_RED,
                             tableModel.getMinMax( resultColumnName ) );
             coloringModel.setColoringModel( numericModel );
-            ColoringModelUIs.show( numericModel );
+            ColoringModelUIs.show( numericModel, selectionModel, tableModel );
             coloringModel.setOpacityNotSelected( 1.0 );
             coloringModel.setSelectionColor( new ARGBType( ARGBType.rgba( 255, 255, 0, 255 ) ) );
         }

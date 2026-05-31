@@ -11,6 +11,7 @@ import org.embl.mobie.lib.table.AnnotationTableModel;
 
 import javax.swing.*;
 import java.awt.*;
+import org.embl.mobie.lib.color.NumericAnnotationColoringModel;
 
 import static org.embl.mobie.lib.color.lut.LUTs.COLORING_LUTS;
 import static org.embl.mobie.lib.color.lut.LUTs.TRANSPARENT;
@@ -25,8 +26,10 @@ public class ColorByColumnDialog< A extends Annotation >
     private JComboBox< String > columnComboBox;
     private JComboBox< String > lutComboBox;
     private JCheckBox paintZeroTransparentCheckBox;
+    private JCheckBox highValuesTransparentCheckBox;
     private JRadioButton replaceColoringRadioButton;
     private JRadioButton addToExistingColoringRadioButton;
+    private static boolean highValuesTransparent;
     private boolean isOkPressed;
 
     public ColorByColumnDialog( AnnotationTableModel< A > table )
@@ -52,6 +55,7 @@ public class ColorByColumnDialog< A extends Annotation >
         addLutSelection( dialog );
 
         addPaintZeroTransparentCheckbox( dialog );
+        addHighValuesTransparentCheckbox( dialog );
 
         addColoringModeSelection( dialog );
 
@@ -76,7 +80,16 @@ public class ColorByColumnDialog< A extends Annotation >
         if ( paintZeroTransparent )
             lutName += LUTs.ZERO_TRANSPARENT;
 
+        highValuesTransparent = getHighValuesTransparent();
         final ColoringModel< A > coloringModel = createColoringModel();
+
+        // If the created coloring model is numeric, apply the high-values-transparent setting
+        if ( coloringModel instanceof NumericAnnotationColoringModel )
+        {
+            @SuppressWarnings("unchecked")
+            final NumericAnnotationColoringModel< A > numericModel = ( NumericAnnotationColoringModel< A > ) coloringModel;
+            numericModel.setHighValuesTransparent( highValuesTransparent );
+        }
 
         if ( addToExistingColoring() && currentColoringModel instanceof AdditiveColoringModel )
             return addToExistingAdditiveColoringModel( coloringModel );
@@ -170,6 +183,17 @@ public class ColorByColumnDialog< A extends Annotation >
         dialog.add( panel );
     }
 
+    private void addHighValuesTransparentCheckbox( JDialog dialog )
+    {
+        JPanel panel = SwingHelper.horizontalFlowLayoutPanel();
+        highValuesTransparentCheckBox = new JCheckBox();
+        boolean init = highValuesTransparent || ( currentColoringModel instanceof NumericAnnotationColoringModel && ((NumericAnnotationColoringModel) currentColoringModel).isHighValuesTransparent() );
+        highValuesTransparentCheckBox.setSelected( init );
+        panel.add( new JLabel("Make values > max transparent:  ") );
+        panel.add( highValuesTransparentCheckBox );
+        dialog.add( panel );
+    }
+
     private void addColumnSelection( JDialog dialog )
     {
         JPanel panel = SwingHelper.horizontalFlowLayoutPanel();
@@ -255,6 +279,11 @@ public class ColorByColumnDialog< A extends Annotation >
     private boolean getPaintZeroTransparent()
     {
         return paintZeroTransparentCheckBox.isSelected();
+    }
+
+    private boolean getHighValuesTransparent()
+    {
+        return highValuesTransparentCheckBox.isSelected();
     }
 
     private boolean addToExistingColoring()

@@ -29,6 +29,7 @@
 package org.embl.mobie.lib.color;
 
 import org.embl.mobie.ui.MoBIEWindowManager;
+import org.embl.mobie.lib.table.AnnotationTableModel;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
@@ -41,6 +42,16 @@ public abstract class ColoringModelUIs
 
 	public static void show( ColoringModel< ? > coloringModel )
 	{
+		show( coloringModel, null, null );
+	}
+
+	public static void show( ColoringModel< ? > coloringModel, org.embl.mobie.lib.select.SelectionModel<?> selectionModel )
+	{
+		show( coloringModel, selectionModel, null );
+	}
+
+	public static void show( ColoringModel< ? > coloringModel, org.embl.mobie.lib.select.SelectionModel<?> selectionModel, AnnotationTableModel<?> tableModel )
+	{
 		if ( coloringModel == null )
 			return;
 
@@ -49,7 +60,7 @@ public abstract class ColoringModelUIs
 			ColoringModelAdjustmentDialog dialog = dialogs.get( coloringModel );
 			if ( dialog == null || ! dialog.isDisplayable() )
 			{
-				dialog = new ColoringModelAdjustmentDialog( coloringModel );
+				dialog = new ColoringModelAdjustmentDialog( coloringModel, selectionModel, tableModel );
 				dialogs.put( coloringModel, dialog );
 				MoBIEWindowManager.addWindow( dialog );
 				final ColoringModelAdjustmentDialog finalDialog = dialog;

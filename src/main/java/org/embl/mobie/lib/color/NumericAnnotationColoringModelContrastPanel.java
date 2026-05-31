@@ -84,10 +84,23 @@ public class NumericAnnotationColoringModelContrastPanel extends JPanel
 		min.setUpdateListener( updateListener );
 		max.setUpdateListener( updateListener );
 
-		add( minSlider );
-		add( maxSlider );
+		// place sliders in a vertical panel on the left and the color button (if present)
+		// to the right so the color control doesn't take extra vertical space
+		final JPanel slidersPanel = new JPanel();
+		slidersPanel.setLayout( new BoxLayout( slidersPanel, BoxLayout.PAGE_AXIS ) );
+		slidersPanel.add( minSlider );
+		slidersPanel.add( maxSlider );
+
+		final JPanel horizontal = new JPanel( new BorderLayout() );
+		horizontal.add( slidersPanel, BorderLayout.CENTER );
+
 		if ( coloringModel.isSingleColorLut() )
-			add( createSingleColorPanel( coloringModel ) );
+		{
+			// createSingleColorPanel returns a small panel containing the Color button
+			horizontal.add( createSingleColorPanel( coloringModel ), BorderLayout.EAST );
+		}
+
+		add( horizontal );
 	}
 
 	private JPanel createSingleColorPanel( NumericAnnotationColoringModel< ? > coloringModel )
@@ -114,7 +127,7 @@ public class NumericAnnotationColoringModelContrastPanel extends JPanel
 			coloringModel.setSingleColor( ColorHelper.getARGBType( color ) );
 		} );
 
-		panel.add( new JLabel( "Single color LUT:  " ) );
+		// The button label "Color" is self-explanatory; no extra label required.
 		panel.add( button );
 
 		return panel;
