@@ -246,10 +246,11 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 			//   shortcut for backwards compatibility (prefer the list on read when
 			//   present). Defer until the multi-column UX in issue 1309 stabilizes so
 			//   we only design the schema once.
-			IJ.showMessage("Additive coloring view saving not yet supported.\n" +
-					"Will save only the first coloring.");
 			final AdditiveColoringModel< ? extends Annotation > additive = ( AdditiveColoringModel< ? extends Annotation > ) coloringModel;
 			coloringModel = additive.getEntries().get( 0 ).getColoringModel();
+
+			if ( additive.getEntries().size() > 1 )
+				IJ.showMessage("Saving of additive colorings is not yet supported.\nSaved only the first coloring.");
 		}
 
 		if ( coloringModel instanceof AbstractAnnotationColoringModel )
