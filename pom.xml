@@ -130,8 +130,8 @@
         <!-- NB: Deploy releases to the SciJava Maven repository. -->
         <releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
 
-        <!-- NB: Skip tests because the open the GUI and it does not work on github actions -->
-        <skipTests>true</skipTests>
+        <!-- NB: Skip tests because some open the GUI and it does not work on github actions -->
+        <skipTests>false</skipTests>
 
     </properties>
 

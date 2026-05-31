@@ -102,6 +102,8 @@ public class ImageVolumeViewer
 
 	public void setMaxNumVoxels( long maxNumVoxels )
 	{
+		// If voxelSpacing is set this is not used
+		// If voxelSpacing is not set, maxNumVoxels is used to determine voxelSpacing
 		this.maxNumVoxels = maxNumVoxels;
 	}
 
