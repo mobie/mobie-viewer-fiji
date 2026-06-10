@@ -97,6 +97,8 @@ import static sc.fiji.bdvpg.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
 
 public abstract class MoBIEHelper
 {
+	// static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static boolean isRelativePath(String uri) {
 		if (uri == null || uri.isEmpty()) {
 			return false;
@@ -274,8 +276,6 @@ public abstract class MoBIEHelper
 
 	public static final String GRID_TYPE_HELP = "If the images are different and not too many, use Transformed for more flexible visualisation.\n" +
 			"If all images are identical use Stitched for better performance.";
-
-	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	public static String print(double[] array, int numSignificantDigits) {
 		StringBuilder result = new StringBuilder();
