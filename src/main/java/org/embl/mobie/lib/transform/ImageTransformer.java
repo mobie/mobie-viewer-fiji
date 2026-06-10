@@ -33,6 +33,8 @@ import net.imglib2.realtransform.InvertibleRealTransform;
 import net.imglib2.realtransform.RealTransform;
 import net.imglib2.realtransform.inverse.WrappedIterativeInvertibleRealTransform;
 import net.imglib2.type.Type;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
@@ -161,9 +163,17 @@ public class ImageTransformer
 		if ( image instanceof AnnotationImage && !( image instanceof AnnotatedLabelImage ) )
 			throw new UnsupportedOperationException( "Displacement field transformations of " + image.getClass() + " are currently not supported." );
 
+
+		String displacementFieldUri = transformation.getDisplacementFieldUri();
+		if ( MoBIEHelper.isRelativePath( displacementFieldUri ) )
+		{
+			String projectRoot = IOHelper.getParentLocation( MoBIE.getInstance().getProjectLocation() );
+			displacementFieldUri = IOHelper.combinePath( projectRoot, displacementFieldUri );
+		}
+
 		try
 		{
-			final RealTransform realTransform = REAL_TRANSFORM_PROVIDER.getDisplacementFieldRealTransform( transformation );
+			final RealTransform realTransform = REAL_TRANSFORM_PROVIDER.getDisplacementFieldRealTransform( displacementFieldUri );
 
 			if ( image instanceof AnnotatedLabelImage )
 			{
@@ -182,7 +192,7 @@ public class ImageTransformer
 		}
 		catch ( Exception e )
 		{
-			throw new RuntimeException( "Could not create displacement field transform from: " + transformation.getDisplacementFieldUri(), e );
+			throw new RuntimeException( "Could not create displacement field transform from: " + displacementFieldUri, e );
 		}
 	}
 

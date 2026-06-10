@@ -836,13 +836,11 @@ public class CollectionDataSetter
         String displacementFieldUri = getString( row, CollectionTableConstants.DISPLACEMENT_FIELD_URI );
         if ( MoBIEHelper.notNullOrEmpty( displacementFieldUri ) )
         {
-            displacementFieldUri = resolveUri( displacementFieldUri );
-
             DisplacementFieldTransformation transformation = new DisplacementFieldTransformation(
-              "DisplacementField",
-              displacementFieldUri,
-              Collections.singletonList( sourceName ),
-              null );
+                  "DisplacementField",
+                  displacementFieldUri,
+                  Collections.singletonList( sourceName ),
+                  null );
 
             transformations.add( transformation );
         }

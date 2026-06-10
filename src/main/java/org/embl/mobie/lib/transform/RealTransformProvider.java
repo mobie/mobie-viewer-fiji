@@ -3,7 +3,6 @@ package org.embl.mobie.lib.transform;
 import ij.IJ;
 import net.imglib2.realtransform.RealTransform;
 import org.apache.commons.lang.ArrayUtils;
-import org.embl.mobie.lib.serialize.transformation.DisplacementFieldTransformation;
 import org.embl.mobie.lib.serialize.transformation.ElastixBSplineTransformation;
 import org.embl.mobie.lib.transform.elastix.ElastixBSplineTransform;
 import org.embl.mobie.lib.transform.elastix.ElastixTransform;
@@ -30,15 +29,14 @@ public class RealTransformProvider
 	private final Map< String, RealTransform > elastixBsplineCache = new ConcurrentHashMap<>();
 	private final Map< String, RealTransform > displacementFieldCache = new ConcurrentHashMap<>();
 
-	public RealTransform getDisplacementFieldRealTransform( final DisplacementFieldTransformation transformation ) throws Exception
+	public RealTransform getDisplacementFieldRealTransform( final String displacementFieldUri ) throws Exception
 	{
-		final String cacheKey = transformation.getDisplacementFieldUri();
-		final RealTransform cached = displacementFieldCache.get( cacheKey );
+		final RealTransform cached = displacementFieldCache.get( displacementFieldUri );
 		if ( cached != null )
 			return cached;
 
-		final RealTransform transform = DisplacementFieldTransformIO.load( transformation.getDisplacementFieldUri()  );
-		displacementFieldCache.put( cacheKey, transform );
+		final RealTransform transform = DisplacementFieldTransformIO.load( displacementFieldUri );
+		displacementFieldCache.put( displacementFieldUri, transform );
 		return transform;
 	}
 
