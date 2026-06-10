@@ -36,7 +36,7 @@ import org.embl.mobie.command.view.ViewImageAndLabelsAndTableCommand;
 
 import java.io.IOException;
 
-class ViewImageAndSegmentationAndTableTest
+public class ViewImageAndSegmentationAndTableTest
 {
 	public static void main( String[] args ) throws IOException
 	{

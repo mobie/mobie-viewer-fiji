@@ -33,7 +33,7 @@ import java.util.List;
 
 public class ElastixBSplineTransformation extends AbstractImageTransformation
 {
-	// Serialisation
+    // Serialisation
 	protected String transformParametersFile;
 
 	public ElastixBSplineTransformation(
@@ -42,7 +42,7 @@ public class ElastixBSplineTransformation extends AbstractImageTransformation
 			List< String > sources,
 			List< String > sourceNamesAfterTransform )
 	{
-		this.name = name;
+        this.name = name;
 		this.transformParametersFile = transformParametersFile;
 		this.sources = sources;
 		this.sourceNamesAfterTransform = sourceNamesAfterTransform;

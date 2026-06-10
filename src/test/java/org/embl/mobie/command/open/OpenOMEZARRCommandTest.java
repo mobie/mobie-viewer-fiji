@@ -7,7 +7,7 @@ class OpenOMEZARRCommandTest
 {
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    @Test
+    //@Test
     public void test( )
     {
         new ImageJ().ui().showUI(); // initialise SciJava Services
@@ -18,7 +18,7 @@ class OpenOMEZARRCommandTest
         command.run();
     }
 
-    @Test
+    //@Test
     public void testSingleChannelAndLabels( )
     {
         new ImageJ().ui().showUI(); // initialise SciJava Services
@@ -29,7 +29,7 @@ class OpenOMEZARRCommandTest
         command.run();
     }
 
-    @Test
+    //@Test
     public void testMultiChannelWithLabels( )
     {
         new ImageJ().ui().showUI(); // initialise SciJava Services

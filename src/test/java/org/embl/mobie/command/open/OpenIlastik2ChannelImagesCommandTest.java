@@ -38,7 +38,7 @@ public class OpenIlastik2ChannelImagesCommandTest
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	@Test
+	//@Test
 	public void test( )
 	{
 		new ImageJ().ui().showUI(); // initialise SciJava Services

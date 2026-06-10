@@ -45,9 +45,9 @@ import java.nio.file.Paths;
 public class ViewsJsonParser
 {
 
-    public static ViewsMap loadViews( String path ) throws IOException
+    public static ViewsMap loadViews( String uri ) throws IOException
     {
-        final String s = IOHelper.read( path );
+        final String s = IOHelper.read( uri );
         Gson gson = JsonHelper.buildGson( false );
         Type type = new TypeToken< ViewsMap >() {}.getType();
         return gson.fromJson( s, type );

@@ -7,6 +7,7 @@ import net.imglib2.realtransform.DisplacementFieldTransform;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
+import org.embl.mobie.io.util.IOHelper;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -88,20 +89,17 @@ public class DisplacementFieldTransformIO
 		}
 	}
 
-	public static DisplacementFieldTransform load( final File jsonFile ) throws IOException
+	public static DisplacementFieldTransform load( final String jsonUri ) throws IOException
 	{
 		final DisplacementFieldStorageMetadata metadata;
-		try ( InputStreamReader reader = new InputStreamReader( new FileInputStream( jsonFile ), StandardCharsets.UTF_8 ) )
+		try ( InputStreamReader reader = new InputStreamReader( IOHelper.getInputStream( jsonUri ), StandardCharsets.UTF_8 ) )
 		{
 			metadata = GSON.fromJson( reader, DisplacementFieldStorageMetadata.class );
 		}
 
-		validateMetadata( metadata, jsonFile );
+		validateMetadata( metadata, jsonUri );
 
-		final Path rawPath = resolveRawPath( jsonFile.toPath(), metadata.rawPath );
-		final File rawFile = rawPath.toFile();
-		if ( !rawFile.exists() )
-			throw new IOException( "Displacement field RAW file does not exist: " + rawFile.getAbsolutePath() );
+		String rawUri = IOHelper.combinePath( IOHelper.getParentLocation( jsonUri ), metadata.rawPath );
 
 		long valuesCount = metadata.numDimensions;
 		for ( int d = 0; d < metadata.numDimensions; d++ )
@@ -111,7 +109,7 @@ public class DisplacementFieldTransformIO
 			throw new IOException( "Displacement field too large for in-memory float array: " + valuesCount );
 
 		final float[] values = new float[ ( int ) valuesCount ];
-		try ( DataInputStream input = new DataInputStream( new BufferedInputStream( new FileInputStream( rawFile ) ) ) )
+		try ( DataInputStream input = new DataInputStream( new BufferedInputStream( IOHelper.getInputStream( rawUri ) ) ) )
 		{
 			for ( int i = 0; i < values.length; i++ )
 				values[ i ] = input.readFloat();
@@ -126,18 +124,18 @@ public class DisplacementFieldTransformIO
 		return new DisplacementFieldTransform( interleaved, metadata.spacing, metadata.origin );
 	}
 
-	private static void validateMetadata( final DisplacementFieldStorageMetadata metadata, final File jsonFile ) throws IOException
+	private static void validateMetadata( final DisplacementFieldStorageMetadata metadata, final String uri ) throws IOException
 	{
 		if ( metadata == null )
-			throw new IOException( "Could not parse displacement metadata JSON: " + jsonFile.getAbsolutePath() );
+			throw new IOException( "Could not parse displacement metadata JSON: " + uri );
 		if ( metadata.numDimensions != 3 )
 			throw new IOException( "Only 3D displacement fields are supported, got numDimensions=" + metadata.numDimensions );
 		if ( metadata.componentAxis != 0 )
 			throw new IOException( "Unsupported componentAxis=" + metadata.componentAxis + ", expected 0" );
 		if ( metadata.size == null || metadata.spacing == null || metadata.origin == null || metadata.rawPath == null )
-			throw new IOException( "Incomplete displacement metadata in: " + jsonFile.getAbsolutePath() );
+			throw new IOException( "Incomplete displacement metadata in: " + uri );
 		if ( metadata.size.length != metadata.numDimensions || metadata.spacing.length != metadata.numDimensions || metadata.origin.length != metadata.numDimensions )
-			throw new IOException( "Metadata dimensionality mismatch in: " + jsonFile.getAbsolutePath() );
+			throw new IOException( "Metadata dimensionality mismatch in: " + uri );
 	}
 
 	private static Path resolveRawPath( final Path jsonPath, final String rawPath )

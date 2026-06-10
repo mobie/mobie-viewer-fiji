@@ -223,7 +223,7 @@ public class CollectionTableConstants
      *
      * Notes:
      * - If present, this transform is applied after affine and before elastix_bspline.
-     * - If the file cannot be found/opened, MoBIE will fail fast with an error.
+     * - If the file cannot be found/opened, MoBIE will fail with an error.
      */
     public static final String DISPLACEMENT_FIELD_URI = "displacement_field_uri";
 

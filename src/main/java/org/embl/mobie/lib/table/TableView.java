@@ -70,7 +70,10 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.embl.mobie.lib.io.FileLocation;
 
@@ -100,6 +103,13 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		None,
 		FocusOnly,
 		ToggleSelectionAndFocusIfSelected
+	}
+
+	private enum SelectionMode
+	{
+		CREATE_NEW,
+		INTERSECT,
+		ADD
 	}
 
 	public TableView( AbstractAnnotationDisplay< A > display )
@@ -242,10 +252,9 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private JMenu createSelectionMenu()
 	{
 		JMenu menu = new JMenu( "Select" );
+		menu.add( createSelectValuesMenuItem() );
+		menu.add( createSelectNoneMenuItem() );
 		menu.add( createSelectAllMenuItem() );
-		menu.add( createSelectEqualToMenuItem() );
-		menu.add( createSelectLessThanMenuItem() );
-		menu.add( createSelectGreaterThanMenuItem() );
 		return menu;
 	}
 
@@ -404,6 +413,15 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		return menuItem;
 	}
 
+	private JMenuItem createSelectNoneMenuItem()
+	{
+		final JMenuItem menuItem = new JMenuItem( "Select None" );
+		menuItem.addActionListener( e ->
+				SwingUtilities.invokeLater( () ->
+						selectionModel.setSelected( tableModel.annotations(), false ) ) );
+		return menuItem;
+	}
+
 	private JMenuItem createColumnSearchMenuItem()
 	{
 		final JMenuItem menuItem = new JMenuItem( "Focus Column..." );
@@ -436,31 +454,11 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		return menuItem;
 	}
 
-	private JMenuItem createSelectEqualToMenuItem()
+	private JMenuItem createSelectValuesMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Select Equal To..." );
+		final JMenuItem menuItem = new JMenuItem( "Select Rows..." );
 		menuItem.addActionListener( e ->
-				SwingUtilities.invokeLater( this::selectEqualTo ) );
-		return menuItem;
-	}
-
-	private JMenuItem createSelectLessThanMenuItem()
-	{
-		final JMenuItem menuItem = new JMenuItem( "Select Less Than..." );
-		menuItem.addActionListener( e ->
-				SwingUtilities.invokeLater( () ->
-						selectGreaterOrLessThan( false ) ) );
-		return menuItem;
-	}
-
-	private JMenuItem createSelectGreaterThanMenuItem()
-	{
-		final JMenuItem menuItem = new JMenuItem( "Select Greater Than..." );
-
-		menuItem.addActionListener( e ->
-				SwingUtilities.invokeLater( () ->
-						selectGreaterOrLessThan( true )) );
-
+				SwingUtilities.invokeLater( this::selectValues ) );
 		return menuItem;
 	}
 
@@ -633,71 +631,89 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		});
 	}
 
-	private void selectRows( List< A > selectedRows, boolean keepCurrentSelection ) {
-		if ( ! keepCurrentSelection )
+	private void applySelectionMode( List< A > selectedRows, SelectionMode selectionMode )
+	{
+		if ( selectionMode == SelectionMode.CREATE_NEW )
+		{
 			selectionModel.clearSelection();
-		selectionModel.setSelected( selectedRows, true );
+			selectionModel.setSelected( selectedRows, true );
+		}
+		else if ( selectionMode == SelectionMode.ADD )
+		{
+			selectionModel.setSelected( selectedRows, true );
+		}
+		else
+		{
+			final Set< A > selectedSet = new HashSet<>( selectedRows );
+			final Set< A > currentSelection = selectionModel.getSelected();
+			for ( A selected : currentSelection )
+				if ( ! selectedSet.contains( selected ) )
+					selectionModel.setSelected( selected, false );
+		}
 	}
 
-	private void selectEqualTo()
+	private void selectValues()
 	{
-		ColumnFilteringDialog dialog = new ColumnFilteringDialog( tableModel.columnNames() );
+		ColumnValueSelectionDialog dialog = new ColumnValueSelectionDialog(
+				tableModel.columnNames(),
+				tableModel.numericColumnNames(),
+				this::getColumnMinMax,
+				this::getDistinctColumnValues );
 		if ( ! dialog.show() ) return;
 
 		final String columnName = dialog.getColumnName();
-		final String value = dialog.getValue();
-		final boolean keepCurrentSelection = dialog.getKeepSelected();
-
-		ArrayList< A > selectedRows = new ArrayList<>();
+		final SelectionMode selectionMode = mapSelectionMode( dialog.getSelectionMode() );
+		final ArrayList< A > selectedRows = new ArrayList<>();
 		final ArrayList< A > rows = tableModel.annotations();
-
 		final boolean isNumeric = tableModel.numericColumnNames().contains( columnName );
 
 		if ( isNumeric )
 		{
-			double selectedNumber = Double.parseDouble( value );
-			for( A row: rows )
-				if ( row.getNumber( columnName ).equals( selectedNumber ) )
+			final double minValue = dialog.getMinValue();
+			final double maxValue = dialog.getMaxValue();
+			for ( A row : rows )
+			{
+				final Double value = row.getNumber( columnName );
+				if ( value != null && Double.isFinite( value ) && value >= minValue && value <= maxValue )
 					selectedRows.add( row );
+			}
 		}
 		else
 		{
-			for( A row: rows )
-				if ( row.getValue( columnName ).equals( value ) )
+			final Set< String > valuesToSelect = new HashSet<>( dialog.getSelectedCategoricalValues() );
+			for ( A row : rows )
+			{
+				final String value = row.getValue( columnName ).toString();
+				if ( value != null && valuesToSelect.contains( value ) )
 					selectedRows.add( row );
+			}
 		}
 
 		if ( !selectedRows.isEmpty() )
-			selectRows( selectedRows, keepCurrentSelection );
+			applySelectionMode( selectedRows, selectionMode );
 		else
-			IJ.error( value + " does not exist in column " + columnName + ", please choose another value." );
+			IJ.showMessage( "No matching rows found in column " + columnName + "." );
 	}
 
-	private void selectGreaterOrLessThan( final boolean greaterThan )
+	private SelectionMode mapSelectionMode( ColumnValueSelectionDialog.SelectionMode selectionMode )
 	{
-		ColumnFilteringDialog dialog = new ColumnFilteringDialog( tableModel.numericColumnNames() );
-		if ( ! dialog.show() ) return;
+		if ( selectionMode == ColumnValueSelectionDialog.SelectionMode.INTERSECT_WITH_CURRENT_SELECTION )
+			return SelectionMode.INTERSECT;
+		if ( selectionMode == ColumnValueSelectionDialog.SelectionMode.ADD_TO_CURRENT_SELECTION )
+			return SelectionMode.ADD;
+		return SelectionMode.CREATE_NEW;
+	}
 
-		final String columnName = dialog.getColumnName();
-		final double numericValue = Double.parseDouble( dialog.getValue() );
-		final boolean keepCurrentSelection = dialog.getKeepSelected();
-
-		ArrayList< A > selectedRows = new ArrayList<>();
-		final ArrayList< A > rows = tableModel.annotations();
-
-		for( A row: rows )
-			if ( greaterThan ?
-					row.getNumber( columnName ) > numericValue :
-					row.getNumber( columnName ) < numericValue )
-				selectedRows.add( row );
-
-		if ( !selectedRows.isEmpty() )
-			selectRows( selectedRows, keepCurrentSelection );
-		else
-			if ( greaterThan )
-				IJ.showMessage( "No values greater than " + numericValue + " in column " + columnName + ", please choose another value." );
-			else
-				IJ.showMessage("No values less than " + numericValue + " in column " + columnName + ", please choose another value.");
+	private List< String > getDistinctColumnValues( String columnName )
+	{
+		final TreeSet< String > uniqueValues = new TreeSet<>();
+		for ( A row : tableModel.annotations() )
+		{
+			final String value = row.getValue( columnName ).toString();
+			if ( value != null )
+				uniqueValues.add( value );
+		}
+		return new ArrayList<>( uniqueValues );
 	}
 
 	public void showNewAnnotationDialog()
@@ -706,8 +722,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		if ( columnName == null ) return;
 		continueAnnotation( columnName );
 	}
-
-
 
 	private String showAddStringColumnDialog()
 	{
@@ -882,6 +896,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 			final ARGBType argbType = new ARGBType();
 			coloringModel.convert( annotation, argbType );
 			final int colorIndex = argbType.get();
+			// FIXME ALPHA:
 			IJ.log( value + ": " + ARGBType.red( colorIndex ) + ", " + ARGBType.green( colorIndex ) + ", " + ARGBType.blue( colorIndex ) );
 		}
 	}
@@ -1074,7 +1089,10 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		if ( ARGBType.alpha( argbType.get() ) == 0 )
 			return Color.WHITE;
 		else
+		{
+			// FIXME ALPHA we would need to set alpha to 255 if we apply it already before
 			return ColorHelper.getColor( argbType );
+		}
 	}
 
 	private synchronized void repaintTable()

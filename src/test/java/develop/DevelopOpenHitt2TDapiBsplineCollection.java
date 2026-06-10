@@ -123,7 +123,7 @@ public class DevelopOpenHitt2TDapiBsplineCollection
 				bsplineFile.getAbsolutePath(),
 				Collections.singletonList( image.getName() ),
 				Collections.singletonList( image.getName() + "_bspline" ) );
-		return ImageTransformer.elastixBSplineTransform( image, transformation, true );
+		return ImageTransformer.elastixBSplineTransform( image, transformation );
 	}
 
 	private static double[] worldToLocal( final AffineTransform3D worldFromLocal, final double[] world )

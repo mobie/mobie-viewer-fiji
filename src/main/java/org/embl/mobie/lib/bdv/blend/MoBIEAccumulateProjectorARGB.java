@@ -123,9 +123,11 @@ public class MoBIEAccumulateProjectorARGB extends AccumulateProjector< ARGBType,
 
 	public static int getArgbIndex( Cursor< ? extends ARGBType >[] accesses, boolean[] alphaBlending, boolean[] andBlending, int[] order )
 	{
+		// NB: if there is only one source, BigDataViewer is not using this code.
+		//     and thus the alpha (opacity) is not applied
 		try
 		{
-			int aAccu = 0, rAccu = 0, gAccu = 0, bAccu = 0;
+			int rAccu = 0, gAccu = 0, bAccu = 0;
 
 			boolean excludeAndBlenders = false;
 			for ( int sourceIndex : order )
@@ -178,7 +180,7 @@ public class MoBIEAccumulateProjectorARGB extends AccumulateProjector< ARGBType,
 			if ( bAccu > 255 )
 				bAccu = 255;
 
-			return ARGBType.rgba( rAccu, gAccu, bAccu, aAccu );
+			return ARGBType.rgba( rAccu, gAccu, bAccu, 255 );
 		}
 		catch ( Exception e )
 		{

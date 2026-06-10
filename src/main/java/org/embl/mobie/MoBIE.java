@@ -71,6 +71,7 @@ import javax.annotation.Nullable;
 import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.*;
@@ -145,7 +146,15 @@ public class MoBIE
 			dataSetter.addTableToDataset( dataset );
 			dataset.is2D( settings.values.getBdvViewingMode().equals( BdvViewingMode.TwoDimensional ) );
 
-			// Check for additional view JSON files
+			// Check for additional views defined outside the collection table (in an S3 compatible way)
+			String mobieViewsUri = combinePath( getParentLocation( projectUri ), "mobie-views.json" );
+			if( IOHelper.exists( mobieViewsUri ) )
+			{
+				addViewsFromUri( mobieViewsUri );
+			}
+
+			// Check for additional view.json files of arbitrary names (requires search, which may not be available on S3)
+
 			if ( IOHelper.getType( projectUri ).equals( ResourceType.FILE ) )
 			{
 				// Find all JSON files in the table dir
@@ -158,10 +167,7 @@ public class MoBIE
 						{
 							try
 							{
-								Map< String, View > nameToViews = ViewsJsonParser.loadViews( p.toString() ).views;
-								for ( Map.Entry< String, View > nameViewEntry : nameToViews.entrySet() )
-									dataset.views().put( nameViewEntry.getKey(), nameViewEntry.getValue() );
-								IJ.log("Added views from: " + p );
+								addViewsFromUri( p.toString() );
 							}
 							catch ( Exception e )
 							{
@@ -193,6 +199,14 @@ public class MoBIE
 		}
 	}
 
+	private void addViewsFromUri( final String uri ) throws IOException
+	{
+		Map< String, View > nameToViews = ViewsJsonParser.loadViews( uri ).views;
+		for ( Map.Entry< String, View > nameViewEntry : nameToViews.entrySet() )
+			dataset.views().put( nameViewEntry.getKey(), nameViewEntry.getValue() );
+		IJ.log("Added views from: " + uri );
+	}
+
 	public static MoBIE getInstance()
 	{
 		return moBIE;
@@ -216,20 +230,13 @@ public class MoBIE
 		initImageJAndMoBIE();
 
 		IJ.log("\n# MoBIE" );
-		IJ.log("Opening images: " + Arrays.toString( imagePaths.toArray() ) );
-		IJ.log("Opening labels: " + Arrays.toString( labelPaths.toArray() ) );
-		IJ.log("Opening tables: " + Arrays.toString( labelTablePaths.toArray() ) );
 
 		this.settings = settings;
 
-		final GridSourcesFromPathsCreator sourcesCreator = new GridSourcesFromPathsCreator(
-				imagePaths, labelPaths, labelTablePaths, root, grid );
-
-		final List< ImageGridSources > imageSources = sourcesCreator.getImageSources();
-		final List< LabelGridSources > labelSources = sourcesCreator.getLabelSources();
-		Table regionTable = sourcesCreator.getRegionTable();
-
-		openImageAndLabelGrids( imageSources, labelSources, regionTable );
+		initProject( "" );
+		new GridImagesAndLabelsDataSetter( imagePaths, labelPaths, labelTablePaths, root, grid )
+				.addToDataset( dataset );
+		initUiAndShowView( null );
 	}
 
 	// open an image or object table

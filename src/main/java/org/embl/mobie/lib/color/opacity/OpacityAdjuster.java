@@ -43,6 +43,8 @@ public interface OpacityAdjuster
 
 	default void adjustOpacity( ARGBType color, double opacity )
 	{
+		// FIXME ALPHA: we would need to apply the alpha to the colors
+		// 		argbType.mul( ARGBType.alpha( argbType.get() ) / 255.0 );
 		final int value = color.get();
 		final int alpha = alpha( value );
 		final double adjustedAlpha = alpha * opacity;

@@ -91,6 +91,7 @@ public class LocationToColorSupplier< T > implements Supplier< BiConsumer< RealP
 			{
 				coloringModel.convert( search.getSampler( 0 ).get(), argbType );
 
+				// FIXME ALPHA: this would not be needed anymore
 				// The coloring model uses the alpha value to adjust the brightness.
 				// Since the default renderer in BDV ignores
 				// this we multiply the rgb values accordingly
