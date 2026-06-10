@@ -1,11 +1,30 @@
 package org.embl.mobie.lib.util;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class MoBIEHelperTest
 {
+	private Locale defaultLocale;
+
+	@BeforeEach
+	void setUp()
+	{
+		defaultLocale = Locale.getDefault();
+		Locale.setDefault(Locale.US);
+	}
+
+	@AfterEach
+	void tearDown()
+	{
+		Locale.setDefault(defaultLocale);
+	}
+
 	@Test
 	void shouldPrintArrayUsingFullPrecisionWhenSignificantDigitsIsMinusOne()
 	{
