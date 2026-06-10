@@ -18,6 +18,9 @@ import static org.embl.mobie.lib.color.lut.LUTs.TRANSPARENT;
 
 public class ColorByColumnDialog< A extends Annotation >
 {
+    // The name of the dialog
+    public static final String COLOR_BY_COLUMN = "Color by Column";
+
     private static String lutName;
     private static String columnName;
     private static boolean paintZeroTransparent;
@@ -47,7 +50,8 @@ public class ColorByColumnDialog< A extends Annotation >
     {
         // Show dialog
         //
-        JDialog dialog = new JDialog( ( Frame ) null, "Color by Column", true );
+        // Use centralized UI constant for dialog title
+        JDialog dialog = new JDialog( ( Frame ) null, COLOR_BY_COLUMN, true );
         dialog.setLayout( new BoxLayout( dialog.getContentPane(), BoxLayout.Y_AXIS ) );
 
         addColumnSelection( dialog );

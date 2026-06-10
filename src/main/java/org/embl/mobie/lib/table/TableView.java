@@ -912,7 +912,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		if ( columnName == null )
 		{
-			final String msg = "Please first use the [ Color > Color by Column ] menu item to configure the coloring.";
+			final String msg = "Please first use the [ Color > " + ColorByColumnDialog.COLOR_BY_COLUMN + " ] menu item to configure the coloring.";
 			IJ.error( msg );
 			throw new UnsupportedOperationException( msg );
 		}
@@ -922,7 +922,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private void addColorByColumnMenuItem( JMenu coloringMenu )
 	{
-		final JMenuItem menuItem = new JMenuItem( "Color by Column..." );
+		final JMenuItem menuItem = new JMenuItem( ColorByColumnDialog.COLOR_BY_COLUMN + "..." );
 
 		menuItem.addActionListener( e ->
 				new Thread( () -> showColorByColumnDialog()

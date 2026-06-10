@@ -38,25 +38,25 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-public class ColoringModelAdjustmentDialog extends JFrame
+public class ColoringAndSelectionModelAdjustmentDialog extends JFrame
 {
 	private final ColoringModel< ? > coloringModel;
 	private final SelectionModel< ? > selectionModel;
 	private final AnnotationTableModel< ? > tableModel;
 
-	public ColoringModelAdjustmentDialog( ColoringModel< ? > coloringModel )
+	public ColoringAndSelectionModelAdjustmentDialog( ColoringModel< ? > coloringModel )
 	{
 		this( coloringModel, null, null );
 	}
 
-	public ColoringModelAdjustmentDialog( ColoringModel< ? > coloringModel,
-										  SelectionModel< ? > selectionModel,
-										  AnnotationTableModel< ? > tableModel )
+	public ColoringAndSelectionModelAdjustmentDialog( ColoringModel< ? > coloringModel,
+	                                                  SelectionModel< ? > selectionModel,
+	                                                  AnnotationTableModel< ? > tableModel )
 	{
 		this.coloringModel = coloringModel;
 		this.selectionModel = selectionModel;
 		this.tableModel = tableModel;
-		setTitle( "Coloring (And Selection) Adjustment" );
+		setTitle( "Coloring And Selection Adjustment" );
 		setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 		setBounds( MouseInfo.getPointerInfo().getLocation().x,
 				MouseInfo.getPointerInfo().getLocation().y,

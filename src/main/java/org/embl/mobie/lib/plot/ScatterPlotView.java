@@ -243,7 +243,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 			}
 		);
 
-		BdvPopupMenus.addAction( bdvHandle, "Color by Column...",
+		BdvPopupMenus.addAction( bdvHandle, ColorByColumnDialog.COLOR_BY_COLUMN + "...",
 				( x, y ) ->
 				{
 					final ColoringModel< A > coloringModel =

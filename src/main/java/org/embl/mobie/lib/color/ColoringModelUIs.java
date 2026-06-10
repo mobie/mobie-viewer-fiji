@@ -38,7 +38,7 @@ import java.util.WeakHashMap;
 
 public abstract class ColoringModelUIs
 {
-	private static final WeakHashMap< ColoringModel< ? >, ColoringModelAdjustmentDialog > dialogs = new WeakHashMap<>();
+	private static final WeakHashMap< ColoringModel< ? >, ColoringAndSelectionModelAdjustmentDialog > dialogs = new WeakHashMap<>();
 
 	public static void show( ColoringModel< ? > coloringModel )
 	{
@@ -57,13 +57,13 @@ public abstract class ColoringModelUIs
 
 		SwingUtilities.invokeLater( () ->
 		{
-			ColoringModelAdjustmentDialog dialog = dialogs.get( coloringModel );
+			ColoringAndSelectionModelAdjustmentDialog dialog = dialogs.get( coloringModel );
 			if ( dialog == null || ! dialog.isDisplayable() )
 			{
-				dialog = new ColoringModelAdjustmentDialog( coloringModel, selectionModel, tableModel );
+				dialog = new ColoringAndSelectionModelAdjustmentDialog( coloringModel, selectionModel, tableModel );
 				dialogs.put( coloringModel, dialog );
 				MoBIEWindowManager.addWindow( dialog );
-				final ColoringModelAdjustmentDialog finalDialog = dialog;
+				final ColoringAndSelectionModelAdjustmentDialog finalDialog = dialog;
 				dialog.addWindowListener( new WindowAdapter()
 				{
 					@Override
