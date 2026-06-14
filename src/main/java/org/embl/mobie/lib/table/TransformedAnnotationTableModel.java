@@ -41,38 +41,38 @@ import java.util.List;
 
 public class TransformedAnnotationTableModel< A extends Annotation, TA extends A > extends AbstractAnnotationTableModel< TA >
 {
-	private final AnnotationTableModel< A > tableModel;
+	private final AnnotationTableModel< A > wrappedTableModel;
 	private final AnnotationTransformer< A, TA > transformer;
 	private ArrayList< TA > annotations;
 
 	public TransformedAnnotationTableModel( AnnotationTableModel< A > tableModel, AnnotationTransformer< A, TA > transformer )
 	{
-		this.tableModel = tableModel;
+		this.wrappedTableModel = tableModel;
 		this.transformer = transformer;
 	}
 
 	@Override
 	public List< String > columnNames()
 	{
-		return tableModel.columnNames();
+		return wrappedTableModel.columnNames();
 	}
 
 	@Override
 	public List< String > numericColumnNames()
 	{
-		return tableModel.numericColumnNames();
+		return wrappedTableModel.numericColumnNames();
 	}
 
 	@Override
 	public Class< ? > columnClass( String columnName )
 	{
-		return tableModel.columnClass( columnName );
+		return wrappedTableModel.columnClass( columnName );
 	}
 
 	@Override
 	public int numAnnotations()
 	{
-		return tableModel.numAnnotations();
+		return wrappedTableModel.numAnnotations();
 	}
 
 	@Override
@@ -92,26 +92,26 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public void loadTableChunk( String tableChunk )
 	{
-		tableModel.loadTableChunk( tableChunk );
+		wrappedTableModel.loadTableChunk( tableChunk );
 	}
 
 	@Override
 	public void loadExternalTableChunk( StorageLocation location )
 	{
-		tableModel.loadExternalTableChunk( location );
+		wrappedTableModel.loadExternalTableChunk( location );
 	}
 
 
 	@Override
 	public Collection< String > getAvailableTableChunks()
 	{
-		return tableModel.getAvailableTableChunks();
+		return wrappedTableModel.getAvailableTableChunks();
 	}
 
 	@Override
 	public LinkedHashSet< String > getLoadedTableChunks()
 	{
-		return tableModel.getLoadedTableChunks();
+		return wrappedTableModel.getLoadedTableChunks();
 	}
 
 	@Override
@@ -133,10 +133,10 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 		{
 			annotations = new ArrayList<>();
 
-			final int numAnnotations = tableModel.numAnnotations();
+			final int numAnnotations = wrappedTableModel.numAnnotations();
 			for ( int rowIndex = 0; rowIndex < numAnnotations; rowIndex++ )
 			{
-				final TA transformedAnnotation = transformer.transform( tableModel.annotation( rowIndex ) );
+				final TA transformedAnnotation = transformer.transform( wrappedTableModel.annotation( rowIndex ) );
 				annotations.add( transformedAnnotation );
 			}
 
@@ -148,19 +148,19 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public void addStringColumn( String columnName )
 	{
-		tableModel.addStringColumn( columnName );
+		wrappedTableModel.addStringColumn( columnName );
 	}
 
 	@Override
 	public void addNumericColumn( String columnName )
 	{
-		tableModel.addNumericColumn( columnName );
+		wrappedTableModel.addNumericColumn( columnName );
 	}
 
 	@Override
 	public StorageLocation getStorageLocation()
 	{
-		return tableModel.getStorageLocation();
+		return wrappedTableModel.getStorageLocation();
 	}
 
 	@Override
@@ -172,7 +172,7 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public void addAnnotationListener( AnnotationListener< TA > listener )
 	{
-		listeners.add( listener );
+		wrappedTableModel.addAnnotationListener( ( AnnotationListener< A > ) listener );
 	}
 
 }

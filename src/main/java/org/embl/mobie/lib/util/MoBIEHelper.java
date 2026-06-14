@@ -97,6 +97,7 @@ import static sc.fiji.bdvpg.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
 
 public abstract class MoBIEHelper
 {
+	// Commented this, because otherwise the github action test are failing
 	// static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	public static boolean isRelativePath(String uri) {

@@ -12,9 +12,9 @@ public class ColumnValueSelectionDialog
 {
 	public enum SelectionMode
 	{
-		CREATE_NEW_SELECTION( "Create New Selection" ),
-		INTERSECT_WITH_CURRENT_SELECTION( "Intersect With Current Selection" ),
-		ADD_TO_CURRENT_SELECTION( "Add To Current Selection" );
+		NEW_SELECTION( "New" ),
+		AND_SELECTION( "AND" ),
+		OR_SELECTION( "OR" );
 
 		private final String label;
 
