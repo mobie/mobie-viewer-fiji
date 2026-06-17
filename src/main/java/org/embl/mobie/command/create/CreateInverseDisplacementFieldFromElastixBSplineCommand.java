@@ -73,7 +73,7 @@ public class CreateInverseDisplacementFieldFromElastixBSplineCommand implements 
 			if ( outputDisplacementFieldJson.getParentFile() != null )
 				outputDisplacementFieldJson.getParentFile().mkdirs();
 
-			final ElastixBSplineTransform elastix = ( ElastixBSplineTransform ) ElastixTransform.load( elastixTransformParametersFile );
+			final ElastixBSplineTransform elastix = ( ElastixBSplineTransform ) ElastixTransform.load( elastixTransformParametersFile.getAbsolutePath() );
 			if ( elastix.FixedImageDimension == null || elastix.FixedImageDimension != 3 )
 				throw new IllegalArgumentException( "Only 3D Elastix BSpline transforms are supported." );
 

@@ -13,7 +13,7 @@ import net.imglib2.realtransform.RealTransform;
 public class InverseElastixBSplineRealTransform implements RealTransform
 {
 	private static final int DEFAULT_MAX_ITERATIONS = 80;
-	private static final double DEFAULT_TOLERANCE = 1e-6;
+	private static final double DEFAULT_TOLERANCE = 1.0; // 1e-6;
 	private static final double DEFAULT_DAMPING = 1.0;
 
 	private final RealTransform forward;
@@ -66,6 +66,8 @@ public class InverseElastixBSplineRealTransform implements RealTransform
 	@Override
 	public void apply( final double[] source, final double[] target )
 	{
+		// For the inverse we need to find the target point such that f(target) = source
+
 		final double[] x = Arrays.copyOf( source, numDimensions );
 		final double[] fx = new double[ numDimensions ];
 
@@ -83,7 +85,14 @@ public class InverseElastixBSplineRealTransform implements RealTransform
 
 			if ( maxResidual < tolerance )
 				break;
+
+			if ( iteration == maxIterations - 1 )
+			{
+				int a = 1;
+			}
 		}
+
+
 
 		System.arraycopy( x, 0, target, 0, numDimensions );
 	}

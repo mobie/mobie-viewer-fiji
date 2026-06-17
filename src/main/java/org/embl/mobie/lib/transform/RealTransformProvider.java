@@ -3,28 +3,19 @@ package org.embl.mobie.lib.transform;
 import ij.IJ;
 import net.imglib2.realtransform.RealTransform;
 import org.apache.commons.lang.ArrayUtils;
-import org.embl.mobie.lib.serialize.transformation.ElastixBSplineTransformation;
 import org.embl.mobie.lib.transform.elastix.ElastixBSplineTransform;
 import org.embl.mobie.lib.transform.elastix.ElastixTransform;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class RealTransformProvider
 {
-	private enum InverseMode
-	{
-		ITERATIVE,
-		PRECOMPUTED_DISPLACEMENT_FIELD
-	}
-
 	private static final int INVERSE_SAMPLING_FACTOR = 1;
 	private static final int INVERSE_MAX_ITERATIONS = 80;
 	private static final double INVERSE_TOLERANCE = 1e-6;
 	private static final double INVERSE_DAMPING = 1.0;
-	private static final InverseMode INVERSE_MODE = readInverseMode();
 
 	private final Map< String, RealTransform > elastixBsplineCache = new ConcurrentHashMap<>();
 	private final Map< String, RealTransform > displacementFieldCache = new ConcurrentHashMap<>();
@@ -40,10 +31,10 @@ public class RealTransformProvider
 		return transform;
 	}
 
-	public RealTransform getElastixBSplineRealTransform( final ElastixBSplineTransformation transformation ) throws Exception
+	public RealTransform getElastixBSplineRealTransform( final String parametersUri, boolean inverse ) throws Exception
 	{
-		final String cacheKey = transformation.getTransformParametersFile()
-				+ "|inverseType=" + INVERSE_MODE
+		final String cacheKey = parametersUri
+				+ "|inverse=" + inverse
 				+ "|samplingFactor=" + INVERSE_SAMPLING_FACTOR
 				+ "|maxIter=" + INVERSE_MAX_ITERATIONS
 				+ "|tol=" + INVERSE_TOLERANCE
@@ -52,23 +43,20 @@ public class RealTransformProvider
 		if ( cached != null )
 			return cached;
 
-		final RealTransform transform = createElastixBsplineRealTransform( transformation );
+		final RealTransform transform = createElastixBsplineRealTransform( parametersUri, inverse );
 		elastixBsplineCache.put( cacheKey, transform );
 		return transform;
 	}
 
-	private RealTransform createElastixBsplineRealTransform( final ElastixBSplineTransformation transformation ) throws Exception
+	private RealTransform createElastixBsplineRealTransform( String parametersUri, boolean inverse ) throws Exception
 	{
-		final File transformFile = new File( transformation.getTransformParametersFile() );
-		final ElastixBSplineTransform elastixTransform = ( ElastixBSplineTransform ) ElastixTransform.load( transformFile );
+		final ElastixBSplineTransform elastixTransform = ( ElastixBSplineTransform ) ElastixTransform.load( parametersUri );
 		final RealTransform forwardTransform = ElastixBSplineToBSplineRealTransform.convert( elastixTransform );
 
-		return forwardTransform;
-
-		// We don't support this anymore; people should create the inverse displacement field upfront
-		//		if ( INVERSE_MODE == InverseMode.PRECOMPUTED_DISPLACEMENT_FIELD )
-		//			return createPrecomputedDisplacementFieldInverse( forwardTransform, elastixTransform );
-		//		return createIterativeInverse( forwardTransform );
+		if ( inverse )
+			return createIterativeInverse( forwardTransform );
+		else
+			return forwardTransform;
 	}
 
 	private RealTransform createIterativeInverse( final RealTransform forwardTransform )
@@ -114,17 +102,4 @@ public class RealTransformProvider
 		return inverseTransform;
 	}
 
-	private static InverseMode readInverseMode()
-	{
-		final String value = System.getProperty( "mobie.elastix.inverse.mode", "PRECOMPUTED_DISPLACEMENT_FIELD" ).trim();
-		try
-		{
-			return InverseMode.valueOf( value.toUpperCase() );
-		}
-		catch ( final IllegalArgumentException exception )
-		{
-			IJ.log( "Unknown mobie.elastix.inverse.mode='" + value + "', falling back to PRECOMPUTED_DISPLACEMENT_FIELD" );
-			return InverseMode.PRECOMPUTED_DISPLACEMENT_FIELD;
-		}
-	}
 }

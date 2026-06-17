@@ -1,16 +1,19 @@
 package org.embl.mobie.lib.transform.elastix;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import org.embl.mobie.io.util.IOHelper;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Temporary local copy of ITC elastix parsing support.
- * Remove once MoBIE can depend on a released ITC version with inverse BSpline support.
- */
+ * Copy of ITC elastix parsing support.
+ * Consider to remove once MoBIE can depend on a released ITC version with inverse BSpline support.
+ *
+ * Changes compared to ITC code:
+ * - Takes a URI as an input (supports also S3 objects and not only files)
+ **/
 public class ElastixTransform
 {
 	public static final String BSPLINE_TRANSFORM = "BSplineTransform";
@@ -24,12 +27,12 @@ public class ElastixTransform
 	public Double[] Spacing;
 	public Double[] Origin;
 
-	public static ElastixTransform load( final File file ) throws IOException
+	public static ElastixTransform load( final String uri ) throws IOException
 	{
 		final Pattern pattern = Pattern.compile( "\\((\\S+)\\s(.+)(\\))" );
 		ElastixBSplineTransform transform = null;
 
-		try ( BufferedReader reader = new BufferedReader( new FileReader( file ) ) )
+		try ( BufferedReader reader = IOHelper.getReader( uri ) )
 		{
 			String line;
 			while ( ( line = reader.readLine() ) != null )
@@ -50,9 +53,9 @@ public class ElastixTransform
 		}
 
 		if ( transform == null )
-			throw new UnsupportedOperationException( "Could not find transform type in file: " + file.getAbsolutePath() );
+			throw new UnsupportedOperationException( "Could not find transform type in: " + uri );
 
-		try ( BufferedReader reader = new BufferedReader( new FileReader( file ) ) )
+		try ( BufferedReader reader = IOHelper.getReader( uri ) )
 		{
 			String line;
 			while ( ( line = reader.readLine() ) != null )
@@ -70,7 +73,7 @@ public class ElastixTransform
 		}
 
 		if ( transform.FixedImageDimension == null || transform.MovingImageDimension == null )
-			throw new UnsupportedOperationException( "Missing dimension fields in file: " + file.getAbsolutePath() );
+			throw new UnsupportedOperationException( "Missing dimension fields in: " + uri );
 		if ( !transform.FixedImageDimension.equals( transform.MovingImageDimension ) )
 			throw new UnsupportedOperationException( "Fixed and moving dimensions differ" );
 

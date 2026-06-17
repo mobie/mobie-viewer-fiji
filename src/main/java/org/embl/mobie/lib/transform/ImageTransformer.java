@@ -133,7 +133,15 @@ public class ImageTransformer
 
 		try
 		{
-			final RealTransform realTransform = REAL_TRANSFORM_PROVIDER.getElastixBSplineRealTransform( transformation );
+			String transformParametersUri = transformation.getTransformParametersUri();
+			if ( MoBIEHelper.isRelativePath( transformParametersUri ) )
+			{
+				String projectRoot = IOHelper.getParentLocation( MoBIE.getInstance().getProjectLocation() );
+				transformParametersUri = IOHelper.combinePath( projectRoot, transformParametersUri );
+			}
+
+			boolean invert = transformation.isInvert();
+			final RealTransform realTransform = REAL_TRANSFORM_PROVIDER.getElastixBSplineRealTransform( transformParametersUri, invert );
 
 			if ( image instanceof AnnotatedLabelImage )
 			{
@@ -152,7 +160,7 @@ public class ImageTransformer
 		}
 		catch ( Exception e )
 		{
-			throw new RuntimeException( "Could not create Elastix BSpline transform from: " + transformation.getTransformParametersFile(), e );
+			throw new RuntimeException( "Could not create Elastix BSpline transform from: " + transformation.getTransformParametersUri(), e );
 		}
 	}
 
@@ -162,7 +170,6 @@ public class ImageTransformer
 
 		if ( image instanceof AnnotationImage && !( image instanceof AnnotatedLabelImage ) )
 			throw new UnsupportedOperationException( "Displacement field transformations of " + image.getClass() + " are currently not supported." );
-
 
 		String displacementFieldUri = transformation.getDisplacementFieldUri();
 		if ( MoBIEHelper.isRelativePath( displacementFieldUri ) )

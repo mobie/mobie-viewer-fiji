@@ -28,21 +28,62 @@
  */
 package org.embl.mobie.lib.serialize.transformation;
 
+import org.embl.mobie.io.util.IOHelper;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+
 
 public class ThinPlateSplineTransformation extends AbstractImageTransformation
 {
     // Serialisation
 	protected String landmarksJson;
 
-	public ThinPlateSplineTransformation( String name, String landmarksJson, List< String > sources, List< String > sourceNamesAfterTransform )
+	public ThinPlateSplineTransformation( String name, String parameters, List< String > sources, List< String > sourceNamesAfterTransform )
 	{
-        this.name = name;
-		this.landmarksJson = landmarksJson;
+		this.name = name;
 		this.sources = sources;
 		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
+
+		// parameters may already contain JSON content or be a URI/path to a JSON file.
+		this.landmarksJson = resolveParametersToJson( parameters );
 	}
+
+	private boolean isJSON( String string )
+	{
+		String trim = string.trim();
+		return trim.startsWith( "{" ) || trim.startsWith( "[" );
+	}
+
+	private String resolveParametersToJson( String parameters )
+	{
+		if ( parameters == null ) return null;
+
+		if ( isJSON( parameters ) )
+		{
+			return parameters;
+		}
+
+		// Otherwise open the file as a JSON
+        try
+        {
+			String read = IOHelper.read( parameters );
+
+			if ( isJSON( read ) )
+	        	return read;
+			else
+				throw new RuntimeException( "Thin plate spline must be in JSON format, but this file is not: " + parameters );
+        }
+		catch ( IOException e )
+        {
+            throw new RuntimeException( e );
+        }
+    }
 
 	public String getLandmarksJson()
 	{
