@@ -40,8 +40,8 @@ import java.util.List;
  * Builds dataset sources, displays and views from raw image / label / label-table
  * paths and adds them to a {@link Dataset}.
  *
- * Wraps {@link GridSourcesFromPathsCreator} (paths -> grid sources) and
- * {@link GridSourcesDataSetter} (grid sources -> Dataset) so callers — and tests —
+ * Wraps {@link GridSourcesFromPathsCreator} (paths to grid sources) and
+ * {@link GridSourcesDataSetter} (grid sources to Dataset) so callers — and tests —
  * can go from paths to a populated {@link Dataset} in one step, without touching
  * any UI code.
  */
