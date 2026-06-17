@@ -889,7 +889,7 @@ public class CollectionDataSetter
             final String value = getRequiredTransformTableCell( transformationRow, TRANSFORM_TABLE_VALUE_COLUMN, resolvedTransformsTableUri, rowNumber ).trim();
             final String name = getString( transformationRow, TRANSFORM_TABLE_NAME_COLUMN );
             final String transformationName = MoBIEHelper.notNullOrEmpty( name ) ? name.trim() : type;
-            final boolean invert = parseTransformTableInvertCell( transformationRow, resolvedTransformsTableUri, rowNumber );
+            final boolean invert = parseTransformTableInvertCell( transformationRow );
 
             transformations.add( createTransformation( sourceName, type, value, transformationName, invert ) );
         } );
@@ -907,23 +907,24 @@ public class CollectionDataSetter
         return value;
     }
 
-    private boolean parseTransformTableInvertCell( Row row, String tableUri, int rowNumber )
+    private boolean parseTransformTableInvertCell( Row row )
     {
-        final String invertCell = getString( row, TRANSFORM_TABLE_INVERT_COLUMN );
-        if ( ! MoBIEHelper.notNullOrEmpty( invertCell ) )
-            return false;
-
-        if ( invertCell.equalsIgnoreCase( CollectionTableConstants.TRUE ) )
-            return true;
-
-        if ( invertCell.equalsIgnoreCase( CollectionTableConstants.FALSE ) )
-            return false;
-
-        IJ.log( "WARNING: Transformation table \"" + tableUri + "\" row " + rowNumber
-                + " has invalid value \"" + invertCell + "\" in optional column \""
-                + TRANSFORM_TABLE_INVERT_COLUMN + "\". Supported values are \"true\" and \"false\". Using false." );
-
-        return false;
+        try
+        {
+            return row.getBoolean( TRANSFORM_TABLE_INVERT_COLUMN );
+        }
+        catch ( Exception e )
+        {
+            try
+            {
+                String string = row.getText( TRANSFORM_TABLE_INVERT_COLUMN);
+                return string.equalsIgnoreCase( CollectionTableConstants.TRUE );
+            }
+            catch ( Exception e2 )
+            {
+                return false;
+            }
+        }
     }
 
     private Transformation createTransformation( String sourceName, String type, String value, String transformationName, boolean invert )
