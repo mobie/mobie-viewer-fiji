@@ -59,6 +59,8 @@ import tech.tablesaw.io.xlsx.XlsxReadOptions;
 
 public class TableOpener
 {
+	private static final String UTF8_BOM = "\uFEFF";
+
 	public static Map< String, ColumnType > nameToType;
 	static
 	{
@@ -117,6 +119,8 @@ public class TableOpener
 							.builder( storageLocation.absolutePath )
 							.build() );
 
+			normalizeColumnNames( table );
+
 			System.out.println( "Read parquet table with columns:\n" + String.join( ", ", table.columnNames() ) );
 
 			return table;
@@ -158,7 +162,9 @@ public class TableOpener
 			XlsxReadOptions options = XlsxReadOptions.builder( path )
 					.missingValueIndicator( "na", "none", "nan" )
 					.columnTypesPartial( nameToType ).build();
-			return Table.read().usingOptions( options);
+			Table table = Table.read().usingOptions( options);
+			normalizeColumnNames( table );
+			return table;
 		}
 		catch ( Exception e )
 		{
@@ -187,6 +193,7 @@ public class TableOpener
 					.maxNumberOfColumns( 100000 )
 					.columnTypesPartial( nameToType );
 			Table table = Table.read().usingOptions( builder );
+			normalizeColumnNames( table );
 			//System.out.println("Read table " + path + " with " + rows.rowCount() + " rows in " + ( System.currentTimeMillis() - start ) + " ms." );
 			return table;
 		}
@@ -246,7 +253,46 @@ public class TableOpener
 			}
 		}
 
+		normalizeColumnNames( table );
 		return table;
+	}
+
+	private static void normalizeColumnNames( Table table )
+	{
+		for ( String originalName : new ArrayList<>( table.columnNames() ) )
+		{
+			final String normalizedName = normalizeColumnName( originalName );
+
+			if ( originalName.equals( normalizedName ) )
+				continue;
+
+			if ( normalizedName.isEmpty() )
+				continue;
+
+			if ( table.containsColumn( normalizedName ) )
+			{
+				IJ.log( "[WARNING] Could not normalize column name \"" + originalName + "\" to \"" + normalizedName + "\" because the target name already exists." );
+				continue;
+			}
+
+			table.column( originalName ).setName( normalizedName );
+		}
+	}
+
+	private static String normalizeColumnName( String columnName )
+	{
+		return stripBom( columnName ).trim();
+	}
+
+	private static String stripBom( String text )
+	{
+		if ( text == null )
+			return null;
+
+		if ( text.startsWith( UTF8_BOM ) )
+			return text.substring( 1 );
+
+		return text;
 	}
 
 	public static Character determineDelimiter( String path )
