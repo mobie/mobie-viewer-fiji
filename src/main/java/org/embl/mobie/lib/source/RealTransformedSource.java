@@ -146,7 +146,7 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
         source.getSourceTransform( t, level, sourceTransform );
 
         final RealTransformSequence totalTransform = new RealTransformSequence();
-        totalTransform.add( sourceTransform ); // Remove sourceTransform to stay in physical space because the realtransform is given in physical space
+        totalTransform.add( sourceTransform ); // Negate the inverse sourceTransform that BDV will apply to stay in physical space because the realtransform is given in physical space
         totalTransform.add( realTransform.copy() ); // Apply real transform in physical space
         totalTransform.add( sourceTransform.inverse() ); // Go into voxel space to fetch the pixel
 

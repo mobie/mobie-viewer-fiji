@@ -44,14 +44,15 @@ public class ThinPlateSplineTransformation extends AbstractImageTransformation
     // Serialisation
 	protected String landmarksJson;
 
+	// Internal
+	private String parameters;
+
 	public ThinPlateSplineTransformation( String name, String parameters, List< String > sources, List< String > sourceNamesAfterTransform )
 	{
 		this.name = name;
 		this.sources = sources;
 		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
-
-		// parameters may already contain JSON content or be a URI/path to a JSON file.
-		this.landmarksJson = resolveParametersToJson( parameters );
+		this.parameters = parameters; // parameters may already contain JSON content or be a URI/path to a JSON file.
 	}
 
 	private boolean isJSON( String string )
@@ -87,6 +88,12 @@ public class ThinPlateSplineTransformation extends AbstractImageTransformation
 
 	public String getLandmarksJson()
 	{
+		if ( landmarksJson == null )
+		{
+			// parameters may already contain JSON content or be a URI/path to a JSON file.
+			this.landmarksJson = resolveParametersToJson( parameters );
+		}
+
 		return landmarksJson;
 	}
 
@@ -97,7 +104,7 @@ public class ThinPlateSplineTransformation extends AbstractImageTransformation
 
 		lines.add( "Thin plate spline transformation: " + getName() );
 
-		lines.add( landmarksJson );
+		lines.add( getLandmarksJson() );
 
 		addSources( lines );
 
