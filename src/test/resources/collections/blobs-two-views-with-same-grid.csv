@@ -1,0 +1,6 @@
+uri,name,view,grid,exclusive
+blobs.tif,b1,grid1,grid,true
+blobs.tif,b2,grid1,grid,true
+blobs.tif,b3,grid2,grid,true
+blobs.tif,b4,grid2,grid,true
+

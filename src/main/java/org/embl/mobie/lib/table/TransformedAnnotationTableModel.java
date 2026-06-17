@@ -78,14 +78,14 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public int rowIndexOf( TA annotation )
 	{
-		update();
+		initTransformedAnnotations();
 		return annotations.indexOf( annotation );
 	}
 
 	@Override
 	public TA annotation( int rowIndex )
 	{
-		update();
+		initTransformedAnnotations();
 		return annotations.get( rowIndex );
 	}
 
@@ -123,11 +123,12 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public ArrayList< TA > annotations()
 	{
-		update();
+		initTransformedAnnotations();
+
 		return annotations;
 	}
 
-	private synchronized void update()
+	private synchronized void initTransformedAnnotations()
 	{
 		if ( annotations == null )
 		{
@@ -148,13 +149,25 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public void addStringColumn( String columnName )
 	{
+		if ( columnNames().contains( columnName ) )
+			return;
+
 		wrappedTableModel.addStringColumn( columnName );
+
+		for ( AnnotationListener< TA > listener : listeners.list )
+			listener.columnsAdded( null );
 	}
 
 	@Override
 	public void addNumericColumn( String columnName )
 	{
+		if ( columnNames().contains( columnName ) )
+			return;
+
 		wrappedTableModel.addNumericColumn( columnName );
+
+		for ( AnnotationListener< TA > listener : listeners.list )
+			listener.columnsAdded( null );
 	}
 
 	@Override
@@ -172,7 +185,7 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public void addAnnotationListener( AnnotationListener< TA > listener )
 	{
-		wrappedTableModel.addAnnotationListener( ( AnnotationListener< A > ) listener );
+		listeners.add( listener );
 	}
 
 }

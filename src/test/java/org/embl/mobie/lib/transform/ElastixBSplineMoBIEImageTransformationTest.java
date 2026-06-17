@@ -51,6 +51,7 @@ class ElastixBSplineMoBIEImageTransformationTest
 					output.setValid( true );
 				},
 				new VolatileUnsignedByteType() );
+
 		final Source< VolatileUnsignedByteType > volatileSource = new RandomAccessibleIntervalSource<>(
 				volatileData,
 				new VolatileUnsignedByteType(),

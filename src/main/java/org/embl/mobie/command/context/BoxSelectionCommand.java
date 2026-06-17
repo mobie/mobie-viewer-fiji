@@ -66,7 +66,7 @@ public class BoxSelectionCommand implements BdvPlaygroundActionCommand
     public void run()
     {
         IJ.log( "# Select box" );
-        IJ.log( "  Documentation: https://mobie.github.io/tools/select_box.html" );
+        IJ.log( "Documentation: https://mobie.github.io/tools/select_box.html" );
 
         // Compute maximal and initial size of the box
         Corners globalCorners = MoBIEHelper.getBdvWindowGlobalCorners( bdvHandle );
@@ -107,7 +107,7 @@ public class BoxSelectionCommand implements BdvPlaygroundActionCommand
 
             IJ.log( "Center in global coordinate system: " + Arrays.toString( center ) );
             IJ.log( "Size in global coordinate system: " + Arrays.toString( size ) );
-            IJ.log( "Interval: " + Arrays.toString( interval.minAsDoubleArray() ) + ", " + Arrays.toString( interval.maxAsDoubleArray() ) );
+            IJ.log( "Normalised interval: " + Arrays.toString( interval.minAsDoubleArray() ) + ", " + Arrays.toString( interval.maxAsDoubleArray() ) );
             IJ.log( "Interval transform to global coordinate system: " + Arrays.toString( transform.getRowPackedCopy() ) );
         }
         else

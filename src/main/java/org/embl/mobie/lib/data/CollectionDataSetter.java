@@ -5,6 +5,7 @@ import net.imglib2.type.numeric.ARGBType;
 import net.thisptr.jackson.jq.internal.misc.Strings;
 import org.embl.mobie.lib.serialize.transformation.ThinPlateSplineTransformation;
 import org.embl.mobie.lib.table.columns.ColumnNames;
+import org.embl.mobie.lib.table.saw.TableOpener;
 import org.embl.mobie.lib.util.Constants;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.util.IOHelper;
@@ -30,8 +31,6 @@ import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.selection.Selection;
 
-import java.io.File;
-import java.net.URI;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -40,6 +39,10 @@ public class CollectionDataSetter
 {
     public static final String NO_GRID_POSITION = "no grid position";
     public static final String REGIONS = "regions: ";
+    private static final String TRANSFORM_TABLE_TYPE_COLUMN = "type";
+    private static final String TRANSFORM_TABLE_VALUE_COLUMN = "value";
+    private static final String TRANSFORM_TABLE_NAME_COLUMN = "name";
+    private static final String TRANSFORM_TABLE_INVERT_COLUMN = "invert";
     private final Table table;
     private final String rootPath;
 
@@ -201,7 +204,7 @@ public class CollectionDataSetter
                 transformations.add( grid );
             }
 
-            Display< ? > regionDisplay = createRegionDisplay( dataset, REGIONS + gridName, nestedSources, true );
+            Display< ? > regionDisplay = createRegionDisplay( dataset, REGIONS + viewName + ": " + gridName, nestedSources, true );
             viewToDisplays.get( viewName ).put( regionDisplay.getName(), regionDisplay );
         });
     }
@@ -415,7 +418,7 @@ public class CollectionDataSetter
 
     private TableSource getTable( Row row, String rootPath )
     {
-        String tablePath = getString( row, CollectionTableConstants.LABELS_TABLE );
+        String tablePath = getString( row, CollectionTableConstants.LABELS_TABLE_URI );
 
         if ( tablePath == null || tablePath.isEmpty() )
             return null;
@@ -810,49 +813,45 @@ public class CollectionDataSetter
         ArrayList< Transformation > transformations = new ArrayList<>();
 
         // AFFINE
-        try
+        final String affineCell = getString( row, CollectionTableConstants.AFFINE );
+        if ( MoBIEHelper.notNullOrEmpty( affineCell ) )
         {
-            String string = getString( row, CollectionTableConstants.AFFINE );
-            string = string.replace("(", "").replace(")", "");
-            String[] strings = string.split(",");
-            double[] doubles = new double[strings.length];
-            for (int i = 0; i < strings.length; i++) {
-                doubles[i] = Double.parseDouble(strings[i].trim());
+            try
+            {
+                final double[] affineParameters = parseAffineParameters( affineCell );
+                transformations.add( new AffineTransformation(
+                        "Affine",
+                        affineParameters,
+                        Collections.singletonList( sourceName ) ) );
             }
-
-            AffineTransformation affine = new AffineTransformation(
-                    "Affine",
-                    doubles,
-                    Collections.singletonList( sourceName ) );
-
-            transformations.add( affine );
-        }
-        catch ( Exception e )
-        {
-            // Parsing failed: Do not add a transformation
+            catch ( Exception ignored )
+            {
+                // If affine numbers cannot be parsed, interpret the cell as a transform table URI.
+                transformations.addAll( parseTransformationsTable( sourceName, affineCell ) );
+            }
         }
 
-        // Displacement field (second)
+        // Legacy transform columns are supported but deprecated in favor of the affine transform table.
+        // Displacement field
         String displacementFieldUri = getString( row, CollectionTableConstants.DISPLACEMENT_FIELD_URI );
         if ( MoBIEHelper.notNullOrEmpty( displacementFieldUri ) )
         {
-            DisplacementFieldTransformation transformation = new DisplacementFieldTransformation(
-                  "DisplacementField",
-                  displacementFieldUri,
-                  Collections.singletonList( sourceName ),
-                  null );
-
-            transformations.add( transformation );
+            IJ.log( "WARNING: Column \"" + CollectionTableConstants.DISPLACEMENT_FIELD_URI + "\" is deprecated. Please use a transformation table referenced from \"" + CollectionTableConstants.AFFINE + "\"." );
+            transformations.add( new DisplacementFieldTransformation(
+                    CollectionTableConstants.DISPLACEMENT_FIELD_URI,
+                    displacementFieldUri,
+                    Collections.singletonList( sourceName ),
+                    null ) );
         }
 
         // Elastix BSpline
-        String elastixBSplineUri = getString( row, CollectionTableConstants.ELASTIX_BSPLINE );
+        String elastixBSplineUri = getString( row, CollectionTableConstants.ELASTIX_BSPLINE_URI );
         if ( MoBIEHelper.notNullOrEmpty( elastixBSplineUri ) )
         {
-            elastixBSplineUri = resolveUri( elastixBSplineUri );
+            IJ.log( "WARNING: Column \"" + CollectionTableConstants.ELASTIX_BSPLINE_URI + "\" is deprecated. Please use a transformation table referenced from \"" + CollectionTableConstants.AFFINE + "\"." );
 
             ElastixBSplineTransformation elastixBSplineTransformation = new ElastixBSplineTransformation(
-                    "ElastixBSpline",
+                    CollectionTableConstants.ELASTIX_BSPLINE_URI,
                     elastixBSplineUri,
                     Collections.singletonList( sourceName ),
                     null );
@@ -860,14 +859,14 @@ public class CollectionDataSetter
         }
 
         // TPS
-        String tpsUri = getString( row, CollectionTableConstants.TPS );
-        if ( MoBIEHelper.notNullOrEmpty( tpsUri ) )
+        String tpsJSON = getString( row, CollectionTableConstants.THIN_PLATE_SPLINE_JSON );
+        if ( MoBIEHelper.notNullOrEmpty( tpsJSON ) )
         {
-            tpsUri = resolveUri( tpsUri );
+            IJ.log( "WARNING: Column \"" + CollectionTableConstants.THIN_PLATE_SPLINE_JSON + "\" is deprecated. Please use a transformation table referenced from \"" + CollectionTableConstants.AFFINE + "\"." );
 
             ThinPlateSplineTransformation thinPlateSplineTransformation = new ThinPlateSplineTransformation(
-                    "ThinPlateSpline",
-                    tpsUri,
+                    CollectionTableConstants.THIN_PLATE_SPLINE_JSON,
+                    tpsJSON,
                     Collections.singletonList( sourceName ),
                     null );
 
@@ -875,6 +874,118 @@ public class CollectionDataSetter
         }
 
         return transformations;
+    }
+
+    private List< Transformation > parseTransformationsTable( String sourceName, String transformationTableUri )
+    {
+        String resolvedTransformsTableUri = resolveUri( transformationTableUri );
+        final Table table = TableOpener.open( resolvedTransformsTableUri );
+        final ArrayList< Transformation > transformations = new ArrayList<>();
+
+        table.forEach( transformationRow ->
+        {
+            final int rowNumber = transformationRow.getRowNumber() + 1;
+            final String type = getRequiredTransformTableCell( transformationRow, TRANSFORM_TABLE_TYPE_COLUMN, resolvedTransformsTableUri, rowNumber ).trim();
+            final String value = getRequiredTransformTableCell( transformationRow, TRANSFORM_TABLE_VALUE_COLUMN, resolvedTransformsTableUri, rowNumber ).trim();
+            final String name = getString( transformationRow, TRANSFORM_TABLE_NAME_COLUMN );
+            final String transformationName = MoBIEHelper.notNullOrEmpty( name ) ? name.trim() : type;
+            final boolean invert = parseTransformTableInvertCell( transformationRow );
+
+            transformations.add( createTransformation( sourceName, type, value, transformationName, invert ) );
+        } );
+
+        return transformations;
+    }
+
+    private String getRequiredTransformTableCell( Row row, String columnName, String tableUri, int rowNumber )
+    {
+        final String value = getString( row, columnName );
+        if ( ! MoBIEHelper.notNullOrEmpty( value ) )
+        {
+            throw new RuntimeException( "Transformation table \"" + tableUri + "\" row " + rowNumber + " is missing required column \"" + columnName + "\"." );
+        }
+        return value;
+    }
+
+    private boolean parseTransformTableInvertCell( Row row )
+    {
+        try
+        {
+            return row.getBoolean( TRANSFORM_TABLE_INVERT_COLUMN );
+        }
+        catch ( Exception e )
+        {
+            try
+            {
+                String string = row.getText( TRANSFORM_TABLE_INVERT_COLUMN);
+                return string.equalsIgnoreCase( CollectionTableConstants.TRUE );
+            }
+            catch ( Exception e2 )
+            {
+                return false;
+            }
+        }
+    }
+
+    private Transformation createTransformation( String sourceName, String type, String value, String transformationName, boolean invert )
+    {
+        switch ( type )
+        {
+            case CollectionTableConstants.AFFINE:
+                if ( invert )
+                    warnUnsupportedInvert( type );
+                return new AffineTransformation(
+                        transformationName,
+                        parseAffineParameters( value ),
+                        Collections.singletonList( sourceName ) );
+            case CollectionTableConstants.DISPLACEMENT_FIELD_URI:
+                if ( invert )
+                    warnUnsupportedInvert( type );
+                return new DisplacementFieldTransformation(
+                        transformationName,
+                        value,
+                        Collections.singletonList( sourceName ),
+                        null );
+            case CollectionTableConstants.ELASTIX_BSPLINE_URI:
+                return new ElastixBSplineTransformation(
+                        transformationName,
+                        value,
+                        Collections.singletonList( sourceName ),
+                        null,
+                        invert );
+            case CollectionTableConstants.THIN_PLATE_SPLINE_URI:
+                if ( invert )
+                    warnUnsupportedInvert( type );
+                return new ThinPlateSplineTransformation(
+                        transformationName,
+                        value, // uri
+                        Collections.singletonList( sourceName ),
+                        null );
+            default:
+                throw new RuntimeException( "Unsupported transformation type \"" + type + "\". Supported values are \""
+                        + CollectionTableConstants.AFFINE + "\", \""
+                        + CollectionTableConstants.DISPLACEMENT_FIELD_URI + "\", \""
+                        + CollectionTableConstants.ELASTIX_BSPLINE_URI + "\", and \""
+                        + CollectionTableConstants.THIN_PLATE_SPLINE_URI + "\"." );
+        }
+    }
+
+    private void warnUnsupportedInvert( String transformationType )
+    {
+        IJ.log( "WARNING: Transformation table column \"" + TRANSFORM_TABLE_INVERT_COLUMN + "\" is currently only supported for type \""
+                + CollectionTableConstants.ELASTIX_BSPLINE_URI + "\". Ignoring invert for type \"" + transformationType + "\"." );
+    }
+
+    private double[] parseAffineParameters( String string )
+    {
+        string = string.replace("(", "").replace(")", "");
+        String[] strings = string.split(",");
+        double[] doubles = new double[ strings.length ];
+        for ( int i = 0; i < strings.length; i++ )
+        {
+            doubles[ i ] = Double.parseDouble( strings[ i ].trim() );
+        }
+        return doubles;
     }
 
     private @Nullable String resolveUri( String uri )

@@ -133,15 +133,22 @@ public class RealTransformedSource<T> implements Source<T>, MipmapOrdering, Sour
             final int level,
             final Interpolation method)
     {
+        // When painting a pixel in global space,
+        // BigDataViewer will take this RealRandomAccessible
+        // and access the voxel value through the inverse of the source transform.
+        // (the source transform goes from voxel to global space and BigDataViewer always inverts that).
+        //
+        // Now, all the below code to sneak in another transformation in real (global) space.
+
         RealRandomAccessible< T > interpolatedSource = source.getInterpolatedSource( t, level, method );
 
         final AffineTransform3D sourceTransform = new AffineTransform3D();
         source.getSourceTransform( t, level, sourceTransform );
 
         final RealTransformSequence totalTransform = new RealTransformSequence();
-        totalTransform.add( sourceTransform ); // Map to voxel space
+        totalTransform.add( sourceTransform ); // Remove sourceTransform to stay in physical space because the realtransform is given in physical space
         totalTransform.add( realTransform.copy() ); // Apply real transform in physical space
-        totalTransform.add( sourceTransform.inverse() ); // Remove sourceTransform to stay in physical space
+        totalTransform.add( sourceTransform.inverse() ); // Go into voxel space to fetch the pixel
 
         return new RealTransformRealRandomAccessible<>( interpolatedSource, totalTransform );
     }

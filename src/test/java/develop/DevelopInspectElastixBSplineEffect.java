@@ -39,7 +39,7 @@ public class DevelopInspectElastixBSplineEffect
 		if ( !transformFile.exists() )
 			throw new IllegalArgumentException( "Transform file not found: " + transformFile.getAbsolutePath() );
 
-		final ElastixBSplineTransform elastixTransform = ( ElastixBSplineTransform ) ElastixTransform.load( transformFile );
+		final ElastixBSplineTransform elastixTransform = ( ElastixBSplineTransform ) ElastixTransform.load( transformFile.getAbsolutePath() );
 		final RealTransform transform = ElastixBSplineToBSplineRealTransform.convert( elastixTransform );
 
 		final int n = transform.numSourceDimensions();
