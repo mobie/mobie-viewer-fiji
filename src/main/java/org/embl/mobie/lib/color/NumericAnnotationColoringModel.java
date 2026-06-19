@@ -30,6 +30,7 @@ package org.embl.mobie.lib.color;
 
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.color.lut.LUTs;
+import org.embl.mobie.lib.color.lut.SingleColorARGBLut;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;
@@ -39,6 +40,7 @@ public class NumericAnnotationColoringModel< A extends Annotation > extends Abst
 	public static final int ZERO_ARGB = ARGBType.rgba( 0, 0, 0, 0 );
 	private Pair< Double, Double > contrastLimits;
 	private final boolean isZeroTransparent;
+	private boolean highValuesTransparent = false;
 
 	public NumericAnnotationColoringModel(
 			String columnName,
@@ -83,6 +85,38 @@ public class NumericAnnotationColoringModel< A extends Annotation > extends Abst
 		notifyColoringListeners();
 	}
 
+	public boolean isSingleColorLut()
+	{
+		return lut instanceof SingleColorARGBLut;
+	}
+
+	public ARGBType getSingleColor()
+	{
+		if ( ! isSingleColorLut() )
+			return null;
+
+		return new ARGBType( lut.getARGB( 1.0 ) );
+	}
+
+	public boolean isHighValuesTransparent() {
+		return highValuesTransparent;
+	}
+
+	public void setHighValuesTransparent(boolean transparent) {
+		this.highValuesTransparent = transparent;
+		notifyColoringListeners();
+	}
+
+	public void setSingleColor( ARGBType color )
+	{
+		String lutName = LUTs.createSingleColorLutName( color );
+		if ( isZeroTransparent )
+			lutName += LUTs.ZERO_TRANSPARENT;
+
+		lut = LUTs.getLut( lutName );
+		notifyColoringListeners();
+	}
+
 	private void setColorLinearly( Float value, ARGBType output )
 	{
 		if ( isZeroTransparent )
@@ -100,6 +134,18 @@ public class NumericAnnotationColoringModel< A extends Annotation > extends Abst
 			return;
 		}
 
+		// If enabled, treat values strictly greater than the contrast max as transparent
+		if ( highValuesTransparent )
+		{
+			final double max = contrastLimits.getB();
+			// If max is NaN or infinite we don't treat anything specially
+			if ( Double.isFinite( max ) && value > max )
+			{
+				output.set( ZERO_ARGB );
+				return;
+			}
+		}
+
 		double normalisedValue = normalise( value );
 		final int colorIndex = lut.getARGB( normalisedValue );
 		output.set( colorIndex );
@@ -107,17 +153,9 @@ public class NumericAnnotationColoringModel< A extends Annotation > extends Abst
 
 	private double normalise( double value )
 	{
-		// A = min
-		// B = max
 		if ( contrastLimits.getA() == contrastLimits.getB() )
 		{
 			return 0.5; // TODO: be more sophisticated here?
-//			if ( contrastLimits.getB() == range.getA() )
-//				return 1.0;
-//			else if ( contrastLimits.getB() == range.getB() )
-//				return 0.0;
-//			else
-//				return 0.0;
 		}
 		else
 		{

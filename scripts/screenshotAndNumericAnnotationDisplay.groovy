@@ -1,21 +1,21 @@
-import bdv.tools.brightness.ConverterSetup
 import bdv.util.BdvHandle
 import bdv.viewer.SourceAndConverter
 import ij.IJ
-import ij.ImagePlus
 import net.imglib2.type.numeric.ARGBType
 import org.embl.mobie.MoBIE
 import org.embl.mobie.command.context.ScreenShotStackMakerCommand
-import org.embl.mobie.lib.serialize.display.SegmentationDisplay
 import org.embl.mobie.lib.transform.viewer.ViewerTransform
 import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger
-import org.jetbrains.annotations.NotNull
 
 // Launch MoBIE
 def moBIE = new MoBIE("https://github.com/mobie/platybrowser-project")
 
 // Obtain a handle on BigDataViewer
 def bdvHandle = moBIE.getViewManager().getSliceViewer().getBdvHandle()
+
+// load an additional view
+moBIE.getViewManager().getAdditionalViewsLoader().loadViews( "my-views.json")
+moBIE.getViewManager().show( "my-view-name" );
 
 // To obtain such viewer transforms:
 // Right click in BDV and select "Log Current Location"

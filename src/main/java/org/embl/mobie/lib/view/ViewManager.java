@@ -670,11 +670,11 @@ public class ViewManager
 						= ColoringModels.createNumericModel(
 								annotationDisplay.getColoringColumnName(),
 								lut,
-								annotationDisplay.getValueLimits(),
-						 true
+								annotationDisplay.getValueLimits()
 							);
 
 				annotationDisplay.coloringModel = new MoBIEColoringModel( coloringModel, annotationDisplay.selectionModel, annotationDisplay.getSelectionColor(), annotationDisplay.getOpacityNotSelected() );
+				ColoringModelUIs.show( coloringModel, annotationDisplay.selectionModel, annotationDisplay.getAnnData().getTable() );
 			}
 
 			// show the data

@@ -29,12 +29,14 @@
 package org.embl.mobie.lib.serialize.display;
 
 import bdv.viewer.SourceAndConverter;
+import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.bdv.view.AnnotationSliceView;
 import org.embl.mobie.lib.color.AbstractAnnotationColoringModel;
+import org.embl.mobie.lib.color.AdditiveColoringModel;
 import org.embl.mobie.lib.color.CategoricalAnnotationColoringModel;
 import org.embl.mobie.lib.color.ColorHelper;
 import org.embl.mobie.lib.color.ColoringModel;
@@ -228,7 +230,28 @@ public abstract class AbstractAnnotationDisplay< A extends Annotation > extends 
 		this.opacityNotSelected = mobieColoringModel.getOpacityNotSelected();
 		this.selectionColor = ColorHelper.getString( mobieColoringModel.getSelectionColor() );
 
-		final ColoringModel< ? extends Annotation > coloringModel = mobieColoringModel.getWrappedColoringModel();
+		ColoringModel< ? extends Annotation > coloringModel = mobieColoringModel.getWrappedColoringModel();
+
+
+		if ( coloringModel instanceof AdditiveColoringModel )
+		{
+			// TODO: serialize all entries of an AdditiveColoringModel.
+			//   Current view schema only encodes a single coloring (lut, colorByColumn,
+			//   valueLimits, randomColorSeed). When more than one column is active we
+			//   drop everything except the first entry on save, so multi-column views
+			//   cannot round-trip yet. Future plan: add a `colorings: List<ColoringEntry>`
+			//   field where each entry carries { column, lut, valueLimits,
+			//   randomColorSeed, enabled }; on load, rebuild an AdditiveColoringModel
+			//   from the list. Keep the existing scalar fields as the single-entry
+			//   shortcut for backwards compatibility (prefer the list on read when
+			//   present). Defer until the multi-column UX in issue 1309 stabilizes so
+			//   we only design the schema once.
+			final AdditiveColoringModel< ? extends Annotation > additive = ( AdditiveColoringModel< ? extends Annotation > ) coloringModel;
+			coloringModel = additive.getEntries().get( 0 ).getColoringModel();
+
+			if ( additive.getEntries().size() > 1 )
+				IJ.showMessage("Saving of additive colorings is not yet supported.\nSaved only the first coloring.");
+		}
 
 		if ( coloringModel instanceof AbstractAnnotationColoringModel )
 		{
