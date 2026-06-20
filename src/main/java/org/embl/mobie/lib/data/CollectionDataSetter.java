@@ -583,7 +583,7 @@ public class CollectionDataSetter
             if ( groups.isEmpty() )
                 return defaultValue;
 
-            return groups.split( "," );
+            return parseValueList( groups ).toArray( new String[ 0 ] );
         }
         catch ( Exception e )
         {
@@ -670,12 +670,7 @@ public class CollectionDataSetter
                 return new double[]{0.0}; // array of length one encodes auto-contrast
             }
 
-            string = string.replace("(", "").replace(")", "");
-            String[] strings = string.split("[,;]");
-            double[] doubles = new double[strings.length];
-            for (int i = 0; i < strings.length; i++) {
-                doubles[i] = Double.parseDouble(strings[i].trim());
-            }
+            double[] doubles = parseDoubleArray( string );
 
             if ( doubles.length != 2 )
                 throw new UnsupportedOperationException("Contrast limits must have exactly two values: (min, max).\n" +
@@ -693,10 +688,7 @@ public class CollectionDataSetter
     {
         try
         {
-            String string = getString( row, CollectionTableConstants.GRID_POSITION );
-            string = string.replace("(", "").replace(")", "");
-            string = string.trim();
-            return string;
+            return getString( row, CollectionTableConstants.GRID_POSITION );
         }
         catch ( Exception e )
         {
@@ -706,19 +698,14 @@ public class CollectionDataSetter
 
     private int[] gridPositionToInts( String position )
     {
-        position = position.replace("(", "").replace(")", "");
-        String[] strings = position.split("[,;]");
-        int[] ints = new int[strings.length];
-        for (int i = 0; i < strings.length; i++) {
-            ints[i] = Integer.parseInt(strings[i].trim());
-        }
+        int[] ints = parseIntArray( position );
 
         if ( ints.length != 2 )
             throw new UnsupportedOperationException("Grid positions must have exactly two values: (x, y).\n" +
                     position + "does not adhere to this specification." );
 
         return ints;
-}
+    }
 
     private double[][] getBoundingBox( Row row )
     {
@@ -729,13 +716,7 @@ public class CollectionDataSetter
             double[][] bb = new double[ 2 ][ 3 ];
             for ( int i = 0; i < 2; i++ )
             {
-                String minOrMax = minMax[i].replace("(", "").replace(")", "");
-                String[] values = minOrMax.split("[,;]");
-                double[] doubles = new double[3];
-                for (int d = 0; d < 3; d++) {
-                    doubles[ d ] = Double.parseDouble( values[ d ].trim() );
-                }
-                bb[ i ] = doubles;
+                bb[ i ] = parseDoubleArray( minMax[ i ] );
             }
             System.out.println("Bounding box " + string );
             return bb;
@@ -775,39 +756,6 @@ public class CollectionDataSetter
         }
     }
 
-    // Note that this returns just a single AffineTransformation.
-    // The fact that it returns a list is just for convenient consumption of
-    // the downstream methods.
-    private List< Transformation > getIntensityTransformationAsList( List< String > sources, Row row )
-    {
-        ArrayList< Transformation > transformations = new ArrayList<>();
-
-        try
-        {
-            // FIXME TODO
-            String string = getString( row, CollectionTableConstants.AFFINE );
-            string = string.replace("(", "").replace(")", "");
-            String[] strings = string.split(",");
-            double[] doubles = new double[strings.length];
-            for (int i = 0; i < strings.length; i++) {
-                doubles[i] = Double.parseDouble(strings[i].trim());
-            }
-
-            AffineTransformation affine = new AffineTransformation(
-                    "Affine",
-                    doubles,
-                    sources );
-
-            transformations.add( affine );
-        }
-        catch ( Exception e )
-        {
-           // Do not add a transformation
-        }
-
-        return transformations;
-    }
-
     private List< Transformation > getTransformations( String sourceName, Row row )
     {
         ArrayList< Transformation > transformations = new ArrayList<>();
@@ -818,7 +766,7 @@ public class CollectionDataSetter
         {
             try
             {
-                final double[] affineParameters = parseAffineParameters( affineCell );
+                final double[] affineParameters = parseDoubleArray( affineCell );
                 transformations.add( new AffineTransformation(
                         "Affine",
                         affineParameters,
@@ -936,7 +884,7 @@ public class CollectionDataSetter
                     warnUnsupportedInvert( type );
                 return new AffineTransformation(
                         transformationName,
-                        parseAffineParameters( value ),
+                        parseDoubleArray( value ),
                         Collections.singletonList( sourceName ) );
             case CollectionTableConstants.DISPLACEMENT_FIELD_URI:
                 if ( invert )
@@ -976,16 +924,40 @@ public class CollectionDataSetter
                 + CollectionTableConstants.ELASTIX_BSPLINE_URI + "\". Ignoring invert for type \"" + transformationType + "\"." );
     }
 
-    private double[] parseAffineParameters( String string )
+    private static List< String > parseValueList( String value )
     {
-        string = string.replace("(", "").replace(")", "");
-        String[] strings = string.split(",");
-        double[] doubles = new double[ strings.length ];
-        for ( int i = 0; i < strings.length; i++ )
+        return parseValueList( value, "[,;]" );
+    }
+
+    private static List< String > parseValueList( String value, String separatorRegex )
+    {
+        String cleaned = value.trim();
+
+        // Remove one surrounding pair of brackets for list-like cell values.
+        if ( ( cleaned.startsWith( "(" ) && cleaned.endsWith( ")" ) )
+                || ( cleaned.startsWith( "[" ) && cleaned.endsWith( "]" ) )
+                || ( cleaned.startsWith( "{" ) && cleaned.endsWith( "}" ) ) )
         {
-            doubles[ i ] = Double.parseDouble( strings[ i ].trim() );
+            cleaned = cleaned.substring( 1, cleaned.length() - 1 );
         }
-        return doubles;
+
+        return Arrays.stream( cleaned.split( separatorRegex ) )
+                .map( String::trim )
+                .collect( Collectors.toList() );
+    }
+
+    private static double[] parseDoubleArray( String value )
+    {
+        return parseValueList( value ).stream()
+                .mapToDouble( Double::parseDouble )
+                .toArray();
+    }
+
+    private static int[] parseIntArray( String value )
+    {
+        return parseValueList( value ).stream()
+                .mapToInt( Integer::parseInt )
+                .toArray();
     }
 
     private @Nullable String resolveUri( String uri )
