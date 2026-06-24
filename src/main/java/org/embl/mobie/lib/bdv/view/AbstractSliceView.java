@@ -51,7 +51,7 @@ public abstract class AbstractSliceView implements SliceView
 	protected final AbstractDisplay< ? > display;
 	protected final SliceViewer sliceViewer;
 
-	protected static boolean is2D = false;
+	protected boolean is2D = false;
 	private final BehaviourMap blocking3dBehaviourMap;
 	private Behaviour dragRotate;
 
@@ -135,7 +135,7 @@ public abstract class AbstractSliceView implements SliceView
 				bdvHandle.getTriggerbindings().addBehaviourMap( "2D", blocking3dBehaviourMap );
 
 				is2D = true;
-				IJ.log("BDV: 2D browsing mode.");
+				IJ.log("BDV: Switching to 2D browsing mode.");
 			}
 		} );
 	}
