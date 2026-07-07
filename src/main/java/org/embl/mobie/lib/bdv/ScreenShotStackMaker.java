@@ -36,7 +36,6 @@ import edu.mines.jtk.util.AtomicDouble;
 import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
-import ij.gui.Roi;
 import ij.measure.Calibration;
 import net.imglib2.*;
 import net.imglib2.Cursor;

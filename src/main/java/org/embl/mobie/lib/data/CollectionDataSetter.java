@@ -98,7 +98,8 @@ public class CollectionDataSetter
 
             viewToGroups.put( viewName, getGroups( row ) );
             viewToExclusive.put( viewName, getExclusive( row ) );
-            viewToTransformations.computeIfAbsent( viewName, k -> new ArrayList<>() ).addAll( getTransformations( sourceName, row ) );
+            viewToTransformations.computeIfAbsent( viewName, k -> new ArrayList<>() )
+                    .addAll( getTransformations( sourceName, row ) );
         }); // table rows
 
 
@@ -688,7 +689,11 @@ public class CollectionDataSetter
     {
         try
         {
-            return getString( row, CollectionTableConstants.GRID_POSITION );
+            String string = getString( row, CollectionTableConstants.GRID_POSITION );
+            if ( string == null )
+                return NO_GRID_POSITION;
+
+            return string;
         }
         catch ( Exception e )
         {
