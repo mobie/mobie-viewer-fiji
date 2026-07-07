@@ -37,6 +37,16 @@ public class OpenCollectionTableCommandTest
         command.run();
     }
 
+    public void gridWithSameNameInDifferentViews( )
+    {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+
+        OpenCollectionTableCommand command = new OpenCollectionTableCommand();
+        command.tableUri = new File( "src/test/resources/collections/blobs-two-views-with-same-grid.csv" ).getAbsolutePath();
+        command.run();
+    }
+
     //@Test
     public void segmentedBlobs()
     {
@@ -493,7 +503,7 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
         //new OpenCollectionTableCommandTest().blobsAndMri();
-        new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
+        //new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
         //new OpenCollectionTableCommandTest().segmentedNuclei();
         //new OpenCollectionTableCommandTest().thinPlateSplinePlatyGoogleSheet();
         //new OpenCollectionTableCommandTest().manyGroups();
@@ -501,6 +511,7 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().mix2d3d();
         //new OpenCollectionTableCommandTest().grid();
         //new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
+        new OpenCollectionTableCommandTest().gridWithSameNameInDifferentViews();
         System.out.println("MoBIE loaded. Press ENTER to exit...");
         try {
             System.in.read();

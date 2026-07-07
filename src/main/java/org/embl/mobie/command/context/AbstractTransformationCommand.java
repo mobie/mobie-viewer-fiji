@@ -51,7 +51,7 @@ import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
 import org.scijava.command.Interactive;
 import org.scijava.plugin.Parameter;
-import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
+import sc.fiji.bdvpg.command.BdvPlaygroundActionCommand;
 
 import java.util.*;
 import java.util.stream.Collectors;

@@ -12,9 +12,10 @@ import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.Display;
 import org.embl.mobie.lib.serialize.display.ImageDisplay;
 import org.embl.mobie.lib.serialize.display.RegionDisplay;
-import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.serialize.transformation.AffineTransformation;
+import org.embl.mobie.lib.serialize.transformation.DisplacementFieldTransformation;
+import org.embl.mobie.lib.serialize.transformation.ElastixBSplineTransformation;
 import org.embl.mobie.lib.serialize.transformation.GridTransformation;
 import org.embl.mobie.lib.serialize.transformation.ThinPlateSplineTransformation;
 import org.embl.mobie.lib.serialize.transformation.Transformation;
@@ -348,6 +349,35 @@ public class OpenCollectionTableCommandHeadlessTest
         assertTrue( tps.getSources().contains( "mri-tps-transformed" ) );
         assertNotNull( tps.getLandmarksJson(), "TPS landmarks JSON should be parsed and attached" );
         assertTrue( tps.getLandmarksJson().contains( "BigWarpLandmarks" ) );
+    }
+
+    @Test
+    public void affineTransformTableOrdering()
+    {
+        Dataset dataset = buildDataset( "src/test/resources/collections/affine-transform-table-collection.csv" );
+
+        View view = dataset.views().get( "all" );
+        assertNotNull( view );
+
+        final List< Transformation > transformations = view.transformations();
+        assertEquals( 5, transformations.size(), "4 table transforms + 1 deprecated collection-table transform" );
+
+        AffineTransformation affine = ( AffineTransformation ) transformations.get( 0 );
+        assertEquals( "firstAffine", affine.getName() );
+
+        DisplacementFieldTransformation displacementFromTable = ( DisplacementFieldTransformation ) transformations.get( 1 );
+        assertEquals( "displacement_field_uri", displacementFromTable.getName() );
+        assertEquals( "table-displacement.json", displacementFromTable.getDisplacementFieldUri() );
+
+        ElastixBSplineTransformation elastix = ( ElastixBSplineTransformation ) transformations.get( 2 );
+        assertEquals( "my-bspline", elastix.getName() );
+
+        ThinPlateSplineTransformation tps = ( ThinPlateSplineTransformation ) transformations.get( 3 );
+        assertEquals( "thin_plate_spline_uri", tps.getName() );
+
+        DisplacementFieldTransformation displacementFromLegacyColumn = ( DisplacementFieldTransformation ) transformations.get( 4 );
+        assertEquals( "displacement_field_uri", displacementFromLegacyColumn.getName() );
+        assertEquals( "legacy-displacement.json", displacementFromLegacyColumn.getDisplacementFieldUri() );
     }
 
     @Test

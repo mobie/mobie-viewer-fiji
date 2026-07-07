@@ -38,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
-import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
+import sc.fiji.bdvpg.command.BdvPlaygroundActionCommand;
 
 import java.util.Arrays;
 

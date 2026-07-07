@@ -32,8 +32,8 @@ import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.viewer.SourceAndConverter;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
+import sc.fiji.bdvpg.scijava.service.SourceBdvDisplayService;
+import sc.fiji.bdvpg.scijava.service.SourceService;
 
 import java.util.List;
 
@@ -41,8 +41,8 @@ public class OMEZarrViewer
 {
     private final List< SourceAndConverter< ? > > sacs;
     private BdvHandle bdvHandle;
-    private SourceAndConverterService sacService;
-    private SourceAndConverterBdvDisplayService sacDisplayService;
+    private SourceService sacService;
+    private SourceBdvDisplayService sacDisplayService;
 
     public OMEZarrViewer( List< SourceAndConverter< ? > > sacs )
     {

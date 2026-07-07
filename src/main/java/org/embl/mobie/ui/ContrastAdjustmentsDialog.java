@@ -12,8 +12,8 @@ import org.embl.mobie.lib.bdv.ContrastComputer;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.color.opacity.MoBIEColorConverter;
 import org.embl.mobie.lib.color.opacity.OpacityAdjuster;
-import sc.fiji.bdvpg.services.ISourceAndConverterService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.service.ISourceService;
+import sc.fiji.bdvpg.service.SourceServices;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,8 +29,8 @@ public class ContrastAdjustmentsDialog
             BdvHandle bdvHandle,
             boolean addContrastLimitUI )
     {
-        ISourceAndConverterService service =
-                SourceAndConverterServices.getSourceAndConverterService();
+        ISourceService service =
+                SourceServices.getSourceService();
 
         ContrastAdjustmentManager contrastAdjustmentManager = new ContrastAdjustmentManager( bdvHandle, sacs );
 
@@ -185,7 +185,7 @@ public class ContrastAdjustmentsDialog
         panel.add( opacityPanel );
     }
 
-    private static void addBlendingModePanel( BdvHandle bdvHandle, ISourceAndConverterService service, ContrastAdjustmentManager contrastAdjustmentManager, JPanel panel )
+    private static void addBlendingModePanel( BdvHandle bdvHandle, ISourceService service, ContrastAdjustmentManager contrastAdjustmentManager, JPanel panel )
     {
         // Blending mode
         JPanel blendingPanel = SwingHelper.horizontalFlowLayoutPanel();
@@ -291,7 +291,7 @@ public class ContrastAdjustmentsDialog
                 {
                     SourceAndConverter< ? > sac = entry.getKey();
                     double[] contrast = entry.getValue();
-                    SourceAndConverterServices.getSourceAndConverterService()
+                    SourceServices.getSourceService()
                             .getConverterSetup( sac )
                             .setDisplayRange( contrast[0], contrast[1] );
                 }

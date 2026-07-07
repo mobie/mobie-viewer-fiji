@@ -147,83 +147,66 @@ public class CollectionTableConstants
     /**
      * The "affine" column MAY be present.
      *
-     * The value will determine an affine transformation that will
-     * be applied to the image upon display, i.e. it will change where
-     * the image will be rendered in the viewer.
+     * The value determines additional transformations to apply to the image
+     * upon display, i.e. where/how the image is rendered in the viewer.
      *
      * Supported values:
-     * - bracketed, comma separated, row packed floating point values
-     * - e.g., identity transform: (1,0,0,0,0,1,0,0,0,0,1,0)
-     * - e.g., shift along x-axis: (1,0,0,-105.34,0,1,0,0,0,0,1,0)
+     * - Inline affine parameters (single affine transform mode):
+     *   - bracketed, comma separated, row-packed floating point values
+     *   - e.g., identity transform: (1,0,0,0,0,1,0,0,0,0,1,0)
+     *   - e.g., shift along x-axis: (1,0,0,-105.34,0,1,0,0,0,0,1,0)
+     * - URI/path to a transformation table (transform sequence mode):
+     *   - table columns: "type" (required), "value" (required),
+     *     "name" (optional), "invert" (optional boolean)
+     *   - supported "type" values: "affine", "displacement_field_uri",
+     *     "elastix_bspline_uri", "thin_plate_spline_uri"
+     *   - "invert" is currently supported for type "elastix_bspline_uri";
+     *     for other types it is ignored and a warning is logged.
      *
-     * Default: No transformation
-     * If the column is absent or the value cannot be parsed no
-     * additional transformation will be applied on top of the
-     * transformation that is found within the image data itself.
-     *
-     * Notes:
-     * - This affine transformation will be applied on top of any transformation
-     *   that can be discovered within the image URI
-     */
-    public static final String AFFINE = "affine";
-
-    /**
-     * The "thin_plate_spline" column MAY be present.
-     *
-     * The value defines a thin plate spline (tps) transformation that will
-     * be applied to the image upon display, i.e. it will change where
-     * the image will be rendered in the viewer.
-     *
-     * Supported values:
-     * - BigWarp Landmark JSON
-     *
-     * Default: No transformation
-     * If the column is absent or the value cannot be parsed, no
-     * additional transformation will be applied on top of the
-     * transformation that is found within the image data itself.
-     *
-     * Notes:
-     * - This tps transformation will be applied on top of any transformation
-     *   that can be discovered within the image URI
-     * - If you also specified an affine transformation for this image, the thin plate spline
-     *   transformation will be applied after the affine transformation
-     */
-    public static final String TPS = "thin_plate_spline";
-
-    /**
-     * The "elastix_bspline_uri" column MAY be present.
-     *
-     * The value points to an Elastix TransformParameters text file for a BSpline transform.
-     *
-     * Supported values:
-     * - Local path to an Elastix TransformParameters file
-     *
-     * Default: No transformation
+     * Default: No additional transformation
      * If the column is absent or the value cannot be parsed/opened, no
      * additional transformation will be applied on top of the
      * transformation that is found within the image data itself.
      *
      * Notes:
-     * - This transform is applied after the affine transform and after TPS if both are present.
-     * - The transform is assumed to already use the correct physical units of the source.
+     * - Additional transformations from this column are applied on top of any
+     *   transformation that can be discovered within the image URI.
      */
-    public static final String ELASTIX_BSPLINE = "elastix_bspline_uri";
+    public static final String AFFINE = "affine";
 
     /**
-     * The "displacement_field_uri" column MAY be present.
+     * Transformation type token for thin plate spline entries in a
+     * transformation table referenced from the "affine" column.
      *
-     * The value points to a JSON metadata file for a precomputed 3D inverse
-     * displacement field (with RAW payload) that can be loaded directly.
+     * The corresponding "value" cell must contain either inline BigWarp
+     * landmark JSON or a URI/path to such JSON.
+     */
+    public static final String THIN_PLATE_SPLINE_URI = "thin_plate_spline_uri";
+
+    /**
+     * Legacy collection-table column name for thin plate spline (TPS)
+     * transformation values with a BigWarp JSON in the table cell.
      *
-     * Supported values:
-     * - Local path to the displacement field metadata JSON file
+     * Prefer specifying TPS in a transformation table referenced from the
+     * "affine" column, using type "thin_plate_spline_uri".
+     */
+    public static final String THIN_PLATE_SPLINE_JSON = "thin_plate_spline";
+
+    /**
+     * Transformation type token for Elastix BSpline entries in a
+     * transformation table referenced from the "affine" column.
      *
-     * Default: No transformation
-     * If the column is absent or empty, no displacement field transformation is added.
+     * The corresponding "value" cell must contain a URI/path to an Elastix
+     * TransformParameters file for a BSpline transform.
+     */
+    public static final String ELASTIX_BSPLINE_URI = "elastix_bspline_uri";
+
+    /**
+     * Transformation type token for displacement field entries in a
+     * transformation table referenced from the "affine" column.
      *
-     * Notes:
-     * - If present, this transform is applied after affine and before elastix_bspline.
-     * - If the file cannot be found/opened, MoBIE will fail with an error.
+     * The corresponding "value" cell must contain a URI/path to a JSON
+     * metadata file for a precomputed 3D inverse displacement field.
      */
     public static final String DISPLACEMENT_FIELD_URI = "displacement_field_uri";
 
@@ -317,7 +300,7 @@ public class CollectionTableConstants
      * Use cases:
      * - Exploration of measurements corresponding to the labels
      */
-    public static final String[] LABELS_TABLE = { "labels_table", "labels_table_uri"};
+    public static final String[] LABELS_TABLE_URI = { "labels_table", "labels_table_uri"};
 
     /**
      * The "contrast_limits" column MAY be present.

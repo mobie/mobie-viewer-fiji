@@ -40,7 +40,7 @@ import org.embl.mobie.lib.serialize.display.AbstractDisplay;
 import org.embl.mobie.lib.util.ThreadHelper;
 import org.scijava.ui.behaviour.Behaviour;
 import org.scijava.ui.behaviour.BehaviourMap;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.service.SourceServices;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,7 +51,7 @@ public abstract class AbstractSliceView implements SliceView
 	protected final AbstractDisplay< ? > display;
 	protected final SliceViewer sliceViewer;
 
-	protected static boolean is2D = false;
+	protected boolean is2D = false;
 	private final BehaviourMap blocking3dBehaviourMap;
 	private Behaviour dragRotate;
 
@@ -96,7 +96,7 @@ public abstract class AbstractSliceView implements SliceView
 	@Override
 	public boolean isVisible()
 	{
-		return SourceAndConverterServices.getBdvDisplayService().isVisible( display.sourceAndConverters().get( 0 ), display.sliceViewer.getBdvHandle() );
+		return SourceServices.getBdvDisplayService().isVisible( display.sourceAndConverters().get( 0 ), display.sliceViewer.getBdvHandle() );
 	}
 
 	protected void adjust2d3dBrowsingMode()
@@ -135,7 +135,7 @@ public abstract class AbstractSliceView implements SliceView
 				bdvHandle.getTriggerbindings().addBehaviourMap( "2D", blocking3dBehaviourMap );
 
 				is2D = true;
-				IJ.log("BDV: 2D browsing mode.");
+				IJ.log("BDV: Switching to 2D browsing mode.");
 			}
 		} );
 	}

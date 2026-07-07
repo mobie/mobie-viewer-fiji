@@ -30,22 +30,17 @@ package org.embl.mobie.lib.color;
 
 import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BoundedValueDouble;
+import net.imglib2.type.numeric.ARGBType;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class NumericAnnotationColoringModelContrastDialog extends JFrame implements ColoringListener
+public class NumericAnnotationColoringModelContrastPanel extends JPanel
 {
-	public static Point dialogLocation;
-
-	public NumericAnnotationColoringModelContrastDialog(
-			final String coloringFeature,
-			final NumericAnnotationColoringModel< ? > coloringModel )
+	public NumericAnnotationColoringModelContrastPanel( final NumericAnnotationColoringModel< ? > coloringModel )
 	{
-		// configure UI range relative to current
-		// contrast limits; the same logic is
-		// used for setting the contrast limits of the
-		// images, see UserInterfaceHelper.showBrightnessDialog()
+		setLayout( new BoxLayout( this, BoxLayout.PAGE_AXIS ) );
+
 		final double absCurrentRange = Math.abs( coloringModel.getMax() - coloringModel.getMin() );
 		final double rangeFactor = 1.0; // could be adapted
 		final double rangeMin = coloringModel.getMin() - rangeFactor * absCurrentRange;
@@ -59,9 +54,6 @@ public class NumericAnnotationColoringModelContrastDialog extends JFrame impleme
 				rangeMin,
 				rangeMax,
 				coloringModel.getMax() );
-
-		JPanel panel = new JPanel();
-		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
 
 		double spinnerStepSize = ( rangeMax - rangeMin ) / 100.0;
 
@@ -92,32 +84,52 @@ public class NumericAnnotationColoringModelContrastDialog extends JFrame impleme
 		min.setUpdateListener( updateListener );
 		max.setUpdateListener( updateListener );
 
-		panel.add( minSlider );
-		panel.add( maxSlider );
+		// place sliders in a vertical panel on the left and the color button (if present)
+		// to the right so the color control doesn't take extra vertical space
+		final JPanel slidersPanel = new JPanel();
+		slidersPanel.setLayout( new BoxLayout( slidersPanel, BoxLayout.PAGE_AXIS ) );
+		slidersPanel.add( minSlider );
+		slidersPanel.add( maxSlider );
 
-		final JFrame frame = new JFrame( coloringFeature );
-		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-		frame.setContentPane( panel );
-		frame.setBounds( MouseInfo.getPointerInfo().getLocation().x,
-				MouseInfo.getPointerInfo().getLocation().y,
-				120, 10);
-		frame.pack();
-		frame.setVisible( true );
-		frame.setResizable( false );
-		if ( dialogLocation != null )
-			frame.setLocation( dialogLocation );
+		final JPanel horizontal = new JPanel( new BorderLayout() );
+		horizontal.add( slidersPanel, BorderLayout.CENTER );
+
+		if ( coloringModel.isSingleColorLut() )
+		{
+			// createSingleColorPanel returns a small panel containing the Color button
+			horizontal.add( createSingleColorPanel( coloringModel ), BorderLayout.EAST );
+		}
+
+		add( horizontal );
 	}
 
-	public void close()
+	private JPanel createSingleColorPanel( NumericAnnotationColoringModel< ? > coloringModel )
 	{
-		dialogLocation = getLocation();
-		dispose();
-	}
+		final JPanel panel = new JPanel( new FlowLayout( FlowLayout.LEFT ) );
+		final JButton button = new JButton( "Color" );
+		button.setToolTipText( "Change single color LUT color" );
 
+		final ARGBType currentColor = coloringModel.getSingleColor();
+		if ( currentColor != null )
+			button.setBackground( ColorHelper.getColor( currentColor ) );
 
-	@Override
-	public void coloringChanged()
-	{
+		button.addActionListener( e ->
+		{
+			final Color color = JColorChooser.showDialog(
+					panel,
+					"Choose single color LUT color",
+					button.getBackground() );
 
+			if ( color == null )
+				return;
+
+			button.setBackground( color );
+			coloringModel.setSingleColor( ColorHelper.getARGBType( color ) );
+		} );
+
+		// The button label "Color" is self-explanatory; no extra label required.
+		panel.add( button );
+
+		return panel;
 	}
 }

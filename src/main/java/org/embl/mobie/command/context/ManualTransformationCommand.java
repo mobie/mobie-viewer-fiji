@@ -35,7 +35,7 @@ import org.scijava.ItemVisibility;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.Button;
-import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
+import sc.fiji.bdvpg.command.BdvPlaygroundActionCommand;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, attrs = {}, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>" + ManualTransformationCommand.COMMAND_NAME )
 public class ManualTransformationCommand extends AbstractTransformationCommand

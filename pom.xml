@@ -89,7 +89,7 @@
         <connection>scm:git:https://github.com/mobie/mobie-viewer-fiji</connection>
         <developerConnection>scm:git:git@github.com:mobie/mobie-viewer-fiji</developerConnection>
         <url>https://github.com/mobie/mobie-viewer-fiji</url>
-        <tag>HEAD</tag>
+        <tag>mobie-viewer-fiji-6.7.6</tag>
     </scm>
     <issueManagement>
         <system>GitHub</system>

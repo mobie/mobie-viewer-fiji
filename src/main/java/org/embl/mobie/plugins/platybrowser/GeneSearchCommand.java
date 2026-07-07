@@ -39,7 +39,7 @@ import org.embl.mobie.lib.bdv.CalibratedMousePositionProvider;
 import org.embl.mobie.command.CommandConstants;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
+import sc.fiji.bdvpg.command.BdvPlaygroundActionCommand;
 
 import java.util.Arrays;
 

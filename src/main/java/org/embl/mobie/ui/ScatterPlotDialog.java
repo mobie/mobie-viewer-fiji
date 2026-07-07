@@ -28,7 +28,7 @@ public class ScatterPlotDialog
     {
         // Show dialog
         //
-        JDialog dialog = new JDialog( ( Frame ) null, "Color by Column", true );
+        JDialog dialog = new JDialog( ( Frame ) null, ColorByColumnDialog.COLOR_BY_COLUMN, true );
         dialog.setLayout( new BoxLayout( dialog.getContentPane(), BoxLayout.Y_AXIS ) );
 
         addAllTimePointsCheckbox( dialog, settings.showAllTimepoints );

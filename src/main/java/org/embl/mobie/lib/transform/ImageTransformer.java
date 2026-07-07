@@ -33,6 +33,8 @@ import net.imglib2.realtransform.InvertibleRealTransform;
 import net.imglib2.realtransform.RealTransform;
 import net.imglib2.realtransform.inverse.WrappedIterativeInvertibleRealTransform;
 import net.imglib2.type.Type;
+import org.embl.mobie.MoBIE;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.annotation.Annotation;
 import org.embl.mobie.lib.annotation.AnnotationAdapter;
 import org.embl.mobie.lib.annotation.DefaultAnnotationAdapter;
@@ -42,7 +44,7 @@ import org.embl.mobie.lib.image.*;
 import org.embl.mobie.lib.serialize.transformation.*;
 import org.embl.mobie.lib.table.AnnData;
 import org.embl.mobie.lib.util.MoBIEHelper;
-import sc.fiji.bdvpg.bdv.BdvHandleHelper;
+import sc.fiji.bdvpg.viewer.bdv.BdvHandleHelper;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -131,7 +133,15 @@ public class ImageTransformer
 
 		try
 		{
-			final RealTransform realTransform = REAL_TRANSFORM_PROVIDER.getElastixBSplineRealTransform( transformation );
+			String transformParametersUri = transformation.getTransformParametersUri();
+			if ( MoBIEHelper.isRelativePath( transformParametersUri ) )
+			{
+				String projectRoot = IOHelper.getParentLocation( MoBIE.getInstance().getProjectLocation() );
+				transformParametersUri = IOHelper.combinePath( projectRoot, transformParametersUri );
+			}
+
+			boolean invert = transformation.isInvert();
+			final RealTransform realTransform = REAL_TRANSFORM_PROVIDER.getElastixBSplineRealTransform( transformParametersUri, invert );
 
 			if ( image instanceof AnnotatedLabelImage )
 			{
@@ -150,7 +160,7 @@ public class ImageTransformer
 		}
 		catch ( Exception e )
 		{
-			throw new RuntimeException( "Could not create Elastix BSpline transform from: " + transformation.getTransformParametersFile(), e );
+			throw new RuntimeException( "Could not create Elastix BSpline transform from: " + transformation.getTransformParametersUri(), e );
 		}
 	}
 
@@ -161,9 +171,16 @@ public class ImageTransformer
 		if ( image instanceof AnnotationImage && !( image instanceof AnnotatedLabelImage ) )
 			throw new UnsupportedOperationException( "Displacement field transformations of " + image.getClass() + " are currently not supported." );
 
+		String displacementFieldUri = transformation.getDisplacementFieldUri();
+		if ( MoBIEHelper.isRelativePath( displacementFieldUri ) )
+		{
+			String projectRoot = IOHelper.getParentLocation( MoBIE.getInstance().getProjectLocation() );
+			displacementFieldUri = IOHelper.combinePath( projectRoot, displacementFieldUri );
+		}
+
 		try
 		{
-			final RealTransform realTransform = REAL_TRANSFORM_PROVIDER.getDisplacementFieldRealTransform( transformation );
+			final RealTransform realTransform = REAL_TRANSFORM_PROVIDER.getDisplacementFieldRealTransform( displacementFieldUri );
 
 			if ( image instanceof AnnotatedLabelImage )
 			{
@@ -182,7 +199,7 @@ public class ImageTransformer
 		}
 		catch ( Exception e )
 		{
-			throw new RuntimeException( "Could not create displacement field transform from: " + transformation.getDisplacementFieldUri(), e );
+			throw new RuntimeException( "Could not create displacement field transform from: " + displacementFieldUri, e );
 		}
 	}
 

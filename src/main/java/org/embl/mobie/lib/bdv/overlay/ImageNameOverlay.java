@@ -43,7 +43,7 @@ import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.RegionAnnotationImage;
 import org.embl.mobie.lib.image.StitchedImage;
 import org.embl.mobie.lib.select.Listeners;
-import sc.fiji.bdvpg.bdv.BdvHandleHelper;
+import sc.fiji.bdvpg.viewer.bdv.BdvHandleHelper;
 
 import java.awt.*;
 import java.util.ArrayList;

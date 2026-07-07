@@ -18,11 +18,11 @@ class ElastixBSplineRealTransformSamplingTest
 	@Test
 	void throwsFor2DElastixBSplineTransform() throws Exception
 	{
-		final URL transformResource = ElastixBSplineRealTransformSamplingTest.class
-				.getResource( "/elastix/TransformParameters.BSpline2D.TranslationX.txt" );
-		Assertions.assertNotNull( transformResource, "Missing Elastix BSpline transform test resource" );
+		String path = ElastixBSplineRealTransformSamplingTest.class
+				.getResource( "/elastix/TransformParameters.BSpline2D.TranslationX.txt" ).getFile();
+		Assertions.assertNotNull( path, "Missing Elastix BSpline transform test resource" );
 
-		ElastixBSplineTransform elastixTransform = ( ElastixBSplineTransform ) ElastixTransform.load( new File( transformResource.toURI() ) );
+		ElastixBSplineTransform elastixTransform = ( ElastixBSplineTransform ) ElastixTransform.load( path );
 		final IllegalArgumentException exception = Assertions.assertThrows(
 				IllegalArgumentException.class,
 				() -> ElastixBSplineToBSplineRealTransform.convert( elastixTransform )

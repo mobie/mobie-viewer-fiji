@@ -39,7 +39,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import org.embl.mobie.lib.util.MoBIEHelper;
-import sc.fiji.bdvpg.sourceandconverter.importer.EmptySourceAndConverterCreator;
+import sc.fiji.bdvpg.source.importer.EmptySourceCreator;
 
 public class CroppedImage< T > implements Image< T >
 {
@@ -82,7 +82,7 @@ public class CroppedImage< T > implements Image< T >
 		}
 		final FinalVoxelDimensions croppedSourceVoxelDimensions = new FinalVoxelDimensions( source.getVoxelDimensions().unit(), smallestVoxelSize, smallestVoxelSize, smallestVoxelSize );
 		int[] numVoxels = getNumVoxels( smallestVoxelSize, maxPlusVoxelSize, minMinusVoxelSize );
-		SourceAndConverter< ? > cropModel = new EmptySourceAndConverterCreator("Model", new FinalRealInterval( minMinusVoxelSize, maxPlusVoxelSize ), numVoxels[ 0 ], numVoxels[ 1 ], numVoxels[ 2 ], croppedSourceVoxelDimensions ).get();
+		SourceAndConverter< ? > cropModel = new EmptySourceCreator("Model", new FinalRealInterval( minMinusVoxelSize, maxPlusVoxelSize ), numVoxels[ 0 ], numVoxels[ 1 ], numVoxels[ 2 ], croppedSourceVoxelDimensions ).get();
 
 		// Resample
 		//

@@ -130,19 +130,6 @@ public class ViewSaver
         }
     }
 
-//    private void overwriteExistingViewOnFileSystem( View view ) {
-//        new Thread( () -> {
-//            String jsonPath = chooseFileSystemJson();
-//            if ( jsonPath != null ) {
-//                try {
-//                    overwriteExistingViewInAdditionalViewsJson( view, jsonPath );
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }).start();
-//    }
-
     private void saveNewViewToProject( View view, String viewJson ) {
         try {
             if ( viewJson.equals( "dataset.json" ) )
@@ -161,29 +148,6 @@ public class ViewSaver
         }
     }
 
-//    private void overwriteExistingViewInProject( View view, ProjectSaveLocation projectSaveLocation )
-//    {
-//        if ( isS3( moBIE.getProjectLocation() ) )
-//        {
-//            throw new UnsupportedOperationException("View saving aborted - saving directly to s3 is not yet supported!");
-//        }
-//        else
-//        {
-//            try {
-//                if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
-//                    overwriteExistingViewInDatasetJson( view );
-//                } else {
-//                    String viewJsonPath = chooseAdditionalViewsJson( false );
-//                    if (viewJsonPath != null) {
-//                        overwriteExistingViewInAdditionalViewsJson( view, viewJsonPath);
-//                    }
-//                }
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
-//    }
-
     private void addViewToUi( View view )
     {
         moBIE.getViews().put( view.getName(), view );
@@ -200,23 +164,6 @@ public class ViewSaver
         IJ.log( "View \"" + view.getName()  + "\" written to dataset.json" );
     }
 
-    // TODO: Delete this? https://github.com/mobie/mobie-viewer-fiji/issues/1150
-//    private void overwriteExistingViewInDatasetJson( View view ) throws IOException {
-//        String datasetJsonPath = moBIE.absolutePath( "dataset.json");
-//        Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
-//
-//        if ( ! dataset.views().keySet().isEmpty() ) {
-//            String selectedView = new SelectExistingViewDialog( dataset ).getSelectedView();
-//            if ( selectedView != null ) {
-//                writeDatasetJson( dataset, view, datasetJsonPath );
-//                IJ.log( selectedView + " overwritten in dataset.json" );
-//                addViewToUi( selectedView, view );
-//            }
-//        } else {
-//            IJ.log( "View saving aborted - dataset.json contains no views" );
-//        }
-//    }
-
     private boolean jsonExists( String jsonPath ) {
         if ( isGithub( jsonPath )) {
             return new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation(jsonPath) ).jsonExists();
@@ -224,23 +171,6 @@ public class ViewSaver
             return new File( jsonPath ).exists();
         }
     }
-
-//    private void overwriteExistingViewInAdditionalViewsJson( View view, String jsonPath ) throws IOException {
-//
-//        if ( !jsonExists( jsonPath ) ) {
-//            IJ.log( "View saving aborted - this views json does not exist" );
-//            return;
-//        }
-//
-//        AdditionalViews additionalViews = new AdditionalViewsJsonParser().getViews( jsonPath );
-//        String selectedView = new SelectExistingViewDialog( additionalViews ).getSelectedView();
-//
-//        if ( selectedView != null ) {
-//            writeAdditionalViewsJson( additionalViews, view, selectedView, jsonPath );
-//            IJ.log( selectedView + " overwritten in " + new File(jsonPath).getName() );
-//            addViewToUi( selectedView, view );
-//        }
-//    }
 
     private void saveNewViewToAdditionalViewsJson( View view, String jsonPath ) throws IOException
     {

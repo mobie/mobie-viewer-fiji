@@ -41,7 +41,7 @@ import org.embl.mobie.lib.bdv.ScreenShotMaker;
 import org.embl.mobie.lib.util.Corners;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
-import sc.fiji.bdvpg.bdv.BdvHandleHelper;
+import sc.fiji.bdvpg.viewer.bdv.BdvHandleHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;

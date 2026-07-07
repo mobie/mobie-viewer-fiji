@@ -35,6 +35,21 @@ public class ElastixBSplineTransformation extends AbstractImageTransformation
 {
     // Serialisation
 	protected String transformParametersFile;
+	protected boolean invert;
+
+	public ElastixBSplineTransformation(
+			String name,
+			String transformParametersFile,
+			List< String > sources,
+			List< String > sourceNamesAfterTransform,
+			boolean invert )
+	{
+        this.name = name;
+		this.transformParametersFile = transformParametersFile;
+		this.sources = sources;
+		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
+		this.invert = invert;
+	}
 
 	public ElastixBSplineTransformation(
 			String name,
@@ -48,9 +63,14 @@ public class ElastixBSplineTransformation extends AbstractImageTransformation
 		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
 	}
 
-	public String getTransformParametersFile()
+	public String getTransformParametersUri()
 	{
 		return transformParametersFile;
+	}
+
+	public boolean isInvert()
+	{
+		return invert;
 	}
 
 	@Override
@@ -59,6 +79,7 @@ public class ElastixBSplineTransformation extends AbstractImageTransformation
 		List< String > lines = new ArrayList<>();
 
 		lines.add( "Elastix BSpline transformation: " + getName() );
+		lines.add( "Invert: " + invert );
 		// Physical units are assumed to match the source units.
 		lines.add( transformParametersFile );
 		addSources( lines );

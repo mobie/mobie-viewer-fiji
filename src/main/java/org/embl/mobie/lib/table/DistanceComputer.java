@@ -33,6 +33,7 @@ import ij.gui.GenericDialog;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.annotation.Annotation;
+import org.embl.mobie.lib.color.ColoringModelUIs;
 import org.embl.mobie.lib.color.ColoringModels;
 import org.embl.mobie.lib.color.MoBIEColoringModel;
 import org.embl.mobie.lib.color.NumericAnnotationColoringModel;
@@ -108,9 +109,9 @@ public class DistanceComputer
                     ColoringModels.createNumericModel(
                             resultColumnName,
                             LUTs.BLUE_WHITE_RED,
-                            tableModel.getMinMax( resultColumnName ),
-                            true );
+                            tableModel.getMinMax( resultColumnName ) );
             coloringModel.setColoringModel( numericModel );
+            ColoringModelUIs.show( numericModel, selectionModel, tableModel );
             coloringModel.setOpacityNotSelected( 1.0 );
             coloringModel.setSelectionColor( new ARGBType( ARGBType.rgba( 255, 255, 0, 255 ) ) );
         }

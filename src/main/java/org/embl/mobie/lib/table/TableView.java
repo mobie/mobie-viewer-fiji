@@ -38,6 +38,7 @@ import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.NumericAnnotationImage;
 import org.embl.mobie.lib.serialize.View;
+import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.view.ViewManager;
 import org.embl.mobie.ui.AnnotationDialog;
@@ -262,7 +263,44 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		JMenu menu = new JMenu( "Misc" );
 		menu.add( createColumnSearchMenuItem() );
+
+		if ( display instanceof SpotDisplay )
+		{
+			menu.add( createAddSpotLocationColumnsMenuItem() );
+		}
+
 		return menu;
+	}
+
+	private JMenuItem createAddSpotLocationColumnsMenuItem()
+	{
+		final JMenuItem menuItem = new JMenuItem( "Add Spot Location Columns" );
+		menuItem.addActionListener( e -> new Thread( this::addSpotLocationColumns ).start() );
+		return menuItem;
+	}
+
+	private void addSpotLocationColumns()
+	{
+		IJ.log("Adding Spot Location Columns...");
+		final List< A > annotations = tableModel.annotations();
+
+		final String[] coordinateColumns = new String[]{
+				ColumnNames.SPOT_X,
+				ColumnNames.SPOT_Y,
+				ColumnNames.SPOT_Z
+		};
+
+		final int numDimensions = annotations.isEmpty() ? coordinateColumns.length : Math.min( annotations.get( 0 ).numDimensions(), coordinateColumns.length );
+		for ( int d = 0; d < numDimensions; d++ )
+		{
+			final String columnName = coordinateColumns[ d ];
+			if ( !tableModel.columnNames().contains( columnName ) )
+				tableModel.addNumericColumn( columnName );
+
+			for ( A annotation : annotations )
+				annotation.setNumber( columnName, annotation.getDoublePosition( d ) );
+		}
+		IJ.log("...done.");
 	}
 
 	private JMenu createComputeMenu()
@@ -378,6 +416,12 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private synchronized void updateTable()
 	{
 		if ( jTable == null ) return;
+
+		if ( !SwingUtilities.isEventDispatchThread() )
+		{
+			SwingUtilities.invokeLater( this::updateTable );
+			return;
+		}
 
 		// https://github.com/mobie/mobie-viewer-fiji/issues/1146
 		swingTableModel.tableChanged();
@@ -697,9 +741,9 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private SelectionMode mapSelectionMode( ColumnValueSelectionDialog.SelectionMode selectionMode )
 	{
-		if ( selectionMode == ColumnValueSelectionDialog.SelectionMode.INTERSECT_WITH_CURRENT_SELECTION )
+		if ( selectionMode == ColumnValueSelectionDialog.SelectionMode.AND_SELECTION )
 			return SelectionMode.INTERSECT;
-		if ( selectionMode == ColumnValueSelectionDialog.SelectionMode.ADD_TO_CURRENT_SELECTION )
+		if ( selectionMode == ColumnValueSelectionDialog.SelectionMode.OR_SELECTION )
 			return SelectionMode.ADD;
 		return SelectionMode.CREATE_NEW;
 	}
@@ -771,7 +815,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				// see also: https://github.com/mobie/mobie-viewer-fiji/issues/1235
 //				if ( display instanceof RegionDisplay )
 //				{
-//					SourceAndConverterBdvDisplayService service = SourceAndConverterServices.getBdvDisplayService();
+//					SourceBdvDisplayService service = SourceServices.getBdvDisplayService();
 //					display.sourceAndConverters().forEach( sac -> service.setVisible( sac, visible ) );
 //				}
 			}
@@ -913,7 +957,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		if ( columnName == null )
 		{
-			final String msg = "Please first use the [ Color > Color by Column ] menu item to configure the coloring.";
+			final String msg = "Please first use the [ Color > " + ColorByColumnDialog.COLOR_BY_COLUMN + " ] menu item to configure the coloring.";
 			IJ.error( msg );
 			throw new UnsupportedOperationException( msg );
 		}
@@ -923,7 +967,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private void addColorByColumnMenuItem( JMenu coloringMenu )
 	{
-		final JMenuItem menuItem = new JMenuItem( "Color by Column..." );
+		final JMenuItem menuItem = new JMenuItem( ColorByColumnDialog.COLOR_BY_COLUMN + "..." );
 
 		menuItem.addActionListener( e ->
 				new Thread( () -> showColorByColumnDialog()
@@ -935,10 +979,13 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	public void showColorByColumnDialog()
 	{
 		final ColoringModel< A > coloringModel =
-				new ColorByColumnDialog<>( tableModel ).show();
+				new ColorByColumnDialog<>( tableModel, this.coloringModel.getWrappedColoringModel() ).show();
 
 		if ( coloringModel != null )
+		{
 			this.coloringModel.setColoringModel( coloringModel );
+			ColoringModelUIs.show( coloringModel, this.selectionModel, this.tableModel );
+		}
 	}
 
 	public Window getWindow()
