@@ -30,6 +30,7 @@ package org.embl.mobie.lib.volume;
 
 import bdv.viewer.Source;
 import customnode.CustomTriangleMesh;
+import ij.IJ;
 import ij3d.Content;
 import ij3d.Image3DUniverse;
 import ij3d.ImageWindow3D;
@@ -60,6 +61,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.embl.mobie.lib.util.ThreadHelper;
 
 public class SegmentVolumeViewer< S extends Segment > implements ColoringListener, SelectionListener< S >
 {
@@ -168,7 +173,7 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 
 	/**
 	 * Pre-render meshes for the given segments and persist them to disk.
-	 * This is an expensive, blocking operation — call from a background thread.
+	 * Segments are processed in parallel using the shared thread pool.
 	 *
 	 * @param segments  segments whose meshes should be computed and cached.
 	 */
@@ -180,26 +185,48 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 			return;
 		}
 
+		final List< S > pending = new ArrayList<>();
 		for ( S segment : segments )
 		{
 			if ( segment.timePoint() != null && segment.timePoint() != currentTimePoint )
 				continue;
-
 			if ( meshCache.hasMesh( segment.label() ) )
 				continue;
-
-			try
-			{
-				final Source< AnnotationType< S > > source = getSource( segment );
-				// createSmoothCustomTriangleMesh will check the cache first,
-				// compute if missing, and store to cache afterwards
-				meshCreator.createSmoothCustomTriangleMesh( segment, voxelSpacing, false, source );
-			}
-			catch ( Exception e )
-			{
-				System.err.println( "[MoBIE] Could not pre-render mesh for segment " + segment.label() + ": " + e.getMessage() );
-			}
+			pending.add( segment );
 		}
+
+		if ( pending.isEmpty() )
+			return;
+
+		final AtomicInteger progress = new AtomicInteger( 0 );
+		final int total = pending.size();
+		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
+
+		for ( S segment : pending )
+		{
+			futures.add( ThreadHelper.executorService.submit( () ->
+			{
+				try
+				{
+					final Source< AnnotationType< S > > source = getSource( segment );
+					// createSmoothCustomTriangleMesh will check the cache first,
+					// compute if missing, and store to cache afterwards
+					meshCreator.createSmoothCustomTriangleMesh( segment, voxelSpacing, false, source );
+				}
+				catch ( Exception e )
+				{
+					System.err.println( "[MoBIE] Could not pre-render mesh for segment " + segment.label() + ": " + e.getMessage() );
+				}
+				finally
+				{
+					final int done = progress.incrementAndGet();
+					if ( done % 100 == 0 || done == total )
+						IJ.showStatus( "Pre-rendering meshes: " + done + "/" + total );
+				}
+			} ) );
+		}
+
+		ThreadHelper.waitUntilFinished( futures );
 
 		try
 		{
