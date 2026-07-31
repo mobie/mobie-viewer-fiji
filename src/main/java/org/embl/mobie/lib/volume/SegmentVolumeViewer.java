@@ -51,6 +51,8 @@ import org.jogamp.vecmath.Color3f;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -80,6 +82,7 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 	private double[] voxelSpacing; // desired voxel spacings; null = auto
 	private int currentTimePoint = 0;
 	private final MeshCreator< S > meshCreator;
+	private MeshCache meshCache;
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
 	private ImageWindow3D window;
 	private Image3DUniverse universe;
@@ -141,6 +144,76 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 	public void setMaxNumVoxels( long maxNumVoxels )
 	{
 		this.maxNumVoxels = maxNumVoxels;
+	}
+
+	/**
+	 * Configure a persistent mesh cache for this viewer.
+	 * <p>
+	 * When set, mesh data is loaded from disk before computing and stored
+	 * to disk after computing.  Cached meshes are pre-smoothed, so loading
+	 * skips both marching cubes and smoothing.
+	 *
+	 * @param segmentationName  human-readable name used in the cache file name
+	 * @param cacheRoot         root cache directory
+	 *                          (typically {@code ~/.mobie/mesh-cache/})
+	 */
+	public void configureMeshCache( String segmentationName, File cacheRoot )
+	{
+		if ( voxelSpacing == null )
+			return; // cannot cache without fixed voxel spacing
+
+		this.meshCache = new MeshCache( cacheRoot, segmentationName, meshSmoothingIterations, voxelSpacing );
+		this.meshCreator.setMeshCache( meshCache );
+	}
+
+	/**
+	 * Pre-render meshes for the given segments and persist them to disk.
+	 * This is an expensive, blocking operation — call from a background thread.
+	 *
+	 * @param segments  segments whose meshes should be computed and cached.
+	 */
+	public void preRenderSegments( Collection< S > segments )
+	{
+		if ( meshCache == null )
+		{
+			System.err.println( "[MoBIE] Mesh cache not configured; cannot pre-render." );
+			return;
+		}
+
+		for ( S segment : segments )
+		{
+			if ( segment.timePoint() != null && segment.timePoint() != currentTimePoint )
+				continue;
+
+			if ( meshCache.hasMesh( segment.label() ) )
+				continue;
+
+			try
+			{
+				final Source< AnnotationType< S > > source = getSource( segment );
+				// createSmoothCustomTriangleMesh will check the cache first,
+				// compute if missing, and store to cache afterwards
+				meshCreator.createSmoothCustomTriangleMesh( segment, voxelSpacing, false, source );
+			}
+			catch ( Exception e )
+			{
+				System.err.println( "[MoBIE] Could not pre-render mesh for segment " + segment.label() + ": " + e.getMessage() );
+			}
+		}
+
+		try
+		{
+			meshCache.flush();
+		}
+		catch ( IOException e )
+		{
+			System.err.println( "[MoBIE] Failed to flush mesh cache: " + e.getMessage() );
+		}
+	}
+
+	public MeshCache getMeshCache()
+	{
+		return meshCache;
 	}
 
 	private void updateSegmentColors()

@@ -57,11 +57,22 @@ public class MeshCreator< S extends Segment >
 {
 	private final int meshSmoothingIterations;
 	private final double maxNumSegmentVoxels;
+	private MeshCache meshCache;
 
 	public MeshCreator( int meshSmoothingIterations, double maxNumSegmentVoxels )
 	{
 		this.meshSmoothingIterations = meshSmoothingIterations;
 		this.maxNumSegmentVoxels = maxNumSegmentVoxels;
+	}
+
+	public void setMeshCache( MeshCache meshCache )
+	{
+		this.meshCache = meshCache;
+	}
+
+	public MeshCache getMeshCache()
+	{
+		return meshCache;
 	}
 
 	private float[] createMesh( S segment, @Nullable double[] targetVoxelSpacing, Source< AnnotationType< S > > source )
@@ -153,11 +164,31 @@ public class MeshCreator< S extends Segment >
 
 	private CustomTriangleMesh createCustomTriangleMesh( S segment, @Nullable double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< S > >  source )
 	{
+		// 1. Check in-memory segment cache
+		if ( segment.mesh() == null || recomputeMesh )
+		{
+			// 2. Check disk cache (if available)
+			if ( meshCache != null && ! recomputeMesh )
+			{
+				final long label = segment.label();
+				final float[] cachedMesh = meshCache.loadMesh( label );
+				if ( cachedMesh != null )
+				{
+					segment.setMesh( cachedMesh );
+				}
+			}
+		}
+
 		if ( segment.mesh() == null || recomputeMesh )
 		{
 			try
 			{
-				segment.setMesh( createMesh( segment, voxelSpacing, source ) );
+				final float[] mesh = createMesh( segment, voxelSpacing, source );
+				segment.setMesh( mesh );
+
+				// 3. Store in disk cache (if available)
+				if ( meshCache != null )
+					meshCache.storeMesh( segment.label(), mesh );
 			}
 			catch ( Exception e )
 			{

@@ -1397,4 +1397,10 @@ public abstract class MoBIEHelper
 		}
 		return types;
 	}
+
+	public static File getMeshCacheDir()
+	{
+		final File home = new File( System.getProperty( "user.home" ) );
+		return new File( home, ".mobie/mesh-cache" );
+	}
 }
