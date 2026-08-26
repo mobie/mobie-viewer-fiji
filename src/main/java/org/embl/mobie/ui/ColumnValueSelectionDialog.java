@@ -1,7 +1,11 @@
 package org.embl.mobie.ui;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -12,9 +16,9 @@ public class ColumnValueSelectionDialog
 {
 	public enum SelectionMode
 	{
-		NEW_SELECTION( "New" ),
-		AND_SELECTION( "AND" ),
-		OR_SELECTION( "OR" );
+		NEW_SELECTION( "Replace current selection" ),
+		AND_SELECTION( "Intersect with current selection (\"AND\")" ),
+		OR_SELECTION( "Union with current selection (\"OR\")" );
 
 		private final String label;
 
@@ -72,7 +76,7 @@ public class ColumnValueSelectionDialog
 
 	public boolean show()
 	{
-		final JDialog dialog = new JDialog( ( Frame ) null, "Select Values", true );
+		final JDialog dialog = new JDialog( ( Frame ) null, "Select Rows", true );
 		dialog.setLayout( new BoxLayout( dialog.getContentPane(), BoxLayout.Y_AXIS ) );
 
 		addColumnSelection( dialog );
@@ -104,9 +108,20 @@ public class ColumnValueSelectionDialog
 
 	private void addSelectionModeSelection( JDialog dialog )
 	{
+		final String tooltip = "<html>How this selection combines with any existing selection:<br>"
+				+ "&nbsp;&nbsp;<b>Replace</b> — discard current selection (if there was one) and use only the new one<br>"
+				+ "&nbsp;&nbsp;<b>Intersect (\"AND\")</b> — keep only rows present in both the current and new selection<br>"
+				+ "&nbsp;&nbsp;<b>Union (\"OR\")</b> — keep rows present in either the current or new selection</html>";
+
 		final JPanel panel = SwingHelper.horizontalFlowLayoutPanel();
+		final JLabel label = new JLabel( "Mode:  " );
 		selectionModeComboBox = new JComboBox<>( SelectionMode.values() );
-		panel.add( new JLabel( "Selection Mode:  " ) );
+
+		panel.setToolTipText( tooltip );
+		label.setToolTipText( tooltip );
+		selectionModeComboBox.setToolTipText( tooltip );
+
+		panel.add( label );
 		panel.add( selectionModeComboBox );
 		dialog.add( panel );
 	}
@@ -142,6 +157,15 @@ public class ColumnValueSelectionDialog
 			updateNumericControlsFromValues();
 		} );
 		minField.addActionListener( e -> commitNumericFieldValues() );
+		minField.getDocument().addDocumentListener( createNumericFieldDocumentListener() );
+		minField.addFocusListener( new FocusAdapter()
+		{
+			@Override
+			public void focusLost( FocusEvent e )
+			{
+				commitNumericFieldValues();
+			}
+		} );
 		constraints.gridy++;
 		addNumericControlRow( panel, constraints, "Min:  ", minField, minSlider );
 
@@ -159,6 +183,15 @@ public class ColumnValueSelectionDialog
 			updateNumericControlsFromValues();
 		} );
 		maxField.addActionListener( e -> commitNumericFieldValues() );
+		maxField.getDocument().addDocumentListener( createNumericFieldDocumentListener() );
+		maxField.addFocusListener( new FocusAdapter()
+		{
+			@Override
+			public void focusLost( FocusEvent e )
+			{
+				commitNumericFieldValues();
+			}
+		} );
 		constraints.gridy++;
 		addNumericControlRow( panel, constraints, "Max:  ", maxField, maxSlider );
 
@@ -311,6 +344,52 @@ public class ColumnValueSelectionDialog
 		catch ( Exception ignored )
 		{
 			updateNumericControlsFromValues();
+		}
+	}
+
+	private DocumentListener createNumericFieldDocumentListener()
+	{
+		return new DocumentListener()
+		{
+			@Override
+			public void insertUpdate( DocumentEvent e )
+			{
+				updateNumericValuesFromFieldsIfParsable();
+			}
+
+			@Override
+			public void removeUpdate( DocumentEvent e )
+			{
+				updateNumericValuesFromFieldsIfParsable();
+			}
+
+			@Override
+			public void changedUpdate( DocumentEvent e )
+			{
+				updateNumericValuesFromFieldsIfParsable();
+			}
+		};
+	}
+
+	private void updateNumericValuesFromFieldsIfParsable()
+	{
+		if ( updatingNumericControls ) return;
+
+		try
+		{
+			final double parsedMin = Double.parseDouble( minField.getText().trim() );
+			final double parsedMax = Double.parseDouble( maxField.getText().trim() );
+			minValue = clamp( Math.min( parsedMin, parsedMax ), sliderColumnMin, sliderColumnMax );
+			maxValue = clamp( Math.max( parsedMin, parsedMax ), sliderColumnMin, sliderColumnMax );
+
+			updatingNumericControls = true;
+			minSlider.setValue( valueToSlider( minValue ) );
+			maxSlider.setValue( valueToSlider( maxValue ) );
+			updatingNumericControls = false;
+		}
+		catch ( Exception ignored )
+		{
+			// Keep user input while typing incomplete values; commit will normalize later.
 		}
 	}
 
