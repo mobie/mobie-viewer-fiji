@@ -19,7 +19,7 @@ public class DevelopHITT2T
         //command.tableUri = "/Users/tischer/Desktop/hitt2t/Full-Res/mobie_ki.csv";
         //command.tableUri = "https://s3.embl.de/hitt2t/20251209/mm_Ki5_FFPE_20251209_S1/Mobie/Slide19/mobie_ki.csv";
         //command.tableUri = "/Users/tischer/Desktop/hitt2t/slide19-test/mobie_ki_tischi.csv";
-        command.tableUri = "https://s3.embl.de/hitt2t/20251209/mm_Ki5_FFPE_20251209_S1/Mobie/all/Ki5.csv";
+        command.tableUri = "/Volumes/cba/Abbaspour-Tischer/Hitt2t/Reg_3DLM_Fix_Xray_Mov/Mobie/Ki5/Slice6/mobie_ki.csv";
         command.run();
     }
 }
