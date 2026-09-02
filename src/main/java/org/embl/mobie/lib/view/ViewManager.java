@@ -807,7 +807,7 @@ public class ViewManager
 		if ( resolution3dView != null ) {
 			display.segmentVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive( display.getResolution3dView() ) );
 		}
-		display.segmentVolumeViewer.configureMeshCache( display.getName(), new File( MoBIEHelper.getMeshCacheDir() ) );
+		display.segmentVolumeViewer.configureMeshCache( display.getName(), MoBIEHelper.getMeshCacheDir() );
 		display.segmentVolumeViewer.showSegments( display.showSelectedSegmentsIn3d(), true );
 		display.coloringModel.listeners().add( display.segmentVolumeViewer );
 		display.selectionModel.listeners().add( display.segmentVolumeViewer );
