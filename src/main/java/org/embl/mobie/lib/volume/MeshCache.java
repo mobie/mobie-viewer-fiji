@@ -28,20 +28,18 @@
  */
 package org.embl.mobie.lib.volume;
 
-import bdv.viewer.Source;
-import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.lib.annotation.Segment;
-import org.embl.mobie.lib.source.AnnotationType;
-
-import javax.annotation.Nullable;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -49,8 +47,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * All meshes for a given segmentation + resolution are stored in a single
  * {@code .mel} (mesh labels) binary file under the cache directory.
- * The in-memory map doubles as the dirty set — new entries are held in
- * memory until {@link #flush()} is called.
+ * <p>
+ * <h3>Memory-bounded design</h3>
+ * The cache never holds all meshes in RAM. When opened, only a small in-memory
+ * index (label -&gt; file offset) is built; mesh data is read from disk on
+ * demand. Newly stored meshes are buffered in memory and appended to the file
+ * whenever the buffer exceeds {@link #DEFAULT_PERSIST_THRESHOLD} entries (or on
+ * {@link #flush()}), keeping peak memory low even for very large runs.
  *
  * <h3>Cache directory layout</h3>
  * <pre>
@@ -63,7 +66,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <pre>
  * [4 bytes magic:  0x4D 0x45 0x4C 0x48  ("MELH")]
  * [4 bytes version: 1]
- * [for each segment:
+ * [for each segment (records are appended, never rewritten):
  *     [8 bytes int64: label ID]
  *     [4 bytes uint32: vertex count N]
  *     [N * 12 bytes: float x0, y0, z0, x1, y1, z1, ...]
@@ -75,13 +78,22 @@ public class MeshCache
 	private static final int MAGIC = 0x4D454C48;  // "MELH"
 	private static final int VERSION = 1;
 
+	/** Number of buffered, not-yet-appended meshes before an automatic persist. */
+	private static final int DEFAULT_PERSIST_THRESHOLD = 256;
+
 	private final File cacheFile;
-	private final ConcurrentHashMap< Long, float[] > meshes;
+
+	/** Meshes stored but not yet appended to the file; bounded by the persist threshold. */
+	private final ConcurrentHashMap< Long, float[] > dirtyMeshes;
+
+	/** label -&gt; { byte offset of the record in the file, vertex count }. */
+	private final ConcurrentHashMap< Long, long[] > persistedIndex;
+
+	private final int persistThreshold;
 
 	/**
 	 * Create (or open) a mesh cache for the given segmentation at the given
-	 * resolution.  The cache file is loaded into memory immediately if it
-	 * already exists on disk.
+	 * resolution.
 	 *
 	 * @param cacheDir          root directory for all mesh caches
 	 *                          (typically {@code ~/.mobie/mesh-cache/})
@@ -91,10 +103,20 @@ public class MeshCache
 	 */
 	public MeshCache( File cacheDir, String segmentationName, int smoothingIterations, double[] voxelSpacing )
 	{
+		this( cacheDir, segmentationName, smoothingIterations, voxelSpacing, DEFAULT_PERSIST_THRESHOLD );
+	}
+
+	/**
+	 * Package-private constructor with an explicit persist threshold (used by tests).
+	 */
+	MeshCache( File cacheDir, String segmentationName, int smoothingIterations, double[] voxelSpacing, int persistThreshold )
+	{
 		final String spacingStr = formatSpacing( voxelSpacing );
 		final String fileName = segmentationName + "-sm" + smoothingIterations + "-" + spacingStr + ".mel";
 		this.cacheFile = new File( cacheDir, fileName );
-		this.meshes = new ConcurrentHashMap<>();
+		this.persistThreshold = Math.max( 1, persistThreshold );
+		this.dirtyMeshes = new ConcurrentHashMap<>();
+		this.persistedIndex = new ConcurrentHashMap<>();
 		load();
 	}
 
@@ -113,6 +135,10 @@ public class MeshCache
 
 	// -- read/write ----------------------------------------------------
 
+	/**
+	 * Scan the cache file and build the in-memory label index without loading
+	 * any vertex data.
+	 */
 	private void load()
 	{
 		if ( ! cacheFile.exists() )
@@ -129,26 +155,20 @@ public class MeshCache
 			if ( version != VERSION )
 				throw new IOException( "Unsupported version: " + version );
 
-			final byte[] buf = new byte[ 12 ]; // label(8) + count(4) = 12 header bytes
+			final byte[] header = new byte[ 12 ];
+			long offset = 8; // magic + version
 			while ( true )
 			{
-				// read label ID + vertex count header
-				readFully( in, buf, 0, 12 );
-				final long label = bytesToLong( buf, 0 );
-				final int count = bytesToInt( buf, 8 );
+				readFully( in, header, 0, 12 );
+				final long label = bytesToLong( header, 0 );
+				final int count = bytesToInt( header, 8 );
 				if ( count < 0 )
 					break; // sentinel: negative count marks end of stream
 
-				// read vertex data
-				final float[] vertices = new float[ count ];
-				final byte[] vertBuf = new byte[ count * 4 ];
-				readFully( in, vertBuf, 0, vertBuf.length );
-				final ByteBuffer bb = ByteBuffer.wrap( vertBuf ).order( in instanceof java.io.DataInputStream ? ByteOrder.BIG_ENDIAN : ByteOrder.BIG_ENDIAN );
-				bb.order( ByteOrder.BIG_ENDIAN );
-				for ( int i = 0; i < vertices.length; i++ )
-					vertices[ i ] = bb.getFloat();
-
-				meshes.put( label, vertices );
+				// Only index records whose payload could be read completely.
+				skipFully( in, ( long ) count * 4 );
+				persistedIndex.put( label, new long[] { offset, count } );
+				offset += 12 + ( long ) count * 4;
 			}
 		}
 		catch ( EOFException e )
@@ -162,61 +182,131 @@ public class MeshCache
 	}
 
 	/**
-	 * Write all cached meshes to disk.
+	 * Append all currently buffered meshes to the cache file.
+	 */
+	private synchronized void persistDirty() throws IOException
+	{
+		if ( dirtyMeshes.isEmpty() )
+			return;
+
+		cacheFile.getParentFile().mkdirs();
+
+		try ( final FileChannel channel = FileChannel.open(
+				cacheFile.toPath(), StandardOpenOption.CREATE, StandardOpenOption.WRITE ) )
+		{
+			if ( channel.size() == 0 )
+			{
+				channel.write( ByteBuffer.wrap( new byte[] {
+						( byte ) ( MAGIC >>> 24 ), ( byte ) ( MAGIC >>> 16 ),
+						( byte ) ( MAGIC >>> 8 ), ( byte ) MAGIC,
+						( byte ) ( VERSION >>> 24 ), ( byte ) ( VERSION >>> 16 ),
+						( byte ) ( VERSION >>> 8 ), ( byte ) VERSION } ) );
+			}
+
+			final ByteBuffer record = ByteBuffer.allocate( 12 ).order( ByteOrder.BIG_ENDIAN );
+			for ( final Map.Entry< Long, float[] > entry : dirtyMeshes.entrySet() )
+			{
+				final long recordStart = channel.size();
+				channel.position( recordStart );
+
+				final float[] vertices = entry.getValue();
+				record.clear();
+				record.putLong( entry.getKey() );
+				record.putInt( vertices.length );
+				record.flip();
+				writeFully( channel, record );
+
+				final ByteBuffer verticesBuffer = ByteBuffer.allocate( vertices.length * 4 ).order( ByteOrder.BIG_ENDIAN );
+				verticesBuffer.asFloatBuffer().put( vertices );
+				writeFully( channel, verticesBuffer );
+
+				persistedIndex.put( entry.getKey(), new long[] { recordStart, vertices.length } );
+			}
+			channel.force( false );
+		}
+
+		dirtyMeshes.clear();
+	}
+
+	private static void writeFully( final FileChannel channel, final ByteBuffer buffer ) throws IOException
+	{
+		while ( buffer.hasRemaining() )
+			channel.write( buffer );
+	}
+
+	private float[] readPersisted( long label, long recordOffset, int count )
+	{
+		try ( final FileChannel channel = FileChannel.open( cacheFile.toPath(), StandardOpenOption.READ ) )
+		{
+			final ByteBuffer verticesBuffer = ByteBuffer.allocate( count * 4 ).order( ByteOrder.BIG_ENDIAN );
+			long position = recordOffset + 12;
+			while ( verticesBuffer.hasRemaining() )
+			{
+				final int read = channel.read( verticesBuffer, position );
+				if ( read < 0 )
+					throw new EOFException( "Unexpected end of file while reading label " + label );
+				position += read;
+			}
+			verticesBuffer.flip();
+			final float[] vertices = new float[ count ];
+			verticesBuffer.asFloatBuffer().get( vertices );
+			return vertices;
+		}
+		catch ( IOException e )
+		{
+			System.err.println( "[MeshCache] Failed to read label " + label + " from " + cacheFile.getAbsolutePath() + ": " + e.getMessage() );
+			return null;
+		}
+	}
+
+	/**
+	 * Write all buffered meshes to disk.
 	 */
 	public synchronized void flush() throws IOException
 	{
-		cacheFile.getParentFile().mkdirs();
-
-		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		final DataOutputStream out = new DataOutputStream( baos );
-
-		out.writeInt( MAGIC );
-		out.writeInt( VERSION );
-
-		final byte[] header = new byte[ 12 ];
-		for ( final java.util.Map.Entry< Long, float[] > entry : meshes.entrySet() )
-		{
-			final long label = entry.getKey();
-			final float[] vertices = entry.getValue();
-
-			longToBytes( label, header, 0 );
-			intToBytes( vertices.length, header, 8 );
-			out.write( header );
-
-			final byte[] vertBuf = new byte[ vertices.length * 4 ];
-			final ByteBuffer bb = ByteBuffer.wrap( vertBuf ).order( ByteOrder.BIG_ENDIAN );
-			for ( float v : vertices )
-				bb.putFloat( v );
-			out.write( vertBuf );
-		}
-
-		out.flush();
-		Files.write( cacheFile.toPath(), baos.toByteArray(),
-				StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING );
+		persistDirty();
 	}
 
 	// -- public API ----------------------------------------------------
 
 	public boolean hasMesh( long labelId )
 	{
-		return meshes.containsKey( labelId );
+		return dirtyMeshes.containsKey( labelId ) || persistedIndex.containsKey( labelId );
 	}
 
-	@Nullable
+	@javax.annotation.Nullable
 	public float[] loadMesh( long labelId )
 	{
-		return meshes.get( labelId );
+		final float[] mesh = dirtyMeshes.get( labelId );
+		if ( mesh != null )
+			return mesh;
+
+		final long[] record = persistedIndex.get( labelId );
+		if ( record == null )
+			return null;
+
+		return readPersisted( labelId, record[ 0 ], ( int ) record[ 1 ] );
 	}
 
-	public void storeMesh( long labelId, float[] vertices )
+	public synchronized void storeMesh( long labelId, float[] vertices )
 	{
-		meshes.put( labelId, vertices );
+		dirtyMeshes.put( labelId, vertices );
+		if ( dirtyMeshes.size() >= persistThreshold )
+		{
+			try
+			{
+				persistDirty();
+			}
+			catch ( IOException e )
+			{
+				System.err.println( "[MeshCache] Failed to persist " + cacheFile.getAbsolutePath() + ": " + e.getMessage() );
+			}
+		}
 	}
 
 	public int size()
 	{
-		return meshes.size();
+		return dirtyMeshes.size() + persistedIndex.size();
 	}
 
 	// -- helpers -------------------------------------------------------
@@ -230,6 +320,25 @@ public class MeshCache
 			if ( r < 0 )
 				throw new EOFException();
 			total += r;
+		}
+	}
+
+	private static void skipFully( final InputStream in, final long len ) throws IOException
+	{
+		long remaining = len;
+		while ( remaining > 0 )
+		{
+			final long skipped = in.skip( remaining );
+			if ( skipped <= 0 )
+			{
+				if ( in.read() < 0 )
+					throw new EOFException();
+				remaining--;
+			}
+			else
+			{
+				remaining -= skipped;
+			}
 		}
 	}
 
@@ -251,25 +360,5 @@ public class MeshCache
 				| ( ( b[ off + 1 ] & 0xFF ) << 16 )
 				| ( ( b[ off + 2 ] & 0xFF ) << 8 )
 				| ( b[ off + 3 ] & 0xFF );
-	}
-
-	private static void longToBytes( long v, byte[] b, int off )
-	{
-		b[ off ] = ( byte ) ( v >>> 56 );
-		b[ off + 1 ] = ( byte ) ( v >>> 48 );
-		b[ off + 2 ] = ( byte ) ( v >>> 40 );
-		b[ off + 3 ] = ( byte ) ( v >>> 32 );
-		b[ off + 4 ] = ( byte ) ( v >>> 24 );
-		b[ off + 5 ] = ( byte ) ( v >>> 16 );
-		b[ off + 6 ] = ( byte ) ( v >>> 8 );
-		b[ off + 7 ] = ( byte ) v;
-	}
-
-	private static void intToBytes( int v, byte[] b, int off )
-	{
-		b[ off ] = ( byte ) ( v >>> 24 );
-		b[ off + 1 ] = ( byte ) ( v >>> 16 );
-		b[ off + 2 ] = ( byte ) ( v >>> 8 );
-		b[ off + 3 ] = ( byte ) v;
 	}
 }
