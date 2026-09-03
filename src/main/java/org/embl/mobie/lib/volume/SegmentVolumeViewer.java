@@ -319,6 +319,8 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 
 		new Thread( () ->
 		{
+			if ( universe == null )
+				return;
 			universe.setAutoAdjustView( true );
 			updateSelectedSegments( recomputeMeshes );
 			removeUnselectedSegments();
@@ -376,9 +378,12 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 	private synchronized void removeSegment( S segment )
 	{
 		final Content content = segmentToContent.get( segment );
-		universe.removeContent( content.getName() );
+		if ( content == null )
+			return;
 		segmentToContent.remove( segment );
 		contentToSegment.remove( content );
+		if ( universe != null )
+			universe.removeContent( content.getName() );
 	}
 
 	public synchronized void showSegments( boolean showSegments, boolean autoAdjustView )
@@ -431,9 +436,8 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 
 	private void removeSegments()
 	{
-		final Set< S > segments = selectionModel.getSelected();
-
-		for ( S segment : segments )
+		// remove whatever is currently displayed, not the (possibly larger) selection
+		for ( S segment : new HashSet<>( segmentToContent.keySet() ) )
 		{
 			removeSegment( segment );
 		}
@@ -468,6 +472,9 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 //
 //		for ( int j = 0; j < 10; j++ )
 //			System.out.println( ys[ ys.length - j - 1 ] );
+
+		if ( universe == null )
+			return;
 
 		final Bounds bounds = mesh.getBounds();
 		final Content content = universe.addCustomMesh( mesh, "" + segment.hashCode() );
