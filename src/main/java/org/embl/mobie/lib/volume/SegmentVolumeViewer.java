@@ -63,6 +63,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.embl.mobie.lib.util.ThreadHelper;
 
@@ -202,6 +203,13 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 		final int total = pending.size();
 		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
 
+		// Update the status bar on a time basis rather than on a fixed number
+		// of finished meshes, so that very fast and very slow segments both
+		// produce a steady ~10 s update cadence.
+		final long statusIntervalMillis = 10_000;
+		final AtomicLong lastStatusTimeMillis = new AtomicLong( System.currentTimeMillis() );
+		IJ.showStatus( "Pre-rendering meshes: 0/" + total );
+
 		for ( S segment : pending )
 		{
 			futures.add( ThreadHelper.executorService.submit( () ->
@@ -220,7 +228,13 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 				finally
 				{
 					final int done = progress.incrementAndGet();
-					if ( done % 100 == 0 || done == total )
+					final long now = System.currentTimeMillis();
+					final long lastStatusTime = lastStatusTimeMillis.get();
+					// Always report the final count; otherwise report at most
+					// once per interval (guarded by the atomic timestamp).
+					if ( done == total
+							|| ( now - lastStatusTime >= statusIntervalMillis
+									&& lastStatusTimeMillis.compareAndSet( lastStatusTime, now ) ) )
 						IJ.showStatus( "Pre-rendering meshes: " + done + "/" + total );
 				}
 			} ) );
