@@ -195,6 +195,18 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 	}
 
 	/**
+	 * Whether the given exception (or any of its causes) reports that a
+	 * segment has no voxels in the image volume at any resolution level.
+	 */
+	private static boolean noVoxelsInImage( final Throwable throwable )
+	{
+		for ( Throwable cause = throwable; cause != null; cause = cause.getCause() )
+			if ( cause.getMessage() != null && cause.getMessage().contains( "has no voxels in the image volume" ) )
+				return true;
+		return false;
+	}
+
+	/**
 	 * Pre-render meshes for the given segments and persist them to disk.
 	 * Segments are processed in parallel using the shared thread pool.
 	 *
@@ -226,6 +238,7 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
 		final AtomicInteger failures = new AtomicInteger( 0 );
 		final int maxLoggedFailures = 10;
+		final AtomicInteger noVoxelSegments = new AtomicInteger( 0 );
 
 		// Update the status bar on a time basis rather than on a fixed number
 		// of finished meshes, so that very fast and very slow segments both
@@ -249,12 +262,20 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 				}
 				catch ( Exception e )
 				{
-					final int failureCount = failures.incrementAndGet();
-					if ( failureCount <= maxLoggedFailures )
+					if ( noVoxelsInImage( e ) )
 					{
-						final Throwable cause = e.getCause();
-						IJ.log( "[MoBIE] Could not pre-render mesh for segment " + segment.label() + ": " + e.getMessage()
-								+ ( cause != null ? " (cause: " + cause.getMessage() + ")" : "" ) );
+						// benign: the label is absent from the volume at all levels
+						noVoxelSegments.incrementAndGet();
+					}
+					else
+					{
+						final int failureCount = failures.incrementAndGet();
+						if ( failureCount <= maxLoggedFailures )
+						{
+							final Throwable cause = e.getCause();
+							IJ.log( "[MoBIE] Could not pre-render mesh for segment " + segment.label() + ": " + e.getMessage()
+									+ ( cause != null ? " (cause: " + cause.getMessage() + ")" : "" ) );
+						}
 					}
 				}
 				finally
@@ -289,6 +310,9 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 
 		if ( failures.get() > 0 )
 			IJ.log( "[MoBIE] " + failures.get() + " of " + total + " meshes could not be pre-rendered." );
+
+		if ( noVoxelSegments.get() > 0 )
+			IJ.log( "[MoBIE] " + noVoxelSegments.get() + " segments have no voxels in the image volume at any resolution level and were skipped." );
 	}
 
 	public MeshCache getMeshCache()

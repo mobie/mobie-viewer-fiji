@@ -77,18 +77,13 @@ public class MeshCreator< S extends Segment >
 
 	private float[] createMesh( S segment, @Nullable double[] targetVoxelSpacing, Source< AnnotationType< S > > source )
 	{
-		int renderingLevel = getLevel( segment, source, targetVoxelSpacing );
-
-		final AffineTransform3D sourceTransform = new AffineTransform3D();
 		final int timePoint = segment.timePoint() == null ? 0 : segment.timePoint();
-		source.getSourceTransform( timePoint, renderingLevel, sourceTransform );
-
-		final RandomAccessibleInterval< AnnotationType< S > >  rai = source.getSource( timePoint, renderingLevel );
+		final int renderingLevel = getLevel( segment, source, targetVoxelSpacing );
 
 		if ( segment.boundingBox() == null )
 		{
-			// compute bounding box in voxel space
-			//
+			// compute the bounding box in real space, flood-filling at the
+			// initially chosen resolution level
 			RealPoint position;
 			try
 			{
@@ -98,6 +93,10 @@ public class MeshCreator< S extends Segment >
 			{
 				throw new UnsupportedOperationException( "The location of segment " + segment.label() + " could not be determined and thus no mesh could be created;\npossibly the corresponding table has no anchor point entries for this segment" );
 			}
+
+			final AffineTransform3D sourceTransform = new AffineTransform3D();
+			source.getSourceTransform( timePoint, renderingLevel, sourceTransform );
+			final RandomAccessibleInterval< AnnotationType< S > > rai = source.getSource( timePoint, renderingLevel );
 
 			final long[] voxelPositionInSource = SourceHelper.getVoxelPositionInSource( source, position, timePoint, renderingLevel );
 
@@ -109,50 +108,55 @@ public class MeshCreator< S extends Segment >
 			floodFill.run( voxelPositionInSource );
 			final RandomAccessibleInterval< BitType > mask = floodFill.getCroppedRegionMask();
 
-			// set segment bounding box in real space
-			//
 			final FinalRealInterval realBounds = sourceTransform.estimateBounds( mask );
 			segment.setBoundingBox( realBounds );
 		}
 
-		Interval voxelBounds = Intervals.smallestContainingInterval( sourceTransform.inverse().estimateBounds( segment.boundingBox() ) );
-
-		if ( ! Intervals.contains( rai, voxelBounds ) )
+		// Extract the surface at the chosen resolution. If the object is too
+		// small for that mipmap level (or lies at the image border) it may only
+		// be present at finer levels, so step down towards level 0 before
+		// giving up.
+		for ( int level = renderingLevel; level >= 0; level-- )
 		{
-			System.out.println("Warning: The segment bounding box " + voxelBounds + " is not fully contained in the image interval: " + Arrays.toString( Intervals.minAsLongArray( rai ) ) + "-" +  Arrays.toString( Intervals.maxAsDoubleArray( rai ) ) + "; taking the intersection.");
-			voxelBounds = Intervals.intersect( rai, voxelBounds );
+			final AffineTransform3D sourceTransform = new AffineTransform3D();
+			source.getSourceTransform( timePoint, level, sourceTransform );
+
+			final RandomAccessibleInterval< AnnotationType< S > > rai = source.getSource( timePoint, level );
+
+			Interval voxelBounds = Intervals.smallestContainingInterval( sourceTransform.inverse().estimateBounds( segment.boundingBox() ) );
+
+			if ( ! Intervals.contains( rai, voxelBounds ) )
+				voxelBounds = Intervals.intersect( rai, voxelBounds );
+
+			if ( Intervals.numElements( voxelBounds ) == 0 )
+				continue; // outside of the image at this level
+
+			final AnnotationType< S > type = source.getType();
+			final AnnotationType< S > variable = type.createVariable();
+			final RandomAccessible< AnnotationType< S > > rra = Views.extendValue( rai, variable );
+
+			final MeshExtractor meshExtractor = new MeshExtractor(
+					rra,
+					voxelBounds,
+					new AffineTransform3D(),
+					new int[]{ 1, 1, 1 },
+					() -> false );
+
+			final float[] mesh = meshExtractor.extractMesh( new AnnotationType( segment ) );
+
+			if ( mesh.length == 0 )
+				continue; // label not present at this level; try a finer one
+
+			// TODO: instead of transforming the mesh, one could
+			//  also transform the universe content that is created
+			//  from this mesh
+			//  Note that for the image volume rendering (@code ImageVolumeViewer)
+			//  we need to transform the images as content,
+			//  and thus it may be more consistent do to the same for the meshes?!
+			return MeshTransformer.transform( mesh, sourceTransform );
 		}
 
-		final long numElements = Intervals.numElements( voxelBounds );
-
-		if ( numElements == 0 )
-			throw new RuntimeException("The segment is not within the image volume.");
-
-		final AnnotationType< S > type = source.getType();
-		final AnnotationType< S > variable = type.createVariable();
-		final RandomAccessible< AnnotationType< S > > rra = Views.extendValue( rai, variable );
-
-		final MeshExtractor meshExtractor = new MeshExtractor(
-				rra,
-				voxelBounds,
-				new AffineTransform3D(),
-				new int[]{ 1, 1, 1 },
-				() -> false );
-
-		final float[] mesh = meshExtractor.extractMesh( new AnnotationType( segment ) );
-
-		if ( mesh.length == 0 )
-			throw new RuntimeException("The mesh has zero vertices.");
-
-		// TODO: instead of transformation the mesh, one could
-		//  also transform the universe content that is created
-		//  from this mesh
-		//  Note that for the image volume rendering (@code ImageVolumeViewer)
-		//  we need to transform the images as content,
-		//  and thus it may be more consistent do to the same for the meshes?!
-		final float[] transformedMesh = MeshTransformer.transform( mesh, sourceTransform );
-
-		return transformedMesh;
+		throw new RuntimeException( "Segment " + segment.label() + " has no voxels in the image volume at any resolution level." );
 	}
 
 	public CustomTriangleMesh createSmoothCustomTriangleMesh( S segment, @Nullable double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< S > > source )
