@@ -178,7 +178,7 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 			if ( bestSpacing == null )
 				return; // no cached resolution yet: auto resolution, no caching
 			voxelSpacing = new double[] { bestSpacing, bestSpacing, bestSpacing };
-			System.out.println( "[MoBIE] Using best available mesh cache resolution " + bestSpacing + " um for " + segmentationName );
+			IJ.log( "[MoBIE] Using best available mesh cache resolution " + bestSpacing + " um for " + segmentationName );
 		}
 
 		this.meshCache = new MeshCache( cacheRoot, segmentationName, meshSmoothingIterations, voxelSpacing );
@@ -195,7 +195,7 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 	{
 		if ( meshCache == null )
 		{
-			System.err.println( "[MoBIE] Mesh cache not configured; cannot pre-render." );
+			IJ.log( "[MoBIE] Mesh cache not configured; cannot pre-render." );
 			return;
 		}
 
@@ -223,7 +223,9 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 		// produce a steady ~10 s update cadence.
 		final long statusIntervalMillis = 10_000;
 		final AtomicLong lastStatusTimeMillis = new AtomicLong( System.currentTimeMillis() );
-		IJ.showStatus( "Pre-rendering meshes: 0/" + total );
+		final String initialStatus = "Pre-rendering meshes: 0/" + total;
+		IJ.showStatus( initialStatus );
+		IJ.log( initialStatus );
 
 		for ( S segment : pending )
 		{
@@ -242,7 +244,7 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 					if ( failureCount <= maxLoggedFailures )
 					{
 						final Throwable cause = e.getCause();
-						System.err.println( "[MoBIE] Could not pre-render mesh for segment " + segment.label() + ": " + e.getMessage()
+						IJ.log( "[MoBIE] Could not pre-render mesh for segment " + segment.label() + ": " + e.getMessage()
 								+ ( cause != null ? " (cause: " + cause.getMessage() + ")" : "" ) );
 					}
 				}
@@ -256,7 +258,11 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 					if ( done == total
 							|| ( now - lastStatusTime >= statusIntervalMillis
 									&& lastStatusTimeMillis.compareAndSet( lastStatusTime, now ) ) )
-						IJ.showStatus( "Pre-rendering meshes: " + done + "/" + total );
+					{
+						final String status = "Pre-rendering meshes: " + done + "/" + total;
+						IJ.showStatus( status );
+						IJ.log( status );
+					}
 				}
 			} ) );
 		}
@@ -269,11 +275,11 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 		}
 		catch ( IOException e )
 		{
-			System.err.println( "[MoBIE] Failed to flush mesh cache: " + e.getMessage() );
+			IJ.log( "[MoBIE] Failed to flush mesh cache: " + e.getMessage() );
 		}
 
 		if ( failures.get() > 0 )
-			System.err.println( "[MoBIE] " + failures.get() + " of " + total + " meshes could not be pre-rendered." );
+			IJ.log( "[MoBIE] " + failures.get() + " of " + total + " meshes could not be pre-rendered." );
 	}
 
 	public MeshCache getMeshCache()

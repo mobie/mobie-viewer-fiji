@@ -28,6 +28,8 @@
  */
 package org.embl.mobie.lib.volume;
 
+import ij.IJ;
+
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.EOFException;
@@ -179,7 +181,7 @@ public class MeshCache
 		}
 		catch ( IOException e )
 		{
-			System.err.println( "[MeshCache] Failed to load " + cacheFile.getAbsolutePath() + ": " + e.getMessage() );
+			IJ.log( "[MeshCache] Failed to load " + cacheFile.getAbsolutePath() + ": " + e.getMessage() );
 		}
 	}
 
@@ -256,7 +258,7 @@ public class MeshCache
 		}
 		catch ( IOException e )
 		{
-			System.err.println( "[MeshCache] Failed to read label " + label + " from " + cacheFile.getAbsolutePath() + ": " + e.getMessage() );
+			IJ.log( "[MeshCache] Failed to read label " + label + " from " + cacheFile.getAbsolutePath() + ": " + e.getMessage() );
 			return null;
 		}
 	}
@@ -301,7 +303,7 @@ public class MeshCache
 			}
 			catch ( IOException e )
 			{
-				System.err.println( "[MeshCache] Failed to persist " + cacheFile.getAbsolutePath() + ": " + e.getMessage() );
+				IJ.log( "[MeshCache] Failed to persist " + cacheFile.getAbsolutePath() + ": " + e.getMessage() );
 			}
 		}
 	}
