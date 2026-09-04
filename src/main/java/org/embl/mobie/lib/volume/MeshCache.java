@@ -41,6 +41,8 @@ import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Disk-backed cache of pre-computed segment meshes.
@@ -307,6 +309,68 @@ public class MeshCache
 	public int size()
 	{
 		return dirtyMeshes.size() + persistedIndex.size();
+	}
+
+	/**
+	 * Scan {@code cacheRoot} for mesh-cache files of the given segmentation
+	 * (any smoothing level) and return the smallest (finest) spacing found, or
+	 * {@code null} if there is no cache file for this segmentation.
+	 *
+	 * @param cacheRoot        root cache directory
+	 * @param segmentationName name used in the cache file name
+	 */
+	public static Double findFinestAvailableSpacing( File cacheRoot, String segmentationName )
+	{
+		if ( cacheRoot == null || ! cacheRoot.isDirectory() )
+			return null;
+
+		final Pattern pattern = Pattern.compile(
+				Pattern.quote( segmentationName ) + "-sm\\d+-([0-9_]+)um\\.mel" );
+
+		final File[] files = cacheRoot.listFiles();
+		if ( files == null )
+			return null;
+
+		Double best = null;
+		for ( final File file : files )
+		{
+			final Matcher matcher = pattern.matcher( file.getName() );
+			if ( ! matcher.matches() )
+				continue;
+			final double spacing = Double.parseDouble( matcher.group( 1 ).replace( '_', '.' ) );
+			if ( best == null || spacing < best )
+				best = spacing;
+		}
+		return best;
+	}
+
+	/**
+	 * Like {@link #findFinestAvailableSpacing(File, String)} but restricted to
+	 * cache files created with the given smoothing iteration count.
+	 */
+	public static Double findFinestAvailableSpacing( File cacheRoot, String segmentationName, int smoothingIterations )
+	{
+		if ( cacheRoot == null || ! cacheRoot.isDirectory() )
+			return null;
+
+		final Pattern pattern = Pattern.compile(
+				Pattern.quote( segmentationName ) + "-sm" + smoothingIterations + "-([0-9_]+)um\\.mel" );
+
+		final File[] files = cacheRoot.listFiles();
+		if ( files == null )
+			return null;
+
+		Double best = null;
+		for ( final File file : files )
+		{
+			final Matcher matcher = pattern.matcher( file.getName() );
+			if ( ! matcher.matches() )
+				continue;
+			final double spacing = Double.parseDouble( matcher.group( 1 ).replace( '_', '.' ) );
+			if ( best == null || spacing < best )
+				best = spacing;
+		}
+		return best;
 	}
 
 	// -- helpers -------------------------------------------------------

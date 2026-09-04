@@ -64,8 +64,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.embl.mobie.lib.util.ThreadHelper;
 
@@ -176,7 +174,7 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 		if ( voxelSpacing == null )
 		{
 			// Default to the finest resolution for which a cache already exists.
-			final Double bestSpacing = bestAvailableSpacing( cacheRoot, segmentationName, meshSmoothingIterations );
+			final Double bestSpacing = MeshCache.findFinestAvailableSpacing( cacheRoot, segmentationName, meshSmoothingIterations );
 			if ( bestSpacing == null )
 				return; // no cached resolution yet: auto resolution, no caching
 			voxelSpacing = new double[] { bestSpacing, bestSpacing, bestSpacing };
@@ -185,36 +183,6 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 
 		this.meshCache = new MeshCache( cacheRoot, segmentationName, meshSmoothingIterations, voxelSpacing );
 		this.meshCreator.setMeshCache( meshCache );
-	}
-
-	/**
-	 * Scan the cache directory for {@code <segmentationName>-sm<smoothing>-<spacing>um.mel}
-	 * files and return the smallest (finest) spacing found, or {@code null} if
-	 * no cache exists for this segmentation and smoothing level.
-	 */
-	private static Double bestAvailableSpacing( File cacheRoot, String segmentationName, int smoothingIterations )
-	{
-		if ( cacheRoot == null || !cacheRoot.isDirectory() )
-			return null;
-
-		final Pattern pattern = Pattern.compile(
-				Pattern.quote( segmentationName ) + "-sm" + smoothingIterations + "-([0-9_]+)um\\.mel" );
-
-		Double best = null;
-		final File[] files = cacheRoot.listFiles();
-		if ( files == null )
-			return null;
-
-		for ( final File file : files )
-		{
-			final Matcher matcher = pattern.matcher( file.getName() );
-			if ( !matcher.matches() )
-				continue;
-			final double spacing = Double.parseDouble( matcher.group( 1 ).replace( '_', '.' ) );
-			if ( best == null || spacing < best )
-				best = spacing;
-		}
-		return best;
 	}
 
 	/**

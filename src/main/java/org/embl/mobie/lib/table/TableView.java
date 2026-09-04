@@ -37,6 +37,7 @@ import org.embl.mobie.lib.annotation.AnnotatedRegion;
 import bdv.viewer.Source;
 import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.util.MoBIEHelper;
+import org.embl.mobie.lib.volume.MeshCache;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.NumericAnnotationImage;
 import org.embl.mobie.lib.serialize.View;
@@ -72,10 +73,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -299,7 +297,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		// Default to the finest resolution for which a cache already exists.
 		int defaultIndex = 0;
-		final Double cachedSpacing = finestCachedSpacingUm( display.getName() );
+		final Double cachedSpacing = MeshCache.findFinestAvailableSpacing( MoBIEHelper.getMeshCacheDir(), display.getName() );
 		if ( cachedSpacing != null )
 			for ( int i = 0; i < resolutions.size(); i++ )
 				if ( Math.abs( resolutions.get( i ) - cachedSpacing ) < 1e-9 )
@@ -400,31 +398,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				resolutions.add( preset );
 		}
 		return resolutions;
-	}
-
-	private Double finestCachedSpacingUm( String segmentationName )
-	{
-		final File cacheDir = MoBIEHelper.getMeshCacheDir();
-		if ( cacheDir == null || ! cacheDir.isDirectory() )
-			return null;
-
-		final File[] files = cacheDir.listFiles();
-		if ( files == null )
-			return null;
-
-		final Pattern pattern = Pattern.compile( Pattern.quote( segmentationName ) + "-sm\\d+-([0-9_]+)um\\.mel" );
-		Double best = null;
-		for ( final File file : files )
-		{
-			final Matcher matcher = pattern.matcher( file.getName() );
-			if ( matcher.matches() )
-			{
-				final double spacing = Double.parseDouble( matcher.group( 1 ).replace( '_', '.' ) );
-				if ( best == null || spacing < best )
-					best = spacing;
-			}
-		}
-		return best;
 	}
 
 	private static String formatSpacing( double spacing )
