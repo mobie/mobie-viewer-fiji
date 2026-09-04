@@ -54,6 +54,7 @@ import org.embl.mobie.lib.image.*;
 import org.embl.mobie.lib.plot.ScatterPlotSettings;
 import org.embl.mobie.lib.plot.ScatterPlotView;
 import org.embl.mobie.lib.serialize.DataSource;
+import org.embl.mobie.lib.serialize.NumericAnnotationDataSource;
 import org.embl.mobie.lib.serialize.View;
 import org.embl.mobie.lib.serialize.display.*;
 import org.embl.mobie.lib.serialize.transformation.*;
@@ -380,6 +381,21 @@ public class ViewManager
 		// by a display or transformation)
 		List< DataSource > dataSources = moBIE.getDataSources( sourceToTransformOrDisplay.keySet() );
 
+		// Numeric annotation sources reference a base annotation source
+		// (e.g. a segmentation) via `annotationSource`. That base source
+		// may not be listed directly in the view, but it must be initialised
+		// before the numeric annotation image can be built (see expansion
+		// below). Include it here so the view loads it automatically.
+		final Set< String > baseAnnotationSourceNames = new HashSet<>();
+		for ( DataSource dataSource : dataSources )
+			if ( dataSource instanceof NumericAnnotationDataSource )
+				baseAnnotationSourceNames.add( ( ( NumericAnnotationDataSource ) dataSource ).annotationSource );
+
+		baseAnnotationSourceNames.removeAll( sourceToTransformOrDisplay.keySet() );
+
+		if ( ! baseAnnotationSourceNames.isEmpty() )
+			dataSources.addAll( moBIE.getDataSources( baseAnnotationSourceNames ) );
+
 		// if a view is created on the fly in a running project, e.g. due to an image registration
 		// the data sources may already be present and thus do not need to be instantiated
 		// HOWEVER: the issue here is that then an image may exist already and a transformation is applied twice (see below)
@@ -415,6 +431,23 @@ public class ViewManager
 
 		if ( ! dataSources.isEmpty() )
 			moBIE.initDataSources( dataSources );
+
+		// Expand NumericAnnotationDataSources into NumericAnnotationImages.
+		// This must run after initDataSources() so that the base annotation
+		// images are guaranteed to be in DataStore.
+		for ( DataSource dataSource : dataSources )
+		{
+			if ( dataSource instanceof NumericAnnotationDataSource )
+			{
+				NumericAnnotationDataSource nas = ( NumericAnnotationDataSource ) dataSource;
+				Image< ? > baseImage = DataStore.getImage( nas.annotationSource );
+				@SuppressWarnings( { "unchecked", "rawtypes" } )
+				final NumericAnnotationImage numericImage = new NumericAnnotationImage(
+						( Image ) baseImage,
+						nas.column );
+				DataStore.addImage( numericImage );
+			}
+		}
 
 		// transform images
 		// this may create new images with new names

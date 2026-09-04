@@ -746,6 +746,13 @@ public class MoBIE
 			regionTableSource.table = TableOpener.open( tableLocation, tableFormat );
 			DataStore.addRawData( regionTableSource );
 		}
+		else if ( dataSource instanceof NumericAnnotationDataSource )
+		{
+			// NumericAnnotationDataSources are expanded after all base sources
+			// have been initialised (see ViewManager.initData()).
+			// The base annotation image must already be in DataStore
+			// before the NumericAnnotationImage wrapper can be created.
+		}
 
 		if ( log != null )
 			IJ.log( log + dataSource.getName() );
