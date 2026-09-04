@@ -193,8 +193,7 @@ public class MeshCreator< S extends Segment >
 			catch ( Exception e )
 			{
 				final String msg = "Could not create mesh for segment " + segment.label() + " at time point " + segment.timePoint();
-				//IJ.showMessage( msg );
-				throw new RuntimeException( msg );
+				throw new RuntimeException( msg, e );
 			}
 		}
 

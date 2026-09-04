@@ -215,6 +215,8 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 		final AtomicInteger progress = new AtomicInteger( 0 );
 		final int total = pending.size();
 		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
+		final AtomicInteger failures = new AtomicInteger( 0 );
+		final int maxLoggedFailures = 10;
 
 		// Update the status bar on a time basis rather than on a fixed number
 		// of finished meshes, so that very fast and very slow segments both
@@ -236,7 +238,13 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 				}
 				catch ( Exception e )
 				{
-					System.err.println( "[MoBIE] Could not pre-render mesh for segment " + segment.label() + ": " + e.getMessage() );
+					final int failureCount = failures.incrementAndGet();
+					if ( failureCount <= maxLoggedFailures )
+					{
+						final Throwable cause = e.getCause();
+						System.err.println( "[MoBIE] Could not pre-render mesh for segment " + segment.label() + ": " + e.getMessage()
+								+ ( cause != null ? " (cause: " + cause.getMessage() + ")" : "" ) );
+					}
 				}
 				finally
 				{
@@ -263,6 +271,9 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 		{
 			System.err.println( "[MoBIE] Failed to flush mesh cache: " + e.getMessage() );
 		}
+
+		if ( failures.get() > 0 )
+			System.err.println( "[MoBIE] " + failures.get() + " of " + total + " meshes could not be pre-rendered." );
 	}
 
 	public MeshCache getMeshCache()
