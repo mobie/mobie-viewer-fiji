@@ -186,6 +186,8 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 			}
 			voxelSpacing = new double[] { bestSpacing, bestSpacing, bestSpacing };
 			IJ.log( "[MoBIE] Using best available mesh cache resolution " + bestSpacing + " um for " + segmentationName );
+			IJ.log( "[MoBIE] Tip: to keep this cache but stop using it (e.g. to regenerate the meshes at another resolution), rename its .mel file(s) in "
+					+ cacheRoot + ", for example add a NOT_IN_USE_ prefix. Renamed files are ignored." );
 		}
 
 		this.meshCache = new MeshCache( cacheRoot, segmentationName, meshSmoothingIterations, voxelSpacing );
