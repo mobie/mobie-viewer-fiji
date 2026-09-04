@@ -161,9 +161,10 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 	 * <p>
 	 * If no fixed voxel spacing has been set (e.g. the view declares no
 	 * {@code resolution3d}), the best - i.e. finest - resolution for which a
-	 * mesh cache already exists for this segmentation is used automatically;
-	 * only if no cache exists at all is the cache left unconfigured (auto
-	 * resolution, no caching).
+	 * mesh cache already exists for this segmentation is used automatically.
+	 * If no cache exists at all, the cache is left unconfigured (auto
+	 * resolution, no caching) and a log message explains how to pre-cache the
+	 * segment meshes from the table's Misc menu.
 	 *
 	 * @param segmentationName  human-readable name used in the cache file name
 	 * @param cacheRoot         root cache directory
@@ -176,7 +177,13 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 			// Default to the finest resolution for which a cache already exists.
 			final Double bestSpacing = MeshCache.findFinestAvailableSpacing( cacheRoot, segmentationName, meshSmoothingIterations );
 			if ( bestSpacing == null )
+			{
+				// No cache yet: meshes are computed on demand. Tell the user how
+				// to pre-cache them from the segmentation table's Misc menu.
+				IJ.log( "[MoBIE] No cached meshes for \"" + segmentationName + "\": segment meshes will be computed on demand (auto resolution)." );
+				IJ.log( "[MoBIE] To pre-cache them at a fixed resolution, open the table of this segmentation and use 'Misc' > 'Cache segment meshes...'." );
 				return; // no cached resolution yet: auto resolution, no caching
+			}
 			voxelSpacing = new double[] { bestSpacing, bestSpacing, bestSpacing };
 			IJ.log( "[MoBIE] Using best available mesh cache resolution " + bestSpacing + " um for " + segmentationName );
 		}
