@@ -38,6 +38,7 @@ import bdv.viewer.Source;
 import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.volume.MeshCache;
+import org.embl.mobie.lib.volume.SegmentMeshCacher;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.NumericAnnotationImage;
 import org.embl.mobie.lib.serialize.View;
@@ -338,29 +339,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		try
 		{
 			final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) display;
-			if ( segmentationDisplay.segmentVolumeViewer == null )
-			{
-				IJ.showMessage( "The 3D segment viewer is not initialised for this table." );
-				return;
-			}
-
-			segmentationDisplay.segmentVolumeViewer.setVoxelSpacing( new double[]{ spacing, spacing, spacing } );
-			segmentationDisplay.segmentVolumeViewer.configureMeshCache( display.getName(), MoBIEHelper.getMeshCacheDir() );
-
-			Collection segments = tableModel.annotations();
-			if ( segments.isEmpty() )
-				segments = selectionModel.getSelected();
-			if ( segments.isEmpty() )
-			{
-				IJ.showMessage( "No segments to cache." );
-				return;
-			}
-
-			final int cachedBefore = segmentationDisplay.segmentVolumeViewer.getMeshCache().size();
-			IJ.showStatus( "Caching " + segments.size() + " segment meshes at " + formatSpacing( spacing ) + " um ..." );
-			segmentationDisplay.segmentVolumeViewer.preRenderSegments( segments );
-			final int newlyCached = segmentationDisplay.segmentVolumeViewer.getMeshCache().size() - cachedBefore;
-			IJ.showStatus( "" );
+			final int newlyCached = SegmentMeshCacher.cacheSegmentsAt( segmentationDisplay, spacing );
 			IJ.showMessage( "Done. Cached " + newlyCached + " segment meshes at " + formatSpacing( spacing ) + " um.\n\nCache: " + MoBIEHelper.getMeshCacheDir() );
 		}
 		catch ( Exception e )
