@@ -515,9 +515,12 @@ public class CreateInverseDisplacementFieldFromElastixBSplineCommand implements 
 		calibration.pixelWidth = spacing[ 0 ];
 		calibration.pixelHeight = spacing[ 1 ];
 		calibration.pixelDepth = spacing[ 2 ];
-		calibration.xOrigin = origin[ 0 ];
-		calibration.yOrigin = origin[ 1 ];
-		calibration.zOrigin = origin[ 2 ];
+		// TODO: once https://github.com/saalfeldlab/n5-ij/issues/126 is fixed
+		//  we can remove the comments and then also remove
+		//  the patchOmeZarrTranslationsWithOrigin() function
+//		calibration.xOrigin = origin[ 0 ];
+//		calibration.yOrigin = origin[ 1 ];
+//		calibration.zOrigin = origin[ 2 ];
 		calibration.setUnit( unit );
 		calibration.setXUnit( unit );
 		calibration.setYUnit( unit );
