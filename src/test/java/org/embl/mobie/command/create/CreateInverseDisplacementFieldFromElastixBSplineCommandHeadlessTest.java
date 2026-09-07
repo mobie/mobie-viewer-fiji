@@ -89,7 +89,7 @@ public class CreateInverseDisplacementFieldFromElastixBSplineCommandHeadlessTest
 
 	private static Path resolveOutputDir( final Path defaultTempDir )
 	{
-		final String configuredOutputDir = "/Users/tischer/Downloads";
+		final String configuredOutputDir = null; // "/Users/tischer/Downloads";
 		if ( configuredOutputDir == null || configuredOutputDir.trim().isEmpty() )
 			return defaultTempDir;
 
