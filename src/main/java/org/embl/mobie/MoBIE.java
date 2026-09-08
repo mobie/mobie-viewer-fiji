@@ -36,6 +36,7 @@ import loci.common.DebugTools;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imagej.ImageJ;
 import net.imglib2.type.numeric.RealType;
+import org.embl.mobie.io.ContextProvider;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
@@ -88,6 +89,7 @@ public class MoBIE
 	{
 		net.imagej.patcher.LegacyInjector.preinit();
 		PlaygroundPrefs.setSourceTreeVisibility( false );
+		ContextProvider.setContext( SourceServices.getContext() );
 
 		new Thread(() -> {
 			long start = System.currentTimeMillis();

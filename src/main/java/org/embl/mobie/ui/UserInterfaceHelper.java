@@ -62,6 +62,7 @@ import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 import org.embl.mobie.lib.volume.ImageVolumeViewer;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.jetbrains.annotations.NotNull;
+import sc.fiji.bdvpg.scijava.service.SourceBdvDisplayService;
 import sc.fiji.bdvpg.service.SourceServices;
 import sc.fiji.bdvpg.source.display.ColorChanger;
 
@@ -450,6 +451,7 @@ public class UserInterfaceHelper
 		}
 
 		List< ? extends SourceAndConverter< ? > > sourceAndConverters = display.sourceAndConverters();
+		sourceAndConverters.forEach( sourceAndConverter -> System.out.println( System.identityHashCode(sourceAndConverter) ) );
 
 		// Buttons
 		panel.add( space() );
@@ -1085,9 +1087,16 @@ public class UserInterfaceHelper
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
+				SourceBdvDisplayService bdvDisplayService = SourceServices.getBdvDisplayService();
 				for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 				{
-					SourceServices.getBdvDisplayService().setVisible( sourceAndConverter, checkBox.isSelected() );
+					bdvDisplayService.setVisible( sourceAndConverter, checkBox.isSelected() );
+					List< BdvHandle > displays = bdvDisplayService.getDisplays();
+					System.out.println( System.identityHashCode(sourceAndConverter) );
+					Set< BdvHandle > displaysOf = bdvDisplayService.getDisplaysOf( sourceAndConverter );
+					displaysOf
+							.forEach(bdvhr -> bdvhr.getViewerPanel().state()
+							.setSourceActive(sourceAndConverter, checkBox.isSelected()));
 				}
 			}
 		} );

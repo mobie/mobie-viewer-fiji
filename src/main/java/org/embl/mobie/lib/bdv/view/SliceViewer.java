@@ -64,6 +64,7 @@ import javax.swing.*;
 import java.awt.Window;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class SliceViewer
 {
@@ -255,7 +256,7 @@ public class SliceViewer
 		return SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
 	}
 
-	public void show( Image< ? > image, SourceAndConverter< ? > sourceAndConverter, AbstractDisplay< ? > display )
+	public synchronized void show( Image< ? > image, SourceAndConverter< ? > sourceAndConverter, AbstractDisplay< ? > display )
 	{
 		try
 		{
@@ -276,6 +277,10 @@ public class SliceViewer
 
 			// show in Bdv
 			SourceServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
+
+			System.out.println( System.identityHashCode(sourceAndConverter) );
+
+			Set< BdvHandle > displaysOf = SourceServices.getBdvDisplayService().getDisplaysOf( sourceAndConverter );
 
 			updateTimepointSlider();
 		}

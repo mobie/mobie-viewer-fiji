@@ -118,6 +118,7 @@ public abstract class DataStore
 	{
 		try
 		{
+			imageDataFormat = ImageDataFormat.N5;
 			return ImageDataOpener.open( path, imageDataFormat, sharedQueue );
 		}
 		catch ( Exception e )
