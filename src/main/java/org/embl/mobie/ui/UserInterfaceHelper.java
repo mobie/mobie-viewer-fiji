@@ -451,7 +451,9 @@ public class UserInterfaceHelper
 		}
 
 		List< ? extends SourceAndConverter< ? > > sourceAndConverters = display.sourceAndConverters();
-		sourceAndConverters.forEach( sourceAndConverter -> System.out.println( System.identityHashCode(sourceAndConverter) ) );
+
+		// for debugging
+		//sourceAndConverters.forEach( sourceAndConverter -> System.out.println( "UI: " + System.identityHashCode(sourceAndConverter) ) );
 
 		// Buttons
 		panel.add( space() );

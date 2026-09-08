@@ -262,6 +262,7 @@ public class SliceViewer
 		{
 			// register sac
 			SourceServices.getSourceService().register( sourceAndConverter );
+			// System.out.println( System.identityHashCode(sourceAndConverter) ); // for debugging
 
 			// link sac to image
 			DataStore.sourceToImage().forcePut( sourceAndConverter, image );
@@ -278,9 +279,9 @@ public class SliceViewer
 			// show in Bdv
 			SourceServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
 
-			System.out.println( System.identityHashCode(sourceAndConverter) );
-
-			Set< BdvHandle > displaysOf = SourceServices.getBdvDisplayService().getDisplaysOf( sourceAndConverter );
+			// for debugging
+			// System.out.println( System.identityHashCode(sourceAndConverter) );
+			// Set< BdvHandle > displaysOf = SourceServices.getBdvDisplayService().getDisplaysOf( sourceAndConverter );
 
 			updateTimepointSlider();
 		}
