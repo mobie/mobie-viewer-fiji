@@ -136,10 +136,10 @@ public class TurboReg2DAligner
         }
         try
         {
-            method = turboReg.getClass().getMethod( "getSourcePoints", null );
-            double[][] sourcePoints = ( ( double[][] ) method.invoke( turboReg, null ) );
-            method = turboReg.getClass().getMethod( "getTargetPoints", null );
-            double[][] targetPoints = ( ( double[][] ) method.invoke( turboReg, null ) );
+            method = turboReg.getClass().getMethod( "getSourcePoints" );
+            double[][] sourcePoints = ( ( double[][] ) method.invoke( turboReg ) );
+            method = turboReg.getClass().getMethod( "getTargetPoints" );
+            double[][] targetPoints = ( ( double[][] ) method.invoke( turboReg ) );
             // If this is a licensing issue, we could probably use methods in BigWarp
             // or mpicbg to compute the transformation from a set of points.
             transformationMatrix = getTransformationMatrix( targetPoints, sourcePoints, transformationType );

@@ -36,6 +36,7 @@ import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.DatasetJsonParser;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.serialize.ImageDataSource;
+import org.janelia.saalfeldlab.n5.ij.N5ScalePyramidExporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -128,7 +129,8 @@ class RemoteMetadataCreatorTest {
                 createImage( imageName, false ),
                 filePath,
                 OMEZarrWriter.ImageType.Intensities,
-                false
+                false,
+                N5ScalePyramidExporter.BLOSC_COMPRESSION // to make it work with zarr-java v2
         );
 
         // link to the ome-zarr image

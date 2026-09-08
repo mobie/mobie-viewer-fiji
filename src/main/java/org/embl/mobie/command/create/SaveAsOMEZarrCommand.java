@@ -2,11 +2,10 @@ package org.embl.mobie.command.create;
 
 import ij.IJ;
 import ij.ImagePlus;
-import org.embl.mobie.MoBIE;
 import org.embl.mobie.io.OMEZarrWriter;
 import org.embl.mobie.io.util.ChunkSizeComputer;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.lib.util.MoBIEHelper;
+import org.janelia.saalfeldlab.n5.ij.N5ScalePyramidExporter;
 import org.scijava.Initializable;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
@@ -100,7 +99,8 @@ public class SaveAsOMEZarrCommand extends DynamicCommand implements Initializabl
                     shardDimensions,
                     OMEZarrWriter.StorageFormat.ZARR3,
                     overwrite,
-                    omeXml );
+                    omeXml,
+                    N5ScalePyramidExporter.GZIP_COMPRESSION );
         }
         else
         {
