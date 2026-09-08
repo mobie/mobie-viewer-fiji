@@ -4,13 +4,12 @@
     <parent>
         <groupId>org.scijava</groupId>
         <artifactId>pom-scijava</artifactId>
-        <version>45.0.0</version>
+        <version>45.1.0</version>
     </parent>
 
     <groupId>org.embl.mobie</groupId>
     <artifactId>mobie-viewer-fiji</artifactId>
     <version>7.0.0-SNAPSHOT</version>
-
 
     <!-- -SNAPSHOT -->
     <!--  https://sites.imagej.net/MoBIE/-->
@@ -130,19 +129,6 @@
         <tablesaw-excel.version>0.43.1</tablesaw-excel.version>
         <tablesaw-parquet.version>0.11.0</tablesaw-parquet.version>
 
-<!--        &lt;!&ndash; NB: This should be removed once Fiji ships the release versions (and there is a corresponding parent pom)&ndash;&gt;-->
-<!--        <n5-viewer_fiji.version>6.2.0</n5-viewer_fiji.version>-->
-<!--        <n5.version>4.0.0</n5.version>-->
-<!--        <n5-aws-s3.version>5.0.0</n5-aws-s3.version>-->
-<!--        <n5-blosc.version>2.0.0</n5-blosc.version>-->
-<!--        <n5-google-cloud.version>6.0.0</n5-google-cloud.version>-->
-<!--        <n5-hdf5.version>3.0.0</n5-hdf5.version>-->
-<!--        <n5-ij.version>5.0.0</n5-ij.version>-->
-<!--        <n5-imglib2.version>8.0.0</n5-imglib2.version>-->
-<!--        <n5-universe.version>3.0.0</n5-universe.version>-->
-<!--        <n5-zarr.version>2.0.1</n5-zarr.version>-->
-<!--        <n5-zstandard.version>2.0.0</n5-zstandard.version>-->
-
         <!-- NB: Deploy releases to the SciJava Maven repository. -->
         <releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
 
@@ -159,11 +145,6 @@
     </repositories>
 
     <dependencies>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-compress</artifactId>
-            <version>1.28.0</version>
-        </dependency>
         <dependency>
             <groupId>org.embl.mobie</groupId>
             <artifactId>mobie-io</artifactId>
@@ -229,7 +210,7 @@
             <artifactId>3D_Viewer</artifactId>
         </dependency>
         <dependency>
-		<groupId>nl.uu.science.cellbiology</groupId>
+		    <groupId>nl.uu.science.cellbiology</groupId>
 			<artifactId>bigvolumebrowser</artifactId>
 			<version>${bigvolumebrowser.version}</version>
 		</dependency>
@@ -254,6 +235,11 @@
         <dependency>
             <groupId>net.imagej</groupId>
             <artifactId>ij</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.28.0</version>
         </dependency>
         <dependency>
             <groupId>trove</groupId>

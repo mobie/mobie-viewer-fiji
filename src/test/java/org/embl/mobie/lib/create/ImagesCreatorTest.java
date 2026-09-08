@@ -43,6 +43,7 @@ import org.embl.mobie.lib.serialize.ImageDataSource;
 import org.embl.mobie.lib.serialize.SegmentationDataSource;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.util.ThreadHelper;
+import org.janelia.saalfeldlab.n5.ij.N5ScalePyramidExporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -51,6 +52,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Path;
 
 import static org.embl.mobie.lib.create.JSONValidator.validate;
@@ -59,6 +61,9 @@ import static org.embl.mobie.lib.create.ProjectCreatorTestHelper.createLabels;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ImagesCreatorTest {
+
+    // TODO: should also work with GZIP once zarr-java supports it
+    public static final String COMPRESSION = N5ScalePyramidExporter.BLOSC_COMPRESSION;
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -131,6 +136,8 @@ class ImagesCreatorTest {
 
         // Image can be opened
         String uri = imageLocation.getAbsolutePath();
+        System.out.println( "URI String: " + uri );
+        System.out.println( "URI: " + URI.create( uri ) );
         ImageData< ? > imageData = ImageDataOpener.open(
                 uri,
                 ImageDataFormat.fromPath( uri ),
@@ -182,8 +189,12 @@ class ImagesCreatorTest {
     Object writeImageOutsideProject(boolean is2D ) {
         // add example image
         ImagePlus image = createImage( imageName, is2D );
-        OMEZarrWriter.write( image, imageOutsideProject.getAbsolutePath(),
-                OMEZarrWriter.ImageType.Intensities, false );
+        OMEZarrWriter.write(
+                image,
+                imageOutsideProject.getAbsolutePath(),
+                OMEZarrWriter.ImageType.Intensities,
+                false,
+                COMPRESSION );
         return image;
     }
 

@@ -54,6 +54,7 @@ import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.util.ThreadHelper;
 import org.embl.mobie.ui.UserInterfaceHelper;
+import org.janelia.saalfeldlab.n5.ij.N5ScalePyramidExporter;
 
 import javax.swing.*;
 import java.io.File;
@@ -160,7 +161,12 @@ public class ImagesCreator {
             projectCreator.setVoxelUnit( imp.getCalibration().getUnit() );
         }
 
-        OMEZarrWriter.write( imp, filePath, getImageType( imageType ), overwrite );
+        OMEZarrWriter.write(
+                imp,
+                filePath,
+                getImageType( imageType ),
+                overwrite,
+                N5ScalePyramidExporter.BLOSC_COMPRESSION );
 
         // check image written successfully, before writing JSONs
         if ( imageFile.exists() )
