@@ -37,6 +37,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerPanel;
 import ij.IJ;
+import ij.Prefs;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.*;
@@ -1392,5 +1393,35 @@ public abstract class MoBIEHelper
 			}
 		}
 		return types;
+	}
+
+	private static final String MESH_CACHE_DIR_PROPERTY = "mobie.meshCacheDir";
+
+	private static final String MESH_CACHE_DIR_PREFS_KEY = "MoBIE.meshCacheDir";
+
+	private static final String DEFAULT_MESH_CACHE_DIR = ".mobie/mesh-cache";
+
+	/**
+	 * Root directory of the disk-backed segment mesh cache.
+	 * <p>
+	 * The location is resolved with the following precedence:
+	 * <ol>
+	 *   <li>system property {@code mobie.meshCacheDir} (handy for CI/headless runs),</li>
+	 *   <li>ImageJ preference {@code MoBIE.meshCacheDir} ({@link ij.Prefs}, the
+	 *       portable per-user preference store across operating systems),</li>
+	 *   <li>default {@code <user.home>/.mobie/mesh-cache}.</li>
+	 * </ol>
+	 */
+	public static File getMeshCacheDir()
+	{
+		final String propertyDir = System.getProperty( MESH_CACHE_DIR_PROPERTY );
+		if ( propertyDir != null && !propertyDir.isEmpty() )
+			return new File( propertyDir );
+
+		final String prefsDir = Prefs.get( MESH_CACHE_DIR_PREFS_KEY, "" );
+		if ( prefsDir != null && !prefsDir.isEmpty() )
+			return new File( prefsDir );
+
+		return new File( System.getProperty( "user.home" ), DEFAULT_MESH_CACHE_DIR );
 	}
 }

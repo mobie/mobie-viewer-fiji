@@ -32,6 +32,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import java.io.File;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
@@ -806,6 +807,7 @@ public class ViewManager
 		if ( resolution3dView != null ) {
 			display.segmentVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive( display.getResolution3dView() ) );
 		}
+		display.segmentVolumeViewer.configureMeshCache( display.getName(), MoBIEHelper.getMeshCacheDir() );
 		display.segmentVolumeViewer.showSegments( display.showSelectedSegmentsIn3d(), true );
 		display.coloringModel.listeners().add( display.segmentVolumeViewer );
 		display.selectionModel.listeners().add( display.segmentVolumeViewer );

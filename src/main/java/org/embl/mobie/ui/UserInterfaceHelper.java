@@ -512,6 +512,8 @@ public class UserInterfaceHelper
 		{
 			// segments 3D view
 			panel.add( createSegmentsVolumeViewerVisibilityCheckbox( display ) );
+			// mesh pre-render
+			panel.add( createMeshPreRenderButton( display ) );
 			// BVV view
 			panel.add( createBVBVolumeVisibilityCheckbox( display, sourceAndConverters ) );
 			// table view
@@ -1036,6 +1038,52 @@ public class UserInterfaceHelper
 	private static Component createButtonPlaceholder()
 	{
 		return Box.createRigidArea( PREFERRED_BUTTON_SIZE );
+	}
+
+	private static JButton createMeshPreRenderButton( SegmentationDisplay display )
+	{
+		JButton button = new JButton( "M" );
+		button.setToolTipText( "Pre-render all segment meshes to disk cache" );
+		button.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
+		button.setMargin( new java.awt.Insets( 0, 0, 0, 0 ) );
+
+		button.addActionListener( e -> new Thread( () ->
+		{
+			button.setEnabled( false );
+			button.setText( "..." );
+
+			try
+			{
+				final java.util.Collection segments;
+				if ( display.getAnnData() != null && display.getAnnData().getTable() != null )
+					segments = display.getAnnData().getTable().annotations();
+				else
+					segments = display.selectionModel.getSelected();
+
+				if ( segments.isEmpty() )
+				{
+					IJ.showMessage( "No segments to pre-render." );
+					return;
+				}
+
+				IJ.showStatus( "Pre-rendering " + segments.size() + " segment meshes..." );
+				display.segmentVolumeViewer.preRenderSegments( segments );
+				IJ.showStatus( "Pre-rendering complete. " + display.segmentVolumeViewer.getMeshCache().size() + " meshes cached." );
+			}
+			catch ( Exception ex )
+			{
+				IJ.showMessage( "Mesh pre-render failed: " + ex.getMessage() );
+			}
+			finally
+			{
+				SwingUtilities.invokeLater( () -> {
+					button.setText( "M" );
+					button.setEnabled( true );
+				} );
+			}
+		} ).start() );
+
+		return button;
 	}
 
 	private static Component createCheckboxPlaceholder()
