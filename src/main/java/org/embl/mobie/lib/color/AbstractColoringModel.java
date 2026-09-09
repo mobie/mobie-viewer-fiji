@@ -47,7 +47,8 @@ public abstract class AbstractColoringModel< T > implements ColoringModel< T >
 	{
 		for ( ColoringListener listener : listeners.list )
 		{
-			SwingUtilities.invokeLater( () -> listener.coloringChanged() );
+			if ( listener != null )
+				SwingUtilities.invokeLater( () -> listener.coloringChanged() );
 		}
 	}
 }
