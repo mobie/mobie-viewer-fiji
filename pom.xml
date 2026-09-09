@@ -14,7 +14,7 @@
     <!-- -SNAPSHOT -->
     <!--  https://sites.imagej.net/MoBIE/-->
 
-    <!-- mvn clean install -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
+    <!-- mvn clean install -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-latest-MoBIE -->
     <!-- DEBUG=1 ../scijava-scripts/release-version.sh - -skip-version-check  - -skip-license-update -->
     <!-- mvn javadoc:javadoc | grep error -->
 

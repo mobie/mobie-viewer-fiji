@@ -31,6 +31,7 @@ package org.embl.mobie.lib.create;
 import ij.ImagePlus;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.io.ContextProvider;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.ImageDataOpener;
 import org.embl.mobie.io.OMEZarrWriter;
@@ -44,11 +45,14 @@ import org.embl.mobie.lib.serialize.SegmentationDataSource;
 import org.embl.mobie.lib.table.TableDataFormat;
 import org.embl.mobie.lib.util.ThreadHelper;
 import org.janelia.saalfeldlab.n5.ij.N5ScalePyramidExporter;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.scijava.Context;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,6 +68,7 @@ class ImagesCreatorTest {
 
     // TODO: should also work with GZIP once zarr-java supports it
     public static final String COMPRESSION = N5ScalePyramidExporter.BLOSC_COMPRESSION;
+    private static Context context;
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -76,6 +81,19 @@ class ImagesCreatorTest {
     private String datasetJsonPath;
     private File tempDir;
     private File imageOutsideProject;
+
+    @BeforeAll
+    static void initContext()
+    {
+        context = new Context();
+        ContextProvider.setContext( context );
+    }
+
+    @AfterAll
+    static void cleanUpContext()
+    {
+        context.close();
+    }
 
     @BeforeEach
     void setUp( @TempDir Path tempDir ) throws IOException {
@@ -221,7 +239,6 @@ class ImagesCreatorTest {
     @ParameterizedTest
     @ValueSource(booleans = { false, true })
     void addImageTo3DDataset(boolean is2D) throws IOException {
-        // NB: Avoid recursive class loading of ij.* classes.
         ImagePlus image = (ImagePlus) addImageToDataset( is2D, datasetName, imageName );
         assertionsForImageAdded(image);
     }

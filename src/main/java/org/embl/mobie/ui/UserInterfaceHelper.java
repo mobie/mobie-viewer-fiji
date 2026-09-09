@@ -1218,7 +1218,6 @@ public class UserInterfaceHelper
 		}
 		else
 		{
-		
 			checkBox.addActionListener( new ActionListener()
 			{
 				@Override
@@ -1241,7 +1240,7 @@ public class UserInterfaceHelper
 		checkBox.setSelected( false );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 		
-		if(display.bigVolumeBrowser != null)
+		if( display.bigVolumeBrowser != null )
 		{		
 			checkBox.addActionListener( new ActionListener()
 			{

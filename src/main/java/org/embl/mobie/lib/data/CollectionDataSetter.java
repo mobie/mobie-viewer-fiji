@@ -129,7 +129,7 @@ public class CollectionDataSetter
                 // because it will "overwrite" the image.
                 if ( viewSources.size() > 1 )
                 {
-                    Display< ? > regionDisplay = createRegionDisplay( dataset, REGIONS + viewName, viewSources, false );
+                    Display< ? > regionDisplay = createRegionDisplay( REGIONS + viewName, viewSources, false );
                     viewToDisplays.get( viewName ).put( regionDisplay.getName(), regionDisplay );
                 }
             }
@@ -205,13 +205,12 @@ public class CollectionDataSetter
                 transformations.add( grid );
             }
 
-            Display< ? > regionDisplay = createRegionDisplay( dataset, REGIONS + viewName + ": " + gridName, nestedSources, true );
+            Display< ? > regionDisplay = createRegionDisplay( REGIONS + viewName + ": " + gridName, nestedSources, true );
             viewToDisplays.get( viewName ).put( regionDisplay.getName(), regionDisplay );
         });
     }
 
     private RegionDisplay< AnnotatedRegion > createRegionDisplay(
-            Dataset dataset,
             String regionsName,
             List< List< String > > nestedSources,
             boolean isGrid )
@@ -266,6 +265,7 @@ public class CollectionDataSetter
         else
         {
             regionDisplay.setOverlap( true );
+            regionDisplay.setVisible( false );
         }
 
         for ( String source : firstSources )
