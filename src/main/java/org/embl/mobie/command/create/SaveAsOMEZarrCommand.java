@@ -2,6 +2,7 @@ package org.embl.mobie.command.create;
 
 import ij.IJ;
 import ij.ImagePlus;
+import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.io.OMEZarrWriter;
 import org.embl.mobie.io.util.ChunkSizeComputer;
 import org.embl.mobie.io.util.IOHelper;
@@ -16,7 +17,8 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 import java.util.Arrays;
 
-@Plugin(type = Command.class, menuPath = "Plugins > OME-Zarr > Save Current Image as OME-Zarr..." )
+
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Create > Save Current Image as OME-Zarr..." )
 public class SaveAsOMEZarrCommand extends DynamicCommand implements Initializable
 {
     public static final String LABEL_MASK = "Label mask";

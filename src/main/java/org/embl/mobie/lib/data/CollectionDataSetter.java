@@ -692,7 +692,6 @@ public class CollectionDataSetter
             String string = getString( row, CollectionTableConstants.GRID_POSITION );
             if ( string == null )
                 return NO_GRID_POSITION;
-
             return string;
         }
         catch ( Exception e )
@@ -936,18 +935,12 @@ public class CollectionDataSetter
 
     private static List< String > parseValueList( String value, String separatorRegex )
     {
-        String cleaned = value.trim();
-
-        // Remove one surrounding pair of brackets for list-like cell values.
-        if ( ( cleaned.startsWith( "(" ) && cleaned.endsWith( ")" ) )
-                || ( cleaned.startsWith( "[" ) && cleaned.endsWith( "]" ) )
-                || ( cleaned.startsWith( "{" ) && cleaned.endsWith( "}" ) ) )
-        {
-            cleaned = cleaned.substring( 1, cleaned.length() - 1 );
-        }
+        // Remove bracket characters regardless of where they appear in the cell value.
+        String cleaned = value.trim().replaceAll( "[\\[\\]{}()]", "" );
 
         return Arrays.stream( cleaned.split( separatorRegex ) )
                 .map( String::trim )
+                .filter( token -> ! token.isEmpty() )
                 .collect( Collectors.toList() );
     }
 

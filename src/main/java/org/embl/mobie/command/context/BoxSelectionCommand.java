@@ -96,7 +96,7 @@ public class BoxSelectionCommand implements BdvPlaygroundActionCommand
                 transform,
                 initialInterval,
                 rangeInterval,
-                BoxSelectionOptions.options().title( "Select box" ) );
+                BoxSelectionOptions.options().title( "Select box (press OK to obtain global coordinates)" ) );
 
         if ( transformedBox.isValid() )
         {
@@ -105,10 +105,17 @@ public class BoxSelectionCommand implements BdvPlaygroundActionCommand
             center = new double[ 3 ];
             transform.apply( MoBIEHelper.getCenter( interval ), center );
 
-            IJ.log( "Center in global coordinate system: " + Arrays.toString( center ) );
-            IJ.log( "Size in global coordinate system: " + Arrays.toString( size ) );
+            // Log axis-aligned bounding box in calibrated/global coordinates.
+            final RealInterval calibratedInterval = transform.estimateBounds( interval );
+            IJ.log( "Bounding box in global coordinates: x_min, x_max, y_min, y_max, z_min, z_max\n"
+                            + calibratedInterval.realMin( 0 ) + ", " + calibratedInterval.realMax( 0 ) + ", "
+                            + calibratedInterval.realMin( 1 ) + ", " + calibratedInterval.realMax( 1 ) + ", "
+                            + calibratedInterval.realMin( 2 ) + ", " + calibratedInterval.realMax( 2 ) );
+
+            IJ.log( "Center in global coordinates: " + Arrays.toString( center ) );
+            IJ.log( "Size in global coordinates: " + Arrays.toString( size ) );
             IJ.log( "Normalised interval: " + Arrays.toString( interval.minAsDoubleArray() ) + ", " + Arrays.toString( interval.maxAsDoubleArray() ) );
-            IJ.log( "Interval transform to global coordinate system: " + Arrays.toString( transform.getRowPackedCopy() ) );
+            IJ.log( "Transform normalised interval to global coordinates: " + Arrays.toString( transform.getRowPackedCopy() ) );
         }
         else
         {

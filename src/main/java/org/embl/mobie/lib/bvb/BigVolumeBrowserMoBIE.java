@@ -34,7 +34,6 @@ import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.serialize.display.VisibilityListener;
 import org.embl.mobie.lib.source.AnnotationType;
-import org.embl.mobie.lib.table.saw.TableSawAnnotatedSpot;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Actions;
 
@@ -84,7 +83,7 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 					"D" );
 			actions.install( bvb.bvvHandle.getKeybindings(), "mobie-bvv-actions" );
 			
-			bvb.bvvViewer.addTimePointListener( this );
+			bvb.bvvViewer.timePointListeners().add( this );
 			closeWA = new WindowAdapter()
 			{
 				@Override
@@ -473,14 +472,14 @@ public class BigVolumeBrowserMoBIE implements ColoringListener, SelectionListene
 	{
 		System.out.println( "BigVolumeBrowser: " + displayS.getName() + ": " + displayS );
 				
-		final ArrayList<TableSawAnnotatedSpot> annList = ( ArrayList< TableSawAnnotatedSpot > ) displayS.getAnnData().getTable().annotations();
+		final ArrayList<AnnotatedSpot> annList = ( ArrayList< AnnotatedSpot > ) displayS.getAnnData().getTable().annotations();
 		final ArrayList<RealPoint> vertices = new ArrayList<>();
 		ARGBType valARGB = new ARGBType();
-		final MoBIEColoringModel< TableSawAnnotatedSpot > coloringModel = ( MoBIEColoringModel< TableSawAnnotatedSpot > ) displayS.coloringModel;
+		final MoBIEColoringModel< AnnotatedSpot > coloringModel = ( MoBIEColoringModel< AnnotatedSpot > ) displayS.coloringModel;
 		int argb;
 		int label = 0;
 		float [] colors = new float [annList.size()*4];
-		for(TableSawAnnotatedSpot oneSpot : annList)
+		for(AnnotatedSpot oneSpot : annList)
 		{
 			final RealPoint rp = oneSpot.positionAsRealPoint();
 			vertices.add( rp );	

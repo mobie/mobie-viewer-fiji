@@ -181,13 +181,13 @@ public class OpenCollectionTableCommandHeadlessTest
     public void spots2D()
     {
         // spots-2d-collection.txt has a single spots row.
-        Dataset dataset = buildDataset( "src/test/resources/collections/spots-2d-collection.txt" );
+        Dataset dataset = buildDataset( "src/test/resources/collections/spots-2d-collection.csv" );
 
-        assertEquals( 1, dataset.sources().size() );
+        assertEquals( 2, dataset.sources().size() );
         DataSource source = dataset.sources().get( "spots" );
         assertInstanceOf( SpotDataSource.class, source );
 
-        View view = dataset.views().get( "spots" );
+        View view = dataset.views().get( "all" );
         assertNotNull( view );
 
         SpotDisplay< ? > spotDisplay = ( SpotDisplay< ? > ) view.displays().stream()

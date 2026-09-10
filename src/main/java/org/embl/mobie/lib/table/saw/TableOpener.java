@@ -49,6 +49,7 @@ import tech.tablesaw.io.csv.CsvReadOptions;
 
 import java.io.*;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -212,9 +213,10 @@ public class TableOpener
 			// work to do, which can become a bottleneck.
 			final long start = System.currentTimeMillis();
 			final InputStream inputStream = IOHelper.getInputStream( path );
+			final InputStreamReader reader = new InputStreamReader( inputStream, StandardCharsets.UTF_8 );
 			// final String string = IOHelper.read( path );
 			// https://jtablesaw.github.io/tablesaw/userguide/importing_data.html
-			CsvReadOptions.Builder builder = CsvReadOptions.builder( inputStream )
+			CsvReadOptions.Builder builder = CsvReadOptions.builder( reader )
 					.separator( separator )
 					.missingValueIndicator( "na", "none", "nan", "inf" )
 					.sample( numSamples > 0 )

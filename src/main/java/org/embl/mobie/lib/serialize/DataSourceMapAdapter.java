@@ -47,6 +47,8 @@ public class DataSourceMapAdapter implements JsonSerializer< Map< String, DataSo
 		classToName.put( RegionTableSource.class.getName(), "regions");
 		nameToClass.put("spots", SpotDataSource.class);
 		classToName.put( SpotDataSource.class.getName(), "spots");
+		nameToClass.put("numericAnnotation", NumericAnnotationDataSource.class);
+		classToName.put( NumericAnnotationDataSource.class.getName(), "numericAnnotation");
 	}
 
 	@Override

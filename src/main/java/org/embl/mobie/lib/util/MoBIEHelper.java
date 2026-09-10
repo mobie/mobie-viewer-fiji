@@ -83,6 +83,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -286,7 +287,8 @@ public abstract class MoBIEHelper
 			if (Math.abs(value) < 1e-10) {
 				value = 0.0; // avoid printing "-0" for near-zero values
 			}
-			result.append(formatDouble(value, numSignificantDigits));
+			String formatDouble = formatDouble( value, numSignificantDigits );
+			result.append( formatDouble );
 			if (i < array.length - 1) {
 				result.append(", ");
 			}
@@ -304,11 +306,13 @@ public abstract class MoBIEHelper
 		if (numSignificantDigits == -1)
 			return Double.toString(value);
 
+		DecimalFormat formatter = (DecimalFormat) NumberFormat.getNumberInstance(Locale.US);
 		StringBuilder pattern = new StringBuilder("#");
 		if (numSignificantDigits > 0) pattern.append(".");
 		for (int i = 0; i < numSignificantDigits; i++) pattern.append("#");
-		DecimalFormat formatter = new DecimalFormat(pattern.toString());
-		return formatter.format(value);
+		formatter.applyPattern(pattern.toString());
+		String formatted = formatter.format( value );
+		return formatted;
 	}
 
 	public static <E extends Enum<E>> String[] enumAsStringArray(Class<E> enumClass) {
