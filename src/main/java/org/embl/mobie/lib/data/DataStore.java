@@ -64,7 +64,6 @@ public abstract class DataStore
 
 	private static BiMap< SourceAndConverter< ? >, Image< ? > > sourceToImage = HashBiMap.create();
 
-	// TODO: replace by some soft ref cache? How to free the memory?
 	private static Map< Object, CompletableFuture< ImageData< ? > > > imageDataCache = new ConcurrentHashMap<>();
 
 	public static BiMap< SourceAndConverter< ? >, Image< ? > > sourceToImage()
@@ -126,7 +125,7 @@ public abstract class DataStore
 		}
 	}
 
-	public static void clearSpimDataCache( )
+	public static void clearImageDataCache( )
 	{
 		imageDataCache = new ConcurrentHashMap<>();
 	}

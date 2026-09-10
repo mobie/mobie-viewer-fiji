@@ -881,7 +881,7 @@ public class ViewManager
 		userInterface.close();
 		// see also https://github.com/mobie/mobie-viewer-fiji/issues/857
 		IJ.log( "Clearing SpimData cache..." );
-		DataStore.clearSpimDataCache();
+		DataStore.clearImageDataCache();
 	}
 
 	public BigVolumeBrowserMoBIE getBigVolumeViewer()

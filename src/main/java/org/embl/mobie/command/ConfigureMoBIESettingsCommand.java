@@ -30,54 +30,79 @@ package org.embl.mobie.command;
 
 import ij.IJ;
 import org.embl.mobie.io.ImageDataOpener;
+import org.embl.mobie.lib.data.DataStore;
+import org.scijava.Initializable;
 import org.scijava.command.Command;
+import org.scijava.command.DynamicCommand;
+import org.scijava.command.Interactive;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import sc.fiji.bdvpg.command.BdvPlaygroundActionCommand;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Settings>Configure MoBIE Settings...")
-public class ConfigureMoBIESettingsCommand implements Command
+public class ConfigureMoBIESettingsCommand extends DynamicCommand implements Initializable
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public enum OmeZarrReader
-	{
-		Auto,
-		MobieN5,
-		OmeZarrN5,
-		OmeZarrZarrJava
-	}
+	// needed because enums do not persist in the SciJava parameters.
+	private static final String GUI_MOBIE_N5 = "MoBIE N5";
+	private static final String GUI_OME_ZARR_N5 = "OME-Zarr N5";
+	private static final String GUI_OME_ZARR_JAVA = "OME-Zarr zarr-java";
 
 	@Parameter(
 			label = "OME-Zarr reader",
+			choices = { GUI_MOBIE_N5, GUI_OME_ZARR_N5, GUI_OME_ZARR_JAVA },
 			description = "Select which backend should open OME-Zarr data. " +
 					"AutoDetect chooses a backend based on available dependencies."
 	)
-	public OmeZarrReader omeZarrReader = OmeZarrReader.Auto;
+	public String zarrOpener = toGuiValue( ImageDataOpener.getZarrOpener() );
 
 	@Override
 	public void run()
 	{
-		switch ( omeZarrReader )
-		{
-			case Auto:
-				ImageDataOpener.autoConfigureZarrOpener();
-				break;
-			case MobieN5:
-				ImageDataOpener.setZarrOpener( ImageDataOpener.ZarrOpener.MOBIE_N5 );
-				break;
-			case OmeZarrN5:
-				if ( !ensureBackendAvailable( "OME_Zarr_N5", "ome.zarr.n5.N5PyramidBackend" ) ) return;
-				ImageDataOpener.setZarrOpener( ImageDataOpener.ZarrOpener.OME_Zarr_N5 );
-				break;
-			case OmeZarrZarrJava:
-				if ( !ensureBackendAvailable( "OME_Zarr_Zarr_Java", "ome.zarr.zarrjava.ZarrJavaPyramidBackend" ) ) return;
-				ImageDataOpener.setZarrOpener( ImageDataOpener.ZarrOpener.OME_Zarr_Zarr_Java );
-				break;
-			default:
-				throw new IllegalArgumentException( "Unsupported OME-Zarr reader option: " + omeZarrReader );
-		}
+		final ImageDataOpener.ZarrOpener opener = toEnumValue( zarrOpener );
 
-		IJ.log( "OME-Zarr reader configured. Current value: " + ImageDataOpener.getZarrOpener() );
+		if ( opener != ImageDataOpener.getZarrOpener() )
+			DataStore.clearImageDataCache();
+
+		ImageDataOpener.setZarrOpener( opener );
+		IJ.log( "New OME-Zarr Reader: " + toGuiValue( ImageDataOpener.getZarrOpener() ) ) ;
+	}
+
+	@Override
+	public void initialize()
+	{
+		IJ.log( "Current OME-Zarr Reader: " + toGuiValue( ImageDataOpener.getZarrOpener() ) ) ;
+	}
+
+	private static String toGuiValue( ImageDataOpener.ZarrOpener opener )
+	{
+		switch ( opener )
+		{
+			case MOBIE_N5:
+				return GUI_MOBIE_N5;
+			case OME_Zarr_N5:
+				return GUI_OME_ZARR_N5;
+			case OME_Zarr_Zarr_Java:
+				return GUI_OME_ZARR_JAVA;
+			default:
+				throw new IllegalArgumentException( "Unsupported OME-Zarr opener: " + opener );
+		}
+	}
+
+	private static ImageDataOpener.ZarrOpener toEnumValue( String opener )
+	{
+		switch ( opener )
+		{
+			case GUI_MOBIE_N5:
+				return ImageDataOpener.ZarrOpener.MOBIE_N5;
+			case GUI_OME_ZARR_N5:
+				return ImageDataOpener.ZarrOpener.OME_Zarr_N5;
+			case GUI_OME_ZARR_JAVA:
+				return ImageDataOpener.ZarrOpener.OME_Zarr_Zarr_Java;
+			default:
+				throw new IllegalArgumentException( "Unsupported GUI OME-Zarr opener: " + opener );
+		}
 	}
 
 	private boolean ensureBackendAvailable( String backendName, String className )
