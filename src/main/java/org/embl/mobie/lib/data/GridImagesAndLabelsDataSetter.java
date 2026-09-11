@@ -52,6 +52,7 @@ public class GridImagesAndLabelsDataSetter
     private final List< String > labelTablePaths;
     private final String root;
     private final GridType grid;
+    private final String viewBaseName;
 
     public GridImagesAndLabelsDataSetter(
             List< String > imagePaths,
@@ -60,11 +61,23 @@ public class GridImagesAndLabelsDataSetter
             String root,
             GridType grid )
     {
+        this( imagePaths, labelPaths, labelTablePaths, root, grid, "all images" );
+    }
+
+    public GridImagesAndLabelsDataSetter(
+            List< String > imagePaths,
+            List< String > labelPaths,
+            List< String > labelTablePaths,
+            String root,
+            GridType grid,
+            String viewBaseName )
+    {
         this.imagePaths = imagePaths;
         this.labelPaths = labelPaths;
         this.labelTablePaths = labelTablePaths;
         this.root = root;
         this.grid = grid;
+        this.viewBaseName = viewBaseName;
     }
 
     public void addToDataset( Dataset dataset )
@@ -80,7 +93,7 @@ public class GridImagesAndLabelsDataSetter
         final List< LabelGridSources > labelSources = creator.getLabelSources();
         final Table regionTable = creator.getRegionTable();
 
-        new GridSourcesDataSetter( imageSources, labelSources, regionTable )
+        new GridSourcesDataSetter( imageSources, labelSources, regionTable, viewBaseName )
                 .addDataAndDisplaysAndViews( dataset );
     }
 }

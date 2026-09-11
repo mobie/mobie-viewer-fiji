@@ -201,14 +201,6 @@ public class MoBIE
 		}
 	}
 
-	private void addViewsFromUri( final String uri ) throws IOException
-	{
-		Map< String, View > nameToViews = ViewsJsonParser.loadViews( uri ).views;
-		for ( Map.Entry< String, View > nameViewEntry : nameToViews.entrySet() )
-			dataset.views().put( nameViewEntry.getKey(), nameViewEntry.getValue() );
-		IJ.log("Added views from: " + uri );
-	}
-
 	public static MoBIE getInstance()
 	{
 		return moBIE;
@@ -229,6 +221,11 @@ public class MoBIE
 
 	public MoBIE( List< String > imagePaths, List< String > labelPaths, List< String > labelTablePaths, String root, GridType grid, MoBIESettings settings ) throws IOException
 	{
+		this( imagePaths, labelPaths, labelTablePaths, root, grid, settings, "all images" );
+	}
+
+	public MoBIE( List< String > imagePaths, List< String > labelPaths, List< String > labelTablePaths, String root, GridType grid, MoBIESettings settings, String viewBaseName ) throws IOException
+	{
 		initImageJAndMoBIE();
 
 		IJ.log("\n# MoBIE" );
@@ -236,8 +233,22 @@ public class MoBIE
 		this.settings = settings;
 
 		initProject( "" );
-		new GridImagesAndLabelsDataSetter( imagePaths, labelPaths, labelTablePaths, root, grid )
+		new GridImagesAndLabelsDataSetter( imagePaths, labelPaths, labelTablePaths, root, grid, viewBaseName )
 				.addToDataset( dataset );
+		initUiAndShowView( null );
+	}
+
+	public MoBIE( Table collectionTable, @Nullable String rootPath, MoBIESettings settings ) throws IOException
+	{
+		initImageJAndMoBIE();
+
+		IJ.log("\n# MoBIE" );
+		IJ.log("Opening data from in-memory collection table" );
+
+		this.settings = settings;
+
+		initProject( "" );
+		new CollectionDataSetter( collectionTable, rootPath ).addTableToDataset( dataset );
 		initUiAndShowView( null );
 	}
 
@@ -265,6 +276,14 @@ public class MoBIE
 		Table regionTable = sourcesCreator.getRegionTable();
 
 		openImageAndLabelGrids( imageSources, labelSources, regionTable );
+	}
+
+	private void addViewsFromUri( final String uri ) throws IOException
+	{
+		Map< String, View > nameToViews = ViewsJsonParser.loadViews( uri ).views;
+		for ( Map.Entry< String, View > nameViewEntry : nameToViews.entrySet() )
+			dataset.views().put( nameViewEntry.getKey(), nameViewEntry.getValue() );
+		IJ.log("Added views from: " + uri );
 	}
 
 	private void initTableSaw()
@@ -530,6 +549,7 @@ public class MoBIE
 			IJ.log( "Closing I/O threads..." );
 			ThreadHelper.resetIOThreads();
 			viewManager.close();
+			moBIE = null;
 			IJ.log( "MoBIE closed." );
 			if ( settings.values.isOpenedFromCLI() )
 				System.exit( 0 );
