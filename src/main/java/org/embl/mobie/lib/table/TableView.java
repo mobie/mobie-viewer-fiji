@@ -191,15 +191,21 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		{
 			// Show a default AnnotationOverlay
 
-			if ( annotationOverlay != null )
-				annotationOverlay.close();
+			// This has issues and sometimes overlaps with the ImageNameOverlay
+			// https://github.com/mobie/mobie-viewer-fiji/issues/1329
+			// until we find a better solution we don't show default overlay
+			if ( false )
+			{
+				if ( annotationOverlay != null )
+					annotationOverlay.close();
 
-			annotationOverlay = new AnnotatedRegionsOverlay(
-					sliceViewer,
-					tableModel.annotations(),
-					ColumnNames.REGION_ID,
-					-1
-			);
+				annotationOverlay = new AnnotatedRegionsOverlay(
+						sliceViewer,
+						tableModel.annotations(),
+						ColumnNames.REGION_ID,
+						-1
+				);
+			}
 		}
 	}
 

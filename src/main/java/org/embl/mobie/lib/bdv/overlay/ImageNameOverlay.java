@@ -29,9 +29,7 @@
 package org.embl.mobie.lib.bdv.overlay;
 
 import bdv.util.*;
-import bdv.viewer.SourceAndConverter;
-import bdv.viewer.TransformListener;
-import bdv.viewer.ViewerState;
+import bdv.viewer.*;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
@@ -52,8 +50,14 @@ import java.util.Set;
 
 public class ImageNameOverlay extends BdvOverlay implements TransformListener< AffineTransform3D >
 {
+	public BdvHandle getBdvHandle()
+	{
+		return bdvHandle;
+	}
+
 	private final BdvHandle bdvHandle;
 	private final SliceViewer sliceViewer;
+
 	private BdvOverlaySource< ImageNameOverlay > overlaySource;
 
 	private List< OverlayItem > overlayItems = new ArrayList<>();
@@ -122,7 +126,6 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 
 		FinalRealInterval viewerInterval = BdvHandleHelper.getViewerGlobalBoundingInterval( bdvHandle );
 
-
 		final Set< SourceAndConverter< ? > > sourceAndConverters = viewerState.getVisibleAndPresentSources();
 
 		for ( final SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
@@ -186,11 +189,7 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 	@Override
 	protected synchronized void draw( Graphics2D g )
 	{
-		if ( viewerTransform != null )
-		{
-			updateOverlayItems( g );
-			viewerTransform = null;
-		}
+		updateOverlayItems( g );
 
 		for ( OverlayItem overlayItem : overlayItems )
 		{
@@ -202,4 +201,5 @@ public class ImageNameOverlay extends BdvOverlay implements TransformListener< A
 	{
 		activeListeners.add( activeListener );
 	}
+
 }

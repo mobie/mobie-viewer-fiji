@@ -42,6 +42,7 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.command.context.ConfigureSegmentRenderingCommand;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.MoBIE;
+import org.embl.mobie.lib.bdv.overlay.ImageNameOverlay;
 import org.embl.mobie.lib.io.FileLocation;
 import org.embl.mobie.lib.Services;
 import org.embl.mobie.lib.bvb.BVBVisibilityListener;
@@ -1090,16 +1091,21 @@ public class UserInterfaceHelper
 			public void actionPerformed( ActionEvent e )
 			{
 				SourceBdvDisplayService bdvDisplayService = SourceServices.getBdvDisplayService();
+
 				for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 				{
 					bdvDisplayService.setVisible( sourceAndConverter, checkBox.isSelected() );
 					List< BdvHandle > displays = bdvDisplayService.getDisplays();
-					System.out.println( System.identityHashCode(sourceAndConverter) );
+					System.out.println( System.identityHashCode( sourceAndConverter ) );
 					Set< BdvHandle > displaysOf = bdvDisplayService.getDisplaysOf( sourceAndConverter );
 					displaysOf
-							.forEach(bdvhr -> bdvhr.getViewerPanel().state()
-							.setSourceActive(sourceAndConverter, checkBox.isSelected()));
+							.forEach( bdvhr -> bdvhr.getViewerPanel().state()
+									.setSourceActive( sourceAndConverter, checkBox.isSelected() ) );
 				}
+
+				// TODO: How to force a repaint of this?
+				MoBIE.getInstance().getViewManager().getSliceViewer().getImageNameOverlay().getBdvHandle().getViewerPanel().requestRepaint();
+
 			}
 		} );
 

@@ -495,12 +495,12 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().addImageTwice();
         //new OpenCollectionTableCommandTest().clem();
         // TODO: add an image in the background; otherwise spots opacity cannot be seen
-        new OpenCollectionTableCommandTest().spots2D();
+        //new OpenCollectionTableCommandTest().spots2D();
         //new OpenCollectionTableCommandTest().singleBlobs();
         //new OpenCollectionTableCommandTest().blobsWithViews();
         //new OpenCollectionTableCommandTest().mrc();
         //new OpenCollectionTableCommandTest().blobsGrid();
-        //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
+        new OpenCollectionTableCommandTest().largeAndSmallBlobs();
         //new OpenCollectionTableCommandTest().timelapse();
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
