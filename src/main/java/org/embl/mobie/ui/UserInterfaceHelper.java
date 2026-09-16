@@ -1102,10 +1102,6 @@ public class UserInterfaceHelper
 							.forEach( bdvhr -> bdvhr.getViewerPanel().state()
 									.setSourceActive( sourceAndConverter, checkBox.isSelected() ) );
 				}
-
-				// TODO: How to force a repaint of this?
-				MoBIE.getInstance().getViewManager().getSliceViewer().getImageNameOverlay().getBdvHandle().getViewerPanel().requestRepaint();
-
 			}
 		} );
 
