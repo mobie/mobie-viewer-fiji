@@ -38,8 +38,8 @@ import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import sc.fiji.bdvpg.bdv.BdvHandleHelper;
-import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
+import sc.fiji.bdvpg.viewer.bdv.BdvHandleHelper;
+import sc.fiji.bdvpg.command.BdvPlaygroundActionCommand;
 
 import java.util.ArrayList;
 import java.util.Arrays;

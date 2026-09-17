@@ -1,33 +1,65 @@
 package org.embl.mobie.command.create;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.measure.Calibration;
 import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.iterator.LocalizingIntervalIterator;
 import net.imglib2.realtransform.DisplacementFieldTransform;
 import net.imglib2.realtransform.RealTransform;
 import net.imglib2.type.numeric.RealType;
 import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.command.CommandConstants;
+import org.embl.mobie.io.OMEZarrWriter;
 import org.embl.mobie.lib.transform.DisplacementFieldStorageMetadata;
 import org.embl.mobie.lib.transform.DisplacementFieldTransformIO;
 import org.embl.mobie.lib.transform.ElastixBSplineToBSplineRealTransform;
 import org.embl.mobie.lib.transform.InverseDisplacementFieldTransformCreator;
 import org.embl.mobie.lib.transform.elastix.ElastixBSplineTransform;
 import org.embl.mobie.lib.transform.elastix.ElastixTransform;
+import org.janelia.saalfeldlab.n5.ij.N5ScalePyramidExporter;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Create>Create Inverse Displacement Field From Elastix BSpline..." )
 public class CreateInverseDisplacementFieldFromElastixBSplineCommand implements Command
 {
 	private static final int QUALITY_SAMPLES = 5000;
 	private static final long QUALITY_RANDOM_SEED = 17L;
+	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+	private static final String DEFAULT_PHYSICAL_UNIT = "pixel";
+	private static final Set< String > ELASTIX_UNIT_KEYS = new HashSet<>( Arrays.asList(
+			"Unit",
+			"Units",
+			"SpacingUnit",
+			"SpacingUnits",
+			"LengthUnit",
+			"LengthUnits",
+			"GridSpacingUnit",
+			"GridSpacingUnits" ) );
 
 	@Parameter(label = "Elastix TransformParameters file")
 	public File elastixTransformParametersFile;
@@ -67,7 +99,8 @@ public class CreateInverseDisplacementFieldFromElastixBSplineCommand implements 
 				throw new IllegalArgumentException( "Output JSON must be provided." );
 
 			final File rawFile = deriveRawFile( outputDisplacementFieldJson );
-			if ( !overwrite && ( outputDisplacementFieldJson.exists() || rawFile.exists() ) )
+			final File omeZarrDirectory = deriveOmeZarrDirectory( outputDisplacementFieldJson );
+			if ( !overwrite && ( outputDisplacementFieldJson.exists() || rawFile.exists() || omeZarrDirectory.exists() ) )
 				throw new IllegalArgumentException( "Output already exists. Enable overwrite or choose another output path." );
 
 			if ( outputDisplacementFieldJson.getParentFile() != null )
@@ -76,15 +109,16 @@ public class CreateInverseDisplacementFieldFromElastixBSplineCommand implements 
 			final ElastixBSplineTransform elastix = ( ElastixBSplineTransform ) ElastixTransform.load( elastixTransformParametersFile.getAbsolutePath() );
 			if ( elastix.FixedImageDimension == null || elastix.FixedImageDimension != 3 )
 				throw new IllegalArgumentException( "Only 3D Elastix BSpline transforms are supported." );
+			final String physicalUnit = inferPhysicalUnitFromElastixFile( elastixTransformParametersFile );
 
 			final RealTransform forward = ElastixBSplineToBSplineRealTransform.convert( elastix );
 
-			final double[] min = ArrayUtils.toPrimitive( elastix.GridOrigin );
+			final double[] gridOrigin = ArrayUtils.toPrimitive( elastix.GridOrigin );
 			final double[] gridSpacing = ArrayUtils.toPrimitive( elastix.GridSpacing );
 			final int[] gridSize = ArrayUtils.toPrimitive( elastix.GridSize );
-			final double[] max = new double[ min.length ];
+			final double[] max = new double[ gridOrigin.length ];
 			for ( int d = 0; d < max.length; d++ )
-				max[ d ] = min[ d ] + gridSpacing[ d ] * gridSize[ d ];
+				max[ d ] = gridOrigin[ d ] + gridSpacing[ d ] * gridSize[ d ];
 
 			final double[] samplingSpacing = Arrays.stream( gridSpacing )
 					.map( x -> x / samplingFactor )
@@ -98,7 +132,7 @@ public class CreateInverseDisplacementFieldFromElastixBSplineCommand implements 
 			final InverseDisplacementFieldTransformCreator.SampledInverseDisplacement sampled =
 					new InverseDisplacementFieldTransformCreator(
 							forward,
-							min,
+							gridOrigin,
 							max,
 							samplingSpacing,
 							optimizerMaxStep,
@@ -118,7 +152,7 @@ public class CreateInverseDisplacementFieldFromElastixBSplineCommand implements 
 					sampled.spacing,
 					sampled.min );
 
-			final Quality quality = computeQualityStats( forward, inverse, min, max, QUALITY_SAMPLES, QUALITY_RANDOM_SEED );
+			final Quality quality = computeQualityStats( forward, inverse, gridOrigin, max, QUALITY_SAMPLES, QUALITY_RANDOM_SEED );
 			final DisplacementStats displacement = computeDisplacementStats( sampled.interleavedField );
 
 			final DisplacementFieldStorageMetadata metadata = new DisplacementFieldStorageMetadata();
@@ -147,8 +181,18 @@ public class CreateInverseDisplacementFieldFromElastixBSplineCommand implements 
 					outputDisplacementFieldJson,
 					metadata );
 
+			writeOmeZarrDisplacementField(
+					sampled.interleavedField,
+					sampled.spacing,
+					sampled.min,
+					physicalUnit,
+					omeZarrDirectory,
+					overwrite );
+
 			IJ.log( "Saved inverse displacement field metadata: " + outputDisplacementFieldJson.getAbsolutePath() );
 			IJ.log( "Saved inverse displacement field payload:  " + rawFile.getAbsolutePath() );
+			IJ.log( "Saved inverse displacement field OME-Zarr: " + omeZarrDirectory.getAbsolutePath() );
+			IJ.log( "OME-Zarr physical unit: " + physicalUnit );
 			IJ.log( "Inverse quality: samples=" + quality.numSamples
 					+ ", meanRoundTripError=" + quality.meanRoundTripError
 					+ ", maxRoundTripError=" + quality.maxRoundTripError );
@@ -172,6 +216,334 @@ public class CreateInverseDisplacementFieldFromElastixBSplineCommand implements 
 		if ( parent == null )
 			return new File( stem + ".raw" );
 		return new File( parent, stem + ".raw" );
+	}
+
+	private static File deriveOmeZarrDirectory( final File jsonFile )
+	{
+		final String jsonName = jsonFile.getName();
+		final int dot = jsonName.lastIndexOf( '.' );
+		final String stem = dot > 0 ? jsonName.substring( 0, dot ) : jsonName;
+		final File parent = jsonFile.getParentFile();
+		if ( parent == null )
+			return new File( stem + ".ome.zarr" );
+		return new File( parent, stem + ".ome.zarr" );
+	}
+
+	private static String inferPhysicalUnitFromElastixFile( final File elastixFile ) throws IOException
+	{
+		final Pattern pattern = Pattern.compile( "\\((\\S+)\\s+(.+?)\\)" );
+		final List< String > lines = Files.readAllLines( elastixFile.toPath(), StandardCharsets.UTF_8 );
+		for ( final String line : lines )
+		{
+			final Matcher matcher = pattern.matcher( line.trim() );
+			if ( !matcher.matches() )
+				continue;
+			if ( !ELASTIX_UNIT_KEYS.contains( matcher.group( 1 ) ) )
+				continue;
+
+			String unit = matcher.group( 2 ).trim();
+			if ( unit.startsWith( "\"" ) && unit.endsWith( "\"" ) && unit.length() >= 2 )
+				unit = unit.substring( 1, unit.length() - 1 ).trim();
+			if ( !unit.isEmpty() )
+				return unit;
+		}
+
+		IJ.log( "No unit key found in elastix TransformParameters file; using fallback unit: " + DEFAULT_PHYSICAL_UNIT );
+		return DEFAULT_PHYSICAL_UNIT;
+	}
+
+	private static void writeOmeZarrDisplacementField(
+			final RandomAccessibleInterval< ? extends RealType< ? > > interleavedField,
+			final double[] spacing,
+			final double[] origin,
+			final String unit,
+			final File outputOmeZarr,
+			final boolean overwrite )
+	{
+		final ImagePlus displacementImage = asDisplacementImagePlus( interleavedField, spacing, origin, unit );
+
+		OMEZarrWriter.write(
+				displacementImage,
+				outputOmeZarr.getAbsolutePath(),
+				OMEZarrWriter.ImageType.Intensities,
+				overwrite,
+				N5ScalePyramidExporter.ZSTD_COMPRESSION );
+
+		try
+		{
+			patchOmeZarrTranslationsWithOrigin( outputOmeZarr.toPath(), origin );
+		}
+		catch ( IOException e )
+		{
+			throw new RuntimeException( "Failed to patch OME-Zarr translation metadata.", e );
+		}
+	}
+
+	private static void patchOmeZarrTranslationsWithOrigin( final Path omeZarrDirectory, final double[] origin ) throws IOException
+	{
+		if ( origin == null || origin.length < 3 )
+			return;
+
+		try ( Stream< Path > paths = Files.walk( omeZarrDirectory ) )
+		{
+			paths
+					.filter( p -> p.getFileName().toString().equals( ".zattrs" ) )
+					.forEach( p -> {
+						try
+						{
+							patchSingleZattrsFile( p, origin );
+						}
+						catch ( IOException e )
+						{
+							throw new RuntimeException( e );
+						}
+					} );
+		}
+	}
+
+	private static void patchSingleZattrsFile( final Path zattrsPath, final double[] origin ) throws IOException
+	{
+		final String content = new String( Files.readAllBytes( zattrsPath ), StandardCharsets.UTF_8 );
+		final JsonObject root = GSON.fromJson( content, JsonObject.class );
+		if ( root == null )
+			return;
+
+		boolean changed = false;
+
+		if ( root.has( "multiscales" ) && root.get( "multiscales" ).isJsonArray() )
+		{
+			final JsonArray multiscales = root.getAsJsonArray( "multiscales" );
+			for ( final JsonElement msElement : multiscales )
+			{
+				if ( !msElement.isJsonObject() )
+					continue;
+				final JsonObject multiscale = msElement.getAsJsonObject();
+				final JsonArray axes = multiscale.has( "axes" ) && multiscale.get( "axes" ).isJsonArray()
+						? multiscale.getAsJsonArray( "axes" )
+						: null;
+
+				if ( axes == null )
+					continue;
+
+				if ( multiscale.has( "datasets" ) && multiscale.get( "datasets" ).isJsonArray() )
+				{
+					final JsonArray datasets = multiscale.getAsJsonArray( "datasets" );
+					for ( final JsonElement dsElement : datasets )
+					{
+						if ( !dsElement.isJsonObject() )
+							continue;
+						final JsonObject dataset = dsElement.getAsJsonObject();
+						final String levelLabel = dataset.has( "path" ) ? dataset.get( "path" ).getAsString() : "unknown";
+						changed |= patchCoordinateTransformations( dataset, axes, origin, levelLabel );
+					}
+				}
+			}
+		}
+
+		if ( root.has( "axes" ) && root.get( "axes" ).isJsonArray() )
+		{
+			final Path parent = zattrsPath.getParent();
+			final String levelLabel = parent == null ? "root" : parent.getFileName().toString();
+			changed |= patchCoordinateTransformations( root, root.getAsJsonArray( "axes" ), origin, levelLabel );
+		}
+
+		if ( changed )
+			Files.write( zattrsPath, GSON.toJson( root ).getBytes( StandardCharsets.UTF_8 ) );
+	}
+
+	private static boolean patchCoordinateTransformations(
+			final JsonObject object,
+			final JsonArray axes,
+			final double[] origin,
+			final String levelLabel )
+	{
+		if ( !object.has( "coordinateTransformations" ) || !object.get( "coordinateTransformations" ).isJsonArray() )
+			return false;
+
+		final JsonArray transforms = object.getAsJsonArray( "coordinateTransformations" );
+		final double[] axisOffset = axisOffsets( axes, origin );
+		if ( axisOffset == null )
+			return false;
+
+		for ( int i = 0; i < transforms.size(); i++ )
+		{
+			final JsonElement tElement = transforms.get( i );
+			if ( !tElement.isJsonObject() )
+				continue;
+			final JsonObject transform = tElement.getAsJsonObject();
+			if ( !transform.has( "type" ) || !"translation".equals( transform.get( "type" ).getAsString() ) )
+				continue;
+			if ( !transform.has( "translation" ) || !transform.get( "translation" ).isJsonArray() )
+				continue;
+
+			final JsonArray translation = transform.getAsJsonArray( "translation" );
+			if ( translation.size() != axisOffset.length )
+				continue;
+
+			IJ.log( "OME-Zarr patch level=" + levelLabel
+					+ ", axes=" + axesToString( axes )
+					+ ", translation before=" + jsonArrayToString( translation ) );
+
+			for ( int a = 0; a < translation.size(); a++ )
+			{
+				final double updated = translation.get( a ).getAsDouble() + axisOffset[ a ];
+				translation.set( a, GSON.toJsonTree( updated ) );
+			}
+
+			IJ.log( "OME-Zarr patch level=" + levelLabel
+					+ ", translation after=" + jsonArrayToString( translation ) );
+			return true;
+		}
+
+		final JsonObject newTranslation = new JsonObject();
+		newTranslation.addProperty( "type", "translation" );
+		final JsonArray values = new JsonArray();
+		for ( final double offset : axisOffset )
+			values.add( offset );
+		newTranslation.add( "translation", values );
+		transforms.add( newTranslation );
+		IJ.log( "OME-Zarr patch level=" + levelLabel
+				+ ", axes=" + axesToString( axes )
+				+ ", translation before=<missing>, after=" + jsonArrayToString( values ) );
+		return true;
+	}
+
+	private static String jsonArrayToString( final JsonArray values )
+	{
+		final StringBuilder builder = new StringBuilder( "[" );
+		for ( int i = 0; i < values.size(); i++ )
+		{
+			if ( i > 0 )
+				builder.append( ", " );
+			builder.append( values.get( i ) );
+		}
+		builder.append( "]" );
+		return builder.toString();
+	}
+
+	private static String axesToString( final JsonArray axes )
+	{
+		final StringBuilder builder = new StringBuilder( "[" );
+		for ( int i = 0; i < axes.size(); i++ )
+		{
+			if ( i > 0 )
+				builder.append( ", " );
+			final JsonElement axisElement = axes.get( i );
+			if ( axisElement.isJsonObject() && axisElement.getAsJsonObject().has( "name" ) )
+				builder.append( axisElement.getAsJsonObject().get( "name" ).getAsString() );
+			else
+				builder.append( "?" );
+		}
+		builder.append( "]" );
+		return builder.toString();
+	}
+
+	private static double[] axisOffsets( final JsonArray axes, final double[] origin )
+	{
+		final double[] offsets = new double[ axes.size() ];
+		for ( int i = 0; i < axes.size(); i++ )
+		{
+			final JsonElement axisElement = axes.get( i );
+			if ( !axisElement.isJsonObject() )
+				return null;
+			final JsonObject axisObject = axisElement.getAsJsonObject();
+			if ( !axisObject.has( "name" ) )
+				return null;
+
+			final String name = axisObject.get( "name" ).getAsString();
+			switch ( name )
+			{
+				case "x":
+					offsets[ i ] = origin[ 0 ];
+					break;
+				case "y":
+					offsets[ i ] = origin[ 1 ];
+					break;
+				case "z":
+					offsets[ i ] = origin[ 2 ];
+					break;
+				default:
+					offsets[ i ] = 0.0;
+			}
+		}
+		return offsets;
+	}
+
+	private static ImagePlus asDisplacementImagePlus(
+			final RandomAccessibleInterval< ? extends RealType< ? > > interleavedField,
+			final double[] spacing,
+			final double[] origin,
+			final String unit )
+	{
+		if ( interleavedField.numDimensions() != 4 )
+			throw new IllegalArgumentException( "Expected interleaved displacement field dimensions [c,x,y,z]." );
+
+		final int channels = Math.toIntExact( interleavedField.dimension( 0 ) );
+		if ( channels != 3 )
+			throw new IllegalArgumentException( "Expected 3 displacement channels (X,Y,Z), got: " + channels );
+
+		final int sizeX = Math.toIntExact( interleavedField.dimension( 1 ) );
+		final int sizeY = Math.toIntExact( interleavedField.dimension( 2 ) );
+		final int sizeZ = Math.toIntExact( interleavedField.dimension( 3 ) );
+		final ImageStack stack = new ImageStack( sizeX, sizeY );
+		final RandomAccess< ? extends RealType< ? > > access = interleavedField.randomAccess();
+
+		for ( int z = 0; z < sizeZ; z++ )
+		{
+			for ( int c = 0; c < channels; c++ )
+			{
+				final float[] pixels = new float[ sizeX * sizeY ];
+				int i = 0;
+				for ( int y = 0; y < sizeY; y++ )
+				{
+					for ( int x = 0; x < sizeX; x++ )
+					{
+						access.setPosition( c, 0 );
+						access.setPosition( x, 1 );
+						access.setPosition( y, 2 );
+						access.setPosition( z, 3 );
+						pixels[ i++ ] = access.get().getRealFloat();
+					}
+				}
+				stack.addSlice( displacementChannelName( c ), pixels );
+			}
+		}
+
+		final ImagePlus imagePlus = new ImagePlus( "inverse_displacement_field", stack );
+		imagePlus.setDimensions( channels, sizeZ, 1 );
+		imagePlus.setOpenAsHyperStack( true );
+
+		final Calibration calibration = imagePlus.getCalibration();
+		calibration.pixelWidth = spacing[ 0 ];
+		calibration.pixelHeight = spacing[ 1 ];
+		calibration.pixelDepth = spacing[ 2 ];
+		// TODO: once https://github.com/saalfeldlab/n5-ij/issues/126 is fixed
+		//  we can remove the comments and then also remove
+		//  the patchOmeZarrTranslationsWithOrigin() function
+//		calibration.xOrigin = origin[ 0 ];
+//		calibration.yOrigin = origin[ 1 ];
+//		calibration.zOrigin = origin[ 2 ];
+		calibration.setUnit( unit );
+		calibration.setXUnit( unit );
+		calibration.setYUnit( unit );
+		calibration.setZUnit( unit );
+
+		return imagePlus;
+	}
+
+	private static String displacementChannelName( final int channel )
+	{
+		switch ( channel )
+		{
+			case 0:
+				return "dx";
+			case 1:
+				return "dy";
+			case 2:
+				return "dz";
+			default:
+				return "d" + channel;
+		}
 	}
 
 	private static Quality computeQualityStats(

@@ -63,7 +63,7 @@ import org.embl.mobie.lib.transform.viewer.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.lib.transform.viewer.ViewerTransformChanger;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.service.SourceServices;
 
 import javax.swing.*;
 import java.awt.*;
@@ -98,7 +98,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 			if ( display instanceof SegmentationDisplay )
 			{
 				final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) display;
-				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sac, SegmentVolumeViewer.class.getName(), segmentationDisplay.segmentVolumeViewer );
+				SourceServices.getSourceService().setMetadata( sac, SegmentVolumeViewer.class.getName(), segmentationDisplay.segmentVolumeViewer );
 			}
 
 			if ( display instanceof SpotDisplay )
@@ -218,7 +218,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 			viewerTransform = MoBIEHelper.getViewerTransformWithNewCenter( bdvHandle, position );
 		}
 
-		new sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger(
+		new sc.fiji.bdvpg.viewer.bdv.navigate.ViewerTransformChanger(
 				bdvHandle,
 				viewerTransform,
 				false,

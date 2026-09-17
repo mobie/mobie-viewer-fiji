@@ -53,6 +53,34 @@ public class SaveAsOmeZarrCommandHeadlessTest
     }
 
     @Test
+    public void savesIntensityImageAsOmeZarr3( @TempDir Path tempDir )
+    {
+        File input = new File( "src/test/resources/collections/mri-stack.tif" );
+        assertTrue( input.exists(), "test resource missing: " + input );
+
+        ImagePlus imp = IJ.openImage( input.getAbsolutePath() );
+        assertNotNull( imp, "could not open the test image" );
+
+        SaveAsOMEZarrCommand cmd = new SaveAsOMEZarrCommand();
+        cmd.imp = imp;
+        cmd.imageName = "mri-stack-test-zarr3";
+        cmd.imageType = SaveAsOMEZarrCommand.INTENSITY;
+        cmd.overwrite = true;
+        cmd.chunkSizeMB = 50;
+        cmd.shardSizeMB = 50; // forces zarr3
+        cmd.outputFolder = tempDir.toFile();
+        cmd.run();
+
+        File zarrDir = new File( tempDir.toFile(), "mri-stack-test-zarr3.ome.zarr" );
+        assertTrue( zarrDir.exists(), "OME-Zarr container should be created on disk" );
+        assertTrue( zarrDir.isDirectory(), "OME-Zarr container should be a directory" );
+
+        // Minimal structural check: the OME-Zarr root must contain a .zattrs.
+        File zattrs = new File( zarrDir, "zarr.json" );
+        assertTrue( zattrs.exists(), "zarr.json (OME-Zarr metadata) is missing" );
+    }
+
+    @Test
     public void overwriteFlagAllowsRepeatedWrites( @TempDir Path tempDir )
     {
         File input = new File( "src/test/resources/collections/mri-stack.tif" );

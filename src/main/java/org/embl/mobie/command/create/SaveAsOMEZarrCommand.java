@@ -2,9 +2,11 @@ package org.embl.mobie.command.create;
 
 import ij.IJ;
 import ij.ImagePlus;
+import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.io.OMEZarrWriter;
 import org.embl.mobie.io.util.ChunkSizeComputer;
 import org.embl.mobie.io.util.IOHelper;
+import org.janelia.saalfeldlab.n5.ij.N5ScalePyramidExporter;
 import org.scijava.Initializable;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
@@ -15,7 +17,8 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 import java.util.Arrays;
 
-@Plugin(type = Command.class, menuPath = "Plugins > OME-Zarr > Save Current Image as OME-Zarr..." )
+
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Create > Save Current Image as OME-Zarr..." )
 public class SaveAsOMEZarrCommand extends DynamicCommand implements Initializable
 {
     public static final String LABEL_MASK = "Label mask";
@@ -44,13 +47,21 @@ public class SaveAsOMEZarrCommand extends DynamicCommand implements Initializabl
     )
     public String imageType;
 
-    @Parameter ( label="Chunk size (MB)",
+    @Parameter ( label="Chunk size [MB]",
             description = "Smaller chunk sizes can help to more efficiently lazy-load parts of the dataset;\n" +
                     "however, going too small might actually decrease the performance due I/O overhead,\n" +
                     "and there can be very many chunks (files), which can cause a problem for your file system.\n" +
                     "It is considered that chunk sizes on disk between 1 and 10 MB is reasonable.\n" +
                     "Since the chunks are compressed we recommend selecting here large chunk sizes, e.g. 50 MB." )
     public int chunkSizeMB = 50;
+
+    @Parameter ( label="Shard size [MB]",
+            description = "Set to -1 to save images as OME-Zarr v0.4 with Zarr v2\n" +
+                    "Specifying a number here will save images as OME-Zarr v0.5 with Zarr v3\n" +
+                    "The shard size must be larger than the chunk size as one shard contains multiple chunks.\n" +
+                    "Choosing a larger shard size will create less files you will have on your disk\n" +
+                    "Writing performance will be optimal if the number of shards equals the number of processors on your computer." )
+    public int shardSizeMB = -1;
 
     @Parameter ( label="Overwrite" )
     public Boolean overwrite;
@@ -75,13 +86,35 @@ public class SaveAsOMEZarrCommand extends DynamicCommand implements Initializabl
 
         String uri = IOHelper.combinePath( outputFolder.getAbsolutePath(), imageName + ".ome.zarr" );
 
-        OMEZarrWriter.write(
-                imp,
-                uri,
-                type,
-                chunkDimensions,
-                overwrite,
-                omeXml);
+        if ( shardSizeMB > 0 )
+        {
+            int[] shardDimensions = new ChunkSizeComputer( imp.getDimensions(), imp.getBytesPerPixel() )
+                    .getChunkDimensionsXYCZT( shardSizeMB * 1000000 );
+            IJ.log( "Shard dimensions: " + Arrays.toString( chunkDimensions ) );
+
+            // Zarr3
+            OMEZarrWriter.write(
+                    imp,
+                    uri,
+                    type,
+                    chunkDimensions,
+                    shardDimensions,
+                    OMEZarrWriter.StorageFormat.ZARR3,
+                    overwrite,
+                    omeXml,
+                    N5ScalePyramidExporter.GZIP_COMPRESSION );
+        }
+        else
+        {
+            // Zarr2
+            OMEZarrWriter.write(
+                    imp,
+                    uri,
+                    type,
+                    chunkDimensions,
+                    overwrite,
+                    omeXml );
+        }
 
         IJ.log( "OME-Zarr created at: " + uri );
     }

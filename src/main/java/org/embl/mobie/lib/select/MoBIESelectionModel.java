@@ -69,7 +69,6 @@ public class MoBIESelectionModel< T > implements SelectionModel< T >
 			selected.remove( object );
 			if ( notify )
 				notifySelectionListeners();
-			notifySelectionListeners();
 		}
 	}
 
@@ -86,7 +85,10 @@ public class MoBIESelectionModel< T > implements SelectionModel< T >
 	private void notifySelectionListeners()
 	{
 		for ( SelectionListener listener : listeners.list )
-			new Thread( () -> listener.selectionChanged() ).start();
+		{
+			if ( listener != null )
+				new Thread( () -> listener.selectionChanged() ).start();
+		}
 	}
 
 	@Override
@@ -104,7 +106,8 @@ public class MoBIESelectionModel< T > implements SelectionModel< T >
 		focusObject = object;
 
 		for ( SelectionListener listener : listeners.list )
-			new Thread( () -> listener.focusEvent( object, initiator ) ).start();
+			if ( listener != null )
+				new Thread( () -> listener.focusEvent( object, initiator ) ).start();
 	}
 
 	@Override

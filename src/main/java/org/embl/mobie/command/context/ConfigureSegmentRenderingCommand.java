@@ -32,7 +32,7 @@ import org.embl.mobie.command.CommandConstants;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
+import sc.fiji.bdvpg.command.BdvPlaygroundActionCommand;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Segment Rendering")
 public class ConfigureSegmentRenderingCommand extends ConfigureLabelRenderingCommand

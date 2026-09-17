@@ -32,10 +32,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import org.embl.mobie.command.CommandConstants;
-import org.embl.mobie.lib.color.CategoricalAnnotationColoringModel;
-import org.embl.mobie.lib.color.ColoringModel;
-import org.embl.mobie.lib.color.MoBIEColoringModel;
-import org.embl.mobie.lib.color.MobieColoringModelWrapper;
+import org.embl.mobie.lib.color.*;
 import org.embl.mobie.lib.source.boundary.BoundarySource;
 import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.source.boundary.VolatileBoundarySource;
@@ -47,7 +44,7 @@ import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.util.ColorRGB;
-import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
+import sc.fiji.bdvpg.command.BdvPlaygroundActionCommand;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Label Rendering")
 public class ConfigureLabelRenderingCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
@@ -221,6 +218,18 @@ public class ConfigureLabelRenderingCommand extends DynamicCommand implements Bd
 			if ( converter instanceof MobieColoringModelWrapper )
 			{
 				final ColoringModel coloringModel = ( ( MobieColoringModelWrapper ) converter ).getMoBIEColoringModel().getWrappedColoringModel();
+
+				if ( coloringModel instanceof AdditiveColoringModel )
+				{
+					( ( AdditiveColoringModel<?> ) coloringModel ).getColoringModels()
+							.stream()
+							.filter( c -> c instanceof CategoricalAnnotationColoringModel )
+							.forEach( c -> {
+								final CategoricalAnnotationColoringModel< ? > categoricalAnnotationColoringModel = ( CategoricalAnnotationColoringModel< ? > ) c;
+								int randomSeed = categoricalAnnotationColoringModel.getRandomSeed();
+								categoricalAnnotationColoringModel.setRandomSeed( ++randomSeed );
+							} );
+				}
 
 				if ( coloringModel instanceof CategoricalAnnotationColoringModel )
 				{

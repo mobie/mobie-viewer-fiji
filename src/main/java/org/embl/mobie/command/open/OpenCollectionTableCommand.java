@@ -73,6 +73,9 @@ public class OpenCollectionTableCommand implements Command {
 		// NB: this is unfortunately necessary to support both the GUI and the helpless execution of this command.
 		//bdvViewingModeEnum = bdvViewingModeEnum == null ? BdvViewingMode.valueOf( bdvViewingMode ) : bdvViewingModeEnum;
 
+		// Remove leading and trailing spaces
+		tableUri = tableUri.trim();
+
 		final MoBIESettings settings = new MoBIESettings()
 				.projectType( ProjectType.CollectionTable )
 				.dataRoot( IOHelper.getParentLocation( tableUri ) );

@@ -111,13 +111,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		ToggleSelectionAndFocusIfSelected
 	}
 
-	private enum SelectionMode
-	{
-		CREATE_NEW,
-		INTERSECT,
-		ADD
-	}
-
 	public TableView( AbstractAnnotationDisplay< A > display )
 	{
 		this.display = display;
@@ -203,15 +196,21 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		{
 			// Show a default AnnotationOverlay
 
-			if ( annotationOverlay != null )
-				annotationOverlay.close();
+			// This has issues and sometimes overlaps with the ImageNameOverlay
+			// https://github.com/mobie/mobie-viewer-fiji/issues/1329
+			// until we find a better solution we don't show default overlay
+			if ( false )
+			{
+				if ( annotationOverlay != null )
+					annotationOverlay.close();
 
-			annotationOverlay = new AnnotatedRegionsOverlay(
-					sliceViewer,
-					tableModel.annotations(),
-					ColumnNames.REGION_ID,
-					-1
-			);
+				annotationOverlay = new AnnotatedRegionsOverlay(
+						sliceViewer,
+						tableModel.annotations(),
+						ColumnNames.REGION_ID,
+						-1
+				);
+			}
 		}
 	}
 
@@ -616,7 +615,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		final JMenuItem menuItem = new JMenuItem( "Select Rows..." );
 		menuItem.addActionListener( e ->
-				SwingUtilities.invokeLater( this::selectValues ) );
+				SwingUtilities.invokeLater( this::selectRows ) );
 		return menuItem;
 	}
 
@@ -789,18 +788,24 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		});
 	}
 
-	private void applySelectionMode( List< A > selectedRows, SelectionMode selectionMode )
+	private void applySelectionMode( List< A > selectedRows, ColumnValueSelectionDialog.SelectionMode selectionMode )
 	{
-		if ( selectionMode == SelectionMode.CREATE_NEW )
+		if ( selectionModel.isEmpty() )
+		{
+			selectionModel.setSelected( selectedRows, true );
+			return;
+		}
+
+		if ( selectionMode == ColumnValueSelectionDialog.SelectionMode.NEW_SELECTION )
 		{
 			selectionModel.clearSelection();
 			selectionModel.setSelected( selectedRows, true );
 		}
-		else if ( selectionMode == SelectionMode.ADD )
+		else if ( selectionMode == ColumnValueSelectionDialog.SelectionMode.OR_SELECTION )
 		{
 			selectionModel.setSelected( selectedRows, true );
 		}
-		else
+		else // AND
 		{
 			final Set< A > selectedSet = new HashSet<>( selectedRows );
 			final Set< A > currentSelection = selectionModel.getSelected();
@@ -810,7 +815,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		}
 	}
 
-	private void selectValues()
+	private void selectRows()
 	{
 		ColumnValueSelectionDialog dialog = new ColumnValueSelectionDialog(
 				tableModel.columnNames(),
@@ -820,10 +825,11 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		if ( ! dialog.show() ) return;
 
 		final String columnName = dialog.getColumnName();
-		final SelectionMode selectionMode = mapSelectionMode( dialog.getSelectionMode() );
+		final ColumnValueSelectionDialog.SelectionMode selectionMode = dialog.getSelectionMode();
 		final ArrayList< A > selectedRows = new ArrayList<>();
 		final ArrayList< A > rows = tableModel.annotations();
 		final boolean isNumeric = tableModel.numericColumnNames().contains( columnName );
+
 		if ( isNumeric )
 		{
 			final double minValue = dialog.getMinValue();
@@ -846,19 +852,10 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 			}
 		}
 
-		if ( !selectedRows.isEmpty() )
+		if ( ! selectedRows.isEmpty() )
 			applySelectionMode( selectedRows, selectionMode );
 		else
 			IJ.showMessage( "No matching rows found in column " + columnName + "." );
-	}
-
-	private SelectionMode mapSelectionMode( ColumnValueSelectionDialog.SelectionMode selectionMode )
-	{
-		if ( selectionMode == ColumnValueSelectionDialog.SelectionMode.AND_SELECTION )
-			return SelectionMode.INTERSECT;
-		if ( selectionMode == ColumnValueSelectionDialog.SelectionMode.OR_SELECTION )
-			return SelectionMode.ADD;
-		return SelectionMode.CREATE_NEW;
 	}
 
 	private List< String > getDistinctColumnValues( String columnName )
@@ -928,7 +925,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				// see also: https://github.com/mobie/mobie-viewer-fiji/issues/1235
 //				if ( display instanceof RegionDisplay )
 //				{
-//					SourceAndConverterBdvDisplayService service = SourceAndConverterServices.getBdvDisplayService();
+//					SourceBdvDisplayService service = SourceServices.getBdvDisplayService();
 //					display.sourceAndConverters().forEach( sac -> service.setVisible( sac, visible ) );
 //				}
 			}

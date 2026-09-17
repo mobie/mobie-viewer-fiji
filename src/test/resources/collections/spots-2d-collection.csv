@@ -1,0 +1,3 @@
+uri,view,name,type,spot_radius
+blobs.tif,all,,,
+spots-2d.csv,all,spots,spots,20

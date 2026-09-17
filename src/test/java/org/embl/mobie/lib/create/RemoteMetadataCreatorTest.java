@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.lib.create;
 
+import org.embl.mobie.io.ContextProvider;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.OMEZarrWriter;
 import org.embl.mobie.io.util.IOHelper;
@@ -36,9 +37,13 @@ import org.embl.mobie.lib.serialize.Dataset;
 import org.embl.mobie.lib.serialize.DatasetJsonParser;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.lib.serialize.ImageDataSource;
+import org.janelia.saalfeldlab.n5.ij.N5ScalePyramidExporter;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.scijava.Context;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,6 +53,8 @@ import static org.embl.mobie.lib.create.ProjectCreatorTestHelper.createImage;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RemoteMetadataCreatorTest {
+
+    private static Context context;
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -61,6 +68,19 @@ class RemoteMetadataCreatorTest {
     private String bucketName;
     private String datasetJsonPath;
     private File tempDir;
+
+    @BeforeAll
+    static void initContext()
+    {
+        context = new Context();
+        ContextProvider.setContext( context );
+    }
+
+    @AfterAll
+    static void cleanUpContext()
+    {
+        context.close();
+    }
 
     @BeforeEach
     void setUp( @TempDir Path tempDir ) throws IOException {
@@ -128,7 +148,8 @@ class RemoteMetadataCreatorTest {
                 createImage( imageName, false ),
                 filePath,
                 OMEZarrWriter.ImageType.Intensities,
-                false
+                false,
+                N5ScalePyramidExporter.BLOSC_COMPRESSION // to make it work with zarr-java v2
         );
 
         // link to the ome-zarr image

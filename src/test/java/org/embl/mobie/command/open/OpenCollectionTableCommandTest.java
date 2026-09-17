@@ -178,7 +178,7 @@ public class OpenCollectionTableCommandTest
         imageJ.ui().showUI();
 
         OpenCollectionTableExpertCommand command = new OpenCollectionTableExpertCommand();
-        command.tableUri = new File("src/test/resources/collections/spots-2d-collection.txt").getAbsolutePath();
+        command.tableUri = new File("src/test/resources/collections/spots-2d-collection.csv").getAbsolutePath();
         command.dataRootTypeEnum = OpenCollectionTableExpertCommand.DataRootType.UseTableFolder;
         command.bdvViewingModeEnum = BdvViewingMode.TwoDimensional;
         command.run();
@@ -494,11 +494,13 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().createLargeSpotsTable();
         //new OpenCollectionTableCommandTest().addImageTwice();
         //new OpenCollectionTableCommandTest().clem();
+        // TODO: add an image in the background; otherwise spots opacity cannot be seen
+        //new OpenCollectionTableCommandTest().spots2D();
         //new OpenCollectionTableCommandTest().singleBlobs();
         //new OpenCollectionTableCommandTest().blobsWithViews();
         //new OpenCollectionTableCommandTest().mrc();
         //new OpenCollectionTableCommandTest().blobsGrid();
-        //new OpenCollectionTableCommandTest().largeAndSmallBlobs();
+        new OpenCollectionTableCommandTest().largeAndSmallBlobs();
         //new OpenCollectionTableCommandTest().timelapse();
         //new OpenCollectionTableCommandTest().nonConsecutiveSpots2D();
         //new OpenCollectionTableCommandTest().alphaBlendingOrder();
@@ -511,7 +513,7 @@ public class OpenCollectionTableCommandTest
         //new OpenCollectionTableCommandTest().mix2d3d();
         //new OpenCollectionTableCommandTest().grid();
         //new OpenCollectionTableCommandTest().openOrganelleGoogleSheet();
-        new OpenCollectionTableCommandTest().gridWithSameNameInDifferentViews();
+        //new OpenCollectionTableCommandTest().gridWithSameNameInDifferentViews();
         System.out.println("MoBIE loaded. Press ENTER to exit...");
         try {
             System.in.read();

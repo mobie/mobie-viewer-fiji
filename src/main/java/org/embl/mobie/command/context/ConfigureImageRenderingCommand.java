@@ -36,7 +36,7 @@ import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
+import sc.fiji.bdvpg.command.BdvPlaygroundActionCommand;
 
 import static org.embl.mobie.command.context.ConfigureSegmentRenderingCommand.AUTO;
 import static org.embl.mobie.command.context.ConfigureSegmentRenderingCommand.USE_BELOW_RESOLUTION;

@@ -1,5 +1,6 @@
 package org.embl.mobie.command.open;
 
+import net.imagej.ImageJ;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.bdv.blend.BlendingMode;
 import org.embl.mobie.lib.data.CollectionDataSetter;
@@ -180,13 +181,13 @@ public class OpenCollectionTableCommandHeadlessTest
     public void spots2D()
     {
         // spots-2d-collection.txt has a single spots row.
-        Dataset dataset = buildDataset( "src/test/resources/collections/spots-2d-collection.txt" );
+        Dataset dataset = buildDataset( "src/test/resources/collections/spots-2d-collection.csv" );
 
-        assertEquals( 1, dataset.sources().size() );
+        assertEquals( 2, dataset.sources().size() );
         DataSource source = dataset.sources().get( "spots" );
         assertInstanceOf( SpotDataSource.class, source );
 
-        View view = dataset.views().get( "spots" );
+        View view = dataset.views().get( "all" );
         assertNotNull( view );
 
         SpotDisplay< ? > spotDisplay = ( SpotDisplay< ? > ) view.displays().stream()
@@ -285,11 +286,12 @@ public class OpenCollectionTableCommandHeadlessTest
         // https://github.com/mobie/mobie-viewer-fiji/issues/1244
         Dataset dataset = buildDataset( "src/test/resources/collections/blobs-image-twice-collection.csv" );
 
-        assertEquals( 3, dataset.sources().size(),
+        Map< String, DataSource > sources = dataset.sources();
+        assertEquals( 3, sources.size(),
                 "duplicate URIs should still create distinct sources via name disambiguation" );
-        assertNotNull( dataset.sources().get( "blobs" ) );
-        assertNotNull( dataset.sources().get( "blobs (1)" ) );
-        assertNotNull( dataset.sources().get( "blobs (2)" ) );
+        assertNotNull( sources.get( "blobs" ) );
+        assertNotNull( sources.get( "blobs (1)" ) );
+        assertNotNull( sources.get( "blobs (2)" ) );
     }
 
     @Test

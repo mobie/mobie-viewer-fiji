@@ -67,8 +67,8 @@ import net.imglib2.view.Views;
 import org.embl.mobie.lib.source.label.AnnotatedLabelSource;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.source.SourceHelper;
-import sc.fiji.bdvpg.bdv.BdvHandleHelper;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.viewer.bdv.BdvHandleHelper;
+import sc.fiji.bdvpg.service.SourceServices;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -78,8 +78,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getLevel;
-import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getViewerVoxelSpacing;
+import static sc.fiji.bdvpg.viewer.bdv.BdvHandleHelper.getLevel;
+import static sc.fiji.bdvpg.viewer.bdv.BdvHandleHelper.getViewerVoxelSpacing;
 
 public class ScreenShotMaker
 {
@@ -203,7 +203,7 @@ public class ScreenShotMaker
 
             Source< ? > source = sac.getSpimSource();
             final Converter< ?, ? > converter = sac.getConverter();
-            double[] displayRange = BdvHandleHelper.getDisplayRange( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ) );
+            double[] displayRange = BdvHandleHelper.getDisplayRange( SourceServices.getSourceService().getConverterSetup( sac ) );
             final int level = getLevel( source, targetVoxelSpacing );
             final AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( source, timePoint, level );
 

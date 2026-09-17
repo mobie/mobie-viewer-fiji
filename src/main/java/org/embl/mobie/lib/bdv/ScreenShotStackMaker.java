@@ -36,7 +36,6 @@ import edu.mines.jtk.util.AtomicDouble;
 import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
-import ij.gui.Roi;
 import ij.measure.Calibration;
 import net.imglib2.*;
 import net.imglib2.Cursor;
@@ -65,16 +64,16 @@ import org.embl.mobie.lib.source.SourceHelper;
 import org.embl.mobie.lib.util.Corners;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.util.ThreadHelper;
-import sc.fiji.bdvpg.bdv.BdvHandleHelper;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.viewer.bdv.BdvHandleHelper;
+import sc.fiji.bdvpg.service.SourceServices;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getLevel;
-import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getViewerVoxelSpacing;
+import static sc.fiji.bdvpg.viewer.bdv.BdvHandleHelper.getLevel;
+import static sc.fiji.bdvpg.viewer.bdv.BdvHandleHelper.getViewerVoxelSpacing;
 
 public class ScreenShotStackMaker
 {
@@ -210,7 +209,7 @@ public class ScreenShotStackMaker
 
             Source< ? > source = sac.getSpimSource();
             final Converter< ?, ? > converter = sac.getConverter();
-            double[] displayRange = BdvHandleHelper.getDisplayRange( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sac ) );
+            double[] displayRange = BdvHandleHelper.getDisplayRange( SourceServices.getSourceService().getConverterSetup( sac ) );
             final int level = getLevel( source, targetSamplingInXY );
             final AffineTransform3D sourceTransform = BdvHandleHelper.getSourceTransform( source, timePoint, level );
 

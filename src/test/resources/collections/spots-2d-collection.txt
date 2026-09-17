@@ -1,2 +1,0 @@
-uri	name	type
-spots-2d.txt	spots	spots

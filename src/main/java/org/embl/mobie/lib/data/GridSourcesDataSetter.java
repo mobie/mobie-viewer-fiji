@@ -62,14 +62,24 @@ public class GridSourcesDataSetter
 	private final List< ImageGridSources > images;
 	private final List< LabelGridSources > labels;
 	private final Table regionTable;
+	private final String viewBaseName;
 
 	public GridSourcesDataSetter( List< ImageGridSources > images,
 								  List< LabelGridSources > labels,
 								  Table regionTable )
 	{
+		this( images, labels, regionTable, "all images" );
+	}
+
+	public GridSourcesDataSetter( List< ImageGridSources > images,
+								  List< LabelGridSources > labels,
+								  Table regionTable,
+								  String viewBaseName )
+	{
 		this.images = images;
 		this.labels = labels;
 		this.regionTable = regionTable;
+		this.viewBaseName = viewBaseName;
 	}
 
 	public void addDataAndDisplaysAndViews( Dataset dataset )
@@ -338,8 +348,9 @@ public class GridSourcesDataSetter
 		// construct and add the view
 		//
 		final ImageZoomViewerTransform viewerTransform = new ImageZoomViewerTransform( fileSourcesList.get( 0 ).getSources().get( 0 ), 0 );
+		final String viewName = uniqueViewName( dataset, viewBaseName );
 		final View view = new View(
-				"all images",
+				viewName,
 				"data",
 				displays,
 				transformations,
@@ -352,5 +363,14 @@ public class GridSourcesDataSetter
 		view.overlayNames( false );
 
 		dataset.views().put( view.getName(), view );
+	}
+
+	private String uniqueViewName( Dataset dataset, String baseName )
+	{
+		String candidate = baseName;
+		int suffix = 2;
+		while ( dataset.views().containsKey( candidate ) )
+			candidate = baseName + " (" + suffix++ + ")";
+		return candidate;
 	}
 }

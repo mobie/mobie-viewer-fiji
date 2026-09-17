@@ -84,6 +84,35 @@ public class TableOpener
 		return open( location, format );
 	}
 
+	public static boolean isMoBIECollectionTable( String uri )
+	{
+		try
+		{
+			return isMoBIECollectionTable( open( uri ) );
+		}
+		catch ( Exception e )
+		{
+			return false;
+		}
+	}
+
+	public static boolean isMoBIECollectionTable( Table table )
+	{
+		if ( table == null )
+			return false;
+
+		for ( String requiredColumn : CollectionTableConstants.URI )
+		{
+			for ( String tableColumn : table.columnNames() )
+			{
+				if ( tableColumn.equalsIgnoreCase( requiredColumn ) )
+					return true;
+			}
+		}
+
+		return false;
+	}
+
 	public static Table open( StorageLocation storageLocation, TableDataFormat tableDataFormat )
 	{
 		return open( storageLocation, storageLocation.defaultChunk, tableDataFormat );

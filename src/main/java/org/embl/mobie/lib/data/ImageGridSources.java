@@ -106,7 +106,7 @@ public class ImageGridSources
 		setMetadata( channelIndex );
 
 		// TODO: move this out to a separate function
-		regionTable = Table.create( name + " table" );
+		regionTable = Table.create( name + " regions" );
 		regionTable.addColumns( StringColumn.create( ColumnNames.REGION_ID, new ArrayList<>( nameToFullPath.keySet() ) ) );
 		regionTable.addColumns( StringColumn.create( "source_path", new ArrayList<>( nameToFullPath.values() ) ) );
 	}
