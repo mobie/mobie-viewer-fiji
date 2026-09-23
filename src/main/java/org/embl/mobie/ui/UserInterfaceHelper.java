@@ -63,6 +63,7 @@ import org.embl.mobie.lib.transform.viewer.ViewerTransform;
 import org.embl.mobie.lib.volume.ImageVolumeViewer;
 import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.jetbrains.annotations.NotNull;
+import org.scijava.Context;
 import sc.fiji.bdvpg.scijava.service.SourceBdvDisplayService;
 import sc.fiji.bdvpg.service.SourceServices;
 import sc.fiji.bdvpg.source.display.ColorChanger;

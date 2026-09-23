@@ -41,6 +41,7 @@ import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.imagedata.ImageData;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
+import org.embl.mobie.lib.Services;
 import org.embl.mobie.lib.bdv.BdvViewingMode;
 import org.embl.mobie.lib.data.*;
 import org.embl.mobie.lib.hcs.HCSDataSetter;
@@ -61,6 +62,7 @@ import org.embl.mobie.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.ui.UserInterface;
 import org.embl.mobie.ui.WindowArrangementHelper;
 import org.jetbrains.annotations.NotNull;
+import org.scijava.Context;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.service.SourceService;
 import sc.fiji.bdvpg.service.SourceServices;
@@ -89,7 +91,7 @@ public class MoBIE
 	{
 		net.imagej.patcher.LegacyInjector.preinit();
 		PlaygroundPrefs.setSourceTreeVisibility( false );
-		ContextProvider.setContext( SourceServices.getContext() );
+		ContextProvider.setContext( Services.commandService.getContext() );
 
 		new Thread(() -> {
 			long start = System.currentTimeMillis();
