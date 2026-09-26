@@ -34,10 +34,15 @@ import net.imglib2.type.numeric.real.DoubleType;
 import org.embl.mobie.MoBIE;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.lib.annotation.AnnotatedRegion;
+import bdv.viewer.Source;
 import org.embl.mobie.lib.data.DataStore;
+import org.embl.mobie.lib.util.MoBIEHelper;
+import org.embl.mobie.lib.volume.MeshCache;
+import org.embl.mobie.lib.volume.SegmentMeshCacher;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.NumericAnnotationImage;
 import org.embl.mobie.lib.serialize.View;
+import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.serialize.display.SpotDisplay;
 import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.view.ViewManager;
@@ -268,7 +273,116 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 			menu.add( createAddSpotLocationColumnsMenuItem() );
 		}
 
+		if ( display instanceof SegmentationDisplay )
+		{
+			menu.add( createCacheSegmentMeshesMenuItem() );
+		}
+
 		return menu;
+	}
+
+	private JMenuItem createCacheSegmentMeshesMenuItem()
+	{
+		final JMenuItem menuItem = new JMenuItem( "Cache segment meshes..." );
+		menuItem.addActionListener( e -> showCacheSegmentMeshesDialog() );
+		return menuItem;
+	}
+
+	private void showCacheSegmentMeshesDialog()
+	{
+		final List< Double > resolutions = meshResolutionsUm();
+		final String[] choices = new String[ resolutions.size() + 1 ];
+		for ( int i = 0; i < resolutions.size(); i++ )
+			choices[ i ] = formatSpacing( resolutions.get( i ) ) + " um" + ( i == 0 ? " (native)" : "" );
+		choices[ resolutions.size() ] = "Custom...";
+
+		// Default to the finest resolution for which a cache already exists.
+		int defaultIndex = 0;
+		final Double cachedSpacing = MeshCache.findFinestAvailableSpacing( MoBIEHelper.getMeshCacheDir(), display.getName() );
+		if ( cachedSpacing != null )
+			for ( int i = 0; i < resolutions.size(); i++ )
+				if ( Math.abs( resolutions.get( i ) - cachedSpacing ) < 1e-9 )
+					defaultIndex = i;
+
+		final GenericDialog dialog = new GenericDialog( "Cache segment meshes" );
+		dialog.addChoice( "Mesh resolution", choices, choices[ defaultIndex ] );
+		dialog.addMessage( "Computes and caches smoothed meshes of all segments of \"" + display.getName() + "\" at the chosen resolution.\nThe meshes are stored in " + MoBIEHelper.getMeshCacheDir() + "." );
+		dialog.showDialog();
+		if ( dialog.wasCanceled() )
+			return;
+
+		final String selection = dialog.getNextChoice();
+		final double spacing;
+		if ( selection.equals( "Custom..." ) )
+		{
+			final GenericDialog customDialog = new GenericDialog( "Custom mesh resolution" );
+			customDialog.addNumericField( "Spacing (um)", resolutions.isEmpty() ? 0.1 : resolutions.get( 0 ), 4 );
+			customDialog.showDialog();
+			if ( customDialog.wasCanceled() )
+				return;
+			spacing = customDialog.getNextNumber();
+			if ( spacing <= 0 )
+				return;
+		}
+		else
+		{
+			spacing = Double.parseDouble( selection.split( " " )[ 0 ] );
+		}
+
+		final double finalSpacing = spacing;
+		new Thread( () -> cacheSegmentMeshes( finalSpacing ) ).start();
+	}
+
+	@SuppressWarnings( { "unchecked", "rawtypes" } )
+	private void cacheSegmentMeshes( double spacing )
+	{
+		try
+		{
+			final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) display;
+			final int newlyCached = SegmentMeshCacher.cacheSegmentsAt( segmentationDisplay, spacing );
+			IJ.showMessage( "Done. Cached " + newlyCached + " segment meshes at " + formatSpacing( spacing ) + " um.\n\nCache: " + MoBIEHelper.getMeshCacheDir() );
+		}
+		catch ( Exception e )
+		{
+			e.printStackTrace();
+			IJ.showMessage( "Mesh caching failed: " + e.getMessage() );
+		}
+	}
+
+	@SuppressWarnings( { "unchecked", "rawtypes" } )
+	private List< Double > meshResolutionsUm()
+	{
+		final List< Double > resolutions = new ArrayList<>();
+		try
+		{
+			final List images = display.images();
+			if ( ! images.isEmpty() )
+			{
+				final Source source = ( ( Image ) images.get( 0 ) ).getSourcePair().getSource();
+				final java.util.ArrayList< double[] > spacings = MoBIEHelper.getVoxelSpacings( source );
+				for ( final double[] spacing : spacings )
+					if ( spacing != null && spacing.length > 0 )
+						resolutions.add( spacing[ 0 ] );
+			}
+		}
+		catch ( Exception e )
+		{
+			IJ.log( "Could not read the pyramid resolutions: " + e.getMessage() );
+		}
+
+		if ( resolutions.isEmpty() )
+		{
+			// Fallback presets (µm), finest first.
+			for ( final double preset : new double[]{ 0.08, 0.1, 0.2, 0.3, 0.5, 1.0 } )
+				resolutions.add( preset );
+		}
+		return resolutions;
+	}
+
+	private static String formatSpacing( double spacing )
+	{
+		final String raw = String.format( "%.3f", spacing ).replaceAll( "0+$", "" );
+		return raw.endsWith( "." ) ? raw.substring( 0, raw.length() - 1 ) : raw;
 	}
 
 	private JMenuItem createAddSpotLocationColumnsMenuItem()

@@ -30,6 +30,7 @@ package org.embl.mobie.lib.volume;
 
 import bdv.viewer.Source;
 import customnode.CustomTriangleMesh;
+import ij.IJ;
 import ij3d.Content;
 import ij3d.Image3DUniverse;
 import ij3d.ImageWindow3D;
@@ -51,6 +52,8 @@ import org.jogamp.vecmath.Color3f;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -58,6 +61,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+
+import org.embl.mobie.lib.util.ThreadHelper;
 
 public class SegmentVolumeViewer< S extends Segment > implements ColoringListener, SelectionListener< S >
 {
@@ -80,6 +88,7 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 	private double[] voxelSpacing; // desired voxel spacings; null = auto
 	private int currentTimePoint = 0;
 	private final MeshCreator< S > meshCreator;
+	private MeshCache meshCache;
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
 	private ImageWindow3D window;
 	private Image3DUniverse universe;
@@ -143,6 +152,174 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 		this.maxNumVoxels = maxNumVoxels;
 	}
 
+	/**
+	 * Configure a persistent mesh cache for this viewer.
+	 * <p>
+	 * When set, mesh data is loaded from disk before computing and stored
+	 * to disk after computing.  Cached meshes are pre-smoothed, so loading
+	 * skips both marching cubes and smoothing.
+	 * <p>
+	 * If no fixed voxel spacing has been set (e.g. the view declares no
+	 * {@code resolution3d}), the best - i.e. finest - resolution for which a
+	 * mesh cache already exists for this segmentation is used automatically.
+	 * If no cache exists at all, the cache is left unconfigured (auto
+	 * resolution, no caching) and a log message explains how to pre-cache the
+	 * segment meshes from the table's Misc menu.
+	 *
+	 * @param segmentationName  human-readable name used in the cache file name
+	 * @param cacheRoot         root cache directory
+	 *                          (typically {@code ~/.mobie/mesh-cache/})
+	 */
+	public void configureMeshCache( String segmentationName, File cacheRoot )
+	{
+		if ( voxelSpacing == null )
+		{
+			// Default to the finest resolution for which a cache already exists.
+			final Double bestSpacing = MeshCache.findFinestAvailableSpacing( cacheRoot, segmentationName, meshSmoothingIterations );
+			if ( bestSpacing == null )
+			{
+				// No cache yet: meshes are computed on demand. Tell the user how
+				// to pre-cache them from the segmentation table's Misc menu.
+				IJ.log( "[MoBIE] No cached meshes for \"" + segmentationName + "\": segment meshes will be computed on demand (auto resolution)." );
+				IJ.log( "[MoBIE] To pre-cache them at a fixed resolution, open the table of this segmentation and use 'Misc' > 'Cache segment meshes...'." );
+				return; // no cached resolution yet: auto resolution, no caching
+			}
+			voxelSpacing = new double[] { bestSpacing, bestSpacing, bestSpacing };
+			IJ.log( "[MoBIE] Using best available mesh cache resolution " + bestSpacing + " um for " + segmentationName );
+			IJ.log( "[MoBIE] Tip: to keep this cache but stop using it (e.g. to regenerate the meshes at another resolution), rename its .mel file(s) in "
+					+ cacheRoot + ", for example add a NOT_IN_USE_ prefix. Renamed files are ignored." );
+		}
+
+		this.meshCache = new MeshCache( cacheRoot, segmentationName, meshSmoothingIterations, voxelSpacing );
+		this.meshCreator.setMeshCache( meshCache );
+	}
+
+	/**
+	 * Whether the given exception (or any of its causes) reports that a
+	 * segment has no voxels in the image volume at any resolution level.
+	 */
+	private static boolean noVoxelsInImage( final Throwable throwable )
+	{
+		for ( Throwable cause = throwable; cause != null; cause = cause.getCause() )
+			if ( cause.getMessage() != null && cause.getMessage().contains( "has no voxels in the image volume" ) )
+				return true;
+		return false;
+	}
+
+	/**
+	 * Pre-render meshes for the given segments and persist them to disk.
+	 * Segments are processed in parallel using the shared thread pool.
+	 *
+	 * @param segments  segments whose meshes should be computed and cached.
+	 */
+	public void preRenderSegments( Collection< S > segments )
+	{
+		if ( meshCache == null )
+		{
+			IJ.log( "[MoBIE] Mesh cache not configured; cannot pre-render." );
+			return;
+		}
+
+		final List< S > pending = new ArrayList<>();
+		for ( S segment : segments )
+		{
+			if ( segment.timePoint() != null && segment.timePoint() != currentTimePoint )
+				continue;
+			if ( meshCache.hasMesh( segment.label() ) )
+				continue;
+			pending.add( segment );
+		}
+
+		if ( pending.isEmpty() )
+			return;
+
+		final AtomicInteger progress = new AtomicInteger( 0 );
+		final int total = pending.size();
+		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
+		final AtomicInteger failures = new AtomicInteger( 0 );
+		final int maxLoggedFailures = 10;
+		final AtomicInteger noVoxelSegments = new AtomicInteger( 0 );
+
+		// Update the status bar on a time basis rather than on a fixed number
+		// of finished meshes, so that very fast and very slow segments both
+		// produce a steady ~10 s update cadence.
+		final long statusIntervalMillis = 10_000;
+		final AtomicLong lastStatusTimeMillis = new AtomicLong( System.currentTimeMillis() );
+		final String initialStatus = "Pre-rendering meshes: 0/" + total;
+		IJ.showStatus( initialStatus );
+		IJ.log( initialStatus );
+
+		for ( S segment : pending )
+		{
+			futures.add( ThreadHelper.executorService.submit( () ->
+			{
+				try
+				{
+					final Source< AnnotationType< S > > source = getSource( segment );
+					// createSmoothCustomTriangleMesh will check the cache first,
+					// compute if missing, and store to cache afterwards
+					meshCreator.createSmoothCustomTriangleMesh( segment, voxelSpacing, false, source );
+				}
+				catch ( Exception e )
+				{
+					if ( noVoxelsInImage( e ) )
+					{
+						// benign: the label is absent from the volume at all levels
+						noVoxelSegments.incrementAndGet();
+					}
+					else
+					{
+						final int failureCount = failures.incrementAndGet();
+						if ( failureCount <= maxLoggedFailures )
+						{
+							final Throwable cause = e.getCause();
+							IJ.log( "[MoBIE] Could not pre-render mesh for segment " + segment.label() + ": " + e.getMessage()
+									+ ( cause != null ? " (cause: " + cause.getMessage() + ")" : "" ) );
+						}
+					}
+				}
+				finally
+				{
+					final int done = progress.incrementAndGet();
+					final long now = System.currentTimeMillis();
+					final long lastStatusTime = lastStatusTimeMillis.get();
+					// Always report the final count; otherwise report at most
+					// once per interval (guarded by the atomic timestamp).
+					if ( done == total
+							|| ( now - lastStatusTime >= statusIntervalMillis
+									&& lastStatusTimeMillis.compareAndSet( lastStatusTime, now ) ) )
+					{
+						final String status = "Pre-rendering meshes: " + done + "/" + total;
+						IJ.showStatus( status );
+						IJ.log( status );
+					}
+				}
+			} ) );
+		}
+
+		ThreadHelper.waitUntilFinished( futures );
+
+		try
+		{
+			meshCache.flush();
+		}
+		catch ( IOException e )
+		{
+			IJ.log( "[MoBIE] Failed to flush mesh cache: " + e.getMessage() );
+		}
+
+		if ( failures.get() > 0 )
+			IJ.log( "[MoBIE] " + failures.get() + " of " + total + " meshes could not be pre-rendered." );
+
+		if ( noVoxelSegments.get() > 0 )
+			IJ.log( "[MoBIE] " + noVoxelSegments.get() + " segments have no voxels in the image volume at any resolution level and were skipped." );
+	}
+
+	public MeshCache getMeshCache()
+	{
+		return meshCache;
+	}
+
 	private void updateSegmentColors()
 	{
 		for ( S segment : segmentToContent.keySet() )
@@ -160,6 +337,8 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 
 		new Thread( () ->
 		{
+			if ( universe == null )
+				return;
 			universe.setAutoAdjustView( true );
 			updateSelectedSegments( recomputeMeshes );
 			removeUnselectedSegments();
@@ -217,9 +396,12 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 	private synchronized void removeSegment( S segment )
 	{
 		final Content content = segmentToContent.get( segment );
-		universe.removeContent( content.getName() );
+		if ( content == null )
+			return;
 		segmentToContent.remove( segment );
 		contentToSegment.remove( content );
+		if ( universe != null )
+			universe.removeContent( content.getName() );
 	}
 
 	public synchronized void showSegments( boolean showSegments, boolean autoAdjustView )
@@ -272,9 +454,8 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 
 	private void removeSegments()
 	{
-		final Set< S > segments = selectionModel.getSelected();
-
-		for ( S segment : segments )
+		// remove whatever is currently displayed, not the (possibly larger) selection
+		for ( S segment : new HashSet<>( segmentToContent.keySet() ) )
 		{
 			removeSegment( segment );
 		}
@@ -309,6 +490,9 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 //
 //		for ( int j = 0; j < 10; j++ )
 //			System.out.println( ys[ ys.length - j - 1 ] );
+
+		if ( universe == null )
+			return;
 
 		final Bounds bounds = mesh.getBounds();
 		final Content content = universe.addCustomMesh( mesh, "" + segment.hashCode() );
