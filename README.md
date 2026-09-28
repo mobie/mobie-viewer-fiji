@@ -26,14 +26,32 @@ If you use MoBIE, please cite:
 
 Detailed tutorials for installing & using MoBIE are available at [https://mobie.github.io/](https://mobie.github.io/).
 
-## Quick start
+## Installation
 
-### Install
+Currently if you [install Fiji](https://fiji.sc) there are two options: Latest or Stable. 
+This choice affects how you need to install MoBIE.
 
-1. Please [install Fiji](https://fiji.sc) on your computer.
+### Fiji-latest (recommend)
+
+1. Please [install Fiji Latest](https://fiji.sc) on your computer.
+2. Start Fiji and install the MoBIE-latest update site:
+	- `Help > Update`
+	- `[ Manage Update Sites ]`
+	- `[ Add Unlisted Site ]`
+		- Name: `MoBIE-latest`
+		- URL: `https://sites.imagej.net/MoBIE-
+    - `[X] OME-Zarr` (optional, provides additional OME-Zarr reader backends within MoBIE)
+    - `[X] BigVolumeBrowser` (optional, enables BigVolumeBrowser visualisation within MoBIE)
+3. Restart Fiji
+
+### Fiji-stable
+
+1. Please [install Fiji Stable](https://fiji.sc) on your computer.
 2. Restart Fiji and install the MoBIE update site ([how to install an update site](https://imagej.net/Following_an_update_site#Introduction)).
     - [X] `MoBIE`
 3. Restart Fiji
+
+## Quick start
 
 ### Open a MoBIE project
 
