@@ -161,12 +161,17 @@ public class MeshCreator< S extends Segment >
 
 	public CustomTriangleMesh createSmoothCustomTriangleMesh( S segment, @Nullable double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< S > > source )
 	{
-		CustomTriangleMesh triangleMesh = createCustomTriangleMesh( segment, voxelSpacing, recomputeMesh, source );
+		return createSmoothCustomTriangleMesh( segment, voxelSpacing, recomputeMesh, source, true );
+	}
+
+	public CustomTriangleMesh createSmoothCustomTriangleMesh( S segment, @Nullable double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< S > > source, boolean storeToCache )
+	{
+		CustomTriangleMesh triangleMesh = createCustomTriangleMesh( segment, voxelSpacing, recomputeMesh, source, storeToCache );
 		MeshEditor.smooth2( triangleMesh, meshSmoothingIterations );
 		return triangleMesh;
 	}
 
-	private CustomTriangleMesh createCustomTriangleMesh( S segment, @Nullable double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< S > >  source )
+	private CustomTriangleMesh createCustomTriangleMesh( S segment, @Nullable double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< S > >  source, boolean storeToCache )
 	{
 		// 1. Check in-memory segment cache
 		if ( segment.mesh() == null || recomputeMesh )
@@ -191,7 +196,7 @@ public class MeshCreator< S extends Segment >
 				segment.setMesh( mesh );
 
 				// 3. Store in disk cache (if available)
-				if ( meshCache != null )
+				if ( storeToCache && meshCache != null )
 					meshCache.storeMesh( segment.label(), mesh );
 			}
 			catch ( Exception e )

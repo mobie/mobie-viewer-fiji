@@ -39,6 +39,7 @@ import org.embl.mobie.lib.data.DataStore;
 import org.embl.mobie.lib.util.MoBIEHelper;
 import org.embl.mobie.lib.volume.MeshCache;
 import org.embl.mobie.lib.volume.SegmentMeshCacher;
+import org.embl.mobie.lib.volume.SegmentVolumeViewer;
 import org.embl.mobie.lib.image.Image;
 import org.embl.mobie.lib.image.NumericAnnotationImage;
 import org.embl.mobie.lib.serialize.View;
@@ -48,6 +49,7 @@ import org.embl.mobie.lib.source.AnnotationType;
 import org.embl.mobie.lib.view.ViewManager;
 import org.embl.mobie.ui.AnnotationDialog;
 import org.embl.mobie.lib.annotation.Annotation;
+import org.embl.mobie.lib.annotation.Segment;
 import org.embl.mobie.lib.bdv.overlay.AnnotatedRegionsOverlay;
 import org.embl.mobie.lib.bdv.overlay.AnnotatedSegmentsOrSpotsOverlay;
 import org.embl.mobie.lib.bdv.overlay.AnnotationOverlay;
@@ -66,6 +68,8 @@ import org.embl.mobie.ui.*;
 import net.imglib2.type.numeric.ARGBType;
 
 import javax.swing.*;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -275,25 +279,169 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		if ( display instanceof SegmentationDisplay )
 		{
-			menu.add( createCacheSegmentMeshesMenuItem() );
+			final JCheckBoxMenuItem cacheRenderedMeshes = createCacheRenderedSegmentMeshesCheckbox();
+			menu.add( cacheRenderedMeshes );
+			menu.add( createCacheSelectedSegmentMeshesMenuItem() );
+			menu.add( createCacheAllSegmentMeshesMenuItem() );
+
+			// The 3D segment viewer is created after the table, so its state
+			// can only be read once the menu is actually opened.
+			menu.getPopupMenu().addPopupMenuListener( new PopupMenuListener()
+			{
+				@Override
+				public void popupMenuWillBecomeVisible( PopupMenuEvent e )
+				{
+					final SegmentVolumeViewer viewer = ( ( SegmentationDisplay ) display ).segmentVolumeViewer;
+					cacheRenderedMeshes.setEnabled( viewer != null );
+					cacheRenderedMeshes.setSelected( viewer != null && viewer.isCacheRenderedMeshes() );
+				}
+
+				@Override
+				public void popupMenuWillBecomeInvisible( PopupMenuEvent e )
+				{}
+
+				@Override
+				public void popupMenuCanceled( PopupMenuEvent e )
+				{}
+			} );
 		}
 
 		return menu;
 	}
 
-	private JMenuItem createCacheSegmentMeshesMenuItem()
+	private JCheckBoxMenuItem createCacheRenderedSegmentMeshesCheckbox()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Cache segment meshes..." );
-		menuItem.addActionListener( e -> showCacheSegmentMeshesDialog() );
+		final JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem( "Cache rendered segment meshes" );
+		menuItem.setToolTipText( "Also store meshes in the disk cache when they are rendered in 3D" );
+		menuItem.setEnabled( false ); // enabled once the 3D segment viewer exists (see createMiscMenu)
+
+		menuItem.addActionListener( e ->
+		{
+			final SegmentVolumeViewer viewer = ( ( SegmentationDisplay ) display ).segmentVolumeViewer;
+			if ( viewer == null )
+			{
+				menuItem.setSelected( false );
+				IJ.showMessage( "The 3D segment viewer is not available for \"" + display.getName() + "\"." );
+				return;
+			}
+
+			if ( menuItem.isSelected() )
+			{
+				if ( viewer.getVoxelSpacing() == null )
+				{
+					// Caching needs a fixed resolution: ask for one first.
+					final Double spacing = chooseMeshSpacing();
+					if ( spacing == null )
+					{
+						menuItem.setSelected( false );
+						return;
+					}
+					viewer.setVoxelSpacing( new double[]{ spacing, spacing, spacing } );
+				}
+
+				// Reconfigure so the cache always matches the current resolution.
+				viewer.configureMeshCache( display.getName(), MoBIEHelper.getMeshCacheDir() );
+				if ( viewer.getMeshCache() == null )
+				{
+					menuItem.setSelected( false );
+					IJ.showMessage( "Could not configure a mesh cache for \"" + display.getName() + "\"." );
+					return;
+				}
+			}
+
+			viewer.setCacheRenderedMeshes( menuItem.isSelected() );
+		} );
+
 		return menuItem;
 	}
 
-	private void showCacheSegmentMeshesDialog()
+	private JMenuItem createCacheSelectedSegmentMeshesMenuItem()
+	{
+		final JMenuItem menuItem = new JMenuItem( "Cache selected segment meshes..." );
+		menuItem.addActionListener( e -> cacheSegments( false ) );
+		return menuItem;
+	}
+
+	private JMenuItem createCacheAllSegmentMeshesMenuItem()
+	{
+		final JMenuItem menuItem = new JMenuItem( "Cache all segment meshes..." );
+		menuItem.addActionListener( e -> cacheSegments( true ) );
+		return menuItem;
+	}
+
+	/**
+	 * Ask for a mesh resolution (one of the source's pyramid levels or a custom
+	 * spacing) and cache the selected or all segments at that resolution.
+	 */
+	@SuppressWarnings( { "unchecked", "rawtypes" } )
+	private void cacheSegments( boolean allSegments )
+	{
+		final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) display;
+
+		final Collection< ? extends Segment > segments;
+		if ( allSegments )
+		{
+			if ( segmentationDisplay.getAnnData() == null || segmentationDisplay.getAnnData().getTable() == null )
+			{
+				IJ.showMessage( "Caching all segments requires a table with segment annotations for \"" + segmentationDisplay.getName() + "\"." );
+				return;
+			}
+			segments = segmentationDisplay.getAnnData().getTable().annotations();
+		}
+		else
+		{
+			segments = segmentationDisplay.selectionModel.getSelected();
+		}
+
+		if ( segments.isEmpty() )
+		{
+			IJ.showMessage( allSegments ? "No segments to cache." : "No segments selected." );
+			return;
+		}
+
+		final Double spacing = chooseMeshSpacing();
+		if ( spacing == null )
+			return;
+
+		if ( allSegments && ! confirmCacheAllSegments( segments.size() ) )
+			return;
+
+		new Thread( () -> runCacheSegments( segmentationDisplay, segments, spacing ) ).start();
+	}
+
+	private boolean confirmCacheAllSegments( int count )
+	{
+		final GenericDialog dialog = new GenericDialog( "Cache all segment meshes" );
+		dialog.addMessage( "This computes and caches smoothed meshes for " + count + " segments.\nDepending on the dataset size this can take a long time." );
+		dialog.showDialog();
+		return ! dialog.wasCanceled();
+	}
+
+	@SuppressWarnings( { "unchecked", "rawtypes" } )
+	private void runCacheSegments( SegmentationDisplay segmentationDisplay, Collection< ? extends Segment > segments, double spacing )
+	{
+		try
+		{
+			final int newlyCached = SegmentMeshCacher.cacheSegmentsAt( segmentationDisplay, segments, spacing );
+			IJ.showMessage( "Done. Cached " + newlyCached + " segment meshes at " + formatSpacing( spacing ) + " (project units).\n\nCache: " + MoBIEHelper.getMeshCacheDir() );
+		}
+		catch ( Exception e )
+		{
+			e.printStackTrace();
+			IJ.showMessage( "Mesh caching failed: " + e.getMessage() );
+		}
+	}
+
+	/**
+	 * Show the mesh-resolution chooser and return the chosen spacing (in the
+	 * project's spatial units), or {@code null} if the user cancelled.
+	 */
+	private Double chooseMeshSpacing()
 	{
 		final List< Double > resolutions = meshResolutionsUm();
 		final String[] choices = new String[ resolutions.size() + 1 ];
 		for ( int i = 0; i < resolutions.size(); i++ )
-			choices[ i ] = formatSpacing( resolutions.get( i ) ) + " um" + ( i == 0 ? " (native)" : "" );
+			choices[ i ] = formatSpacing( resolutions.get( i ) ) + ( i == 0 ? " (native)" : "" );
 		choices[ resolutions.size() ] = "Custom...";
 
 		// Default to the finest resolution for which a cache already exists.
@@ -304,52 +452,23 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				if ( Math.abs( resolutions.get( i ) - cachedSpacing ) < 1e-9 )
 					defaultIndex = i;
 
-		final GenericDialog dialog = new GenericDialog( "Cache segment meshes" );
+		final GenericDialog dialog = new GenericDialog( "Mesh resolution" );
 		dialog.addChoice( "Mesh resolution", choices, choices[ defaultIndex ] );
-		dialog.addMessage( "Computes and caches smoothed meshes of all segments of \"" + display.getName() + "\" at the chosen resolution.\nThe meshes are stored in " + MoBIEHelper.getMeshCacheDir() + "." );
 		dialog.showDialog();
 		if ( dialog.wasCanceled() )
-			return;
+			return null;
 
 		final String selection = dialog.getNextChoice();
-		final double spacing;
-		if ( selection.equals( "Custom..." ) )
-		{
-			final GenericDialog customDialog = new GenericDialog( "Custom mesh resolution" );
-			customDialog.addNumericField( "Spacing (um)", resolutions.isEmpty() ? 0.1 : resolutions.get( 0 ), 4 );
-			customDialog.showDialog();
-			if ( customDialog.wasCanceled() )
-				return;
-			spacing = customDialog.getNextNumber();
-			if ( spacing <= 0 )
-				return;
-		}
-		else
-		{
-			spacing = Double.parseDouble( selection.split( " " )[ 0 ] );
-		}
+		if ( ! selection.equals( "Custom..." ) )
+			return Double.parseDouble( selection.split( " " )[ 0 ] );
 
-		final double finalSpacing = spacing;
-		new Thread( () -> cacheSegmentMeshes( finalSpacing ) ).start();
-	}
-
-	@SuppressWarnings( { "unchecked", "rawtypes" } )
-	private void cacheSegmentMeshes( double spacing )
-	{
-		try
-		{
-			final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) display;
-			final Collection segments = segmentationDisplay.getAnnData() != null && segmentationDisplay.getAnnData().getTable() != null
-					? segmentationDisplay.getAnnData().getTable().annotations()
-					: segmentationDisplay.selectionModel.getSelected();
-			final int newlyCached = SegmentMeshCacher.cacheSegmentsAt( segmentationDisplay, segments, spacing );
-			IJ.showMessage( "Done. Cached " + newlyCached + " segment meshes at " + formatSpacing( spacing ) + " um.\n\nCache: " + MoBIEHelper.getMeshCacheDir() );
-		}
-		catch ( Exception e )
-		{
-			e.printStackTrace();
-			IJ.showMessage( "Mesh caching failed: " + e.getMessage() );
-		}
+		final GenericDialog customDialog = new GenericDialog( "Custom mesh resolution" );
+		customDialog.addNumericField( "Spacing (project units)", resolutions.isEmpty() ? 0.1 : resolutions.get( 0 ), 4 );
+		customDialog.showDialog();
+		if ( customDialog.wasCanceled() )
+			return null;
+		final double spacing = customDialog.getNextNumber();
+		return spacing > 0 ? spacing : null;
 	}
 
 	@SuppressWarnings( { "unchecked", "rawtypes" } )

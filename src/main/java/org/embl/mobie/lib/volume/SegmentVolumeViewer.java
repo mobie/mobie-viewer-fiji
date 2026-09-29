@@ -88,7 +88,8 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 	private double[] voxelSpacing; // desired voxel spacings; null = auto
 	private int currentTimePoint = 0;
 	private final MeshCreator< S > meshCreator;
-	private MeshCache meshCache;
+	private volatile MeshCache meshCache;
+	private volatile boolean cacheRenderedMeshes = false;
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
 	private ImageWindow3D window;
 	private Image3DUniverse universe;
@@ -363,25 +364,77 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 	{
 		final Set< S > selected = selectionModel.getSelected();
 
+		// Segments of other time points must not be displayed.
+		for ( S segment : selected )
+			if ( segment.timePoint() != null && segment.timePoint() != currentTimePoint )
+				removeSegment( segment );
+
+		// Determine which selected segments still need a mesh.
+		final List< S > toRender = new ArrayList<>();
 		for ( S segment : selected )
 		{
-			if ( segment.timePoint() == null || segment.timePoint() == currentTimePoint )
-			{
-				if ( recomputeMeshes ) removeSegment( segment );
+			if ( segment.timePoint() != null && segment.timePoint() != currentTimePoint )
+				continue;
 
-				if ( ! segmentToContent.containsKey( segment ) )
-				{
-					final Source< AnnotationType< S > > source = getSource( segment );
-					final CustomTriangleMesh mesh = meshCreator.createSmoothCustomTriangleMesh( segment, voxelSpacing, recomputeMeshes, source );
-					mesh.setColor( getColor3f( segment ) );
-					addSegmentMeshToUniverse( segment, mesh );
-				}
-			}
-			else // segment is of another time point
-			{
+			if ( recomputeMeshes )
 				removeSegment( segment );
+
+			if ( ! segmentToContent.containsKey( segment ) )
+				toRender.add( segment );
+		}
+
+		if ( toRender.isEmpty() )
+			return;
+
+		// Compute the meshes in parallel. When the user has enabled caching of
+		// rendered meshes, the meshes are also persisted to the disk cache.
+		final boolean storeToCache = cacheRenderedMeshes && meshCache != null;
+		final ConcurrentHashMap< S, CustomTriangleMesh > meshes = new ConcurrentHashMap<>();
+		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
+		for ( S segment : toRender )
+		{
+			futures.add( ThreadHelper.executorService.submit( () ->
+			{
+				try
+				{
+					final CustomTriangleMesh mesh = createMesh( segment, recomputeMeshes, storeToCache );
+					if ( mesh != null )
+						meshes.put( segment, mesh );
+				}
+				catch ( Exception e )
+				{
+					IJ.log( "[MoBIE] Could not create mesh for segment " + segment.label() + ": " + e.getMessage() );
+				}
+			} ) );
+		}
+		ThreadHelper.waitUntilFinished( futures );
+
+		if ( storeToCache )
+		{
+			try
+			{
+				meshCache.flush();
+			}
+			catch ( IOException e )
+			{
+				IJ.log( "[MoBIE] Failed to flush mesh cache: " + e.getMessage() );
 			}
 		}
+
+		for ( S segment : toRender )
+		{
+			final CustomTriangleMesh mesh = meshes.get( segment );
+			if ( mesh == null )
+				continue;
+			mesh.setColor( getColor3f( segment ) );
+			addSegmentMeshToUniverse( segment, mesh );
+		}
+	}
+
+	private CustomTriangleMesh createMesh( S segment, boolean recomputeMesh, boolean storeToCache )
+	{
+		final Source< AnnotationType< S > > source = getSource( segment );
+		return meshCreator.createSmoothCustomTriangleMesh( segment, voxelSpacing, recomputeMesh, source, storeToCache );
 	}
 
 	private Source< AnnotationType< S > > getSource( S segment )
@@ -611,12 +664,34 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 			return false;
 
 		this.voxelSpacing = voxelSpacing;
+
+		// The configured cache, if any, belongs to the previous spacing. Drop it
+		// until it is reconfigured, so meshes are never written to a cache file
+		// for a different resolution.
+		this.meshCache = null;
+		this.meshCreator.setMeshCache( null );
+		this.cacheRenderedMeshes = false;
+
 		return true; // voxel spacing changed
 	}
 
 	public double[] getVoxelSpacing()
 	{
 		return voxelSpacing;
+	}
+
+	/**
+	 * Whether meshes computed while rendering selected segments should also be
+	 * persisted to the disk cache at the current voxel spacing.
+	 */
+	public void setCacheRenderedMeshes( boolean cacheRenderedMeshes )
+	{
+		this.cacheRenderedMeshes = cacheRenderedMeshes;
+	}
+
+	public boolean isCacheRenderedMeshes()
+	{
+		return cacheRenderedMeshes;
 	}
 
 	public void close()
