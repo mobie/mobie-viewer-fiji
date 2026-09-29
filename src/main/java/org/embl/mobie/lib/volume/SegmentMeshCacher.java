@@ -49,8 +49,9 @@ public final class SegmentMeshCacher
 	 *
 	 * @param display   segmentation display whose segments should be cached
 	 * @param segments  the segments to cache
-	 * @param spacingUm isotropic voxel spacing in µm; if {@code <= 0} the
-	 *                  viewer's current (or finest cached) spacing is kept
+	 * @param spacingUm isotropic voxel spacing in the project's spatial units
+	 *                  (not necessarily µm); if {@code <= 0} the viewer's
+	 *                  current (or finest cached) spacing is kept
 	 * @return the number of meshes that were newly cached
 	 * @throws IllegalStateException if no 3D segment viewer or no mesh cache
 	 *                               could be configured for the display
@@ -70,7 +71,7 @@ public final class SegmentMeshCacher
 		if ( display.segmentVolumeViewer.getMeshCache() == null )
 			throw new IllegalStateException(
 					"No mesh cache could be configured for display \"" + display.getName()
-							+ "\". Specify a voxel spacing > 0 (µm) or first cache meshes of this segmentation at a fixed resolution." );
+							+ "\". Specify a voxel spacing > 0 (in the project's spatial units) or first cache meshes of this segmentation at a fixed resolution." );
 
 		if ( segments.isEmpty() )
 			return 0;
