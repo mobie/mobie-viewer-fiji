@@ -339,7 +339,10 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		try
 		{
 			final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) display;
-			final int newlyCached = SegmentMeshCacher.cacheSegmentsAt( segmentationDisplay, spacing );
+			final Collection segments = segmentationDisplay.getAnnData() != null && segmentationDisplay.getAnnData().getTable() != null
+					? segmentationDisplay.getAnnData().getTable().annotations()
+					: segmentationDisplay.selectionModel.getSelected();
+			final int newlyCached = SegmentMeshCacher.cacheSegmentsAt( segmentationDisplay, segments, spacing );
 			IJ.showMessage( "Done. Cached " + newlyCached + " segment meshes at " + formatSpacing( spacing ) + " um.\n\nCache: " + MoBIEHelper.getMeshCacheDir() );
 		}
 		catch ( Exception e )
