@@ -46,7 +46,6 @@ import org.embl.mobie.lib.select.SelectionListener;
 import org.embl.mobie.lib.select.SelectionModel;
 import org.embl.mobie.lib.source.AnnotationType;
 import net.imglib2.type.numeric.ARGBType;
-import org.jogamp.java3d.Bounds;
 import org.jogamp.java3d.View;
 import org.jogamp.vecmath.Color3f;
 
@@ -54,6 +53,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -61,7 +61,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -84,7 +87,7 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 	private double segmentFocusDxyMin;
 	private double segmentFocusDzMin;
 	private long maxNumVoxels;
-	private boolean showSegments = false;
+	private volatile boolean showSegments = false;
 	private double[] voxelSpacing; // desired voxel spacings; null = auto
 	private int currentTimePoint = 0;
 	private final MeshCreator< S > meshCreator;
@@ -92,7 +95,7 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 	private volatile boolean cacheRenderedMeshes = false;
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
 	private ImageWindow3D window;
-	private Image3DUniverse universe;
+	private volatile Image3DUniverse universe;
 
 	public SegmentVolumeViewer(
 			final SelectionModel< S > selectionModel,
@@ -386,48 +389,95 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 		if ( toRender.isEmpty() )
 			return;
 
-		// Compute the meshes in parallel. When the user has enabled caching of
-		// rendered meshes, the meshes are also persisted to the disk cache.
+		// Compute the meshes in parallel, but add each one to the 3D view as
+		// soon as it is ready instead of waiting for the whole batch; this
+		// keeps the view responsive and makes large selections fill in
+		// progressively. Stop early if the 3D window is closed meanwhile.
 		final boolean storeToCache = cacheRenderedMeshes && meshCache != null;
-		final ConcurrentHashMap< S, CustomTriangleMesh > meshes = new ConcurrentHashMap<>();
-		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
+		final ExecutorCompletionService< SimpleEntry< S, CustomTriangleMesh > > completion =
+				new ExecutorCompletionService<>( ThreadHelper.executorService );
+		final List< Future< ? > > submitted = new ArrayList<>();
 		for ( S segment : toRender )
 		{
-			futures.add( ThreadHelper.executorService.submit( () ->
+			submitted.add( completion.submit( () ->
 			{
 				try
 				{
-					final CustomTriangleMesh mesh = createMesh( segment, recomputeMeshes, storeToCache );
-					if ( mesh != null )
-						meshes.put( segment, mesh );
+					return new SimpleEntry< S, CustomTriangleMesh >( segment, createMesh( segment, recomputeMeshes, storeToCache ) );
 				}
 				catch ( Exception e )
 				{
 					IJ.log( "[MoBIE] Could not create mesh for segment " + segment.label() + ": " + e.getMessage() );
+					return new SimpleEntry< S, CustomTriangleMesh >( segment, null );
 				}
 			} ) );
 		}
-		ThreadHelper.waitUntilFinished( futures );
 
-		if ( storeToCache )
+		try
 		{
-			try
+			int remaining = submitted.size();
+			while ( remaining > 0 )
 			{
-				meshCache.flush();
-			}
-			catch ( IOException e )
-			{
-				IJ.log( "[MoBIE] Failed to flush mesh cache: " + e.getMessage() );
+				// Stop adding as soon as the 3D view has been closed.
+				if ( universe == null || ! showSegments )
+					break;
+
+				final Future< SimpleEntry< S, CustomTriangleMesh > > future;
+				try
+				{
+					// Poll rather than block, so a closed window is noticed even
+					// while a long mesh is still being computed.
+					future = completion.poll( 200, TimeUnit.MILLISECONDS );
+				}
+				catch ( InterruptedException e )
+				{
+					Thread.currentThread().interrupt();
+					break;
+				}
+				if ( future == null )
+					continue;
+
+				remaining--;
+				final SimpleEntry< S, CustomTriangleMesh > result;
+				try
+				{
+					result = future.get();
+				}
+				catch ( InterruptedException e )
+				{
+					Thread.currentThread().interrupt();
+					break;
+				}
+				catch ( ExecutionException e )
+				{
+					continue;
+				}
+
+				if ( result.getValue() == null )
+					continue;
+
+				result.getValue().setColor( getColor3f( result.getKey() ) );
+				addSegmentMeshToUniverse( result.getKey(), result.getValue() );
 			}
 		}
-
-		for ( S segment : toRender )
+		finally
 		{
-			final CustomTriangleMesh mesh = meshes.get( segment );
-			if ( mesh == null )
-				continue;
-			mesh.setColor( getColor3f( segment ) );
-			addSegmentMeshToUniverse( segment, mesh );
+			// If we stopped because the view was closed, drop the remaining work.
+			if ( universe == null || ! showSegments )
+				for ( Future< ? > future : submitted )
+					future.cancel( true );
+
+			if ( storeToCache )
+			{
+				try
+				{
+					meshCache.flush();
+				}
+				catch ( IOException e )
+				{
+					IJ.log( "[MoBIE] Failed to flush mesh cache: " + e.getMessage() );
+				}
+			}
 		}
 	}
 
@@ -453,8 +503,18 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 			return;
 		segmentToContent.remove( segment );
 		contentToSegment.remove( content );
+		final Image3DUniverse universe = this.universe;
 		if ( universe != null )
-			universe.removeContent( content.getName() );
+		{
+			try
+			{
+				universe.removeContent( content.getName() );
+			}
+			catch ( Exception e )
+			{
+				IJ.log( "[MoBIE] Could not remove a segment mesh from the 3D view: " + e.getMessage() );
+			}
+		}
 	}
 
 	public synchronized void showSegments( boolean showSegments, boolean autoAdjustView )
@@ -469,11 +529,12 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 				{
 					public void windowClosing( WindowEvent ev )
 					{
-						window = null;
+						// Signal render workers to stop before tearing down.
 						universe = null;
+						window = null;
+						setShowSegments( false );
 						segmentToContent.clear();
 						contentToSegment.clear();
-						setShowSegments( false );
 						universeManager.setUniverse( null );
 						for ( VisibilityListener listener : listeners )
 							listener.visibility( false );
@@ -544,17 +605,28 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 //		for ( int j = 0; j < 10; j++ )
 //			System.out.println( ys[ ys.length - j - 1 ] );
 
+		final Image3DUniverse universe = this.universe;
 		if ( universe == null )
 			return;
 
-		final Bounds bounds = mesh.getBounds();
-		final Content content = universe.addCustomMesh( mesh, "" + segment.hashCode() );
+		try
+		{
+			final Content content = universe.addCustomMesh( mesh, "" + segment.hashCode() );
+			content.setTransparency( ( float ) transparency );
+			content.setLocked( true );
 
-		content.setTransparency( ( float ) transparency );
-		content.setLocked( true );
+			// The universe may have been closed while we were adding; do not
+			// leave stale entries behind in that case.
+			if ( this.universe != universe )
+				return;
 
-		segmentToContent.put( segment, content );
-		contentToSegment.put( content, segment );
+			segmentToContent.put( segment, content );
+			contentToSegment.put( content, segment );
+		}
+		catch ( Exception e )
+		{
+			IJ.log( "[MoBIE] Could not add a segment mesh to the 3D view: " + e.getMessage() );
+		}
 	}
 
 	private boolean configureUniverseListener()
@@ -637,11 +709,14 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 			@Override
 			public void universeClosed()
 			{
+				// Signal render workers to stop before tearing down.
+				universe = null;
+				window = null;
+				setShowSegments( false );
+				segmentToContent.clear();
+				contentToSegment.clear();
 				for ( VisibilityListener listener : listeners )
 					listener.visibility( false );
-
-				window = null;
-				universe = null;
 			}
 		} );
 
