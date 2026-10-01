@@ -397,6 +397,9 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 		final ExecutorCompletionService< SimpleEntry< S, CustomTriangleMesh > > completion =
 				new ExecutorCompletionService<>( ThreadHelper.executorService );
 		final List< Future< ? > > submitted = new ArrayList<>();
+		final int maxLoggedFailures = 10;
+		final AtomicInteger failures = new AtomicInteger();
+		final AtomicInteger noVoxelSegments = new AtomicInteger();
 		for ( S segment : toRender )
 		{
 			submitted.add( completion.submit( () ->
@@ -407,7 +410,20 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 				}
 				catch ( Exception e )
 				{
-					IJ.log( "[MoBIE] Could not create mesh for segment " + segment.label() + ": " + e.getMessage() );
+					if ( noVoxelsInImage( e ) )
+					{
+						// benign: the label is absent from the image volume at
+						// every resolution level (e.g. a table row without mask)
+						noVoxelSegments.incrementAndGet();
+					}
+					else
+					{
+						// Cap the logging: when the 3D window or the application
+						// is closed, many pending render tasks can fail at once.
+						final int failureCount = failures.incrementAndGet();
+						if ( failureCount <= maxLoggedFailures && universe != null && showSegments )
+							IJ.log( "[MoBIE] Could not create mesh for segment " + segment.label() + ": " + e.getMessage() );
+					}
 					return new SimpleEntry< S, CustomTriangleMesh >( segment, null );
 				}
 			} ) );
@@ -467,6 +483,16 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 				for ( Future< ? > future : submitted )
 					future.cancel( true );
 
+			// Summarise instead of logging every failure individually, and stay
+			// quiet while the view is being closed to avoid a log storm.
+			if ( universe != null && showSegments )
+			{
+				if ( failures.get() > maxLoggedFailures )
+					IJ.log( "[MoBIE] " + failures.get() + " segment meshes could not be created; only the first " + maxLoggedFailures + " were logged." );
+				if ( noVoxelSegments.get() > 0 )
+					IJ.log( "[MoBIE] " + noVoxelSegments.get() + " selected segments have no voxels in the image volume and were skipped." );
+			}
+
 			if ( storeToCache )
 			{
 				try
@@ -512,7 +538,8 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 			}
 			catch ( Exception e )
 			{
-				IJ.log( "[MoBIE] Could not remove a segment mesh from the 3D view: " + e.getMessage() );
+				if ( this.universe != null && showSegments )
+					IJ.log( "[MoBIE] Could not remove a segment mesh from the 3D view: " + e.getMessage() );
 			}
 		}
 	}
@@ -625,7 +652,8 @@ public class SegmentVolumeViewer< S extends Segment > implements ColoringListene
 		}
 		catch ( Exception e )
 		{
-			IJ.log( "[MoBIE] Could not add a segment mesh to the 3D view: " + e.getMessage() );
+			if ( this.universe != null && showSegments )
+				IJ.log( "[MoBIE] Could not add a segment mesh to the 3D view: " + e.getMessage() );
 		}
 	}
 
