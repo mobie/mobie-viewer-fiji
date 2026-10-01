@@ -28,10 +28,10 @@
  */
 package org.embl.mobie.lib.volume;
 
+import org.embl.mobie.lib.annotation.Segment;
 import org.embl.mobie.lib.serialize.display.SegmentationDisplay;
 import org.embl.mobie.lib.util.MoBIEHelper;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -48,14 +48,16 @@ public final class SegmentMeshCacher
 	 * segmentation display at the given isotropic voxel spacing.
 	 *
 	 * @param display   segmentation display whose segments should be cached
-	 * @param spacingUm isotropic voxel spacing in µm; if {@code <= 0} the
-	 *                  viewer's current (or finest cached) spacing is kept
+	 * @param segments  the segments to cache
+	 * @param spacingUm isotropic voxel spacing in the project's spatial units
+	 *                  (not necessarily µm); if {@code <= 0} the viewer's
+	 *                  current (or finest cached) spacing is kept
 	 * @return the number of meshes that were newly cached
 	 * @throws IllegalStateException if no 3D segment viewer or no mesh cache
 	 *                               could be configured for the display
 	 */
 	@SuppressWarnings( { "unchecked", "rawtypes" } )
-	public static int cacheSegmentsAt( SegmentationDisplay display, double spacingUm )
+	public static int cacheSegmentsAt( SegmentationDisplay display, Collection< ? extends Segment > segments, double spacingUm )
 	{
 		if ( display.segmentVolumeViewer == null )
 			throw new IllegalStateException(
@@ -69,22 +71,13 @@ public final class SegmentMeshCacher
 		if ( display.segmentVolumeViewer.getMeshCache() == null )
 			throw new IllegalStateException(
 					"No mesh cache could be configured for display \"" + display.getName()
-							+ "\". Specify a voxel spacing > 0 (µm) or first cache meshes of this segmentation at a fixed resolution." );
+							+ "\". Specify a voxel spacing > 0 (in the project's spatial units) or first cache meshes of this segmentation at a fixed resolution." );
 
-		final Collection segments = segments( display );
 		if ( segments.isEmpty() )
 			return 0;
 
 		final int cachedBefore = display.segmentVolumeViewer.getMeshCache().size();
 		display.segmentVolumeViewer.preRenderSegments( segments );
 		return display.segmentVolumeViewer.getMeshCache().size() - cachedBefore;
-	}
-
-	@SuppressWarnings( { "unchecked", "rawtypes" } )
-	private static Collection segments( SegmentationDisplay display )
-	{
-		if ( display.getAnnData() != null && display.getAnnData().getTable() != null )
-			return new ArrayList( display.getAnnData().getTable().annotations() );
-		return display.selectionModel.getSelected();
 	}
 }

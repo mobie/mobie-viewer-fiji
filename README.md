@@ -58,3 +58,15 @@ This choice affects how you need to install MoBIE.
 1. In the Fiji search bar, type: "mobie"<br> <img width="460" alt="image" src="https://user-images.githubusercontent.com/2157566/86445323-79dfea00-bd12-11ea-8884-5e50a08660d0.png"> <br> ...and click [ Run ]
 2. Enter a github repository (e.g., `https://github.com/mobie/platybrowser-project`) representing your datasets <br><img width="300" alt="image" src="https://user-images.githubusercontent.com/2157566/86445504-cdeace80-bd12-11ea-996a-4a6d5d58ccc7.png">
 3. The MoBIE viewer is ready to be used:<br><img width="800" alt="image" src="https://user-images.githubusercontent.com/2157566/86445771-42be0880-bd13-11ea-9627-cd1ee7b62a99.png">
+
+### 3D segment meshes: disk cache
+
+Rendering a segmentation in 3D computes a smoothed surface mesh per segment, which can be slow for large segmentations. The segmentation table's **Misc** menu can cache these meshes on disk so that later sessions reuse them instead of recomputing.
+
+- **Cache rendered segment meshes** — when enabled, meshes computed for the 3D view are also written to the cache. This needs a fixed mesh resolution; if none is set yet, you are asked for one when enabling the option.
+- **Cache selected segment meshes...** — choose a mesh resolution and cache the currently selected segments.
+- **Cache all segment meshes...** — choose a resolution and cache all segments of the segmentation. This asks for confirmation, since it can take a long time, and requires a table with segment annotations.
+
+The resolution chooser lists the segmentation's mipmap levels plus a custom spacing, given in the project's spatial units.
+
+Cache files are written to `<user.home>/.mobie/mesh-cache/<segmentation>-sm5-<spacing>.mel`. When a segmentation declares no `resolution3d`, the finest cached resolution is used automatically. To stop using a cache without deleting it, rename its `.mel` file (for example add a `NOT_IN_USE_` prefix). The cache directory can be overridden with the `-Dmobie.meshCacheDir=<dir>` system property or the `MoBIE.meshCacheDir` ImageJ preference.
