@@ -89,6 +89,11 @@ public class MoBIE
 		net.imagej.patcher.LegacyInjector.preinit();
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 
+		System.setProperty(
+				"com.amazonaws.services.s3.disableGetObjectMD5Validation",
+				"true"
+		);
+
 		new Thread(() -> {
 			long start = System.currentTimeMillis();
 			AmazonS3ClientBuilder.standard();
