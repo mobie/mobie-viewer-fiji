@@ -39,7 +39,7 @@ This choice affects how you need to install MoBIE.
 	- `[ Manage Update Sites ]`
 	- `[ Add Unlisted Site ]`
 		- Name: `MoBIE-latest`
-		- URL: `https://sites.imagej.net/MoBIE-
+		- URL: `https://sites.imagej.net/MoBIE-latest`
     - `[X] OME-Zarr` (optional, provides additional OME-Zarr reader backends within MoBIE)
     - `[X] BigVolumeBrowser` (optional, enables BigVolumeBrowser visualisation within MoBIE)
 3. Restart Fiji
