@@ -47,7 +47,15 @@ import java.util.ArrayList;
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_OPEN + "Open OME-Zarr...")
 public class OpenOMEZARRCommand implements Command {
 
-    static { net.imagej.patcher.LegacyInjector.preinit(); }
+    static {
+        net.imagej.patcher.LegacyInjector.preinit();
+
+        System.setProperty(
+                "com.amazonaws.services.s3.disableGetObjectMD5Validation",
+                "true"
+        );
+    }
+
 
     @Parameter( label = "Container URI",
             description = "Local path or S3 address to an OME-Zarr container.\n" +

@@ -49,7 +49,14 @@ import java.io.IOException;
 		})
 public class OpenCollectionTableCommand implements Command {
 
-	static { net.imagej.patcher.LegacyInjector.preinit(); DebugTools.setRootLevel( "OFF" ); }
+	static {
+		net.imagej.patcher.LegacyInjector.preinit();
+		DebugTools.setRootLevel( "OFF" );
+		System.setProperty(
+				"com.amazonaws.services.s3.disableGetObjectMD5Validation",
+				"true"
+		);
+	}
 
 	@Parameter( label = "Table Uri",
 			description = "Location of the table. Supported formats: TSV, CSV, Excel, Google Sheet URLs")
