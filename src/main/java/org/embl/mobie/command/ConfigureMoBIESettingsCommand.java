@@ -62,6 +62,17 @@ public class ConfigureMoBIESettingsCommand extends DynamicCommand implements Ini
 	{
 		final ImageDataOpener.ZarrOpener opener = toEnumValue( zarrOpener );
 
+		if ( !opener.isAvailable() )
+		{
+			IJ.showMessage(
+					"OME-Zarr reader unavailable",
+					"The selected OME-Zarr reader '" + zarrOpener + "' is not available in this Fiji installation.\n\n" +
+							"To use it please enable the OME-Zarr update site (Help > Update), update Fiji, and restart.\n" +
+							"The OME-Zarr reader stays '" + toGuiValue( ImageDataOpener.getZarrOpener() ) + "'."
+			);
+			return;
+		}
+
 		if ( opener != ImageDataOpener.getZarrOpener() )
 			DataStore.clearImageDataCache();
 
@@ -102,32 +113,6 @@ public class ConfigureMoBIESettingsCommand extends DynamicCommand implements Ini
 				return ImageDataOpener.ZarrOpener.OME_Zarr_Zarr_Java;
 			default:
 				throw new IllegalArgumentException( "Unsupported GUI OME-Zarr opener: " + opener );
-		}
-	}
-
-	private boolean ensureBackendAvailable( String backendName, String className )
-	{
-		if ( isClassAvailable( className ) ) return true;
-
-		IJ.showMessage(
-				"OME-Zarr backend unavailable",
-				"The selected OME-Zarr reader '" + backendName + "' is not available in this Fiji installation.\n" +
-						"Missing class: " + className + "\n\n" +
-						"To use this OME-Zarr reader please enable the OME-Zarr update site (Help > Update), update Fiji, and restart."
-		);
-		return false;
-	}
-
-	private boolean isClassAvailable( String className )
-	{
-		try
-		{
-			Class.forName( className );
-			return true;
-		}
-		catch ( ClassNotFoundException | LinkageError e )
-		{
-			return false;
 		}
 	}
 }
